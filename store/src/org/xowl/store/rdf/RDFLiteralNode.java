@@ -60,7 +60,7 @@ public class RDFLiteralNode implements RDFNode {
 
     @Override
     public RDFNodeType getNodeType() {
-        return RDFNodeType.Literal;
+        return RDFNodeType.LITERAL;
     }
 
     @Override

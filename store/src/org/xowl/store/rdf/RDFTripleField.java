@@ -29,15 +29,15 @@ public enum RDFTripleField {
     /**
      * The triple's subject
      */
-    Subject,
+    SUBJECT,
 
     /**
      * The triple's property
      */
-    Property,
+    PROPERTY,
 
     /**
      * The triple's value
      */
-    Value
+    VALUE
 }

@@ -91,13 +91,13 @@ public class RDFGraph {
      */
     private static Edge createEdge(Ontology onto, RDFProperty property, RDFNode value) {
         switch (value.getNodeType()) {
-            case IRIReference:
+            case IRI_REFERENCE:
                 return new EdgeToIRI(onto, property, value);
-            case Anonymous:
+            case ANONYMOUS:
                 return new EdgeToAnon(onto, property, value);
-            case Blank:
+            case BLANK:
                 return new EdgeToBlank(onto, property, value);
-            case Literal:
+            case LITERAL:
                 return new EdgeToLiteral(onto, property, value);
         }
         // Cannot handle dynamic nodes
@@ -191,13 +191,13 @@ public class RDFGraph {
      */
     public void add(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) {
         switch (subject.getNodeType()) {
-            case IRIReference:
+            case IRI_REFERENCE:
                 add_IRI(ontology, subject, property, value);
                 break;
-            case Anonymous:
+            case ANONYMOUS:
                 add_Anon(ontology, subject, property, value);
                 break;
-            case Blank:
+            case BLANK:
                 add_Blank(ontology, subject, property, value);
                 break;
         }
@@ -242,13 +242,13 @@ public class RDFGraph {
      */
     public void remove(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) {
         switch (subject.getNodeType()) {
-            case IRIReference:
+            case IRI_REFERENCE:
                 remove_IRI(ontology, subject, property, value);
                 break;
-            case Anonymous:
+            case ANONYMOUS:
                 remove_Anon(ontology, subject, property, value);
                 break;
-            case Blank:
+            case BLANK:
                 remove_Blank(ontology, subject, property, value);
                 break;
         }

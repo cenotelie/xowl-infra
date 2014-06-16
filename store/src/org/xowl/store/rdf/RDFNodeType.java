@@ -29,30 +29,30 @@ public enum RDFNodeType {
     /**
      * An IRI
      */
-    IRIReference,
+    IRI_REFERENCE,
 
     /**
      * A blank node
      */
-    Blank,
+    BLANK,
 
     /**
      * An anonymous node
      */
-    Anonymous,
+    ANONYMOUS,
 
     /**
      * A literal node
      */
-    Literal,
+    LITERAL,
 
     /**
      * A variable node
      */
-    Variable,
+    VARIABLE,
 
     /**
      * A dynamic node
      */
-    Dynamic
+    DYNAMIC
 }

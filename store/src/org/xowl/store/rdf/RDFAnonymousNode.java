@@ -44,7 +44,7 @@ public class RDFAnonymousNode implements RDFSubjectNode {
 
     @Override
     public RDFNodeType getNodeType() {
-        return RDFNodeType.Anonymous;
+        return RDFNodeType.ANONYMOUS;
     }
 
     @Override

@@ -44,7 +44,7 @@ public class RDFBlankNode implements RDFSubjectNode {
 
     @Override
     public RDFNodeType getNodeType() {
-        return RDFNodeType.Blank;
+        return RDFNodeType.BLANK;
     }
 
     @Override

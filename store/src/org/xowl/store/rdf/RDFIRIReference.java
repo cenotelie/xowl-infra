@@ -54,7 +54,7 @@ public class RDFIRIReference implements RDFSubjectNode, RDFProperty {
 
     @Override
     public RDFNodeType getNodeType() {
-        return RDFNodeType.IRIReference;
+        return RDFNodeType.IRI_REFERENCE;
     }
 
     @Override
