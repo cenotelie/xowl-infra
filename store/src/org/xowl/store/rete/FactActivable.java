@@ -18,49 +18,43 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.rete;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.Literal;
+import org.xowl.store.rdf.XOWLTriple;
+
+import java.util.Collection;
 
 /**
- * Represents a node in a RDF graph
+ * Represents an element that can be activated by a fact in a RETE graph
  *
  * @author Laurent Wouters
  */
-public interface RDFNode {
+public interface FactActivable {
     /**
-     * Gets the node's type
+     * Activates on the specified fact
      *
-     * @return The node's type
+     * @param fact A fact
      */
-    RDFNodeType getNodeType();
+    void activateFact(XOWLTriple fact);
 
     /**
-     * Gets the store key to retrieve the node's value
+     * Deactivates on the specified fact
      *
-     * @return The store key associated to this node, or null if none is
+     * @param fact A fact
      */
-    Key getStoreKey();
+    void deactivateFact(XOWLTriple fact);
 
     /**
-     * Gets the literal value associated to this node
+     * Activates on a collection of facts
      *
-     * @return The literal value associated to this node, or null if none is
+     * @param facts A collection of facts
      */
-    Literal getLiteralValue();
+    void activateFacts(Collection<XOWLTriple> facts);
 
     /**
-     * Gets the blank identifier of this node
+     * Deactivates on a collection of facts
      *
-     * @return The blank identifier of this node, or -1 if none
+     * @param facts A collection of facts
      */
-    int getBlankID();
-
-    /**
-     * Gets the anonymous individual associated to this node
-     *
-     * @return The anonymous individual associated to this node, or null if none is
-     */
-    AnonymousIndividual getAnonymous();
+    void deactivateFacts(Collection<XOWLTriple> facts);
 }

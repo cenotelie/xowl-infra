@@ -22,6 +22,7 @@ package org.xowl.store.rdf;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.lang.owl2.IRI;
+import org.xowl.lang.owl2.Literal;
 
 /**
  * Represents a node associated to an IRI in a RDF graph
@@ -63,7 +64,7 @@ public class RDFIRIReference implements RDFSubjectNode, RDFProperty {
     }
 
     @Override
-    public RDFLiteral getLiteralValue() {
+    public Literal getLiteralValue() {
         return null;
     }
 

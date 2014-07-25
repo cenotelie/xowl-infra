@@ -313,7 +313,7 @@ public class RDFXMLLoader implements Loader {
             } else if (attName.equals(rdfDatatype)) {
                 String datatype = node.getAttributes().item(i).getNodeValue();
                 String lex = node.getTextContent();
-                RDFNode object = graph.getNodeLiteral(lex, datatype);
+                RDFNode object = graph.getLiteralNode(lex, datatype);
                 addTriple(subject, property, object);
                 return;
             }
@@ -325,7 +325,7 @@ public class RDFXMLLoader implements Loader {
         if (children.isEmpty()) {
             // Plain literal value
             String lex = node.getTextContent();
-            object = graph.getNodeLiteral(lex, OWLDatatype.xsdString);
+            object = graph.getLiteralNode(lex, OWLDatatype.xsdString);
         } else {
             // Value is an RDF node
             object = loadNode(getElements(node).get(0));
@@ -335,11 +335,15 @@ public class RDFXMLLoader implements Loader {
 
     private void loadProperty(RDFSubjectNode subject, String name, String value) {
         RDFProperty property = graph.getNodeIRI(name);
-        RDFNode object = graph.getNodeLiteral(value, OWLDatatype.xsdString);
+        RDFNode object = graph.getLiteralNode(value, OWLDatatype.xsdString);
         addTriple(subject, property, object);
     }
 
     private void addTriple(RDFSubjectNode subject, RDFProperty property, RDFNode value) {
-        graph.add(ontology, subject, property, value);
+        try {
+            graph.add(ontology, subject, property, value);
+        } catch (UnsupportedNodeType ex) {
+            //cannot happen
+        }
     }
 }

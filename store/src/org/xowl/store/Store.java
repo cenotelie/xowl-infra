@@ -59,6 +59,15 @@ public class Store {
     }
 
     /**
+     * Gets the RDF graph backing this store
+     *
+     * @return The RDF graph
+     */
+    public RDFGraph getGraph() {
+        return graph;
+    }
+
+    /**
      * Loads the data from the specified file
      *
      * @param file   The file to load from
@@ -77,6 +86,7 @@ public class Store {
         try {
             reader.close();
         } catch (IOException ex) {
+            logger.error(ex);
         }
     }
 
@@ -102,6 +112,7 @@ public class Store {
             try {
                 fs.close();
             } catch (java.io.IOException ex2) {
+                logger.error(ex);
             }
             logger.error("Cannot open gzip stream to " + file);
             logger.error(ex);
@@ -112,10 +123,12 @@ public class Store {
         try {
             reader.close();
         } catch (IOException ex) {
+            logger.error(ex);
         }
         try {
             fs.close();
         } catch (IOException ex) {
+            logger.error(ex);
         }
     }
 
@@ -140,6 +153,7 @@ public class Store {
             try {
                 zf.close();
             } catch (IOException ex) {
+                logger.error(ex);
             }
             logger.error("Cannot find entry " + entry);
             return;
@@ -151,6 +165,7 @@ public class Store {
             try {
                 zf.close();
             } catch (java.io.IOException ex2) {
+                logger.error(ex);
             }
             logger.error("Cannot open entry " + entry);
             logger.error(ex);
@@ -161,10 +176,12 @@ public class Store {
         try {
             reader.close();
         } catch (IOException ex) {
+            logger.error(ex);
         }
         try {
             zf.close();
         } catch (IOException ex) {
+            logger.error(ex);
         }
     }
 

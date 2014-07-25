@@ -21,51 +21,32 @@
 package org.xowl.store.rdf;
 
 /**
- * Represents a literal in a RDF graph
+ * Exception thrown when the given RDF node is of an unsupported type
  */
-public class RDFLiteral {
-    /**
-     * The key for the literal's type
-     */
-    private Key type;
-    /**
-     * The next literal in the bucket
-     */
-    private RDFLiteral next;
+public class UnsupportedNodeType extends Exception {
 
     /**
-     * Initializes this literal
-     *
-     * @param type The key for the literal's type
+     * The node that was unexpected
      */
-    public RDFLiteral(Key type) {
-        this.type = type;
+    private RDFNode node;
+
+    /**
+     * Initializes this exception
+     *
+     * @param node    The unexpected node
+     * @param message The exception's message
+     */
+    public UnsupportedNodeType(RDFNode node, String message) {
+        super(message);
+        this.node = node;
     }
 
     /**
-     * Gets the key for the literal's type
+     * Gets the unexpected node
      *
-     * @return The key for the literal's type
+     * @return The unexpected node
      */
-    public Key getTypeKey() {
-        return type;
-    }
-
-    /**
-     * Gets the next literal in this bucket
-     *
-     * @return The next literal in this bucket
-     */
-    public RDFLiteral getNext() {
-        return next;
-    }
-
-    /**
-     * Sets the next literal in this bucket
-     *
-     * @param next The next literal in this bucket
-     */
-    public void setNext(RDFLiteral next) {
-        this.next = next;
+    public RDFNode getNode() {
+        return node;
     }
 }

@@ -20,47 +20,38 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.Literal;
+import org.xowl.lang.owl2.Ontology;
 
 /**
- * Represents a node in a RDF graph
+ * Represents a triple fact in a RETE graph
  *
  * @author Laurent Wouters
  */
-public interface RDFNode {
+public class XOWLTriple extends RDFTriple {
     /**
-     * Gets the node's type
-     *
-     * @return The node's type
+     * The containing ontology
      */
-    RDFNodeType getNodeType();
+    private Ontology ontology;
 
     /**
-     * Gets the store key to retrieve the node's value
+     * Initializes this triple fact
      *
-     * @return The store key associated to this node, or null if none is
+     * @param ontology The containing ontology
+     * @param subject  The subject node
+     * @param property The property
+     * @param object   The object node
      */
-    Key getStoreKey();
+    public XOWLTriple(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode object) {
+        super(subject, property, object);
+        this.ontology = ontology;
+    }
 
     /**
-     * Gets the literal value associated to this node
+     * Gets the containing ontology
      *
-     * @return The literal value associated to this node, or null if none is
+     * @return The containing ontology
      */
-    Literal getLiteralValue();
-
-    /**
-     * Gets the blank identifier of this node
-     *
-     * @return The blank identifier of this node, or -1 if none
-     */
-    int getBlankID();
-
-    /**
-     * Gets the anonymous individual associated to this node
-     *
-     * @return The anonymous individual associated to this node, or null if none is
-     */
-    AnonymousIndividual getAnonymous();
+    public Ontology getOntology() {
+        return ontology;
+    }
 }

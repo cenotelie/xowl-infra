@@ -18,49 +18,41 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.rete;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.Literal;
+import java.util.Collection;
 
 /**
- * Represents a node in a RDF graph
+ * Represnets an element that can be activated by a token
  *
  * @author Laurent Wouters
  */
-public interface RDFNode {
+public interface TokenActivable {
     /**
-     * Gets the node's type
+     * Activates on the specified token
      *
-     * @return The node's type
+     * @param token A token
      */
-    RDFNodeType getNodeType();
+    void activateToken(Token token);
 
     /**
-     * Gets the store key to retrieve the node's value
+     * Deactivates on the specified token
      *
-     * @return The store key associated to this node, or null if none is
+     * @param token A token
      */
-    Key getStoreKey();
+    void deactivateToken(Token token);
 
     /**
-     * Gets the literal value associated to this node
+     * Activates on the specified tokens
      *
-     * @return The literal value associated to this node, or null if none is
+     * @param tokens Some tokens
      */
-    Literal getLiteralValue();
+    void activateTokens(Collection<Token> tokens);
 
     /**
-     * Gets the blank identifier of this node
+     * Deactivates on the specified tokens
      *
-     * @return The blank identifier of this node, or -1 if none
+     * @param tokens Some tokens
      */
-    int getBlankID();
-
-    /**
-     * Gets the anonymous individual associated to this node
-     *
-     * @return The anonymous individual associated to this node, or null if none is
-     */
-    AnonymousIndividual getAnonymous();
+    void deactivateTokens(Collection<Token> tokens);
 }

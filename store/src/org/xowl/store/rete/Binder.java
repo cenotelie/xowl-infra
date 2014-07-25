@@ -18,49 +18,45 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.rete;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.Literal;
+import org.xowl.store.rdf.RDFTripleField;
+import org.xowl.store.rdf.XOWLTriple;
+import org.xowl.store.rdf.XOWLVariableNode;
 
 /**
- * Represents a node in a RDF graph
+ * Represents a binding operation that binds a variable to the field of a triple
  *
  * @author Laurent Wouters
  */
-public interface RDFNode {
+public class Binder {
     /**
-     * Gets the node's type
-     *
-     * @return The node's type
+     * The variable to bind to
      */
-    RDFNodeType getNodeType();
+    private XOWLVariableNode variable;
+    /**
+     * The field in a triple that shall be bound
+     */
+    private RDFTripleField field;
 
     /**
-     * Gets the store key to retrieve the node's value
+     * Initializes this element
      *
-     * @return The store key associated to this node, or null if none is
+     * @param variable The variable to bind to
+     * @param field    The field in a triple that shall be bound
      */
-    Key getStoreKey();
+    public Binder(XOWLVariableNode variable, RDFTripleField field) {
+        this.variable = variable;
+        this.field = field;
+    }
 
     /**
-     * Gets the literal value associated to this node
+     * Executes the binding operation
      *
-     * @return The literal value associated to this node, or null if none is
+     * @param token A token which will contain the binding
+     * @param fact  A fact
      */
-    Literal getLiteralValue();
-
-    /**
-     * Gets the blank identifier of this node
-     *
-     * @return The blank identifier of this node, or -1 if none
-     */
-    int getBlankID();
-
-    /**
-     * Gets the anonymous individual associated to this node
-     *
-     * @return The anonymous individual associated to this node, or null if none is
-     */
-    AnonymousIndividual getAnonymous();
+    public void execute(Token token, XOWLTriple fact) {
+        token.bind(variable, fact.getField(field));
+    }
 }

@@ -30,10 +30,6 @@ import org.xowl.lang.owl2.Literal;
  */
 public class RDFLiteralNode implements RDFNode {
     /**
-     * The RDF literal
-     */
-    private RDFLiteral gLit;
-    /**
      * The OWL literal
      */
     private Literal literal;
@@ -41,21 +37,10 @@ public class RDFLiteralNode implements RDFNode {
     /**
      * Initializes this node
      *
-     * @param ln  The RDF literal
      * @param lit The OWL literal
      */
-    RDFLiteralNode(RDFLiteral ln, Literal lit) {
-        this.gLit = ln;
+    RDFLiteralNode(Literal lit) {
         this.literal = lit;
-    }
-
-    /**
-     * Gets the associated literal
-     *
-     * @return The associated OWL literal
-     */
-    public Literal getLiteral() {
-        return literal;
     }
 
     @Override
@@ -69,8 +54,8 @@ public class RDFLiteralNode implements RDFNode {
     }
 
     @Override
-    public RDFLiteral getLiteralValue() {
-        return gLit;
+    public Literal getLiteralValue() {
+        return literal;
     }
 
     @Override
@@ -85,14 +70,14 @@ public class RDFLiteralNode implements RDFNode {
 
     @Override
     public int hashCode() {
-        return gLit.hashCode();
+        return literal.hashCode();
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof RDFLiteralNode) {
             RDFLiteralNode node = (RDFLiteralNode) obj;
-            return (gLit == node.gLit);
+            return (literal == node.literal);
         }
         return false;
     }

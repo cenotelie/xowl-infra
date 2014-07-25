@@ -18,49 +18,46 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.rete;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.Literal;
+import java.util.Collection;
 
 /**
- * Represents a node in a RDF graph
+ * Represents an element that holds tokens
  *
  * @author Laurent Wouters
  */
-public interface RDFNode {
+public interface TokenHolder {
     /**
-     * Gets the node's type
+     * Gets the tokens in this element
      *
-     * @return The node's type
+     * @return The tokens in this element
      */
-    RDFNodeType getNodeType();
+    Collection<Token> getTokens();
 
     /**
-     * Gets the store key to retrieve the node's value
+     * Gets the children of this element
      *
-     * @return The store key associated to this node, or null if none is
+     * @return The children of this element
      */
-    Key getStoreKey();
+    Collection<TokenActivable> getChildren();
 
     /**
-     * Gets the literal value associated to this node
+     * Adds the specified child to this element
      *
-     * @return The literal value associated to this node, or null if none is
+     * @param activable A child element
      */
-    Literal getLiteralValue();
+    void addChild(TokenActivable activable);
 
     /**
-     * Gets the blank identifier of this node
+     * Removes the specified child from this element
      *
-     * @return The blank identifier of this node, or -1 if none
+     * @param activable A child element
      */
-    int getBlankID();
+    void removeChild(TokenActivable activable);
 
     /**
-     * Gets the anonymous individual associated to this node
-     *
-     * @return The anonymous individual associated to this node, or null if none is
+     * Removes all children from this element
      */
-    AnonymousIndividual getAnonymous();
+    void removeAllChildren();
 }

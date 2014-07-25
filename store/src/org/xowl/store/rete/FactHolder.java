@@ -18,49 +18,36 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.rete;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.Literal;
+import org.xowl.store.rdf.XOWLTriple;
+
+import java.util.Collection;
 
 /**
- * Represents a node in a RDF graph
+ * Represents an element that holds facts
  *
  * @author Laurent Wouters
  */
-public interface RDFNode {
+public interface FactHolder {
     /**
-     * Gets the node's type
+     * Gets the facts in this element
      *
-     * @return The node's type
+     * @return The facts in this element
      */
-    RDFNodeType getNodeType();
+    Collection<XOWLTriple> getFacts();
 
     /**
-     * Gets the store key to retrieve the node's value
+     * Adds a new child to this element
      *
-     * @return The store key associated to this node, or null if none is
+     * @param activable The child to add
      */
-    Key getStoreKey();
+    void addChild(FactActivable activable);
 
     /**
-     * Gets the literal value associated to this node
+     * Removes a child from this element
      *
-     * @return The literal value associated to this node, or null if none is
+     * @param node The child to remove
      */
-    Literal getLiteralValue();
-
-    /**
-     * Gets the blank identifier of this node
-     *
-     * @return The blank identifier of this node, or -1 if none
-     */
-    int getBlankID();
-
-    /**
-     * Gets the anonymous individual associated to this node
-     *
-     * @return The anonymous individual associated to this node, or null if none is
-     */
-    AnonymousIndividual getAnonymous();
+    void removeChild(FactActivable node);
 }

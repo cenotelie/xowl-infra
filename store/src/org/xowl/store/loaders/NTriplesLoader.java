@@ -108,7 +108,11 @@ public class NTriplesLoader implements Loader {
             RDFNode n1 = getRDFNode(triple.getChildren().get(0));
             RDFNode n2 = getRDFNode(triple.getChildren().get(1));
             RDFNode n3 = getRDFNode(triple.getChildren().get(2));
-            graph.add(ontology, (RDFSubjectNode) n1, (RDFProperty) n2, n3);
+            try {
+                graph.add(ontology, (RDFSubjectNode) n1, (RDFProperty) n2, n3);
+            } catch (UnsupportedNodeType ex) {
+                // cannot happen
+            }
         }
     }
 
@@ -132,18 +136,18 @@ public class NTriplesLoader implements Loader {
                 blanks.put(id, blank);
                 return blank;
             case NTriplesLexer.ID.LIT_STRING:
-                return graph.getNodeLiteral(unescape(value), OWLDatatype.xsdString);
+                return graph.getLiteralNode(unescape(value), OWLDatatype.xsdString);
             case NTriplesLexer.ID.LIT_TYPED:
                 int index = value.lastIndexOf("^^");
-                return graph.getNodeLiteral(unescape(value.substring(0, index + 1)), value.substring(index + 3, value.length() - 1));
+                return graph.getLiteralNode(unescape(value.substring(0, index + 1)), value.substring(index + 3, value.length() - 1));
             case NTriplesLexer.ID.LIT_LING:
                 index = value.lastIndexOf("@");
-                return graph.getNodeLiteral(unescape(value.substring(0, index + 1)), OWLDatatype.xsdString);
+                return graph.getLiteralNode(unescape(value.substring(0, index + 1)), OWLDatatype.xsdString);
             case NTriplesLexer.ID.LIT_NUM:
                 if (value.contains("."))
-                    return graph.getNodeLiteral(value, OWLDatatype.xsdFloat);
+                    return graph.getLiteralNode(value, OWLDatatype.xsdFloat);
                 else
-                    return graph.getNodeLiteral(value, OWLDatatype.xsdInteger);
+                    return graph.getLiteralNode(value, OWLDatatype.xsdInteger);
         }
         return null;
     }

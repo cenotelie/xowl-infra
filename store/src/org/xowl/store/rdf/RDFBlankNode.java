@@ -21,6 +21,7 @@
 package org.xowl.store.rdf;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.lang.owl2.Literal;
 
 /**
  * Represents a blank node in a RDF graph
@@ -53,7 +54,7 @@ public class RDFBlankNode implements RDFSubjectNode {
     }
 
     @Override
-    public RDFLiteral getLiteralValue() {
+    public Literal getLiteralValue() {
         return null;
     }
 

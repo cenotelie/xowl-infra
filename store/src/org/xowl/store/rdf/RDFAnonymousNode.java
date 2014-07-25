@@ -21,6 +21,7 @@
 package org.xowl.store.rdf;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.lang.owl2.Literal;
 
 /**
  * Represents a RDF graph associated to an anonymous individual
@@ -53,7 +54,7 @@ public class RDFAnonymousNode implements RDFSubjectNode {
     }
 
     @Override
-    public RDFLiteral getLiteralValue() {
+    public Literal getLiteralValue() {
         return null;
     }
 
