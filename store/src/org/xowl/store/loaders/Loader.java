@@ -31,6 +31,11 @@ import java.io.Reader;
  */
 public interface Loader {
     /**
+     * Default URIs for the loaded ontologies
+     */
+    public static final String DEFAULT_GRAPH_URIS = "http://xowl.org/store/rdfgraphs/";
+
+    /**
      * Loads data into the store
      *
      * @param logger The logger to use

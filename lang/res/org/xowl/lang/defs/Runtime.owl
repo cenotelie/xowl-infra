@@ -1,10 +1,10 @@
 Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
 Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
-Prefix(:=<http://www.xowl.org/lang/runtime#>)
-Prefix(owl2:=<http://www.xowl.org/lang/owl2#>)
-Prefix(actions:=<http://www.xowl.org/lang/actions#>)
+Prefix(:=<http://xowl.org/lang/runtime#>)
+Prefix(owl2:=<http://xowl.org/lang/owl2#>)
+Prefix(actions:=<http://xowl.org/lang/actions#>)
 
-Ontology(<http://www.xowl.org/lang/runtime>
+Ontology(<http://xowl.org/lang/runtime>
 
 SubClassOf(owl2:AnonymousIndividual :Individual)
 SubClassOf(owl2:AnonymousIndividual :Value)

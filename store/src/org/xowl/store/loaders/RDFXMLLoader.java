@@ -39,7 +39,6 @@ import java.util.*;
  * @author Laurent Wouters
  */
 public class RDFXMLLoader implements Loader {
-    private static final String defaultRDFGraphs = "http://www.org.xowl.org/interpreter/rdfgraphs/";
     private static final String prefix = "rdf:";
     private static final String rdfDescription = prefix + RDF.nameDescription;
     private static final String rdfAbout = prefix + RDF.nameAbout;
@@ -148,7 +147,7 @@ public class RDFXMLLoader implements Loader {
         }
         if (baseIRI == null) {
             Random rand = new Random();
-            String value = defaultRDFGraphs + Integer.toHexString(rand.nextInt()) + "#";
+            String value = DEFAULT_GRAPH_URIS + Integer.toHexString(rand.nextInt()) + "#";
             setBaseIRI(value);
         }
         for (Node child : getElements(node))

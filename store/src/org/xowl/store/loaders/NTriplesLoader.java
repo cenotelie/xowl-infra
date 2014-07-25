@@ -41,8 +41,6 @@ import java.util.Map;
  * @author Laurent Wouters
  */
 public class NTriplesLoader implements Loader {
-    private static final String defaultRDFGraphs = "http://www.org.xowl.org/interpreter/rdfgraphs/";
-
     /**
      * The RDF graph to load in
      */
@@ -78,7 +76,7 @@ public class NTriplesLoader implements Loader {
     @Override
     public void load(Logger logger, String name, Reader reader) {
         java.util.Random rand = new java.util.Random();
-        String value = defaultRDFGraphs + Integer.toHexString(rand.nextInt());
+        String value = DEFAULT_GRAPH_URIS + Integer.toHexString(rand.nextInt());
         IRI iri = new IRI();
         iri.setHasValue(value);
         ontology = new Ontology();

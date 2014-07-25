@@ -1,9 +1,9 @@
 Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
-Prefix(:=<http://www.xowl.org/lang/interop#>)
-Prefix(owl2:=<http://www.xowl.org/lang/owl2#>)
-Prefix(actions:=<http://www.xowl.org/lang/actions#>)
+Prefix(:=<http://xowl.org/lang/interop#>)
+Prefix(owl2:=<http://xowl.org/lang/owl2#>)
+Prefix(actions:=<http://xowl.org/lang/actions#>)
 
-Ontology(<http://www.xowl.org/lang/interop>
+Ontology(<http://xowl.org/lang/interop>
 
 SubClassOf(actions:ArrayElement :JavaObjectExpression)
 SubClassOf(actions:CodeVariable :JavaObjectExpression)
