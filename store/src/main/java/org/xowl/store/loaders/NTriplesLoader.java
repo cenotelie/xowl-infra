@@ -86,7 +86,7 @@ public class NTriplesLoader extends Loader {
 
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
-            return ontology;
+            return null;
 
         for (ASTNode triple : result.getRoot().getChildren()) {
             RDFNode n1 = getRDFNode(triple.getChildren().get(0));

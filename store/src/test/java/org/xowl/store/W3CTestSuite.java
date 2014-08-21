@@ -22,6 +22,7 @@ package org.xowl.store;
 
 import org.junit.Assert;
 import org.xowl.hime.redist.ParseResult;
+import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.Loader;
 import org.xowl.store.loaders.NTriplesLoader;
 import org.xowl.store.loaders.RDFXMLLoader;
@@ -87,7 +88,45 @@ public abstract class W3CTestSuite {
             Assert.assertTrue("Failed to parse resource " + resource, result.isSuccess());
             Assert.assertEquals("Failed to parse resource " + resource, 0, result.getErrors().size());
         } else {
-            Assert.assertNotEquals("Succeeded to parse resource " + resource, 0, result.getErrors().size());
+            Assert.assertNotEquals("No error reported while parsing " + resource, 0, result.getErrors().size());
+        }
+
+        try {
+            reader.close();
+        } catch (IOException ex) {
+            Assert.fail("Failed to close the resource " + resource);
+        }
+    }
+
+    /**
+     * Tests the loading of a resource
+     *
+     * @param resource     A resource
+     * @param shallSucceed Whether the loading is expected to succeed
+     */
+    protected void test_loading(String resource, boolean shallSucceed) {
+        System.out.println("Loading test: " + resource);
+        logger.reset();
+        Loader loader = null;
+        if (resource.endsWith(".nt")) {
+            loader = new NTriplesLoader(graph);
+        } else if (resource.endsWith(".ttl")) {
+            loader = new TurtleLoader(graph);
+        } else if (resource.endsWith(".xml")) {
+            loader = new RDFXMLLoader(graph);
+        }
+        Assert.assertNotNull("No loader found for resource " + resource, loader);
+
+        InputStream stream = W3CTestSuite.class.getResourceAsStream(resource);
+        Reader reader = new InputStreamReader(stream);
+
+        Ontology result = loader.load(logger, reader);
+        if (shallSucceed) {
+            Assert.assertFalse("Failed to parse resource " + resource, logger.isOnError());
+            Assert.assertNotNull("Failed to load resource " + resource, result);
+        } else {
+            Assert.assertTrue("No error reported while parsing " + resource, logger.isOnError());
+            Assert.assertNull("Mistakenly reported success of loading " + resource, result);
         }
 
         try {
