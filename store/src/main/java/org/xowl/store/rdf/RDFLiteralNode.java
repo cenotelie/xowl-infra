@@ -21,6 +21,7 @@
 package org.xowl.store.rdf;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Literal;
 
 /**
@@ -28,34 +29,15 @@ import org.xowl.lang.owl2.Literal;
  *
  * @author Laurent Wouters
  */
-public class RDFLiteralNode implements RDFNode {
-    /**
-     * The OWL literal
-     */
-    private Literal literal;
-
-    /**
-     * Initializes this node
-     *
-     * @param lit The OWL literal
-     */
-    RDFLiteralNode(Literal lit) {
-        this.literal = lit;
-    }
-
+public abstract class RDFLiteralNode implements RDFNode {
     @Override
     public RDFNodeType getNodeType() {
         return RDFNodeType.LITERAL;
     }
 
     @Override
-    public Key getStoreKey() {
+    public IRI getIRI() {
         return null;
-    }
-
-    @Override
-    public Literal getLiteralValue() {
-        return literal;
     }
 
     @Override
@@ -69,21 +51,8 @@ public class RDFLiteralNode implements RDFNode {
     }
 
     @Override
-    public int hashCode() {
-        return literal.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof RDFLiteralNode) {
-            RDFLiteralNode node = (RDFLiteralNode) obj;
-            return (literal == node.literal);
-        }
-        return false;
-    }
-
-    @Override
     public String toString() {
+        Literal literal = getLiteralValue();
         StringBuilder builder = new StringBuilder("\"");
         builder.append(literal.getLexicalValue());
         builder.append("\"");

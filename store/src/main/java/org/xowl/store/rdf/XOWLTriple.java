@@ -54,4 +54,13 @@ public class XOWLTriple extends RDFTriple {
     public Ontology getOntology() {
         return ontology;
     }
+
+    /**
+     * Sets the containing ontology
+     *
+     * @param ontology The containing ontology
+     */
+    void setOntology(Ontology ontology) {
+        this.ontology = ontology;
+    }
 }

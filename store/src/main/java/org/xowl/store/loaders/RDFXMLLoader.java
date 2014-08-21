@@ -24,6 +24,7 @@ import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
+import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.rdf.*;
@@ -31,6 +32,7 @@ import org.xowl.store.voc.OWLDatatype;
 import org.xowl.store.voc.RDF;
 import org.xowl.utils.Logger;
 
+import java.io.Reader;
 import java.util.*;
 
 /**
@@ -38,7 +40,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class RDFXMLLoader implements Loader {
+public class RDFXMLLoader extends Loader {
     private static final String prefix = "rdf:";
     private static final String rdfDescription = prefix + RDF.nameDescription;
     private static final String rdfAbout = prefix + RDF.nameAbout;
@@ -85,33 +87,14 @@ public class RDFXMLLoader implements Loader {
         this.anonymous = new HashMap<>();
     }
 
-    /**
-     * Gets a list of the Element child nodes in the specified node
-     *
-     * @param node A XML node
-     * @return List of the Element child nodes
-     */
-    public static List<Node> getElements(Node node) {
-        List<org.w3c.dom.Node> list = new ArrayList<>();
-        for (int i = 0; i != node.getChildNodes().getLength(); i++) {
-            Node child = node.getChildNodes().item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE)
-                list.add(child);
-        }
-        return list;
-    }
-
-    /**
-     * Gets the current ontology
-     *
-     * @return The current ontology
-     */
-    public Ontology getOntology() {
-        return ontology;
+    @Override
+    public ParseResult parse(Logger logger, Reader reader) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public void load(Logger logger, String name, java.io.Reader reader) {
+    public Ontology load(Logger logger, java.io.Reader reader) {
+        ontology = createNewOntology();
         DOMParser parser = new DOMParser();
         try {
             parser.parse(new InputSource(reader));
@@ -125,9 +108,9 @@ public class RDFXMLLoader implements Loader {
                 }
             }
         } catch (Exception ex) {
-            logger.error("Error while loading " + name + ": " + ex.getMessage());
             logger.error(ex);
         }
+        return ontology;
     }
 
     /**
@@ -312,7 +295,7 @@ public class RDFXMLLoader implements Loader {
             } else if (attName.equals(rdfDatatype)) {
                 String datatype = node.getAttributes().item(i).getNodeValue();
                 String lex = node.getTextContent();
-                RDFNode object = graph.getLiteralNode(lex, datatype);
+                RDFNode object = graph.getLiteralNode(lex, datatype, null);
                 addTriple(subject, property, object);
                 return;
             }
@@ -324,7 +307,7 @@ public class RDFXMLLoader implements Loader {
         if (children.isEmpty()) {
             // Plain literal value
             String lex = node.getTextContent();
-            object = graph.getLiteralNode(lex, OWLDatatype.xsdString);
+            object = graph.getLiteralNode(lex, OWLDatatype.xsdString, null);
         } else {
             // Value is an RDF node
             object = loadNode(getElements(node).get(0));
@@ -334,7 +317,7 @@ public class RDFXMLLoader implements Loader {
 
     private void loadProperty(RDFSubjectNode subject, String name, String value) {
         RDFProperty property = graph.getNodeIRI(name);
-        RDFNode object = graph.getLiteralNode(value, OWLDatatype.xsdString);
+        RDFNode object = graph.getLiteralNode(value, OWLDatatype.xsdString, null);
         addTriple(subject, property, object);
     }
 

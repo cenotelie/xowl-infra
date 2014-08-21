@@ -18,12 +18,54 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store;
+
+import org.xowl.utils.Logger;
 
 /**
- * Represents a key to retrieve a value in a store
- *
- * @author Laurent Wouters
+ * Error logger for the tests
  */
-public interface Key {
+public class TestLogger implements Logger {
+
+    /**
+     * The status of this error
+     */
+    private boolean onError;
+
+    /**
+     * Determines whether this logger is on error
+     *
+     * @return Whether this logger is on error
+     */
+    public boolean isOnError() {
+        return onError;
+    }
+
+    /**
+     * Resets the status of this logger
+     */
+    public void reset() {
+        onError = false;
+    }
+
+    @Override
+    public void debug(Object message) {
+
+    }
+
+    @Override
+    public void info(Object message) {
+
+    }
+
+    @Override
+    public void warning(Object message) {
+
+    }
+
+    @Override
+    public void error(Object message) {
+        System.out.println(message);
+        onError = true;
+    }
 }

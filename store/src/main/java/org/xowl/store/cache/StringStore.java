@@ -24,8 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 /**
  * Represents an efficient storage of Strings used in an ontology
@@ -36,11 +35,20 @@ public class StringStore {
     /**
      * The buffer's size
      */
-    private static final int bufferSize = 2048;
+    private static final int BUFFER_SIZE = 2048;
     /**
-     * The backing file
+     * The initial size of the buffer storing the entries
      */
-    private RandomAccessFile file;
+    private static final int INIT_ENTRY_COUNT = 1024;
+    /**
+     * The initial size of the buffer storing the bucket data
+     */
+    private static final int INIT_BUCKET_COUNT = 200;
+
+    /**
+     * The backing data file
+     */
+    private RandomAccessFile fileData;
     /**
      * The charset to use
      */
@@ -50,9 +58,21 @@ public class StringStore {
      */
     private int size;
     /**
-     * The index to this store associating hashes of the values to buckets of values
+     * List of entries in this store
      */
-    private Map<Integer, Key> index;
+    private Entry[] entries;
+    /**
+     * The number of entries
+     */
+    private int entryCount;
+    /**
+     * Hash of the buckets
+     */
+    private HashBucket[] buckets;
+    /**
+     * The number of buckets
+     */
+    private int bucketCount;
     /**
      * A buffer
      */
@@ -65,115 +85,27 @@ public class StringStore {
      */
     public StringStore() throws IOException {
         File file = File.createTempFile("store", null);
-        this.file = new RandomAccessFile(file.getAbsolutePath(), "rw");
+        this.fileData = new RandomAccessFile(file.getAbsolutePath(), "rw");
         this.charset = Charset.forName("UTF-8");
-        this.index = new HashMap<>();
-        this.inner = new byte[bufferSize];
+        this.entries = new Entry[INIT_ENTRY_COUNT];
+        this.entryCount = 0;
+        this.buckets = new HashBucket[INIT_BUCKET_COUNT];
+        this.bucketCount = 0;
+        this.inner = new byte[BUFFER_SIZE];
     }
 
     /**
-     * Stores the specified value in this store
+     * Gets the value for the specified entry
      *
-     * @param value The value to store
-     * @return The key used to retrieve the value
-     */
-    public Key store(String value) {
-        Key bucket = index.get(value.hashCode());
-        if (bucket != null) {
-            Key result = find(bucket, value);
-            if (result != null)
-                return result;
-            result = dump(value);
-            insert(bucket, result);
-            return result;
-        } else {
-            bucket = dump(value);
-            index.put(value.hashCode(), bucket);
-            return bucket;
-        }
-    }
-
-    /**
-     * Inserts the specified key in the bucket
-     *
-     * @param bucket A bucket
-     * @param key    The key to insert
-     */
-    private void insert(Key bucket, Key key) {
-        while (bucket.next != null)
-            bucket = bucket.next;
-        bucket.next = key;
-    }
-
-    /**
-     * Retrieve the key for the specified value in the given bucket
-     *
-     * @param bucket A bucket
-     * @param value  The value to search for
-     * @return The key for the value, or null if it is not in the store
-     */
-    private Key find(Key bucket, String value) {
-        byte[] bytes = value.getBytes(charset);
-        try {
-            while (bucket != null) {
-                if (bucket.size == bytes.length) {
-                    file.seek(bucket.offset);
-                    read(bucket.size);
-                    if (matches(bytes, inner))
-                        return bucket;
-                }
-                bucket = bucket.next;
-            }
-            return null;
-        } catch (java.io.IOException ex) {
-            return null;
-        }
-    }
-
-    /**
-     * Determines whether two byte arrays are equals
-     *
-     * @param left  The left byte array
-     * @param right The right byte array
-     * @return true if the byte arrays are equals
-     */
-    private boolean matches(byte[] left, byte[] right) {
-        for (int i = 0; i != left.length; i++)
-            if (left[i] != right[i])
-                return false;
-        return true;
-    }
-
-    /**
-     * Writes the specified value in this store
-     *
-     * @param value A value
-     * @return The key to retrieve the value
-     */
-    private Key dump(String value) {
-        try {
-            byte[] bytes = value.getBytes(charset);
-            Key key = new Key(size, bytes.length);
-            file.seek(size);
-            file.write(bytes);
-            size += bytes.length;
-            return key;
-        } catch (IOException ex) {
-            return null;
-        }
-    }
-
-    /**
-     * Gets the value associated to the specified key
-     *
-     * @param key A key
+     * @param entry The entry to retrieve
      * @return The value associated to the key
      */
-    public String retrieve(Key key) {
+    public String retrieve(int entry) {
+        Entry e = entries[entry];
         try {
-            file.seek(key.size);
-            read(key.size);
-            return new String(inner, 0, key.size, charset);
+            fileData.seek(e.getOffset());
+            read(e.getSize());
+            return new String(inner, 0, e.getSize(), charset);
         } catch (IOException ex) {
             return null;
         }
@@ -192,46 +124,95 @@ public class StringStore {
         // read
         int toRead = length;
         while (toRead > 0) {
-            toRead -= file.read(inner, length - toRead, toRead);
+            toRead -= fileData.read(inner, length - toRead, toRead);
         }
     }
 
     /**
-     * Represents a key to a string in a StringStore
+     * Stores the specified value in this store
+     *
+     * @param value The value to store
+     * @return The key used to retrieve the value
      */
-    public static class Key implements org.xowl.store.rdf.Key {
-        /**
-         * Offset in the store of the value associated to this key
-         */
-        private int offset;
-        /**
-         * Size of the value associated to this key
-         */
-        private int size;
-        /**
-         * The next key
-         */
-        private Key next;
-
-        /**
-         * Initializes this key
-         *
-         * @param offset Offset in the store of the value associated to this key
-         * @param size   Size of the value associated to this key
-         */
-        private Key(int offset, int size) {
-            this.offset = offset;
-            this.size = size;
+    public int store(String value) {
+        int hash = value.hashCode();
+        byte[] bytes = value.getBytes(charset);
+        for (int i = 0; i != bucketCount; i++) {
+            if (buckets[i].getHash() == hash) {
+                return storeInBucket(buckets[i], bytes);
+            }
         }
+        // this is a new hash => new bucket
+        if (bucketCount == buckets.length)
+            buckets = Arrays.copyOf(buckets, buckets.length + INIT_BUCKET_COUNT);
+        int index = dump(bytes);
+        buckets[bucketCount] = new HashBucket(hash);
+        buckets[bucketCount].add(index);
+        bucketCount++;
+        return index;
+    }
 
-        @Override
-        public int hashCode() {
-            return offset;
+    /**
+     * Stores the specified value in the specified bucket
+     *
+     * @param bucket The bucket to store in
+     * @param bytes  The bytes to store
+     * @return The index of the entry
+     */
+    private int storeInBucket(HashBucket bucket, byte[] bytes) {
+        for (int i = 0; i != bucket.getSize(); i++) {
+            int index = bucket.getEntry(i);
+            Entry entry = entries[bucket.getEntry(i)];
+            if (entry.getSize() == bytes.length) {
+                try {
+                    fileData.seek(entry.getOffset());
+                    read(entry.getSize());
+                } catch (IOException ex) {
+                    continue;
+                }
+                if (matches(bytes, inner))
+                    return index;
+            }
         }
+        // not in this bucket yet ...
+        int index = dump(bytes);
+        bucket.add(index);
+        return index;
+    }
 
-        @Override
-        public boolean equals(Object o) {
-            return ((o instanceof Key) && (this == o));
+    /**
+     * Writes the specified bytes in this store
+     *
+     * @param bytes The bytes to store
+     * @return The key to retrieve the value
+     */
+    private int dump(byte[] bytes) {
+        try {
+            Entry entry = new Entry(size, bytes.length);
+            fileData.seek(size);
+            fileData.write(bytes);
+            size += bytes.length;
+            if (entryCount == entries.length)
+                entries = Arrays.copyOf(entries, entries.length + INIT_ENTRY_COUNT);
+            entries[entryCount] = entry;
+            entryCount++;
+            return entryCount - 1;
+        } catch (IOException ex) {
+            return -1;
         }
+    }
+
+    /**
+     * Determines whether two byte arrays are equals
+     *
+     * @param left  The left byte array
+     * @param right The right byte array
+     * @return true if the byte arrays are equals
+     */
+    private boolean matches(byte[] left, byte[] right) {
+        for (int i = 0; i != left.length; i++)
+            if (left[i] != right[i])
+                return false;
+        return true;
     }
 }

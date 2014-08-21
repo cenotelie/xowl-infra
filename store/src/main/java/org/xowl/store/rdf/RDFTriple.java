@@ -62,6 +62,15 @@ public class RDFTriple {
     }
 
     /**
+     * Sets the subject node
+     *
+     * @param subject The subject node
+     */
+    void setSubject(RDFSubjectNode subject) {
+        this.subject = subject;
+    }
+
+    /**
      * Gets the property
      *
      * @return The property
@@ -71,12 +80,30 @@ public class RDFTriple {
     }
 
     /**
+     * Gets the property
+     *
+     * @param property The property
+     */
+    void setProperty(RDFProperty property) {
+        this.property = property;
+    }
+
+    /**
      * Gets the object node
      *
      * @return The object node
      */
     public RDFNode getObject() {
         return object;
+    }
+
+    /**
+     * Sets the object node
+     *
+     * @param object The object node
+     */
+    void setObject(RDFNode object) {
+        this.object = object;
     }
 
     /**

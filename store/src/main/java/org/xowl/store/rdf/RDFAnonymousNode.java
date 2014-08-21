@@ -21,6 +21,7 @@
 package org.xowl.store.rdf;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Literal;
 
 /**
@@ -39,7 +40,7 @@ public class RDFAnonymousNode implements RDFSubjectNode {
      *
      * @param anon The represented anonymous individual
      */
-    RDFAnonymousNode(AnonymousIndividual anon) {
+    public RDFAnonymousNode(AnonymousIndividual anon) {
         anonInd = anon;
     }
 
@@ -49,7 +50,7 @@ public class RDFAnonymousNode implements RDFSubjectNode {
     }
 
     @Override
-    public Key getStoreKey() {
+    public IRI getIRI() {
         return null;
     }
 

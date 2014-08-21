@@ -55,6 +55,7 @@ public class OWLDatatype {
     public static final String xsdTime = RDF.xsd + "time";
     // RDF Datatypes
     public static final String rdfPlainLiteral = RDF.rdf + "PlainLiteral";
+    public static final String rdfLangString = RDF.rdf + "langString";
     // OWL Datatypes
     public static final String owlReal = RDF.owl + "real";
     public static final String owlRational = RDF.owl + "rational";

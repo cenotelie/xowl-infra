@@ -2,7 +2,8 @@ grammar NTriples
 {
 	options
 	{
-		Axiom = "file";
+		Axiom = "ntriplesDoc";
+		Separator = "BLANK";
 	}
 	terminals
 	{
@@ -12,30 +13,36 @@ grammar NTriples
 						|  U+2028 /* LS */
 						|  U+2029 /* PS */ ;
 		WHITE_SPACE		-> U+0020 | U+0009 | U+000B | U+000C ;
-		BLANK			-> NEW_LINE | WHITE_SPACE ;
+		COMMENT			-> '#' (.* - (.* NEW_LINE .*)) NEW_LINE ;
+		BLANK			-> NEW_LINE | WHITE_SPACE | COMMENT ;
 		
-		PN_CHARS_BASE -> [A-Za-z] | U+00C0 .. U+00D6 | U+00D8 .. U+00F6 | U+00F8 .. U+02FF | U+0370 .. U+037D | U+037F .. U+1FFF | U+200C .. U+200D | U+2070 .. U+218F | U+2C00 .. U+2FEF | U+3001 .. U+D7FF | U+F900 .. U+FDCF | U+FDF0 .. U+FFFD ;
-		PN_CHARS_U		-> PN_CHARS_BASE | '_' ;
-		PN_CHARS		-> PN_CHARS_U | '-' | [0-9] | U+00B7 | U+0300 .. U+036F | U+203F .. U+2040;
-		PN_LOCAL		-> (PN_CHARS_U | [0-9]) ((PN_CHARS | '.')* PN_CHARS)?;
+		LANGTAG					-> '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ;
 		
-		FULLIRI			-> '<' (.* - (.* '>' .*)) '>' ;
-		NODEID			-> '_:' PN_LOCAL ;
-		LIT_STRING		-> '"' ((. - ('\\'|'"')) | '\\\\' | '\\"' | '\\t' | '\\r' | '\\n' | '\\' [uU] [0-9a-fA-F]+)* '"' ;
-		LIT_TYPED		-> LIT_STRING '^^' FULLIRI ;
-		LIT_LING		-> LIT_STRING '@' [a-z]+ ('-' [a-z0-9]+)*;
-		LIT_NUM			-> ('+'|'-')? ('0' | [1-9] [0-9]*) ('.' [0-9]*)? ;
-		DOT				-> '.' ;
+		IRIREF					-> '<' (
+									. - (U+0000 .. U+0020 | [<>"{}|^`\\])
+									| '\\u' [a-fA-F0-9]{4}
+									| '\\U' [a-fA-F0-9]{8}
+								)* '>' ;
+		
+		STRING_LITERAL_QUOTE	-> '"' (
+									. - (U+0022 | U+005C | U+000A | U+000D)
+									| '\\' ([tbnrf"'] | '\\')
+									| '\\u' [a-fA-F0-9]{4}
+									| '\\U' [a-fA-F0-9]{8}
+								)* '"' ;
+		
+		PN_CHARS_BASE			-> [A-Za-z] | U+00C0 .. U+00D6 | U+00D8 .. U+00F6 | U+00F8 .. U+02FF | U+0370 .. U+037D | U+037F .. U+1FFF | U+200C .. U+200D | U+2070 .. U+218F | U+2C00 .. U+2FEF | U+3001 .. U+D7FF | U+F900 .. U+FDCF | U+FDF0 .. U+FFFD ;
+		PN_CHARS_U				-> PN_CHARS_BASE | '_' | ':' ;
+		PN_CHARS				-> PN_CHARS_U | '-' | [0-9] | U+00B7 | U+0300 .. U+036F | U+203F .. U+2040;
+		BLANK_NODE_LABEL		-> '_:' (PN_CHARS_U | [0-9]) ((PN_CHARS | '.')* PN_CHARS)? ;
 	}
 	rules
 	{
-		node			-> FULLIRI^
-						|  NODEID^
-						|  LIT_STRING^
-						|  LIT_TYPED^
-						|  LIT_LING^
-						|  LIT_NUM^ ;
-		triple			-> node node node DOT! ;
-		file			-> triple* ;
+		ntriplesDoc		-> triple* ;
+		triple			-> subject predicate object '.'! ;
+		subject			-> IRIREF^ | BLANK_NODE_LABEL^ ;
+		predicate		-> IRIREF^ ;
+		object			-> IRIREF^ | BLANK_NODE_LABEL^ | literal^ ;
+		literal			-> STRING_LITERAL_QUOTE^ ('^^'! IRIREF | LANGTAG)? ;
 	}
 }

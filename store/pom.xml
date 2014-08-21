@@ -40,6 +40,12 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.xowl</groupId>
 			<artifactId>commons</artifactId>
 			<version>1.0.0</version>
@@ -54,7 +60,7 @@
 		<dependency>
 			<groupId>org.xowl.hime</groupId>
 			<artifactId>redist</artifactId>
-			<version>1.1.0</version>
+			<version>1.2.0</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>

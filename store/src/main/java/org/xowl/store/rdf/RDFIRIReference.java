@@ -29,29 +29,7 @@ import org.xowl.lang.owl2.Literal;
  *
  * @author Laurent Wouters
  */
-public class RDFIRIReference implements RDFSubjectNode, RDFProperty {
-    /**
-     * The key used to retrieve the IRI
-     */
-    private Key key;
-    /**
-     * The IRI associated to this node
-     */
-    private IRI iRI;
-
-    RDFIRIReference(Key key, IRI iri) {
-        this.key = key;
-        this.iRI = iri;
-    }
-
-    /**
-     * Gets the IRI associated to this node
-     *
-     * @return The IRI associated to this node
-     */
-    public IRI getIRI() {
-        return iRI;
-    }
+public abstract class RDFIRIReference implements RDFSubjectNode, RDFProperty {
 
     @Override
     public RDFNodeType getNodeType() {
@@ -59,8 +37,10 @@ public class RDFIRIReference implements RDFSubjectNode, RDFProperty {
     }
 
     @Override
-    public Key getStoreKey() {
-        return key;
+    public IRI getIRI() {
+        IRI iri = new IRI();
+        iri.setHasValue(getValue());
+        return iri;
     }
 
     @Override
@@ -79,21 +59,9 @@ public class RDFIRIReference implements RDFSubjectNode, RDFProperty {
     }
 
     @Override
-    public int hashCode() {
-        return key.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof RDFIRIReference) {
-            RDFIRIReference node = (RDFIRIReference) obj;
-            return (key == node.key);
-        }
-        return false;
-    }
-
-    @Override
     public String toString() {
-        return iRI.getHasValue();
+        return getValue();
     }
+
+    protected abstract String getValue();
 }

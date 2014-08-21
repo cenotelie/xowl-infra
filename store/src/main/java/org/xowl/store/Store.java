@@ -206,6 +206,6 @@ public class Store {
             logger.error("Unsupported syntax " + syntax);
             return;
         }
-        loader.load(logger, name, reader);
+        loader.load(logger, reader);
     }
 }

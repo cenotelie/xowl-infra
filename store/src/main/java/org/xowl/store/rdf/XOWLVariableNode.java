@@ -22,6 +22,7 @@ package org.xowl.store.rdf;
 
 import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Literal;
 
 import java.util.ArrayList;
@@ -87,7 +88,7 @@ public class XOWLVariableNode implements RDFSubjectNode, RDFProperty {
     }
 
     @Override
-    public Key getStoreKey() {
+    public IRI getIRI() {
         return null;
     }
 

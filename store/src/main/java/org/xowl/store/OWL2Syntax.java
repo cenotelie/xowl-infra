@@ -44,5 +44,10 @@ public enum OWL2Syntax {
     /**
      * The n-triples concrete syntax
      */
-    NTriples
+    NTriples,
+
+    /**
+     * The Turtle concrete syntax
+     */
+    Turtle
 }

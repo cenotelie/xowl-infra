@@ -21,6 +21,7 @@
 package org.xowl.store.rdf;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Literal;
 
 /**
@@ -37,11 +38,11 @@ public interface RDFNode {
     RDFNodeType getNodeType();
 
     /**
-     * Gets the store key to retrieve the node's value
+     * Gets the IRI associated to this node
      *
-     * @return The store key associated to this node, or null if none is
+     * @return The IRI associated to this node
      */
-    Key getStoreKey();
+    IRI getIRI();
 
     /**
      * Gets the literal value associated to this node
