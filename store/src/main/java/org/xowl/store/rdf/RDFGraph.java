@@ -114,7 +114,7 @@ public class RDFGraph {
         int key = sStore.store(iri);
         RDFIRIReference node = mapNodeIRIs.get(key);
         if (node != null)
-            return null;
+            return node;
         node = new RDFIRIReferenceImpl(sStore, key);
         mapNodeIRIs.put(key, node);
         return node;

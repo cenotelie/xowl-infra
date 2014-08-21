@@ -222,6 +222,6 @@ public class NTriplesLoader extends Loader {
                 }
             }
         }
-        return new String(buffer, 0, next - 1);
+        return new String(buffer, 0, next);
     }
 }
