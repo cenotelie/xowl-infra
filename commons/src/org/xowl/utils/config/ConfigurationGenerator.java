@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.utils;
+package org.xowl.utils.config;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -88,7 +88,7 @@ public class ConfigurationGenerator {
             writer.append(System.lineSeparator());
             writer.append("package " + pack + ";" + System.lineSeparator());
             writer.append(System.lineSeparator());
-            writer.append("import org.xowl.utils.Configuration;" + System.lineSeparator());
+            writer.append("import org.xowl.utils.config.Configuration;" + System.lineSeparator());
             writer.append("import java.util.ArrayList;" + System.lineSeparator());
             writer.append("import java.util.List;" + System.lineSeparator());
             writer.append(System.lineSeparator());

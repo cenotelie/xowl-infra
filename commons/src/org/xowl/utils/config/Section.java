@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.utils;
+package org.xowl.utils.config;
 
 import java.io.IOException;
 import java.io.Writer;
