@@ -68,7 +68,6 @@ public abstract class W3CTestSuite {
      * @param shallSucceed Whether the loading is expected to succeed
      */
     protected void test_parsing(String resource, boolean shallSucceed) {
-        System.out.println("Parsing test: " + resource);
         logger.reset();
         Loader loader = null;
         if (resource.endsWith(".nt")) {

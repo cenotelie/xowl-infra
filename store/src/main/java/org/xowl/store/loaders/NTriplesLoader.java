@@ -65,6 +65,7 @@ public class NTriplesLoader extends Loader {
             String content = Files.read(reader);
             NTriplesLexer lexer = new NTriplesLexer(content);
             NTriplesParser parser = new NTriplesParser(lexer);
+            parser.setRecover(false);
             result = parser.parse();
         } catch (IOException ex) {
             logger.error(ex);

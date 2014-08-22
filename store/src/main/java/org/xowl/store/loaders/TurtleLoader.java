@@ -97,6 +97,7 @@ public class TurtleLoader extends Loader {
             String content = Files.read(reader);
             TurtleLexer lexer = new TurtleLexer(content);
             TurtleParser parser = new TurtleParser(lexer);
+            parser.setRecover(false);
             result = parser.parse();
         } catch (IOException ex) {
             logger.error(ex);
