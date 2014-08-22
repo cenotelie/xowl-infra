@@ -40,6 +40,10 @@ public abstract class Loader {
      * Default URIs for the loaded ontologies
      */
     protected static final String DEFAULT_GRAPH_URIS = "http://xowl.org/store/rdfgraphs/";
+    /**
+     * Strings containing the escaped glyphs
+     */
+    protected static final String escapedGlyhps = "\\'\"_~.!$&()*+,;=/?#@%-";
 
     /**
      * Creates a new ontology based on the default URI prefix
@@ -70,6 +74,57 @@ public abstract class Loader {
                 list.add(child);
         }
         return list;
+    }
+
+    /**
+     * Translates the specified string into a new one by replacing the escape sequences by their value
+     *
+     * @param content A string that can contain escape sequences
+     * @return The translated string with the escape sequences replaced by their value
+     */
+    protected String unescape(String content) {
+        char[] buffer = new char[content.length() - 2];
+        int next = 0;
+        for (int i = 1; i != content.length() - 1; i++) {
+            char c = content.charAt(i);
+            if (c != '\\') {
+                buffer[next++] = c;
+            } else {
+                char n = content.charAt(i + 1);
+                if (n == 't') {
+                    buffer[next++] = '\t';
+                    i++;
+                } else if (n == 'b') {
+                    buffer[next++] = '\b';
+                    i++;
+                } else if (n == 'n') {
+                    buffer[next++] = '\n';
+                    i++;
+                } else if (n == 'r') {
+                    buffer[next++] = '\r';
+                    i++;
+                } else if (n == 'f') {
+                    buffer[next++] = '\f';
+                    i++;
+                } else if (n == 'u') {
+                    int codepoint = Integer.parseInt(content.substring(i + 2, i + 6), 16);
+                    String str = new String(new int[]{codepoint}, 0, 1);
+                    for (int j = 0; j != str.length(); j++)
+                        buffer[next++] = str.charAt(j);
+                    i += 5;
+                } else if (n == 'U') {
+                    int codepoint = Integer.parseInt(content.substring(i + 2, i + 10), 16);
+                    String str = new String(new int[]{codepoint}, 0, 1);
+                    for (int j = 0; j != str.length(); j++)
+                        buffer[next++] = str.charAt(j);
+                    i += 9;
+                } else if (escapedGlyhps.contains(Character.toString(n))) {
+                    buffer[next++] = n;
+                    i++;
+                }
+            }
+        }
+        return new String(buffer, 0, next);
     }
 
     /**

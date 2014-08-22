@@ -105,7 +105,6 @@ public abstract class W3CTestSuite {
      * @param shallSucceed Whether the loading is expected to succeed
      */
     protected void test_loading(String resource, boolean shallSucceed) {
-        System.out.println("Loading test: " + resource);
         logger.reset();
         Loader loader = null;
         if (resource.endsWith(".nt")) {

@@ -65,7 +65,6 @@ public class TestLogger implements Logger {
 
     @Override
     public void error(Object message) {
-        System.out.println(message);
         onError = true;
     }
 }
