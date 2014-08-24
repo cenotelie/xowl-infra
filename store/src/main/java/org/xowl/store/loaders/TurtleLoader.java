@@ -21,6 +21,7 @@
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
+import org.xowl.hime.redist.Context;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.Ontology;
@@ -105,9 +106,9 @@ public class TurtleLoader extends Loader {
         }
         for (ParseError error : result.getErrors()) {
             logger.error(error);
-            String[] context = result.getInput().getContext(error.getPosition());
-            logger.error(context[0]);
-            logger.error(context[1]);
+            Context context = result.getInput().getContext(error.getPosition());
+            logger.error(context.getContent());
+            logger.error(context.getPointer());
         }
         return result;
     }
