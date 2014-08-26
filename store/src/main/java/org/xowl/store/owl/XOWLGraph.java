@@ -34,6 +34,8 @@ import java.util.Map;
 
 /**
  * Represents a store of RDF graph with xOWL extensions
+ *
+ * @author Laurent Wouters
  */
 public class XOWLGraph extends RDFGraph {
     /**
