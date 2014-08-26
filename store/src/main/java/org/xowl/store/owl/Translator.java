@@ -61,7 +61,7 @@ public class Translator {
     /**
      * The RDF graph used to create new RDF nodes
      */
-    protected RDFGraph graph;
+    protected XOWLGraph graph;
     /**
      * The ontology that contains the translated input
      */
@@ -73,7 +73,7 @@ public class Translator {
     /**
      * The resulting triples
      */
-    protected Collection<XOWLTriple> triples;
+    protected Collection<RDFTriple> triples;
     /**
      * The translation context
      */
@@ -91,13 +91,13 @@ public class Translator {
      * Initializes this translator
      *
      * @param context              The existing translation context, or null if a new one shall be used
-     * @param graph                The RDF graph used for the creation of new RDF nodes
+     * @param graph                The XOWL graph used for the creation of new RDF nodes
      * @param ontology             The target ontology for the translated elements
      * @param input                An iterator over the input axioms to translate
      * @param evaluator            The evaluator for dynamic expressions, or null if dyanmic expression shall no be translated and kept as is
      * @param translateAnnotations Whether to translate the OWL annotations
      */
-    public Translator(TranslationContext context, RDFGraph graph, Ontology ontology, Iterator<Axiom> input, Evaluator evaluator, boolean translateAnnotations) {
+    public Translator(TranslationContext context, XOWLGraph graph, Ontology ontology, Iterator<Axiom> input, Evaluator evaluator, boolean translateAnnotations) {
         this.graph = graph;
         this.ontology = ontology;
         this.input = input;
@@ -124,7 +124,7 @@ public class Translator {
      * @return The translation result
      * @throws org.xowl.store.owl.TranslationException When a runtime entity is not named
      */
-    public Collection<XOWLTriple> execute() throws TranslationException {
+    public Collection<RDFTriple> execute() throws TranslationException {
         while (input.hasNext())
             translateAxiom(input.next());
         return triples;
@@ -136,8 +136,8 @@ public class Translator {
      * @param expression A dynamic expression
      * @return The representing dynamic node
      */
-    protected XOWLDynamicNode getDynamicNode(Expression expression) {
-        return new XOWLDynamicNode(expression);
+    protected DynamicNode getDynamicNode(Expression expression) {
+        return new DynamicNode(expression);
     }
 
     /**
@@ -147,8 +147,8 @@ public class Translator {
      * @param type       The expected type of the expression
      * @return The representing dynamic node
      */
-    protected XOWLDynamicNode getDynamicNode(Expression expression, java.lang.Class type) {
-        XOWLDynamicNode node = new XOWLDynamicNode(expression);
+    protected DynamicNode getDynamicNode(Expression expression, java.lang.Class type) {
+        DynamicNode node = new DynamicNode(expression);
         node.addType(type);
         return node;
     }
@@ -161,8 +161,8 @@ public class Translator {
      * @param object   The object node
      * @return The equivalent triple
      */
-    protected XOWLTriple getTriple(RDFSubjectNode subject, String property, RDFNode object) {
-        return new XOWLTriple(ontology, subject, graph.getNodeIRI(property), object);
+    protected RDFTriple getTriple(RDFSubjectNode subject, String property, RDFNode object) {
+        return new RDFTriple(ontology, subject, graph.getNodeIRI(property), object);
     }
 
     /**
@@ -173,8 +173,8 @@ public class Translator {
      * @param object   The object value
      * @return The equivalent triple
      */
-    protected XOWLTriple getTriple(RDFSubjectNode subject, String property, String object) {
-        return new XOWLTriple(ontology, subject, graph.getNodeIRI(property), graph.getNodeIRI(object));
+    protected RDFTriple getTriple(RDFSubjectNode subject, String property, String object) {
+        return new RDFTriple(ontology, subject, graph.getNodeIRI(property), graph.getNodeIRI(object));
     }
 
     /**
@@ -299,7 +299,7 @@ public class Translator {
      */
     protected void translateAxiomDeclaration(Declaration axiom) {
         RDFSubjectNode entityNode = graph.getNodeIRI(axiom.getEntity().getHasValue());
-        XOWLTriple triple = null;
+        RDFTriple triple = null;
         if (OWL2.entityClass.equals(axiom.getType()))
             triple = getTriple(entityNode, RDF.rdfType, RDF.owlClass);
         else if (OWL2.entityDatatype.equals(axiom.getType()))
@@ -340,7 +340,7 @@ public class Translator {
     protected void translateAxiomSubClassOf(SubClassOf axiom) throws TranslationException {
         RDFSubjectNode sub = translateClassExpression(axiom.getClasse());
         RDFSubjectNode sup = translateClassExpression(axiom.getSuperClass());
-        XOWLTriple triple = getTriple(sub, RDF.rdfsSubClassOf, sup);
+        RDFTriple triple = getTriple(sub, RDF.rdfsSubClassOf, sup);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -358,7 +358,7 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
-            XOWLTriple triple = getTriple(elements.get(i), RDF.owlEquivalentClass, elements.get(i + 1));
+            RDFTriple triple = getTriple(elements.get(i), RDF.owlEquivalentClass, elements.get(i + 1));
             triples.add(triple);
             if (translateAnnotations)
                 translateAxiomAnnotations(axiom, triple);
@@ -377,7 +377,7 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
         if (elements.size() == 2) {
-            XOWLTriple triple = getTriple((RDFSubjectNode) elements.get(0), RDF.owlDisjointWith, elements.get(1));
+            RDFTriple triple = getTriple((RDFSubjectNode) elements.get(0), RDF.owlDisjointWith, elements.get(1));
             triples.add(triple);
             if (translateAnnotations)
                 translateAxiomAnnotations(axiom, triple);
@@ -404,7 +404,7 @@ public class Translator {
         Iterator<ClassExpression> expressions = XOWLUtils.getAll(axiom.getClassSeq());
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
-        XOWLTriple triple = getTriple(classe, RDF.owlDisjointUnionOf, translateUnorderedSequence(elements));
+        RDFTriple triple = getTriple(classe, RDF.owlDisjointUnionOf, translateUnorderedSequence(elements));
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -423,14 +423,14 @@ public class Translator {
             while (expressions.hasNext())
                 elements.add(translateObjectPropertyExpression(expressions.next()));
             RDFSubjectNode sup = translateObjectPropertyExpression(axiom.getSuperObjectProperty());
-            XOWLTriple triple = getTriple(sup, RDF.owlPropertyChainAxiom, translateOrderedSequence(elements));
+            RDFTriple triple = getTriple(sup, RDF.owlPropertyChainAxiom, translateOrderedSequence(elements));
             triples.add(triple);
             if (translateAnnotations)
                 translateAxiomAnnotations(axiom, triple);
         } else {
             RDFSubjectNode sub = translateObjectPropertyExpression(axiom.getObjectProperty());
             RDFSubjectNode sup = translateObjectPropertyExpression(axiom.getSuperObjectProperty());
-            XOWLTriple triple = getTriple(sub, RDF.rdfsSubPropertyOf, sup);
+            RDFTriple triple = getTriple(sub, RDF.rdfsSubPropertyOf, sup);
             triples.add(triple);
             if (translateAnnotations)
                 translateAxiomAnnotations(axiom, triple);
@@ -449,7 +449,7 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateObjectPropertyExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
-            XOWLTriple triple = getTriple(elements.get(i), RDF.owlEquivalentProperty, elements.get(i + 1));
+            RDFTriple triple = getTriple(elements.get(i), RDF.owlEquivalentProperty, elements.get(i + 1));
             triples.add(triple);
             if (translateAnnotations)
                 translateAxiomAnnotations(axiom, triple);
@@ -468,7 +468,7 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateObjectPropertyExpression(expressions.next()));
         if (elements.size() == 2) {
-            XOWLTriple triple = getTriple((RDFSubjectNode) elements.get(0), RDF.owlPropertyDisjointWith, elements.get(1));
+            RDFTriple triple = getTriple((RDFSubjectNode) elements.get(0), RDF.owlPropertyDisjointWith, elements.get(1));
             triples.add(triple);
             if (translateAnnotations)
                 translateAxiomAnnotations(axiom, triple);
@@ -492,7 +492,7 @@ public class Translator {
     protected void translateAxiomInverseObjectProperties(InverseObjectProperties axiom) throws TranslationException {
         RDFSubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         RDFSubjectNode inv = translateObjectPropertyExpression(axiom.getInverse());
-        XOWLTriple triple = getTriple(prop, RDF.owlInverseOf, inv);
+        RDFTriple triple = getTriple(prop, RDF.owlInverseOf, inv);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -507,7 +507,7 @@ public class Translator {
     protected void translateAxiomObjectPropertyDomain(ObjectPropertyDomain axiom) throws TranslationException {
         RDFSubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         RDFSubjectNode classe = translateClassExpression(axiom.getClasse());
-        XOWLTriple triple = getTriple(prop, RDF.rdfsDomain, classe);
+        RDFTriple triple = getTriple(prop, RDF.rdfsDomain, classe);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -522,7 +522,7 @@ public class Translator {
     protected void translateAxiomObjectPropertyRange(ObjectPropertyRange axiom) throws TranslationException {
         RDFSubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         RDFSubjectNode classe = translateClassExpression(axiom.getClasse());
-        XOWLTriple triple = getTriple(prop, RDF.rdfsRange, classe);
+        RDFTriple triple = getTriple(prop, RDF.rdfsRange, classe);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -536,7 +536,7 @@ public class Translator {
      */
     protected void translateAxiomFunctionalObjectProperty(FunctionalObjectProperty axiom) throws TranslationException {
         RDFSubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        XOWLTriple triple = getTriple(prop, RDF.rdfType, RDF.owlFunctionalProperty);
+        RDFTriple triple = getTriple(prop, RDF.rdfType, RDF.owlFunctionalProperty);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -550,7 +550,7 @@ public class Translator {
      */
     protected void translateAxiomInverseFunctionalObjectProperty(InverseFunctionalObjectProperty axiom) throws TranslationException {
         RDFSubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        XOWLTriple triple = getTriple(prop, RDF.rdfType, RDF.owlInverseFunctionalProperty);
+        RDFTriple triple = getTriple(prop, RDF.rdfType, RDF.owlInverseFunctionalProperty);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -564,7 +564,7 @@ public class Translator {
      */
     protected void translateAxiomReflexiveObjectProperty(ReflexiveObjectProperty axiom) throws TranslationException {
         RDFSubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        XOWLTriple triple = getTriple(prop, RDF.rdfType, RDF.owlReflexiveProperty);
+        RDFTriple triple = getTriple(prop, RDF.rdfType, RDF.owlReflexiveProperty);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -578,7 +578,7 @@ public class Translator {
      */
     protected void translateAxiomIrreflexiveObjectProperty(IrreflexiveObjectProperty axiom) throws TranslationException {
         RDFSubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        XOWLTriple triple = getTriple(prop, RDF.rdfType, RDF.owlIrreflexiveProperty);
+        RDFTriple triple = getTriple(prop, RDF.rdfType, RDF.owlIrreflexiveProperty);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -592,7 +592,7 @@ public class Translator {
      */
     protected void translateAxiomSymmetricObjectProperty(SymmetricObjectProperty axiom) throws TranslationException {
         RDFSubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        XOWLTriple triple = getTriple(prop, RDF.rdfType, RDF.owlSymmetricProperty);
+        RDFTriple triple = getTriple(prop, RDF.rdfType, RDF.owlSymmetricProperty);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -606,7 +606,7 @@ public class Translator {
      */
     protected void translateAxiomAsymmetricObjectProperty(AsymmetricObjectProperty axiom) throws TranslationException {
         RDFSubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        XOWLTriple triple = getTriple(prop, RDF.rdfType, RDF.owlAsymmetricProperty);
+        RDFTriple triple = getTriple(prop, RDF.rdfType, RDF.owlAsymmetricProperty);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -620,7 +620,7 @@ public class Translator {
      */
     protected void translateAxiomTransitiveObjectProperty(TransitiveObjectProperty axiom) throws TranslationException {
         RDFSubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        XOWLTriple triple = getTriple(prop, RDF.rdfType, RDF.owlTransitiveProperty);
+        RDFTriple triple = getTriple(prop, RDF.rdfType, RDF.owlTransitiveProperty);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -635,7 +635,7 @@ public class Translator {
     protected void translateAxiomSubDataPropertyOf(SubDataPropertyOf axiom) throws TranslationException {
         RDFSubjectNode sub = translateDataPropertyExpression(axiom.getDataProperty());
         RDFSubjectNode sup = translateDataPropertyExpression(axiom.getSuperDataProperty());
-        XOWLTriple triple = getTriple(sub, RDF.rdfsSubPropertyOf, sup);
+        RDFTriple triple = getTriple(sub, RDF.rdfsSubPropertyOf, sup);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -653,7 +653,7 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateDataPropertyExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
-            XOWLTriple triple = getTriple(elements.get(i), RDF.owlEquivalentProperty, elements.get(i + 1));
+            RDFTriple triple = getTriple(elements.get(i), RDF.owlEquivalentProperty, elements.get(i + 1));
             triples.add(triple);
             if (translateAnnotations)
                 translateAxiomAnnotations(axiom, triple);
@@ -672,7 +672,7 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateDataPropertyExpression(expressions.next()));
         if (elements.size() == 2) {
-            XOWLTriple triple = getTriple((RDFSubjectNode) elements.get(0), RDF.owlPropertyDisjointWith, elements.get(1));
+            RDFTriple triple = getTriple((RDFSubjectNode) elements.get(0), RDF.owlPropertyDisjointWith, elements.get(1));
             triples.add(triple);
             if (translateAnnotations)
                 translateAxiomAnnotations(axiom, triple);
@@ -696,7 +696,7 @@ public class Translator {
     protected void translateAxiomDataPropertyDomain(DataPropertyDomain axiom) throws TranslationException {
         RDFSubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
         RDFSubjectNode classe = translateClassExpression(axiom.getClasse());
-        XOWLTriple triple = getTriple(prop, RDF.rdfsDomain, classe);
+        RDFTriple triple = getTriple(prop, RDF.rdfsDomain, classe);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -711,7 +711,7 @@ public class Translator {
     protected void translateAxiomDataPropertyRange(DataPropertyRange axiom) throws TranslationException {
         RDFSubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
         RDFSubjectNode datatype = translateDatarange(axiom.getDatarange());
-        XOWLTriple triple = getTriple(prop, RDF.rdfsRange, datatype);
+        RDFTriple triple = getTriple(prop, RDF.rdfsRange, datatype);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -725,7 +725,7 @@ public class Translator {
      */
     protected void translateAxiomFunctionalDataProperty(FunctionalDataProperty axiom) throws TranslationException {
         RDFSubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
-        XOWLTriple triple = getTriple(prop, RDF.rdfType, RDF.owlFunctionalProperty);
+        RDFTriple triple = getTriple(prop, RDF.rdfType, RDF.owlFunctionalProperty);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -743,7 +743,7 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateIndividualExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
-            XOWLTriple triple = getTriple(elements.get(i), RDF.owlSameAs, elements.get(i + 1));
+            RDFTriple triple = getTriple(elements.get(i), RDF.owlSameAs, elements.get(i + 1));
             triples.add(triple);
             if (translateAnnotations)
                 translateAxiomAnnotations(axiom, triple);
@@ -762,7 +762,7 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateIndividualExpression(expressions.next()));
         if (elements.size() == 2) {
-            XOWLTriple triple = getTriple((RDFSubjectNode) elements.get(0), RDF.owlDifferentFrom, elements.get(1));
+            RDFTriple triple = getTriple((RDFSubjectNode) elements.get(0), RDF.owlDifferentFrom, elements.get(1));
             triples.add(triple);
             if (translateAnnotations)
                 translateAxiomAnnotations(axiom, triple);
@@ -786,7 +786,7 @@ public class Translator {
     protected void translateAxiomClassAssertion(ClassAssertion axiom) throws TranslationException {
         RDFSubjectNode ind = translateIndividualExpression(axiom.getIndividual());
         RDFSubjectNode classe = translateClassExpression(axiom.getClasse());
-        XOWLTriple triple = getTriple(ind, RDF.rdfType, classe);
+        RDFTriple triple = getTriple(ind, RDF.rdfType, classe);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -807,7 +807,7 @@ public class Translator {
             prop = (RDFProperty) translateObjectPropertyExpression(axiom.getObjectProperty());
         RDFSubjectNode ind = translateIndividualExpression(axiom.getIndividual());
         RDFSubjectNode value = translateIndividualExpression(axiom.getValueIndividual());
-        XOWLTriple triple = new XOWLTriple(ontology, ind, prop, value);
+        RDFTriple triple = new RDFTriple(ontology, ind, prop, value);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -844,7 +844,7 @@ public class Translator {
         RDFProperty prop = (RDFProperty) translateDataPropertyExpression(axiom.getDataProperty());
         RDFSubjectNode ind = translateIndividualExpression(axiom.getIndividual());
         RDFNode value = translateLiteralExpression(axiom.getValueLiteral());
-        XOWLTriple triple = new XOWLTriple(ontology, ind, prop, value);
+        RDFTriple triple = new RDFTriple(ontology, ind, prop, value);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -885,7 +885,7 @@ public class Translator {
         Iterator<DataPropertyExpression> dataExpressions = XOWLUtils.getAll(axiom.getDataPropertySeq());
         while (dataExpressions.hasNext())
             elements.add(translateDataPropertyExpression(dataExpressions.next()));
-        XOWLTriple triple = getTriple(classe, RDF.owlHasKey, translateUnorderedSequence(elements));
+        RDFTriple triple = getTriple(classe, RDF.owlHasKey, translateUnorderedSequence(elements));
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -931,7 +931,7 @@ public class Translator {
         RDFIRIReference prop = translateAnnotationProperty(axiom.getAnnotProperty());
         RDFSubjectNode subject = translateAnnotationSubject(axiom.getAnnotSubject());
         RDFNode value = translateAnnotationValue(axiom.getAnnotValue());
-        XOWLTriple triple = new XOWLTriple(ontology, subject, prop, value);
+        RDFTriple triple = new RDFTriple(ontology, subject, prop, value);
         triples.add(triple);
         if (translateAnnotations)
             translateAxiomAnnotations(axiom, triple);
@@ -1788,7 +1788,7 @@ public class Translator {
     protected void translateAnnotation(RDFSubjectNode annotated, Annotation annotation) {
         RDFIRIReference prop = translateAnnotationProperty(annotation.getAnnotProperty());
         RDFNode value = translateAnnotationValue(annotation.getAnnotValue());
-        triples.add(new XOWLTriple(ontology, annotated, prop, value));
+        triples.add(new RDFTriple(ontology, annotated, prop, value));
         if (!annotation.getAllAnnotations().isEmpty()) {
             RDFSubjectNode main = graph.getBlankNode();
             triples.add(getTriple(main, RDF.rdfType, RDF.owlAnnotation));
@@ -1806,7 +1806,7 @@ public class Translator {
      * @param axiom The axiom which annotations shall be translated
      * @param main  The main triple representing the axiom
      */
-    protected void translateAxiomAnnotations(Axiom axiom, XOWLTriple main) {
+    protected void translateAxiomAnnotations(Axiom axiom, RDFTriple main) {
         if (!axiom.getAllAnnotations().isEmpty()) {
             RDFSubjectNode x = graph.getBlankNode();
             triples.add(getTriple(x, RDF.rdfType, RDF.owlAxiom));

@@ -20,9 +20,6 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.lang.actions.QueryVariable;
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.Expression;
 import org.xowl.lang.owl2.Literal;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.cache.StringStore;
@@ -43,48 +40,31 @@ public class RDFGraph {
     /**
      * Initial size of the blank node store
      */
-    private static final int INIT_BLANK_SIZE = 1024;
-
+    protected static final int INIT_BLANK_SIZE = 1024;
     /**
      * The embedded string store
      */
-    private StringStore sStore;
+    protected StringStore sStore;
     /**
      * The store of existing IRI Reference nodes
      */
-    private Map<Integer, RDFIRIReference> mapNodeIRIs;
-    /**
-     * The store of existing anonymous nodes
-     */
-    private Map<AnonymousIndividual, RDFAnonymousNode> mapNodeAnons;
+    protected Map<Integer, RDFIRIReference> mapNodeIRIs;
     /**
      * The store of existing literal nodes
      */
-    private Map<Integer, LiteralBucket> mapNodeLiterals;
-    /**
-     * The store of existing variable nodes
-     */
-    private Map<QueryVariable, XOWLVariableNode> mapNodeVariables;
-    /**
-     * The store of existing dynamic nodes
-     */
-    private Map<Expression, XOWLDynamicNode> mapNodeDynamics;
+    protected Map<Integer, LiteralBucket> mapNodeLiterals;
     /**
      * The store for edges starting from IRI nodes
      */
-    private Map<Integer, EdgeBucket> edgesIRI;
-    /**
-     * The store for edges starting from anonymous nodes
-     */
-    private Map<AnonymousIndividual, EdgeBucket> edgesAnon;
+    protected Map<Integer, EdgeBucket> edgesIRI;
     /**
      * The store for edges starting from blank nodes
      */
-    private EdgeBucket[] edgesBlank;
+    protected EdgeBucket[] edgesBlank;
     /**
      * The next blank index and identifier
      */
-    private int nextBlank;
+    protected int nextBlank;
 
     /**
      * Initializes this graph
@@ -94,12 +74,8 @@ public class RDFGraph {
     public RDFGraph() throws IOException {
         sStore = new StringStore();
         mapNodeIRIs = new HashMap<>();
-        mapNodeAnons = new HashMap<>();
         mapNodeLiterals = new HashMap<>();
-        mapNodeVariables = new HashMap<>();
-        mapNodeDynamics = new HashMap<>();
         edgesIRI = new HashMap<>();
-        edgesAnon = new HashMap<>();
         edgesBlank = new EdgeBucket[INIT_BLANK_SIZE];
         nextBlank = 0;
     }
@@ -127,21 +103,6 @@ public class RDFGraph {
      */
     public RDFBlankNode getBlankNode() {
         return new RDFBlankNode(nextBlank++);
-    }
-
-    /**
-     * Gets the RDF node for the given anonymous individual
-     *
-     * @param anon An anonymous individual
-     * @return The associated RDF node
-     */
-    public RDFAnonymousNode getAnonymousNode(AnonymousIndividual anon) {
-        RDFAnonymousNode node = mapNodeAnons.get(anon);
-        if (node != null)
-            return node;
-        node = new RDFAnonymousNode(anon);
-        mapNodeAnons.put(anon, node);
-        return node;
     }
 
     /**
@@ -182,40 +143,12 @@ public class RDFGraph {
     }
 
     /**
-     * Gets the RDF node for the specified variable
-     *
-     * @param variable A variable
-     * @return The associated RDF node
-     */
-    public XOWLVariableNode getVariableNode(QueryVariable variable) {
-        if (mapNodeVariables.containsKey(variable))
-            return mapNodeVariables.get(variable);
-        XOWLVariableNode node = new XOWLVariableNode(variable);
-        mapNodeVariables.put(variable, node);
-        return node;
-    }
-
-    /**
-     * Gets the RDF node for the specified expression
-     *
-     * @param expression An expression
-     * @return The associated RDF node
-     */
-    public XOWLDynamicNode getDynamicNode(Expression expression) {
-        if (mapNodeDynamics.containsKey(expression))
-            return mapNodeDynamics.get(expression);
-        XOWLDynamicNode node = new XOWLDynamicNode(expression);
-        mapNodeDynamics.put(expression, node);
-        return node;
-    }
-
-    /**
      * Adds the specified triple to this graph
      *
      * @param triple A triple
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
-    public void add(XOWLTriple triple) throws UnsupportedNodeType {
+    public void add(RDFTriple triple) throws UnsupportedNodeType {
         add(triple.getOntology(), triple.getSubject(), triple.getProperty(), triple.getObject());
     }
 
@@ -230,21 +163,26 @@ public class RDFGraph {
      */
     public void add(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
-            case IRI_REFERENCE:
-                addEdgeFromIRI(ontology, subject, property, value);
+            case RDFIRIReference.TYPE:
+                addEdgeFromIRI(ontology, (RDFIRIReference) subject, property, value);
                 break;
-            case ANONYMOUS:
-                addEdgeFromAnonymous(ontology, subject, property, value);
-                break;
-            case BLANK:
-                addEdgeFromBlank(ontology, subject, property, value);
+            case RDFBlankNode.TYPE:
+                addEdgeFromBlank(ontology, (RDFBlankNode) subject, property, value);
                 break;
             default:
-                throw new UnsupportedNodeType(subject, "Subject node must not be of type VARIABLE or DYNAMIC");
+                throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
         }
     }
 
-    private void addEdgeFromIRI(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) {
+    /**
+     * Adds the specified triple to this graph
+     *
+     * @param ontology The ontology containing the triple
+     * @param subject  The triple subject node
+     * @param property The triple property
+     * @param value    The triple value
+     */
+    protected void addEdgeFromIRI(Ontology ontology, RDFIRIReference subject, RDFProperty property, RDFNode value) {
         int key = ((RDFIRIReferenceImpl) subject).getKey();
         EdgeBucket bucket = edgesIRI.get(key);
         if (bucket == null) {
@@ -254,17 +192,15 @@ public class RDFGraph {
         bucket.add(ontology, property, value);
     }
 
-    private void addEdgeFromAnonymous(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) {
-        AnonymousIndividual key = subject.getAnonymous();
-        EdgeBucket bucket = edgesAnon.get(key);
-        if (bucket == null) {
-            bucket = new EdgeBucket();
-            edgesAnon.put(key, bucket);
-        }
-        bucket.add(ontology, property, value);
-    }
-
-    private void addEdgeFromBlank(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) {
+    /**
+     * Adds the specified triple to this graph
+     *
+     * @param ontology The ontology containing the triple
+     * @param subject  The triple subject node
+     * @param property The triple property
+     * @param value    The triple value
+     */
+    protected void addEdgeFromBlank(Ontology ontology, RDFBlankNode subject, RDFProperty property, RDFNode value) {
         int key = subject.getBlankID();
         while (key > edgesBlank.length)
             edgesBlank = Arrays.copyOf(edgesBlank, edgesBlank.length + INIT_BLANK_SIZE);
@@ -282,7 +218,7 @@ public class RDFGraph {
      * @param triple A triple
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
-    public void remove(XOWLTriple triple) throws UnsupportedNodeType {
+    public void remove(RDFTriple triple) throws UnsupportedNodeType {
         remove(triple.getOntology(), triple.getSubject(), triple.getProperty(), triple.getObject());
     }
 
@@ -297,21 +233,26 @@ public class RDFGraph {
      */
     public void remove(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
-            case IRI_REFERENCE:
-                removeEdgeFromIRI(ontology, subject, property, value);
+            case RDFIRIReference.TYPE:
+                removeEdgeFromIRI(ontology, (RDFIRIReference) subject, property, value);
                 break;
-            case ANONYMOUS:
-                removeEdgeFromAnon(ontology, subject, property, value);
-                break;
-            case BLANK:
-                removeEdgeFromBlank(ontology, subject, property, value);
+            case RDFBlankNode.TYPE:
+                removeEdgeFromBlank(ontology, (RDFBlankNode) subject, property, value);
                 break;
             default:
-                throw new UnsupportedNodeType(subject, "Subject node must not be of type VARIABLE or DYNAMIC");
+                throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
         }
     }
 
-    private void removeEdgeFromIRI(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) {
+    /**
+     * Removes the specified triple from this graph
+     *
+     * @param ontology The ontology containing the triple
+     * @param subject  The triple subject node
+     * @param property The triple property
+     * @param value    The triple value
+     */
+    protected void removeEdgeFromIRI(Ontology ontology, RDFIRIReference subject, RDFProperty property, RDFNode value) {
         int key = ((RDFIRIReferenceImpl) subject).getKey();
         EdgeBucket bucket = edgesIRI.get(key);
         if (bucket == null)
@@ -321,17 +262,15 @@ public class RDFGraph {
             edgesIRI.remove(key);
     }
 
-    private void removeEdgeFromAnon(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) {
-        AnonymousIndividual key = subject.getAnonymous();
-        EdgeBucket bucket = edgesAnon.get(key);
-        if (bucket == null)
-            return;
-        bucket.remove(ontology, property, value);
-        if (bucket.getSize() == 0)
-            edgesAnon.remove(key);
-    }
-
-    private void removeEdgeFromBlank(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) {
+    /**
+     * Removes the specified triple from this graph
+     *
+     * @param ontology The ontology containing the triple
+     * @param subject  The triple subject node
+     * @param property The triple property
+     * @param value    The triple value
+     */
+    protected void removeEdgeFromBlank(Ontology ontology, RDFBlankNode subject, RDFProperty property, RDFNode value) {
         int key = subject.getBlankID();
         if (key >= edgesBlank.length)
             return;
@@ -348,7 +287,7 @@ public class RDFGraph {
      *
      * @return An iterator over the results
      */
-    public Iterator<XOWLTriple> getAll() {
+    public Iterator<RDFTriple> getAll() {
         try {
             return getAll(null, null, null, null);
         } catch (UnsupportedNodeType ex) {
@@ -363,7 +302,7 @@ public class RDFGraph {
      * @param ontology A containing to match
      * @return An iterator over the results
      */
-    public Iterator<XOWLTriple> getAll(Ontology ontology) {
+    public Iterator<RDFTriple> getAll(Ontology ontology) {
         try {
             return getAll(null, null, null, ontology);
         } catch (UnsupportedNodeType ex) {
@@ -381,7 +320,7 @@ public class RDFGraph {
      * @return An iterator over the results
      * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public Iterator<XOWLTriple> getAll(RDFSubjectNode subject, RDFProperty property, RDFNode object) throws UnsupportedNodeType {
+    public Iterator<RDFTriple> getAll(RDFSubjectNode subject, RDFProperty property, RDFNode object) throws UnsupportedNodeType {
         return getAll(subject, property, object, null);
     }
 
@@ -395,32 +334,30 @@ public class RDFGraph {
      * @return An iterator over the results
      * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public Iterator<XOWLTriple> getAll(RDFSubjectNode subject, final RDFProperty property, final RDFNode object, final Ontology ontology) throws UnsupportedNodeType {
+    public Iterator<RDFTriple> getAll(RDFSubjectNode subject, final RDFProperty property, final RDFNode object, final Ontology ontology) throws UnsupportedNodeType {
         if (subject == null) {
-            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<XOWLTriple>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<RDFTriple>>() {
                 @Override
-                public <X> Iterator<XOWLTriple> adapt(X element) {
+                public <X> Iterator<RDFTriple> adapt(X element) {
                     Couple<RDFSubjectNode, EdgeBucket> subject = (Couple<RDFSubjectNode, EdgeBucket>) element;
                     return subject.y.getAllTriples(property, object, ontology);
                 }
-            }), new Adapter<XOWLTriple>() {
+            }), new Adapter<RDFTriple>() {
                 @Override
-                public <X> XOWLTriple adapt(X element) {
-                    Couple<Couple<RDFSubjectNode, EdgeBucket>, XOWLTriple> result = (Couple<Couple<RDFSubjectNode, EdgeBucket>, XOWLTriple>) element;
+                public <X> RDFTriple adapt(X element) {
+                    Couple<Couple<RDFSubjectNode, EdgeBucket>, RDFTriple> result = (Couple<Couple<RDFSubjectNode, EdgeBucket>, RDFTriple>) element;
                     result.y.setSubject(result.x.x);
                     return result.y;
                 }
             });
         } else {
             switch (subject.getNodeType()) {
-                case IRI_REFERENCE:
+                case RDFIRIReference.TYPE:
                     return edgesIRI.get(((RDFIRIReferenceImpl) subject).getKey()).getAllTriples(property, object, ontology);
-                case ANONYMOUS:
-                    return edgesAnon.get(subject.getAnonymous()).getAllTriples(property, object, ontology);
-                case BLANK:
-                    return edgesBlank[subject.getBlankID()].getAllTriples(property, object, ontology);
+                case RDFBlankNode.TYPE:
+                    return edgesBlank[((RDFBlankNode) subject).getBlankID()].getAllTriples(property, object, ontology);
                 default:
-                    throw new UnsupportedNodeType(subject, "Subject node must not be of type VARIABLE or DYNAMIC");
+                    throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
             }
         }
     }
@@ -430,7 +367,7 @@ public class RDFGraph {
      *
      * @return An iterator over all the subjects starting edges in the graph
      */
-    private Iterator<Couple<RDFSubjectNode, EdgeBucket>> getAllSubjects() {
+    protected Iterator<Couple<RDFSubjectNode, EdgeBucket>> getAllSubjects() {
         final Couple<RDFSubjectNode, EdgeBucket> result = new Couple<>();
         return new ConcatenatedIterator<Couple<RDFSubjectNode, EdgeBucket>>(new Iterator[]{
                 new AdaptingIterator<>(edgesIRI.keySet().iterator(), new Adapter<Couple<RDFSubjectNode, EdgeBucket>>() {
@@ -438,14 +375,6 @@ public class RDFGraph {
                     public <X> Couple<RDFSubjectNode, EdgeBucket> adapt(X element) {
                         result.x = mapNodeIRIs.get(element);
                         result.y = edgesIRI.get(element);
-                        return result;
-                    }
-                }),
-                new AdaptingIterator<>(edgesAnon.keySet().iterator(), new Adapter<Couple<RDFSubjectNode, EdgeBucket>>() {
-                    @Override
-                    public <X> Couple<RDFSubjectNode, EdgeBucket> adapt(X element) {
-                        result.x = mapNodeAnons.get(element);
-                        result.y = edgesAnon.get(element);
                         return result;
                     }
                 }),

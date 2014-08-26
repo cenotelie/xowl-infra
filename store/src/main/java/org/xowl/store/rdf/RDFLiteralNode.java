@@ -20,8 +20,6 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Literal;
 
 /**
@@ -30,25 +28,22 @@ import org.xowl.lang.owl2.Literal;
  * @author Laurent Wouters
  */
 public abstract class RDFLiteralNode implements RDFNode {
-    @Override
-    public RDFNodeType getNodeType() {
-        return RDFNodeType.LITERAL;
-    }
+    /**
+     * The type of node
+     */
+    public static final int TYPE = 2;
 
     @Override
-    public IRI getIRI() {
-        return null;
+    public int getNodeType() {
+        return TYPE;
     }
 
-    @Override
-    public int getBlankID() {
-        return 0;
-    }
-
-    @Override
-    public AnonymousIndividual getAnonymous() {
-        return null;
-    }
+    /**
+     * Gets the literal value associated to this node
+     *
+     * @return The literal value associated to this node, or null if none is
+     */
+    public abstract Literal getLiteralValue();
 
     @Override
     public String toString() {

@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.XOWLTriple;
+import org.xowl.store.rdf.RDFTriple;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -55,7 +55,7 @@ public abstract class JoinStrategy {
      * @param fact  A fact
      * @return true if the couple passes the tests
      */
-    protected boolean passTests(Token token, XOWLTriple fact) {
+    protected boolean passTests(Token token, RDFTriple fact) {
         if (test1 == null) return true;
         if (!test1.check(token, fact)) return false;
         if (test2 == null) return true;
@@ -71,5 +71,5 @@ public abstract class JoinStrategy {
      * @param facts  A collection of facts
      * @return The result
      */
-    public abstract Iterator<Couple> join(Collection<Token> tokens, Collection<XOWLTriple> facts);
+    public abstract Iterator<Couple> join(Collection<Token> tokens, Collection<RDFTriple> facts);
 }

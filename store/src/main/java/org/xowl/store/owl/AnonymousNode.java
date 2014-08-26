@@ -18,18 +18,23 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.owl;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Literal;
+import org.xowl.store.rdf.RDFSubjectNode;
 
 /**
  * Represents a RDF graph associated to an anonymous individual
  *
  * @author Laurent Wouters
  */
-public class RDFAnonymousNode implements RDFSubjectNode {
+public class AnonymousNode implements RDFSubjectNode {
+    /**
+     * The type of node
+     */
+    public static final int TYPE = 4;
+
+
     /**
      * The associated anonymous individual
      */
@@ -40,31 +45,20 @@ public class RDFAnonymousNode implements RDFSubjectNode {
      *
      * @param anon The represented anonymous individual
      */
-    public RDFAnonymousNode(AnonymousIndividual anon) {
+    public AnonymousNode(AnonymousIndividual anon) {
         anonInd = anon;
     }
 
     @Override
-    public RDFNodeType getNodeType() {
-        return RDFNodeType.ANONYMOUS;
+    public int getNodeType() {
+        return TYPE;
     }
 
-    @Override
-    public IRI getIRI() {
-        return null;
-    }
-
-    @Override
-    public Literal getLiteralValue() {
-        return null;
-    }
-
-    @Override
-    public int getBlankID() {
-        return -1;
-    }
-
-    @Override
+    /**
+     * Gets the anonymous individual represented by this node
+     *
+     * @return The anonymous individual represented by this node
+     */
     public AnonymousIndividual getAnonymous() {
         return anonInd;
     }
@@ -76,8 +70,8 @@ public class RDFAnonymousNode implements RDFSubjectNode {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof RDFAnonymousNode) {
-            RDFAnonymousNode node = (RDFAnonymousNode) obj;
+        if (obj instanceof AnonymousNode) {
+            AnonymousNode node = (AnonymousNode) obj;
             return (anonInd == node.anonInd);
         }
         return false;

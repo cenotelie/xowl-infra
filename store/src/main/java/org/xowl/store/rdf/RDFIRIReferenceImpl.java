@@ -58,7 +58,7 @@ class RDFIRIReferenceImpl extends RDFIRIReference {
     }
 
     @Override
-    protected String getValue() {
+    public String getIRIValue() {
         return store.retrieve(key);
     }
 

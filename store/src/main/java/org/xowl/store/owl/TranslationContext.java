@@ -21,8 +21,6 @@
 package org.xowl.store.owl;
 
 import org.xowl.lang.actions.QueryVariable;
-import org.xowl.lang.runtime.Value;
-import org.xowl.store.rdf.XOWLVariableNode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +34,7 @@ public class TranslationContext {
     /**
      * Map associating input query variables to RDF variable nodes
      */
-    private Map<QueryVariable, XOWLVariableNode> mapVariables;
+    private Map<QueryVariable, VariableNode> mapVariables;
 
     /**
      * Initializes this context
@@ -61,13 +59,13 @@ public class TranslationContext {
      * @param type     The expected type of the variable
      * @return The associated RDF variable node
      */
-    public XOWLVariableNode getVariableNode(QueryVariable variable, Class type) {
+    public VariableNode getVariableNode(QueryVariable variable, Class type) {
         if (mapVariables.containsKey(variable)) {
-            XOWLVariableNode node = mapVariables.get(variable);
+            VariableNode node = mapVariables.get(variable);
             node.addType(type);
             return mapVariables.get(variable);
         } else {
-            XOWLVariableNode node = new XOWLVariableNode(variable);
+            VariableNode node = new VariableNode(variable);
             node.addType(type);
             mapVariables.put(variable, node);
             return node;

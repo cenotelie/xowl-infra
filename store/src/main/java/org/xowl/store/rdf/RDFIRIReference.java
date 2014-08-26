@@ -20,9 +20,7 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Literal;
 
 /**
  * Represents a node associated to an IRI in a RDF graph
@@ -30,38 +28,36 @@ import org.xowl.lang.owl2.Literal;
  * @author Laurent Wouters
  */
 public abstract class RDFIRIReference implements RDFSubjectNode, RDFProperty {
+    /**
+     * The type of node
+     */
+    public static final int TYPE = 0;
 
     @Override
-    public RDFNodeType getNodeType() {
-        return RDFNodeType.IRI_REFERENCE;
+    public int getNodeType() {
+        return TYPE;
     }
 
-    @Override
+    /**
+     * Gets the IRI associated to this node
+     *
+     * @return The IRI associated to this node
+     */
     public IRI getIRI() {
         IRI iri = new IRI();
-        iri.setHasValue(getValue());
+        iri.setHasValue(getIRIValue());
         return iri;
     }
 
     @Override
-    public Literal getLiteralValue() {
-        return null;
-    }
-
-    @Override
-    public int getBlankID() {
-        return 0;
-    }
-
-    @Override
-    public AnonymousIndividual getAnonymous() {
-        return null;
-    }
-
-    @Override
     public String toString() {
-        return getValue();
+        return getIRIValue();
     }
 
-    protected abstract String getValue();
+    /**
+     * Gets the IRI's value associated to this node
+     *
+     * @return The IRI's value associated to this node
+     */
+    public abstract String getIRIValue();
 }

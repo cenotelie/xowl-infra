@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.XOWLTriple;
+import org.xowl.store.rdf.RDFTriple;
 
 /**
  * Represents a couple of matching items
@@ -31,7 +31,7 @@ public class Couple {
     /**
      * A triple fact
      */
-    public XOWLTriple fact;
+    public RDFTriple fact;
     /**
      * A token
      */
@@ -43,7 +43,7 @@ public class Couple {
      * @param fact  The triple fact
      * @param token The token
      */
-    public Couple(XOWLTriple fact, Token token) {
+    public Couple(RDFTriple fact, Token token) {
         this.fact = fact;
         this.token = token;
     }

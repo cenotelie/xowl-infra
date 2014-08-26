@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.XOWLTriple;
+import org.xowl.store.rdf.RDFTriple;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -38,7 +38,7 @@ public class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
     /**
      * Iterator over the facts
      */
-    private Iterator<XOWLTriple> iterFacts;
+    private Iterator<RDFTriple> iterFacts;
     /**
      * Iterator over the tokens
      */
@@ -46,7 +46,7 @@ public class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
     /**
      * The next fact to inspect
      */
-    private XOWLTriple nextFact;
+    private RDFTriple nextFact;
     /**
      * The next resulting couple
      */
@@ -64,7 +64,7 @@ public class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
     }
 
     @Override
-    public Iterator<Couple> join(Collection<Token> tokens, Collection<XOWLTriple> facts) {
+    public Iterator<Couple> join(Collection<Token> tokens, Collection<RDFTriple> facts) {
         this.tokens = tokens;
         this.iterFacts = facts.iterator();
         this.iterTokens = tokens.iterator();
@@ -97,7 +97,7 @@ public class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
     private Couple findNext() {
         while (iterTokens != null) {
             Token currentToken = iterTokens.next();
-            XOWLTriple currentFact = nextFact;
+            RDFTriple currentFact = nextFact;
             // Advance iterators
             if (!iterTokens.hasNext()) {
                 // no more tokens => go to next fact

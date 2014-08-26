@@ -26,7 +26,7 @@ import java.util.Arrays;
  *
  * @author Laurent Wouters
  */
-class LiteralBucket {
+public class LiteralBucket {
     /**
      * Initial size of a bucket
      */

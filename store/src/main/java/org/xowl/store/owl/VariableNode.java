@@ -18,12 +18,11 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.owl;
 
 import org.xowl.lang.actions.QueryVariable;
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Literal;
+import org.xowl.store.rdf.RDFProperty;
+import org.xowl.store.rdf.RDFSubjectNode;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +33,12 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class XOWLVariableNode implements RDFSubjectNode, RDFProperty {
+public class VariableNode implements RDFSubjectNode, RDFProperty {
+    /**
+     * The type of node
+     */
+    public static final int TYPE = 5;
+
     /**
      * The variable associated to this node
      */
@@ -49,7 +53,7 @@ public class XOWLVariableNode implements RDFSubjectNode, RDFProperty {
      *
      * @param var The variable represented by this node
      */
-    public XOWLVariableNode(QueryVariable var) {
+    public VariableNode(QueryVariable var) {
         variable = var;
         types = new ArrayList<>();
     }
@@ -83,28 +87,8 @@ public class XOWLVariableNode implements RDFSubjectNode, RDFProperty {
     }
 
     @Override
-    public RDFNodeType getNodeType() {
-        return RDFNodeType.VARIABLE;
-    }
-
-    @Override
-    public IRI getIRI() {
-        return null;
-    }
-
-    @Override
-    public Literal getLiteralValue() {
-        return null;
-    }
-
-    @Override
-    public int getBlankID() {
-        return 0;
-    }
-
-    @Override
-    public AnonymousIndividual getAnonymous() {
-        return null;
+    public int getNodeType() {
+        return TYPE;
     }
 
     @Override
@@ -116,9 +100,9 @@ public class XOWLVariableNode implements RDFSubjectNode, RDFProperty {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof XOWLVariableNode))
+        if (!(obj instanceof VariableNode))
             return false;
-        XOWLVariableNode o = (XOWLVariableNode) obj;
+        VariableNode o = (VariableNode) obj;
         return (o.variable.getName().equals(this.variable.getName()));
     }
 

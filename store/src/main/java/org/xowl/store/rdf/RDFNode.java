@@ -20,10 +20,6 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Literal;
-
 /**
  * Represents a node in a RDF graph
  *
@@ -35,33 +31,5 @@ public interface RDFNode {
      *
      * @return The node's type
      */
-    RDFNodeType getNodeType();
-
-    /**
-     * Gets the IRI associated to this node
-     *
-     * @return The IRI associated to this node
-     */
-    IRI getIRI();
-
-    /**
-     * Gets the literal value associated to this node
-     *
-     * @return The literal value associated to this node, or null if none is
-     */
-    Literal getLiteralValue();
-
-    /**
-     * Gets the blank identifier of this node
-     *
-     * @return The blank identifier of this node, or -1 if none
-     */
-    int getBlankID();
-
-    /**
-     * Gets the anonymous individual associated to this node
-     *
-     * @return The anonymous individual associated to this node, or null if none is
-     */
-    AnonymousIndividual getAnonymous();
+    int getNodeType();
 }

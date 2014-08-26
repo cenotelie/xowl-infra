@@ -20,8 +20,8 @@
 
 package org.xowl.store.rete;
 
+import org.xowl.store.owl.VariableNode;
 import org.xowl.store.rdf.RDFNode;
-import org.xowl.store.rdf.XOWLVariableNode;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -39,7 +39,7 @@ public class Token {
     /**
      * The bindings in this token
      */
-    private Map<XOWLVariableNode, RDFNode> bindings;
+    private Map<VariableNode, RDFNode> bindings;
 
     /**
      * Initializes this token with the specified parent
@@ -69,7 +69,7 @@ public class Token {
      * @param variable A variable
      * @param value    A value
      */
-    public void bind(XOWLVariableNode variable, RDFNode value) {
+    public void bind(VariableNode variable, RDFNode value) {
         bindings.put(variable, value);
     }
 
@@ -79,7 +79,7 @@ public class Token {
      * @param variable A variable
      * @return The value bound to the variable, or null if none is
      */
-    public RDFNode getBinding(XOWLVariableNode variable) {
+    public RDFNode getBinding(VariableNode variable) {
         return bindings.get(variable);
     }
 
@@ -88,7 +88,7 @@ public class Token {
      *
      * @return The bindings in this token
      */
-    public Map<XOWLVariableNode, RDFNode> getBindings() {
+    public Map<VariableNode, RDFNode> getBindings() {
         return bindings;
     }
 }

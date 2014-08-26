@@ -20,16 +20,17 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Literal;
-
 /**
  * Represents a blank node in a RDF graph
  *
  * @author Laurent Wouters
  */
 public class RDFBlankNode implements RDFSubjectNode {
+    /**
+     * The type of node
+     */
+    public static final int TYPE = 1;
+
     /**
      * the node's unique identifier
      */
@@ -45,28 +46,17 @@ public class RDFBlankNode implements RDFSubjectNode {
     }
 
     @Override
-    public RDFNodeType getNodeType() {
-        return RDFNodeType.BLANK;
+    public int getNodeType() {
+        return TYPE;
     }
 
-    @Override
-    public IRI getIRI() {
-        return null;
-    }
-
-    @Override
-    public Literal getLiteralValue() {
-        return null;
-    }
-
-    @Override
+    /**
+     * Gets the blank identifier of this node
+     *
+     * @return The blank identifier of this node, or -1 if none
+     */
     public int getBlankID() {
         return blankID;
-    }
-
-    @Override
-    public AnonymousIndividual getAnonymous() {
-        return null;
     }
 
     @Override

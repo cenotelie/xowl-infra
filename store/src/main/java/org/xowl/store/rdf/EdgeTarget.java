@@ -33,7 +33,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-class EdgeTarget implements Iterable<Ontology> {
+public class EdgeTarget implements Iterable<Ontology> {
     /**
      * The initial size of the buffer of the multiplicities
      */
@@ -151,13 +151,13 @@ class EdgeTarget implements Iterable<Ontology> {
      * @param ontology The filtering ontology
      * @return An iterator over the triples
      */
-    public Iterator<XOWLTriple> getAllTriples(Ontology ontology) {
-        final XOWLTriple result = new XOWLTriple(ontology, null, null, null);
+    public Iterator<RDFTriple> getAllTriples(Ontology ontology) {
+        final RDFTriple result = new RDFTriple(ontology, null, null, null);
 
         if (ontology == null) {
-            return new AdaptingIterator<>(iterator(), new Adapter<XOWLTriple>() {
+            return new AdaptingIterator<>(iterator(), new Adapter<RDFTriple>() {
                 @Override
-                public <X> XOWLTriple adapt(X element) {
+                public <X> RDFTriple adapt(X element) {
                     result.setOntology((Ontology) element);
                     return result;
                 }
@@ -166,9 +166,9 @@ class EdgeTarget implements Iterable<Ontology> {
 
         for (int i = 0; i != ontologies.length; i++) {
             if (ontologies[i] == ontology) {
-                return new AdaptingIterator<>(new SingleIterator<>(ontology), new Adapter<XOWLTriple>() {
+                return new AdaptingIterator<>(new SingleIterator<>(ontology), new Adapter<RDFTriple>() {
                     @Override
-                    public <X> XOWLTriple adapt(X element) {
+                    public <X> RDFTriple adapt(X element) {
                         result.setOntology((Ontology) element);
                         return result;
                     }

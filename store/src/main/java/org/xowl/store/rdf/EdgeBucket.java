@@ -30,7 +30,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-class EdgeBucket implements Iterable<Edge> {
+public class EdgeBucket implements Iterable<Edge> {
     /**
      * Initial size of a bucket
      */
@@ -127,18 +127,18 @@ class EdgeBucket implements Iterable<Edge> {
      * @param ontology The filtering ontology
      * @return An iterator over the triples
      */
-    public Iterator<XOWLTriple> getAllTriples(final RDFProperty property, final RDFNode value, final Ontology ontology) {
+    public Iterator<RDFTriple> getAllTriples(final RDFProperty property, final RDFNode value, final Ontology ontology) {
         if (property == null) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(edges), new Adapter<Iterator<XOWLTriple>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(edges), new Adapter<Iterator<RDFTriple>>() {
                 @Override
-                public <X> Iterator<XOWLTriple> adapt(X element) {
+                public <X> Iterator<RDFTriple> adapt(X element) {
                     Integer index = (Integer) element;
                     return edges[index].getAllTriples(value, ontology);
                 }
-            }), new Adapter<XOWLTriple>() {
+            }), new Adapter<RDFTriple>() {
                 @Override
-                public <X> XOWLTriple adapt(X element) {
-                    Couple<Integer, XOWLTriple> result = (Couple<Integer, XOWLTriple>) element;
+                public <X> RDFTriple adapt(X element) {
+                    Couple<Integer, RDFTriple> result = (Couple<Integer, RDFTriple>) element;
                     result.y.setProperty(edges[result.x].getProperty());
                     return result.y;
                 }
@@ -147,10 +147,10 @@ class EdgeBucket implements Iterable<Edge> {
 
         for (int i = 0; i != edges.length; i++) {
             if (edges[i] != null && edges[i].getProperty() == property) {
-                return new AdaptingIterator<>(edges[i].getAllTriples(value, ontology), new Adapter<XOWLTriple>() {
+                return new AdaptingIterator<>(edges[i].getAllTriples(value, ontology), new Adapter<RDFTriple>() {
                     @Override
-                    public <X> XOWLTriple adapt(X element) {
-                        XOWLTriple result = (XOWLTriple) element;
+                    public <X> RDFTriple adapt(X element) {
+                        RDFTriple result = (RDFTriple) element;
                         result.setProperty(property);
                         return result;
                     }

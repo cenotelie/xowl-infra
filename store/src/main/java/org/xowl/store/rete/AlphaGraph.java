@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.XOWLTriple;
+import org.xowl.store.owl.VariableNode;
 import org.xowl.store.rdf.*;
 
 import java.util.*;
@@ -49,7 +49,7 @@ public class AlphaGraph {
      *
      * @param fact A fact
      */
-    public void fire(XOWLTriple fact) {
+    public void fire(RDFTriple fact) {
         RDFNode sub = fact.getSubject();
         RDFNode prop = fact.getProperty();
         RDFNode obj = fact.getObject();
@@ -76,7 +76,7 @@ public class AlphaGraph {
      *
      * @param fact A fact
      */
-    public void unfire(XOWLTriple fact) {
+    public void unfire(RDFTriple fact) {
         RDFNode sub = fact.getSubject();
         RDFNode prop = fact.getProperty();
         RDFNode obj = fact.getObject();
@@ -103,9 +103,9 @@ public class AlphaGraph {
      *
      * @param facts A collection of facts
      */
-    public void fire(Collection<XOWLTriple> facts) {
-        Map<AlphaMemory, Collection<XOWLTriple>> dispatch = buildDispatch(facts);
-        for (Entry<AlphaMemory, Collection<XOWLTriple>> entry : dispatch.entrySet())
+    public void fire(Collection<RDFTriple> facts) {
+        Map<AlphaMemory, Collection<RDFTriple>> dispatch = buildDispatch(facts);
+        for (Entry<AlphaMemory, Collection<RDFTriple>> entry : dispatch.entrySet())
             entry.getKey().activateFacts(new FastBuffer<>(entry.getValue()));
     }
 
@@ -114,9 +114,9 @@ public class AlphaGraph {
      *
      * @param facts A collection of facts
      */
-    public void unfire(Collection<XOWLTriple> facts) {
-        Map<AlphaMemory, Collection<XOWLTriple>> dispatch = buildDispatch(facts);
-        for (Entry<AlphaMemory, Collection<XOWLTriple>> entry : dispatch.entrySet())
+    public void unfire(Collection<RDFTriple> facts) {
+        Map<AlphaMemory, Collection<RDFTriple>> dispatch = buildDispatch(facts);
+        for (Entry<AlphaMemory, Collection<RDFTriple>> entry : dispatch.entrySet())
             entry.getKey().deactivateFacts(new FastBuffer<>(entry.getValue()));
     }
 
@@ -126,15 +126,15 @@ public class AlphaGraph {
      * @param facts A collection of facts
      * @return The dispatching data associating alpha memory to the relevant collections of facts
      */
-    private Map<AlphaMemory, Collection<XOWLTriple>> buildDispatch(Collection<XOWLTriple> facts) {
-        Map<AlphaMemory, Collection<XOWLTriple>> map = new IdentityHashMap<>();
-        for (XOWLTriple fact : facts) {
+    private Map<AlphaMemory, Collection<RDFTriple>> buildDispatch(Collection<RDFTriple> facts) {
+        Map<AlphaMemory, Collection<RDFTriple>> map = new IdentityHashMap<>();
+        for (RDFTriple fact : facts) {
             AlphaMemory[] mems = getMatches(fact);
             for (int i = 0; i != 8; i++) {
                 AlphaMemory mem = mems[i];
                 if (mem == null)
                     continue;
-                Collection<XOWLTriple> collec = map.get(mem);
+                Collection<RDFTriple> collec = map.get(mem);
                 if (collec == null) {
                     collec = new ArrayList<>();
                     map.put(mem, collec);
@@ -151,7 +151,7 @@ public class AlphaGraph {
      * @param fact A fact
      * @return The alpha memories that match the fact
      */
-    private AlphaMemory[] getMatches(XOWLTriple fact) {
+    private AlphaMemory[] getMatches(RDFTriple fact) {
         RDFNode sub = fact.getSubject();
         RDFNode prop = fact.getProperty();
         RDFNode obj = fact.getObject();
@@ -198,11 +198,11 @@ public class AlphaGraph {
         RDFNode subj = triple.getSubject();
         RDFNode prop = triple.getProperty();
         RDFNode obj = triple.getObject();
-        if (subj.getNodeType() == RDFNodeType.VARIABLE)
+        if (subj.getNodeType() == VariableNode.TYPE)
             subj = null;
-        if (prop.getNodeType() == RDFNodeType.VARIABLE)
+        if (prop.getNodeType() == VariableNode.TYPE)
             prop = null;
-        if (obj.getNodeType() == RDFNodeType.VARIABLE)
+        if (obj.getNodeType() == VariableNode.TYPE)
             obj = null;
         if (!map.containsKey(subj))
             map.put(subj, new IdentityHashMap<RDFNode, Map<RDFNode, AlphaMemory>>());
@@ -214,15 +214,15 @@ public class AlphaGraph {
             return mapObj.get(obj);
 
         AlphaMemory mem = new AlphaMemory();
-        Collection<XOWLTriple> temp = new ArrayList<>();
+        Collection<RDFTriple> temp = new ArrayList<>();
         if (mapObj.containsKey(null)) {
-            for (XOWLTriple fact : mapObj.get(null).getFacts()) {
+            for (RDFTriple fact : mapObj.get(null).getFacts()) {
                 if (fact.getObject() == obj)
                     temp.add(fact);
             }
         } else {
             try {
-                Iterator<XOWLTriple> iterator = graph.getAll((RDFSubjectNode) subj, (RDFProperty) prop, obj);
+                Iterator<RDFTriple> iterator = graph.getAll((RDFSubjectNode) subj, (RDFProperty) prop, obj);
                 while (iterator.hasNext())
                     temp.add(iterator.next());
             } catch (UnsupportedNodeType ex) {
@@ -245,11 +245,11 @@ public class AlphaGraph {
         RDFNode subj = triple.getSubject();
         RDFNode prop = triple.getProperty();
         RDFNode obj = triple.getObject();
-        if (subj.getNodeType() == RDFNodeType.VARIABLE)
+        if (subj.getNodeType() == VariableNode.TYPE)
             subj = null;
-        if (prop.getNodeType() == RDFNodeType.VARIABLE)
+        if (prop.getNodeType() == VariableNode.TYPE)
             prop = null;
-        if (obj.getNodeType() == RDFNodeType.VARIABLE)
+        if (obj.getNodeType() == VariableNode.TYPE)
             obj = null;
         Map<RDFNode, Map<RDFNode, AlphaMemory>> mapProp = map.get(subj);
         Map<RDFNode, AlphaMemory> mapObj = mapProp.get(prop);
@@ -265,11 +265,11 @@ public class AlphaGraph {
         RDFNode subj = triple.getSubject();
         RDFNode prop = triple.getProperty();
         RDFNode obj = triple.getObject();
-        if (subj.getNodeType() == RDFNodeType.VARIABLE)
+        if (subj.getNodeType() == VariableNode.TYPE)
             subj = null;
-        if (prop.getNodeType() == RDFNodeType.VARIABLE)
+        if (prop.getNodeType() == VariableNode.TYPE)
             prop = null;
-        if (obj.getNodeType() == RDFNodeType.VARIABLE)
+        if (obj.getNodeType() == VariableNode.TYPE)
             obj = null;
         Map<RDFNode, Map<RDFNode, AlphaMemory>> mapProp = map.get(subj);
         Map<RDFNode, AlphaMemory> mapObj = mapProp.get(prop);

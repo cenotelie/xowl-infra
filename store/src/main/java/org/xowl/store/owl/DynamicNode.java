@@ -18,12 +18,11 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.owl;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.lang.owl2.Expression;
-import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Literal;
+import org.xowl.store.rdf.RDFProperty;
+import org.xowl.store.rdf.RDFSubjectNode;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +33,12 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class XOWLDynamicNode implements RDFSubjectNode, RDFProperty {
+public class DynamicNode implements RDFSubjectNode, RDFProperty {
+    /**
+     * The type of node
+     */
+    public static final int TYPE = 6;
+
     /**
      * The associated dynamic expression
      */
@@ -49,7 +53,7 @@ public class XOWLDynamicNode implements RDFSubjectNode, RDFProperty {
      *
      * @param exp The dynamic expression represented by this node
      */
-    public XOWLDynamicNode(Expression exp) {
+    public DynamicNode(Expression exp) {
         dynExpression = exp;
         types = new ArrayList<>();
     }
@@ -83,28 +87,8 @@ public class XOWLDynamicNode implements RDFSubjectNode, RDFProperty {
     }
 
     @Override
-    public RDFNodeType getNodeType() {
-        return RDFNodeType.DYNAMIC;
-    }
-
-    @Override
-    public IRI getIRI() {
-        return null;
-    }
-
-    @Override
-    public Literal getLiteralValue() {
-        return null;
-    }
-
-    @Override
-    public int getBlankID() {
-        return 0;
-    }
-
-    @Override
-    public AnonymousIndividual getAnonymous() {
-        return null;
+    public int getNodeType() {
+        return TYPE;
     }
 
     @Override
@@ -116,9 +100,9 @@ public class XOWLDynamicNode implements RDFSubjectNode, RDFProperty {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof XOWLDynamicNode))
+        if (!(obj instanceof DynamicNode))
             return false;
-        XOWLDynamicNode o = (XOWLDynamicNode) obj;
+        DynamicNode o = (DynamicNode) obj;
         return (o.dynExpression == this.dynExpression);
     }
 

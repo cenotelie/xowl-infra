@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.XOWLTriple;
+import org.xowl.store.rdf.RDFTriple;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -38,7 +38,7 @@ public class BetaMemory implements TokenHolder {
     /**
      * The ascendants of this node
      */
-    private Map<Token, Map<XOWLTriple, Token>> mapAscendants;
+    private Map<Token, Map<RDFTriple, Token>> mapAscendants;
     /**
      * The tokens stored in this memory
      */
@@ -125,7 +125,7 @@ public class BetaMemory implements TokenHolder {
      * @param token The parent token
      * @param fact  The input fact
      */
-    public void activate(Token token, XOWLTriple fact) {
+    public void activate(Token token, RDFTriple fact) {
         Token newToken = buildToken(token, fact);
         for (int i = children.size() - 1; i != -1; i--)
             children.get(i).activateToken(newToken);
@@ -154,11 +154,11 @@ public class BetaMemory implements TokenHolder {
      * @param fact  The input fact
      * @return The corresponding token
      */
-    private Token buildToken(Token token, XOWLTriple fact) {
+    private Token buildToken(Token token, RDFTriple fact) {
         Token childToken = new Token(token);
         for (Binder binder : binders)
             binder.execute(childToken, fact);
-        Map<XOWLTriple, Token> subMap = mapAscendants.get(token);
+        Map<RDFTriple, Token> subMap = mapAscendants.get(token);
         if (subMap == null) {
             subMap = new IdentityHashMap<>();
             mapAscendants.put(token, subMap);
@@ -174,7 +174,7 @@ public class BetaMemory implements TokenHolder {
      * @param token The parent token
      * @param fact  The input fact
      */
-    public void deactivate(Token token, XOWLTriple fact) {
+    public void deactivate(Token token, RDFTriple fact) {
         Token newToken = resolveToken(token, fact);
         for (int i = children.size() - 1; i != -1; i--)
             children.get(i).deactivateToken(newToken);
@@ -203,8 +203,8 @@ public class BetaMemory implements TokenHolder {
      * @param fact  The input fact
      * @return The corresponding token in this store
      */
-    private Token resolveToken(Token token, XOWLTriple fact) {
-        Map<XOWLTriple, Token> subMap = mapAscendants.get(token);
+    private Token resolveToken(Token token, RDFTriple fact) {
+        Map<RDFTriple, Token> subMap = mapAscendants.get(token);
         Token newToken = subMap.get(fact);
         subMap.remove(fact);
         if (subMap.isEmpty())
@@ -237,8 +237,8 @@ public class BetaMemory implements TokenHolder {
      */
     private void updateTokens(Collection<Binder> binders) {
         for (Token base : mapAscendants.keySet()) {
-            Map<XOWLTriple, Token> subMap = mapAscendants.get(base);
-            for (Entry<XOWLTriple, Token> entry : subMap.entrySet())
+            Map<RDFTriple, Token> subMap = mapAscendants.get(base);
+            for (Entry<RDFTriple, Token> entry : subMap.entrySet())
                 for (Binder binder : binders)
                     binder.execute(entry.getValue(), entry.getKey());
         }

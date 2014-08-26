@@ -72,9 +72,9 @@ public class RDFXMLLoader extends Loader {
      */
     private Ontology ontology;
     /**
-     * Maps of the anonymous nodes
+     * Maps of the blanks nodes
      */
-    private Map<String, RDFAnonymousNode> anonymous;
+    private Map<String, RDFBlankNode> blanks;
 
     /**
      * Initializes this loader
@@ -84,7 +84,7 @@ public class RDFXMLLoader extends Loader {
     public RDFXMLLoader(RDFGraph graph) {
         this.graph = graph;
         this.prefixes = new HashMap<>();
-        this.anonymous = new HashMap<>();
+        this.blanks = new HashMap<>();
     }
 
     @Override
@@ -191,18 +191,16 @@ public class RDFXMLLoader extends Loader {
         }
     }
 
-    private RDFBlankNode createBlank() {
+    private RDFBlankNode getBlank() {
         return graph.getBlankNode();
     }
 
-    private RDFAnonymousNode getAnonymous(String nodeID) {
-        RDFAnonymousNode node = anonymous.get(nodeID);
+    private RDFBlankNode getBlank(String nodeID) {
+        RDFBlankNode node = blanks.get(nodeID);
         if (node != null)
             return node;
-        org.xowl.lang.owl2.AnonymousIndividual ind = new org.xowl.lang.owl2.AnonymousIndividual();
-        ind.setNodeID(nodeID);
-        node = graph.getAnonymousNode(ind);
-        anonymous.put(nodeID, node);
+        node = graph.getBlankNode();
+        blanks.put(nodeID, node);
         return node;
     }
 
@@ -214,9 +212,9 @@ public class RDFXMLLoader extends Loader {
             org.w3c.dom.Node attID = node.getAttributes().getNamedItem(rdfNodeID);
             if (attID != null) {
                 String valueID = attID.getNodeValue();
-                subject = getAnonymous(valueID);
+                subject = getBlank(valueID);
             } else
-                subject = createBlank();
+                subject = getBlank();
         }
 
         if (name.equals(rdfDescription)) {
@@ -243,7 +241,7 @@ public class RDFXMLLoader extends Loader {
     }
 
     private RDFSubjectNode loadBlankNode(org.w3c.dom.Node node) {
-        RDFSubjectNode subject = createBlank();
+        RDFSubjectNode subject = getBlank();
         // Load property nodes
         for (org.w3c.dom.Node child : getElements(node))
             loadProperty(subject, child);
@@ -273,7 +271,7 @@ public class RDFXMLLoader extends Loader {
                     List<RDFSubjectNode> proxies = new ArrayList<RDFSubjectNode>();
                     for (org.w3c.dom.Node child : getElements(node)) {
                         RDFNode value = loadNode(child);
-                        RDFSubjectNode proxy = this.createBlank();
+                        RDFSubjectNode proxy = this.getBlank();
                         values.add(value);
                         proxies.add(proxy);
                         addTriple(proxy, getIRIForName(rdfFirst), value);

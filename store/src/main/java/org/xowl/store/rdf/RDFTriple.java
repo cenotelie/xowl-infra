@@ -20,12 +20,18 @@
 
 package org.xowl.store.rdf;
 
+import org.xowl.lang.owl2.Ontology;
+
 /**
- * Represents a triple in RDF graph
+ * Represents a triple in an ontology
  *
  * @author Laurent Wouters
  */
 public class RDFTriple {
+    /**
+     * The containing ontology
+     */
+    private Ontology ontology;
     /**
      * The subject node
      */
@@ -40,16 +46,36 @@ public class RDFTriple {
     private RDFNode object;
 
     /**
-     * Initializes this triple
+     * Initializes this triple fact
      *
+     * @param ontology The containing ontology
      * @param subject  The subject node
      * @param property The property
      * @param object   The object node
      */
-    public RDFTriple(RDFSubjectNode subject, RDFProperty property, RDFNode object) {
+    public RDFTriple(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode object) {
+        this.ontology = ontology;
         this.subject = subject;
         this.property = property;
         this.object = object;
+    }
+
+    /**
+     * Gets the containing ontology
+     *
+     * @return The containing ontology
+     */
+    public Ontology getOntology() {
+        return ontology;
+    }
+
+    /**
+     * Sets the containing ontology
+     *
+     * @param ontology The containing ontology
+     */
+    void setOntology(Ontology ontology) {
+        this.ontology = ontology;
     }
 
     /**
@@ -137,6 +163,7 @@ public class RDFTriple {
     public boolean equals(Object obj) {
         if (obj instanceof RDFTriple) {
             RDFTriple triple = (RDFTriple) obj;
+            if (!ontology.equals(triple.ontology)) return false;
             if (!subject.equals(triple.subject)) return false;
             if (!property.equals(triple.property)) return false;
             return (object.equals(triple.object));

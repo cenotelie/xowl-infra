@@ -25,7 +25,6 @@ import org.xowl.hime.redist.Context;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.Ontology;
-import org.xowl.store.rdf.XOWLTriple;
 import org.xowl.store.rdf.*;
 import org.xowl.store.voc.OWLDatatype;
 import org.xowl.store.voc.RDF;
@@ -491,7 +490,7 @@ public class TurtleLoader extends Loader {
                 List<RDFNode> objects = new ArrayList<>(getNodes(objectNode));
                 for (RDFNode object : objects) {
                     try {
-                        graph.add(new XOWLTriple(ontology, subject, verb, object));
+                        graph.add(new RDFTriple(ontology, subject, verb, object));
                     } catch (UnsupportedNodeType ex) {
                         // cannot happen ...
                     }
