@@ -45,10 +45,6 @@ import java.util.Map;
  */
 public class TurtleLoader extends Loader {
     /**
-     * Singleton buffer
-     */
-    private List<Node> singleton;
-    /**
      * The RDF graph to load in
      */
     private RDFGraph graph;
@@ -87,8 +83,6 @@ public class TurtleLoader extends Loader {
      * @param graph The RDF graph to load in
      */
     public TurtleLoader(RDFGraph graph) {
-        this.singleton = new ArrayList<>(1);
-        this.singleton.add(null);
         this.graph = graph;
     }
 
@@ -126,18 +120,23 @@ public class TurtleLoader extends Loader {
             return null;
 
         for (ASTNode node : result.getRoot().getChildren()) {
-            switch (node.getSymbol().getID()) {
-                case TurtleParser.ID.prefixID:
-                case TurtleParser.ID.sparqlPrefix:
-                    loadPrefixID(node);
-                    break;
-                case TurtleParser.ID.base:
-                case TurtleParser.ID.sparqlBase:
-                    loadBase(node);
-                    break;
-                default:
-                    loadTriples(node);
-                    break;
+            try {
+                switch (node.getSymbol().getID()) {
+                    case TurtleParser.ID.prefixID:
+                    case TurtleParser.ID.sparqlPrefix:
+                        loadPrefixID(node);
+                        break;
+                    case TurtleParser.ID.base:
+                    case TurtleParser.ID.sparqlBase:
+                        loadBase(node);
+                        break;
+                    default:
+                        loadTriples(node);
+                        break;
+                }
+            } catch (IllegalArgumentException ex) {
+                logger.error(ex);
+                return null;
             }
         }
 
@@ -173,68 +172,55 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      */
     private void loadTriples(ASTNode node) {
-        if (node.getChildren().get(0).getSymbol().getID() == TurtleParser.ID.blankNodePropertyList) {
+        if (node.getChildren().get(0).getSymbol().getID() == TurtleParser.ID.predicateObjectList) {
             // the subject is a blank node
             BlankNode subject = getNodeBlankWithProperties(node.getChildren().get(0));
             if (node.getChildren().size() > 1)
                 applyProperties(subject, node.getChildren().get(1));
         } else {
-            List<Node> subjects = new ArrayList<>(getNodes(node.getChildren().get(0)));
-            for (Node subject : subjects) {
-                applyProperties((SubjectNode) subject, node.getChildren().get(1));
-            }
+            Node subject = getNode(node.getChildren().get(0));
+            applyProperties((SubjectNode) subject, node.getChildren().get(1));
         }
     }
 
     /**
-     * Gets the list of RDF nodes equivalent to the specified AST node
+     * Gets the RDF node equivalent to the specified AST node
      *
      * @param node An AST node
      * @return The equivalent RDF nodes
      */
-    private List<Node> getNodes(ASTNode node) {
+    private Node getNode(ASTNode node) {
         switch (node.getSymbol().getID()) {
             case 0x003C: // a
-                return encapsulate(getNodeIsA());
+                return getNodeIsA();
             case TurtleLexer.ID.IRIREF:
-                return encapsulate(getNodeIRIRef(node));
+                return getNodeIRIRef(node);
             case TurtleLexer.ID.PNAME_LN:
-                return encapsulate(getNodePNameLN(node));
+                return getNodePNameLN(node);
             case TurtleLexer.ID.PNAME_NS:
-                return encapsulate(getNodePNameNS(node));
+                return getNodePNameNS(node);
             case TurtleLexer.ID.BLANK_NODE_LABEL:
-                return encapsulate(getNodeBlank(node));
+                return getNodeBlank(node);
             case TurtleLexer.ID.ANON:
-                return encapsulate(getNodeAnon());
+                return getNodeAnon();
             case 0x0042: // true
-                return encapsulate(getNodeTrue());
+                return getNodeTrue();
             case 0x0043: // false
-                return encapsulate(getNodeFalse());
+                return getNodeFalse();
             case TurtleLexer.ID.INTEGER:
-                return encapsulate(getNodeInteger(node));
+                return getNodeInteger(node);
             case TurtleLexer.ID.DECIMAL:
-                return encapsulate(getNodeDecimal(node));
+                return getNodeDecimal(node);
             case TurtleLexer.ID.DOUBLE:
-                return encapsulate(getNodeDouble(node));
+                return getNodeDouble(node);
             case TurtleParser.ID.rdfLiteral:
-                return encapsulate(getNodeLiteral(node));
+                return getNodeLiteral(node);
             case TurtleParser.ID.collection:
                 return getNodeCollection(node);
             case TurtleParser.ID.predicateObjectList:
-                return encapsulate(getNodeBlankWithProperties(node));
+                return getNodeBlankWithProperties(node);
         }
-        return null;
-    }
-
-    /**
-     * Encapsulates the specified node in a singleton list
-     *
-     * @param single A node
-     * @return The list with the specified element as the sole one
-     */
-    private List<Node> encapsulate(Node single) {
-        singleton.set(0, single);
-        return singleton;
+        throw new IllegalArgumentException("Unexpected node " + node.getSymbol().getValue());
     }
 
     /**
@@ -405,7 +391,7 @@ public class TurtleLoader extends Loader {
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(suffixChild.getSymbol().getValue());
-            return graph.getLiteralNode(value, getIRIForLocalName(local), null);
+            return graph.getLiteralNode(value, local, null);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getSymbol().getValue();
@@ -413,20 +399,44 @@ public class TurtleLoader extends Loader {
             ns = namespaces.get(ns);
             return graph.getLiteralNode(value, ns, null);
         }
-        return null;
+        throw new IllegalArgumentException("Unexpected node " + node.getSymbol().getValue());
     }
 
     /**
-     * Gets the list of RDF nodes equivalent to the specified AST node representing a collection of RDF nodes
+     * Gets the RDF list node equivalent to the specified AST node representing a collection of RDF nodes
      *
      * @param node An AST node
-     * @return A list of RDF nodes
+     * @return A RDF list node
      */
-    private List<Node> getNodeCollection(ASTNode node) {
-        List<Node> result = new ArrayList<>();
+    private Node getNodeCollection(ASTNode node) {
+        List<Node> elements = new ArrayList<>();
         for (ASTNode child : node.getChildren())
-            result.addAll(getNodes(child));
-        return result;
+            elements.add(getNode(child));
+        if (elements.isEmpty())
+            return graph.getNodeIRI(RDF.rdfNil);
+
+        BlankNode[] proxies = new BlankNode[elements.size()];
+        for (int i=0; i!=proxies.length; i++) {
+            proxies[i] = graph.getBlankNode();
+            try {
+                graph.add(ontology, proxies[i], graph.getNodeIRI(RDF.rdfFirst), elements.get(i));
+            } catch (UnsupportedNodeType ex) {
+                // cannot happen ...
+            }
+        }
+        for (int i=0; i!=proxies.length-1; i++) {
+            try {
+                graph.add(ontology, proxies[i], graph.getNodeIRI(RDF.rdfRest), proxies[i+1]);
+            } catch (UnsupportedNodeType ex) {
+                // cannot happen ...
+            }
+        }
+        try {
+            graph.add(ontology, proxies[proxies.length-1], graph.getNodeIRI(RDF.rdfRest), graph.getNodeIRI(RDF.rdfNil));
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen ...
+        }
+        return proxies[0];
     }
 
     /**
@@ -474,7 +484,7 @@ public class TurtleLoader extends Loader {
             }
             index++;
         }
-        return null;
+        throw new IllegalArgumentException("Failed to resolve local name " + value);
     }
 
     /**
@@ -487,15 +497,13 @@ public class TurtleLoader extends Loader {
         int index = 0;
         List<ASTNode> children = node.getChildren();
         while (index != children.size()) {
-            Property verb = (Property) getNodes(children.get(index)).get(0);
+            Property verb = (Property) getNode(children.get(index));
             for (ASTNode objectNode : children.get(index + 1).getChildren()) {
-                List<Node> objects = new ArrayList<>(getNodes(objectNode));
-                for (Node object : objects) {
-                    try {
-                        graph.add(ontology, subject, verb, object);
-                    } catch (UnsupportedNodeType ex) {
-                        // cannot happen ...
-                    }
+                Node object = getNode(objectNode);
+                try {
+                    graph.add(ontology, subject, verb, object);
+                } catch (UnsupportedNodeType ex) {
+                    // cannot happen ...
                 }
             }
             index += 2;
