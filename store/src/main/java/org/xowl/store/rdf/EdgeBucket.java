@@ -72,9 +72,9 @@ public class EdgeBucket implements Iterable<Edge> {
     public void add(Ontology ontology, Property property, Node value) {
         boolean hasEmpty = false;
         for (int i = 0; i != edges.length; i++) {
-            hasEmpty = hasEmpty || (edges[i] != null);
+            hasEmpty = hasEmpty || (edges[i] == null);
             if (edges[i] != null && edges[i].getProperty() == property) {
-                edges[i].increment(ontology, value);
+                edges[i].add(ontology, value);
                 return;
             }
         }
@@ -103,8 +103,8 @@ public class EdgeBucket implements Iterable<Edge> {
      */
     public boolean remove(Ontology ontology, Property property, Node value) {
         for (int i = 0; i != edges.length; i++) {
-            if (edges[i].getProperty() == property) {
-                if (edges[i].decrement(ontology, value)) {
+            if (edges[i] != null && edges[i].getProperty() == property) {
+                if (edges[i].remove(ontology, value)) {
                     edges[i] = null;
                     size--;
                 }

@@ -89,14 +89,14 @@ public class EdgeTarget implements Iterable<Ontology> {
     }
 
     /**
-     * Increment the multiplicity for the specified ontology
+     * Adds the specified ontology (or increment the counter)
      *
      * @param ontology An ontology
      */
-    public void increment(Ontology ontology) {
+    public void add(Ontology ontology) {
         boolean hasEmpty = false;
         for (int i = 0; i != ontologies.length; i++) {
-            hasEmpty = hasEmpty || (ontologies[i] != null);
+            hasEmpty = hasEmpty || (ontologies[i] == null);
             if (ontologies[i] == ontology) {
                 multiplicities[i]++;
                 return;
@@ -121,12 +121,12 @@ public class EdgeTarget implements Iterable<Ontology> {
     }
 
     /**
-     * Decrement the multiplicity for the specified ontology
+     * Removes the specified ontology (or decrement the counter)
      *
      * @param ontology An ontology
      * @return true if this target is now empty and should be removed
      */
-    public boolean decrement(Ontology ontology) {
+    public boolean remove(Ontology ontology) {
         for (int i = 0; i != ontologies.length; i++) {
             if (ontologies[i] == ontology) {
                 multiplicities[i]--;

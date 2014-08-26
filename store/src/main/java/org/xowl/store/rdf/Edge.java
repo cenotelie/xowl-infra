@@ -82,17 +82,17 @@ public class Edge implements Iterable<EdgeTarget> {
     }
 
     /**
-     * Inserts the specified edge (or increment the counter)
+     * Adds the specified edge (or increment the counter)
      *
      * @param ontology The ontology containing the triple
      * @param value    The edge's target node
      */
-    public void increment(Ontology ontology, Node value) {
+    public void add(Ontology ontology, Node value) {
         boolean hasEmpty = false;
         for (int i = 0; i != targets.length; i++) {
-            hasEmpty = hasEmpty || (targets[i] != null);
+            hasEmpty = hasEmpty || (targets[i] == null);
             if (targets[i] != null && targets[i].getTarget() == value) {
-                targets[i].increment(ontology);
+                targets[i].add(ontology);
                 return;
             }
         }
@@ -100,6 +100,7 @@ public class Edge implements Iterable<EdgeTarget> {
             targets = Arrays.copyOf(targets, targets.length + INIT_BUFFER_SIZE);
             targets[size] = new EdgeTarget(ontology, value);
             size++;
+            return;
         }
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] == null) {
@@ -117,17 +118,14 @@ public class Edge implements Iterable<EdgeTarget> {
      * @param value    The edge's target node
      * @return true if this edge is now empty and shall be removed
      */
-    public boolean decrement(Ontology ontology, Node value) {
+    public boolean remove(Ontology ontology, Node value) {
         for (int i = 0; i != targets.length; i++) {
-            if (targets[i] != null) {
-                if (targets[i].getTarget() == value) {
-                    boolean remove = targets[i].decrement(ontology);
-                    if (remove) {
-                        targets[i] = null;
-                        size--;
-                    }
-                    return (size == 0);
+            if (targets[i] != null && targets[i].getTarget() == value) {
+                if (targets[i].remove(ontology)) {
+                    targets[i] = null;
+                    size--;
                 }
+                return (size == 0);
             }
         }
         return (size == 0);

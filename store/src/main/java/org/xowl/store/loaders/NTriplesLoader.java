@@ -130,7 +130,7 @@ public class NTriplesLoader extends Loader {
      */
     private Node translateIRIREF(ASTNode node) {
         String value = node.getSymbol().getValue();
-        value = unescape(value);
+        value = unescape(value.substring(1, value.length() - 1));
         return graph.getNodeIRI(value);
     }
 
@@ -159,14 +159,14 @@ public class NTriplesLoader extends Loader {
      */
     private Node translateLiteral(ASTNode node) {
         String value = node.getSymbol().getValue();
-        value = unescape(value);
+        value = unescape(value.substring(1, value.length() - 1));
         if (node.getChildren().size() == 0) {
             return graph.getLiteralNode(value, OWLDatatype.xsdString, null);
         }
         ASTNode child = node.getChildren().get(0);
         if (child.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
             String type = child.getSymbol().getValue();
-            type = unescape(type);
+            type = unescape(type.substring(1, type.length() - 1));
             return graph.getLiteralNode(value, type, null);
         } else if (child.getSymbol().getID() == NTriplesLexer.ID.LANGTAG) {
             String lang = child.getSymbol().getValue();

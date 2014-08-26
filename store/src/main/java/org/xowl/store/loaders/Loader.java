@@ -83,9 +83,9 @@ public abstract class Loader {
      * @return The translated string with the escape sequences replaced by their value
      */
     protected String unescape(String content) {
-        char[] buffer = new char[content.length() - 2];
+        char[] buffer = new char[content.length()];
         int next = 0;
-        for (int i = 1; i != content.length() - 1; i++) {
+        for (int i = 0; i != content.length(); i++) {
             char c = content.charAt(i);
             if (c != '\\') {
                 buffer[next++] = c;

@@ -87,7 +87,8 @@ public class TurtleLoader extends Loader {
      * @param graph The RDF graph to load in
      */
     public TurtleLoader(RDFGraph graph) {
-        this.singleton = new ArrayList<>();
+        this.singleton = new ArrayList<>(1);
+        this.singleton.add(null);
         this.graph = graph;
     }
 
@@ -115,10 +116,10 @@ public class TurtleLoader extends Loader {
 
     @Override
     public Ontology load(Logger logger, Reader reader) {
-        baseURI = null;
+        ontology = createNewOntology();
+        baseURI = ontology.getHasIRI().getHasValue();
         namespaces = new HashMap<>();
         blanks = new HashMap<>();
-        ontology = createNewOntology();
 
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
@@ -152,7 +153,7 @@ public class TurtleLoader extends Loader {
         String prefix = node.getChildren().get(0).getSymbol().getValue();
         String uri = node.getChildren().get(1).getSymbol().getValue();
         prefix = prefix.substring(0, prefix.length() - 1);
-        uri = unescape(uri);
+        uri = unescape(uri.substring(1, uri.length() - 1));
         namespaces.put(prefix, uri);
     }
 
@@ -163,7 +164,7 @@ public class TurtleLoader extends Loader {
      */
     private void loadBase(ASTNode node) {
         String value = node.getChildren().get(0).getSymbol().getValue();
-        baseURI = unescape(value);
+        baseURI = unescape(value.substring(1, value.length() - 1));
     }
 
     /**
@@ -277,8 +278,8 @@ public class TurtleLoader extends Loader {
      */
     private IRINode getNodePNameNS(ASTNode node) {
         String value = node.getSymbol().getValue();
-        value = unescape(value);
-        value = namespaces.get(value.substring(0, value.length() - 1));
+        value = unescape(value.substring(0, value.length() - 1));
+        value = namespaces.get(value);
         return graph.getNodeIRI(value);
     }
 
@@ -290,8 +291,7 @@ public class TurtleLoader extends Loader {
      */
     private BlankNode getNodeBlank(ASTNode node) {
         String value = node.getSymbol().getValue();
-        value = unescape(value);
-        value = value.substring(2);
+        value = unescape(value.substring(2));
         BlankNode blank = blanks.get(value);
         if (blank != null)
             return blank;
@@ -377,12 +377,14 @@ public class TurtleLoader extends Loader {
         switch (childString.getSymbol().getID()) {
             case TurtleLexer.ID.STRING_LITERAL_SINGLE_QUOTE:
             case TurtleLexer.ID.STRING_LITERAL_QUOTE:
-                value = unescape(childString.getSymbol().getValue());
+                value = childString.getSymbol().getValue();
+                value = value.substring(1, value.length() - 1);
+                value = unescape(value);
                 break;
             case TurtleLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
             case TurtleLexer.ID.STRING_LITERAL_LONG_QUOTE:
                 value = childString.getSymbol().getValue();
-                value = value.substring(2, value.length() - 4);
+                value = value.substring(3, value.length() - 3);
                 value = unescape(value);
                 break;
         }
@@ -407,8 +409,8 @@ public class TurtleLoader extends Loader {
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getSymbol().getValue();
-            ns = unescape(ns);
-            ns = namespaces.get(ns.substring(0, ns.length() - 1));
+            ns = unescape(ns.substring(0, ns.length() - 1));
+            ns = namespaces.get(ns);
             return graph.getLiteralNode(value, ns, null);
         }
         return null;
@@ -446,7 +448,7 @@ public class TurtleLoader extends Loader {
      * @return The equivalent full IRI
      */
     private String getFullIRI(String iri) {
-        iri = unescape(iri);
+        iri = unescape(iri.substring(1, iri.length() - 1));
         if (!iri.startsWith("http://"))
             return baseURI + iri;
         return iri;
@@ -490,7 +492,7 @@ public class TurtleLoader extends Loader {
                 List<Node> objects = new ArrayList<>(getNodes(objectNode));
                 for (Node object : objects) {
                     try {
-                        graph.add(new Triple(ontology, subject, verb, object));
+                        graph.add(ontology, subject, verb, object);
                     } catch (UnsupportedNodeType ex) {
                         // cannot happen ...
                     }
