@@ -29,7 +29,7 @@ import org.xowl.store.cache.StringStore;
  *
  * @author Laurent Wouters
  */
-class RDFLiteralNodeImpl extends RDFLiteralNode {
+class LiteralNodeImpl extends LiteralNode {
     /**
      * The string store
      */
@@ -55,7 +55,7 @@ class RDFLiteralNodeImpl extends RDFLiteralNode {
      * @param type    Key to the datatype IRI
      * @param tag     Key to the language tag
      */
-    public RDFLiteralNodeImpl(StringStore store, int lexical, int type, int tag) {
+    public LiteralNodeImpl(StringStore store, int lexical, int type, int tag) {
         this.store = store;
         this.lexical = lexical;
         this.type = type;
@@ -82,8 +82,8 @@ class RDFLiteralNodeImpl extends RDFLiteralNode {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof RDFLiteralNodeImpl) {
-            RDFLiteralNodeImpl node = (RDFLiteralNodeImpl) obj;
+        if (obj instanceof LiteralNodeImpl) {
+            LiteralNodeImpl node = (LiteralNodeImpl) obj;
             return (this.lexical == node.lexical && this.type == node.type && this.tag == node.tag);
         }
         return false;

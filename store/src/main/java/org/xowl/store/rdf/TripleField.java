@@ -25,7 +25,7 @@ package org.xowl.store.rdf;
  *
  * @author Laurent Wouters
  */
-public enum RDFTripleField {
+public enum TripleField {
     /**
      * The triple's subject
      */

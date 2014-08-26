@@ -48,7 +48,7 @@ public class RDFGraph {
     /**
      * The store of existing IRI Reference nodes
      */
-    protected Map<Integer, RDFIRIReference> mapNodeIRIs;
+    protected Map<Integer, IRINode> mapNodeIRIs;
     /**
      * The store of existing literal nodes
      */
@@ -86,12 +86,12 @@ public class RDFGraph {
      * @param iri An IRI
      * @return The associated RDF node
      */
-    public RDFIRIReference getNodeIRI(String iri) {
+    public IRINode getNodeIRI(String iri) {
         int key = sStore.store(iri);
-        RDFIRIReference node = mapNodeIRIs.get(key);
+        IRINode node = mapNodeIRIs.get(key);
         if (node != null)
             return node;
-        node = new RDFIRIReferenceImpl(sStore, key);
+        node = new IRINodeImpl(sStore, key);
         mapNodeIRIs.put(key, node);
         return node;
     }
@@ -101,8 +101,8 @@ public class RDFGraph {
      *
      * @return A new RDF blank node
      */
-    public RDFBlankNode getBlankNode() {
-        return new RDFBlankNode(nextBlank++);
+    public BlankNode getBlankNode() {
+        return new BlankNode(nextBlank++);
     }
 
     /**
@@ -113,7 +113,7 @@ public class RDFGraph {
      * @param lang     The literals' language tag
      * @return The associated RDF node
      */
-    public RDFLiteralNode getLiteralNode(String lex, String datatype, String lang) {
+    public LiteralNode getLiteralNode(String lex, String datatype, String lang) {
         int lexKey = sStore.store(lex);
         int typeKey = sStore.store(datatype);
         int langKey = lang != null ? sStore.store(lang) : -1;
@@ -124,10 +124,10 @@ public class RDFGraph {
             mapNodeLiterals.put(lexKey, bucket);
         }
 
-        RDFLiteralNode node = bucket.get(typeKey, langKey);
+        LiteralNode node = bucket.get(typeKey, langKey);
         if (node != null)
             return node;
-        node = new RDFLiteralNodeImpl(sStore, lexKey, typeKey, langKey);
+        node = new LiteralNodeImpl(sStore, lexKey, typeKey, langKey);
         bucket.add(typeKey, langKey, node);
         return node;
     }
@@ -138,7 +138,7 @@ public class RDFGraph {
      * @param literal A literal
      * @return The associated RDF node
      */
-    public RDFLiteralNode getLiteralNode(Literal literal) {
+    public LiteralNode getLiteralNode(Literal literal) {
         return getLiteralNode(literal.getLexicalValue(), literal.getMemberOf().getHasValue(), literal.getLangTag());
     }
 
@@ -148,7 +148,7 @@ public class RDFGraph {
      * @param triple A triple
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
-    public void add(RDFTriple triple) throws UnsupportedNodeType {
+    public void add(Triple triple) throws UnsupportedNodeType {
         add(triple.getOntology(), triple.getSubject(), triple.getProperty(), triple.getObject());
     }
 
@@ -161,13 +161,13 @@ public class RDFGraph {
      * @param value    The triple value
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
-    public void add(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) throws UnsupportedNodeType {
+    public void add(Ontology ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
-            case RDFIRIReference.TYPE:
-                addEdgeFromIRI(ontology, (RDFIRIReference) subject, property, value);
+            case IRINode.TYPE:
+                addEdgeFromIRI(ontology, (IRINode) subject, property, value);
                 break;
-            case RDFBlankNode.TYPE:
-                addEdgeFromBlank(ontology, (RDFBlankNode) subject, property, value);
+            case BlankNode.TYPE:
+                addEdgeFromBlank(ontology, (BlankNode) subject, property, value);
                 break;
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
@@ -182,8 +182,8 @@ public class RDFGraph {
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void addEdgeFromIRI(Ontology ontology, RDFIRIReference subject, RDFProperty property, RDFNode value) {
-        int key = ((RDFIRIReferenceImpl) subject).getKey();
+    protected void addEdgeFromIRI(Ontology ontology, IRINode subject, Property property, Node value) {
+        int key = ((IRINodeImpl) subject).getKey();
         EdgeBucket bucket = edgesIRI.get(key);
         if (bucket == null) {
             bucket = new EdgeBucket();
@@ -200,7 +200,7 @@ public class RDFGraph {
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void addEdgeFromBlank(Ontology ontology, RDFBlankNode subject, RDFProperty property, RDFNode value) {
+    protected void addEdgeFromBlank(Ontology ontology, BlankNode subject, Property property, Node value) {
         int key = subject.getBlankID();
         while (key > edgesBlank.length)
             edgesBlank = Arrays.copyOf(edgesBlank, edgesBlank.length + INIT_BLANK_SIZE);
@@ -218,7 +218,7 @@ public class RDFGraph {
      * @param triple A triple
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
-    public void remove(RDFTriple triple) throws UnsupportedNodeType {
+    public void remove(Triple triple) throws UnsupportedNodeType {
         remove(triple.getOntology(), triple.getSubject(), triple.getProperty(), triple.getObject());
     }
 
@@ -231,13 +231,13 @@ public class RDFGraph {
      * @param value    The triple value
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
-    public void remove(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode value) throws UnsupportedNodeType {
+    public void remove(Ontology ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
-            case RDFIRIReference.TYPE:
-                removeEdgeFromIRI(ontology, (RDFIRIReference) subject, property, value);
+            case IRINode.TYPE:
+                removeEdgeFromIRI(ontology, (IRINode) subject, property, value);
                 break;
-            case RDFBlankNode.TYPE:
-                removeEdgeFromBlank(ontology, (RDFBlankNode) subject, property, value);
+            case BlankNode.TYPE:
+                removeEdgeFromBlank(ontology, (BlankNode) subject, property, value);
                 break;
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
@@ -252,8 +252,8 @@ public class RDFGraph {
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void removeEdgeFromIRI(Ontology ontology, RDFIRIReference subject, RDFProperty property, RDFNode value) {
-        int key = ((RDFIRIReferenceImpl) subject).getKey();
+    protected void removeEdgeFromIRI(Ontology ontology, IRINode subject, Property property, Node value) {
+        int key = ((IRINodeImpl) subject).getKey();
         EdgeBucket bucket = edgesIRI.get(key);
         if (bucket == null)
             return;
@@ -270,7 +270,7 @@ public class RDFGraph {
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void removeEdgeFromBlank(Ontology ontology, RDFBlankNode subject, RDFProperty property, RDFNode value) {
+    protected void removeEdgeFromBlank(Ontology ontology, BlankNode subject, Property property, Node value) {
         int key = subject.getBlankID();
         if (key >= edgesBlank.length)
             return;
@@ -287,7 +287,7 @@ public class RDFGraph {
      *
      * @return An iterator over the results
      */
-    public Iterator<RDFTriple> getAll() {
+    public Iterator<Triple> getAll() {
         try {
             return getAll(null, null, null, null);
         } catch (UnsupportedNodeType ex) {
@@ -302,7 +302,7 @@ public class RDFGraph {
      * @param ontology A containing to match
      * @return An iterator over the results
      */
-    public Iterator<RDFTriple> getAll(Ontology ontology) {
+    public Iterator<Triple> getAll(Ontology ontology) {
         try {
             return getAll(null, null, null, ontology);
         } catch (UnsupportedNodeType ex) {
@@ -320,7 +320,7 @@ public class RDFGraph {
      * @return An iterator over the results
      * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public Iterator<RDFTriple> getAll(RDFSubjectNode subject, RDFProperty property, RDFNode object) throws UnsupportedNodeType {
+    public Iterator<Triple> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return getAll(subject, property, object, null);
     }
 
@@ -334,28 +334,28 @@ public class RDFGraph {
      * @return An iterator over the results
      * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public Iterator<RDFTriple> getAll(RDFSubjectNode subject, final RDFProperty property, final RDFNode object, final Ontology ontology) throws UnsupportedNodeType {
+    public Iterator<Triple> getAll(SubjectNode subject, final Property property, final Node object, final Ontology ontology) throws UnsupportedNodeType {
         if (subject == null) {
-            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<RDFTriple>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<Triple>>() {
                 @Override
-                public <X> Iterator<RDFTriple> adapt(X element) {
-                    Couple<RDFSubjectNode, EdgeBucket> subject = (Couple<RDFSubjectNode, EdgeBucket>) element;
+                public <X> Iterator<Triple> adapt(X element) {
+                    Couple<SubjectNode, EdgeBucket> subject = (Couple<SubjectNode, EdgeBucket>) element;
                     return subject.y.getAllTriples(property, object, ontology);
                 }
-            }), new Adapter<RDFTriple>() {
+            }), new Adapter<Triple>() {
                 @Override
-                public <X> RDFTriple adapt(X element) {
-                    Couple<Couple<RDFSubjectNode, EdgeBucket>, RDFTriple> result = (Couple<Couple<RDFSubjectNode, EdgeBucket>, RDFTriple>) element;
+                public <X> Triple adapt(X element) {
+                    Couple<Couple<SubjectNode, EdgeBucket>, Triple> result = (Couple<Couple<SubjectNode, EdgeBucket>, Triple>) element;
                     result.y.setSubject(result.x.x);
                     return result.y;
                 }
             });
         } else {
             switch (subject.getNodeType()) {
-                case RDFIRIReference.TYPE:
-                    return edgesIRI.get(((RDFIRIReferenceImpl) subject).getKey()).getAllTriples(property, object, ontology);
-                case RDFBlankNode.TYPE:
-                    return edgesBlank[((RDFBlankNode) subject).getBlankID()].getAllTriples(property, object, ontology);
+                case IRINode.TYPE:
+                    return edgesIRI.get(((IRINodeImpl) subject).getKey()).getAllTriples(property, object, ontology);
+                case BlankNode.TYPE:
+                    return edgesBlank[((BlankNode) subject).getBlankID()].getAllTriples(property, object, ontology);
                 default:
                     throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
             }
@@ -367,22 +367,22 @@ public class RDFGraph {
      *
      * @return An iterator over all the subjects starting edges in the graph
      */
-    protected Iterator<Couple<RDFSubjectNode, EdgeBucket>> getAllSubjects() {
-        final Couple<RDFSubjectNode, EdgeBucket> result = new Couple<>();
-        return new ConcatenatedIterator<Couple<RDFSubjectNode, EdgeBucket>>(new Iterator[]{
-                new AdaptingIterator<>(edgesIRI.keySet().iterator(), new Adapter<Couple<RDFSubjectNode, EdgeBucket>>() {
+    protected Iterator<Couple<SubjectNode, EdgeBucket>> getAllSubjects() {
+        final Couple<SubjectNode, EdgeBucket> result = new Couple<>();
+        return new ConcatenatedIterator<Couple<SubjectNode, EdgeBucket>>(new Iterator[]{
+                new AdaptingIterator<>(edgesIRI.keySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
                     @Override
-                    public <X> Couple<RDFSubjectNode, EdgeBucket> adapt(X element) {
+                    public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
                         result.x = mapNodeIRIs.get(element);
                         result.y = edgesIRI.get(element);
                         return result;
                     }
                 }),
-                new AdaptingIterator<>(new IndexIterator<>(edgesBlank), new Adapter<Couple<RDFSubjectNode, EdgeBucket>>() {
+                new AdaptingIterator<>(new IndexIterator<>(edgesBlank), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
                     @Override
-                    public <X> Couple<RDFSubjectNode, EdgeBucket> adapt(X element) {
+                    public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
                         Integer index = (Integer) element;
-                        result.x = new RDFBlankNode(index);
+                        result.x = new BlankNode(index);
                         result.y = edgesBlank[index];
                         return result;
                     }

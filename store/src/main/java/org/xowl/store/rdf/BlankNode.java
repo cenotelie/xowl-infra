@@ -20,18 +20,30 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.IRI;
-
 /**
- * Represents a node associated to an IRI in a RDF graph
+ * Represents a blank node in a RDF graph
  *
  * @author Laurent Wouters
  */
-public abstract class RDFIRIReference implements RDFSubjectNode, RDFProperty {
+public class BlankNode implements SubjectNode {
     /**
      * The type of node
      */
-    public static final int TYPE = 0;
+    public static final int TYPE = 1;
+
+    /**
+     * the node's unique identifier
+     */
+    private int blankID;
+
+    /**
+     * Initializes this node
+     *
+     * @param id The unique identifier for this node
+     */
+    public BlankNode(int id) {
+        blankID = id;
+    }
 
     @Override
     public int getNodeType() {
@@ -39,25 +51,30 @@ public abstract class RDFIRIReference implements RDFSubjectNode, RDFProperty {
     }
 
     /**
-     * Gets the IRI associated to this node
+     * Gets the blank identifier of this node
      *
-     * @return The IRI associated to this node
+     * @return The blank identifier of this node, or -1 if none
      */
-    public IRI getIRI() {
-        IRI iri = new IRI();
-        iri.setHasValue(getIRIValue());
-        return iri;
+    public int getBlankID() {
+        return blankID;
+    }
+
+    @Override
+    public int hashCode() {
+        return blankID;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof BlankNode) {
+            BlankNode node = (BlankNode) obj;
+            return (blankID == node.blankID);
+        }
+        return false;
     }
 
     @Override
     public String toString() {
-        return getIRIValue();
+        return "<blank>";
     }
-
-    /**
-     * Gets the IRI's value associated to this node
-     *
-     * @return The IRI's value associated to this node
-     */
-    public abstract String getIRIValue();
 }

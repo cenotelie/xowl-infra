@@ -20,8 +20,8 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.RDFNode;
-import org.xowl.store.rdf.RDFTriple;
+import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.Triple;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -120,14 +120,14 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
 
     @Override
     public void activateToken(Token t) {
-        for (RDFTriple fact : alphaMem.getFacts())
+        for (Triple fact : alphaMem.getFacts())
             if (passTests(t, fact))
                 child.activate(t, fact);
     }
 
     @Override
     public void deactivateToken(Token t) {
-        for (RDFTriple fact : alphaMem.getFacts())
+        for (Triple fact : alphaMem.getFacts())
             if (passTests(t, fact))
                 child.deactivate(t, fact);
     }
@@ -145,27 +145,27 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
     }
 
     @Override
-    public void activateFact(RDFTriple fact) {
+    public void activateFact(Triple fact) {
         for (Token t : betaMem.getTokens())
             if (passTests(t, fact))
                 child.activate(t, fact);
     }
 
     @Override
-    public void deactivateFact(RDFTriple fact) {
+    public void deactivateFact(Triple fact) {
         for (Token t : betaMem.getTokens())
             if (passTests(t, fact))
                 child.deactivate(t, fact);
     }
 
     @Override
-    public void activateFacts(Collection<RDFTriple> facts) {
+    public void activateFacts(Collection<Triple> facts) {
         if (!betaMem.getTokens().isEmpty())
             child.activate(getJoin(betaMem.getTokens(), facts));
     }
 
     @Override
-    public void deactivateFacts(Collection<RDFTriple> facts) {
+    public void deactivateFacts(Collection<Triple> facts) {
         if (!betaMem.getTokens().isEmpty())
             child.deactivate(getJoin(betaMem.getTokens(), facts));
     }
@@ -177,7 +177,7 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
      * @param facts  A collection of facts
      * @return An iterator over the joined couples
      */
-    private Iterator<Couple> getJoin(Collection<Token> tokens, Collection<RDFTriple> facts) {
+    private Iterator<Couple> getJoin(Collection<Token> tokens, Collection<Triple> facts) {
         int size = tokens.size() * facts.size();
         JoinStrategy join = null;
         if (size <= MAX_SIZE_JOIN_LOOPS)
@@ -197,24 +197,24 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
      * @return A double hash join strategy
      */
     private JoinStrategy createDoubeHashJoin() {
-        return new GraceHashJoin<Token, RDFTriple>(test1, test2, test3) {
+        return new GraceHashJoin<Token, Triple>(test1, test2, test3) {
             @Override
-            protected Couple createCouple(Token left, RDFTriple right) {
+            protected Couple createCouple(Token left, Triple right) {
                 return new Couple(right, left);
             }
 
             @Override
-            protected RDFNode getValueForLeft(Token left, BetaJoinNodeTest test) {
+            protected Node getValueForLeft(Token left, BetaJoinNodeTest test) {
                 return left.getBinding(test.getVariable());
             }
 
             @Override
-            protected RDFNode getValueForRight(RDFTriple right, BetaJoinNodeTest test) {
+            protected Node getValueForRight(Triple right, BetaJoinNodeTest test) {
                 return right.getField(test.getField());
             }
 
             @Override
-            public Iterator<Couple> join(Collection<Token> tokens, Collection<RDFTriple> facts) {
+            public Iterator<Couple> join(Collection<Token> tokens, Collection<Triple> facts) {
                 return joinGenerics(tokens, facts);
             }
         };
@@ -226,24 +226,24 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
      * @return A simple hash join strategy
      */
     private JoinStrategy createSimpleHashJoinToken() {
-        return new SimpleHashJoin<Token, RDFTriple>(test1, test2, test3) {
+        return new SimpleHashJoin<Token, Triple>(test1, test2, test3) {
             @Override
-            protected Couple createCouple(Token left, RDFTriple right) {
+            protected Couple createCouple(Token left, Triple right) {
                 return new Couple(right, left);
             }
 
             @Override
-            protected RDFNode getValueForLeft(Token left, BetaJoinNodeTest test) {
+            protected Node getValueForLeft(Token left, BetaJoinNodeTest test) {
                 return left.getBinding(test.getVariable());
             }
 
             @Override
-            protected RDFNode getValueForRight(RDFTriple right, BetaJoinNodeTest test) {
+            protected Node getValueForRight(Triple right, BetaJoinNodeTest test) {
                 return right.getField(test.getField());
             }
 
             @Override
-            public Iterator<Couple> join(Collection<Token> tokens, Collection<RDFTriple> facts) {
+            public Iterator<Couple> join(Collection<Token> tokens, Collection<Triple> facts) {
                 return joinGenerics(tokens, facts);
             }
         };
@@ -255,24 +255,24 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
      * @return A simple hash join strategy
      */
     private JoinStrategy createSimpleHashJoinFact() {
-        return new SimpleHashJoin<RDFTriple, Token>(test1, test2, test3) {
+        return new SimpleHashJoin<Triple, Token>(test1, test2, test3) {
             @Override
-            protected Couple createCouple(RDFTriple left, Token right) {
+            protected Couple createCouple(Triple left, Token right) {
                 return new Couple(left, right);
             }
 
             @Override
-            protected RDFNode getValueForLeft(RDFTriple left, BetaJoinNodeTest test) {
+            protected Node getValueForLeft(Triple left, BetaJoinNodeTest test) {
                 return left.getField(test.getField());
             }
 
             @Override
-            protected RDFNode getValueForRight(Token right, BetaJoinNodeTest test) {
+            protected Node getValueForRight(Token right, BetaJoinNodeTest test) {
                 return right.getBinding(test.getVariable());
             }
 
             @Override
-            public Iterator<Couple> join(Collection<Token> tokens, Collection<RDFTriple> facts) {
+            public Iterator<Couple> join(Collection<Token> tokens, Collection<Triple> facts) {
                 return joinGenerics(facts, tokens);
             }
         };
@@ -285,7 +285,7 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
      * @param fact  A fact
      * @return true if the couple passes the tests
      */
-    private boolean passTests(Token token, RDFTriple fact) {
+    private boolean passTests(Token token, Triple fact) {
         if (test1 == null) return true;
         if (!test1.check(token, fact)) return false;
         if (test2 == null) return true;

@@ -21,8 +21,8 @@
 package org.xowl.store.rete;
 
 import org.xowl.store.owl.VariableNode;
-import org.xowl.store.rdf.RDFTriple;
-import org.xowl.store.rdf.RDFTripleField;
+import org.xowl.store.rdf.Triple;
+import org.xowl.store.rdf.TripleField;
 
 /**
  * Represents a binding operation that binds a variable to the field of a triple
@@ -37,7 +37,7 @@ public class Binder {
     /**
      * The field in a triple that shall be bound
      */
-    private RDFTripleField field;
+    private TripleField field;
 
     /**
      * Initializes this element
@@ -45,7 +45,7 @@ public class Binder {
      * @param variable The variable to bind to
      * @param field    The field in a triple that shall be bound
      */
-    public Binder(VariableNode variable, RDFTripleField field) {
+    public Binder(VariableNode variable, TripleField field) {
         this.variable = variable;
         this.field = field;
     }
@@ -56,7 +56,7 @@ public class Binder {
      * @param token A token which will contain the binding
      * @param fact  A fact
      */
-    public void execute(Token token, RDFTriple fact) {
+    public void execute(Token token, Triple fact) {
         token.bind(variable, fact.getField(field));
     }
 }

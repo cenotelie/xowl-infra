@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.RDFNode;
+import org.xowl.store.rdf.Node;
 
 import java.util.*;
 
@@ -35,7 +35,7 @@ public abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implement
     /**
      * Hash map of the left elements
      */
-    private Map<RDFNode, Map<RDFNode, Map<RDFNode, Collection<LEFT>>>> mapLefts;
+    private Map<Node, Map<Node, Map<Node, Collection<LEFT>>>> mapLefts;
     /**
      * Innermost iterator of left elements
      */
@@ -81,7 +81,7 @@ public abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implement
      * @param test A test
      * @return The value corresponding to the element
      */
-    protected abstract RDFNode getValueForLeft(LEFT left, BetaJoinNodeTest test);
+    protected abstract Node getValueForLeft(LEFT left, BetaJoinNodeTest test);
 
     /**
      * Gets the value for the specified right element
@@ -90,7 +90,7 @@ public abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implement
      * @param test  A test
      * @return The value corresponding to the element
      */
-    protected abstract RDFNode getValueForRight(RIGHT right, BetaJoinNodeTest test);
+    protected abstract Node getValueForRight(RIGHT right, BetaJoinNodeTest test);
 
     /**
      * Creates a generic iterator over the joined elelements
@@ -145,13 +145,13 @@ public abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implement
      * @return The matching left elements
      */
     private Iterator<LEFT> getMatchingCollection(RIGHT current) {
-        RDFNode n1 = (test1 != null) ? getValueForRight(current, test1) : null;
-        RDFNode n2 = (test2 != null) ? getValueForRight(current, test2) : null;
-        RDFNode n3 = (test3 != null) ? getValueForRight(current, test3) : null;
-        Map<RDFNode, Map<RDFNode, Collection<LEFT>>> sub1 = mapLefts.get(n1);
+        Node n1 = (test1 != null) ? getValueForRight(current, test1) : null;
+        Node n2 = (test2 != null) ? getValueForRight(current, test2) : null;
+        Node n3 = (test3 != null) ? getValueForRight(current, test3) : null;
+        Map<Node, Map<Node, Collection<LEFT>>> sub1 = mapLefts.get(n1);
         if (sub1 == null)
             return null;
-        Map<RDFNode, Collection<LEFT>> sub2 = sub1.get(n2);
+        Map<Node, Collection<LEFT>> sub2 = sub1.get(n2);
         if (sub2 == null)
             return null;
         Collection<LEFT> sub3 = sub2.get(n3);
@@ -166,9 +166,9 @@ public abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implement
      * @param left A left element
      */
     private void insertLeft(LEFT left) {
-        RDFNode v1 = (test1 != null ? getValueForLeft(left, test1) : null);
-        RDFNode v2 = (test2 != null ? getValueForLeft(left, test2) : null);
-        RDFNode v3 = (test3 != null ? getValueForLeft(left, test3) : null);
+        Node v1 = (test1 != null ? getValueForLeft(left, test1) : null);
+        Node v2 = (test2 != null ? getValueForLeft(left, test2) : null);
+        Node v3 = (test3 != null ? getValueForLeft(left, test3) : null);
         Collection<LEFT> collec = resolveLefts(v1, v2, v3);
         collec.add(left);
     }
@@ -181,18 +181,18 @@ public abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implement
      * @param v3 object node to match
      * @return The corresponding collection of left elements
      */
-    private Collection<LEFT> resolveLefts(RDFNode v1, RDFNode v2, RDFNode v3) {
-        Map<RDFNode, Map<RDFNode, Collection<LEFT>>> sub1 = mapLefts.get(v1);
+    private Collection<LEFT> resolveLefts(Node v1, Node v2, Node v3) {
+        Map<Node, Map<Node, Collection<LEFT>>> sub1 = mapLefts.get(v1);
         if (sub1 == null) {
             sub1 = new HashMap<>();
-            Map<RDFNode, Collection<LEFT>> sub2 = new HashMap<>();
+            Map<Node, Collection<LEFT>> sub2 = new HashMap<>();
             Collection<LEFT> sub3 = new ArrayList<>();
             mapLefts.put(v1, sub1);
             sub1.put(v2, sub2);
             sub2.put(v3, sub3);
             return sub3;
         }
-        Map<RDFNode, Collection<LEFT>> sub2 = sub1.get(v2);
+        Map<Node, Collection<LEFT>> sub2 = sub1.get(v2);
         if (sub2 == null) {
             sub2 = new HashMap<>();
             Collection<LEFT> sub3 = new ArrayList<>();

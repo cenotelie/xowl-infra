@@ -27,7 +27,7 @@ import org.xowl.store.cache.StringStore;
  *
  * @author Laurent Wouters
  */
-class RDFIRIReferenceImpl extends RDFIRIReference {
+class IRINodeImpl extends IRINode {
     /**
      * The string store storing the IRI value
      */
@@ -43,7 +43,7 @@ class RDFIRIReferenceImpl extends RDFIRIReference {
      * @param store The string store storing the IRI value
      * @param key   The key in the store
      */
-    public RDFIRIReferenceImpl(StringStore store, int key) {
+    public IRINodeImpl(StringStore store, int key) {
         this.store = store;
         this.key = key;
     }
@@ -69,8 +69,8 @@ class RDFIRIReferenceImpl extends RDFIRIReference {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof RDFIRIReferenceImpl) {
-            RDFIRIReferenceImpl node = (RDFIRIReferenceImpl) obj;
+        if (obj instanceof IRINodeImpl) {
+            IRINodeImpl node = (IRINodeImpl) obj;
             return (this.key == node.key);
         }
         return false;

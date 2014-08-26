@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.RDFTriple;
+import org.xowl.store.rdf.Triple;
 
 import java.util.*;
 
@@ -49,7 +49,7 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
     /**
      * The current matches in this node
      */
-    private Map<Token, List<RDFTriple>> matches;
+    private Map<Token, List<Triple>> matches;
 
     /**
      * Initializes this node
@@ -97,7 +97,7 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
 
     @Override
     public void activateToken(Token token) {
-        for (RDFTriple fact : alphaMem.getFacts())
+        for (Triple fact : alphaMem.getFacts())
             applyPositive(token, fact);
         if (!matches.containsKey(token))
             child.activateToken(token);
@@ -114,7 +114,7 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
         Iterator<Token> iterator = tokens.iterator();
         while (iterator.hasNext()) {
             Token token = iterator.next();
-            for (RDFTriple fact : alphaMem.getFacts())
+            for (Triple fact : alphaMem.getFacts())
                 applyPositive(token, fact);
             if (matches.containsKey(token))
                 iterator.remove();
@@ -136,7 +136,7 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
     }
 
     @Override
-    public void activateFact(RDFTriple fact) {
+    public void activateFact(Triple fact) {
         for (Token token : betaMem.getTokens()) {
             applyPositive(token, fact);
             if (matches.containsKey(token))
@@ -145,7 +145,7 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
     }
 
     @Override
-    public void deactivateFact(RDFTriple fact) {
+    public void deactivateFact(Triple fact) {
         for (Token token : betaMem.getTokens()) {
             if (applyNegative(token, fact)) {
                 child.activateToken(token);
@@ -154,9 +154,9 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
     }
 
     @Override
-    public void activateFacts(Collection<RDFTriple> facts) {
+    public void activateFacts(Collection<Triple> facts) {
         List<Token> deactivated = new ArrayList<Token>();
-        for (RDFTriple fact : facts) {
+        for (Triple fact : facts) {
             for (Token token : betaMem.getTokens()) {
                 applyPositive(token, fact);
                 if (matches.containsKey(token))
@@ -173,9 +173,9 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
     }
 
     @Override
-    public void deactivateFacts(Collection<RDFTriple> facts) {
+    public void deactivateFacts(Collection<Triple> facts) {
         List<Token> reactivated = new ArrayList<Token>();
-        for (RDFTriple fact : facts) {
+        for (Triple fact : facts) {
             for (Token token : betaMem.getTokens()) {
                 if (applyNegative(token, fact))
                     reactivated.add(token);
@@ -196,13 +196,13 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
      * @param token A parent token
      * @param fact  An input fact
      */
-    private void applyPositive(Token token, RDFTriple fact) {
+    private void applyPositive(Token token, Triple fact) {
         for (BetaJoinNodeTest test : tests) {
             if (!test.check(token, fact)) {
                 return;
             }
         }
-        List<RDFTriple> tsm = matches.get(token);
+        List<Triple> tsm = matches.get(token);
         if (tsm == null) {
             tsm = new ArrayList<>();
             matches.put(token, tsm);
@@ -217,8 +217,8 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
      * @param fact  An input fact
      * @return True if the negative join was triggered
      */
-    private boolean applyNegative(Token token, RDFTriple fact) {
-        List<RDFTriple> tsm = matches.get(token);
+    private boolean applyNegative(Token token, Triple fact) {
+        List<Triple> tsm = matches.get(token);
         if (tsm == null)
             return false;
         if (!tsm.remove(fact))

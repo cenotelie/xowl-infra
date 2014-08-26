@@ -25,6 +25,6 @@ package org.xowl.store.rdf;
  *
  * @author Laurent Wouters
  */
-public interface RDFProperty extends RDFNode {
+public interface Property extends Node {
 
 }

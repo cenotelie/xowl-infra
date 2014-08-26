@@ -47,7 +47,7 @@ public class TurtleLoader extends Loader {
     /**
      * Singleton buffer
      */
-    private List<RDFNode> singleton;
+    private List<Node> singleton;
     /**
      * The RDF graph to load in
      */
@@ -63,7 +63,7 @@ public class TurtleLoader extends Loader {
     /**
      * Map of the current blank nodes
      */
-    private Map<String, RDFBlankNode> blanks;
+    private Map<String, BlankNode> blanks;
     /**
      * The current ontology
      */
@@ -71,15 +71,15 @@ public class TurtleLoader extends Loader {
     /**
      * The cached node for the RDF#type property
      */
-    private RDFIRIReference cacheIsA;
+    private IRINode cacheIsA;
     /**
      * The cached node for the literal true node
      */
-    private RDFLiteralNode cacheTrue;
+    private LiteralNode cacheTrue;
     /**
      * The cached node for the literal false node
      */
-    private RDFLiteralNode cacheFalse;
+    private LiteralNode cacheFalse;
 
     /**
      * Initializes this loader
@@ -174,13 +174,13 @@ public class TurtleLoader extends Loader {
     private void loadTriples(ASTNode node) {
         if (node.getChildren().get(0).getSymbol().getID() == TurtleParser.ID.blankNodePropertyList) {
             // the subject is a blank node
-            RDFBlankNode subject = getNodeBlankWithProperties(node.getChildren().get(0));
+            BlankNode subject = getNodeBlankWithProperties(node.getChildren().get(0));
             if (node.getChildren().size() > 1)
                 applyProperties(subject, node.getChildren().get(1));
         } else {
-            List<RDFNode> subjects = new ArrayList<>(getNodes(node.getChildren().get(0)));
-            for (RDFNode subject : subjects) {
-                applyProperties((RDFSubjectNode) subject, node.getChildren().get(1));
+            List<Node> subjects = new ArrayList<>(getNodes(node.getChildren().get(0)));
+            for (Node subject : subjects) {
+                applyProperties((SubjectNode) subject, node.getChildren().get(1));
             }
         }
     }
@@ -191,7 +191,7 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      * @return The equivalent RDF nodes
      */
-    private List<RDFNode> getNodes(ASTNode node) {
+    private List<Node> getNodes(ASTNode node) {
         switch (node.getSymbol().getID()) {
             case 0x003C: // a
                 return encapsulate(getNodeIsA());
@@ -231,7 +231,7 @@ public class TurtleLoader extends Loader {
      * @param single A node
      * @return The list with the specified element as the sole one
      */
-    private List<RDFNode> encapsulate(RDFNode single) {
+    private List<Node> encapsulate(Node single) {
         singleton.set(0, single);
         return singleton;
     }
@@ -241,7 +241,7 @@ public class TurtleLoader extends Loader {
      *
      * @return The RDF IRI node
      */
-    private RDFIRIReference getNodeIsA() {
+    private IRINode getNodeIsA() {
         if (cacheIsA == null)
             cacheIsA = graph.getNodeIRI(RDF.rdfType);
         return cacheIsA;
@@ -253,7 +253,7 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      * @return The equivalent RDF IRI node
      */
-    private RDFIRIReference getNodeIRIRef(ASTNode node) {
+    private IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getSymbol().getValue();
         return graph.getNodeIRI(getFullIRI(value));
     }
@@ -264,7 +264,7 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      * @return The equivalent RDF IRI node
      */
-    private RDFIRIReference getNodePNameLN(ASTNode node) {
+    private IRINode getNodePNameLN(ASTNode node) {
         String value = node.getSymbol().getValue();
         return graph.getNodeIRI(getIRIForLocalName(value));
     }
@@ -275,7 +275,7 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      * @return The equivalent RDF IRI node
      */
-    private RDFIRIReference getNodePNameNS(ASTNode node) {
+    private IRINode getNodePNameNS(ASTNode node) {
         String value = node.getSymbol().getValue();
         value = unescape(value);
         value = namespaces.get(value.substring(0, value.length() - 1));
@@ -288,11 +288,11 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      * @return The equivalent RDF blank node
      */
-    private RDFBlankNode getNodeBlank(ASTNode node) {
+    private BlankNode getNodeBlank(ASTNode node) {
         String value = node.getSymbol().getValue();
         value = unescape(value);
         value = value.substring(2);
-        RDFBlankNode blank = blanks.get(value);
+        BlankNode blank = blanks.get(value);
         if (blank != null)
             return blank;
         blank = graph.getBlankNode();
@@ -305,7 +305,7 @@ public class TurtleLoader extends Loader {
      *
      * @return A new blank node
      */
-    private RDFBlankNode getNodeAnon() {
+    private BlankNode getNodeAnon() {
         return graph.getBlankNode();
     }
 
@@ -314,7 +314,7 @@ public class TurtleLoader extends Loader {
      *
      * @return The RDF Literal node
      */
-    private RDFLiteralNode getNodeTrue() {
+    private LiteralNode getNodeTrue() {
         if (cacheTrue == null)
             cacheTrue = graph.getLiteralNode("true", OWLDatatype.xsdBoolean, null);
         return cacheTrue;
@@ -325,7 +325,7 @@ public class TurtleLoader extends Loader {
      *
      * @return The RDF Literal node
      */
-    private RDFLiteralNode getNodeFalse() {
+    private LiteralNode getNodeFalse() {
         if (cacheFalse == null)
             cacheFalse = graph.getLiteralNode("false", OWLDatatype.xsdBoolean, null);
         return cacheFalse;
@@ -337,7 +337,7 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      * @return The equivalent RDF Integer Literal node
      */
-    private RDFLiteralNode getNodeInteger(ASTNode node) {
+    private LiteralNode getNodeInteger(ASTNode node) {
         String value = node.getSymbol().getValue();
         return graph.getLiteralNode(value, OWLDatatype.xsdInteger, null);
     }
@@ -348,7 +348,7 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      * @return The equivalent RDF Decimal Literal node
      */
-    private RDFLiteralNode getNodeDecimal(ASTNode node) {
+    private LiteralNode getNodeDecimal(ASTNode node) {
         String value = node.getSymbol().getValue();
         return graph.getLiteralNode(value, OWLDatatype.xsdDecimal, null);
     }
@@ -359,7 +359,7 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      * @return The equivalent RDF Double Literal node
      */
-    private RDFLiteralNode getNodeDouble(ASTNode node) {
+    private LiteralNode getNodeDouble(ASTNode node) {
         String value = node.getSymbol().getValue();
         return graph.getLiteralNode(value, OWLDatatype.xsdDouble, null);
     }
@@ -370,7 +370,7 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      * @return The equivalent RDF Literal node
      */
-    private RDFLiteralNode getNodeLiteral(ASTNode node) {
+    private LiteralNode getNodeLiteral(ASTNode node) {
         // Compute the lexical value
         String value = null;
         ASTNode childString = node.getChildren().get(0);
@@ -420,8 +420,8 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      * @return A list of RDF nodes
      */
-    private List<RDFNode> getNodeCollection(ASTNode node) {
-        List<RDFNode> result = new ArrayList<>();
+    private List<Node> getNodeCollection(ASTNode node) {
+        List<Node> result = new ArrayList<>();
         for (ASTNode child : node.getChildren())
             result.addAll(getNodes(child));
         return result;
@@ -433,8 +433,8 @@ public class TurtleLoader extends Loader {
      * @param node An AST node
      * @return The equivalent RDF blank node
      */
-    private RDFBlankNode getNodeBlankWithProperties(ASTNode node) {
-        RDFBlankNode subject = graph.getBlankNode();
+    private BlankNode getNodeBlankWithProperties(ASTNode node) {
+        BlankNode subject = graph.getBlankNode();
         applyProperties(subject, node);
         return subject;
     }
@@ -481,16 +481,16 @@ public class TurtleLoader extends Loader {
      * @param subject An RDF subject node
      * @param node    An AST node
      */
-    private void applyProperties(RDFSubjectNode subject, ASTNode node) {
+    private void applyProperties(SubjectNode subject, ASTNode node) {
         int index = 0;
         List<ASTNode> children = node.getChildren();
         while (index != children.size()) {
-            RDFProperty verb = (RDFProperty) getNodes(children.get(index)).get(0);
+            Property verb = (Property) getNodes(children.get(index)).get(0);
             for (ASTNode objectNode : children.get(index + 1).getChildren()) {
-                List<RDFNode> objects = new ArrayList<>(getNodes(objectNode));
-                for (RDFNode object : objects) {
+                List<Node> objects = new ArrayList<>(getNodes(objectNode));
+                for (Node object : objects) {
                     try {
-                        graph.add(new RDFTriple(ontology, subject, verb, object));
+                        graph.add(new Triple(ontology, subject, verb, object));
                     } catch (UnsupportedNodeType ex) {
                         // cannot happen ...
                     }

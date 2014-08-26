@@ -21,9 +21,9 @@
 package org.xowl.store.rete;
 
 import org.xowl.store.owl.VariableNode;
-import org.xowl.store.rdf.RDFNode;
-import org.xowl.store.rdf.RDFTriple;
-import org.xowl.store.rdf.RDFTripleField;
+import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.Triple;
+import org.xowl.store.rdf.TripleField;
 
 /**
  * Represents a test for the joining operations in the beta graph of a RETE network
@@ -38,7 +38,7 @@ public class BetaJoinNodeTest {
     /**
      * The field of a triple to test
      */
-    private RDFTripleField field;
+    private TripleField field;
 
     /**
      * Initializes this test
@@ -46,7 +46,7 @@ public class BetaJoinNodeTest {
      * @param var   The tested variable
      * @param field The tested field
      */
-    public BetaJoinNodeTest(VariableNode var, RDFTripleField field) {
+    public BetaJoinNodeTest(VariableNode var, TripleField field) {
         this.variable = var;
         this.field = field;
     }
@@ -65,7 +65,7 @@ public class BetaJoinNodeTest {
      *
      * @return The tested field
      */
-    public RDFTripleField getField() {
+    public TripleField getField() {
         return field;
     }
 
@@ -76,9 +76,9 @@ public class BetaJoinNodeTest {
      * @param fact  The fact to test
      * @return true if the test succeeded
      */
-    public boolean check(Token token, RDFTriple fact) {
-        RDFNode arg1 = token.getBinding(variable);
-        RDFNode arg2 = fact.getField(field);
+    public boolean check(Token token, Triple fact) {
+        Node arg1 = token.getBinding(variable);
+        Node arg2 = fact.getField(field);
         return (arg1 == arg2);
     }
 

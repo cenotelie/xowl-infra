@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.RDFTriple;
+import org.xowl.store.rdf.Triple;
 
 import java.util.Collection;
 
@@ -35,26 +35,26 @@ public interface FactActivable {
      *
      * @param fact A fact
      */
-    void activateFact(RDFTriple fact);
+    void activateFact(Triple fact);
 
     /**
      * Deactivates on the specified fact
      *
      * @param fact A fact
      */
-    void deactivateFact(RDFTriple fact);
+    void deactivateFact(Triple fact);
 
     /**
      * Activates on a collection of facts
      *
      * @param facts A collection of facts
      */
-    void activateFacts(Collection<RDFTriple> facts);
+    void activateFacts(Collection<Triple> facts);
 
     /**
      * Deactivates on a collection of facts
      *
      * @param facts A collection of facts
      */
-    void deactivateFacts(Collection<RDFTriple> facts);
+    void deactivateFacts(Collection<Triple> facts);
 }

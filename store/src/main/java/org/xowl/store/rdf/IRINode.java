@@ -21,60 +21,30 @@
 package org.xowl.store.rdf;
 
 /**
- * Represents a blank node in a RDF graph
+ * Represents a node associated to an IRI in a RDF graph
  *
  * @author Laurent Wouters
  */
-public class RDFBlankNode implements RDFSubjectNode {
+public abstract class IRINode implements SubjectNode, Property {
     /**
      * The type of node
      */
-    public static final int TYPE = 1;
-
-    /**
-     * the node's unique identifier
-     */
-    private int blankID;
-
-    /**
-     * Initializes this node
-     *
-     * @param id The unique identifier for this node
-     */
-    public RDFBlankNode(int id) {
-        blankID = id;
-    }
+    public static final int TYPE = 0;
 
     @Override
     public int getNodeType() {
         return TYPE;
     }
 
-    /**
-     * Gets the blank identifier of this node
-     *
-     * @return The blank identifier of this node, or -1 if none
-     */
-    public int getBlankID() {
-        return blankID;
-    }
-
-    @Override
-    public int hashCode() {
-        return blankID;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof RDFBlankNode) {
-            RDFBlankNode node = (RDFBlankNode) obj;
-            return (blankID == node.blankID);
-        }
-        return false;
-    }
-
     @Override
     public String toString() {
-        return "<blank>";
+        return getIRIValue();
     }
+
+    /**
+     * Gets the IRI's value associated to this node
+     *
+     * @return The IRI's value associated to this node
+     */
+    public abstract String getIRIValue();
 }

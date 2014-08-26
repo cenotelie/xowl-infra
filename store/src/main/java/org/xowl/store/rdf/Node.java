@@ -25,7 +25,7 @@ package org.xowl.store.rdf;
  *
  * @author Laurent Wouters
  */
-public interface RDFNode {
+public interface Node {
     /**
      * Gets the node's type
      *

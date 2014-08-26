@@ -21,14 +21,14 @@
 package org.xowl.store.owl;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.store.rdf.RDFSubjectNode;
+import org.xowl.store.rdf.SubjectNode;
 
 /**
  * Represents a RDF graph associated to an anonymous individual
  *
  * @author Laurent Wouters
  */
-public class AnonymousNode implements RDFSubjectNode {
+public class AnonymousNode implements SubjectNode {
     /**
      * The type of node
      */

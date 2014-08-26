@@ -41,7 +41,7 @@ public class EdgeTarget implements Iterable<Ontology> {
     /**
      * The represented target node
      */
-    private RDFNode target;
+    private Node target;
     /**
      * The containing ontologies
      */
@@ -61,7 +61,7 @@ public class EdgeTarget implements Iterable<Ontology> {
      * @param ontology The first containing ontology
      * @param target   The represented target
      */
-    public EdgeTarget(Ontology ontology, RDFNode target) {
+    public EdgeTarget(Ontology ontology, Node target) {
         this.target = target;
         this.ontologies = new Ontology[INIT_BUFFER_SIZE];
         this.multiplicities = new int[INIT_BUFFER_SIZE];
@@ -75,7 +75,7 @@ public class EdgeTarget implements Iterable<Ontology> {
      *
      * @return The represented target node
      */
-    public RDFNode getTarget() {
+    public Node getTarget() {
         return target;
     }
 
@@ -151,13 +151,13 @@ public class EdgeTarget implements Iterable<Ontology> {
      * @param ontology The filtering ontology
      * @return An iterator over the triples
      */
-    public Iterator<RDFTriple> getAllTriples(Ontology ontology) {
-        final RDFTriple result = new RDFTriple(ontology, null, null, null);
+    public Iterator<Triple> getAllTriples(Ontology ontology) {
+        final Triple result = new Triple(ontology, null, null, null);
 
         if (ontology == null) {
-            return new AdaptingIterator<>(iterator(), new Adapter<RDFTriple>() {
+            return new AdaptingIterator<>(iterator(), new Adapter<Triple>() {
                 @Override
-                public <X> RDFTriple adapt(X element) {
+                public <X> Triple adapt(X element) {
                     result.setOntology((Ontology) element);
                     return result;
                 }
@@ -166,9 +166,9 @@ public class EdgeTarget implements Iterable<Ontology> {
 
         for (int i = 0; i != ontologies.length; i++) {
             if (ontologies[i] == ontology) {
-                return new AdaptingIterator<>(new SingleIterator<>(ontology), new Adapter<RDFTriple>() {
+                return new AdaptingIterator<>(new SingleIterator<>(ontology), new Adapter<Triple>() {
                     @Override
-                    public <X> RDFTriple adapt(X element) {
+                    public <X> Triple adapt(X element) {
                         result.setOntology((Ontology) element);
                         return result;
                     }

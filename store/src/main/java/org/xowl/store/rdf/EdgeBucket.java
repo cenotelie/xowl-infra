@@ -69,7 +69,7 @@ public class EdgeBucket implements Iterable<Edge> {
      * @param property The property on this edge
      * @param value    The target value
      */
-    public void add(Ontology ontology, RDFProperty property, RDFNode value) {
+    public void add(Ontology ontology, Property property, Node value) {
         boolean hasEmpty = false;
         for (int i = 0; i != edges.length; i++) {
             hasEmpty = hasEmpty || (edges[i] != null);
@@ -101,7 +101,7 @@ public class EdgeBucket implements Iterable<Edge> {
      * @param value    The target value
      * @return true if this bucket is now empty and shall be removed
      */
-    public boolean remove(Ontology ontology, RDFProperty property, RDFNode value) {
+    public boolean remove(Ontology ontology, Property property, Node value) {
         for (int i = 0; i != edges.length; i++) {
             if (edges[i].getProperty() == property) {
                 if (edges[i].decrement(ontology, value)) {
@@ -127,18 +127,18 @@ public class EdgeBucket implements Iterable<Edge> {
      * @param ontology The filtering ontology
      * @return An iterator over the triples
      */
-    public Iterator<RDFTriple> getAllTriples(final RDFProperty property, final RDFNode value, final Ontology ontology) {
+    public Iterator<Triple> getAllTriples(final Property property, final Node value, final Ontology ontology) {
         if (property == null) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(edges), new Adapter<Iterator<RDFTriple>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(edges), new Adapter<Iterator<Triple>>() {
                 @Override
-                public <X> Iterator<RDFTriple> adapt(X element) {
+                public <X> Iterator<Triple> adapt(X element) {
                     Integer index = (Integer) element;
                     return edges[index].getAllTriples(value, ontology);
                 }
-            }), new Adapter<RDFTriple>() {
+            }), new Adapter<Triple>() {
                 @Override
-                public <X> RDFTriple adapt(X element) {
-                    Couple<Integer, RDFTriple> result = (Couple<Integer, RDFTriple>) element;
+                public <X> Triple adapt(X element) {
+                    Couple<Integer, Triple> result = (Couple<Integer, Triple>) element;
                     result.y.setProperty(edges[result.x].getProperty());
                     return result.y;
                 }
@@ -147,10 +147,10 @@ public class EdgeBucket implements Iterable<Edge> {
 
         for (int i = 0; i != edges.length; i++) {
             if (edges[i] != null && edges[i].getProperty() == property) {
-                return new AdaptingIterator<>(edges[i].getAllTriples(value, ontology), new Adapter<RDFTriple>() {
+                return new AdaptingIterator<>(edges[i].getAllTriples(value, ontology), new Adapter<Triple>() {
                     @Override
-                    public <X> RDFTriple adapt(X element) {
-                        RDFTriple result = (RDFTriple) element;
+                    public <X> Triple adapt(X element) {
+                        Triple result = (Triple) element;
                         result.setProperty(property);
                         return result;
                     }

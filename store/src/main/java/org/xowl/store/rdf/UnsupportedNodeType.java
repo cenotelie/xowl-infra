@@ -28,7 +28,7 @@ public class UnsupportedNodeType extends Exception {
     /**
      * The node that was unexpected
      */
-    private RDFNode node;
+    private Node node;
 
     /**
      * Initializes this exception
@@ -36,7 +36,7 @@ public class UnsupportedNodeType extends Exception {
      * @param node    The unexpected node
      * @param message The exception's message
      */
-    public UnsupportedNodeType(RDFNode node, String message) {
+    public UnsupportedNodeType(Node node, String message) {
         super(message);
         this.node = node;
     }
@@ -46,7 +46,7 @@ public class UnsupportedNodeType extends Exception {
      *
      * @return The unexpected node
      */
-    public RDFNode getNode() {
+    public Node getNode() {
         return node;
     }
 }

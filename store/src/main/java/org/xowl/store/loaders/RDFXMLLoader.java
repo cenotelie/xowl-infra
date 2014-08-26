@@ -22,7 +22,6 @@ package org.xowl.store.loaders;
 
 import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.IRI;
@@ -74,7 +73,7 @@ public class RDFXMLLoader extends Loader {
     /**
      * Maps of the blanks nodes
      */
-    private Map<String, RDFBlankNode> blanks;
+    private Map<String, BlankNode> blanks;
 
     /**
      * Initializes this loader
@@ -100,8 +99,8 @@ public class RDFXMLLoader extends Loader {
             parser.parse(new InputSource(reader));
             Document document = parser.getDocument();
             for (int i = 0; i != document.getChildNodes().getLength(); i++) {
-                Node node = document.getChildNodes().item(i);
-                if (node.getNodeType() != Node.ELEMENT_NODE)
+                org.w3c.dom.Node node = document.getChildNodes().item(i);
+                if (node.getNodeType() != org.w3c.dom.Node.ELEMENT_NODE)
                     continue;
                 if (node.getNodeName().equals(rdfRDF)) {
                     load(node);
@@ -118,7 +117,7 @@ public class RDFXMLLoader extends Loader {
      *
      * @param node An XML node
      */
-    private void load(Node node) {
+    private void load(org.w3c.dom.Node node) {
         for (int i = 0; i != node.getAttributes().getLength(); i++) {
             String name = node.getAttributes().item(i).getNodeName();
             String value = node.getAttributes().item(i).getNodeValue();
@@ -133,7 +132,7 @@ public class RDFXMLLoader extends Loader {
             String value = DEFAULT_GRAPH_URIS + Integer.toHexString(rand.nextInt()) + "#";
             setBaseIRI(value);
         }
-        for (Node child : getElements(node))
+        for (org.w3c.dom.Node child : getElements(node))
             loadNode(child);
     }
 
@@ -156,7 +155,7 @@ public class RDFXMLLoader extends Loader {
      * @param node An XML node
      * @return The represented RDF IRI node
      */
-    private RDFIRIReference getIRIForNode(Node node) {
+    private IRINode getIRIForNode(org.w3c.dom.Node node) {
         for (int i = 0; i != node.getAttributes().getLength(); i++) {
             String name = node.getAttributes().item(i).getNodeName();
             String value = node.getAttributes().item(i).getNodeValue();
@@ -171,7 +170,7 @@ public class RDFXMLLoader extends Loader {
         return null;
     }
 
-    private RDFIRIReference getIRIForNode_GetIRI(String value) {
+    private IRINode getIRIForNode_GetIRI(String value) {
         if (value.contains("#")) {
             if (value.startsWith("#"))
                 return graph.getNodeIRI(baseIRI + value.substring(1));
@@ -182,7 +181,7 @@ public class RDFXMLLoader extends Loader {
         }
     }
 
-    private RDFIRIReference getIRIForName(String name) {
+    private IRINode getIRIForName(String name) {
         if (name.contains(":")) {
             String parts[] = name.split(":");
             return graph.getNodeIRI(prefixes.get(parts[0]) + parts[1]);
@@ -191,12 +190,12 @@ public class RDFXMLLoader extends Loader {
         }
     }
 
-    private RDFBlankNode getBlank() {
+    private BlankNode getBlank() {
         return graph.getBlankNode();
     }
 
-    private RDFBlankNode getBlank(String nodeID) {
-        RDFBlankNode node = blanks.get(nodeID);
+    private BlankNode getBlank(String nodeID) {
+        BlankNode node = blanks.get(nodeID);
         if (node != null)
             return node;
         node = graph.getBlankNode();
@@ -204,8 +203,8 @@ public class RDFXMLLoader extends Loader {
         return node;
     }
 
-    private RDFSubjectNode loadNode(org.w3c.dom.Node node) {
-        RDFSubjectNode subject = null;
+    private SubjectNode loadNode(org.w3c.dom.Node node) {
+        SubjectNode subject = null;
         String name = node.getNodeName();
         subject = getIRIForNode(node);
         if (subject == null) {
@@ -240,23 +239,23 @@ public class RDFXMLLoader extends Loader {
         return subject;
     }
 
-    private RDFSubjectNode loadBlankNode(org.w3c.dom.Node node) {
-        RDFSubjectNode subject = getBlank();
+    private SubjectNode loadBlankNode(org.w3c.dom.Node node) {
+        SubjectNode subject = getBlank();
         // Load property nodes
         for (org.w3c.dom.Node child : getElements(node))
             loadProperty(subject, child);
         return subject;
     }
 
-    private void loadProperty(RDFSubjectNode subject, org.w3c.dom.Node node) {
+    private void loadProperty(SubjectNode subject, org.w3c.dom.Node node) {
         String name = node.getNodeName();
-        RDFIRIReference property = getIRIForName(name);
+        IRINode property = getIRIForName(name);
         // Check attributes
         for (int i = 0; i != node.getAttributes().getLength(); i++) {
             String attName = node.getAttributes().item(i).getNodeName();
             if (attName.equals(rdfAbout) || attName.equals(rdfID) || attName.equals(rdfResource)) {
                 // the value of the property is an RDF node in attribute
-                RDFIRIReference object = getIRIForNode(node);
+                IRINode object = getIRIForNode(node);
                 if (object != null) {
                     addTriple(subject, property, object);
                     return;
@@ -267,11 +266,11 @@ public class RDFXMLLoader extends Loader {
                     // Value is an XML Literal
                 } else if (attValue.equals("Collection")) {
                     // Value is a collection
-                    List<RDFNode> values = new ArrayList<RDFNode>();
-                    List<RDFSubjectNode> proxies = new ArrayList<RDFSubjectNode>();
+                    List<Node> values = new ArrayList<Node>();
+                    List<SubjectNode> proxies = new ArrayList<SubjectNode>();
                     for (org.w3c.dom.Node child : getElements(node)) {
-                        RDFNode value = loadNode(child);
-                        RDFSubjectNode proxy = this.getBlank();
+                        Node value = loadNode(child);
+                        SubjectNode proxy = this.getBlank();
                         values.add(value);
                         proxies.add(proxy);
                         addTriple(proxy, getIRIForName(rdfFirst), value);
@@ -287,13 +286,13 @@ public class RDFXMLLoader extends Loader {
                     return;
                 } else if (attValue.equals("Resource")) {
                     // Anonymous node
-                    RDFNode object = loadBlankNode(node);
+                    Node object = loadBlankNode(node);
                     addTriple(subject, property, object);
                 }
             } else if (attName.equals(rdfDatatype)) {
                 String datatype = node.getAttributes().item(i).getNodeValue();
                 String lex = node.getTextContent();
-                RDFNode object = graph.getLiteralNode(lex, datatype, null);
+                Node object = graph.getLiteralNode(lex, datatype, null);
                 addTriple(subject, property, object);
                 return;
             }
@@ -301,7 +300,7 @@ public class RDFXMLLoader extends Loader {
 
         // Property value is a single node
         List<org.w3c.dom.Node> children = getElements(node);
-        RDFNode object = null;
+        Node object = null;
         if (children.isEmpty()) {
             // Plain literal value
             String lex = node.getTextContent();
@@ -313,13 +312,13 @@ public class RDFXMLLoader extends Loader {
         addTriple(subject, property, object);
     }
 
-    private void loadProperty(RDFSubjectNode subject, String name, String value) {
-        RDFProperty property = graph.getNodeIRI(name);
-        RDFNode object = graph.getLiteralNode(value, OWLDatatype.xsdString, null);
+    private void loadProperty(SubjectNode subject, String name, String value) {
+        Property property = graph.getNodeIRI(name);
+        Node object = graph.getLiteralNode(value, OWLDatatype.xsdString, null);
         addTriple(subject, property, object);
     }
 
-    private void addTriple(RDFSubjectNode subject, RDFProperty property, RDFNode value) {
+    private void addTriple(SubjectNode subject, Property property, Node value) {
         try {
             graph.add(ontology, subject, property, value);
         } catch (UnsupportedNodeType ex) {

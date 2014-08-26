@@ -48,7 +48,7 @@ public class NTriplesLoader extends Loader {
     /**
      * Maps of blanks nodes
      */
-    private Map<String, RDFBlankNode> blanks;
+    private Map<String, BlankNode> blanks;
 
     /**
      * Initializes this loader
@@ -91,11 +91,11 @@ public class NTriplesLoader extends Loader {
             return null;
 
         for (ASTNode triple : result.getRoot().getChildren()) {
-            RDFNode n1 = getRDFNode(triple.getChildren().get(0));
-            RDFNode n2 = getRDFNode(triple.getChildren().get(1));
-            RDFNode n3 = getRDFNode(triple.getChildren().get(2));
+            Node n1 = getRDFNode(triple.getChildren().get(0));
+            Node n2 = getRDFNode(triple.getChildren().get(1));
+            Node n3 = getRDFNode(triple.getChildren().get(2));
             try {
-                graph.add(ontology, (RDFSubjectNode) n1, (RDFProperty) n2, n3);
+                graph.add(ontology, (SubjectNode) n1, (Property) n2, n3);
             } catch (UnsupportedNodeType ex) {
                 // cannot happen
             }
@@ -110,7 +110,7 @@ public class NTriplesLoader extends Loader {
      * @param node An AST node representing an RDF node
      * @return The represented RDF node
      */
-    private RDFNode getRDFNode(ASTNode node) {
+    private Node getRDFNode(ASTNode node) {
         switch (node.getSymbol().getID()) {
             case NTriplesLexer.ID.IRIREF:
                 return translateIRIREF(node);
@@ -128,7 +128,7 @@ public class NTriplesLoader extends Loader {
      * @param node An IRIREF AST node
      * @return The corresponding RDF node
      */
-    private RDFNode translateIRIREF(ASTNode node) {
+    private Node translateIRIREF(ASTNode node) {
         String value = node.getSymbol().getValue();
         value = unescape(value);
         return graph.getNodeIRI(value);
@@ -140,10 +140,10 @@ public class NTriplesLoader extends Loader {
      * @param node An BLANK_NODE_LABEL AST node
      * @return The corresponding RDF node
      */
-    private RDFNode translateBlankNode(ASTNode node) {
+    private Node translateBlankNode(ASTNode node) {
         String key = node.getSymbol().getValue();
         key = key.substring(1, key.length() - 1);
-        RDFBlankNode blank = blanks.get(key);
+        BlankNode blank = blanks.get(key);
         if (blank != null)
             return blank;
         blank = graph.getBlankNode();
@@ -157,7 +157,7 @@ public class NTriplesLoader extends Loader {
      * @param node An STRING_LITERAL_QUOTE AST node
      * @return The corresponding RDF node
      */
-    private RDFNode translateLiteral(ASTNode node) {
+    private Node translateLiteral(ASTNode node) {
         String value = node.getSymbol().getValue();
         value = unescape(value);
         if (node.getChildren().size() == 0) {

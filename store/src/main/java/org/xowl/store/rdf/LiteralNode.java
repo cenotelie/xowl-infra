@@ -20,11 +20,41 @@
 
 package org.xowl.store.rdf;
 
+import org.xowl.lang.owl2.Literal;
+
 /**
- * Represents a subject in a RDF triple
+ * Represents a node associated to a literal value in a RDF graph
  *
  * @author Laurent Wouters
  */
-public interface RDFSubjectNode extends RDFNode {
+public abstract class LiteralNode implements Node {
+    /**
+     * The type of node
+     */
+    public static final int TYPE = 2;
 
+    @Override
+    public int getNodeType() {
+        return TYPE;
+    }
+
+    /**
+     * Gets the literal value associated to this node
+     *
+     * @return The literal value associated to this node, or null if none is
+     */
+    public abstract Literal getLiteralValue();
+
+    @Override
+    public String toString() {
+        Literal literal = getLiteralValue();
+        StringBuilder builder = new StringBuilder("\"");
+        builder.append(literal.getLexicalValue());
+        builder.append("\"");
+        if (literal.getMemberOf() != null) {
+            builder.append("^^");
+            builder.append(literal.getMemberOf().getHasValue());
+        }
+        return builder.toString();
+    }
 }

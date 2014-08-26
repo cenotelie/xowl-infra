@@ -35,7 +35,7 @@ public class LiteralBucket {
     /**
      * The RDF nodes
      */
-    private RDFLiteralNode[] nodes;
+    private LiteralNode[] nodes;
     /**
      * The key to the type values
      */
@@ -53,7 +53,7 @@ public class LiteralBucket {
      * Initializes this bucket
      */
     public LiteralBucket() {
-        this.nodes = new RDFLiteralNode[INIT_SIZE];
+        this.nodes = new LiteralNode[INIT_SIZE];
         this.types = new int[INIT_SIZE];
         this.tags = new int[INIT_SIZE];
         this.size = 0;
@@ -66,7 +66,7 @@ public class LiteralBucket {
      * @param tag  The key to the language tag
      * @return The matching literal exists in this bucket, or <c>null</c> if none is found
      */
-    public RDFLiteralNode get(int type, int tag) {
+    public LiteralNode get(int type, int tag) {
         for (int i = 0; i != size; i++) {
             if (types[i] == type && tags[i] == tag)
                 return nodes[i];
@@ -81,7 +81,7 @@ public class LiteralBucket {
      * @param tag  The key to the language tag
      * @param node The corresponding literal node
      */
-    public void add(int type, int tag, RDFLiteralNode node) {
+    public void add(int type, int tag, LiteralNode node) {
         if (size == nodes.length) {
             nodes = Arrays.copyOf(nodes, nodes.length + INIT_SIZE);
             types = Arrays.copyOf(types, types.length + INIT_SIZE);

@@ -39,7 +39,7 @@ public class Edge implements Iterable<EdgeTarget> {
     /**
      * The label on this edge
      */
-    private RDFProperty property;
+    private Property property;
     /**
      * The target for this edges
      */
@@ -56,7 +56,7 @@ public class Edge implements Iterable<EdgeTarget> {
      * @param property The property on this edge
      * @param object   The first object node for this edge
      */
-    public Edge(Ontology ontology, RDFProperty property, RDFNode object) {
+    public Edge(Ontology ontology, Property property, Node object) {
         this.property = property;
         this.targets = new EdgeTarget[INIT_BUFFER_SIZE];
         this.targets[0] = new EdgeTarget(ontology, object);
@@ -68,7 +68,7 @@ public class Edge implements Iterable<EdgeTarget> {
      *
      * @return The property on this edge
      */
-    public RDFProperty getProperty() {
+    public Property getProperty() {
         return property;
     }
 
@@ -87,7 +87,7 @@ public class Edge implements Iterable<EdgeTarget> {
      * @param ontology The ontology containing the triple
      * @param value    The edge's target node
      */
-    public void increment(Ontology ontology, RDFNode value) {
+    public void increment(Ontology ontology, Node value) {
         boolean hasEmpty = false;
         for (int i = 0; i != targets.length; i++) {
             hasEmpty = hasEmpty || (targets[i] != null);
@@ -117,7 +117,7 @@ public class Edge implements Iterable<EdgeTarget> {
      * @param value    The edge's target node
      * @return true if this edge is now empty and shall be removed
      */
-    public boolean decrement(Ontology ontology, RDFNode value) {
+    public boolean decrement(Ontology ontology, Node value) {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null) {
                 if (targets[i].getTarget() == value) {
@@ -145,18 +145,18 @@ public class Edge implements Iterable<EdgeTarget> {
      * @param ontology The filtering ontology
      * @return An iterator over the triples
      */
-    public Iterator<RDFTriple> getAllTriples(final RDFNode value, final Ontology ontology) {
+    public Iterator<Triple> getAllTriples(final Node value, final Ontology ontology) {
         if (value == null) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(targets), new Adapter<Iterator<RDFTriple>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(targets), new Adapter<Iterator<Triple>>() {
                 @Override
-                public <X> Iterator<RDFTriple> adapt(X element) {
+                public <X> Iterator<Triple> adapt(X element) {
                     Integer index = (Integer) element;
                     return targets[index].getAllTriples(ontology);
                 }
-            }), new Adapter<RDFTriple>() {
+            }), new Adapter<Triple>() {
                 @Override
-                public <X> RDFTriple adapt(X element) {
-                    Couple<Integer, RDFTriple> result = (Couple<Integer, RDFTriple>) element;
+                public <X> Triple adapt(X element) {
+                    Couple<Integer, Triple> result = (Couple<Integer, Triple>) element;
                     result.y.setObject(targets[result.x].getTarget());
                     return result.y;
                 }
@@ -165,10 +165,10 @@ public class Edge implements Iterable<EdgeTarget> {
 
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && targets[i].getTarget() == value) {
-                return new AdaptingIterator<>(targets[i].getAllTriples(ontology), new Adapter<RDFTriple>() {
+                return new AdaptingIterator<>(targets[i].getAllTriples(ontology), new Adapter<Triple>() {
                     @Override
-                    public <X> RDFTriple adapt(X element) {
-                        RDFTriple result = (RDFTriple) element;
+                    public <X> Triple adapt(X element) {
+                        Triple result = (Triple) element;
                         result.setObject(value);
                         return result;
                     }

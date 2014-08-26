@@ -27,7 +27,7 @@ import org.xowl.lang.owl2.Ontology;
  *
  * @author Laurent Wouters
  */
-public class RDFTriple {
+public class Triple {
     /**
      * The containing ontology
      */
@@ -35,15 +35,15 @@ public class RDFTriple {
     /**
      * The subject node
      */
-    private RDFSubjectNode subject;
+    private SubjectNode subject;
     /**
      * The property
      */
-    private RDFProperty property;
+    private Property property;
     /**
      * The object node
      */
-    private RDFNode object;
+    private Node object;
 
     /**
      * Initializes this triple fact
@@ -53,7 +53,7 @@ public class RDFTriple {
      * @param property The property
      * @param object   The object node
      */
-    public RDFTriple(Ontology ontology, RDFSubjectNode subject, RDFProperty property, RDFNode object) {
+    public Triple(Ontology ontology, SubjectNode subject, Property property, Node object) {
         this.ontology = ontology;
         this.subject = subject;
         this.property = property;
@@ -83,7 +83,7 @@ public class RDFTriple {
      *
      * @return The subject node
      */
-    public RDFSubjectNode getSubject() {
+    public SubjectNode getSubject() {
         return subject;
     }
 
@@ -92,7 +92,7 @@ public class RDFTriple {
      *
      * @param subject The subject node
      */
-    void setSubject(RDFSubjectNode subject) {
+    void setSubject(SubjectNode subject) {
         this.subject = subject;
     }
 
@@ -101,7 +101,7 @@ public class RDFTriple {
      *
      * @return The property
      */
-    public RDFProperty getProperty() {
+    public Property getProperty() {
         return property;
     }
 
@@ -110,7 +110,7 @@ public class RDFTriple {
      *
      * @param property The property
      */
-    void setProperty(RDFProperty property) {
+    void setProperty(Property property) {
         this.property = property;
     }
 
@@ -119,7 +119,7 @@ public class RDFTriple {
      *
      * @return The object node
      */
-    public RDFNode getObject() {
+    public Node getObject() {
         return object;
     }
 
@@ -128,7 +128,7 @@ public class RDFTriple {
      *
      * @param object The object node
      */
-    void setObject(RDFNode object) {
+    void setObject(Node object) {
         this.object = object;
     }
 
@@ -138,7 +138,7 @@ public class RDFTriple {
      * @param field A field
      * @return The value of the specified field
      */
-    public RDFNode getField(RDFTripleField field) {
+    public Node getField(TripleField field) {
         switch (field) {
             case SUBJECT:
                 return subject;
@@ -161,8 +161,8 @@ public class RDFTriple {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof RDFTriple) {
-            RDFTriple triple = (RDFTriple) obj;
+        if (obj instanceof Triple) {
+            Triple triple = (Triple) obj;
             if (!ontology.equals(triple.ontology)) return false;
             if (!subject.equals(triple.subject)) return false;
             if (!property.equals(triple.property)) return false;

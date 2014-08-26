@@ -21,8 +21,8 @@
 package org.xowl.store.owl;
 
 import org.xowl.lang.actions.QueryVariable;
-import org.xowl.store.rdf.RDFProperty;
-import org.xowl.store.rdf.RDFSubjectNode;
+import org.xowl.store.rdf.Property;
+import org.xowl.store.rdf.SubjectNode;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +33,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class VariableNode implements RDFSubjectNode, RDFProperty {
+public class VariableNode implements SubjectNode, Property {
     /**
      * The type of node
      */

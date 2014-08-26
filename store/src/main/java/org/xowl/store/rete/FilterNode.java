@@ -21,7 +21,7 @@
 package org.xowl.store.rete;
 
 import org.xowl.lang.owl2.Ontology;
-import org.xowl.store.rdf.RDFTriple;
+import org.xowl.store.rdf.Triple;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -70,26 +70,26 @@ public class FilterNode implements FactActivable {
     }
 
     @Override
-    public void activateFact(RDFTriple fact) {
+    public void activateFact(Triple fact) {
         if (ontology == null || ontology == fact.getOntology())
             child.activateFact(fact);
     }
 
     @Override
-    public void deactivateFact(RDFTriple fact) {
+    public void deactivateFact(Triple fact) {
         if (ontology == null || ontology == fact.getOntology())
             child.deactivateFact(fact);
     }
 
     @Override
-    public void activateFacts(Collection<RDFTriple> facts) {
+    public void activateFacts(Collection<Triple> facts) {
         applyFilter(facts);
         if (!facts.isEmpty())
             child.activateFacts(facts);
     }
 
     @Override
-    public void deactivateFacts(Collection<RDFTriple> facts) {
+    public void deactivateFacts(Collection<Triple> facts) {
         applyFilter(facts);
         if (!facts.isEmpty())
             child.deactivateFacts(facts);
@@ -100,12 +100,12 @@ public class FilterNode implements FactActivable {
      *
      * @param facts The facts to filter
      */
-    private void applyFilter(Collection<RDFTriple> facts) {
+    private void applyFilter(Collection<Triple> facts) {
         if (ontology == null)
             return;
-        Iterator<RDFTriple> iterator = facts.iterator();
+        Iterator<Triple> iterator = facts.iterator();
         while (iterator.hasNext()) {
-            RDFTriple current = iterator.next();
+            Triple current = iterator.next();
             if (ontology != current.getOntology())
                 iterator.remove();
         }

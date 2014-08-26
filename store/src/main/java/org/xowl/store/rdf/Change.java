@@ -29,7 +29,7 @@ public class Change {
     /**
      * The value of the change
      */
-    private RDFTriple triple;
+    private Triple triple;
     /**
      * Whether this change is an addition, or a removal
      */
@@ -41,7 +41,7 @@ public class Change {
      * @param triple   The value of this change
      * @param positive Whether this change is an addition, or a removal
      */
-    public Change(RDFTriple triple, boolean positive) {
+    public Change(Triple triple, boolean positive) {
         this.triple = triple;
         this.positive = positive;
     }
@@ -51,7 +51,7 @@ public class Change {
      *
      * @return The value of this change
      */
-    public RDFTriple getValue() {
+    public Triple getValue() {
         return triple;
     }
 

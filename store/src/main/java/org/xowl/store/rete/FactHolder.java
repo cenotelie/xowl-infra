@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.RDFTriple;
+import org.xowl.store.rdf.Triple;
 
 import java.util.Collection;
 
@@ -35,7 +35,7 @@ public interface FactHolder {
      *
      * @return The facts in this element
      */
-    Collection<RDFTriple> getFacts();
+    Collection<Triple> getFacts();
 
     /**
      * Adds a new child to this element

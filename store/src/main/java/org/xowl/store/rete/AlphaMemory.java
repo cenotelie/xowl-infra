@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.RDFTriple;
+import org.xowl.store.rdf.Triple;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +35,7 @@ public class AlphaMemory implements FactActivable, FactHolder {
     /**
      * The facts in this memory
      */
-    private Collection<RDFTriple> facts;
+    private Collection<Triple> facts;
     /**
      * List of the children of this node
      */
@@ -50,7 +50,7 @@ public class AlphaMemory implements FactActivable, FactHolder {
     }
 
     @Override
-    public Collection<RDFTriple> getFacts() {
+    public Collection<Triple> getFacts() {
         return facts;
     }
 
@@ -65,28 +65,28 @@ public class AlphaMemory implements FactActivable, FactHolder {
     }
 
     @Override
-    public void activateFact(RDFTriple fact) {
+    public void activateFact(Triple fact) {
         facts.add(fact);
         for (int i = children.size() - 1; i != 0; i--)
             children.get(i).activateFact(fact);
     }
 
     @Override
-    public void deactivateFact(RDFTriple fact) {
+    public void deactivateFact(Triple fact) {
         facts.remove(fact);
         for (int i = children.size() - 1; i != 0; i--)
             children.get(i).deactivateFact(fact);
     }
 
     @Override
-    public void activateFacts(Collection<RDFTriple> facts) {
+    public void activateFacts(Collection<Triple> facts) {
         this.facts.addAll(facts);
         for (int i = children.size() - 1; i != 0; i--)
             children.get(i).activateFacts(new FastBuffer<>(facts));
     }
 
     @Override
-    public void deactivateFacts(Collection<RDFTriple> facts) {
+    public void deactivateFacts(Collection<Triple> facts) {
         this.facts.removeAll(facts);
         for (int i = children.size() - 1; i != 0; i--)
             children.get(i).deactivateFacts(new FastBuffer<>(facts));
