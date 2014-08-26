@@ -45,6 +45,13 @@ public abstract class LiteralNode implements Node {
      */
     public abstract Literal getLiteralValue();
 
+    /**
+     * Gets the value of the lexical term of the represented literal
+     *
+     * @return The value of the lexical term of the represented literal
+     */
+    public abstract String getLexicalValue();
+
     @Override
     public String toString() {
         Literal literal = getLiteralValue();

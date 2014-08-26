@@ -76,6 +76,11 @@ class LiteralNodeImpl extends LiteralNode {
     }
 
     @Override
+    public String getLexicalValue() {
+        return store.retrieve(lexical);
+    }
+
+    @Override
     public int hashCode() {
         return lexical ^ type ^ tag;
     }
