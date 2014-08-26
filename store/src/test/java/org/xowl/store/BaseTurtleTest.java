@@ -22,17 +22,15 @@ package org.xowl.store;
 import org.junit.Assert;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.Loader;
+import org.xowl.store.loaders.NTriplesLoader;
 import org.xowl.store.loaders.TurtleLoader;
-import org.xowl.store.rdf.RDFGraph;
-import org.xowl.store.rdf.Triple;
+import org.xowl.store.rdf.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Base class for the Turtle loader tests
@@ -55,10 +53,10 @@ public class BaseTurtleTest {
             // do not handle
         }
         TestLogger logger = new TestLogger();
-        Loader loader = new TurtleLoader(graph);
 
         InputStream stream = BaseTurtleTest.class.getResourceAsStream("/turtle/" + turtleResource);
         Reader reader = new InputStreamReader(stream);
+        Loader loader = new TurtleLoader(graph);
         Ontology ontologyTurtle = loader.load(logger, reader);
         Assert.assertFalse("Failed to parse resource " + turtleResource, logger.isOnError());
         Assert.assertNotNull("Failed to load resource " + turtleResource, ontologyTurtle);
@@ -70,6 +68,7 @@ public class BaseTurtleTest {
 
         stream = BaseTurtleTest.class.getResourceAsStream("/turtle/" + triplesResource);
         reader = new InputStreamReader(stream);
+        loader = new NTriplesLoader(graph);
         Ontology ontologyNTriple = loader.load(logger, reader);
         Assert.assertFalse("Failed to parse resource " + triplesResource, logger.isOnError());
         Assert.assertNotNull("Failed to load resource " + triplesResource, ontologyNTriple);
@@ -91,28 +90,90 @@ public class BaseTurtleTest {
             inNTriples.add(iterator.next());
         }
 
-        for (Triple triple : inNTriples) {
-            boolean found = false;
-            for (Triple potential : inTurtle) {
-                if (sameTriple(potential, triple)) {
-                    found = true;
-                    inTurtle.remove(potential);
-                    break;
+        matches(inNTriples, inTurtle);
+    }
+
+    private void matches(List<Triple> expected, List<Triple> tested) {
+        Map<BlankNode, BlankNode> blanks = new HashMap<>();
+        for (int i=0; i!=expected.size(); i++) {
+            Triple triple = expected.get(i);
+            if (triple.getSubject().getNodeType() != BlankNode.TYPE) {
+                // ignore blank nodes at this time
+                boolean found = false;
+                for (Triple potential : tested) {
+                    if (sameTriple(triple, potential, blanks)) {
+                        found = true;
+                        tested.remove(potential);
+                        break;
+                    }
+                }
+                if (found) {
+                    expected.remove(i);
+                    i--;
+                } else {
+                    Assert.fail("Expected triple not produced: " + triple.toString());
                 }
             }
-            if (!found)
-                Assert.fail("Expected triple not produced: " + triple.toString());
         }
 
-        for (Triple triple : inTurtle) {
+        int size = expected.size() + 1;
+        while (size != expected.size()) {
+            // while no more modifications
+            size = expected.size();
+            for (int i=0; i!=expected.size(); i++) {
+                Triple triple = expected.get(i);
+                boolean found = false;
+                for (Triple potential : tested) {
+                    if (sameTriple(triple, potential, blanks)) {
+                        found = true;
+                        tested.remove(potential);
+                        break;
+                    }
+                }
+                if (found) {
+                    expected.remove(i);
+                    i--;
+                } else {
+                    Assert.fail("Expected triple not produced: " + triple.toString());
+                }
+            }
+        }
+
+        if (expected.size() != 0) {
+            Assert.fail("Failed to match all triples");
+        }
+
+        for (Triple triple : tested) {
+            // fail on supplementary triples
             Assert.fail("Unexpected triple produced: " + triple.toString());
         }
     }
 
-    private boolean sameTriple(Triple triple1, Triple triple2) {
-        return (triple1.getSubject().equals(triple2.getSubject())
-                && triple1.getProperty().equals(triple2.getProperty())
-                && triple1.getObject().equals(triple2.getObject()));
+    private boolean sameTriple(Triple triple1, Triple triple2, Map<BlankNode, BlankNode> blanks) {
+        SubjectNode subject = triple1.getSubject();
+        Property property = triple1.getProperty();
+        Node object = triple1.getObject();
+        if (subject.getNodeType() == BlankNode.TYPE) {
+            subject = blanks.get(subject);
+        }
+        if (object.getNodeType() == BlankNode.TYPE) {
+            object = blanks.get(object);
+        }
+        if (!property.equals(triple2.getProperty()))
+            return false;
+        if (subject != null && !subject.equals(triple2.getSubject()))
+            return false;
+        if (object != null && !object.equals(triple2.getObject()))
+            return false;
+        if (subject == null && triple2.getSubject().getNodeType() != BlankNode.TYPE)
+            return  false;
+        if (object == null && triple2.getObject().getNodeType() != BlankNode.TYPE)
+            return false;
+        if (subject == null)
+            blanks.put((BlankNode) triple1.getSubject(), (BlankNode) triple2.getSubject());
+        if (object == null)
+            blanks.put((BlankNode) triple1.getObject(), (BlankNode) triple2.getObject());
+        return true;
     }
 
     /**
