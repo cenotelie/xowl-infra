@@ -368,25 +368,26 @@ public class RDFGraph {
      * @return An iterator over all the subjects starting edges in the graph
      */
     protected Iterator<Couple<SubjectNode, EdgeBucket>> getAllSubjects() {
-        final Couple<SubjectNode, EdgeBucket> result = new Couple<>();
-        return new ConcatenatedIterator<Couple<SubjectNode, EdgeBucket>>(new Iterator[]{
-                new AdaptingIterator<>(edgesIRI.keySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
-                    @Override
-                    public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
-                        result.x = mapNodeIRIs.get(element);
-                        result.y = edgesIRI.get(element);
-                        return result;
-                    }
-                }),
-                new AdaptingIterator<>(new IndexIterator<>(edgesBlank), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
-                    @Override
-                    public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
-                        Integer index = (Integer) element;
-                        result.x = new BlankNode(index);
-                        result.y = edgesBlank[index];
-                        return result;
-                    }
-                })
+        return new ConcatenatedIterator<Couple<SubjectNode, EdgeBucket>>(new Iterator[] {
+            new AdaptingIterator<>(edgesIRI.keySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+                @Override
+                public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
+                    Couple<SubjectNode, EdgeBucket> result = new Couple<>();
+                    result.x = mapNodeIRIs.get(element);
+                    result.y = edgesIRI.get(element);
+                    return result;
+                }
+            }),
+            new AdaptingIterator<>(new IndexIterator<>(edgesBlank), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+                @Override
+                public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
+                    Couple<SubjectNode, EdgeBucket> result = new Couple<>();
+                    Integer index = (Integer) element;
+                    result.x = new BlankNode(index);
+                    result.y = edgesBlank[index];
+                    return result;
+                }
+            })
         });
     }
 }

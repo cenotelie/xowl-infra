@@ -142,7 +142,7 @@ public class NTriplesLoader extends Loader {
      */
     private Node translateBlankNode(ASTNode node) {
         String key = node.getSymbol().getValue();
-        key = key.substring(1, key.length() - 1);
+        key = key.substring(2);
         BlankNode blank = blanks.get(key);
         if (blank != null)
             return blank;

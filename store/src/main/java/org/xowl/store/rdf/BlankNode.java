@@ -75,6 +75,6 @@ public class BlankNode implements SubjectNode {
 
     @Override
     public String toString() {
-        return "<blank>";
+        return "_:" + Integer.toString(blankID);
     }
 }

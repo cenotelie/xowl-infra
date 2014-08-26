@@ -152,14 +152,11 @@ public class EdgeTarget implements Iterable<Ontology> {
      * @return An iterator over the triples
      */
     public Iterator<Triple> getAllTriples(Ontology ontology) {
-        final Triple result = new Triple(ontology, null, null, null);
-
         if (ontology == null) {
             return new AdaptingIterator<>(iterator(), new Adapter<Triple>() {
                 @Override
                 public <X> Triple adapt(X element) {
-                    result.setOntology((Ontology) element);
-                    return result;
+                    return new Triple((Ontology) element, null, null, null);
                 }
             });
         }
@@ -169,8 +166,7 @@ public class EdgeTarget implements Iterable<Ontology> {
                 return new AdaptingIterator<>(new SingleIterator<>(ontology), new Adapter<Triple>() {
                     @Override
                     public <X> Triple adapt(X element) {
-                        result.setOntology((Ontology) element);
-                        return result;
+                        return new Triple((Ontology) element, null, null, null);
                     }
                 });
             }

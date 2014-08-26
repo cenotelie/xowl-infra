@@ -221,31 +221,32 @@ public class XOWLGraph extends RDFGraph {
      */
     protected Iterator<Couple<SubjectNode, EdgeBucket>> getAllSubjects() {
         final Couple<SubjectNode, EdgeBucket> result = new Couple<>();
-        return new ConcatenatedIterator<Couple<SubjectNode, EdgeBucket>>(new Iterator[]{
-                new AdaptingIterator<>(edgesIRI.keySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
-                    @Override
-                    public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
-                        result.x = mapNodeIRIs.get(element);
-                        result.y = edgesIRI.get(element);
-                        return result;
-                    }
-                }),
-                new AdaptingIterator<>(edgesAnon.keySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
-                    @Override
-                    public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
-                        result.x = mapNodeAnons.get(element);
-                        result.y = edgesAnon.get(element);
-                        return result;
-                    }
-                }), new AdaptingIterator<>(new IndexIterator<>(edgesBlank), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
-            @Override
-            public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
-                Integer index = (Integer) element;
-                result.x = new BlankNode(index);
-                result.y = edgesBlank[index];
-                return result;
-            }
-        })
+    return new ConcatenatedIterator<Couple<SubjectNode, EdgeBucket>>(new Iterator[] {
+            new AdaptingIterator<>(edgesIRI.keySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+                @Override
+                public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
+                    result.x = mapNodeIRIs.get(element);
+                    result.y = edgesIRI.get(element);
+                    return result;
+                }
+            }),
+            new AdaptingIterator<>(edgesAnon.keySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+                @Override
+                public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
+                    result.x = mapNodeAnons.get(element);
+                    result.y = edgesAnon.get(element);
+                    return result;
+                }
+            }),
+            new AdaptingIterator<>(new IndexIterator<>(edgesBlank), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+                @Override
+                public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
+                    Integer index = (Integer) element;
+                    result.x = new BlankNode(index);
+                    result.y = edgesBlank[index];
+                    return result;
+                }
+            })
         });
     }
 }
