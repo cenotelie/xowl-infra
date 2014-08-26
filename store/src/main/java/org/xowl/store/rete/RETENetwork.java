@@ -20,6 +20,8 @@
 
 package org.xowl.store.rete;
 
+import org.xowl.store.rdf.XOWLTriple;
+import org.xowl.store.rdf.XOWLVariableNode;
 import org.xowl.store.rdf.*;
 
 import java.io.IOException;

@@ -49,7 +49,7 @@ public class XOWLDynamicNode implements RDFSubjectNode, RDFProperty {
      *
      * @param exp The dynamic expression represented by this node
      */
-    XOWLDynamicNode(Expression exp) {
+    public XOWLDynamicNode(Expression exp) {
         dynExpression = exp;
         types = new ArrayList<>();
     }

@@ -49,7 +49,7 @@ public class XOWLVariableNode implements RDFSubjectNode, RDFProperty {
      *
      * @param var The variable represented by this node
      */
-    XOWLVariableNode(QueryVariable var) {
+    public XOWLVariableNode(QueryVariable var) {
         variable = var;
         types = new ArrayList<>();
     }

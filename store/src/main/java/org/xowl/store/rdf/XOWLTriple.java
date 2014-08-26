@@ -21,6 +21,10 @@
 package org.xowl.store.rdf;
 
 import org.xowl.lang.owl2.Ontology;
+import org.xowl.store.rdf.RDFNode;
+import org.xowl.store.rdf.RDFProperty;
+import org.xowl.store.rdf.RDFSubjectNode;
+import org.xowl.store.rdf.RDFTriple;
 
 /**
  * Represents a triple fact in a RETE graph
