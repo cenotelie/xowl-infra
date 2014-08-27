@@ -55,16 +55,17 @@ public class TestLogger implements Logger {
 
     @Override
     public void info(Object message) {
-
+        System.out.println(message);
     }
 
     @Override
     public void warning(Object message) {
-
+        System.out.println(message);
     }
 
     @Override
     public void error(Object message) {
+        System.out.println(message);
         onError = true;
     }
 }
