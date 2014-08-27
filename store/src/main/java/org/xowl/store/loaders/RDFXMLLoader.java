@@ -24,7 +24,6 @@ import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xowl.hime.redist.ParseResult;
-import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.rdf.*;
 import org.xowl.store.voc.OWLDatatype;
@@ -32,7 +31,10 @@ import org.xowl.store.voc.RDF;
 import org.xowl.utils.Logger;
 
 import java.io.Reader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Loader for RDF XML sources
@@ -59,21 +61,29 @@ public class RDFXMLLoader extends Loader {
      */
     private RDFGraph graph;
     /**
-     * Maps of the current prefixes
+     * The loaded triples
      */
-    private Map<String, String> prefixes;
+    private List<Triple> triples;
+    /**
+     * The URI of the resource currently being loaded
+     */
+    private String resource;
     /**
      * Base IRI
      */
-    private String baseIRI;
+    private String baseURI;
     /**
-     * The current ontology
+     * Maps of the current namespaces
      */
-    private Ontology ontology;
+    private Map<String, String> namespaces;
     /**
      * Maps of the blanks nodes
      */
     private Map<String, BlankNode> blanks;
+    /**
+     * The current ontology
+     */
+    private Ontology ontology;
 
     /**
      * Initializes this loader
@@ -82,8 +92,6 @@ public class RDFXMLLoader extends Loader {
      */
     public RDFXMLLoader(RDFGraph graph) {
         this.graph = graph;
-        this.prefixes = new HashMap<>();
-        this.blanks = new HashMap<>();
     }
 
     @Override
@@ -93,7 +101,13 @@ public class RDFXMLLoader extends Loader {
 
     @Override
     public Ontology load(Logger logger, java.io.Reader reader, String uri) {
+        triples = new ArrayList<>();
         ontology = createNewOntology();
+        resource = uri;
+        baseURI = null;
+        namespaces = new HashMap<>();
+        blanks = new HashMap<>();
+
         DOMParser parser = new DOMParser();
         try {
             parser.parse(new InputSource(reader));
@@ -108,7 +122,16 @@ public class RDFXMLLoader extends Loader {
             }
         } catch (Exception ex) {
             logger.error(ex);
+            return null;
         }
+
+        try {
+            for (Triple triple : triples)
+                graph.add(triple);
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
+        }
+
         return ontology;
     }
 
@@ -122,31 +145,13 @@ public class RDFXMLLoader extends Loader {
             String name = node.getAttributes().item(i).getNodeName();
             String value = node.getAttributes().item(i).getNodeValue();
             if (name.startsWith("xmlns:")) {
-                prefixes.put(name.substring(6), value);
+                namespaces.put(name.substring(6), value);
             } else if (name.equals("xmlns")) {
-                setBaseIRI(value);
+                baseURI = value;
             }
-        }
-        if (baseIRI == null) {
-            Random rand = new Random();
-            String value = DEFAULT_GRAPH_URIS + Integer.toHexString(rand.nextInt()) + "#";
-            setBaseIRI(value);
         }
         for (org.w3c.dom.Node child : getElements(node))
             loadNode(child);
-    }
-
-    /**
-     * Sets the base IRI
-     *
-     * @param value The base IRI to use
-     */
-    private void setBaseIRI(String value) {
-        baseIRI = value;
-        IRI iri = new IRI();
-        iri.setHasValue(baseIRI.substring(0, baseIRI.length() - 1));
-        ontology = new Ontology();
-        ontology.setHasIRI(iri);
     }
 
     /**
@@ -170,30 +175,55 @@ public class RDFXMLLoader extends Loader {
         return null;
     }
 
+    /**
+     * Gets the IRI node for the specified IRI
+     *
+     * @param value An IRI
+     * @return The associated IRI node
+     */
     private IRINode getIRIForNode_GetIRI(String value) {
-        if (value.contains("#")) {
-            if (value.startsWith("#"))
-                return graph.getNodeIRI(baseIRI + value.substring(1));
-            else
-                return graph.getNodeIRI(value);
-        } else {
-            return graph.getNodeIRI(baseIRI + value);
-        }
+        value = normalizeIRI(resource, baseURI, value);
+        return graph.getNodeIRI(value);
     }
 
-    private IRINode getIRIForName(String name) {
-        if (name.contains(":")) {
-            String parts[] = name.split(":");
-            return graph.getNodeIRI(prefixes.get(parts[0]) + parts[1]);
-        } else {
-            return graph.getNodeIRI(baseIRI + name);
+    /**
+     * Gets the IRI node for the specified local name
+     *
+     * @param value A local name
+     * @return The associated IRI node
+     */
+    private IRINode getIRIForName(String value) {
+        value = unescape(value);
+        int index = 0;
+        while (index != value.length()) {
+            if (value.charAt(index) == ':') {
+                String prefix = value.substring(0, index);
+                String uri = namespaces.get(prefix);
+                if (uri != null) {
+                    String name = value.substring(index + 1);
+                    return graph.getNodeIRI(normalizeIRI(resource, baseURI, uri + name));
+                }
+            }
+            index++;
         }
+        throw new IllegalArgumentException("Failed to resolve local name " + value);
     }
 
+    /**
+     * Gets a new blank node
+     *
+     * @return A new blank node
+     */
     private BlankNode getBlank() {
         return graph.getBlankNode();
     }
 
+    /**
+     * Resolves the blank node with the specified ID
+     *
+     * @param nodeID The required ID
+     * @return The associated blank node
+     */
     private BlankNode getBlank(String nodeID) {
         BlankNode node = blanks.get(nodeID);
         if (node != null)
@@ -203,6 +233,12 @@ public class RDFXMLLoader extends Loader {
         return node;
     }
 
+    /**
+     * Loads a RDF node
+     *
+     * @param node The XML node to load from
+     * @return The loaded RDF node
+     */
     private SubjectNode loadNode(org.w3c.dom.Node node) {
         SubjectNode subject = null;
         String name = node.getNodeName();
@@ -220,7 +256,7 @@ public class RDFXMLLoader extends Loader {
             // Found untyped node
         } else {
             // Found typed node
-            addTriple(subject, getIRIForName(rdfType), getIRIForName(name));
+            register(subject, getIRIForName(rdfType), getIRIForName(name));
         }
 
         // Load properties expressed in node attributes
@@ -230,7 +266,7 @@ public class RDFXMLLoader extends Loader {
             if (attName.equals(rdfAbout)) {
             } else if (attName.equals(rdfID)) {
             } else if (attName.equals(rdfResource)) {
-            } else loadProperty(subject, attName, attValue);
+            } else register(subject, attName, attValue);
         }
 
         // Load property nodes
@@ -239,6 +275,12 @@ public class RDFXMLLoader extends Loader {
         return subject;
     }
 
+    /**
+     * Loads RDF properties for the specified blank node
+     *
+     * @param node The XML node to load from
+     * @return The blank node
+     */
     private SubjectNode loadBlankNode(org.w3c.dom.Node node) {
         SubjectNode subject = getBlank();
         // Load property nodes
@@ -247,6 +289,12 @@ public class RDFXMLLoader extends Loader {
         return subject;
     }
 
+    /**
+     * Loads RDF properties for the specified node
+     *
+     * @param subject The current subject node
+     * @param node    The XML node to load from
+     */
     private void loadProperty(SubjectNode subject, org.w3c.dom.Node node) {
         String name = node.getNodeName();
         IRINode property = getIRIForName(name);
@@ -257,7 +305,7 @@ public class RDFXMLLoader extends Loader {
                 // the value of the property is an RDF node in attribute
                 IRINode object = getIRIForNode(node);
                 if (object != null) {
-                    addTriple(subject, property, object);
+                    register(subject, property, object);
                     return;
                 }
             } else if (attName.equals(rdfParseType)) {
@@ -273,27 +321,27 @@ public class RDFXMLLoader extends Loader {
                         SubjectNode proxy = this.getBlank();
                         values.add(value);
                         proxies.add(proxy);
-                        addTriple(proxy, getIRIForName(rdfFirst), value);
+                        register(proxy, getIRIForName(rdfFirst), value);
                     }
                     if (values.isEmpty()) {
-                        addTriple(subject, property, getIRIForName(rdfNil));
+                        register(subject, property, getIRIForName(rdfNil));
                     } else {
-                        addTriple(subject, property, proxies.get(0));
+                        register(subject, property, proxies.get(0));
                         for (int n = 0; n != proxies.size() - 1; n++)
-                            addTriple(proxies.get(n), getIRIForName(rdfRest), proxies.get(n + 1));
-                        addTriple(proxies.get(proxies.size() - 1), getIRIForName(rdfRest), getIRIForName(rdfNil));
+                            register(proxies.get(n), getIRIForName(rdfRest), proxies.get(n + 1));
+                        register(proxies.get(proxies.size() - 1), getIRIForName(rdfRest), getIRIForName(rdfNil));
                     }
                     return;
                 } else if (attValue.equals("Resource")) {
                     // Anonymous node
                     Node object = loadBlankNode(node);
-                    addTriple(subject, property, object);
+                    register(subject, property, object);
                 }
             } else if (attName.equals(rdfDatatype)) {
                 String datatype = node.getAttributes().item(i).getNodeValue();
                 String lex = node.getTextContent();
                 Node object = graph.getLiteralNode(lex, datatype, null);
-                addTriple(subject, property, object);
+                register(subject, property, object);
                 return;
             }
         }
@@ -309,20 +357,30 @@ public class RDFXMLLoader extends Loader {
             // Value is an RDF node
             object = loadNode(getElements(node).get(0));
         }
-        addTriple(subject, property, object);
+        register(subject, property, object);
     }
 
-    private void loadProperty(SubjectNode subject, String name, String value) {
-        Property property = graph.getNodeIRI(name);
+    /**
+     * Loads the triple with the specified value
+     *
+     * @param subject  The triple's subject
+     * @param property The triple's property
+     * @param value    The triples's value
+     */
+    private void register(SubjectNode subject, String property, String value) {
+        Property p = graph.getNodeIRI(property);
         Node object = graph.getLiteralNode(value, OWLDatatype.xsdString, null);
-        addTriple(subject, property, object);
+        register(subject, p, object);
     }
 
-    private void addTriple(SubjectNode subject, Property property, Node value) {
-        try {
-            graph.add(ontology, subject, property, value);
-        } catch (UnsupportedNodeType ex) {
-            //cannot happen
-        }
+    /**
+     * Registers the triple with the specified values
+     *
+     * @param subject  The triple's subject
+     * @param property The triples's property
+     * @param value    The triples's value
+     */
+    private void register(SubjectNode subject, Property property, Node value) {
+        triples.add(new Triple(ontology, subject, property, value));
     }
 }
