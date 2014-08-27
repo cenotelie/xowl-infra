@@ -168,7 +168,8 @@ public class TurtleLoader extends Loader {
      */
     private void loadBase(ASTNode node) {
         String value = node.getChildren().get(0).getSymbol().getValue();
-        baseURI = unescape(value.substring(1, value.length() - 1));
+        value = unescape(value.substring(1, value.length() - 1));
+        baseURI = normalizeIRI(resource, baseURI, value);
     }
 
     /**
