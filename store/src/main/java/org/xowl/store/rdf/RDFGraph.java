@@ -23,6 +23,7 @@ package org.xowl.store.rdf;
 import org.xowl.lang.owl2.Literal;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.cache.StringStore;
+import org.xowl.store.voc.RDF;
 import org.xowl.utils.collections.*;
 
 import java.io.IOException;
@@ -351,14 +352,10 @@ public class RDFGraph {
                 }
             });
         } else {
-            switch (subject.getNodeType()) {
-                case IRINode.TYPE:
-                    return edgesIRI.get(((IRINodeImpl) subject).getKey()).getAllTriples(property, object, ontology);
-                case BlankNode.TYPE:
-                    return edgesBlank[((BlankNode) subject).getBlankID()].getAllTriples(property, object, ontology);
-                default:
-                    throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
-            }
+            EdgeBucket bucket = getBucketFor(subject);
+            if (bucket == null)
+                throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
+            return bucket.getAllTriples(property, object, ontology);
         }
     }
 
@@ -389,5 +386,43 @@ public class RDFGraph {
                     }
                 })
         });
+    }
+
+    /**
+     * Gets an iterator over the elements of the specified RDF list
+     *
+     * @param list The head node of an RDF list
+     * @return An iterator over the list's elements
+     */
+    public Iterator<Node> getList(SubjectNode list) {
+        int keyFirst = sStore.store(RDF.rdfFirst);
+        int keyRest = sStore.store(RDF.rdfRest);
+        int keyNil = sStore.store(RDF.rdfNil);
+        return new ListIterator(keyFirst, keyRest, keyNil, list) {
+            @Override
+            protected EdgeBucket getBucketOf(SubjectNode node) {
+                return getBucketFor(node);
+            }
+        };
+    }
+
+    /**
+     * Gets the edge bucket for the specified node
+     *
+     * @param node A node
+     * @return The associated edge bucket, or null if there is none
+     */
+    protected EdgeBucket getBucketFor(Node node) {
+        switch (node.getNodeType()) {
+            case IRINode.TYPE:
+                return edgesIRI.get(((IRINodeImpl) node).getKey());
+            case BlankNode.TYPE:
+                int id = ((BlankNode) node).getBlankID();
+                if (id >= edgesBlank.length)
+                    return null;
+                return edgesBlank[id];
+            default:
+                return null;
+        }
     }
 }

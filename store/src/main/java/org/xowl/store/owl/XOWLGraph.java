@@ -121,6 +121,7 @@ public class XOWLGraph extends RDFGraph {
      * @param value    The triple value
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
+    @Override
     public void add(Ontology ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case AnonymousNode.TYPE:
@@ -164,6 +165,7 @@ public class XOWLGraph extends RDFGraph {
      * @param value    The triple value
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
+    @Override
     public void remove(Ontology ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case AnonymousNode.TYPE:
@@ -199,26 +201,11 @@ public class XOWLGraph extends RDFGraph {
     }
 
     /**
-     * Gets an iterator over all the triples in this store that matches the given values
-     *
-     * @param subject  A subject node to match, or null
-     * @param property A property to match, or null
-     * @param object   An object node to match, or null
-     * @param ontology A containing to match, or null
-     * @return An iterator over the results
-     * @throws UnsupportedNodeType when the subject node type is unsupported
-     */
-    public Iterator<Triple> getAll(SubjectNode subject, Property property, Node object, Ontology ontology) throws UnsupportedNodeType {
-        if (subject != null && subject.getNodeType() == AnonymousNode.TYPE)
-            return edgesAnon.get(((AnonymousNode) subject).getAnonymous()).getAllTriples(property, object, ontology);
-        return super.getAll(subject, property, object, ontology);
-    }
-
-    /**
      * Gets an iterator over all the subjects starting edges in the graph
      *
      * @return An iterator over all the subjects starting edges in the graph
      */
+    @Override
     protected Iterator<Couple<SubjectNode, EdgeBucket>> getAllSubjects() {
         return new ConcatenatedIterator<Couple<SubjectNode, EdgeBucket>>(new Iterator[]{
                 new AdaptingIterator<>(edgesIRI.keySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
@@ -250,5 +237,18 @@ public class XOWLGraph extends RDFGraph {
                     }
                 })
         });
+    }
+
+    /**
+     * Gets the edge bucket for the specified node
+     *
+     * @param node A node
+     * @return The associated edge bucket, or null if there is none
+     */
+    @Override
+    protected EdgeBucket getBucketFor(Node node) {
+        if (node != null && node.getNodeType() == AnonymousNode.TYPE)
+            return edgesAnon.get(((AnonymousNode) node).getAnonymous());
+        return super.getBucketFor(node);
     }
 }
