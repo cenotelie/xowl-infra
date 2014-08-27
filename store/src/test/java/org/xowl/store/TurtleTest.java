@@ -1398,6 +1398,26 @@ public class TurtleTest extends BaseTurtleTest {
     }
 
     @Test
+    public void test_turtle_eval_bad_01() {
+        testTurtleNegativeSyntax("turtle-eval-bad-01.ttl");
+    }
+
+    @Test
+    public void test_turtle_eval_bad_02() {
+        testTurtleNegativeSyntax("turtle-eval-bad-02.ttl");
+    }
+
+    @Test
+    public void test_turtle_eval_bad_03() {
+        testTurtleNegativeSyntax("turtle-eval-bad-03.ttl");
+    }
+
+    @Test
+    public void test_turtle_eval_bad_04() {
+        testTurtleNegativeSyntax("turtle-eval-bad-04.ttl");
+    }
+
+    @Test
     public void test_turtle_syntax_bad_blank_label_dot_end() {
         testTurtleNegativeSyntax("turtle-syntax-bad-blank-label-dot-end.ttl");
     }

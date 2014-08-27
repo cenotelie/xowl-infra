@@ -20,41 +20,41 @@
 package org.xowl.store;
 
 /**
- * Base class for the Turtle loader tests
+ * Base class for the RDF/XML loader tests
  *
  * @author Laurent Wouters
  */
-public abstract class BaseTurtleTest extends W3CTestSuite {
+public abstract class BaseRDFXMLTest extends W3CTestSuite {
     /**
-     * Base URI for the Turtle documents
+     * Base URI for the RDF/XML documents
      */
-    protected static final String BASE_LOCATION = "http://www.w3.org/2013/TurtleTests/";
+    protected static final String BASE_LOCATION = "http://www.w3.org/2013/RDFXMLTests/";
 
     /**
-     * Tests that the specified Turtle resource is loaded and evaluated as the specified NTriple resource
+     * Tests that the specified RDF/XML resource is loaded and evaluated as the specified NTriple resource
      *
-     * @param turtleResource  A Turtle resource
+     * @param rdfResource     A RDF/XML resource
      * @param triplesResource A NTriple resource
      */
-    protected void testTurtleEval(String turtleResource, String triplesResource) {
-        testEval("/turtle/" + triplesResource, BASE_LOCATION + triplesResource, "/turtle/" + turtleResource, BASE_LOCATION + turtleResource);
+    protected void testXMLEval(String rdfResource, String triplesResource) {
+        testEval("/rdfxml/" + triplesResource, BASE_LOCATION + triplesResource, "/rdfxml/" + rdfResource, BASE_LOCATION + rdfResource);
     }
 
     /**
-     * Tests that the specified Turtle resource is loaded without errors
+     * Tests that the specified RDF/XML resource is loaded without errors
      *
-     * @param resource A Turtle resource
+     * @param resource A RDF/XML resource
      */
-    protected void testTurtlePositiveSyntax(String resource) {
-        testPositiveSyntax("/turtle/" + resource, BASE_LOCATION + resource);
+    protected void testXMLPositiveSyntax(String resource) {
+        testPositiveSyntax("/rdfxml/" + resource, BASE_LOCATION + resource);
     }
 
     /**
-     * Tests that the specified Turtle resource is loaded without errors
+     * Tests that the specified RDF/XML resource is not loaded without errors
      *
-     * @param resource A Turtle resource
+     * @param resource A RDF/XML resource
      */
-    protected void testTurtleNegativeSyntax(String resource) {
-        testNegativeSyntax("/turtle/" + resource, BASE_LOCATION + resource);
+    protected void testXMLNegativeSyntax(String resource) {
+        testNegativeSyntax("/rdfxml/" + resource, BASE_LOCATION + resource);
     }
 }
