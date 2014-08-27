@@ -82,7 +82,7 @@ public class NTriplesLoader extends Loader {
     }
 
     @Override
-    public Ontology load(Logger logger, Reader reader) {
+    public Ontology load(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
         Ontology ontology = createNewOntology();
 

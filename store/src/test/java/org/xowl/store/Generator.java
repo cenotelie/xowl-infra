@@ -19,7 +19,6 @@
  **********************************************************************/
 package org.xowl.store;
 
-import org.junit.Test;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.Loader;
 import org.xowl.store.loaders.TurtleLoader;
@@ -91,7 +90,7 @@ public class Generator {
         Loader loader = new TurtleLoader(graph);
         InputStream stream = Generator.class.getResourceAsStream(manifest);
         Reader reader = new InputStreamReader(stream);
-        Ontology ontology = loader.load(logger, reader);
+        Ontology ontology = loader.load(logger, reader, "");
         reader.close();
 
         try {

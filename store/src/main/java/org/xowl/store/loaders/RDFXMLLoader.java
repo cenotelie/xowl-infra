@@ -92,7 +92,7 @@ public class RDFXMLLoader extends Loader {
     }
 
     @Override
-    public Ontology load(Logger logger, java.io.Reader reader) {
+    public Ontology load(Logger logger, java.io.Reader reader, String uri) {
         ontology = createNewOntology();
         DOMParser parser = new DOMParser();
         try {

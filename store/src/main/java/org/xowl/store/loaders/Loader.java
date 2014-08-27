@@ -27,6 +27,7 @@ import org.xowl.lang.owl2.Ontology;
 import org.xowl.utils.Logger;
 
 import java.io.Reader;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -128,6 +129,22 @@ public abstract class Loader {
     }
 
     /**
+     * Resolves and normalizes the specified IRI
+     *
+     * @param resource The URI of the parent enclosing document
+     * @param base     The current base URI, or <c>null</c> if none is defined
+     * @param iri      The IRI to  resolve and normalize
+     * @return The resolved and normalized IRI
+     */
+    protected String normalizeIRI(String resource, String base, String iri) {
+        iri = unescape(iri);
+        URI uriBase = URI.create(base != null ? base : resource);
+        URI uri = uriBase.resolve(iri);
+        uri = uri.normalize();
+        return uri.toString();
+    }
+
+    /**
      * Parses the specified input
      *
      * @param logger The logger to use
@@ -141,7 +158,8 @@ public abstract class Loader {
      *
      * @param logger The logger to use
      * @param reader The resource's reader
+     * @param uri    The resource's URI
      * @return The ontology containing the loaded data
      */
-    public abstract Ontology load(Logger logger, Reader reader);
+    public abstract Ontology load(Logger logger, Reader reader, String uri);
 }

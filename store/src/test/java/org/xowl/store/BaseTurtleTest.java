@@ -38,6 +38,10 @@ import java.util.*;
  * @author Laurent Wouters
  */
 public class BaseTurtleTest {
+    /**
+     * Base URI for the Turtle documents
+     */
+    protected static final String BASE_LOCATION = "http://www.w3.org/2013/TurtleTests/";
 
     /**
      * Tests that the specified Turtle resource is loaded and evaluated as the specified NTriple resource
@@ -57,7 +61,7 @@ public class BaseTurtleTest {
         InputStream stream = BaseTurtleTest.class.getResourceAsStream("/turtle/" + turtleResource);
         Reader reader = new InputStreamReader(stream);
         Loader loader = new TurtleLoader(graph);
-        Ontology ontologyTurtle = loader.load(logger, reader);
+        Ontology ontologyTurtle = loader.load(logger, reader, BASE_LOCATION + turtleResource);
         Assert.assertFalse("Failed to parse resource " + turtleResource, logger.isOnError());
         Assert.assertNotNull("Failed to load resource " + turtleResource, ontologyTurtle);
         try {
@@ -69,7 +73,7 @@ public class BaseTurtleTest {
         stream = BaseTurtleTest.class.getResourceAsStream("/turtle/" + triplesResource);
         reader = new InputStreamReader(stream);
         loader = new NTriplesLoader(graph);
-        Ontology ontologyNTriple = loader.load(logger, reader);
+        Ontology ontologyNTriple = loader.load(logger, reader, BASE_LOCATION + triplesResource);
         Assert.assertFalse("Failed to parse resource " + triplesResource, logger.isOnError());
         Assert.assertNotNull("Failed to load resource " + triplesResource, ontologyNTriple);
         try {
@@ -95,7 +99,7 @@ public class BaseTurtleTest {
 
     private void matches(List<Triple> expected, List<Triple> tested) {
         Map<BlankNode, BlankNode> blanks = new HashMap<>();
-        for (int i=0; i!=expected.size(); i++) {
+        for (int i = 0; i != expected.size(); i++) {
             Triple triple = expected.get(i);
             if (triple.getSubject().getNodeType() != BlankNode.TYPE) {
                 // ignore blank nodes at this time
@@ -120,7 +124,7 @@ public class BaseTurtleTest {
         while (size != expected.size()) {
             // while no more modifications
             size = expected.size();
-            for (int i=0; i!=expected.size(); i++) {
+            for (int i = 0; i != expected.size(); i++) {
                 Triple triple = expected.get(i);
                 boolean found = false;
                 for (Triple potential : tested) {
@@ -166,7 +170,7 @@ public class BaseTurtleTest {
         if (object != null && !object.equals(triple2.getObject()))
             return false;
         if (subject == null && triple2.getSubject().getNodeType() != BlankNode.TYPE)
-            return  false;
+            return false;
         if (object == null && triple2.getObject().getNodeType() != BlankNode.TYPE)
             return false;
         if (subject == null)
@@ -194,7 +198,7 @@ public class BaseTurtleTest {
         InputStream stream = BaseTurtleTest.class.getResourceAsStream("/turtle/" + resource);
         Reader reader = new InputStreamReader(stream);
 
-        Ontology result = loader.load(logger, reader);
+        Ontology result = loader.load(logger, reader, BASE_LOCATION + resource);
         Assert.assertFalse("Failed to parse resource " + resource, logger.isOnError());
         Assert.assertNotNull("Failed to load resource " + resource, result);
 
@@ -223,7 +227,7 @@ public class BaseTurtleTest {
         InputStream stream = BaseTurtleTest.class.getResourceAsStream("/turtle/" + resource);
         Reader reader = new InputStreamReader(stream);
 
-        Ontology result = loader.load(logger, reader);
+        Ontology result = loader.load(logger, reader, BASE_LOCATION + resource);
         Assert.assertTrue("No error reported while parsing " + resource, logger.isOnError());
         Assert.assertNull("Mistakenly reported success of loading " + resource, result);
 

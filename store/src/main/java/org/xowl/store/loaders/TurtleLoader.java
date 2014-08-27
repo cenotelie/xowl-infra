@@ -49,6 +49,10 @@ public class TurtleLoader extends Loader {
      */
     private RDFGraph graph;
     /**
+     * The URI of the resource currently being loaded
+     */
+    private String resource;
+    /**
      * The base URI for relative URIs
      */
     private String baseURI;
@@ -109,9 +113,10 @@ public class TurtleLoader extends Loader {
     }
 
     @Override
-    public Ontology load(Logger logger, Reader reader) {
+    public Ontology load(Logger logger, Reader reader, String iri) {
         ontology = createNewOntology();
-        baseURI = ontology.getHasIRI().getHasValue();
+        resource = iri;
+        baseURI = null;
         namespaces = new HashMap<>();
         blanks = new HashMap<>();
 
@@ -242,7 +247,8 @@ public class TurtleLoader extends Loader {
      */
     private IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getSymbol().getValue();
-        return graph.getNodeIRI(getFullIRI(value));
+        value = value.substring(1, value.length() - 1);
+        return graph.getNodeIRI(normalizeIRI(resource, baseURI, value));
     }
 
     /**
@@ -387,7 +393,8 @@ public class TurtleLoader extends Loader {
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getSymbol().getValue();
-            return graph.getLiteralNode(value, getFullIRI(iri), null);
+            iri = iri.substring(1, iri.length() - 1);
+            return graph.getLiteralNode(value, normalizeIRI(resource, baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(suffixChild.getSymbol().getValue());
@@ -416,7 +423,7 @@ public class TurtleLoader extends Loader {
             return graph.getNodeIRI(RDF.rdfNil);
 
         BlankNode[] proxies = new BlankNode[elements.size()];
-        for (int i=0; i!=proxies.length; i++) {
+        for (int i = 0; i != proxies.length; i++) {
             proxies[i] = graph.getBlankNode();
             try {
                 graph.add(ontology, proxies[i], graph.getNodeIRI(RDF.rdfFirst), elements.get(i));
@@ -424,15 +431,15 @@ public class TurtleLoader extends Loader {
                 // cannot happen ...
             }
         }
-        for (int i=0; i!=proxies.length-1; i++) {
+        for (int i = 0; i != proxies.length - 1; i++) {
             try {
-                graph.add(ontology, proxies[i], graph.getNodeIRI(RDF.rdfRest), proxies[i+1]);
+                graph.add(ontology, proxies[i], graph.getNodeIRI(RDF.rdfRest), proxies[i + 1]);
             } catch (UnsupportedNodeType ex) {
                 // cannot happen ...
             }
         }
         try {
-            graph.add(ontology, proxies[proxies.length-1], graph.getNodeIRI(RDF.rdfRest), graph.getNodeIRI(RDF.rdfNil));
+            graph.add(ontology, proxies[proxies.length - 1], graph.getNodeIRI(RDF.rdfRest), graph.getNodeIRI(RDF.rdfNil));
         } catch (UnsupportedNodeType ex) {
             // cannot happen ...
         }
@@ -452,19 +459,6 @@ public class TurtleLoader extends Loader {
     }
 
     /**
-     * Gets the full IRI for the specified escaped IRI, which may be relative
-     *
-     * @param iri An escaped IRI that can be relative
-     * @return The equivalent full IRI
-     */
-    private String getFullIRI(String iri) {
-        iri = unescape(iri.substring(1, iri.length() - 1));
-        if (!iri.startsWith("http://"))
-            return baseURI + iri;
-        return iri;
-    }
-
-    /**
      * Gets the full IRI for the specified escaped local name
      *
      * @param value An escaped local name
@@ -479,7 +473,7 @@ public class TurtleLoader extends Loader {
                 String uri = namespaces.get(prefix);
                 if (uri != null) {
                     String name = value.substring(index + 1);
-                    return uri + name;
+                    return normalizeIRI(resource, baseURI, uri + name);
                 }
             }
             index++;
