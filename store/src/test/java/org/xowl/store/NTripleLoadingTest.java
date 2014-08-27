@@ -27,10 +27,7 @@ import org.xowl.store.loaders.Loader;
 import org.xowl.store.loaders.NTriplesLoader;
 import org.xowl.store.rdf.RDFGraph;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 
 /**
  * Test suite for N-Triples
@@ -74,7 +71,12 @@ public class NTripleLoadingTest {
         Loader loader = new NTriplesLoader(graph);
 
         InputStream stream = NTripleLoadingTest.class.getResourceAsStream("/ntriples/" + resource);
-        Reader reader = new InputStreamReader(stream);
+        Reader reader = null;
+        try {
+            reader = new InputStreamReader(stream, "UTF-8");
+        } catch (UnsupportedEncodingException ex)  {
+            Assert.fail(ex.toString());
+        }
 
         Ontology result = loader.load(logger, reader, BASE_LOCATION + resource);
         if (shallSucceed) {

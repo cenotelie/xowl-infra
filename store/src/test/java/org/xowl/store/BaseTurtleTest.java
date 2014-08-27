@@ -26,10 +26,8 @@ import org.xowl.store.loaders.NTriplesLoader;
 import org.xowl.store.loaders.TurtleLoader;
 import org.xowl.store.rdf.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.*;
 
 /**
@@ -59,7 +57,12 @@ public class BaseTurtleTest {
         TestLogger logger = new TestLogger();
 
         InputStream stream = BaseTurtleTest.class.getResourceAsStream("/turtle/" + turtleResource);
-        Reader reader = new InputStreamReader(stream);
+        Reader reader = null;
+        try {
+            reader = new InputStreamReader(stream, "UTF-8");
+        } catch (UnsupportedEncodingException ex)  {
+            Assert.fail(ex.toString());
+        }
         Loader loader = new TurtleLoader(graph);
         Ontology ontologyTurtle = loader.load(logger, reader, BASE_LOCATION + turtleResource);
         Assert.assertFalse("Failed to parse resource " + turtleResource, logger.isOnError());
@@ -71,7 +74,11 @@ public class BaseTurtleTest {
         }
 
         stream = BaseTurtleTest.class.getResourceAsStream("/turtle/" + triplesResource);
-        reader = new InputStreamReader(stream);
+        try {
+            reader = new InputStreamReader(stream, "UTF-8");
+        } catch (UnsupportedEncodingException ex)  {
+            Assert.fail(ex.toString());
+        }
         loader = new NTriplesLoader(graph);
         Ontology ontologyNTriple = loader.load(logger, reader, BASE_LOCATION + triplesResource);
         Assert.assertFalse("Failed to parse resource " + triplesResource, logger.isOnError());
@@ -196,7 +203,12 @@ public class BaseTurtleTest {
         Loader loader = new TurtleLoader(graph);
 
         InputStream stream = BaseTurtleTest.class.getResourceAsStream("/turtle/" + resource);
-        Reader reader = new InputStreamReader(stream);
+        Reader reader = null;
+        try {
+            reader = new InputStreamReader(stream, "UTF-8");
+        } catch (UnsupportedEncodingException ex)  {
+            Assert.fail(ex.toString());
+        }
 
         Ontology result = loader.load(logger, reader, BASE_LOCATION + resource);
         Assert.assertFalse("Failed to parse resource " + resource, logger.isOnError());
@@ -225,7 +237,12 @@ public class BaseTurtleTest {
         Loader loader = new TurtleLoader(graph);
 
         InputStream stream = BaseTurtleTest.class.getResourceAsStream("/turtle/" + resource);
-        Reader reader = new InputStreamReader(stream);
+        Reader reader = null;
+        try {
+            reader = new InputStreamReader(stream, "UTF-8");
+        } catch (UnsupportedEncodingException ex)  {
+            Assert.fail(ex.toString());
+        }
 
         Ontology result = loader.load(logger, reader, BASE_LOCATION + resource);
         Assert.assertTrue("No error reported while parsing " + resource, logger.isOnError());
