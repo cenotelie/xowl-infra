@@ -49,6 +49,10 @@ public class TurtleLoader extends Loader {
      */
     private RDFGraph graph;
     /**
+     * The loaded triples
+     */
+    private List<Triple> triples;
+    /**
      * The URI of the resource currently being loaded
      */
     private String resource;
@@ -114,6 +118,7 @@ public class TurtleLoader extends Loader {
 
     @Override
     public Ontology load(Logger logger, Reader reader, String uri) {
+        triples = new ArrayList<>();
         ontology = createNewOntology();
         resource = uri;
         baseURI = null;
@@ -143,6 +148,13 @@ public class TurtleLoader extends Loader {
                 logger.error(ex);
                 return null;
             }
+        }
+
+        try {
+            for (Triple triple : triples)
+                graph.add(triple);
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
         }
 
         return ontology;
@@ -426,24 +438,12 @@ public class TurtleLoader extends Loader {
         BlankNode[] proxies = new BlankNode[elements.size()];
         for (int i = 0; i != proxies.length; i++) {
             proxies[i] = graph.getBlankNode();
-            try {
-                graph.add(ontology, proxies[i], graph.getNodeIRI(RDF.rdfFirst), elements.get(i));
-            } catch (UnsupportedNodeType ex) {
-                // cannot happen ...
-            }
+            triples.add(new Triple(ontology, proxies[i], graph.getNodeIRI(RDF.rdfFirst), elements.get(i)));
         }
         for (int i = 0; i != proxies.length - 1; i++) {
-            try {
-                graph.add(ontology, proxies[i], graph.getNodeIRI(RDF.rdfRest), proxies[i + 1]);
-            } catch (UnsupportedNodeType ex) {
-                // cannot happen ...
-            }
+            triples.add(new Triple(ontology, proxies[i], graph.getNodeIRI(RDF.rdfRest), proxies[i + 1]));
         }
-        try {
-            graph.add(ontology, proxies[proxies.length - 1], graph.getNodeIRI(RDF.rdfRest), graph.getNodeIRI(RDF.rdfNil));
-        } catch (UnsupportedNodeType ex) {
-            // cannot happen ...
-        }
+        triples.add(new Triple(ontology, proxies[proxies.length - 1], graph.getNodeIRI(RDF.rdfRest), graph.getNodeIRI(RDF.rdfNil)));
         return proxies[0];
     }
 
@@ -495,11 +495,7 @@ public class TurtleLoader extends Loader {
             Property verb = (Property) getNode(children.get(index));
             for (ASTNode objectNode : children.get(index + 1).getChildren()) {
                 Node object = getNode(objectNode);
-                try {
-                    graph.add(ontology, subject, verb, object);
-                } catch (UnsupportedNodeType ex) {
-                    // cannot happen ...
-                }
+                triples.add(new Triple(ontology, subject, verb, object));
             }
             index += 2;
         }

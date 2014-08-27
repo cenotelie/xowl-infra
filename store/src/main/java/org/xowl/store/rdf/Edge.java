@@ -176,4 +176,25 @@ public class Edge implements Iterable<EdgeTarget> {
 
         return new SingleIterator<>(null);
     }
+
+    /**
+     * Returns the number of different triples with the specified data
+     *
+     * @param value    The filtering object value
+     * @param ontology The filtering ontology
+     * @return The number of different triples
+     */
+    public int count(Node value, Ontology ontology) {
+        if (value == null) {
+            int count = 0;
+            for (int i = 0; i != targets.length; i++)
+                if (targets[i] != null)
+                    count += targets[i].count(ontology);
+            return count;
+        }
+        for (int i = 0; i != targets.length; i++)
+            if (targets[i] != null && targets[i].getTarget() == value)
+                return targets[i].count(ontology);
+        return 0;
+    }
 }

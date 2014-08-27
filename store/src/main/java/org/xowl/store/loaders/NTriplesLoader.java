@@ -33,7 +33,9 @@ import org.xowl.utils.Logger;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,10 +48,6 @@ public class NTriplesLoader extends Loader {
      * The RDF graph to load in
      */
     private RDFGraph graph;
-    /**
-     * The URI of the resource currently being loaded
-     */
-    private String resource;
     /**
      * Maps of blanks nodes
      */
@@ -89,7 +87,7 @@ public class NTriplesLoader extends Loader {
     @Override
     public Ontology load(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
-        resource = uri;
+        List<Triple> triples = new ArrayList<>();
         Ontology ontology = createNewOntology();
 
         ParseResult result = parse(logger, reader);
@@ -101,15 +99,18 @@ public class NTriplesLoader extends Loader {
                 Node n1 = getRDFNode(triple.getChildren().get(0));
                 Node n2 = getRDFNode(triple.getChildren().get(1));
                 Node n3 = getRDFNode(triple.getChildren().get(2));
-                try {
-                    graph.add(ontology, (SubjectNode) n1, (Property) n2, n3);
-                } catch (UnsupportedNodeType ex) {
-                    // cannot happen
-                }
+                triples.add(new Triple(ontology, (SubjectNode) n1, (Property) n2, n3));
             }
         } catch (IllegalArgumentException ex) {
             // IRI must be absolute
             return null;
+        }
+
+        try {
+            for (Triple triple : triples)
+                graph.add(triple);
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
         }
 
         return ontology;

@@ -183,6 +183,7 @@ public abstract class W3CTestSuite {
 
         Ontology result = loader.load(logger, reader, uri);
         Assert.assertNull("Mistakenly reported success of loading " + physicalResource, result);
+        Assert.assertEquals("Graph has been modified despite errors in input", 0, graph.count());
 
         try {
             reader.close();

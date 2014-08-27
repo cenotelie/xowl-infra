@@ -360,6 +360,73 @@ public class RDFGraph {
     }
 
     /**
+     * Gets the number of different triples in this store
+     *
+     * @return The number of different triples
+     */
+    public int count() {
+        try {
+            return count(null, null, null, null);
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen ...
+            return 0;
+        }
+    }
+
+    /**
+     * Gets the number of different triples in this store that matches the given values
+     *
+     * @param ontology A containing to match, or null
+     * @return The number of different triples
+     */
+    public int count(Ontology ontology) {
+        try {
+            return count(null, null, null, ontology);
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen ...
+            return 0;
+        }
+    }
+
+    /**
+     * Gets the number of different triples in this store that matches the given values
+     *
+     * @param subject  A subject node to match, or null
+     * @param property A property to match, or null
+     * @param object   An object node to match, or null
+     * @return The number of different triples
+     * @throws UnsupportedNodeType when the subject node type is unsupported
+     */
+    public int count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+        return count(subject, property, object, null);
+    }
+
+    /**
+     * Gets the number of different triples in this store that matches the given values
+     *
+     * @param subject  A subject node to match, or null
+     * @param property A property to match, or null
+     * @param object   An object node to match, or null
+     * @param ontology A containing to match, or null
+     * @return The number of different triples
+     * @throws UnsupportedNodeType when the subject node type is unsupported
+     */
+    public int count(SubjectNode subject, Property property, Node object, Ontology ontology) throws UnsupportedNodeType {
+        if (subject == null) {
+            int count = 0;
+            Iterator<Couple<SubjectNode, EdgeBucket>> iterator = getAllSubjects();
+            while (iterator.hasNext())
+                count += iterator.next().y.count(property, object, ontology);
+            return count;
+        } else {
+            EdgeBucket bucket = getBucketFor(subject);
+            if (bucket == null)
+                throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
+            return bucket.count(property, object, ontology);
+        }
+    }
+
+    /**
      * Gets an iterator over all the subjects starting edges in the graph
      *
      * @return An iterator over all the subjects starting edges in the graph

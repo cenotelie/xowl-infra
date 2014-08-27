@@ -174,4 +174,19 @@ public class EdgeTarget implements Iterable<Ontology> {
 
         return new SingleIterator<>(null);
     }
+
+    /**
+     * Returns the number of different triples with the specified data
+     *
+     * @param ontology The filtering ontology
+     * @return The number of different triples
+     */
+    public int count(Ontology ontology) {
+        if (ontology == null)
+            return size;
+        for (int i = 0; i != ontologies.length; i++)
+            if (ontologies[i] == ontology)
+                return 1;
+        return 0;
+    }
 }

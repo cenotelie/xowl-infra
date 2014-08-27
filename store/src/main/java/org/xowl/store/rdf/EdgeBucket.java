@@ -160,4 +160,26 @@ public class EdgeBucket implements Iterable<Edge> {
 
         return new SingleIterator<>(null);
     }
+
+    /**
+     * Returns the number of different triples with the specified data
+     *
+     * @param property The filtering property
+     * @param value    The filtering object value
+     * @param ontology The filtering ontology
+     * @return The number of different triples
+     */
+    public int count(Property property, Node value, Ontology ontology) {
+        if (property == null) {
+            int count = 0;
+            for (int i = 0; i != edges.length; i++)
+                if (edges[i] != null)
+                    count += edges[i].count(value, ontology);
+            return count;
+        }
+        for (int i = 0; i != edges.length; i++)
+            if (edges[i] != null && edges[i].getProperty() == property)
+                return edges[i].count(value, ontology);
+        return 0;
+    }
 }
