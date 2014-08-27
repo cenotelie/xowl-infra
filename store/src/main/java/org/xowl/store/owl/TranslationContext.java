@@ -46,7 +46,7 @@ public class TranslationContext {
     /**
      * Determines whether this context is empty
      *
-     * @return <c>true</c> if this context is empty
+     * @return <code>true</code> if this context is empty
      */
     public boolean isEmpty() {
         return (mapVariables.isEmpty());

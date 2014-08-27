@@ -132,7 +132,7 @@ public abstract class Loader {
      * Resolves and normalizes the specified IRI
      *
      * @param resource The URI of the parent enclosing document
-     * @param base     The current base URI, or <c>null</c> if none is defined
+     * @param base     The current base URI, or <code>null</code> if none is defined
      * @param iri      The IRI to  resolve and normalize
      * @return The resolved and normalized IRI
      */

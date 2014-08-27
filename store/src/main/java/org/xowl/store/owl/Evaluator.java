@@ -36,7 +36,7 @@ public interface Evaluator {
      * Determines whether the specified expression can be evaluated by this evaluator
      *
      * @param expression An expression
-     * @return <c>true</c> if the specified expression can be evaluated
+     * @return <code>true</code> if the specified expression can be evaluated
      */
     boolean can(Expression expression);
 
@@ -44,7 +44,7 @@ public interface Evaluator {
      * Determines whether the specified query variable can be evaluated by this evaluator
      *
      * @param variable A query variable
-     * @return <c>true</c> if the specified query variable can be evaluated
+     * @return <code>true</code> if the specified query variable can be evaluated
      */
     boolean can(QueryVariable variable);
 

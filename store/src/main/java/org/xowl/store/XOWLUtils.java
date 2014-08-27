@@ -43,7 +43,7 @@ public class XOWLUtils {
      * Determines whether the given expression is a query variable
      *
      * @param expression An expression
-     * @return <c>true</c> if the expression is a query variable
+     * @return <code>true</code> if the expression is a query variable
      */
     public static boolean isQueryVar(Expression expression) {
         return (expression instanceof QueryVariable);
@@ -53,7 +53,7 @@ public class XOWLUtils {
      * Determines whether the specified expression is dynamic
      *
      * @param expression An expression
-     * @return <c>true</c> if the expression is dynamic
+     * @return <code>true</code> if the expression is dynamic
      */
     public static boolean isDynamicExpression(Expression expression) {
         if (isQueryVar(expression)) return false;
@@ -76,7 +76,7 @@ public class XOWLUtils {
      * Determines whether the specified expression is static (not dynamic)
      *
      * @param expression An expression
-     * @return <c>true</c> if the expression is static (not dynamic)
+     * @return <code>true</code> if the expression is static (not dynamic)
      */
     public static boolean isStaticExpression(Expression expression) {
         if (isQueryVar(expression)) return false;
@@ -398,7 +398,7 @@ public class XOWLUtils {
      * Determines whether the specified runtime value is true
      *
      * @param value A runtime value
-     * @return <c>true</c> if the runtime value is a literal representing the boolean true
+     * @return <code>true</code> if the runtime value is a literal representing the boolean true
      */
     public static boolean isTrue(Value value) {
         org.xowl.lang.runtime.Literal lit = (org.xowl.lang.runtime.Literal) value;

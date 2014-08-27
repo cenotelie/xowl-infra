@@ -64,7 +64,7 @@ public class LiteralBucket {
      *
      * @param type The key to the type
      * @param tag  The key to the language tag
-     * @return The matching literal exists in this bucket, or <c>null</c> if none is found
+     * @return The matching literal exists in this bucket, or <code>null</code> if none is found
      */
     public LiteralNode get(int type, int tag) {
         for (int i = 0; i != size; i++) {

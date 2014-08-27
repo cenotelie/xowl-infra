@@ -876,6 +876,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
+     * @throws org.xowl.store.owl.TranslationException When a runtime entity is not named
      */
     protected void translateAxiomHasKey(HasKey axiom) throws TranslationException {
         SubjectNode classe = translateClassExpression(axiom.getClasse());
@@ -943,6 +944,7 @@ public class Translator {
      *
      * @param expression A class expression
      * @return The RDF node representing the expression
+     * @throws org.xowl.store.owl.TranslationException When a runtime entity is not named
      */
     protected SubjectNode translateClassExpression(ClassExpression expression) throws TranslationException {
         if (XOWLUtils.isDynamicExpression(expression)) {
