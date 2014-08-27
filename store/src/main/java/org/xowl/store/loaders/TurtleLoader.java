@@ -113,9 +113,9 @@ public class TurtleLoader extends Loader {
     }
 
     @Override
-    public Ontology load(Logger logger, Reader reader, String iri) {
+    public Ontology load(Logger logger, Reader reader, String uri) {
         ontology = createNewOntology();
-        resource = iri;
+        resource = uri;
         baseURI = null;
         namespaces = new HashMap<>();
         blanks = new HashMap<>();

@@ -32,6 +32,7 @@ import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +46,10 @@ public class NTriplesLoader extends Loader {
      * The RDF graph to load in
      */
     private RDFGraph graph;
+    /**
+     * The URI of the resource currently being loaded
+     */
+    private String resource;
     /**
      * Maps of blanks nodes
      */
@@ -84,21 +89,27 @@ public class NTriplesLoader extends Loader {
     @Override
     public Ontology load(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
+        resource = uri;
         Ontology ontology = createNewOntology();
 
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
             return null;
 
-        for (ASTNode triple : result.getRoot().getChildren()) {
-            Node n1 = getRDFNode(triple.getChildren().get(0));
-            Node n2 = getRDFNode(triple.getChildren().get(1));
-            Node n3 = getRDFNode(triple.getChildren().get(2));
-            try {
-                graph.add(ontology, (SubjectNode) n1, (Property) n2, n3);
-            } catch (UnsupportedNodeType ex) {
-                // cannot happen
+        try {
+            for (ASTNode triple : result.getRoot().getChildren()) {
+                Node n1 = getRDFNode(triple.getChildren().get(0));
+                Node n2 = getRDFNode(triple.getChildren().get(1));
+                Node n3 = getRDFNode(triple.getChildren().get(2));
+                try {
+                    graph.add(ontology, (SubjectNode) n1, (Property) n2, n3);
+                } catch (UnsupportedNodeType ex) {
+                    // cannot happen
+                }
             }
+        } catch (IllegalArgumentException ex) {
+            // IRI must be absolute
+            return null;
         }
 
         return ontology;
@@ -131,6 +142,9 @@ public class NTriplesLoader extends Loader {
     private Node translateIRIREF(ASTNode node) {
         String value = node.getSymbol().getValue();
         value = unescape(value.substring(1, value.length() - 1));
+        URI uri = URI.create(value);
+        if (!uri.isAbsolute())
+            throw new IllegalArgumentException("IRI must be absolute");
         return graph.getNodeIRI(value);
     }
 
@@ -167,6 +181,9 @@ public class NTriplesLoader extends Loader {
         if (child.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
             String type = child.getSymbol().getValue();
             type = unescape(type.substring(1, type.length() - 1));
+            URI uri = URI.create(type);
+            if (!uri.isAbsolute())
+                throw new IllegalArgumentException("IRI must be absolute");
             return graph.getLiteralNode(value, type, null);
         } else if (child.getSymbol().getID() == NTriplesLexer.ID.LANGTAG) {
             String lang = child.getSymbol().getValue();

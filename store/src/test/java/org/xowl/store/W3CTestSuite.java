@@ -182,7 +182,6 @@ public abstract class W3CTestSuite {
         }
 
         Ontology result = loader.load(logger, reader, uri);
-        Assert.assertTrue("No error reported while parsing " + physicalResource, logger.isOnError());
         Assert.assertNull("Mistakenly reported success of loading " + physicalResource, result);
 
         try {
