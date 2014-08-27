@@ -53,7 +53,7 @@ grammar Turtle
 									| '\\U' [a-fA-F0-9]{8}
 									)* '"' ;
 		STRING_LITERAL_SINGLE_QUOTE	-> '\'' (
-									. - (U+0022 | U+005C | U+000A | U+000D)
+									. - (U+0027 | U+005C | U+000A | U+000D)
 									| '\\' ([tbnrf"'] | '\\')
 									| '\\u' [a-fA-F0-9]{4}
 									| '\\U' [a-fA-F0-9]{8}
