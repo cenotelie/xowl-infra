@@ -58,7 +58,10 @@ public abstract class LiteralNode implements Node {
         StringBuilder builder = new StringBuilder("\"");
         builder.append(literal.getLexicalValue());
         builder.append("\"");
-        if (literal.getMemberOf() != null) {
+        if (literal.getLangTag() != null) {
+            builder.append("@");
+            builder.append(literal.getLangTag());
+        } else if (literal.getMemberOf() != null) {
             builder.append("^^");
             builder.append(literal.getMemberOf().getHasValue());
         }
