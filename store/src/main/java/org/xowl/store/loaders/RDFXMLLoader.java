@@ -118,6 +118,83 @@ public class RDFXMLLoader extends Loader {
     }
 
     /**
+     * Determines whether a specified name is a valid XML name
+     *
+     * @param name A name
+     * @return <code>true</code> if the name is valid
+     */
+    public static boolean isValidXMLName(String name) {
+        if (name.isEmpty())
+            return false;
+        if (!isValidXMLNameFirstChar(name.charAt(0)))
+            return false;
+        for (int i = 1; i != name.length(); i++)
+            if (!isValidXMLNameChar(name.charAt(i)))
+                return false;
+        return true;
+    }
+
+    /**
+     * Determines whether a specified character is a valid first character in an XML name
+     *
+     * @param c A character
+     * @return <code>true</code> if the character is valid
+     */
+    private static boolean isValidXMLNameFirstChar(char c) {
+        if (c >= 'a' && c <= 'z')
+            return true;
+        if (c >= 'A' && c <= 'Z')
+            return true;
+        if (c == '_')
+            return true;
+        if (c >= 0xC0 && c <= 0xD6)
+            return true;
+        if (c >= 0xD8 && c <= 0xF6)
+            return true;
+        if (c >= 0xF8 && c <= 0x2FF)
+            return true;
+        if (c >= 0x370 && c <= 0x37D)
+            return true;
+        if (c >= 0x37F && c <= 0x1FFF)
+            return true;
+        if (c >= 0x200C && c <= 0x200D)
+            return true;
+        if (c >= 0x2070 && c <= 0x218F)
+            return true;
+        if (c >= 0x2C00 && c <= 0x2FEF)
+            return true;
+        if (c >= 0x3001 && c <= 0xD7FF)
+            return true;
+        if (c >= 0xF900 && c <= 0xFDCF)
+            return true;
+        if (c >= 0xFDF0 && c <= 0xFFFD)
+            return true;
+        return false;
+    }
+
+    /**
+     * Determines whether a specified character is a valid character in an XML name
+     *
+     * @param c A character
+     * @return <code>true</code> if the character is valid
+     */
+    private static boolean isValidXMLNameChar(char c) {
+        if (isValidXMLNameFirstChar(c))
+            return true;
+        // "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
+        if (c == '-' || c == '.')
+            return true;
+        if (c >= '0' && c <= '9')
+            return true;
+        if (c >= 0x0300 && c <= 0x036F)
+            return true;
+        if (c >= 0x203F && c <= 0x2040)
+            return true;
+        return false;
+    }
+
+
+    /**
      * The RDF graph to load into
      */
     private RDFGraph graph;
@@ -247,6 +324,8 @@ public class RDFXMLLoader extends Loader {
 
         attribute = attributes.pop(rdfID);
         if (attribute != null) {
+            if (!isValidXMLName(attribute.getNodeValue()))
+                throw new IllegalArgumentException("Illegal rdf:ID " + attribute.getNodeValue());
             String iri = normalizeIRI(resource, baseURI, "#" + attribute.getNodeValue());
             subject = graph.getNodeIRI(iri);
         }
@@ -369,6 +448,8 @@ public class RDFXMLLoader extends Loader {
         XMLAttributes attributes = new XMLAttributes(node);
         org.w3c.dom.Node attribute = attributes.pop(rdfID);
         if (attribute != null) {
+            if (!isValidXMLName(attribute.getNodeValue()))
+                throw new IllegalArgumentException("Illegal rdf:ID " + attribute.getNodeValue());
             // reify the triple
             IRINode proxy = graph.getNodeIRI(normalizeIRI(resource, baseURI, "#" + attribute.getNodeValue()));
             register(proxy, RDF.rdfType, graph.getNodeIRI(RDF.rdfStatement));
@@ -403,6 +484,8 @@ public class RDFXMLLoader extends Loader {
 
         attribute = attributes.pop(rdfID);
         if (attribute != null) {
+            if (!isValidXMLName(attribute.getNodeValue()))
+                throw new IllegalArgumentException("Illegal rdf:ID " + attribute.getNodeValue());
             // reify the triple
             IRINode proxy = graph.getNodeIRI(normalizeIRI(resource, baseURI, "#" + attribute.getNodeValue()));
             register(proxy, RDF.rdfType, graph.getNodeIRI(RDF.rdfStatement));
@@ -430,6 +513,8 @@ public class RDFXMLLoader extends Loader {
             LiteralNode value = graph.getLiteralNode("", OWLDatatype.rdfLangString, lang);
             register(subject, property, value);
             if (attributeID != null) {
+                if (!isValidXMLName(attributeID.getNodeValue()))
+                    throw new IllegalArgumentException("Illegal rdf:ID " + attributeID.getNodeValue());
                 // reify the triple
                 IRINode proxy = graph.getNodeIRI(normalizeIRI(resource, baseURI, "#" + attributeID.getNodeValue()));
                 register(proxy, RDF.rdfType, graph.getNodeIRI(RDF.rdfStatement));
@@ -509,6 +594,8 @@ public class RDFXMLLoader extends Loader {
         XMLAttributes attributes = new XMLAttributes(node);
         org.w3c.dom.Node attributeID = attributes.pop(rdfID);
         if (attributeID != null) {
+            if (!isValidXMLName(attributeID.getNodeValue()))
+                throw new IllegalArgumentException("Illegal rdf:ID " + attributeID.getNodeValue());
             // reify the triple
             IRINode proxy = graph.getNodeIRI(normalizeIRI(resource, baseURI, "#" + attributeID.getNodeValue()));
             register(proxy, RDF.rdfType, graph.getNodeIRI(RDF.rdfStatement));
@@ -545,6 +632,8 @@ public class RDFXMLLoader extends Loader {
         }
         register(subject, property, head);
         if (attributeID != null) {
+            if (!isValidXMLName(attributeID.getNodeValue()))
+                throw new IllegalArgumentException("Illegal rdf:ID " + attributeID.getNodeValue());
             // reify the triple
             IRINode proxy = graph.getNodeIRI(normalizeIRI(resource, baseURI, "#" + attributeID.getNodeValue()));
             register(proxy, RDF.rdfType, graph.getNodeIRI(RDF.rdfStatement));
