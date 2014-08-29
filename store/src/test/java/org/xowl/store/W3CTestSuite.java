@@ -21,10 +21,7 @@ package org.xowl.store;
 
 import org.junit.Assert;
 import org.xowl.lang.owl2.Ontology;
-import org.xowl.store.loaders.Loader;
-import org.xowl.store.loaders.NTriplesLoader;
-import org.xowl.store.loaders.RDFXMLLoader;
-import org.xowl.store.loaders.TurtleLoader;
+import org.xowl.store.loaders.*;
 import org.xowl.store.rdf.*;
 
 import java.io.*;
@@ -64,6 +61,8 @@ public abstract class W3CTestSuite {
         Loader loader = null;
         if (expectedResource.endsWith(".nt"))
             loader = new NTriplesLoader(graph);
+        else if (expectedResource.endsWith(".nq"))
+            loader = new NQuadsLoader(graph);
         else if (expectedResource.endsWith(".ttl"))
             loader = new TurtleLoader(graph);
         else if (expectedResource.endsWith(".rdf"))
@@ -88,6 +87,8 @@ public abstract class W3CTestSuite {
         loader = null;
         if (testedResource.endsWith(".nt"))
             loader = new NTriplesLoader(graph);
+        else if (expectedResource.endsWith(".nq"))
+            loader = new NQuadsLoader(graph);
         else if (testedResource.endsWith(".ttl"))
             loader = new TurtleLoader(graph);
         else if (testedResource.endsWith(".rdf"))
@@ -123,6 +124,8 @@ public abstract class W3CTestSuite {
         Loader loader = null;
         if (physicalResource.endsWith(".nt"))
             loader = new NTriplesLoader(graph);
+        else if (physicalResource.endsWith(".nq"))
+            loader = new NQuadsLoader(graph);
         else if (physicalResource.endsWith(".ttl"))
             loader = new TurtleLoader(graph);
         else if (physicalResource.endsWith(".rdf"))
@@ -166,6 +169,8 @@ public abstract class W3CTestSuite {
         Loader loader = null;
         if (physicalResource.endsWith(".nt"))
             loader = new NTriplesLoader(graph);
+        else if (physicalResource.endsWith(".nq"))
+            loader = new NQuadsLoader(graph);
         else if (physicalResource.endsWith(".ttl"))
             loader = new TurtleLoader(graph);
         else if (physicalResource.endsWith(".rdf"))

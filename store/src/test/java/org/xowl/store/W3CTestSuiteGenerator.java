@@ -20,6 +20,7 @@
 package org.xowl.store;
 
 import org.junit.Assert;
+import org.junit.Test;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.Loader;
 import org.xowl.store.loaders.TurtleLoader;
@@ -55,6 +56,8 @@ public class W3CTestSuiteGenerator {
         try {
             System.out.println("==== NTriples ====");
             generate("/ntriples/manifest.ttl");
+            System.out.println("==== NQuads ====");
+            generate("/nquads/manifest.ttl");
             System.out.println("==== Turtle ====");
             generate("/turtle/manifest.ttl");
             System.out.println("==== RDF/XML ====");
