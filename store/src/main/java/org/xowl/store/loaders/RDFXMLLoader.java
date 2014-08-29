@@ -22,6 +22,7 @@ package org.xowl.store.loaders;
 
 import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.Ontology;
@@ -31,10 +32,7 @@ import org.xowl.store.voc.RDF;
 import org.xowl.utils.Logger;
 
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Loader for RDF XML sources
@@ -43,6 +41,7 @@ import java.util.Map;
  */
 public class RDFXMLLoader extends Loader {
     private static final String prefix = "rdf:";
+    private static final String rdfRDF = prefix + RDF.nameRDF;
     private static final String rdfDescription = prefix + RDF.nameDescription;
     private static final String rdfAbout = prefix + RDF.nameAbout;
     private static final String rdfID = prefix + RDF.nameID;
@@ -51,10 +50,7 @@ public class RDFXMLLoader extends Loader {
     private static final String rdfDatatype = prefix + RDF.nameDatatype;
     private static final String rdfParseType = prefix + RDF.nameParseType;
     private static final String rdfType = prefix + RDF.nameType;
-    private static final String rdfFirst = prefix + RDF.nameFirst;
-    private static final String rdfRest = prefix + RDF.nameRest;
-    private static final String rdfNil = prefix + RDF.nameNil;
-    private static final String rdfRDF = "rdf:" + RDF.nameRDF;
+    private static final String rdfLI = prefix + "li";
 
     /**
      * The RDF graph to load into
@@ -68,10 +64,6 @@ public class RDFXMLLoader extends Loader {
      * The URI of the resource currently being loaded
      */
     private String resource;
-    /**
-     * Base IRI
-     */
-    private String baseURI;
     /**
      * Maps of the current namespaces
      */
@@ -104,7 +96,6 @@ public class RDFXMLLoader extends Loader {
         triples = new ArrayList<>();
         ontology = createNewOntology();
         resource = uri;
-        baseURI = null;
         namespaces = new HashMap<>();
         blanks = new HashMap<>();
 
@@ -112,14 +103,11 @@ public class RDFXMLLoader extends Loader {
         try {
             parser.parse(new InputSource(reader));
             Document document = parser.getDocument();
-            for (int i = 0; i != document.getChildNodes().getLength(); i++) {
-                org.w3c.dom.Node node = document.getChildNodes().item(i);
-                if (node.getNodeType() != org.w3c.dom.Node.ELEMENT_NODE)
-                    continue;
-                if (node.getNodeName().equals(rdfRDF)) {
-                    load(node);
-                }
-            }
+            org.w3c.dom.Node root = document.getDocumentElement();
+            if (rdfRDF.equals(root.getNodeName()))
+                loadDocument(root);
+            else
+                loadElement(root, null, null);
         } catch (Exception ex) {
             logger.error(ex);
             return null;
@@ -136,64 +124,385 @@ public class RDFXMLLoader extends Loader {
     }
 
     /**
-     * Loads from the specified node
+     * Loads the specified document node (rdf:RDF node)
      *
-     * @param node An XML node
+     * @param node A RDF document node
      */
-    private void load(org.w3c.dom.Node node) {
-        for (int i = 0; i != node.getAttributes().getLength(); i++) {
-            String name = node.getAttributes().item(i).getNodeName();
-            String value = node.getAttributes().item(i).getNodeValue();
-            if (name.startsWith("xmlns:")) {
-                namespaces.put(name.substring(6), value);
-            } else if (name.equals("xmlns")) {
-                baseURI = value;
+    private void loadDocument(org.w3c.dom.Node node) {
+        XMLAttributes attributes = new XMLAttributes(node);
+        String baseURI = null;
+        String lang = null;
+
+        org.w3c.dom.Node attribute = attributes.pop("xml:lang");
+        if (attribute != null)
+            lang = attribute.getNodeValue();
+        attribute = attributes.pop("xml:base");
+        if (attribute != null)
+            baseURI = attribute.getNodeValue();
+        attribute = attributes.pop("xmlns");
+        if (attribute != null)
+            baseURI = attribute.getNodeValue();
+        Iterator<org.w3c.dom.Node> iterator = attributes.popAll("xmlns:");
+        while (iterator.hasNext()) {
+            attribute = iterator.next();
+            namespaces.put(attribute.getNodeName().substring(6), attribute.getNodeValue());
+        }
+
+        Iterator<Element> children = getXMLChildren(node);
+        while (children.hasNext())
+            loadElement(children.next(), baseURI, lang);
+    }
+
+    /**
+     * Loads the specified RDF resource node
+     *
+     * @param node    A RDF resource node
+     * @param baseURI The current base URI
+     * @param lang    The current language
+     * @return The represented RDF node
+     */
+    private SubjectNode loadElement(org.w3c.dom.Node node, String baseURI, String lang) {
+        SubjectNode subject = null;
+
+        XMLAttributes attributes = new XMLAttributes(node);
+        org.w3c.dom.Node attribute = attributes.pop("xml:lang");
+        if (attribute != null)
+            lang = attribute.getNodeValue();
+        attribute = attributes.pop("xml:base");
+        if (attribute != null)
+            baseURI = attribute.getNodeValue();
+        attribute = attributes.pop("xmlns");
+        if (attribute != null)
+            baseURI = attribute.getNodeValue();
+        Iterator<org.w3c.dom.Node> xmlAttributes = attributes.popAll("xml");
+        while (xmlAttributes.hasNext())
+            xmlAttributes.next();
+
+        attribute = attributes.pop(rdfID);
+        if (attribute != null) {
+            String iri = normalizeIRI(resource, baseURI, "#" + attribute.getNodeValue());
+            subject = graph.getNodeIRI(iri);
+        }
+        attribute = attributes.pop(rdfNodeID);
+        if (attribute != null) {
+            subject = getBlank(attribute.getNodeValue());
+        }
+        attribute = attributes.pop(rdfAbout);
+        if (attribute != null) {
+            String iri = normalizeIRI(resource, baseURI, attribute.getNodeValue());
+            subject = graph.getNodeIRI(iri);
+        }
+
+        if (subject == null)
+            subject = graph.getBlankNode();
+
+        if (!rdfDescription.equals(node.getNodeName())) {
+            register(subject, RDF.rdfType, graph.getNodeIRI(getIRIFromNSName(baseURI, node.getNodeName())));
+        }
+
+        attribute = attributes.pop(rdfType);
+        if (attribute != null) {
+            register(subject, RDF.rdfType, graph.getNodeIRI(normalizeIRI(resource, baseURI, attribute.getNodeValue())));
+        }
+
+        for (org.w3c.dom.Node att : attributes) {
+            IRINode property = graph.getNodeIRI(getIRIFromNSName(baseURI, att.getNodeName()));
+            LiteralNode literal;
+            if (lang != null)
+                literal = graph.getLiteralNode(att.getNodeValue(), OWLDatatype.rdfLangString, lang);
+            else
+                literal = graph.getLiteralNode(att.getNodeValue(), OWLDatatype.xsdString, null);
+            register(subject, property, literal);
+        }
+
+        Iterator<Element> children = getXMLChildren(node);
+        while (children.hasNext())
+            loadElementProperty(children.next(), subject, baseURI, lang);
+
+        return subject;
+    }
+
+    /**
+     * Loads the specified RDF property
+     *
+     * @param node    The XML node representing the property
+     * @param subject The current RDF subject
+     * @param baseURI The current base URI
+     * @param lang    The current language
+     */
+    private void loadElementProperty(org.w3c.dom.Node node, SubjectNode subject, String baseURI, String lang) {
+        XMLAttributes attributes = new XMLAttributes(node);
+        org.w3c.dom.Node attributeParseType = attributes.pop(rdfParseType);
+        if (attributeParseType == null) {
+            if (node.getChildNodes().getLength() == 0) {
+                loadElementPropertyEmpty(node, subject, baseURI, lang);
+            } else {
+                Iterator<Element> children = getXMLChildren(node);
+                if (children.hasNext()) {
+                    loadElementPropertyResource(node, subject, baseURI, lang);
+                } else {
+                    loadElementPropertyLiteral(node, subject, baseURI, lang);
+                }
+            }
+        } else {
+            String parseType = attributeParseType.getNodeValue();
+            if ("Literal".equals(parseType)) {
+                loadElementPropertyLiteralParseType(node, subject, baseURI, lang);
+            } else if ("Resource".equals(parseType)) {
+                loadElementPropertyResourceParseType(node, subject, baseURI, lang);
+            } else if ("Collection".equals(parseType)) {
+                loadElementPropertyCollectionParseType(node, subject, baseURI, lang);
+            } else {
+                loadElementPropertyLiteralParseType(node, subject, baseURI, lang);
             }
         }
-        for (org.w3c.dom.Node child : getElements(node))
-            loadNode(child);
     }
 
     /**
-     * Gets the RDF IRI node from the specified XML node
+     * Gets the property IRI node for the specified XML node representing it
      *
-     * @param node An XML node
-     * @return The represented RDF IRI node
+     * @param node    An XML node representing an RDf property
+     * @param baseURI The current base URI
+     * @return The equivalent property IRI node
      */
-    private IRINode getIRIForNode(org.w3c.dom.Node node) {
-        for (int i = 0; i != node.getAttributes().getLength(); i++) {
-            String name = node.getAttributes().item(i).getNodeName();
-            String value = node.getAttributes().item(i).getNodeValue();
-            if (name.equals(rdfAbout)) {
-                return getIRIForNode_GetIRI(value);
-            } else if (name.equals(rdfID)) {
-                return getIRIForNode_GetIRI(value);
-            } else if (name.equals(rdfResource)) {
-                return getIRIForNode_GetIRI(value);
+    private IRINode getProperty(org.w3c.dom.Node node, String baseURI) {
+        if (rdfLI.equals(node.getNodeName())) {
+            Iterator<Element> chilren = getXMLChildren(node.getParentNode());
+            int index = 1;
+            while (chilren.hasNext()) {
+                if (node == chilren.next())
+                    break;
+                index++;
+            }
+            return graph.getNodeIRI(RDF.rdf + "_" + Integer.toString(index));
+        } else {
+            return graph.getNodeIRI(getIRIFromNSName(baseURI, node.getNodeName()));
+        }
+    }
+
+    /**
+     * Loads the specified RDF property pointing to a resource
+     *
+     * @param node    The XML node representing the property
+     * @param subject The current RDF subject
+     * @param baseURI The current base URI
+     * @param lang    The current language
+     */
+    private void loadElementPropertyResource(org.w3c.dom.Node node, SubjectNode subject, String baseURI, String lang) {
+        IRINode property = getProperty(node, baseURI);
+        Iterator<Element> children = getXMLChildren(node);
+        SubjectNode value = loadElement(children.next(), baseURI, lang);
+        register(subject, property, value);
+
+        XMLAttributes attributes = new XMLAttributes(node);
+        org.w3c.dom.Node attribute = attributes.pop(rdfID);
+        if (attribute != null) {
+            // reify the triple
+            IRINode proxy = graph.getNodeIRI(normalizeIRI(resource, baseURI, "#" + attribute.getNodeValue()));
+            register(proxy, RDF.rdfType, graph.getNodeIRI(RDF.rdfStatement));
+            register(proxy, RDF.rdfSubject, subject);
+            register(proxy, RDF.rdfPredicate, property);
+            register(proxy, RDF.rdfObject, value);
+        }
+    }
+
+    /**
+     * Loads the specified RDF literal property
+     *
+     * @param node    The XML node representing the property
+     * @param subject The current RDF subject
+     * @param baseURI The current base URI
+     * @param lang    The current language
+     */
+    private void loadElementPropertyLiteral(org.w3c.dom.Node node, SubjectNode subject, String baseURI, String lang) {
+        IRINode property = getProperty(node, baseURI);
+        String lexem = node.getChildNodes().item(0).getTextContent();
+        LiteralNode value;
+        XMLAttributes attributes = new XMLAttributes(node);
+        org.w3c.dom.Node attribute = attributes.pop(rdfDatatype);
+        if (attribute != null) {
+            value = graph.getLiteralNode(lexem, attribute.getNodeValue(), null);
+        } else if (lang != null) {
+            value = graph.getLiteralNode(lexem, OWLDatatype.rdfLangString, lang);
+        } else {
+            value = graph.getLiteralNode(lexem, OWLDatatype.xsdString, null);
+        }
+        register(subject, property, value);
+
+        attribute = attributes.pop(rdfID);
+        if (attribute != null) {
+            // reify the triple
+            IRINode proxy = graph.getNodeIRI(normalizeIRI(resource, baseURI, "#" + attribute.getNodeValue()));
+            register(proxy, RDF.rdfType, graph.getNodeIRI(RDF.rdfStatement));
+            register(proxy, RDF.rdfSubject, subject);
+            register(proxy, RDF.rdfPredicate, property);
+            register(proxy, RDF.rdfObject, value);
+        }
+    }
+
+    /**
+     * Loads the specified RDF empty property
+     *
+     * @param node    The XML node representing the property
+     * @param subject The current RDF subject
+     * @param baseURI The current base URI
+     * @param lang    The current language
+     */
+    private void loadElementPropertyEmpty(org.w3c.dom.Node node, SubjectNode subject, String baseURI, String lang) {
+        IRINode property = getProperty(node, baseURI);
+        XMLAttributes attributes = new XMLAttributes(node);
+        org.w3c.dom.Node attributeID = attributes.pop(rdfID);
+        org.w3c.dom.Node attribute;
+
+        if (attributes.count() == 0) {
+            LiteralNode value = graph.getLiteralNode("", OWLDatatype.rdfLangString, lang);
+            register(subject, property, value);
+            if (attributeID != null) {
+                // reify the triple
+                IRINode proxy = graph.getNodeIRI(normalizeIRI(resource, baseURI, "#" + attributeID.getNodeValue()));
+                register(proxy, RDF.rdfType, graph.getNodeIRI(RDF.rdfStatement));
+                register(proxy, RDF.rdfSubject, subject);
+                register(proxy, RDF.rdfPredicate, property);
+                register(proxy, RDF.rdfObject, value);
+            }
+        } else {
+            SubjectNode value = null;
+            attribute = attributes.pop(rdfResource);
+            if (attribute != null) {
+                value = graph.getNodeIRI(normalizeIRI(resource, baseURI, attribute.getNodeValue()));
+            }
+            attribute = attributes.pop(rdfNodeID);
+            if (attribute != null) {
+                value = getBlank(attribute.getNodeValue());
+            }
+            if (value == null) {
+                value = graph.getBlankNode();
+            }
+
+            attribute = attributes.pop(rdfType);
+            if (attribute != null) {
+                register(subject, RDF.rdfType, graph.getNodeIRI(normalizeIRI(resource, baseURI, attribute.getNodeValue())));
+            }
+
+            for (org.w3c.dom.Node att : attributes) {
+                IRINode subProperty = graph.getNodeIRI(getIRIFromNSName(baseURI, att.getNodeName()));
+                LiteralNode literal;
+                if (lang != null)
+                    literal = graph.getLiteralNode(att.getNodeValue(), OWLDatatype.rdfLangString, lang);
+                else
+                    literal = graph.getLiteralNode(att.getNodeValue(), OWLDatatype.xsdString, null);
+                register(value, subProperty, literal);
+            }
+
+            register(subject, property, value);
+            if (attributeID != null) {
+                // reify the triple
+                IRINode proxy = graph.getNodeIRI(normalizeIRI(resource, baseURI, "#" + attributeID.getNodeValue()));
+                register(proxy, RDF.rdfType, graph.getNodeIRI(RDF.rdfStatement));
+                register(proxy, RDF.rdfSubject, subject);
+                register(proxy, RDF.rdfPredicate, property);
+                register(proxy, RDF.rdfObject, value);
             }
         }
-        return null;
     }
 
     /**
-     * Gets the IRI node for the specified IRI
+     * Loads the specified XML literal RDF property
      *
-     * @param value An IRI
-     * @return The associated IRI node
+     * @param node    The XML node representing the property
+     * @param subject The current RDF subject
+     * @param baseURI The current base URI
+     * @param lang    The current language
      */
-    private IRINode getIRIForNode_GetIRI(String value) {
-        value = normalizeIRI(resource, baseURI, value);
-        return graph.getNodeIRI(value);
+    private void loadElementPropertyLiteralParseType(org.w3c.dom.Node node, SubjectNode subject, String baseURI, String lang) {
+        // XML Literal datatype
     }
 
     /**
-     * Gets the IRI node for the specified local name
+     * Loads the specified resource RDF property
      *
-     * @param value A local name
-     * @return The associated IRI node
+     * @param node    The XML node representing the property
+     * @param subject The current RDF subject
+     * @param baseURI The current base URI
+     * @param lang    The current language
      */
-    private IRINode getIRIForName(String value) {
+    private void loadElementPropertyResourceParseType(org.w3c.dom.Node node, SubjectNode subject, String baseURI, String lang) {
+        IRINode property = getProperty(node, baseURI);
+        SubjectNode value = graph.getBlankNode();
+        register(subject, property, value);
+
+        XMLAttributes attributes = new XMLAttributes(node);
+        org.w3c.dom.Node attributeID = attributes.pop(rdfID);
+        if (attributeID != null) {
+            // reify the triple
+            IRINode proxy = graph.getNodeIRI(normalizeIRI(resource, baseURI, "#" + attributeID.getNodeValue()));
+            register(proxy, RDF.rdfType, graph.getNodeIRI(RDF.rdfStatement));
+            register(proxy, RDF.rdfSubject, subject);
+            register(proxy, RDF.rdfPredicate, property);
+            register(proxy, RDF.rdfObject, value);
+        }
+
+        Iterator<Element> children = getXMLChildren(node);
+        while (children.hasNext())
+            loadElementProperty(children.next(), value, baseURI, lang);
+    }
+
+    /**
+     * Loads the specified collection RDF property
+     *
+     * @param node    The XML node representing the property
+     * @param subject The current RDF subject
+     * @param baseURI The current base URI
+     * @param lang    The current language
+     */
+    private void loadElementPropertyCollectionParseType(org.w3c.dom.Node node, SubjectNode subject, String baseURI, String lang) {
+        IRINode property = getProperty(node, baseURI);
+        XMLAttributes attributes = new XMLAttributes(node);
+        org.w3c.dom.Node attributeID = attributes.pop(rdfID);
+        Iterator<Element> children = getXMLChildren(node);
+
+        SubjectNode head;
+        if (!children.hasNext()) {
+            // no children
+            head = graph.getNodeIRI(RDF.rdfNil);
+        } else {
+            head = graph.getBlankNode();
+        }
+        register(subject, property, head);
+        if (attributeID != null) {
+            // reify the triple
+            IRINode proxy = graph.getNodeIRI(normalizeIRI(resource, baseURI, "#" + attributeID.getNodeValue()));
+            register(proxy, RDF.rdfType, graph.getNodeIRI(RDF.rdfStatement));
+            register(proxy, RDF.rdfSubject, subject);
+            register(proxy, RDF.rdfPredicate, property);
+            register(proxy, RDF.rdfObject, head);
+        }
+
+        List<SubjectNode> values = new ArrayList<>();
+        while (children.hasNext())
+            values.add(loadElement(children.next(), baseURI, lang));
+        for (int i = 0; i != values.size() - 1; i++) {
+            register(head, RDF.rdfFirst, values.get(i));
+            SubjectNode next = graph.getBlankNode();
+            register(head, RDF.rdfRest, next);
+            head = next;
+        }
+        register(head, RDF.rdfFirst, values.get(values.size() - 1));
+        register(head, RDF.rdfRest, graph.getNodeIRI(RDF.rdfNil));
+    }
+
+
+    /**
+     * Gets the normalized IRI for the specified local name
+     *
+     * @param baseURI The current base URI
+     * @param value   A local name (ns:name)
+     * @return The normalized IRI
+     */
+    private String getIRIFromNSName(String baseURI, String value) {
         value = unescape(value);
+        if (!value.contains(":"))
+            return normalizeIRI(resource, baseURI, value);
         int index = 0;
         while (index != value.length()) {
             if (value.charAt(index) == ':') {
@@ -201,21 +510,12 @@ public class RDFXMLLoader extends Loader {
                 String uri = namespaces.get(prefix);
                 if (uri != null) {
                     String name = value.substring(index + 1);
-                    return graph.getNodeIRI(normalizeIRI(resource, baseURI, uri + name));
+                    return normalizeIRI(resource, baseURI, uri + name);
                 }
             }
             index++;
         }
         throw new IllegalArgumentException("Failed to resolve local name " + value);
-    }
-
-    /**
-     * Gets a new blank node
-     *
-     * @return A new blank node
-     */
-    private BlankNode getBlank() {
-        return graph.getBlankNode();
     }
 
     /**
@@ -234,143 +534,14 @@ public class RDFXMLLoader extends Loader {
     }
 
     /**
-     * Loads a RDF node
-     *
-     * @param node The XML node to load from
-     * @return The loaded RDF node
-     */
-    private SubjectNode loadNode(org.w3c.dom.Node node) {
-        SubjectNode subject = null;
-        String name = node.getNodeName();
-        subject = getIRIForNode(node);
-        if (subject == null) {
-            org.w3c.dom.Node attID = node.getAttributes().getNamedItem(rdfNodeID);
-            if (attID != null) {
-                String valueID = attID.getNodeValue();
-                subject = getBlank(valueID);
-            } else
-                subject = getBlank();
-        }
-
-        if (name.equals(rdfDescription)) {
-            // Found untyped node
-        } else {
-            // Found typed node
-            register(subject, getIRIForName(rdfType), getIRIForName(name));
-        }
-
-        // Load properties expressed in node attributes
-        for (int i = 0; i != node.getAttributes().getLength(); i++) {
-            String attName = node.getAttributes().item(i).getNodeName();
-            String attValue = node.getAttributes().item(i).getNodeValue();
-            if (attName.equals(rdfAbout)) {
-            } else if (attName.equals(rdfID)) {
-            } else if (attName.equals(rdfResource)) {
-            } else register(subject, attName, attValue);
-        }
-
-        // Load property nodes
-        for (org.w3c.dom.Node child : getElements(node))
-            loadProperty(subject, child);
-        return subject;
-    }
-
-    /**
-     * Loads RDF properties for the specified blank node
-     *
-     * @param node The XML node to load from
-     * @return The blank node
-     */
-    private SubjectNode loadBlankNode(org.w3c.dom.Node node) {
-        SubjectNode subject = getBlank();
-        // Load property nodes
-        for (org.w3c.dom.Node child : getElements(node))
-            loadProperty(subject, child);
-        return subject;
-    }
-
-    /**
-     * Loads RDF properties for the specified node
-     *
-     * @param subject The current subject node
-     * @param node    The XML node to load from
-     */
-    private void loadProperty(SubjectNode subject, org.w3c.dom.Node node) {
-        String name = node.getNodeName();
-        IRINode property = getIRIForName(name);
-        // Check attributes
-        for (int i = 0; i != node.getAttributes().getLength(); i++) {
-            String attName = node.getAttributes().item(i).getNodeName();
-            if (attName.equals(rdfAbout) || attName.equals(rdfID) || attName.equals(rdfResource)) {
-                // the value of the property is an RDF node in attribute
-                IRINode object = getIRIForNode(node);
-                if (object != null) {
-                    register(subject, property, object);
-                    return;
-                }
-            } else if (attName.equals(rdfParseType)) {
-                String attValue = node.getAttributes().item(i).getNodeValue();
-                if (attValue.equals("Literal")) {
-                    // Value is an XML Literal
-                } else if (attValue.equals("Collection")) {
-                    // Value is a collection
-                    List<Node> values = new ArrayList<Node>();
-                    List<SubjectNode> proxies = new ArrayList<SubjectNode>();
-                    for (org.w3c.dom.Node child : getElements(node)) {
-                        Node value = loadNode(child);
-                        SubjectNode proxy = this.getBlank();
-                        values.add(value);
-                        proxies.add(proxy);
-                        register(proxy, getIRIForName(rdfFirst), value);
-                    }
-                    if (values.isEmpty()) {
-                        register(subject, property, getIRIForName(rdfNil));
-                    } else {
-                        register(subject, property, proxies.get(0));
-                        for (int n = 0; n != proxies.size() - 1; n++)
-                            register(proxies.get(n), getIRIForName(rdfRest), proxies.get(n + 1));
-                        register(proxies.get(proxies.size() - 1), getIRIForName(rdfRest), getIRIForName(rdfNil));
-                    }
-                    return;
-                } else if (attValue.equals("Resource")) {
-                    // Anonymous node
-                    Node object = loadBlankNode(node);
-                    register(subject, property, object);
-                }
-            } else if (attName.equals(rdfDatatype)) {
-                String datatype = node.getAttributes().item(i).getNodeValue();
-                String lex = node.getTextContent();
-                Node object = graph.getLiteralNode(lex, datatype, null);
-                register(subject, property, object);
-                return;
-            }
-        }
-
-        // Property value is a single node
-        List<org.w3c.dom.Node> children = getElements(node);
-        Node object = null;
-        if (children.isEmpty()) {
-            // Plain literal value
-            String lex = node.getTextContent();
-            object = graph.getLiteralNode(lex, OWLDatatype.xsdString, null);
-        } else {
-            // Value is an RDF node
-            object = loadNode(getElements(node).get(0));
-        }
-        register(subject, property, object);
-    }
-
-    /**
-     * Loads the triple with the specified value
+     * Registers the triple with the specified values
      *
      * @param subject  The triple's subject
-     * @param property The triple's property
+     * @param property The triples's property
      * @param value    The triples's value
      */
-    private void register(SubjectNode subject, String property, String value) {
-        Property p = graph.getNodeIRI(property);
-        Node object = graph.getLiteralNode(value, OWLDatatype.xsdString, null);
-        register(subject, p, object);
+    private void register(SubjectNode subject, String property, Node value) {
+        triples.add(new Triple(ontology, subject, graph.getNodeIRI(property), value));
     }
 
     /**

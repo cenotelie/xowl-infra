@@ -38,6 +38,10 @@ public class RDF {
     public static final String nameFirst = "first";
     public static final String nameRest = "rest";
     public static final String nameNil = "nil";
+    public static final String nameSubject = "subject";
+    public static final String namePredicate = "predicate";
+    public static final String nameObject = "object";
+    public static final String nameStatement = "Statement";
 
     public static final String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
     public static final String rdfDescription = rdf + nameDescription;
@@ -51,6 +55,11 @@ public class RDF {
     public static final String rdfFirst = rdf + nameFirst;
     public static final String rdfRest = rdf + nameRest;
     public static final String rdfNil = rdf + nameNil;
+    public static final String rdfSubject = rdf + nameSubject;
+    public static final String rdfPredicate = rdf + namePredicate;
+    public static final String rdfObject = rdf + nameObject;
+    public static final String rdfStatement = rdf + nameStatement;
+
     public static final String rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     public static final String rdfsDatatype = rdfs + OWL2.entityDatatype;
     public static final String rdfsSubClassOf = rdfs + "subClassOf";

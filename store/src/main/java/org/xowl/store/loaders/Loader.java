@@ -20,7 +20,9 @@
 
 package org.xowl.store.loaders;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
@@ -28,8 +30,7 @@ import org.xowl.utils.Logger;
 
 import java.io.Reader;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 
 /**
  * Represents a loader for a store
@@ -62,19 +63,35 @@ public abstract class Loader {
     }
 
     /**
-     * Gets a list of the Element child nodes in the specified node
+     * Gets an iterator over the Element children of the specified XML node
      *
      * @param node A XML node
-     * @return List of the Element child nodes
+     * @return An iterator over the Element children
      */
-    protected static List<Node> getElements(Node node) {
-        List<org.w3c.dom.Node> list = new ArrayList<>();
-        for (int i = 0; i != node.getChildNodes().getLength(); i++) {
-            Node child = node.getChildNodes().item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE)
-                list.add(child);
-        }
-        return list;
+    protected static Iterator<Element> getXMLChildren(Node node) {
+        final NodeList list = node.getChildNodes();
+        return new Iterator<Element>() {
+            int index = getNext(0);
+
+            private int getNext(int start) {
+                for (int i = start; i != list.getLength(); i++)
+                    if (list.item(i).getNodeType() == Node.ELEMENT_NODE)
+                        return i;
+                return list.getLength();
+            }
+
+            @Override
+            public boolean hasNext() {
+                return (index != list.getLength());
+            }
+
+            @Override
+            public Element next() {
+                Element result = (Element) list.item(index);
+                index = getNext(index + 1);
+                return result;
+            }
+        };
     }
 
     /**
