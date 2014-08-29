@@ -44,6 +44,7 @@ public class RDF {
     public static final String nameStatement = "Statement";
 
     public static final String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+    public static final String rdfRDF = rdf + nameRDF;
     public static final String rdfDescription = rdf + nameDescription;
     public static final String rdfAbout = rdf + nameAbout;
     public static final String rdfID = rdf + nameID;

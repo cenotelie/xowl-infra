@@ -53,6 +53,71 @@ public class RDFXMLLoader extends Loader {
     private static final String rdfLI = prefix + "li";
 
     /**
+     * Reserved core syntax terms
+     */
+    private static final String[] RESERVED_CORE_SYNTAX_TERMS = new String[]{
+            rdfRDF,
+            rdfID,
+            rdfAbout,
+            rdfParseType,
+            rdfResource,
+            rdfNodeID,
+            rdfDatatype
+    };
+    /**
+     * Reserved old terms
+     */
+    private static final String[] RESERVED_OLD_TERMS = new String[]{
+            prefix + "aboutEach",
+            prefix + "aboutEachPrefix",
+            prefix + "bagID"
+    };
+
+    /**
+     * Determines whether a list contains a specified value
+     *
+     * @param list  The list to look into
+     * @param value the value to look for
+     * @return <code>true</code> if the value is in the list
+     */
+    private static boolean contains(String[] list, String value) {
+        for (int i = 0; i != list.length; i++)
+            if (list[i].equals(value))
+                return true;
+        return false;
+    }
+
+    /**
+     * Determines whether the specified XML node is a valid RDF resource element
+     *
+     * @param node A XML node
+     * @return <code>true</code> if the node is valid
+     */
+    public static boolean isValidElement(org.w3c.dom.Node node) {
+        return (!contains(RESERVED_CORE_SYNTAX_TERMS, node.getNodeName()) && !contains(RESERVED_OLD_TERMS, node.getNodeName()) && !rdfLI.equals(node.getNodeName()));
+    }
+
+    /**
+     * Determines whether the specified XML node is a valid RDF property element
+     *
+     * @param node A XML node
+     * @return <code>true</code> if the node is valid
+     */
+    public static boolean isValidPropertyElement(org.w3c.dom.Node node) {
+        return (!contains(RESERVED_CORE_SYNTAX_TERMS, node.getNodeName()) && !contains(RESERVED_OLD_TERMS, node.getNodeName()) && !rdfDescription.equals(node.getNodeName()));
+    }
+
+    /**
+     * Determines whether the specified XML node is a valid RDF property attribute
+     *
+     * @param node A XML node
+     * @return <code>true</code> if the node is valid
+     */
+    public static boolean isValidPropertyAttribute(org.w3c.dom.Node node) {
+        return (!contains(RESERVED_CORE_SYNTAX_TERMS, node.getNodeName()) && !contains(RESERVED_OLD_TERMS, node.getNodeName()) && !rdfLI.equals(node.getNodeName()) && !rdfDescription.equals(node.getNodeName()));
+    }
+
+    /**
      * The RDF graph to load into
      */
     private RDFGraph graph;
@@ -99,8 +164,8 @@ public class RDFXMLLoader extends Loader {
         namespaces = new HashMap<>();
         blanks = new HashMap<>();
 
-        DOMParser parser = new DOMParser();
         try {
+            DOMParser parser = new DOMParser();
             parser.parse(new InputSource(reader));
             Document document = parser.getDocument();
             org.w3c.dom.Node root = document.getDocumentElement();
@@ -162,8 +227,10 @@ public class RDFXMLLoader extends Loader {
      * @return The represented RDF node
      */
     private SubjectNode loadElement(org.w3c.dom.Node node, String baseURI, String lang) {
-        SubjectNode subject = null;
+        if (!isValidElement(node))
+            throw new IllegalArgumentException("Unexpected resource element " + node.getNodeName());
 
+        SubjectNode subject = null;
         XMLAttributes attributes = new XMLAttributes(node);
         org.w3c.dom.Node attribute = attributes.pop("xml:lang");
         if (attribute != null)
@@ -206,6 +273,8 @@ public class RDFXMLLoader extends Loader {
         }
 
         for (org.w3c.dom.Node att : attributes) {
+            if (!isValidPropertyAttribute(att))
+                throw new IllegalArgumentException("Unexpected property attribute node " + att.getNodeName());
             IRINode property = graph.getNodeIRI(getIRIFromNSName(baseURI, att.getNodeName()));
             LiteralNode literal;
             if (lang != null)
@@ -231,6 +300,9 @@ public class RDFXMLLoader extends Loader {
      * @param lang    The current language
      */
     private void loadElementProperty(org.w3c.dom.Node node, SubjectNode subject, String baseURI, String lang) {
+        if (!isValidPropertyElement(node))
+            throw new IllegalArgumentException("Unexpected property element node " + node.getNodeName());
+
         XMLAttributes attributes = new XMLAttributes(node);
         org.w3c.dom.Node attributeParseType = attributes.pop(rdfParseType);
         if (attributeParseType == null) {
@@ -385,6 +457,8 @@ public class RDFXMLLoader extends Loader {
             }
 
             for (org.w3c.dom.Node att : attributes) {
+                if (!isValidPropertyAttribute(att))
+                    throw new IllegalArgumentException("Unexpected property attribute node " + att.getNodeName());
                 IRINode subProperty = graph.getNodeIRI(getIRIFromNSName(baseURI, att.getNodeName()));
                 LiteralNode literal;
                 if (lang != null)
@@ -416,6 +490,7 @@ public class RDFXMLLoader extends Loader {
      */
     private void loadElementPropertyLiteralParseType(org.w3c.dom.Node node, SubjectNode subject, String baseURI, String lang) {
         // XML Literal datatype
+        node.getTextContent();
     }
 
     /**
