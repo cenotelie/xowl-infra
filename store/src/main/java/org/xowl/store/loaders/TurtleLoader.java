@@ -118,7 +118,7 @@ public class TurtleLoader extends Loader {
     @Override
     public Ontology load(Logger logger, Reader reader, String uri) {
         triples = new ArrayList<>();
-        ontology = createNewOntology();
+        ontology = Utils.createNewOntology();
         resource = uri;
         baseURI = null;
         namespaces = new HashMap<>();
@@ -168,7 +168,7 @@ public class TurtleLoader extends Loader {
         String prefix = node.getChildren().get(0).getSymbol().getValue();
         String uri = node.getChildren().get(1).getSymbol().getValue();
         prefix = prefix.substring(0, prefix.length() - 1);
-        uri = unescape(uri.substring(1, uri.length() - 1));
+        uri = Utils.unescape(uri.substring(1, uri.length() - 1));
         namespaces.put(prefix, uri);
     }
 
@@ -179,8 +179,8 @@ public class TurtleLoader extends Loader {
      */
     private void loadBase(ASTNode node) {
         String value = node.getChildren().get(0).getSymbol().getValue();
-        value = unescape(value.substring(1, value.length() - 1));
-        baseURI = normalizeIRI(resource, baseURI, value);
+        value = Utils.unescape(value.substring(1, value.length() - 1));
+        baseURI = Utils.normalizeIRI(resource, baseURI, value);
     }
 
     /**
@@ -260,7 +260,7 @@ public class TurtleLoader extends Loader {
     private IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getSymbol().getValue();
         value = value.substring(1, value.length() - 1);
-        return graph.getNodeIRI(normalizeIRI(resource, baseURI, value));
+        return graph.getNodeIRI(Utils.normalizeIRI(resource, baseURI, value));
     }
 
     /**
@@ -282,7 +282,7 @@ public class TurtleLoader extends Loader {
      */
     private IRINode getNodePNameNS(ASTNode node) {
         String value = node.getSymbol().getValue();
-        value = unescape(value.substring(0, value.length() - 1));
+        value = Utils.unescape(value.substring(0, value.length() - 1));
         value = namespaces.get(value);
         return graph.getNodeIRI(value);
     }
@@ -295,7 +295,7 @@ public class TurtleLoader extends Loader {
      */
     private BlankNode getNodeBlank(ASTNode node) {
         String value = node.getSymbol().getValue();
-        value = unescape(value.substring(2));
+        value = Utils.unescape(value.substring(2));
         BlankNode blank = blanks.get(value);
         if (blank != null)
             return blank;
@@ -383,13 +383,13 @@ public class TurtleLoader extends Loader {
             case TurtleLexer.ID.STRING_LITERAL_QUOTE:
                 value = childString.getSymbol().getValue();
                 value = value.substring(1, value.length() - 1);
-                value = unescape(value);
+                value = Utils.unescape(value);
                 break;
             case TurtleLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
             case TurtleLexer.ID.STRING_LITERAL_LONG_QUOTE:
                 value = childString.getSymbol().getValue();
                 value = value.substring(3, value.length() - 3);
-                value = unescape(value);
+                value = Utils.unescape(value);
                 break;
         }
 
@@ -406,7 +406,7 @@ public class TurtleLoader extends Loader {
             // Datatype is specified with an IRI
             String iri = suffixChild.getSymbol().getValue();
             iri = iri.substring(1, iri.length() - 1);
-            return graph.getLiteralNode(value, normalizeIRI(resource, baseURI, iri), null);
+            return graph.getLiteralNode(value, Utils.normalizeIRI(resource, baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(suffixChild.getSymbol().getValue());
@@ -414,7 +414,7 @@ public class TurtleLoader extends Loader {
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getSymbol().getValue();
-            ns = unescape(ns.substring(0, ns.length() - 1));
+            ns = Utils.unescape(ns.substring(0, ns.length() - 1));
             ns = namespaces.get(ns);
             return graph.getLiteralNode(value, ns, null);
         }
@@ -465,7 +465,7 @@ public class TurtleLoader extends Loader {
      * @return The equivalent full IRI
      */
     private String getIRIForLocalName(String value) {
-        value = unescape(value);
+        value = Utils.unescape(value);
         int index = 0;
         while (index != value.length()) {
             if (value.charAt(index) == ':') {
@@ -473,7 +473,7 @@ public class TurtleLoader extends Loader {
                 String uri = namespaces.get(prefix);
                 if (uri != null) {
                     String name = value.substring(index + 1);
-                    return normalizeIRI(resource, baseURI, uri + name);
+                    return Utils.normalizeIRI(resource, baseURI, uri + name);
                 }
             }
             index++;

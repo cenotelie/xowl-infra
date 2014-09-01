@@ -94,7 +94,7 @@ public class NQuadsLoader extends Loader {
         blanks = new HashMap<>();
         ontologies = new HashMap<>();
         List<Triple> triples = new ArrayList<>();
-        Ontology ontology = createNewOntology();
+        Ontology ontology = Utils.createNewOntology();
 
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
@@ -153,7 +153,7 @@ public class NQuadsLoader extends Loader {
      */
     private Node translateIRIREF(ASTNode node) {
         String value = node.getSymbol().getValue();
-        value = unescape(value.substring(1, value.length() - 1));
+        value = Utils.unescape(value.substring(1, value.length() - 1));
         URI uri = URI.create(value);
         if (!uri.isAbsolute())
             throw new IllegalArgumentException("IRI must be absolute");
@@ -185,14 +185,14 @@ public class NQuadsLoader extends Loader {
      */
     private Node translateLiteral(ASTNode node) {
         String value = node.getSymbol().getValue();
-        value = unescape(value.substring(1, value.length() - 1));
+        value = Utils.unescape(value.substring(1, value.length() - 1));
         if (node.getChildren().size() == 0) {
             return graph.getLiteralNode(value, Vocabulary.xsdString, null);
         }
         ASTNode child = node.getChildren().get(0);
         if (child.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
             String type = child.getSymbol().getValue();
-            type = unescape(type.substring(1, type.length() - 1));
+            type = Utils.unescape(type.substring(1, type.length() - 1));
             URI uri = URI.create(type);
             if (!uri.isAbsolute())
                 throw new IllegalArgumentException("IRI must be absolute");
@@ -214,7 +214,7 @@ public class NQuadsLoader extends Loader {
     private Ontology translateGraphLabel(ASTNode node) {
         if (node.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
             String value = node.getSymbol().getValue();
-            value = unescape(value.substring(1, value.length() - 1));
+            value = Utils.unescape(value.substring(1, value.length() - 1));
             URI uri = URI.create(value);
             if (!uri.isAbsolute())
                 throw new IllegalArgumentException("IRI must be absolute");
@@ -232,7 +232,7 @@ public class NQuadsLoader extends Loader {
             key = key.substring(2);
             Ontology ontology = ontologies.get(key);
             if (ontology == null) {
-                ontology = createNewOntology();
+                ontology = Utils.createNewOntology();
                 ontologies.put(key, ontology);
             }
             return ontology;
