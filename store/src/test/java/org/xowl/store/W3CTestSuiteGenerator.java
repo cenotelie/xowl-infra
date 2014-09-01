@@ -20,12 +20,10 @@
 package org.xowl.store;
 
 import org.junit.Assert;
-import org.junit.Test;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.Loader;
 import org.xowl.store.loaders.TurtleLoader;
 import org.xowl.store.rdf.*;
-import org.xowl.store.voc.RDF;
 
 import java.io.*;
 import java.util.Iterator;
@@ -102,7 +100,7 @@ public class W3CTestSuiteGenerator {
             Iterator<Node> tests = graph.getList((SubjectNode) triples.next().getObject());
             while (tests.hasNext()) {
                 SubjectNode test = (SubjectNode) tests.next();
-                String type = ((IRINode) getValue(graph, test, RDF.rdfType)).getIRIValue();
+                String type = ((IRINode) getValue(graph, test, Vocabulary.rdfType)).getIRIValue();
                 type = type.substring(RDFT.length());
                 if (type.endsWith("PositiveSyntax")) {
                     String syntax = type.substring(4, type.length() - 14);

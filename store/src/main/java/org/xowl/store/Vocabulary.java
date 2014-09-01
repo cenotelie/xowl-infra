@@ -18,48 +18,36 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.voc;
+package org.xowl.store;
+
+import org.xowl.store.voc.OWL2;
 
 /**
- * Defines constants for xOWL language concepts
+ * Defines vocabulary constants
  *
  * @author Laurent Wouters
  */
-public class RDF {
-    public static final String nameRDF = "RDF";
-    public static final String nameDescription = "Description";
-    public static final String nameAbout = "about";
-    public static final String nameID = "ID";
-    public static final String nameNodeID = "nodeID";
-    public static final String nameResource = "resource";
-    public static final String nameDatatype = "datatype";
-    public static final String nameParseType = "parseType";
-    public static final String nameType = "type";
-    public static final String nameFirst = "first";
-    public static final String nameRest = "rest";
-    public static final String nameNil = "nil";
-    public static final String nameSubject = "subject";
-    public static final String namePredicate = "predicate";
-    public static final String nameObject = "object";
-    public static final String nameStatement = "Statement";
-
+public class Vocabulary {
     public static final String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-    public static final String rdfRDF = rdf + nameRDF;
-    public static final String rdfDescription = rdf + nameDescription;
-    public static final String rdfAbout = rdf + nameAbout;
-    public static final String rdfID = rdf + nameID;
-    public static final String rdfNodeID = rdf + nameNodeID;
-    public static final String rdfResource = rdf + nameResource;
-    public static final String rdfDatatype = rdf + nameDatatype;
-    public static final String rdfParseType = rdf + nameParseType;
-    public static final String rdfType = rdf + nameType;
-    public static final String rdfFirst = rdf + nameFirst;
-    public static final String rdfRest = rdf + nameRest;
-    public static final String rdfNil = rdf + nameNil;
-    public static final String rdfSubject = rdf + nameSubject;
-    public static final String rdfPredicate = rdf + namePredicate;
-    public static final String rdfObject = rdf + nameObject;
-    public static final String rdfStatement = rdf + nameStatement;
+    public static final String rdfLangString = rdf + "langString";
+    public static final String rdfPlainLiteral = rdf + "PlainLiteral";
+    public static final String rdfRDF = rdf + "RDF";
+    public static final String rdfDescription = rdf + "Description";
+    public static final String rdfAbout = rdf + "about";
+    public static final String rdfID = rdf + "ID";
+    public static final String rdfNodeID = rdf + "nodeID";
+    public static final String rdfResource = rdf + "resource";
+    public static final String rdfDatatype = rdf + "datatype";
+    public static final String rdfParseType = rdf + "parseType";
+    public static final String rdfType = rdf + "type";
+    public static final String rdfFirst = rdf + "first";
+    public static final String rdfRest = rdf + "rest";
+    public static final String rdfNil = rdf + "nil";
+    public static final String rdfSubject = rdf + "subject";
+    public static final String rdfPredicate = rdf + "predicate";
+    public static final String rdfObject = rdf + "object";
+    public static final String rdfStatement = rdf + "Statement";
+    public static final String rdfLI = rdf + "li";
 
     public static final String rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     public static final String rdfsDatatype = rdfs + OWL2.entityDatatype;
@@ -67,8 +55,34 @@ public class RDF {
     public static final String rdfsSubPropertyOf = rdfs + "subPropertyOf";
     public static final String rdfsDomain = rdfs + "domain";
     public static final String rdfsRange = rdfs + "range";
+
     public static final String xsd = "http://www.w3.org/2001/XMLSchema#";
+    public static final String xsdTime = xsd + "time";
+    public static final String xsdDuration = xsd + "duration";
+    public static final String xsdDateTime = xsd + "dateTime";
+    public static final String xsdDate = xsd + "date";
+    public static final String xsdString = xsd + "string";
+    public static final String xsdBoolean = xsd + "boolean";
+    public static final String xsdDecimal = xsd + "decimal";
+    public static final String xsdFloat = xsd + "float";
+    public static final String xsdDouble = xsd + "double";
+    public static final String xsdUnsignedLong = xsd + "unsignedLong";
+    public static final String xsdLong = xsd + "long";
+    public static final String xsdNegativeInteger = xsd + "negativeInteger";
+    public static final String xsdPositiveInteger = xsd + "positiveInteger";
+    public static final String xsdNonPositiveinteger = xsd + "nonPositiveInteger";
+    public static final String xsdNonNegativeInteger = xsd + "nonNegativeInteger";
+    public static final String xsdUnsignedInteger = xsd + "unsignedInt";
+    public static final String xsdInteger = xsd + "integer";
+    public static final String xsdInt = xsd + "int";
+    public static final String xsdUnsignedShort = xsd + "unsignedShort";
+    public static final String xsdShort = xsd + "short";
+    public static final String xsdUnsigedByte = xsd + "unsignedByte";
+    public static final String xsdByte = xsd + "byte";
+
     public static final String owl = "http://www.w3.org/2002/07/owl#";
+    public static final String owlRational = owl + "rational";
+    public static final String owlReal = owl + "real";
     public static final String owlOntology = owl + OWL2.ontoOntology;
     public static final String owlClass = owl + OWL2.entityClass;
     public static final String owlNamedIndividual = owl + OWL2.entityNamedIndividual;

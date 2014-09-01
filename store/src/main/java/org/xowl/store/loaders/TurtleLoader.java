@@ -25,9 +25,8 @@ import org.xowl.hime.redist.Context;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.Ontology;
+import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
-import org.xowl.store.voc.OWLDatatype;
-import org.xowl.store.voc.RDF;
 import org.xowl.utils.Files;
 import org.xowl.utils.Logger;
 
@@ -248,7 +247,7 @@ public class TurtleLoader extends Loader {
      */
     private IRINode getNodeIsA() {
         if (cacheIsA == null)
-            cacheIsA = graph.getNodeIRI(RDF.rdfType);
+            cacheIsA = graph.getNodeIRI(Vocabulary.rdfType);
         return cacheIsA;
     }
 
@@ -321,7 +320,7 @@ public class TurtleLoader extends Loader {
      */
     private LiteralNode getNodeTrue() {
         if (cacheTrue == null)
-            cacheTrue = graph.getLiteralNode("true", OWLDatatype.xsdBoolean, null);
+            cacheTrue = graph.getLiteralNode("true", Vocabulary.xsdBoolean, null);
         return cacheTrue;
     }
 
@@ -332,7 +331,7 @@ public class TurtleLoader extends Loader {
      */
     private LiteralNode getNodeFalse() {
         if (cacheFalse == null)
-            cacheFalse = graph.getLiteralNode("false", OWLDatatype.xsdBoolean, null);
+            cacheFalse = graph.getLiteralNode("false", Vocabulary.xsdBoolean, null);
         return cacheFalse;
     }
 
@@ -344,7 +343,7 @@ public class TurtleLoader extends Loader {
      */
     private LiteralNode getNodeInteger(ASTNode node) {
         String value = node.getSymbol().getValue();
-        return graph.getLiteralNode(value, OWLDatatype.xsdInteger, null);
+        return graph.getLiteralNode(value, Vocabulary.xsdInteger, null);
     }
 
     /**
@@ -355,7 +354,7 @@ public class TurtleLoader extends Loader {
      */
     private LiteralNode getNodeDecimal(ASTNode node) {
         String value = node.getSymbol().getValue();
-        return graph.getLiteralNode(value, OWLDatatype.xsdDecimal, null);
+        return graph.getLiteralNode(value, Vocabulary.xsdDecimal, null);
     }
 
     /**
@@ -366,7 +365,7 @@ public class TurtleLoader extends Loader {
      */
     private LiteralNode getNodeDouble(ASTNode node) {
         String value = node.getSymbol().getValue();
-        return graph.getLiteralNode(value, OWLDatatype.xsdDouble, null);
+        return graph.getLiteralNode(value, Vocabulary.xsdDouble, null);
     }
 
     /**
@@ -396,13 +395,13 @@ public class TurtleLoader extends Loader {
 
         // No suffix, this is a naked string
         if (node.getChildren().size() <= 1)
-            return graph.getLiteralNode(value, OWLDatatype.xsdString, null);
+            return graph.getLiteralNode(value, Vocabulary.xsdString, null);
 
         ASTNode suffixChild = node.getChildren().get(1);
         if (suffixChild.getSymbol().getID() == TurtleLexer.ID.LANGTAG) {
             // This is a language-tagged string
             String tag = suffixChild.getSymbol().getValue();
-            return graph.getLiteralNode(value, OWLDatatype.rdfLangString, tag.substring(1));
+            return graph.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getSymbol().getValue();
@@ -433,17 +432,17 @@ public class TurtleLoader extends Loader {
         for (ASTNode child : node.getChildren())
             elements.add(getNode(child));
         if (elements.isEmpty())
-            return graph.getNodeIRI(RDF.rdfNil);
+            return graph.getNodeIRI(Vocabulary.rdfNil);
 
         BlankNode[] proxies = new BlankNode[elements.size()];
         for (int i = 0; i != proxies.length; i++) {
             proxies[i] = graph.getBlankNode();
-            triples.add(new Triple(ontology, proxies[i], graph.getNodeIRI(RDF.rdfFirst), elements.get(i)));
+            triples.add(new Triple(ontology, proxies[i], graph.getNodeIRI(Vocabulary.rdfFirst), elements.get(i)));
         }
         for (int i = 0; i != proxies.length - 1; i++) {
-            triples.add(new Triple(ontology, proxies[i], graph.getNodeIRI(RDF.rdfRest), proxies[i + 1]));
+            triples.add(new Triple(ontology, proxies[i], graph.getNodeIRI(Vocabulary.rdfRest), proxies[i + 1]));
         }
-        triples.add(new Triple(ontology, proxies[proxies.length - 1], graph.getNodeIRI(RDF.rdfRest), graph.getNodeIRI(RDF.rdfNil)));
+        triples.add(new Triple(ontology, proxies[proxies.length - 1], graph.getNodeIRI(Vocabulary.rdfRest), graph.getNodeIRI(Vocabulary.rdfNil)));
         return proxies[0];
     }
 

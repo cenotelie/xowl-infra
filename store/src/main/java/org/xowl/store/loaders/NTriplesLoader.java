@@ -25,8 +25,8 @@ import org.xowl.hime.redist.Context;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.Ontology;
+import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
-import org.xowl.store.voc.OWLDatatype;
 import org.xowl.utils.Files;
 import org.xowl.utils.Logger;
 
@@ -176,7 +176,7 @@ public class NTriplesLoader extends Loader {
         String value = node.getSymbol().getValue();
         value = unescape(value.substring(1, value.length() - 1));
         if (node.getChildren().size() == 0) {
-            return graph.getLiteralNode(value, OWLDatatype.xsdString, null);
+            return graph.getLiteralNode(value, Vocabulary.xsdString, null);
         }
         ASTNode child = node.getChildren().get(0);
         if (child.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
@@ -189,7 +189,7 @@ public class NTriplesLoader extends Loader {
         } else if (child.getSymbol().getID() == NTriplesLexer.ID.LANGTAG) {
             String lang = child.getSymbol().getValue();
             lang = lang.substring(1);
-            return graph.getLiteralNode(value, OWLDatatype.rdfLangString, lang);
+            return graph.getLiteralNode(value, Vocabulary.rdfLangString, lang);
         }
         return null;
     }

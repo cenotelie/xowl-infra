@@ -23,7 +23,7 @@ package org.xowl.store.rdf;
 import org.xowl.lang.owl2.Literal;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.cache.StringStore;
-import org.xowl.store.voc.RDF;
+import org.xowl.store.Vocabulary;
 import org.xowl.utils.collections.*;
 
 import java.io.IOException;
@@ -462,9 +462,9 @@ public class RDFGraph {
      * @return An iterator over the list's elements
      */
     public Iterator<Node> getList(SubjectNode list) {
-        int keyFirst = sStore.store(RDF.rdfFirst);
-        int keyRest = sStore.store(RDF.rdfRest);
-        int keyNil = sStore.store(RDF.rdfNil);
+        int keyFirst = sStore.store(Vocabulary.rdfFirst);
+        int keyRest = sStore.store(Vocabulary.rdfRest);
+        int keyNil = sStore.store(Vocabulary.rdfNil);
         return new ListIterator(keyFirst, keyRest, keyNil, list) {
             @Override
             protected EdgeBucket getBucketOf(SubjectNode node) {

@@ -26,7 +26,6 @@ import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.Entity;
 import org.xowl.lang.runtime.JavaObject;
 import org.xowl.lang.runtime.Value;
-import org.xowl.store.voc.OWLDatatype;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 
@@ -406,9 +405,9 @@ public class XOWLUtils {
             return (lit.getLexicalValue() != null && !lit.getLexicalValue().isEmpty());
         } else {
             String iri = lit.getMemberOf().getInterpretationOf().getHasIRI().getHasValue();
-            if (OWLDatatype.xsdBoolean.equals(iri))
+            if (Vocabulary.xsdBoolean.equals(iri))
                 return "true".equalsIgnoreCase(lit.getLexicalValue());
-            else if (OWLDatatype.xsdInt.equals(iri) || OWLDatatype.xsdInteger.equals(iri))
+            else if (Vocabulary.xsdInt.equals(iri) || Vocabulary.xsdInteger.equals(iri))
                 return (!"0".equals(lit.getLexicalValue()));
             return false;
         }
