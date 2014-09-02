@@ -82,6 +82,10 @@ class XMLElement {
      */
     private Map<String, String> namespaces;
     /**
+     * The current XML namespace
+     */
+    private String currentNamespace;
+    /**
      * The current base URI
      */
     private String baseURI;
@@ -132,7 +136,15 @@ class XMLElement {
      * @return <code>true</code> if this node is empty
      */
     public boolean isEmpty() {
-        return (node.getChildNodes().getLength() == 0);
+        for (int i = 0; i != node.getChildNodes().getLength(); i++) {
+            int type = node.getChildNodes().item(i).getNodeType();
+            switch (type) {
+                case Node.ELEMENT_NODE:
+                case Node.TEXT_NODE:
+                    return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -184,6 +196,7 @@ class XMLElement {
         this.node = node;
         this.resource = parent.resource;
         this.namespaces = new HashMap<>();
+        this.currentNamespace = parent.currentNamespace;
         this.baseURI = parent.baseURI;
         this.language = parent.language;
         init();
@@ -202,7 +215,7 @@ class XMLElement {
             } else if ("xml:base".equals(name)) {
                 baseURI = attribute.getNodeValue();
             } else if ("xmlns".equals(name)) {
-                baseURI = attribute.getNodeValue();
+                currentNamespace = attribute.getNodeValue();
             } else if (name.startsWith("xmlns:")) {
                 namespaces.put(name.substring(6), attribute.getNodeValue());
             } else if (!name.startsWith("xml")) {
@@ -268,11 +281,11 @@ class XMLElement {
      * @param localName A local name
      * @return The resulting resolved URI
      */
-    public String resolveLocalName(String localName) {
+    private String resolveLocalName(String localName) {
         XMLElement current = this;
         localName = Utils.unescape(localName);
         if (!localName.contains(":"))
-            return Utils.normalizeIRI(resource, baseURI, localName);
+            return currentNamespace + localName;
         while (current != null) {
             int index = 0;
             while (index != localName.length()) {
@@ -291,6 +304,15 @@ class XMLElement {
         throw new IllegalArgumentException("Failed to resolve local name " + localName);
     }
 
+    /**
+     * Resolves a possibly relative IRI against this element
+     *
+     * @param iri A possibly relative IRI
+     * @return The resolved and normalized IRI
+     */
+    public String resolve(String iri) {
+        return Utils.normalizeIRI(resource, baseURI, iri);
+    }
 
     /**
      * Gets the attributes with the specified name and removes it
