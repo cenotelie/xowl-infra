@@ -214,7 +214,7 @@ public class RDFXMLLoader extends Loader {
             String iri = element.resolve("#" + attribute);
             if (knownIDs.contains(iri))
                 throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
-            knownIDs.add(attribute);
+            knownIDs.add(iri);
             subject = graph.getNodeIRI(iri);
             hasID = true;
         }
