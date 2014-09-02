@@ -117,6 +117,8 @@ public class Utils {
      * @return The resolved and normalized IRI
      */
     public static String normalizeIRI(String resource, String base, String iri) {
+        if (iri == null || iri.isEmpty())
+            return (base != null ? base : resource);
         iri = unescape(iri);
         URI uriBase = URI.create(base != null ? base : resource);
         URI uri = uriBase.resolve(iri);
