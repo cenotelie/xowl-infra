@@ -20,17 +20,17 @@
 
 package org.xowl.store.loaders;
 
+import com.sun.org.apache.xml.internal.security.Init;
+import com.sun.org.apache.xml.internal.security.c14n.Canonicalizer;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.bootstrap.DOMImplementationRegistry;
-import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSSerializer;
 import org.xowl.store.Vocabulary;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.Couple;
 
+import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -182,14 +182,11 @@ class XMLElement {
      */
     public String getXMLLiteral() {
         try {
-            StringBuffer buffer = new StringBuffer();
-            DOMImplementationRegistry reg = DOMImplementationRegistry.newInstance();
-            DOMImplementationLS impl = (DOMImplementationLS) reg.getDOMImplementation("LS");
-            LSSerializer serializer = impl.createLSSerializer();
-            for (int i = 0; i != node.getChildNodes().getLength(); i++) {
-                buffer.append(serializer.writeToString(node.getChildNodes().item(i)));
-            }
-            return buffer.toString();
+            Init.init();
+            Canonicalizer canonicalizer = Canonicalizer.getInstance(Canonicalizer.ALGO_ID_C14N11_WITH_COMMENTS);
+            byte[] buffer = canonicalizer.canonicalizeXPathNodeSet(node.getChildNodes());
+            String value = new String(buffer, Charset.forName("UTF-8"));
+            return value;
         } catch (Exception ex) {
             throw new IllegalArgumentException("Unsupported literal node", ex);
         }

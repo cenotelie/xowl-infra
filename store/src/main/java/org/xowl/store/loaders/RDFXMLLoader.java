@@ -20,13 +20,9 @@
 
 package org.xowl.store.loaders;
 
-import com.sun.org.apache.xml.internal.serializer.DOMSerializer;
+
 import org.apache.xerces.parsers.DOMParser;
-import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
-import org.w3c.dom.bootstrap.DOMImplementationRegistry;
-import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.InputSource;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.Ontology;
