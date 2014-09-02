@@ -398,6 +398,11 @@ class XMLElement {
                 index = getNext(index + 1);
                 return new XMLElement(XMLElement.this, result);
             }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
         };
     }
 }
