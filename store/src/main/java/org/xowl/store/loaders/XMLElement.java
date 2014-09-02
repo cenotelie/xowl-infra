@@ -30,6 +30,8 @@ import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.Couple;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -233,7 +235,7 @@ class XMLElement {
             if ("xml:lang".equals(name)) {
                 language = attribute.getNodeValue();
             } else if ("xml:base".equals(name)) {
-                baseURI = attribute.getNodeValue();
+                baseURI = sanitizeBaseURI(attribute.getNodeValue());
             } else if ("xmlns".equals(name)) {
                 currentNamespace = attribute.getNodeValue();
             } else if (name.startsWith("xmlns:")) {
@@ -250,6 +252,26 @@ class XMLElement {
             String name = attribute.getNodeName();
             name = resolveLocalName(name);
             attributes.put(name, attribute);
+        }
+    }
+
+    /**
+     * Sanitizes the specified base URI
+     * @param value A base URI
+     * @return The equivalent sanitized base URI
+     */
+    private String sanitizeBaseURI(String value) {
+        try {
+            URI uri = new URI(value);
+            String scheme = uri.getScheme();
+            String authority = uri.getRawAuthority();
+            String path = uri.getRawPath();
+            String query = uri.getRawQuery();
+            if (path == null || path.isEmpty())
+                path = "/";
+            return (new URI(scheme, authority, path, query, null)).toString();
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Malformed base URI", ex);
         }
     }
 

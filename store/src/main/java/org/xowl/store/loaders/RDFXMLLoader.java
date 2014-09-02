@@ -211,12 +211,12 @@ public class RDFXMLLoader extends Loader {
         if (attribute != null) {
             if (!isValidXMLName(attribute))
                 throw new IllegalArgumentException("Illegal rdf:ID " + attribute);
-            if (knownIDs.contains(attribute))
-                throw new IllegalArgumentException("Duplicate rdf:ID " + attribute);
-            hasID = true;
-            knownIDs.add(attribute);
             String iri = element.resolve("#" + attribute);
+            if (knownIDs.contains(iri))
+                throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
+            knownIDs.add(attribute);
             subject = graph.getNodeIRI(iri);
+            hasID = true;
         }
         attribute = element.getAttribute(Vocabulary.rdfNodeID);
         if (attribute != null) {
@@ -335,11 +335,12 @@ public class RDFXMLLoader extends Loader {
         if (attribute != null) {
             if (!isValidXMLName(attribute))
                 throw new IllegalArgumentException("Illegal rdf:ID " + attribute);
-            if (knownIDs.contains(attribute))
-                throw new IllegalArgumentException("Duplicate rdf:ID " + attribute);
-            knownIDs.add(attribute);
+            String iri = element.resolve("#" + attribute);
+            if (knownIDs.contains(iri))
+                throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
+            knownIDs.add(iri);
             // reify the triple
-            IRINode proxy = graph.getNodeIRI(element.resolve("#" + attribute));
+            IRINode proxy = graph.getNodeIRI(iri);
             register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
             register(proxy, Vocabulary.rdfSubject, subject);
             register(proxy, Vocabulary.rdfPredicate, property);
@@ -371,11 +372,12 @@ public class RDFXMLLoader extends Loader {
         if (attribute != null) {
             if (!isValidXMLName(attribute))
                 throw new IllegalArgumentException("Illegal rdf:ID " + attribute);
-            if (knownIDs.contains(attribute))
-                throw new IllegalArgumentException("Duplicate rdf:ID " + attribute);
-            knownIDs.add(attribute);
+            String iri = element.resolve("#" + attribute);
+            if (knownIDs.contains(iri))
+                throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
+            knownIDs.add(iri);
             // reify the triple
-            IRINode proxy = graph.getNodeIRI(element.resolve("#" + attribute));
+            IRINode proxy = graph.getNodeIRI(iri);
             register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
             register(proxy, Vocabulary.rdfSubject, subject);
             register(proxy, Vocabulary.rdfPredicate, property);
@@ -405,11 +407,12 @@ public class RDFXMLLoader extends Loader {
             if (attributeID != null) {
                 if (!isValidXMLName(attributeID))
                     throw new IllegalArgumentException("Illegal rdf:ID " + attributeID);
-                if (knownIDs.contains(attributeID))
-                    throw new IllegalArgumentException("Duplicate rdf:ID " + attributeID);
-                knownIDs.add(attributeID);
+                String iri = element.resolve("#" + attributeID);
+                if (knownIDs.contains(iri))
+                    throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
+                knownIDs.add(iri);
                 // reify the triple
-                IRINode proxy = graph.getNodeIRI(element.resolve("#" + attributeID));
+                IRINode proxy = graph.getNodeIRI(iri);
                 register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
                 register(proxy, Vocabulary.rdfSubject, subject);
                 register(proxy, Vocabulary.rdfPredicate, property);
@@ -507,11 +510,12 @@ public class RDFXMLLoader extends Loader {
         if (attributeID != null) {
             if (!isValidXMLName(attributeID))
                 throw new IllegalArgumentException("Illegal rdf:ID " + attributeID);
-            if (knownIDs.contains(attributeID))
-                throw new IllegalArgumentException("Duplicate rdf:ID " + attributeID);
-            knownIDs.add(attributeID);
+            String iri = element.resolve("#" + attributeID);
+            if (knownIDs.contains(iri))
+                throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
+            knownIDs.add(iri);
             // reify the triple
-            IRINode proxy = graph.getNodeIRI(element.resolve("#" + attributeID));
+            IRINode proxy = graph.getNodeIRI(iri);
             register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
             register(proxy, Vocabulary.rdfSubject, subject);
             register(proxy, Vocabulary.rdfPredicate, property);
@@ -545,11 +549,12 @@ public class RDFXMLLoader extends Loader {
         if (attributeID != null) {
             if (!isValidXMLName(attributeID))
                 throw new IllegalArgumentException("Illegal rdf:ID " + attributeID);
-            if (knownIDs.contains(attributeID))
-                throw new IllegalArgumentException("Duplicate rdf:ID " + attributeID);
-            knownIDs.add(attributeID);
+            String iri = element.resolve("#" + attributeID);
+            if (knownIDs.contains(iri))
+                throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
+            knownIDs.add(iri);
             // reify the triple
-            IRINode proxy = graph.getNodeIRI(element.resolve("#" + attributeID));
+            IRINode proxy = graph.getNodeIRI(iri);
             register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
             register(proxy, Vocabulary.rdfSubject, subject);
             register(proxy, Vocabulary.rdfPredicate, property);
