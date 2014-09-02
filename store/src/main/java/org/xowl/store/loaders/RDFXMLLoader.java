@@ -20,8 +20,13 @@
 
 package org.xowl.store.loaders;
 
+import com.sun.org.apache.xml.internal.serializer.DOMSerializer;
 import org.apache.xerces.parsers.DOMParser;
+import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.InputSource;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.Ontology;
@@ -229,6 +234,8 @@ public class RDFXMLLoader extends Loader {
         if (attribute != null) {
             if (hasID)
                 throw new IllegalArgumentException("Node cannot have both rdf:ID and rdf:about attributes");
+            if (subject != null)
+                throw new IllegalArgumentException("Node cannot have both rdf:nodeID and rdf:about attributes");
             String iri = element.resolve(attribute);
             subject = graph.getNodeIRI(iri);
         }
@@ -406,7 +413,7 @@ public class RDFXMLLoader extends Loader {
                     throw new IllegalArgumentException("Duplicate rdf:ID " + attributeID);
                 knownIDs.add(attributeID);
                 // reify the triple
-                IRINode proxy = graph.getNodeIRI(element.resolve( "#" + attributeID));
+                IRINode proxy = graph.getNodeIRI(element.resolve("#" + attributeID));
                 register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
                 register(proxy, Vocabulary.rdfSubject, subject);
                 register(proxy, Vocabulary.rdfPredicate, property);
@@ -424,6 +431,8 @@ public class RDFXMLLoader extends Loader {
                     throw new IllegalArgumentException("Node cannot have both rdf:ID and rdf:nodeID attributes");
                 if (!isValidXMLName(attribute))
                     throw new IllegalArgumentException("Illegal rdf:nodeID " + attribute);
+                if (value != null)
+                    throw new IllegalArgumentException("Node cannot have both rdf:nodeID and rdf:resource attributes");
                 value = getBlank(attribute);
             }
             if (value == null) {
@@ -468,7 +477,26 @@ public class RDFXMLLoader extends Loader {
      * @param subject The current RDF subject
      */
     private void loadElementPropertyLiteralParseType(XMLElement element, SubjectNode subject) {
-        // XML Literal datatype
+        IRINode property = getProperty(element);
+        String attributeID = element.getAttribute(Vocabulary.rdfID);
+        Iterator<Couple<String, String>> attributes = element.getAttributes();
+        if (attributes.hasNext()) {
+            // cannot have any more attribute
+            throw new IllegalArgumentException("Unsupported attributes on a literal property node");
+        }
+
+        String lexem = element.getXMLLiteral();
+        LiteralNode value = graph.getLiteralNode(lexem, Vocabulary.rdfXMLLiteral, null);
+
+        register(subject, property, value);
+        if (attributeID != null) {
+            // reify the triple
+            IRINode proxy = graph.getNodeIRI(element.resolve("#" + attributeID));
+            register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
+            register(proxy, Vocabulary.rdfSubject, subject);
+            register(proxy, Vocabulary.rdfPredicate, property);
+            register(proxy, Vocabulary.rdfObject, value);
+        }
     }
 
     /**

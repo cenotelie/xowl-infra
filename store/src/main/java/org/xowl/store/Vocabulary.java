@@ -48,6 +48,7 @@ public class Vocabulary {
     public static final String rdfObject = rdf + "object";
     public static final String rdfStatement = rdf + "Statement";
     public static final String rdfLI = rdf + "li";
+    public static final String rdfXMLLiteral = rdf + "XMLLiteral";
 
     public static final String rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     public static final String rdfsDatatype = rdfs + OWL2.entityDatatype;

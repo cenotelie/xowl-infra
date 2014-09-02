@@ -23,6 +23,9 @@ package org.xowl.store.loaders;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSSerializer;
 import org.xowl.store.Vocabulary;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
@@ -170,6 +173,26 @@ class XMLElement {
      */
     public String getContent() {
         return node.getChildNodes().item(0).getNodeValue();
+    }
+
+    /**
+     * Gets the XML literal representation of the content of this node
+     *
+     * @return The XML literal representation of the content of this node
+     */
+    public String getXMLLiteral() {
+        try {
+            StringBuffer buffer = new StringBuffer();
+            DOMImplementationRegistry reg = DOMImplementationRegistry.newInstance();
+            DOMImplementationLS impl = (DOMImplementationLS) reg.getDOMImplementation("LS");
+            LSSerializer serializer = impl.createLSSerializer();
+            for (int i = 0; i != node.getChildNodes().getLength(); i++) {
+                buffer.append(serializer.writeToString(node.getChildNodes().item(i)));
+            }
+            return buffer.toString();
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Unsupported literal node", ex);
+        }
     }
 
     /**
