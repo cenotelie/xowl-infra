@@ -312,7 +312,7 @@ public class RDFXMLLoader extends Loader {
      */
     private IRINode getProperty(XMLElement element) {
         if (Vocabulary.rdfLI.equals(element.getNodeIRI())) {
-            int index = element.getIndex();
+            int index = element.getLIIndex();
             return graph.getNodeIRI(Vocabulary.rdf + "_" + Integer.toString(index));
         } else {
             return graph.getNodeIRI(element.getNodeIRI());

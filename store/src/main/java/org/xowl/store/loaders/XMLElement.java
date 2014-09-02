@@ -109,24 +109,6 @@ class XMLElement {
     }
 
     /**
-     * Gets the resource's IRI
-     *
-     * @return The resource's IRI
-     */
-    public String getResourceIRI() {
-        return resource;
-    }
-
-    /**
-     * Gets the current base URI
-     *
-     * @return The current base URI
-     */
-    public String getBaseURI() {
-        return baseURI;
-    }
-
-    /**
      * Gets the current language
      *
      * @return The current language
@@ -153,17 +135,19 @@ class XMLElement {
     }
 
     /**
-     * Gets the index of this node relative to its siblings
+     * Gets the index of this rdf:LI node relative to its siblings
      *
      * @return The index of this node
      */
-    public int getIndex() {
+    public int getLIIndex() {
         Iterator<XMLElement> siblings = parent.getChildren();
         int index = 1;
         while (siblings.hasNext()) {
-            if (siblings.next().node == this.node)
+            XMLElement potential = siblings.next();
+            if (potential.node == this.node)
                 return index;
-            index++;
+            if (Vocabulary.rdfLI.equals(potential.nodeIRI))
+                index++;
         }
         return 0;
     }
