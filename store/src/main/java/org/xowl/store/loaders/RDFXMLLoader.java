@@ -427,8 +427,6 @@ public class RDFXMLLoader extends Loader {
             }
             attribute = element.getAttribute(Vocabulary.rdfNodeID);
             if (attribute != null) {
-                if (attributeID != null)
-                    throw new IllegalArgumentException("Node cannot have both rdf:ID and rdf:nodeID attributes");
                 if (!isValidXMLName(attribute))
                     throw new IllegalArgumentException("Illegal rdf:nodeID " + attribute);
                 if (value != null)
