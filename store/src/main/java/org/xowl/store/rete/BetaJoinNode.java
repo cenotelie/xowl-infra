@@ -21,7 +21,7 @@
 package org.xowl.store.rete;
 
 import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.Triple;
+import org.xowl.store.rdf.Quad;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -120,14 +120,14 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
 
     @Override
     public void activateToken(Token t) {
-        for (Triple fact : alphaMem.getFacts())
+        for (Quad fact : alphaMem.getFacts())
             if (passTests(t, fact))
                 child.activate(t, fact);
     }
 
     @Override
     public void deactivateToken(Token t) {
-        for (Triple fact : alphaMem.getFacts())
+        for (Quad fact : alphaMem.getFacts())
             if (passTests(t, fact))
                 child.deactivate(t, fact);
     }
@@ -145,27 +145,27 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
     }
 
     @Override
-    public void activateFact(Triple fact) {
+    public void activateFact(Quad fact) {
         for (Token t : betaMem.getTokens())
             if (passTests(t, fact))
                 child.activate(t, fact);
     }
 
     @Override
-    public void deactivateFact(Triple fact) {
+    public void deactivateFact(Quad fact) {
         for (Token t : betaMem.getTokens())
             if (passTests(t, fact))
                 child.deactivate(t, fact);
     }
 
     @Override
-    public void activateFacts(Collection<Triple> facts) {
+    public void activateFacts(Collection<Quad> facts) {
         if (!betaMem.getTokens().isEmpty())
             child.activate(getJoin(betaMem.getTokens(), facts));
     }
 
     @Override
-    public void deactivateFacts(Collection<Triple> facts) {
+    public void deactivateFacts(Collection<Quad> facts) {
         if (!betaMem.getTokens().isEmpty())
             child.deactivate(getJoin(betaMem.getTokens(), facts));
     }
@@ -177,7 +177,7 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
      * @param facts  A collection of facts
      * @return An iterator over the joined couples
      */
-    private Iterator<Couple> getJoin(Collection<Token> tokens, Collection<Triple> facts) {
+    private Iterator<Couple> getJoin(Collection<Token> tokens, Collection<Quad> facts) {
         int size = tokens.size() * facts.size();
         JoinStrategy join = null;
         if (size <= MAX_SIZE_JOIN_LOOPS)
@@ -197,9 +197,9 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
      * @return A double hash join strategy
      */
     private JoinStrategy createDoubeHashJoin() {
-        return new GraceHashJoin<Token, Triple>(test1, test2, test3) {
+        return new GraceHashJoin<Token, Quad>(test1, test2, test3) {
             @Override
-            protected Couple createCouple(Token left, Triple right) {
+            protected Couple createCouple(Token left, Quad right) {
                 return new Couple(right, left);
             }
 
@@ -209,12 +209,12 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
             }
 
             @Override
-            protected Node getValueForRight(Triple right, BetaJoinNodeTest test) {
+            protected Node getValueForRight(Quad right, BetaJoinNodeTest test) {
                 return right.getField(test.getField());
             }
 
             @Override
-            public Iterator<Couple> join(Collection<Token> tokens, Collection<Triple> facts) {
+            public Iterator<Couple> join(Collection<Token> tokens, Collection<Quad> facts) {
                 return joinGenerics(tokens, facts);
             }
         };
@@ -226,9 +226,9 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
      * @return A simple hash join strategy
      */
     private JoinStrategy createSimpleHashJoinToken() {
-        return new SimpleHashJoin<Token, Triple>(test1, test2, test3) {
+        return new SimpleHashJoin<Token, Quad>(test1, test2, test3) {
             @Override
-            protected Couple createCouple(Token left, Triple right) {
+            protected Couple createCouple(Token left, Quad right) {
                 return new Couple(right, left);
             }
 
@@ -238,12 +238,12 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
             }
 
             @Override
-            protected Node getValueForRight(Triple right, BetaJoinNodeTest test) {
+            protected Node getValueForRight(Quad right, BetaJoinNodeTest test) {
                 return right.getField(test.getField());
             }
 
             @Override
-            public Iterator<Couple> join(Collection<Token> tokens, Collection<Triple> facts) {
+            public Iterator<Couple> join(Collection<Token> tokens, Collection<Quad> facts) {
                 return joinGenerics(tokens, facts);
             }
         };
@@ -255,14 +255,14 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
      * @return A simple hash join strategy
      */
     private JoinStrategy createSimpleHashJoinFact() {
-        return new SimpleHashJoin<Triple, Token>(test1, test2, test3) {
+        return new SimpleHashJoin<Quad, Token>(test1, test2, test3) {
             @Override
-            protected Couple createCouple(Triple left, Token right) {
+            protected Couple createCouple(Quad left, Token right) {
                 return new Couple(left, right);
             }
 
             @Override
-            protected Node getValueForLeft(Triple left, BetaJoinNodeTest test) {
+            protected Node getValueForLeft(Quad left, BetaJoinNodeTest test) {
                 return left.getField(test.getField());
             }
 
@@ -272,7 +272,7 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
             }
 
             @Override
-            public Iterator<Couple> join(Collection<Token> tokens, Collection<Triple> facts) {
+            public Iterator<Couple> join(Collection<Token> tokens, Collection<Quad> facts) {
                 return joinGenerics(facts, tokens);
             }
         };
@@ -285,7 +285,7 @@ public class BetaJoinNode implements FactActivable, TokenActivable {
      * @param fact  A fact
      * @return true if the couple passes the tests
      */
-    private boolean passTests(Token token, Triple fact) {
+    private boolean passTests(Token token, Quad fact) {
         if (test1 == null) return true;
         if (!test1.check(token, fact)) return false;
         if (test2 == null) return true;

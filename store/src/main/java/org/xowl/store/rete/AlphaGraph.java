@@ -49,7 +49,7 @@ public class AlphaGraph {
      *
      * @param fact A fact
      */
-    public void fire(Triple fact) {
+    public void fire(Quad fact) {
         Node sub = fact.getSubject();
         Node prop = fact.getProperty();
         Node obj = fact.getObject();
@@ -76,7 +76,7 @@ public class AlphaGraph {
      *
      * @param fact A fact
      */
-    public void unfire(Triple fact) {
+    public void unfire(Quad fact) {
         Node sub = fact.getSubject();
         Node prop = fact.getProperty();
         Node obj = fact.getObject();
@@ -103,9 +103,9 @@ public class AlphaGraph {
      *
      * @param facts A collection of facts
      */
-    public void fire(Collection<Triple> facts) {
-        Map<AlphaMemory, Collection<Triple>> dispatch = buildDispatch(facts);
-        for (Entry<AlphaMemory, Collection<Triple>> entry : dispatch.entrySet())
+    public void fire(Collection<Quad> facts) {
+        Map<AlphaMemory, Collection<Quad>> dispatch = buildDispatch(facts);
+        for (Entry<AlphaMemory, Collection<Quad>> entry : dispatch.entrySet())
             entry.getKey().activateFacts(new FastBuffer<>(entry.getValue()));
     }
 
@@ -114,9 +114,9 @@ public class AlphaGraph {
      *
      * @param facts A collection of facts
      */
-    public void unfire(Collection<Triple> facts) {
-        Map<AlphaMemory, Collection<Triple>> dispatch = buildDispatch(facts);
-        for (Entry<AlphaMemory, Collection<Triple>> entry : dispatch.entrySet())
+    public void unfire(Collection<Quad> facts) {
+        Map<AlphaMemory, Collection<Quad>> dispatch = buildDispatch(facts);
+        for (Entry<AlphaMemory, Collection<Quad>> entry : dispatch.entrySet())
             entry.getKey().deactivateFacts(new FastBuffer<>(entry.getValue()));
     }
 
@@ -126,15 +126,15 @@ public class AlphaGraph {
      * @param facts A collection of facts
      * @return The dispatching data associating alpha memory to the relevant collections of facts
      */
-    private Map<AlphaMemory, Collection<Triple>> buildDispatch(Collection<Triple> facts) {
-        Map<AlphaMemory, Collection<Triple>> map = new IdentityHashMap<>();
-        for (Triple fact : facts) {
+    private Map<AlphaMemory, Collection<Quad>> buildDispatch(Collection<Quad> facts) {
+        Map<AlphaMemory, Collection<Quad>> map = new IdentityHashMap<>();
+        for (Quad fact : facts) {
             AlphaMemory[] mems = getMatches(fact);
             for (int i = 0; i != 8; i++) {
                 AlphaMemory mem = mems[i];
                 if (mem == null)
                     continue;
-                Collection<Triple> collec = map.get(mem);
+                Collection<Quad> collec = map.get(mem);
                 if (collec == null) {
                     collec = new ArrayList<>();
                     map.put(mem, collec);
@@ -151,7 +151,7 @@ public class AlphaGraph {
      * @param fact A fact
      * @return The alpha memories that match the fact
      */
-    private AlphaMemory[] getMatches(Triple fact) {
+    private AlphaMemory[] getMatches(Quad fact) {
         Node sub = fact.getSubject();
         Node prop = fact.getProperty();
         Node obj = fact.getObject();
@@ -190,14 +190,14 @@ public class AlphaGraph {
     /**
      * Resolves the appropriate alpha memory for the specified triple
      *
-     * @param triple A triple
+     * @param quad A triple
      * @param graph  The RDF graph
      * @return The corresponding alpha memory
      */
-    public AlphaMemory resolveMemory(Triple triple, RDFGraph graph) {
-        Node subj = triple.getSubject();
-        Node prop = triple.getProperty();
-        Node obj = triple.getObject();
+    public AlphaMemory resolveMemory(Quad quad, RDFGraph graph) {
+        Node subj = quad.getSubject();
+        Node prop = quad.getProperty();
+        Node obj = quad.getObject();
         if (subj.getNodeType() == VariableNode.TYPE)
             subj = null;
         if (prop.getNodeType() == VariableNode.TYPE)
@@ -214,15 +214,15 @@ public class AlphaGraph {
             return mapObj.get(obj);
 
         AlphaMemory mem = new AlphaMemory();
-        Collection<Triple> temp = new ArrayList<>();
+        Collection<Quad> temp = new ArrayList<>();
         if (mapObj.containsKey(null)) {
-            for (Triple fact : mapObj.get(null).getFacts()) {
+            for (Quad fact : mapObj.get(null).getFacts()) {
                 if (fact.getObject() == obj)
                     temp.add(fact);
             }
         } else {
             try {
-                Iterator<Triple> iterator = graph.getAll((SubjectNode) subj, (Property) prop, obj);
+                Iterator<Quad> iterator = graph.getAll((SubjectNode) subj, (Property) prop, obj);
                 while (iterator.hasNext())
                     temp.add(iterator.next());
             } catch (UnsupportedNodeType ex) {
@@ -238,13 +238,13 @@ public class AlphaGraph {
     /**
      * Gets the appropriate alpha memory for the specified triple
      *
-     * @param triple A triple
+     * @param quad A triple
      * @return The corresponding alpha memory
      */
-    public AlphaMemory getMemory(Triple triple) {
-        Node subj = triple.getSubject();
-        Node prop = triple.getProperty();
-        Node obj = triple.getObject();
+    public AlphaMemory getMemory(Quad quad) {
+        Node subj = quad.getSubject();
+        Node prop = quad.getProperty();
+        Node obj = quad.getObject();
         if (subj.getNodeType() == VariableNode.TYPE)
             subj = null;
         if (prop.getNodeType() == VariableNode.TYPE)
@@ -259,12 +259,12 @@ public class AlphaGraph {
     /**
      * Removes the alpha memory for the specified triple
      *
-     * @param triple A triple
+     * @param quad A triple
      */
-    public void removeMemory(Triple triple) {
-        Node subj = triple.getSubject();
-        Node prop = triple.getProperty();
-        Node obj = triple.getObject();
+    public void removeMemory(Quad quad) {
+        Node subj = quad.getSubject();
+        Node prop = quad.getProperty();
+        Node obj = quad.getObject();
         if (subj.getNodeType() == VariableNode.TYPE)
             subj = null;
         if (prop.getNodeType() == VariableNode.TYPE)

@@ -20,18 +20,16 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.Ontology;
-
 /**
  * Represents a triple in an ontology
  *
  * @author Laurent Wouters
  */
-public class Triple {
+public class Quad {
     /**
      * The containing ontology
      */
-    private Ontology ontology;
+    private String ontology;
     /**
      * The subject node
      */
@@ -53,7 +51,7 @@ public class Triple {
      * @param property The property
      * @param object   The object node
      */
-    public Triple(Ontology ontology, SubjectNode subject, Property property, Node object) {
+    public Quad(String ontology, SubjectNode subject, Property property, Node object) {
         this.ontology = ontology;
         this.subject = subject;
         this.property = property;
@@ -65,7 +63,7 @@ public class Triple {
      *
      * @return The containing ontology
      */
-    public Ontology getOntology() {
+    public String getOntology() {
         return ontology;
     }
 
@@ -74,7 +72,7 @@ public class Triple {
      *
      * @param ontology The containing ontology
      */
-    void setOntology(Ontology ontology) {
+    void setOntology(String ontology) {
         this.ontology = ontology;
     }
 
@@ -138,7 +136,7 @@ public class Triple {
      * @param field A field
      * @return The value of the specified field
      */
-    public Node getField(TripleField field) {
+    public Node getField(QuadField field) {
         switch (field) {
             case SUBJECT:
                 return subject;
@@ -161,12 +159,12 @@ public class Triple {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof Triple) {
-            Triple triple = (Triple) obj;
-            if (!ontology.equals(triple.ontology)) return false;
-            if (!subject.equals(triple.subject)) return false;
-            if (!property.equals(triple.property)) return false;
-            return (object.equals(triple.object));
+        if (obj instanceof Quad) {
+            Quad quad = (Quad) obj;
+            if (!ontology.equals(quad.ontology)) return false;
+            if (!subject.equals(quad.subject)) return false;
+            if (!property.equals(quad.property)) return false;
+            return (object.equals(quad.object));
         }
         return false;
     }

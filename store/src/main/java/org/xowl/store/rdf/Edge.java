@@ -19,7 +19,6 @@
  **********************************************************************/
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.Ontology;
 import org.xowl.utils.collections.*;
 
 import java.util.Arrays;
@@ -56,7 +55,7 @@ public class Edge implements Iterable<EdgeTarget> {
      * @param property The property on this edge
      * @param object   The first object node for this edge
      */
-    public Edge(Ontology ontology, Property property, Node object) {
+    public Edge(String ontology, Property property, Node object) {
         this.property = property;
         this.targets = new EdgeTarget[INIT_BUFFER_SIZE];
         this.targets[0] = new EdgeTarget(ontology, object);
@@ -87,7 +86,7 @@ public class Edge implements Iterable<EdgeTarget> {
      * @param ontology The ontology containing the triple
      * @param value    The edge's target node
      */
-    public void add(Ontology ontology, Node value) {
+    public void add(String ontology, Node value) {
         boolean hasEmpty = false;
         for (int i = 0; i != targets.length; i++) {
             hasEmpty = hasEmpty || (targets[i] == null);
@@ -118,7 +117,7 @@ public class Edge implements Iterable<EdgeTarget> {
      * @param value    The edge's target node
      * @return true if this edge is now empty and shall be removed
      */
-    public boolean remove(Ontology ontology, Node value) {
+    public boolean remove(String ontology, Node value) {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && targets[i].getTarget() == value) {
                 if (targets[i].remove(ontology)) {
@@ -143,18 +142,18 @@ public class Edge implements Iterable<EdgeTarget> {
      * @param ontology The filtering ontology
      * @return An iterator over the triples
      */
-    public Iterator<Triple> getAllTriples(final Node value, final Ontology ontology) {
+    public Iterator<Quad> getAllTriples(final Node value, final String ontology) {
         if (value == null) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(targets), new Adapter<Iterator<Triple>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(targets), new Adapter<Iterator<Quad>>() {
                 @Override
-                public <X> Iterator<Triple> adapt(X element) {
+                public <X> Iterator<Quad> adapt(X element) {
                     Integer index = (Integer) element;
                     return targets[index].getAllTriples(ontology);
                 }
-            }), new Adapter<Triple>() {
+            }), new Adapter<Quad>() {
                 @Override
-                public <X> Triple adapt(X element) {
-                    Couple<Integer, Triple> result = (Couple<Integer, Triple>) element;
+                public <X> Quad adapt(X element) {
+                    Couple<Integer, Quad> result = (Couple<Integer, Quad>) element;
                     result.y.setObject(targets[result.x].getTarget());
                     return result.y;
                 }
@@ -163,10 +162,10 @@ public class Edge implements Iterable<EdgeTarget> {
 
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && targets[i].getTarget() == value) {
-                return new AdaptingIterator<>(targets[i].getAllTriples(ontology), new Adapter<Triple>() {
+                return new AdaptingIterator<>(targets[i].getAllTriples(ontology), new Adapter<Quad>() {
                     @Override
-                    public <X> Triple adapt(X element) {
-                        Triple result = (Triple) element;
+                    public <X> Quad adapt(X element) {
+                        Quad result = (Quad) element;
                         result.setObject(value);
                         return result;
                     }
@@ -184,7 +183,7 @@ public class Edge implements Iterable<EdgeTarget> {
      * @param ontology The filtering ontology
      * @return The number of different triples
      */
-    public int count(Node value, Ontology ontology) {
+    public int count(Node value, String ontology) {
         if (value == null) {
             int count = 0;
             for (int i = 0; i != targets.length; i++)

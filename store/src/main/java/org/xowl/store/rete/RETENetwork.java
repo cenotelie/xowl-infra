@@ -79,8 +79,8 @@ public class RETENetwork {
      * @throws org.xowl.store.rdf.UnsupportedNodeType when a type of node is unsupported
      */
     public void inject(Collection<Change> changes) throws UnsupportedNodeType {
-        Collection<Triple> positives = new ArrayList<>();
-        Collection<Triple> negatives = new ArrayList<>();
+        Collection<Quad> positives = new ArrayList<>();
+        Collection<Quad> negatives = new ArrayList<>();
         for (Change change : changes) {
             if (change.isPositive()) {
                 input.add(change.getValue());
@@ -107,7 +107,7 @@ public class RETENetwork {
         // Build RETE for positives
         Iterator<JoinData> iterData = levels.iterator();
         BetaMemory beta = BetaMemory.getDummy();
-        for (Triple pattern : rule.getPositives()) {
+        for (Quad pattern : rule.getPositives()) {
             JoinData data = iterData.next();
             FactHolder alpha = getProvider(pattern);
             BetaJoinNode join = beta.resolveJoin(alpha, data.tests);
@@ -115,16 +115,16 @@ public class RETENetwork {
         }
         // Append negative conditions
         TokenHolder last = beta;
-        for (Collection<Triple> conjunction : rule.getNegatives()) {
+        for (Collection<Quad> conjunction : rule.getNegatives()) {
             if (conjunction.size() == 1) {
                 JoinData data = iterData.next();
-                Triple pattern = conjunction.iterator().next();
+                Quad pattern = conjunction.iterator().next();
                 FactHolder alpha = getProvider(pattern);
                 last = new BetaNegativeJoinNode(alpha, last, data.tests);
             } else {
                 BetaNCCEntryNode entry = new BetaNCCEntryNode(last);
                 last = entry;
-                for (Triple pattern : conjunction) {
+                for (Quad pattern : conjunction) {
                     JoinData data = iterData.next();
                     FactHolder alpha = getProvider(pattern);
                     BetaJoinNode join = new BetaJoinNode(alpha, last, data.tests);
@@ -173,7 +173,7 @@ public class RETENetwork {
      * @param pattern A pattern of triple
      * @return The corresponding fact provider
      */
-    private FactHolder getProvider(Triple pattern) {
+    private FactHolder getProvider(Quad pattern) {
         AlphaMemory alpha = this.alpha.resolveMemory(pattern, input);
         if (pattern.getOntology() != null) {
             FilterNode fn = new FilterNode(alpha, pattern.getOntology());
@@ -191,10 +191,10 @@ public class RETENetwork {
     private List<JoinData> getJoinData(RETERule rule) {
         List<JoinData> tests = new ArrayList<>();
         List<VariableNode> variables = new ArrayList<>();
-        for (Triple pattern : rule.getPositives())
+        for (Quad pattern : rule.getPositives())
             tests.add(getJoinData(pattern, variables));
-        for (Collection<Triple> conjunction : rule.getNegatives())
-            for (Triple pattern : conjunction)
+        for (Collection<Quad> conjunction : rule.getNegatives())
+            for (Quad pattern : conjunction)
                 tests.add(getJoinData(pattern, variables));
         return tests;
     }
@@ -206,17 +206,17 @@ public class RETENetwork {
      * @param variables The pre-existing variables
      * @return The join data
      */
-    private JoinData getJoinData(Triple pattern, Collection<VariableNode> variables) {
+    private JoinData getJoinData(Quad pattern, Collection<VariableNode> variables) {
         JoinData currentData = new JoinData();
         Node node = pattern.getSubject();
         if (node.getNodeType() == VariableNode.TYPE) {
             VariableNode var = (VariableNode) node;
             if (variables.contains(var)) {
-                TripleField field = TripleField.SUBJECT;
+                QuadField field = QuadField.SUBJECT;
                 BetaJoinNodeTest test = new BetaJoinNodeTest(var, field);
                 currentData.tests.add(test);
             } else {
-                currentData.binders.add(new Binder(var, TripleField.SUBJECT));
+                currentData.binders.add(new Binder(var, QuadField.SUBJECT));
             }
             variables.add(var);
         }
@@ -225,11 +225,11 @@ public class RETENetwork {
         if (node.getNodeType() == VariableNode.TYPE) {
             VariableNode var = (VariableNode) node;
             if (variables.contains(var)) {
-                TripleField field = TripleField.PROPERTY;
+                QuadField field = QuadField.PROPERTY;
                 BetaJoinNodeTest test = new BetaJoinNodeTest(var, field);
                 currentData.tests.add(test);
             } else {
-                currentData.binders.add(new Binder(var, TripleField.PROPERTY));
+                currentData.binders.add(new Binder(var, QuadField.PROPERTY));
             }
             variables.add(var);
         }
@@ -238,11 +238,11 @@ public class RETENetwork {
         if (node.getNodeType() == VariableNode.TYPE) {
             VariableNode var = (VariableNode) node;
             if (variables.contains(var)) {
-                TripleField field = TripleField.VALUE;
+                QuadField field = QuadField.VALUE;
                 BetaJoinNodeTest test = new BetaJoinNodeTest(var, field);
                 currentData.tests.add(test);
             } else {
-                currentData.binders.add(new Binder(var, TripleField.VALUE));
+                currentData.binders.add(new Binder(var, QuadField.VALUE));
             }
             variables.add(var);
         }

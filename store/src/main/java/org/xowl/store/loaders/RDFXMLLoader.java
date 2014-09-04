@@ -25,7 +25,6 @@ import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xowl.hime.redist.ParseResult;
-import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.Logger;
@@ -47,7 +46,7 @@ public class RDFXMLLoader extends Loader {
     /**
      * The loaded triples
      */
-    private List<Triple> triples;
+    private List<Quad> quads;
     /**
      * Maps of the blanks nodes
      */
@@ -55,7 +54,7 @@ public class RDFXMLLoader extends Loader {
     /**
      * The current ontology
      */
-    private Ontology ontology;
+    private String ontology;
     /**
      * List of all the known IDs so far
      */
@@ -153,8 +152,8 @@ public class RDFXMLLoader extends Loader {
     }
 
     @Override
-    public Ontology load(Logger logger, java.io.Reader reader, String uri) {
-        triples = new ArrayList<>();
+    public String load(Logger logger, java.io.Reader reader, String uri) {
+        quads = new ArrayList<>();
         ontology = Utils.createNewOntology();
         blanks = new HashMap<>();
         knownIDs = new ArrayList<>();
@@ -174,8 +173,8 @@ public class RDFXMLLoader extends Loader {
         }
 
         try {
-            for (Triple triple : triples)
-                graph.add(triple);
+            for (Quad quad : quads)
+                graph.add(quad);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }
@@ -597,7 +596,7 @@ public class RDFXMLLoader extends Loader {
      * @param value    The triples's value
      */
     private void register(SubjectNode subject, String property, Node value) {
-        triples.add(new Triple(ontology, subject, graph.getNodeIRI(property), value));
+        quads.add(new Quad(ontology, subject, graph.getNodeIRI(property), value));
     }
 
     /**
@@ -608,6 +607,6 @@ public class RDFXMLLoader extends Loader {
      * @param value    The triples's value
      */
     private void register(SubjectNode subject, Property property, Node value) {
-        triples.add(new Triple(ontology, subject, property, value));
+        quads.add(new Quad(ontology, subject, property, value));
     }
 }

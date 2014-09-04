@@ -24,7 +24,6 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.Context;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
-import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.Files;
@@ -85,10 +84,10 @@ public class NTriplesLoader extends Loader {
     }
 
     @Override
-    public Ontology load(Logger logger, Reader reader, String uri) {
+    public String load(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
-        List<Triple> triples = new ArrayList<>();
-        Ontology ontology = Utils.createNewOntology();
+        List<Quad> quads = new ArrayList<>();
+        String ontology = Utils.createNewOntology();
 
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
@@ -99,7 +98,7 @@ public class NTriplesLoader extends Loader {
                 Node n1 = getRDFNode(triple.getChildren().get(0));
                 Node n2 = getRDFNode(triple.getChildren().get(1));
                 Node n3 = getRDFNode(triple.getChildren().get(2));
-                triples.add(new Triple(ontology, (SubjectNode) n1, (Property) n2, n3));
+                quads.add(new Quad(ontology, (SubjectNode) n1, (Property) n2, n3));
             }
         } catch (IllegalArgumentException ex) {
             // IRI must be absolute
@@ -107,8 +106,8 @@ public class NTriplesLoader extends Loader {
         }
 
         try {
-            for (Triple triple : triples)
-                graph.add(triple);
+            for (Quad quad : quads)
+                graph.add(quad);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }

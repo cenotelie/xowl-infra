@@ -41,14 +41,9 @@ public class Utils {
      *
      * @return The new ontology
      */
-    public static Ontology createNewOntology() {
+    public static String createNewOntology() {
         java.util.Random rand = new java.util.Random();
-        String value = DEFAULT_GRAPH_URIS + Integer.toHexString(rand.nextInt());
-        IRI iri = new IRI();
-        iri.setHasValue(value);
-        Ontology ontology = new Ontology();
-        ontology.setHasIRI(iri);
-        return ontology;
+        return DEFAULT_GRAPH_URIS + Integer.toHexString(rand.nextInt());
     }
 
 

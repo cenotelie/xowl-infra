@@ -20,8 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.lang.owl2.Ontology;
-import org.xowl.store.rdf.Triple;
+import org.xowl.store.rdf.Quad;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -39,7 +38,7 @@ public class FilterNode implements FactActivable {
     /**
      * The ontology to look for
      */
-    private Ontology ontology;
+    private String ontology;
 
     /**
      * Initializes this filtering node
@@ -47,7 +46,7 @@ public class FilterNode implements FactActivable {
      * @param parent   The parent fact holder
      * @param ontology The ontology to look for
      */
-    public FilterNode(FactHolder parent, Ontology ontology) {
+    public FilterNode(FactHolder parent, String ontology) {
         this.child = new AlphaMemory();
         this.ontology = ontology;
         parent.addChild(this);
@@ -70,26 +69,26 @@ public class FilterNode implements FactActivable {
     }
 
     @Override
-    public void activateFact(Triple fact) {
-        if (ontology == null || ontology == fact.getOntology())
+    public void activateFact(Quad fact) {
+        if (ontology == null || ontology.equals(fact.getOntology()))
             child.activateFact(fact);
     }
 
     @Override
-    public void deactivateFact(Triple fact) {
-        if (ontology == null || ontology == fact.getOntology())
+    public void deactivateFact(Quad fact) {
+        if (ontology == null || ontology.equals(fact.getOntology()))
             child.deactivateFact(fact);
     }
 
     @Override
-    public void activateFacts(Collection<Triple> facts) {
+    public void activateFacts(Collection<Quad> facts) {
         applyFilter(facts);
         if (!facts.isEmpty())
             child.activateFacts(facts);
     }
 
     @Override
-    public void deactivateFacts(Collection<Triple> facts) {
+    public void deactivateFacts(Collection<Quad> facts) {
         applyFilter(facts);
         if (!facts.isEmpty())
             child.deactivateFacts(facts);
@@ -100,13 +99,13 @@ public class FilterNode implements FactActivable {
      *
      * @param facts The facts to filter
      */
-    private void applyFilter(Collection<Triple> facts) {
+    private void applyFilter(Collection<Quad> facts) {
         if (ontology == null)
             return;
-        Iterator<Triple> iterator = facts.iterator();
+        Iterator<Quad> iterator = facts.iterator();
         while (iterator.hasNext()) {
-            Triple current = iterator.next();
-            if (ontology != current.getOntology())
+            Quad current = iterator.next();
+            if (!ontology.equals(current.getOntology()))
                 iterator.remove();
         }
     }

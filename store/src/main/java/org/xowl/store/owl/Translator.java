@@ -41,11 +41,11 @@ import org.xowl.lang.owl2.ObjectPropertyAssertion;
 import org.xowl.lang.owl2.ObjectSomeValuesFrom;
 import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
+import org.xowl.store.Vocabulary;
 import org.xowl.store.XOWLUtils;
 import org.xowl.store.rdf.*;
 import org.xowl.store.rdf.Property;
 import org.xowl.store.voc.OWL2;
-import org.xowl.store.Vocabulary;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,7 +65,7 @@ public class Translator {
     /**
      * The ontology that contains the translated input
      */
-    protected Ontology ontology;
+    protected String ontology;
     /**
      * The input OWL axioms
      */
@@ -73,7 +73,7 @@ public class Translator {
     /**
      * The resulting triples
      */
-    protected Collection<Triple> triples;
+    protected Collection<Quad> quads;
     /**
      * The translation context
      */
@@ -97,11 +97,11 @@ public class Translator {
      * @param evaluator            The evaluator for dynamic expressions, or null if dyanmic expression shall no be translated and kept as is
      * @param translateAnnotations Whether to translate the OWL annotations
      */
-    public Translator(TranslationContext context, XOWLGraph graph, Ontology ontology, Iterator<Axiom> input, Evaluator evaluator, boolean translateAnnotations) {
+    public Translator(TranslationContext context, XOWLGraph graph, String ontology, Iterator<Axiom> input, Evaluator evaluator, boolean translateAnnotations) {
         this.graph = graph;
         this.ontology = ontology;
         this.input = input;
-        this.triples = new ArrayList<>();
+        this.quads = new ArrayList<>();
         this.context = context;
         if (this.context == null)
             this.context = new TranslationContext();
@@ -124,10 +124,10 @@ public class Translator {
      * @return The translation result
      * @throws org.xowl.store.owl.TranslationException When a runtime entity is not named
      */
-    public Collection<Triple> execute() throws TranslationException {
+    public Collection<Quad> execute() throws TranslationException {
         while (input.hasNext())
             translateAxiom(input.next());
-        return triples;
+        return quads;
     }
 
     /**
@@ -161,8 +161,8 @@ public class Translator {
      * @param object   The object node
      * @return The equivalent triple
      */
-    protected Triple getTriple(SubjectNode subject, String property, Node object) {
-        return new Triple(ontology, subject, graph.getNodeIRI(property), object);
+    protected Quad getTriple(SubjectNode subject, String property, Node object) {
+        return new Quad(ontology, subject, graph.getNodeIRI(property), object);
     }
 
     /**
@@ -173,8 +173,8 @@ public class Translator {
      * @param object   The object value
      * @return The equivalent triple
      */
-    protected Triple getTriple(SubjectNode subject, String property, String object) {
-        return new Triple(ontology, subject, graph.getNodeIRI(property), graph.getNodeIRI(object));
+    protected Quad getTriple(SubjectNode subject, String property, String object) {
+        return new Quad(ontology, subject, graph.getNodeIRI(property), graph.getNodeIRI(object));
     }
 
     /**
@@ -190,11 +190,11 @@ public class Translator {
         for (int i = 0; i != proxies.length; i++) {
             BlankNode proxy = graph.getBlankNode();
             proxies[i] = proxy;
-            triples.add(getTriple(proxy, Vocabulary.rdfFirst, elements.get(i)));
+            quads.add(getTriple(proxy, Vocabulary.rdfFirst, elements.get(i)));
         }
         for (int i = 0; i != proxies.length - 1; i++)
-            triples.add(getTriple(proxies[i], Vocabulary.rdfRest, proxies[i + 1]));
-        triples.add(getTriple(proxies[proxies.length - 1], Vocabulary.rdfRest, Vocabulary.rdfNil));
+            quads.add(getTriple(proxies[i], Vocabulary.rdfRest, proxies[i + 1]));
+        quads.add(getTriple(proxies[proxies.length - 1], Vocabulary.rdfRest, Vocabulary.rdfNil));
         return proxies[0];
     }
 
@@ -299,23 +299,23 @@ public class Translator {
      */
     protected void translateAxiomDeclaration(Declaration axiom) {
         SubjectNode entityNode = graph.getNodeIRI(axiom.getEntity().getHasValue());
-        Triple triple = null;
+        Quad quad = null;
         if (OWL2.entityClass.equals(axiom.getType()))
-            triple = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.owlClass);
+            quad = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.owlClass);
         else if (OWL2.entityDatatype.equals(axiom.getType()))
-            triple = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.rdfsDatatype);
+            quad = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.rdfsDatatype);
         else if (OWL2.entityNamedIndividual.equals(axiom.getType()))
-            triple = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.owlNamedIndividual);
+            quad = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.owlNamedIndividual);
         else if (OWL2.entityObjectProperty.equals(axiom.getType()))
-            triple = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.owlObjectProperty);
+            quad = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.owlObjectProperty);
         else if (OWL2.entityDataProperty.equals(axiom.getType()))
-            triple = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.owlDataProperty);
+            quad = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.owlDataProperty);
         else if (OWL2.entityAnnotationProperty.equals(axiom.getType()))
-            triple = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.owlAnnotationProperty);
-        if (triple != null) {
-            triples.add(triple);
+            quad = getTriple(entityNode, Vocabulary.rdfType, Vocabulary.owlAnnotationProperty);
+        if (quad != null) {
+            quads.add(quad);
             if (translateAnnotations)
-                translateAxiomAnnotations(axiom, triple);
+                translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -328,7 +328,7 @@ public class Translator {
     protected void translateAxiomDatatypeDefinition(DatatypeDefinition axiom) throws TranslationException {
         SubjectNode dt = translateDatarange(axiom.getDatatype());
         SubjectNode dr = translateDatarange(axiom.getDatarange());
-        triples.add(getTriple(dt, Vocabulary.owlEquivalentClass, dr));
+        quads.add(getTriple(dt, Vocabulary.owlEquivalentClass, dr));
     }
 
     /**
@@ -340,10 +340,10 @@ public class Translator {
     protected void translateAxiomSubClassOf(SubClassOf axiom) throws TranslationException {
         SubjectNode sub = translateClassExpression(axiom.getClasse());
         SubjectNode sup = translateClassExpression(axiom.getSuperClass());
-        Triple triple = getTriple(sub, Vocabulary.rdfsSubClassOf, sup);
-        triples.add(triple);
+        Quad quad = getTriple(sub, Vocabulary.rdfsSubClassOf, sup);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -358,10 +358,10 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
-            Triple triple = getTriple(elements.get(i), Vocabulary.owlEquivalentClass, elements.get(i + 1));
-            triples.add(triple);
+            Quad quad = getTriple(elements.get(i), Vocabulary.owlEquivalentClass, elements.get(i + 1));
+            quads.add(quad);
             if (translateAnnotations)
-                translateAxiomAnnotations(axiom, triple);
+                translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -377,14 +377,14 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
         if (elements.size() == 2) {
-            Triple triple = getTriple((SubjectNode) elements.get(0), Vocabulary.owlDisjointWith, elements.get(1));
-            triples.add(triple);
+            Quad quad = getTriple((SubjectNode) elements.get(0), Vocabulary.owlDisjointWith, elements.get(1));
+            quads.add(quad);
             if (translateAnnotations)
-                translateAxiomAnnotations(axiom, triple);
+                translateAxiomAnnotations(axiom, quad);
         } else {
             SubjectNode main = graph.getBlankNode();
-            triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlAllDisjointClasses));
-            triples.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
+            quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlAllDisjointClasses));
+            quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
             if (translateAnnotations) {
                 for (Annotation annotation : axiom.getAllAnnotations())
                     translateAnnotation(main, annotation);
@@ -404,10 +404,10 @@ public class Translator {
         Iterator<ClassExpression> expressions = XOWLUtils.getAll(axiom.getClassSeq());
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
-        Triple triple = getTriple(classe, Vocabulary.owlDisjointUnionOf, translateUnorderedSequence(elements));
-        triples.add(triple);
+        Quad quad = getTriple(classe, Vocabulary.owlDisjointUnionOf, translateUnorderedSequence(elements));
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -423,17 +423,17 @@ public class Translator {
             while (expressions.hasNext())
                 elements.add(translateObjectPropertyExpression(expressions.next()));
             SubjectNode sup = translateObjectPropertyExpression(axiom.getSuperObjectProperty());
-            Triple triple = getTriple(sup, Vocabulary.owlPropertyChainAxiom, translateOrderedSequence(elements));
-            triples.add(triple);
+            Quad quad = getTriple(sup, Vocabulary.owlPropertyChainAxiom, translateOrderedSequence(elements));
+            quads.add(quad);
             if (translateAnnotations)
-                translateAxiomAnnotations(axiom, triple);
+                translateAxiomAnnotations(axiom, quad);
         } else {
             SubjectNode sub = translateObjectPropertyExpression(axiom.getObjectProperty());
             SubjectNode sup = translateObjectPropertyExpression(axiom.getSuperObjectProperty());
-            Triple triple = getTriple(sub, Vocabulary.rdfsSubPropertyOf, sup);
-            triples.add(triple);
+            Quad quad = getTriple(sub, Vocabulary.rdfsSubPropertyOf, sup);
+            quads.add(quad);
             if (translateAnnotations)
-                translateAxiomAnnotations(axiom, triple);
+                translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -449,10 +449,10 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateObjectPropertyExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
-            Triple triple = getTriple(elements.get(i), Vocabulary.owlEquivalentProperty, elements.get(i + 1));
-            triples.add(triple);
+            Quad quad = getTriple(elements.get(i), Vocabulary.owlEquivalentProperty, elements.get(i + 1));
+            quads.add(quad);
             if (translateAnnotations)
-                translateAxiomAnnotations(axiom, triple);
+                translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -468,14 +468,14 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateObjectPropertyExpression(expressions.next()));
         if (elements.size() == 2) {
-            Triple triple = getTriple((SubjectNode) elements.get(0), Vocabulary.owlPropertyDisjointWith, elements.get(1));
-            triples.add(triple);
+            Quad quad = getTriple((SubjectNode) elements.get(0), Vocabulary.owlPropertyDisjointWith, elements.get(1));
+            quads.add(quad);
             if (translateAnnotations)
-                translateAxiomAnnotations(axiom, triple);
+                translateAxiomAnnotations(axiom, quad);
         } else {
             SubjectNode main = graph.getBlankNode();
-            triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlAllDisjointProperties));
-            triples.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
+            quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlAllDisjointProperties));
+            quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
             if (translateAnnotations) {
                 for (Annotation annotation : axiom.getAllAnnotations())
                     translateAnnotation(main, annotation);
@@ -492,10 +492,10 @@ public class Translator {
     protected void translateAxiomInverseObjectProperties(InverseObjectProperties axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         SubjectNode inv = translateObjectPropertyExpression(axiom.getInverse());
-        Triple triple = getTriple(prop, Vocabulary.owlInverseOf, inv);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.owlInverseOf, inv);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -507,10 +507,10 @@ public class Translator {
     protected void translateAxiomObjectPropertyDomain(ObjectPropertyDomain axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         SubjectNode classe = translateClassExpression(axiom.getClasse());
-        Triple triple = getTriple(prop, Vocabulary.rdfsDomain, classe);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfsDomain, classe);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -522,10 +522,10 @@ public class Translator {
     protected void translateAxiomObjectPropertyRange(ObjectPropertyRange axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         SubjectNode classe = translateClassExpression(axiom.getClasse());
-        Triple triple = getTriple(prop, Vocabulary.rdfsRange, classe);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfsRange, classe);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -536,10 +536,10 @@ public class Translator {
      */
     protected void translateAxiomFunctionalObjectProperty(FunctionalObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        Triple triple = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlFunctionalProperty);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlFunctionalProperty);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -550,10 +550,10 @@ public class Translator {
      */
     protected void translateAxiomInverseFunctionalObjectProperty(InverseFunctionalObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        Triple triple = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlInverseFunctionalProperty);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlInverseFunctionalProperty);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -564,10 +564,10 @@ public class Translator {
      */
     protected void translateAxiomReflexiveObjectProperty(ReflexiveObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        Triple triple = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlReflexiveProperty);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlReflexiveProperty);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -578,10 +578,10 @@ public class Translator {
      */
     protected void translateAxiomIrreflexiveObjectProperty(IrreflexiveObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        Triple triple = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlIrreflexiveProperty);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlIrreflexiveProperty);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -592,10 +592,10 @@ public class Translator {
      */
     protected void translateAxiomSymmetricObjectProperty(SymmetricObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        Triple triple = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlSymmetricProperty);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlSymmetricProperty);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -606,10 +606,10 @@ public class Translator {
      */
     protected void translateAxiomAsymmetricObjectProperty(AsymmetricObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        Triple triple = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlAsymmetricProperty);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlAsymmetricProperty);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -620,10 +620,10 @@ public class Translator {
      */
     protected void translateAxiomTransitiveObjectProperty(TransitiveObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
-        Triple triple = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlTransitiveProperty);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlTransitiveProperty);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -635,10 +635,10 @@ public class Translator {
     protected void translateAxiomSubDataPropertyOf(SubDataPropertyOf axiom) throws TranslationException {
         SubjectNode sub = translateDataPropertyExpression(axiom.getDataProperty());
         SubjectNode sup = translateDataPropertyExpression(axiom.getSuperDataProperty());
-        Triple triple = getTriple(sub, Vocabulary.rdfsSubPropertyOf, sup);
-        triples.add(triple);
+        Quad quad = getTriple(sub, Vocabulary.rdfsSubPropertyOf, sup);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -653,10 +653,10 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateDataPropertyExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
-            Triple triple = getTriple(elements.get(i), Vocabulary.owlEquivalentProperty, elements.get(i + 1));
-            triples.add(triple);
+            Quad quad = getTriple(elements.get(i), Vocabulary.owlEquivalentProperty, elements.get(i + 1));
+            quads.add(quad);
             if (translateAnnotations)
-                translateAxiomAnnotations(axiom, triple);
+                translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -672,14 +672,14 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateDataPropertyExpression(expressions.next()));
         if (elements.size() == 2) {
-            Triple triple = getTriple((SubjectNode) elements.get(0), Vocabulary.owlPropertyDisjointWith, elements.get(1));
-            triples.add(triple);
+            Quad quad = getTriple((SubjectNode) elements.get(0), Vocabulary.owlPropertyDisjointWith, elements.get(1));
+            quads.add(quad);
             if (translateAnnotations)
-                translateAxiomAnnotations(axiom, triple);
+                translateAxiomAnnotations(axiom, quad);
         } else {
             SubjectNode main = graph.getBlankNode();
-            triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlAllDisjointProperties));
-            triples.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
+            quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlAllDisjointProperties));
+            quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
             if (translateAnnotations) {
                 for (Annotation annotation : axiom.getAllAnnotations())
                     translateAnnotation(main, annotation);
@@ -696,10 +696,10 @@ public class Translator {
     protected void translateAxiomDataPropertyDomain(DataPropertyDomain axiom) throws TranslationException {
         SubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
         SubjectNode classe = translateClassExpression(axiom.getClasse());
-        Triple triple = getTriple(prop, Vocabulary.rdfsDomain, classe);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfsDomain, classe);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -711,10 +711,10 @@ public class Translator {
     protected void translateAxiomDataPropertyRange(DataPropertyRange axiom) throws TranslationException {
         SubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
         SubjectNode datatype = translateDatarange(axiom.getDatarange());
-        Triple triple = getTriple(prop, Vocabulary.rdfsRange, datatype);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfsRange, datatype);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -725,10 +725,10 @@ public class Translator {
      */
     protected void translateAxiomFunctionalDataProperty(FunctionalDataProperty axiom) throws TranslationException {
         SubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
-        Triple triple = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlFunctionalProperty);
-        triples.add(triple);
+        Quad quad = getTriple(prop, Vocabulary.rdfType, Vocabulary.owlFunctionalProperty);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -743,10 +743,10 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateIndividualExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
-            Triple triple = getTriple(elements.get(i), Vocabulary.owlSameAs, elements.get(i + 1));
-            triples.add(triple);
+            Quad quad = getTriple(elements.get(i), Vocabulary.owlSameAs, elements.get(i + 1));
+            quads.add(quad);
             if (translateAnnotations)
-                translateAxiomAnnotations(axiom, triple);
+                translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -762,14 +762,14 @@ public class Translator {
         while (expressions.hasNext())
             elements.add(translateIndividualExpression(expressions.next()));
         if (elements.size() == 2) {
-            Triple triple = getTriple((SubjectNode) elements.get(0), Vocabulary.owlDifferentFrom, elements.get(1));
-            triples.add(triple);
+            Quad quad = getTriple((SubjectNode) elements.get(0), Vocabulary.owlDifferentFrom, elements.get(1));
+            quads.add(quad);
             if (translateAnnotations)
-                translateAxiomAnnotations(axiom, triple);
+                translateAxiomAnnotations(axiom, quad);
         } else {
             SubjectNode main = graph.getBlankNode();
-            triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlAllDifferent));
-            triples.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
+            quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlAllDifferent));
+            quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
             if (translateAnnotations) {
                 for (Annotation annotation : axiom.getAllAnnotations())
                     translateAnnotation(main, annotation);
@@ -786,10 +786,10 @@ public class Translator {
     protected void translateAxiomClassAssertion(ClassAssertion axiom) throws TranslationException {
         SubjectNode ind = translateIndividualExpression(axiom.getIndividual());
         SubjectNode classe = translateClassExpression(axiom.getClasse());
-        Triple triple = getTriple(ind, Vocabulary.rdfType, classe);
-        triples.add(triple);
+        Quad quad = getTriple(ind, Vocabulary.rdfType, classe);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -807,10 +807,10 @@ public class Translator {
             prop = (Property) translateObjectPropertyExpression(axiom.getObjectProperty());
         SubjectNode ind = translateIndividualExpression(axiom.getIndividual());
         SubjectNode value = translateIndividualExpression(axiom.getValueIndividual());
-        Triple triple = new Triple(ontology, ind, prop, value);
-        triples.add(triple);
+        Quad quad = new Quad(ontology, ind, prop, value);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -824,10 +824,10 @@ public class Translator {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         SubjectNode ind = translateIndividualExpression(axiom.getIndividual());
         SubjectNode value = translateIndividualExpression(axiom.getValueIndividual());
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlNegativePropertyAssertion));
-        triples.add(getTriple(main, Vocabulary.owlSourceIndividual, ind));
-        triples.add(getTriple(main, Vocabulary.owlAssertionProperty, prop));
-        triples.add(getTriple(main, Vocabulary.owlTargetIndividual, value));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlNegativePropertyAssertion));
+        quads.add(getTriple(main, Vocabulary.owlSourceIndividual, ind));
+        quads.add(getTriple(main, Vocabulary.owlAssertionProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlTargetIndividual, value));
         if (translateAnnotations) {
             for (Annotation annotation : axiom.getAllAnnotations())
                 translateAnnotation(main, annotation);
@@ -844,10 +844,10 @@ public class Translator {
         Property prop = (Property) translateDataPropertyExpression(axiom.getDataProperty());
         SubjectNode ind = translateIndividualExpression(axiom.getIndividual());
         Node value = translateLiteralExpression(axiom.getValueLiteral());
-        Triple triple = new Triple(ontology, ind, prop, value);
-        triples.add(triple);
+        Quad quad = new Quad(ontology, ind, prop, value);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -861,10 +861,10 @@ public class Translator {
         SubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
         SubjectNode ind = translateIndividualExpression(axiom.getIndividual());
         Node value = translateLiteralExpression(axiom.getValueLiteral());
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlNegativePropertyAssertion));
-        triples.add(getTriple(main, Vocabulary.owlSourceIndividual, ind));
-        triples.add(getTriple(main, Vocabulary.owlAssertionProperty, prop));
-        triples.add(getTriple(main, Vocabulary.owlTargetValue, value));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlNegativePropertyAssertion));
+        quads.add(getTriple(main, Vocabulary.owlSourceIndividual, ind));
+        quads.add(getTriple(main, Vocabulary.owlAssertionProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlTargetValue, value));
         if (translateAnnotations) {
             for (Annotation annotation : axiom.getAllAnnotations())
                 translateAnnotation(main, annotation);
@@ -886,10 +886,10 @@ public class Translator {
         Iterator<DataPropertyExpression> dataExpressions = XOWLUtils.getAll(axiom.getDataPropertySeq());
         while (dataExpressions.hasNext())
             elements.add(translateDataPropertyExpression(dataExpressions.next()));
-        Triple triple = getTriple(classe, Vocabulary.owlHasKey, translateUnorderedSequence(elements));
-        triples.add(triple);
+        Quad quad = getTriple(classe, Vocabulary.owlHasKey, translateUnorderedSequence(elements));
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -900,7 +900,7 @@ public class Translator {
     protected void translateAxiomSubAnnotationPropertyOf(SubAnnotationPropertyOf axiom) {
         SubjectNode sub = translateAnnotationProperty(axiom.getAnnotProperty());
         SubjectNode sup = translateAnnotationProperty(axiom.getSuperAnnotProperty());
-        triples.add(getTriple(sub, Vocabulary.rdfsSubPropertyOf, sup));
+        quads.add(getTriple(sub, Vocabulary.rdfsSubPropertyOf, sup));
     }
 
     /**
@@ -910,7 +910,7 @@ public class Translator {
      */
     protected void translateAxiomAnnotationPropertyDomain(AnnotationPropertyDomain axiom) {
         SubjectNode prop = translateAnnotationProperty(axiom.getAnnotProperty());
-        triples.add(getTriple(prop, Vocabulary.rdfsDomain, graph.getNodeIRI(axiom.getAnnotDomain().getHasValue())));
+        quads.add(getTriple(prop, Vocabulary.rdfsDomain, graph.getNodeIRI(axiom.getAnnotDomain().getHasValue())));
     }
 
     /**
@@ -920,7 +920,7 @@ public class Translator {
      */
     protected void translateAxiomAnnotationPropertyRange(AnnotationPropertyRange axiom) {
         SubjectNode prop = translateAnnotationProperty(axiom.getAnnotProperty());
-        triples.add(getTriple(prop, Vocabulary.rdfsRange, graph.getNodeIRI(axiom.getAnnotRange().getHasValue())));
+        quads.add(getTriple(prop, Vocabulary.rdfsRange, graph.getNodeIRI(axiom.getAnnotRange().getHasValue())));
     }
 
     /**
@@ -932,10 +932,10 @@ public class Translator {
         IRINode prop = translateAnnotationProperty(axiom.getAnnotProperty());
         SubjectNode subject = translateAnnotationSubject(axiom.getAnnotSubject());
         Node value = translateAnnotationValue(axiom.getAnnotValue());
-        Triple triple = new Triple(ontology, subject, prop, value);
-        triples.add(triple);
+        Quad quad = new Quad(ontology, subject, prop, value);
+        quads.add(quad);
         if (translateAnnotations)
-            translateAxiomAnnotations(axiom, triple);
+            translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -1029,13 +1029,13 @@ public class Translator {
      */
     protected SubjectNode translateClassObjectUnionOf(ObjectUnionOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlClass));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlClass));
         List<Node> elements = new ArrayList<>();
         Iterator<ClassExpression> expressions = XOWLUtils.getAll(expression.getClassSeq());
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
-        triples.add(getTriple(main, Vocabulary.owlUnionOf, seq));
+        quads.add(getTriple(main, Vocabulary.owlUnionOf, seq));
         return main;
     }
 
@@ -1048,13 +1048,13 @@ public class Translator {
      */
     protected SubjectNode translateClassObjectIntersectionOf(ObjectIntersectionOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlClass));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlClass));
         List<Node> elements = new ArrayList<>();
         Iterator<ClassExpression> expressions = XOWLUtils.getAll(expression.getClassSeq());
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
-        triples.add(getTriple(main, Vocabulary.owlIntersectionOf, seq));
+        quads.add(getTriple(main, Vocabulary.owlIntersectionOf, seq));
         return main;
     }
 
@@ -1067,13 +1067,13 @@ public class Translator {
      */
     protected SubjectNode translateClassObjectOneOf(ObjectOneOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlClass));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlClass));
         List<Node> elements = new ArrayList<>();
         Iterator<IndividualExpression> expressions = XOWLUtils.getAll(expression.getIndividualSeq());
         while (expressions.hasNext())
             elements.add(translateIndividualExpression(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
-        triples.add(getTriple(main, Vocabulary.owlOneOf, seq));
+        quads.add(getTriple(main, Vocabulary.owlOneOf, seq));
         return main;
     }
 
@@ -1086,9 +1086,9 @@ public class Translator {
      */
     protected SubjectNode translateClassObjectComplementOf(ObjectComplementOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlClass));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlClass));
         SubjectNode comp = translateClassExpression(expression.getClasse());
-        triples.add(getTriple(main, Vocabulary.owlComplementOf, comp));
+        quads.add(getTriple(main, Vocabulary.owlComplementOf, comp));
         return main;
     }
 
@@ -1101,17 +1101,17 @@ public class Translator {
      */
     protected SubjectNode translateClassDataAllValuesFrom(DataAllValuesFrom expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         List<Node> elements = new ArrayList<>();
         Iterator<DataPropertyExpression> expressions = XOWLUtils.getAll(expression.getDataPropertySeq());
         while (expressions.hasNext())
             elements.add(translateDataPropertyExpression(expressions.next()));
         if (elements.size() == 1)
-            triples.add(getTriple(main, Vocabulary.owlOnProperty, elements.get(0)));
+            quads.add(getTriple(main, Vocabulary.owlOnProperty, elements.get(0)));
         else
-            triples.add(getTriple(main, Vocabulary.owlOnProperties, translateUnorderedSequence(elements)));
+            quads.add(getTriple(main, Vocabulary.owlOnProperties, translateUnorderedSequence(elements)));
         SubjectNode datarange = translateDatarange(expression.getDatarange());
-        triples.add(getTriple(main, Vocabulary.owlAllValuesFrom, datarange));
+        quads.add(getTriple(main, Vocabulary.owlAllValuesFrom, datarange));
         return main;
     }
 
@@ -1124,16 +1124,16 @@ public class Translator {
      */
     protected SubjectNode translateClassDataExactCardinality(DataExactCardinality expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateDataPropertyExpression(expression.getDataProperty());
-        triples.add(getTriple(main, Vocabulary.owlOnProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
         if (expression.getDatarange() != null) {
-            triples.add(getTriple(main, Vocabulary.owlQualifiedCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlQualifiedCardinality, n));
             SubjectNode datarange = translateDatarange(expression.getDatarange());
-            triples.add(getTriple(main, Vocabulary.owlOnDatarange, datarange));
+            quads.add(getTriple(main, Vocabulary.owlOnDatarange, datarange));
         } else {
-            triples.add(getTriple(main, Vocabulary.owlCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlCardinality, n));
         }
         return main;
     }
@@ -1147,11 +1147,11 @@ public class Translator {
      */
     protected SubjectNode transltateClassDataHasValue(DataHasValue expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         SubjectNode prop = translateDataPropertyExpression(expression.getDataProperty());
-        triples.add(getTriple(main, Vocabulary.owlOnProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
         Node value = translateLiteralExpression(expression.getLiteral());
-        triples.add(getTriple(main, Vocabulary.owlHasValue, value));
+        quads.add(getTriple(main, Vocabulary.owlHasValue, value));
         return main;
     }
 
@@ -1164,16 +1164,16 @@ public class Translator {
      */
     protected SubjectNode translateClassDataMaxCardinality(DataMaxCardinality expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateDataPropertyExpression(expression.getDataProperty());
-        triples.add(getTriple(main, Vocabulary.owlOnProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
         if (expression.getDatarange() != null) {
-            triples.add(getTriple(main, Vocabulary.owlMaxQualifiedCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlMaxQualifiedCardinality, n));
             SubjectNode datarange = translateDatarange(expression.getDatarange());
-            triples.add(getTriple(main, Vocabulary.owlOnDatarange, datarange));
+            quads.add(getTriple(main, Vocabulary.owlOnDatarange, datarange));
         } else {
-            triples.add(getTriple(main, Vocabulary.owlMaxCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlMaxCardinality, n));
         }
         return main;
     }
@@ -1187,16 +1187,16 @@ public class Translator {
      */
     protected SubjectNode translateClassDataMinCardinality(DataMinCardinality expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateDataPropertyExpression(expression.getDataProperty());
-        triples.add(getTriple(main, Vocabulary.owlOnProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
         if (expression.getDatarange() != null) {
-            triples.add(getTriple(main, Vocabulary.owlMinQualifiedCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlMinQualifiedCardinality, n));
             SubjectNode datarange = translateDatarange(expression.getDatarange());
-            triples.add(getTriple(main, Vocabulary.owlOnDatarange, datarange));
+            quads.add(getTriple(main, Vocabulary.owlOnDatarange, datarange));
         } else {
-            triples.add(getTriple(main, Vocabulary.owlMinCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlMinCardinality, n));
         }
         return main;
     }
@@ -1210,17 +1210,17 @@ public class Translator {
      */
     protected SubjectNode translateClassDataSomeValuesFrom(DataSomeValuesFrom expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         List<Node> elements = new ArrayList<>();
         Iterator<DataPropertyExpression> expressions = XOWLUtils.getAll(expression.getDataPropertySeq());
         while (expressions.hasNext())
             elements.add(translateDataPropertyExpression(expressions.next()));
         if (elements.size() == 1)
-            triples.add(getTriple(main, Vocabulary.owlOnProperty, elements.get(0)));
+            quads.add(getTriple(main, Vocabulary.owlOnProperty, elements.get(0)));
         else
-            triples.add(getTriple(main, Vocabulary.owlOnProperties, translateUnorderedSequence(elements)));
+            quads.add(getTriple(main, Vocabulary.owlOnProperties, translateUnorderedSequence(elements)));
         SubjectNode datarange = translateDatarange(expression.getDatarange());
-        triples.add(getTriple(main, Vocabulary.owlSomeValuesFrom, datarange));
+        quads.add(getTriple(main, Vocabulary.owlSomeValuesFrom, datarange));
         return main;
     }
 
@@ -1233,11 +1233,11 @@ public class Translator {
      */
     protected SubjectNode translateClassObjectAllValuesFrom(ObjectAllValuesFrom expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
-        triples.add(getTriple(main, Vocabulary.owlOnProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
         SubjectNode classe = translateClassExpression(expression.getClasse());
-        triples.add(getTriple(main, Vocabulary.owlAllValuesFrom, classe));
+        quads.add(getTriple(main, Vocabulary.owlAllValuesFrom, classe));
         return main;
     }
 
@@ -1250,16 +1250,16 @@ public class Translator {
      */
     protected SubjectNode translateClassObjectExactCardinality(ObjectExactCardinality expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
-        triples.add(getTriple(main, Vocabulary.owlOnProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
         if (expression.getClasse() != null) {
-            triples.add(getTriple(main, Vocabulary.owlQualifiedCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlQualifiedCardinality, n));
             SubjectNode classe = translateClassExpression(expression.getClasse());
-            triples.add(getTriple(main, Vocabulary.owlOnDatarange, classe));
+            quads.add(getTriple(main, Vocabulary.owlOnDatarange, classe));
         } else {
-            triples.add(getTriple(main, Vocabulary.owlCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlCardinality, n));
         }
         return main;
     }
@@ -1273,11 +1273,11 @@ public class Translator {
      */
     protected SubjectNode translateClassObjectHasSelf(ObjectHasSelf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
-        triples.add(getTriple(main, Vocabulary.owlOnProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
         Node valueTrue = graph.getLiteralNode("true", Vocabulary.xsdBoolean, null);
-        triples.add(getTriple(main, Vocabulary.owlHasSelf, valueTrue));
+        quads.add(getTriple(main, Vocabulary.owlHasSelf, valueTrue));
         return main;
     }
 
@@ -1290,11 +1290,11 @@ public class Translator {
      */
     protected SubjectNode translateClassObjectHasValue(ObjectHasValue expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
-        triples.add(getTriple(main, Vocabulary.owlOnProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
         SubjectNode ind = translateIndividualExpression(expression.getIndividual());
-        triples.add(getTriple(main, Vocabulary.owlHasValue, ind));
+        quads.add(getTriple(main, Vocabulary.owlHasValue, ind));
         return main;
     }
 
@@ -1307,16 +1307,16 @@ public class Translator {
      */
     protected SubjectNode translateClassObjectMaxCardinality(ObjectMaxCardinality expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
-        triples.add(getTriple(main, Vocabulary.owlOnProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
         if (expression.getClasse() != null) {
-            triples.add(getTriple(main, Vocabulary.owlMaxQualifiedCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlMaxQualifiedCardinality, n));
             SubjectNode classe = translateClassExpression(expression.getClasse());
-            triples.add(getTriple(main, Vocabulary.owlOnDatarange, classe));
+            quads.add(getTriple(main, Vocabulary.owlOnDatarange, classe));
         } else {
-            triples.add(getTriple(main, Vocabulary.owlMaxCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlMaxCardinality, n));
         }
         return main;
     }
@@ -1330,16 +1330,16 @@ public class Translator {
      */
     protected SubjectNode translateClassObjectMinCardinality(ObjectMinCardinality expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
-        triples.add(getTriple(main, Vocabulary.owlOnProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
         if (expression.getClasse() != null) {
-            triples.add(getTriple(main, Vocabulary.owlMinQualifiedCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlMinQualifiedCardinality, n));
             SubjectNode classe = translateClassExpression(expression.getClasse());
-            triples.add(getTriple(main, Vocabulary.owlOnDatarange, classe));
+            quads.add(getTriple(main, Vocabulary.owlOnDatarange, classe));
         } else {
-            triples.add(getTriple(main, Vocabulary.owlMinCardinality, n));
+            quads.add(getTriple(main, Vocabulary.owlMinCardinality, n));
         }
         return main;
     }
@@ -1353,11 +1353,11 @@ public class Translator {
      */
     protected SubjectNode translateClassObjectSomeValuesFrom(ObjectSomeValuesFrom expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlRestriction));
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
-        triples.add(getTriple(main, Vocabulary.owlOnProperty, prop));
+        quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
         SubjectNode classe = translateClassExpression(expression.getClasse());
-        triples.add(getTriple(main, Vocabulary.owlSomeValuesFrom, classe));
+        quads.add(getTriple(main, Vocabulary.owlSomeValuesFrom, classe));
         return main;
     }
 
@@ -1420,7 +1420,7 @@ public class Translator {
     protected SubjectNode translateOjectPropertyInverseOf(ObjectInverseOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
         SubjectNode inv = translateObjectPropertyExpression(expression.getInverse());
-        triples.add(getTriple(main, Vocabulary.owlInverseOf, inv));
+        quads.add(getTriple(main, Vocabulary.owlInverseOf, inv));
         return main;
     }
 
@@ -1536,9 +1536,9 @@ public class Translator {
      */
     protected SubjectNode translateDatarangeDataComplementOf(DataComplementOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.rdfsDatatype));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.rdfsDatatype));
         SubjectNode comp = translateDatarange(expression.getDatarange());
-        triples.add(getTriple(main, Vocabulary.owlDatatypeComplementOf, comp));
+        quads.add(getTriple(main, Vocabulary.owlDatatypeComplementOf, comp));
         return main;
     }
 
@@ -1551,13 +1551,13 @@ public class Translator {
      */
     protected SubjectNode translateDatarangeDataIntersectionOf(DataIntersectionOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.rdfsDatatype));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.rdfsDatatype));
         List<Node> elements = new ArrayList<>();
         Iterator<Datarange> expressions = XOWLUtils.getAll(expression.getDatarangeSeq());
         while (expressions.hasNext())
             elements.add(translateDatarange(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
-        triples.add(getTriple(main, Vocabulary.owlIntersectionOf, seq));
+        quads.add(getTriple(main, Vocabulary.owlIntersectionOf, seq));
         return main;
     }
 
@@ -1569,13 +1569,13 @@ public class Translator {
      */
     protected SubjectNode translateDatarangeDataOneOf(DataOneOf expression) {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.rdfsDatatype));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.rdfsDatatype));
         List<Node> elements = new ArrayList<>();
         Iterator<LiteralExpression> expressions = XOWLUtils.getAll(expression.getLiteralSeq());
         while (expressions.hasNext())
             elements.add(translateLiteralExpression(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
-        triples.add(getTriple(main, Vocabulary.owlOneOf, seq));
+        quads.add(getTriple(main, Vocabulary.owlOneOf, seq));
         return main;
     }
 
@@ -1588,14 +1588,14 @@ public class Translator {
      */
     protected SubjectNode translateDatarangeDatatypeRestriction(DatatypeRestriction expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.rdfsDatatype));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.rdfsDatatype));
         SubjectNode base = translateDatarange(expression.getDatarange());
-        triples.add(getTriple(main, Vocabulary.owlOnDatatype, base));
+        quads.add(getTriple(main, Vocabulary.owlOnDatatype, base));
         List<Node> elements = new ArrayList<>();
         for (FacetRestriction elem : expression.getAllFacetRestrictions())
             elements.add(translateDatarangeFacetRestriction(elem));
         SubjectNode seq = translateUnorderedSequence(elements);
-        triples.add(getTriple(main, Vocabulary.owlWithRestrictions, seq));
+        quads.add(getTriple(main, Vocabulary.owlWithRestrictions, seq));
         return main;
     }
 
@@ -1608,7 +1608,7 @@ public class Translator {
     protected SubjectNode translateDatarangeFacetRestriction(FacetRestriction restriction) {
         BlankNode main = graph.getBlankNode();
         Node lit = translateLiteralExpression(restriction.getConstrainingValue());
-        triples.add(getTriple(main, restriction.getConstrainingFacet().getHasValue(), lit));
+        quads.add(getTriple(main, restriction.getConstrainingFacet().getHasValue(), lit));
         return main;
     }
 
@@ -1621,13 +1621,13 @@ public class Translator {
      */
     protected SubjectNode translateDatarangeDataUnionOf(DataUnionOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
-        triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.rdfsDatatype));
+        quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.rdfsDatatype));
         List<Node> elements = new ArrayList<>();
         Iterator<Datarange> expressions = XOWLUtils.getAll(expression.getDatarangeSeq());
         while (expressions.hasNext())
             elements.add(translateDatarange(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
-        triples.add(getTriple(main, Vocabulary.owlUnionOf, seq));
+        quads.add(getTriple(main, Vocabulary.owlUnionOf, seq));
         return main;
     }
 
@@ -1790,13 +1790,13 @@ public class Translator {
     protected void translateAnnotation(SubjectNode annotated, Annotation annotation) {
         IRINode prop = translateAnnotationProperty(annotation.getAnnotProperty());
         Node value = translateAnnotationValue(annotation.getAnnotValue());
-        triples.add(new Triple(ontology, annotated, prop, value));
+        quads.add(new Quad(ontology, annotated, prop, value));
         if (!annotation.getAllAnnotations().isEmpty()) {
             SubjectNode main = graph.getBlankNode();
-            triples.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlAnnotation));
-            triples.add(getTriple(main, Vocabulary.owlAnnotatedSource, annotated));
-            triples.add(getTriple(main, Vocabulary.owlAnnotatedProperty, prop));
-            triples.add(getTriple(main, Vocabulary.owlAnnotatedTarget, value));
+            quads.add(getTriple(main, Vocabulary.rdfType, Vocabulary.owlAnnotation));
+            quads.add(getTriple(main, Vocabulary.owlAnnotatedSource, annotated));
+            quads.add(getTriple(main, Vocabulary.owlAnnotatedProperty, prop));
+            quads.add(getTriple(main, Vocabulary.owlAnnotatedTarget, value));
             for (Annotation child : annotation.getAllAnnotations())
                 translateAnnotation(main, child);
         }
@@ -1808,13 +1808,13 @@ public class Translator {
      * @param axiom The axiom which annotations shall be translated
      * @param main  The main triple representing the axiom
      */
-    protected void translateAxiomAnnotations(Axiom axiom, Triple main) {
+    protected void translateAxiomAnnotations(Axiom axiom, Quad main) {
         if (!axiom.getAllAnnotations().isEmpty()) {
             SubjectNode x = graph.getBlankNode();
-            triples.add(getTriple(x, Vocabulary.rdfType, Vocabulary.owlAxiom));
-            triples.add(getTriple(x, Vocabulary.owlAnnotatedSource, main.getSubject()));
-            triples.add(getTriple(x, Vocabulary.owlAnnotatedProperty, main.getProperty()));
-            triples.add(getTriple(x, Vocabulary.owlAnnotatedTarget, main.getObject()));
+            quads.add(getTriple(x, Vocabulary.rdfType, Vocabulary.owlAxiom));
+            quads.add(getTriple(x, Vocabulary.owlAnnotatedSource, main.getSubject()));
+            quads.add(getTriple(x, Vocabulary.owlAnnotatedProperty, main.getProperty()));
+            quads.add(getTriple(x, Vocabulary.owlAnnotatedTarget, main.getObject()));
             for (Annotation child : axiom.getAllAnnotations())
                 translateAnnotation(x, child);
         }

@@ -21,7 +21,6 @@
 package org.xowl.store.rdf;
 
 import org.xowl.lang.owl2.Literal;
-import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.cache.StringStore;
 import org.xowl.store.Vocabulary;
 import org.xowl.utils.collections.*;
@@ -146,11 +145,11 @@ public class RDFGraph {
     /**
      * Adds the specified triple to this graph
      *
-     * @param triple A triple
+     * @param quad A triple
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
-    public void add(Triple triple) throws UnsupportedNodeType {
-        add(triple.getOntology(), triple.getSubject(), triple.getProperty(), triple.getObject());
+    public void add(Quad quad) throws UnsupportedNodeType {
+        add(quad.getOntology(), quad.getSubject(), quad.getProperty(), quad.getObject());
     }
 
     /**
@@ -162,7 +161,7 @@ public class RDFGraph {
      * @param value    The triple value
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
-    public void add(Ontology ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+    public void add(String ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case IRINode.TYPE:
                 addEdgeFromIRI(ontology, (IRINode) subject, property, value);
@@ -183,7 +182,7 @@ public class RDFGraph {
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void addEdgeFromIRI(Ontology ontology, IRINode subject, Property property, Node value) {
+    protected void addEdgeFromIRI(String ontology, IRINode subject, Property property, Node value) {
         int key = ((IRINodeImpl) subject).getKey();
         EdgeBucket bucket = edgesIRI.get(key);
         if (bucket == null) {
@@ -201,7 +200,7 @@ public class RDFGraph {
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void addEdgeFromBlank(Ontology ontology, BlankNode subject, Property property, Node value) {
+    protected void addEdgeFromBlank(String ontology, BlankNode subject, Property property, Node value) {
         int key = subject.getBlankID();
         while (key > edgesBlank.length)
             edgesBlank = Arrays.copyOf(edgesBlank, edgesBlank.length + INIT_BLANK_SIZE);
@@ -216,11 +215,11 @@ public class RDFGraph {
     /**
      * Removes the specified triple from this graph
      *
-     * @param triple A triple
+     * @param quad A triple
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
-    public void remove(Triple triple) throws UnsupportedNodeType {
-        remove(triple.getOntology(), triple.getSubject(), triple.getProperty(), triple.getObject());
+    public void remove(Quad quad) throws UnsupportedNodeType {
+        remove(quad.getOntology(), quad.getSubject(), quad.getProperty(), quad.getObject());
     }
 
     /**
@@ -232,7 +231,7 @@ public class RDFGraph {
      * @param value    The triple value
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
-    public void remove(Ontology ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+    public void remove(String ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case IRINode.TYPE:
                 removeEdgeFromIRI(ontology, (IRINode) subject, property, value);
@@ -253,7 +252,7 @@ public class RDFGraph {
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void removeEdgeFromIRI(Ontology ontology, IRINode subject, Property property, Node value) {
+    protected void removeEdgeFromIRI(String ontology, IRINode subject, Property property, Node value) {
         int key = ((IRINodeImpl) subject).getKey();
         EdgeBucket bucket = edgesIRI.get(key);
         if (bucket == null)
@@ -271,7 +270,7 @@ public class RDFGraph {
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void removeEdgeFromBlank(Ontology ontology, BlankNode subject, Property property, Node value) {
+    protected void removeEdgeFromBlank(String ontology, BlankNode subject, Property property, Node value) {
         int key = subject.getBlankID();
         if (key >= edgesBlank.length)
             return;
@@ -288,7 +287,7 @@ public class RDFGraph {
      *
      * @return An iterator over the results
      */
-    public Iterator<Triple> getAll() {
+    public Iterator<Quad> getAll() {
         try {
             return getAll(null, null, null, null);
         } catch (UnsupportedNodeType ex) {
@@ -303,7 +302,7 @@ public class RDFGraph {
      * @param ontology A containing to match
      * @return An iterator over the results
      */
-    public Iterator<Triple> getAll(Ontology ontology) {
+    public Iterator<Quad> getAll(String ontology) {
         try {
             return getAll(null, null, null, ontology);
         } catch (UnsupportedNodeType ex) {
@@ -321,7 +320,7 @@ public class RDFGraph {
      * @return An iterator over the results
      * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public Iterator<Triple> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return getAll(subject, property, object, null);
     }
 
@@ -335,18 +334,18 @@ public class RDFGraph {
      * @return An iterator over the results
      * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public Iterator<Triple> getAll(SubjectNode subject, final Property property, final Node object, final Ontology ontology) throws UnsupportedNodeType {
+    public Iterator<Quad> getAll(SubjectNode subject, final Property property, final Node object, final String ontology) throws UnsupportedNodeType {
         if (subject == null) {
-            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<Triple>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<Quad>>() {
                 @Override
-                public <X> Iterator<Triple> adapt(X element) {
+                public <X> Iterator<Quad> adapt(X element) {
                     Couple<SubjectNode, EdgeBucket> subject = (Couple<SubjectNode, EdgeBucket>) element;
                     return subject.y.getAllTriples(property, object, ontology);
                 }
-            }), new Adapter<Triple>() {
+            }), new Adapter<Quad>() {
                 @Override
-                public <X> Triple adapt(X element) {
-                    Couple<Couple<SubjectNode, EdgeBucket>, Triple> result = (Couple<Couple<SubjectNode, EdgeBucket>, Triple>) element;
+                public <X> Quad adapt(X element) {
+                    Couple<Couple<SubjectNode, EdgeBucket>, Quad> result = (Couple<Couple<SubjectNode, EdgeBucket>, Quad>) element;
                     result.y.setSubject(result.x.x);
                     return result.y;
                 }
@@ -379,7 +378,7 @@ public class RDFGraph {
      * @param ontology A containing to match, or null
      * @return The number of different triples
      */
-    public int count(Ontology ontology) {
+    public int count(String ontology) {
         try {
             return count(null, null, null, ontology);
         } catch (UnsupportedNodeType ex) {
@@ -411,7 +410,7 @@ public class RDFGraph {
      * @return The number of different triples
      * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public int count(SubjectNode subject, Property property, Node object, Ontology ontology) throws UnsupportedNodeType {
+    public int count(SubjectNode subject, Property property, Node object, String ontology) throws UnsupportedNodeType {
         if (subject == null) {
             int count = 0;
             Iterator<Couple<SubjectNode, EdgeBucket>> iterator = getAllSubjects();

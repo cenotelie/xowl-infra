@@ -19,7 +19,6 @@
  **********************************************************************/
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.Ontology;
 import org.xowl.utils.collections.*;
 
 import java.util.Arrays;
@@ -69,7 +68,7 @@ public class EdgeBucket implements Iterable<Edge> {
      * @param property The property on this edge
      * @param value    The target value
      */
-    public void add(Ontology ontology, Property property, Node value) {
+    public void add(String ontology, Property property, Node value) {
         boolean hasEmpty = false;
         for (int i = 0; i != edges.length; i++) {
             hasEmpty = hasEmpty || (edges[i] == null);
@@ -101,7 +100,7 @@ public class EdgeBucket implements Iterable<Edge> {
      * @param value    The target value
      * @return true if this bucket is now empty and shall be removed
      */
-    public boolean remove(Ontology ontology, Property property, Node value) {
+    public boolean remove(String ontology, Property property, Node value) {
         for (int i = 0; i != edges.length; i++) {
             if (edges[i] != null && edges[i].getProperty() == property) {
                 if (edges[i].remove(ontology, value)) {
@@ -127,18 +126,18 @@ public class EdgeBucket implements Iterable<Edge> {
      * @param ontology The filtering ontology
      * @return An iterator over the triples
      */
-    public Iterator<Triple> getAllTriples(final Property property, final Node value, final Ontology ontology) {
+    public Iterator<Quad> getAllTriples(final Property property, final Node value, final String ontology) {
         if (property == null) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(edges), new Adapter<Iterator<Triple>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(edges), new Adapter<Iterator<Quad>>() {
                 @Override
-                public <X> Iterator<Triple> adapt(X element) {
+                public <X> Iterator<Quad> adapt(X element) {
                     Integer index = (Integer) element;
                     return edges[index].getAllTriples(value, ontology);
                 }
-            }), new Adapter<Triple>() {
+            }), new Adapter<Quad>() {
                 @Override
-                public <X> Triple adapt(X element) {
-                    Couple<Integer, Triple> result = (Couple<Integer, Triple>) element;
+                public <X> Quad adapt(X element) {
+                    Couple<Integer, Quad> result = (Couple<Integer, Quad>) element;
                     result.y.setProperty(edges[result.x].getProperty());
                     return result.y;
                 }
@@ -147,10 +146,10 @@ public class EdgeBucket implements Iterable<Edge> {
 
         for (int i = 0; i != edges.length; i++) {
             if (edges[i] != null && edges[i].getProperty() == property) {
-                return new AdaptingIterator<>(edges[i].getAllTriples(value, ontology), new Adapter<Triple>() {
+                return new AdaptingIterator<>(edges[i].getAllTriples(value, ontology), new Adapter<Quad>() {
                     @Override
-                    public <X> Triple adapt(X element) {
-                        Triple result = (Triple) element;
+                    public <X> Quad adapt(X element) {
+                        Quad result = (Quad) element;
                         result.setProperty(property);
                         return result;
                     }
@@ -169,7 +168,7 @@ public class EdgeBucket implements Iterable<Edge> {
      * @param ontology The filtering ontology
      * @return The number of different triples
      */
-    public int count(Property property, Node value, Ontology ontology) {
+    public int count(Property property, Node value, String ontology) {
         if (property == null) {
             int count = 0;
             for (int i = 0; i != edges.length; i++)

@@ -20,7 +20,6 @@
 package org.xowl.store;
 
 import org.junit.Assert;
-import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.Loader;
 import org.xowl.store.loaders.TurtleLoader;
 import org.xowl.store.rdf.*;
@@ -88,7 +87,7 @@ public class W3CTestSuiteGenerator {
             Assert.fail(ex.toString());
         }
         Loader loader = new TurtleLoader(graph);
-        Ontology ontology = loader.load(logger, reader, BASE_LOCATION);
+        String ontology = loader.load(logger, reader, BASE_LOCATION);
         try {
             reader.close();
         } catch (IOException ex) {
@@ -96,7 +95,7 @@ public class W3CTestSuiteGenerator {
         }
 
         try {
-            Iterator<Triple> triples = graph.getAll(null, graph.getNodeIRI(MF + "entries"), null);
+            Iterator<Quad> triples = graph.getAll(null, graph.getNodeIRI(MF + "entries"), null);
             Iterator<Node> tests = graph.getList((SubjectNode) triples.next().getObject());
             while (tests.hasNext()) {
                 SubjectNode test = (SubjectNode) tests.next();
@@ -188,7 +187,7 @@ public class W3CTestSuiteGenerator {
      */
     private Node getValue(RDFGraph graph, SubjectNode node, String property) {
         try {
-            Iterator<Triple> entries = graph.getAll(node, graph.getNodeIRI(property), null);
+            Iterator<Quad> entries = graph.getAll(node, graph.getNodeIRI(property), null);
             if (!entries.hasNext())
                 return null;
             return entries.next().getObject();

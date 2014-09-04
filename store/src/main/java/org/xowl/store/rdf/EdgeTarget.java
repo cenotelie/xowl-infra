@@ -19,7 +19,6 @@
  **********************************************************************/
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.Ontology;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.SingleIterator;
@@ -33,11 +32,12 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public class EdgeTarget implements Iterable<Ontology> {
+public class EdgeTarget implements Iterable<String> {
     /**
      * The initial size of the buffer of the multiplicities
      */
     private static final int INIT_BUFFER_SIZE = 3;
+
     /**
      * The represented target node
      */
@@ -45,7 +45,7 @@ public class EdgeTarget implements Iterable<Ontology> {
     /**
      * The containing ontologies
      */
-    private Ontology[] ontologies;
+    private String[] ontologies;
     /**
      * The multiplicity counters for the ontologies
      */
@@ -61,9 +61,9 @@ public class EdgeTarget implements Iterable<Ontology> {
      * @param ontology The first containing ontology
      * @param target   The represented target
      */
-    public EdgeTarget(Ontology ontology, Node target) {
+    public EdgeTarget(String ontology, Node target) {
         this.target = target;
-        this.ontologies = new Ontology[INIT_BUFFER_SIZE];
+        this.ontologies = new String[INIT_BUFFER_SIZE];
         this.multiplicities = new int[INIT_BUFFER_SIZE];
         this.ontologies[0] = ontology;
         this.multiplicities[0] = 1;
@@ -93,11 +93,11 @@ public class EdgeTarget implements Iterable<Ontology> {
      *
      * @param ontology An ontology
      */
-    public void add(Ontology ontology) {
+    public void add(String ontology) {
         boolean hasEmpty = false;
         for (int i = 0; i != ontologies.length; i++) {
             hasEmpty = hasEmpty || (ontologies[i] == null);
-            if (ontologies[i] == ontology) {
+            if (ontologies[i] != null && ontologies[i].equals(ontology)) {
                 multiplicities[i]++;
                 return;
             }
@@ -126,9 +126,9 @@ public class EdgeTarget implements Iterable<Ontology> {
      * @param ontology An ontology
      * @return true if this target is now empty and should be removed
      */
-    public boolean remove(Ontology ontology) {
+    public boolean remove(String ontology) {
         for (int i = 0; i != ontologies.length; i++) {
-            if (ontologies[i] == ontology) {
+            if (ontologies[i] != null && ontologies[i].equals(ontology)) {
                 multiplicities[i]--;
                 if (multiplicities[i] == 0) {
                     ontologies[i] = null;
@@ -141,7 +141,7 @@ public class EdgeTarget implements Iterable<Ontology> {
     }
 
     @Override
-    public Iterator<Ontology> iterator() {
+    public Iterator<String> iterator() {
         return new SparseIterator<>(ontologies);
     }
 
@@ -151,22 +151,22 @@ public class EdgeTarget implements Iterable<Ontology> {
      * @param ontology The filtering ontology
      * @return An iterator over the triples
      */
-    public Iterator<Triple> getAllTriples(Ontology ontology) {
+    public Iterator<Quad> getAllTriples(String ontology) {
         if (ontology == null) {
-            return new AdaptingIterator<>(iterator(), new Adapter<Triple>() {
+            return new AdaptingIterator<>(iterator(), new Adapter<Quad>() {
                 @Override
-                public <X> Triple adapt(X element) {
-                    return new Triple((Ontology) element, null, null, null);
+                public <X> Quad adapt(X element) {
+                    return new Quad((String) element, null, null, null);
                 }
             });
         }
 
         for (int i = 0; i != ontologies.length; i++) {
-            if (ontologies[i] == ontology) {
-                return new AdaptingIterator<>(new SingleIterator<>(ontology), new Adapter<Triple>() {
+            if (ontologies[i] != null && ontologies[i].equals(ontology)) {
+                return new AdaptingIterator<>(new SingleIterator<>(ontology), new Adapter<Quad>() {
                     @Override
-                    public <X> Triple adapt(X element) {
-                        return new Triple((Ontology) element, null, null, null);
+                    public <X> Quad adapt(X element) {
+                        return new Quad((String) element, null, null, null);
                     }
                 });
             }
@@ -181,11 +181,11 @@ public class EdgeTarget implements Iterable<Ontology> {
      * @param ontology The filtering ontology
      * @return The number of different triples
      */
-    public int count(Ontology ontology) {
+    public int count(String ontology) {
         if (ontology == null)
             return size;
         for (int i = 0; i != ontologies.length; i++)
-            if (ontologies[i] == ontology)
+            if (ontologies[i].equals(ontology))
                 return 1;
         return 0;
     }

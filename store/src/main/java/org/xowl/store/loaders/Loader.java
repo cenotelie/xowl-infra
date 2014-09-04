@@ -49,5 +49,5 @@ public abstract class Loader {
      * @param uri    The resource's URI
      * @return The ontology containing the loaded data
      */
-    public abstract Ontology load(Logger logger, Reader reader, String uri);
+    public abstract String load(Logger logger, Reader reader, String uri);
 }

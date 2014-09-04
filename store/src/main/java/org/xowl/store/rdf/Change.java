@@ -29,7 +29,7 @@ public class Change {
     /**
      * The value of the change
      */
-    private Triple triple;
+    private Quad quad;
     /**
      * Whether this change is an addition, or a removal
      */
@@ -38,11 +38,11 @@ public class Change {
     /**
      * Initializes this change
      *
-     * @param triple   The value of this change
+     * @param quad   The value of this change
      * @param positive Whether this change is an addition, or a removal
      */
-    public Change(Triple triple, boolean positive) {
-        this.triple = triple;
+    public Change(Quad quad, boolean positive) {
+        this.quad = quad;
         this.positive = positive;
     }
 
@@ -51,8 +51,8 @@ public class Change {
      *
      * @return The value of this change
      */
-    public Triple getValue() {
-        return triple;
+    public Quad getValue() {
+        return quad;
     }
 
     /**

@@ -24,8 +24,6 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.Context;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
-import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.Files;
@@ -56,7 +54,7 @@ public class NQuadsLoader extends Loader {
     /**
      * Map of the current ontologies
      */
-    private Map<String, Ontology> ontologies;
+    private Map<String, String> ontologies;
 
     /**
      * Initializes this loader
@@ -90,11 +88,11 @@ public class NQuadsLoader extends Loader {
     }
 
     @Override
-    public Ontology load(Logger logger, Reader reader, String uri) {
+    public String load(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
         ontologies = new HashMap<>();
-        List<Triple> triples = new ArrayList<>();
-        Ontology ontology = Utils.createNewOntology();
+        List<Quad> quads = new ArrayList<>();
+        String ontology = Utils.createNewOntology();
 
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
@@ -105,12 +103,12 @@ public class NQuadsLoader extends Loader {
                 Node n1 = getRDFNode(statement.getChildren().get(0));
                 Node n2 = getRDFNode(statement.getChildren().get(1));
                 Node n3 = getRDFNode(statement.getChildren().get(2));
-                Ontology target;
+                String target;
                 if (statement.getChildren().size() > 3)
                     target = translateGraphLabel(statement.getChildren().get(3));
                 else
                     target = ontology;
-                triples.add(new Triple(target, (SubjectNode) n1, (Property) n2, n3));
+                quads.add(new Quad(target, (SubjectNode) n1, (Property) n2, n3));
             }
         } catch (IllegalArgumentException ex) {
             // IRI must be absolute
@@ -118,8 +116,8 @@ public class NQuadsLoader extends Loader {
         }
 
         try {
-            for (Triple triple : triples)
-                graph.add(triple);
+            for (Quad quad : quads)
+                graph.add(quad);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }
@@ -211,26 +209,18 @@ public class NQuadsLoader extends Loader {
      * @param node The graph label AST node
      * @return The corresponding ontology
      */
-    private Ontology translateGraphLabel(ASTNode node) {
+    private String translateGraphLabel(ASTNode node) {
         if (node.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
             String value = node.getSymbol().getValue();
             value = Utils.unescape(value.substring(1, value.length() - 1));
             URI uri = URI.create(value);
             if (!uri.isAbsolute())
                 throw new IllegalArgumentException("IRI must be absolute");
-            Ontology ontology = ontologies.get(value);
-            if (ontology == null) {
-                IRI iri = new IRI();
-                iri.setHasValue(value);
-                ontology = new Ontology();
-                ontology.setHasIRI(iri);
-                ontologies.put(value, ontology);
-            }
-            return ontology;
+            return value;
         } else {
             String key = node.getSymbol().getValue();
             key = key.substring(2);
-            Ontology ontology = ontologies.get(key);
+            String ontology = ontologies.get(key);
             if (ontology == null) {
                 ontology = Utils.createNewOntology();
                 ontologies.put(key, ontology);

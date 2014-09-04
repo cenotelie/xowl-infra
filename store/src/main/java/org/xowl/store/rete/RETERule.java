@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.Triple;
+import org.xowl.store.rdf.Quad;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,11 +35,11 @@ public class RETERule {
     /**
      * The positive conditions to this rule
      */
-    private List<Triple> positives;
+    private List<Quad> positives;
     /**
      * The list of conjunctive negative conditions to this rule
      */
-    private List<Collection<Triple>> negatives;
+    private List<Collection<Quad>> negatives;
     /**
      * The output node in the RETE network for elements matching this rule
      */
@@ -61,7 +61,7 @@ public class RETERule {
      *
      * @param condition A positive condition
      */
-    public void addPositiveCondition(Triple condition) {
+    public void addPositiveCondition(Quad condition) {
         positives.add(condition);
     }
 
@@ -70,7 +70,7 @@ public class RETERule {
      *
      * @param conditions A set of conjunctive conditions
      */
-    public void addNegativeConsitions(Collection<Triple> conditions) {
+    public void addNegativeConsitions(Collection<Quad> conditions) {
         negatives.add(conditions);
     }
 
@@ -79,7 +79,7 @@ public class RETERule {
      *
      * @return The positive conditions of this rule
      */
-    public Collection<Triple> getPositives() {
+    public Collection<Quad> getPositives() {
         return positives;
     }
 
@@ -88,7 +88,7 @@ public class RETERule {
      *
      * @return The negative conjunctions of conditions
      */
-    public Collection<Collection<Triple>> getNegatives() {
+    public Collection<Collection<Quad>> getNegatives() {
         return negatives;
     }
 

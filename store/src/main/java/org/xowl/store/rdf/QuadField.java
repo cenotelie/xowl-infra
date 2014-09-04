@@ -25,19 +25,24 @@ package org.xowl.store.rdf;
  *
  * @author Laurent Wouters
  */
-public enum TripleField {
+public enum QuadField {
     /**
-     * The triple's subject
+     * The quad's subject
      */
     SUBJECT,
 
     /**
-     * The triple's property
+     * The quad's property
      */
     PROPERTY,
 
     /**
-     * The triple's value
+     * The quad's value
      */
-    VALUE
+    VALUE,
+
+    /**
+     * The enclosing quad's ontology
+     */
+    ONTOLOGY,
 }

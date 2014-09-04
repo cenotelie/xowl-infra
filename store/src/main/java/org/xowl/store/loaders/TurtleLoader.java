@@ -24,7 +24,6 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.Context;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
-import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.Files;
@@ -50,7 +49,7 @@ public class TurtleLoader extends Loader {
     /**
      * The loaded triples
      */
-    private List<Triple> triples;
+    private List<Quad> quads;
     /**
      * The URI of the resource currently being loaded
      */
@@ -70,7 +69,7 @@ public class TurtleLoader extends Loader {
     /**
      * The current ontology
      */
-    private Ontology ontology;
+    private String ontology;
     /**
      * The cached node for the RDF#type property
      */
@@ -116,8 +115,8 @@ public class TurtleLoader extends Loader {
     }
 
     @Override
-    public Ontology load(Logger logger, Reader reader, String uri) {
-        triples = new ArrayList<>();
+    public String load(Logger logger, Reader reader, String uri) {
+        quads = new ArrayList<>();
         ontology = Utils.createNewOntology();
         resource = uri;
         baseURI = null;
@@ -150,8 +149,8 @@ public class TurtleLoader extends Loader {
         }
 
         try {
-            for (Triple triple : triples)
-                graph.add(triple);
+            for (Quad quad : quads)
+                graph.add(quad);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }
@@ -437,12 +436,12 @@ public class TurtleLoader extends Loader {
         BlankNode[] proxies = new BlankNode[elements.size()];
         for (int i = 0; i != proxies.length; i++) {
             proxies[i] = graph.getBlankNode();
-            triples.add(new Triple(ontology, proxies[i], graph.getNodeIRI(Vocabulary.rdfFirst), elements.get(i)));
+            quads.add(new Quad(ontology, proxies[i], graph.getNodeIRI(Vocabulary.rdfFirst), elements.get(i)));
         }
         for (int i = 0; i != proxies.length - 1; i++) {
-            triples.add(new Triple(ontology, proxies[i], graph.getNodeIRI(Vocabulary.rdfRest), proxies[i + 1]));
+            quads.add(new Quad(ontology, proxies[i], graph.getNodeIRI(Vocabulary.rdfRest), proxies[i + 1]));
         }
-        triples.add(new Triple(ontology, proxies[proxies.length - 1], graph.getNodeIRI(Vocabulary.rdfRest), graph.getNodeIRI(Vocabulary.rdfNil)));
+        quads.add(new Quad(ontology, proxies[proxies.length - 1], graph.getNodeIRI(Vocabulary.rdfRest), graph.getNodeIRI(Vocabulary.rdfNil)));
         return proxies[0];
     }
 
@@ -494,7 +493,7 @@ public class TurtleLoader extends Loader {
             Property verb = (Property) getNode(children.get(index));
             for (ASTNode objectNode : children.get(index + 1).getChildren()) {
                 Node object = getNode(objectNode);
-                triples.add(new Triple(ontology, subject, verb, object));
+                quads.add(new Quad(ontology, subject, verb, object));
             }
             index += 2;
         }

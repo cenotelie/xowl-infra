@@ -23,7 +23,6 @@ package org.xowl.store.owl;
 import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.lang.owl2.Expression;
-import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.*;
 
@@ -122,7 +121,7 @@ public class XOWLGraph extends RDFGraph {
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     @Override
-    public void add(Ontology ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+    public void add(String ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case AnonymousNode.TYPE:
                 addEdgeFromAnonymous(ontology, (AnonymousNode) subject, property, value);
@@ -146,7 +145,7 @@ public class XOWLGraph extends RDFGraph {
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void addEdgeFromAnonymous(Ontology ontology, AnonymousNode subject, Property property, Node value) {
+    protected void addEdgeFromAnonymous(String ontology, AnonymousNode subject, Property property, Node value) {
         AnonymousIndividual key = subject.getAnonymous();
         EdgeBucket bucket = edgesAnon.get(key);
         if (bucket == null) {
@@ -166,7 +165,7 @@ public class XOWLGraph extends RDFGraph {
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     @Override
-    public void remove(Ontology ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+    public void remove(String ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case AnonymousNode.TYPE:
                 removeEdgeFromAnon(ontology, (AnonymousNode) subject, property, value);
@@ -190,7 +189,7 @@ public class XOWLGraph extends RDFGraph {
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void removeEdgeFromAnon(Ontology ontology, AnonymousNode subject, Property property, Node value) {
+    protected void removeEdgeFromAnon(String ontology, AnonymousNode subject, Property property, Node value) {
         AnonymousIndividual key = subject.getAnonymous();
         EdgeBucket bucket = edgesAnon.get(key);
         if (bucket == null)

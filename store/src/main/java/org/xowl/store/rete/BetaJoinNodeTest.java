@@ -22,8 +22,8 @@ package org.xowl.store.rete;
 
 import org.xowl.store.owl.VariableNode;
 import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.Triple;
-import org.xowl.store.rdf.TripleField;
+import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.QuadField;
 
 /**
  * Represents a test for the joining operations in the beta graph of a RETE network
@@ -38,7 +38,7 @@ public class BetaJoinNodeTest {
     /**
      * The field of a triple to test
      */
-    private TripleField field;
+    private QuadField field;
 
     /**
      * Initializes this test
@@ -46,7 +46,7 @@ public class BetaJoinNodeTest {
      * @param var   The tested variable
      * @param field The tested field
      */
-    public BetaJoinNodeTest(VariableNode var, TripleField field) {
+    public BetaJoinNodeTest(VariableNode var, QuadField field) {
         this.variable = var;
         this.field = field;
     }
@@ -65,7 +65,7 @@ public class BetaJoinNodeTest {
      *
      * @return The tested field
      */
-    public TripleField getField() {
+    public QuadField getField() {
         return field;
     }
 
@@ -76,7 +76,7 @@ public class BetaJoinNodeTest {
      * @param fact  The fact to test
      * @return true if the test succeeded
      */
-    public boolean check(Token token, Triple fact) {
+    public boolean check(Token token, Quad fact) {
         Node arg1 = token.getBinding(variable);
         Node arg2 = fact.getField(field);
         return (arg1 == arg2);

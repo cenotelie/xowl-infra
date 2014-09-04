@@ -20,7 +20,6 @@
 package org.xowl.store;
 
 import org.junit.Assert;
-import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.*;
 import org.xowl.store.rdf.*;
 
@@ -69,7 +68,7 @@ public abstract class W3CTestSuite {
             loader = new RDFXMLLoader(graph);
         if (loader == null)
             Assert.fail("Failed to recognize resource " + expectedResource);
-        Ontology expectedOntology = loader.load(logger, reader, expectedURI);
+        String expectedOntology = loader.load(logger, reader, expectedURI);
         Assert.assertFalse("Failed to parse resource " + expectedResource, logger.isOnError());
         Assert.assertNotNull("Failed to load resource " + expectedResource, expectedOntology);
         try {
@@ -95,7 +94,7 @@ public abstract class W3CTestSuite {
             loader = new RDFXMLLoader(graph);
         if (loader == null)
             Assert.fail("Failed to recognize resource " + testedResource);
-        Ontology testedOntology = loader.load(logger, reader, testedURI);
+        String testedOntology = loader.load(logger, reader, testedURI);
         Assert.assertFalse("Failed to parse resource " + testedResource, logger.isOnError());
         Assert.assertNotNull("Failed to load resource " + testedResource, testedOntology);
         try {
@@ -141,7 +140,7 @@ public abstract class W3CTestSuite {
             Assert.fail(ex.toString());
         }
 
-        Ontology result = loader.load(logger, reader, uri);
+        String result = loader.load(logger, reader, uri);
         Assert.assertFalse("Failed to parse resource " + physicalResource, logger.isOnError());
         Assert.assertNotNull("Failed to load resource " + physicalResource, result);
 
@@ -186,7 +185,7 @@ public abstract class W3CTestSuite {
             Assert.fail(ex.toString());
         }
 
-        Ontology result = loader.load(logger, reader, uri);
+        String result = loader.load(logger, reader, uri);
         Assert.assertNull("Mistakenly reported success of loading " + physicalResource, result);
         Assert.assertEquals("Graph has been modified despite errors in input", 0, graph.count());
 
@@ -204,14 +203,14 @@ public abstract class W3CTestSuite {
      * @param expected The ontology containing the expected triples
      * @param tested   The ontology containing the tested triples
      */
-    protected void matches(RDFGraph graph, Ontology expected, Ontology tested) {
-        List<Triple> triplesExpected = new ArrayList<>();
-        Iterator<Triple> iterator = graph.getAll(expected);
+    protected void matches(RDFGraph graph, String expected, String tested) {
+        List<Quad> triplesExpected = new ArrayList<>();
+        Iterator<Quad> iterator = graph.getAll(expected);
         while (iterator.hasNext()) {
             triplesExpected.add(iterator.next());
         }
 
-        List<Triple> triplesTested = new ArrayList<>();
+        List<Quad> triplesTested = new ArrayList<>();
         iterator = graph.getAll(tested);
         while (iterator.hasNext()) {
             triplesTested.add(iterator.next());
@@ -226,15 +225,15 @@ public abstract class W3CTestSuite {
      * @param expected The expected set of triples
      * @param tested   The tested set of triples
      */
-    protected void matches(List<Triple> expected, List<Triple> tested) {
+    protected void matches(List<Quad> expected, List<Quad> tested) {
         Map<BlankNode, BlankNode> blanks = new HashMap<>();
         for (int i = 0; i != expected.size(); i++) {
-            Triple triple = expected.get(i);
-            if (triple.getSubject().getNodeType() != BlankNode.TYPE) {
+            Quad quad = expected.get(i);
+            if (quad.getSubject().getNodeType() != BlankNode.TYPE) {
                 // ignore blank nodes at this time
                 boolean found = false;
-                for (Triple potential : tested) {
-                    if (sameTriple(triple, potential, blanks)) {
+                for (Quad potential : tested) {
+                    if (sameTriple(quad, potential, blanks)) {
                         found = true;
                         tested.remove(potential);
                         break;
@@ -244,7 +243,7 @@ public abstract class W3CTestSuite {
                     expected.remove(i);
                     i--;
                 } else {
-                    Assert.fail("Expected triple not produced: " + triple.toString());
+                    Assert.fail("Expected triple not produced: " + quad.toString());
                 }
             }
         }
@@ -254,10 +253,10 @@ public abstract class W3CTestSuite {
             // while no more modifications
             size = expected.size();
             for (int i = 0; i != expected.size(); i++) {
-                Triple triple = expected.get(i);
+                Quad quad = expected.get(i);
                 boolean found = false;
-                for (Triple potential : tested) {
-                    if (sameTriple(triple, potential, blanks)) {
+                for (Quad potential : tested) {
+                    if (sameTriple(quad, potential, blanks)) {
                         found = true;
                         tested.remove(potential);
                         break;
@@ -267,7 +266,7 @@ public abstract class W3CTestSuite {
                     expected.remove(i);
                     i--;
                 } else {
-                    Assert.fail("Expected triple not produced: " + triple.toString());
+                    Assert.fail("Expected triple not produced: " + quad.toString());
                 }
             }
         }
@@ -276,44 +275,44 @@ public abstract class W3CTestSuite {
             Assert.fail("Failed to match all triples");
         }
 
-        for (Triple triple : tested) {
+        for (Quad quad : tested) {
             // fail on supplementary triples
-            Assert.fail("Unexpected triple produced: " + triple.toString());
+            Assert.fail("Unexpected triple produced: " + quad.toString());
         }
     }
 
     /**
      * Determines whether the specified triples are equivalent, using the given blank nde mapping
      *
-     * @param triple1 A triple
-     * @param triple2 Another triple
+     * @param quad1 A triple
+     * @param quad2 Another triple
      * @param blanks  A map of blank nodes
      * @return <code>true</code> if the two triples are equivalent
      */
-    protected boolean sameTriple(Triple triple1, Triple triple2, Map<BlankNode, BlankNode> blanks) {
-        SubjectNode subject = triple1.getSubject();
-        Property property = triple1.getProperty();
-        Node object = triple1.getObject();
+    protected boolean sameTriple(Quad quad1, Quad quad2, Map<BlankNode, BlankNode> blanks) {
+        SubjectNode subject = quad1.getSubject();
+        Property property = quad1.getProperty();
+        Node object = quad1.getObject();
         if (subject.getNodeType() == BlankNode.TYPE) {
             subject = blanks.get(subject);
         }
         if (object.getNodeType() == BlankNode.TYPE) {
             object = blanks.get(object);
         }
-        if (!property.equals(triple2.getProperty()))
+        if (!property.equals(quad2.getProperty()))
             return false;
-        if (subject != null && !subject.equals(triple2.getSubject()))
+        if (subject != null && !subject.equals(quad2.getSubject()))
             return false;
-        if (object != null && !object.equals(triple2.getObject()))
+        if (object != null && !object.equals(quad2.getObject()))
             return false;
-        if (subject == null && triple2.getSubject().getNodeType() != BlankNode.TYPE)
+        if (subject == null && quad2.getSubject().getNodeType() != BlankNode.TYPE)
             return false;
-        if (object == null && triple2.getObject().getNodeType() != BlankNode.TYPE)
+        if (object == null && quad2.getObject().getNodeType() != BlankNode.TYPE)
             return false;
         if (subject == null)
-            blanks.put((BlankNode) triple1.getSubject(), (BlankNode) triple2.getSubject());
+            blanks.put((BlankNode) quad1.getSubject(), (BlankNode) quad2.getSubject());
         if (object == null)
-            blanks.put((BlankNode) triple1.getObject(), (BlankNode) triple2.getObject());
+            blanks.put((BlankNode) quad1.getObject(), (BlankNode) quad2.getObject());
         return true;
     }
 }

@@ -20,7 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.Triple;
+import org.xowl.store.rdf.Quad;
 
 import java.util.*;
 
@@ -49,7 +49,7 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
     /**
      * The current matches in this node
      */
-    private Map<Token, List<Triple>> matches;
+    private Map<Token, List<Quad>> matches;
 
     /**
      * Initializes this node
@@ -97,7 +97,7 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
 
     @Override
     public void activateToken(Token token) {
-        for (Triple fact : alphaMem.getFacts())
+        for (Quad fact : alphaMem.getFacts())
             applyPositive(token, fact);
         if (!matches.containsKey(token))
             child.activateToken(token);
@@ -114,7 +114,7 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
         Iterator<Token> iterator = tokens.iterator();
         while (iterator.hasNext()) {
             Token token = iterator.next();
-            for (Triple fact : alphaMem.getFacts())
+            for (Quad fact : alphaMem.getFacts())
                 applyPositive(token, fact);
             if (matches.containsKey(token))
                 iterator.remove();
@@ -136,7 +136,7 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
     }
 
     @Override
-    public void activateFact(Triple fact) {
+    public void activateFact(Quad fact) {
         for (Token token : betaMem.getTokens()) {
             applyPositive(token, fact);
             if (matches.containsKey(token))
@@ -145,7 +145,7 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
     }
 
     @Override
-    public void deactivateFact(Triple fact) {
+    public void deactivateFact(Quad fact) {
         for (Token token : betaMem.getTokens()) {
             if (applyNegative(token, fact)) {
                 child.activateToken(token);
@@ -154,9 +154,9 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
     }
 
     @Override
-    public void activateFacts(Collection<Triple> facts) {
+    public void activateFacts(Collection<Quad> facts) {
         List<Token> deactivated = new ArrayList<Token>();
-        for (Triple fact : facts) {
+        for (Quad fact : facts) {
             for (Token token : betaMem.getTokens()) {
                 applyPositive(token, fact);
                 if (matches.containsKey(token))
@@ -173,9 +173,9 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
     }
 
     @Override
-    public void deactivateFacts(Collection<Triple> facts) {
+    public void deactivateFacts(Collection<Quad> facts) {
         List<Token> reactivated = new ArrayList<Token>();
-        for (Triple fact : facts) {
+        for (Quad fact : facts) {
             for (Token token : betaMem.getTokens()) {
                 if (applyNegative(token, fact))
                     reactivated.add(token);
@@ -196,13 +196,13 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
      * @param token A parent token
      * @param fact  An input fact
      */
-    private void applyPositive(Token token, Triple fact) {
+    private void applyPositive(Token token, Quad fact) {
         for (BetaJoinNodeTest test : tests) {
             if (!test.check(token, fact)) {
                 return;
             }
         }
-        List<Triple> tsm = matches.get(token);
+        List<Quad> tsm = matches.get(token);
         if (tsm == null) {
             tsm = new ArrayList<>();
             matches.put(token, tsm);
@@ -217,8 +217,8 @@ public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactAc
      * @param fact  An input fact
      * @return True if the negative join was triggered
      */
-    private boolean applyNegative(Token token, Triple fact) {
-        List<Triple> tsm = matches.get(token);
+    private boolean applyNegative(Token token, Quad fact) {
+        List<Quad> tsm = matches.get(token);
         if (tsm == null)
             return false;
         if (!tsm.remove(fact))
