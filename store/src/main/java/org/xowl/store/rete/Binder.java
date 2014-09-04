@@ -20,9 +20,9 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.owl.VariableNode;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.QuadField;
+import org.xowl.store.rdf.VariableNode;
 
 /**
  * Represents a binding operation that binds a variable to the field of a triple

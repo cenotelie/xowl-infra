@@ -20,10 +20,10 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.owl.VariableNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.QuadField;
+import org.xowl.store.rdf.VariableNode;
 
 /**
  * Represents a test for the joining operations in the beta graph of a RETE network

@@ -18,8 +18,9 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.owl;
+package org.xowl.engine.owl;
 
+import org.xowl.engine.XOWLUtils;
 import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.owl2.DataAllValuesFrom;
@@ -42,7 +43,6 @@ import org.xowl.lang.owl2.ObjectSomeValuesFrom;
 import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
 import org.xowl.store.Vocabulary;
-import org.xowl.store.XOWLUtils;
 import org.xowl.store.rdf.*;
 import org.xowl.store.rdf.Property;
 import org.xowl.store.voc.OWL2;
@@ -122,7 +122,7 @@ public class Translator {
      * Executes this job and gets the translation result
      *
      * @return The translation result
-     * @throws org.xowl.store.owl.TranslationException When a runtime entity is not named
+     * @throws TranslationException When a runtime entity is not named
      */
     public Collection<Quad> execute() throws TranslationException {
         while (input.hasNext())
@@ -212,7 +212,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime entity is not named
+     * @throws TranslationException When a runtime entity is not named
      */
     protected void translateAxiom(Axiom axiom) throws TranslationException {
         java.lang.Class c = axiom.getClass();
@@ -323,7 +323,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime datatype is not named
+     * @throws TranslationException When a runtime datatype is not named
      */
     protected void translateAxiomDatatypeDefinition(DatatypeDefinition axiom) throws TranslationException {
         SubjectNode dt = translateDatarange(axiom.getDatatype());
@@ -335,7 +335,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime class is not named
+     * @throws TranslationException When a runtime class is not named
      */
     protected void translateAxiomSubClassOf(SubClassOf axiom) throws TranslationException {
         SubjectNode sub = translateClassExpression(axiom.getClasse());
@@ -350,7 +350,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime class is not named
+     * @throws TranslationException When a runtime class is not named
      */
     protected void translateAxiomEquivalentClasses(EquivalentClasses axiom) throws TranslationException {
         List<SubjectNode> elements = new ArrayList<>();
@@ -369,7 +369,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime class is not named
+     * @throws TranslationException When a runtime class is not named
      */
     protected void translateAxiomDisjointClasses(DisjointClasses axiom) throws TranslationException {
         List<Node> elements = new ArrayList<>();
@@ -396,7 +396,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime class is not named
+     * @throws TranslationException When a runtime class is not named
      */
     protected void translateAxiomDisjointUnion(DisjointUnion axiom) throws TranslationException {
         SubjectNode classe = translateClassExpression(axiom.getClasse());
@@ -414,7 +414,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomSubObjectPropertyOf(SubObjectPropertyOf axiom) throws TranslationException {
         if (axiom.getObjectPropertyChain() != null) {
@@ -441,7 +441,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomEquivalentObjectProperties(EquivalentObjectProperties axiom) throws TranslationException {
         List<SubjectNode> elements = new ArrayList<>();
@@ -460,7 +460,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomDisjointObjectProperties(DisjointObjectProperties axiom) throws TranslationException {
         List<Node> elements = new ArrayList<>();
@@ -487,7 +487,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomInverseObjectProperties(InverseObjectProperties axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
@@ -502,7 +502,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime class is not named
+     * @throws TranslationException When a runtime class is not named
      */
     protected void translateAxiomObjectPropertyDomain(ObjectPropertyDomain axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
@@ -517,7 +517,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime class is not named
+     * @throws TranslationException When a runtime class is not named
      */
     protected void translateAxiomObjectPropertyRange(ObjectPropertyRange axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
@@ -532,7 +532,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomFunctionalObjectProperty(FunctionalObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
@@ -546,7 +546,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomInverseFunctionalObjectProperty(InverseFunctionalObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
@@ -560,7 +560,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomReflexiveObjectProperty(ReflexiveObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
@@ -574,7 +574,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomIrreflexiveObjectProperty(IrreflexiveObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
@@ -588,7 +588,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomSymmetricObjectProperty(SymmetricObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
@@ -602,7 +602,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomAsymmetricObjectProperty(AsymmetricObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
@@ -616,7 +616,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomTransitiveObjectProperty(TransitiveObjectProperty axiom) throws TranslationException {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
@@ -630,7 +630,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected void translateAxiomSubDataPropertyOf(SubDataPropertyOf axiom) throws TranslationException {
         SubjectNode sub = translateDataPropertyExpression(axiom.getDataProperty());
@@ -645,7 +645,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected void translateAxiomEquivalentDataProperties(EquivalentDataProperties axiom) throws TranslationException {
         List<SubjectNode> elements = new ArrayList<>();
@@ -664,7 +664,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected void translateAxiomDisjointDataProperties(DisjointDataProperties axiom) throws TranslationException {
         List<Node> elements = new ArrayList<>();
@@ -691,7 +691,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime class is not named
+     * @throws TranslationException When a runtime class is not named
      */
     protected void translateAxiomDataPropertyDomain(DataPropertyDomain axiom) throws TranslationException {
         SubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
@@ -706,7 +706,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected void translateAxiomDataPropertyRange(DataPropertyRange axiom) throws TranslationException {
         SubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
@@ -721,7 +721,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected void translateAxiomFunctionalDataProperty(FunctionalDataProperty axiom) throws TranslationException {
         SubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
@@ -735,7 +735,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException when a runtime individual is not named
+     * @throws TranslationException when a runtime individual is not named
      */
     protected void translateAxiomSameIndividual(SameIndividual axiom) throws TranslationException {
         List<SubjectNode> elements = new ArrayList<>();
@@ -754,7 +754,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException when a runtime individual is not named
+     * @throws TranslationException when a runtime individual is not named
      */
     protected void translateAxiomDifferentIndividuals(DifferentIndividuals axiom) throws TranslationException {
         List<Node> elements = new ArrayList<>();
@@ -781,7 +781,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime class is not named
+     * @throws TranslationException When a runtime class is not named
      */
     protected void translateAxiomClassAssertion(ClassAssertion axiom) throws TranslationException {
         SubjectNode ind = translateIndividualExpression(axiom.getIndividual());
@@ -796,7 +796,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomObjectPropertyAssertion(ObjectPropertyAssertion axiom) throws TranslationException {
         Property prop = null;
@@ -817,7 +817,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime object property is not named
+     * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomNegativeObjectPropertyAssertion(NegativeObjectPropertyAssertion axiom) throws TranslationException {
         SubjectNode main = graph.getBlankNode();
@@ -838,7 +838,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected void translateAxiomDataPropertyAssertion(DataPropertyAssertion axiom) throws TranslationException {
         Property prop = (Property) translateDataPropertyExpression(axiom.getDataProperty());
@@ -854,7 +854,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected void translateAxiomNegativeDataPropertyAssertion(NegativeDataPropertyAssertion axiom) throws TranslationException {
         SubjectNode main = graph.getBlankNode();
@@ -875,7 +875,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
-     * @throws org.xowl.store.owl.TranslationException When a runtime entity is not named
+     * @throws TranslationException When a runtime entity is not named
      */
     protected void translateAxiomHasKey(HasKey axiom) throws TranslationException {
         SubjectNode classe = translateClassExpression(axiom.getClasse());
@@ -943,7 +943,7 @@ public class Translator {
      *
      * @param expression A class expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException When a runtime entity is not named
+     * @throws TranslationException When a runtime entity is not named
      */
     protected SubjectNode translateClassExpression(ClassExpression expression) throws TranslationException {
         if (XOWLUtils.isDynamicExpression(expression)) {
@@ -1063,7 +1063,7 @@ public class Translator {
      *
      * @param expression A class expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime individual is not named
+     * @throws TranslationException when a runtime individual is not named
      */
     protected SubjectNode translateClassObjectOneOf(ObjectOneOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1097,7 +1097,7 @@ public class Translator {
      *
      * @param expression A class expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode translateClassDataAllValuesFrom(DataAllValuesFrom expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1120,7 +1120,7 @@ public class Translator {
      *
      * @param expression A class expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode translateClassDataExactCardinality(DataExactCardinality expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1143,7 +1143,7 @@ public class Translator {
      *
      * @param expression A class expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode transltateClassDataHasValue(DataHasValue expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1160,7 +1160,7 @@ public class Translator {
      *
      * @param expression A class expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode translateClassDataMaxCardinality(DataMaxCardinality expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1183,7 +1183,7 @@ public class Translator {
      *
      * @param expression A class expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode translateClassDataMinCardinality(DataMinCardinality expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1206,7 +1206,7 @@ public class Translator {
      *
      * @param expression A class expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException When a runtime data property is not named
+     * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode translateClassDataSomeValuesFrom(DataSomeValuesFrom expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1366,7 +1366,7 @@ public class Translator {
      *
      * @param expression An object property expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime object property is not named
+     * @throws TranslationException when a runtime object property is not named
      */
     protected SubjectNode translateObjectPropertyExpression(ObjectPropertyExpression expression) throws TranslationException {
         if (XOWLUtils.isDynamicExpression(expression)) {
@@ -1402,7 +1402,7 @@ public class Translator {
      *
      * @param expression A runtime object property
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime object property is not named
+     * @throws TranslationException when a runtime object property is not named
      */
     protected SubjectNode translateObjectPropertyRuntime(org.xowl.lang.runtime.ObjectProperty expression) throws TranslationException {
         if (expression.getInterpretationOf() == null)
@@ -1415,7 +1415,7 @@ public class Translator {
      *
      * @param expression An object property expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime object property is not named
+     * @throws TranslationException when a runtime object property is not named
      */
     protected SubjectNode translateOjectPropertyInverseOf(ObjectInverseOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1429,7 +1429,7 @@ public class Translator {
      *
      * @param expression An data property expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime data property is not named
+     * @throws TranslationException when a runtime data property is not named
      */
     protected SubjectNode translateDataPropertyExpression(DataPropertyExpression expression) throws TranslationException {
         if (XOWLUtils.isDynamicExpression(expression)) {
@@ -1462,7 +1462,7 @@ public class Translator {
      *
      * @param expression A runtime data property
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime data property is not named
+     * @throws TranslationException when a runtime data property is not named
      */
     protected SubjectNode translateDataPropertyRuntime(DataProperty expression) throws TranslationException {
         if (expression.getInterpretationOf() == null)
@@ -1475,7 +1475,7 @@ public class Translator {
      *
      * @param expression An datarange
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime datatype is not named
+     * @throws TranslationException when a runtime datatype is not named
      */
     protected SubjectNode translateDatarange(Datarange expression) throws TranslationException {
         if (XOWLUtils.isDynamicExpression(expression)) {
@@ -1519,7 +1519,7 @@ public class Translator {
      *
      * @param expression A datatype
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime datatype is not named
+     * @throws TranslationException when a runtime datatype is not named
      */
     protected SubjectNode translateDatatype(Datatype expression) throws TranslationException {
         if (expression.getInterpretationOf() == null)
@@ -1532,7 +1532,7 @@ public class Translator {
      *
      * @param expression An datarange
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime datatype is not named
+     * @throws TranslationException when a runtime datatype is not named
      */
     protected SubjectNode translateDatarangeDataComplementOf(DataComplementOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1547,7 +1547,7 @@ public class Translator {
      *
      * @param expression An datarange
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime datatype is not named
+     * @throws TranslationException when a runtime datatype is not named
      */
     protected SubjectNode translateDatarangeDataIntersectionOf(DataIntersectionOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1584,7 +1584,7 @@ public class Translator {
      *
      * @param expression An datarange
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime datatype is not named
+     * @throws TranslationException when a runtime datatype is not named
      */
     protected SubjectNode translateDatarangeDatatypeRestriction(DatatypeRestriction expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1617,7 +1617,7 @@ public class Translator {
      *
      * @param expression An datarange
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime datatype is not named
+     * @throws TranslationException when a runtime datatype is not named
      */
     protected SubjectNode translateDatarangeDataUnionOf(DataUnionOf expression) throws TranslationException {
         BlankNode main = graph.getBlankNode();
@@ -1637,7 +1637,7 @@ public class Translator {
      *
      * @param expression An individual expression
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime individual is not named
+     * @throws TranslationException when a runtime individual is not named
      */
     protected SubjectNode translateIndividualExpression(IndividualExpression expression) throws TranslationException {
         if (XOWLUtils.isDynamicExpression(expression)) {
@@ -1682,7 +1682,7 @@ public class Translator {
      *
      * @param expression A named individual
      * @return The RDF node representing the expression
-     * @throws org.xowl.store.owl.TranslationException when a runtime individual is not named
+     * @throws TranslationException when a runtime individual is not named
      */
     protected SubjectNode translateNamedIndividual(NamedIndividual expression) throws TranslationException {
         if (expression.getInterpretationOf() == null)

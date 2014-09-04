@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.owl;
+package org.xowl.engine.owl;
 
 import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.AnonymousIndividual;
@@ -44,7 +44,7 @@ public class XOWLGraph extends RDFGraph {
     /**
      * The store of existing variable nodes
      */
-    protected Map<QueryVariable, VariableNode> mapNodeVariables;
+    protected Map<QueryVariable, org.xowl.engine.owl.VariableNode> mapNodeVariables;
     /**
      * The store of existing dynamic nodes
      */
@@ -89,10 +89,10 @@ public class XOWLGraph extends RDFGraph {
      * @param variable A variable
      * @return The associated RDF node
      */
-    public VariableNode getVariableNode(QueryVariable variable) {
+    public org.xowl.engine.owl.VariableNode getVariableNode(QueryVariable variable) {
         if (mapNodeVariables.containsKey(variable))
             return mapNodeVariables.get(variable);
-        VariableNode node = new VariableNode(variable);
+        org.xowl.engine.owl.VariableNode node = new org.xowl.engine.owl.VariableNode(variable);
         mapNodeVariables.put(variable, node);
         return node;
     }

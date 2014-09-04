@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.owl;
+package org.xowl.engine.owl;
 
 /**
  * Represents an exception occuring during a translation

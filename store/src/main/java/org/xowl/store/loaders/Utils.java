@@ -20,9 +20,6 @@
 
 package org.xowl.store.loaders;
 
-import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Ontology;
-
 import java.net.URI;
 
 /**

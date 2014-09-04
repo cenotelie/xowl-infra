@@ -20,7 +20,6 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.Literal;
 import org.xowl.store.cache.StringStore;
 import org.xowl.store.Vocabulary;
 import org.xowl.utils.collections.*;
@@ -130,16 +129,6 @@ public class RDFGraph {
         node = new LiteralNodeImpl(sStore, lexKey, typeKey, langKey);
         bucket.add(typeKey, langKey, node);
         return node;
-    }
-
-    /**
-     * Gets the RDF node for the specified literal
-     *
-     * @param literal A literal
-     * @return The associated RDF node
-     */
-    public LiteralNode getLiteralNode(Literal literal) {
-        return getLiteralNode(literal.getLexicalValue(), literal.getMemberOf().getHasValue(), literal.getLangTag());
     }
 
     /**

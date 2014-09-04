@@ -101,6 +101,8 @@ public class StringStore {
      * @return The value associated to the key
      */
     public String retrieve(int entry) {
+        if (entry < 0)
+            return null;
         Entry e = entries[entry];
         try {
             fileData.seek(e.getOffset());
@@ -135,6 +137,8 @@ public class StringStore {
      * @return The key used to retrieve the value
      */
     public int store(String value) {
+        if (value == null)
+            return -1;
         int hash = value.hashCode();
         byte[] bytes = value.getBytes(charset);
         for (int i = 0; i != bucketCount; i++) {

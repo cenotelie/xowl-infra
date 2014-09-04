@@ -20,8 +20,6 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Literal;
 import org.xowl.store.cache.StringStore;
 
 /**
@@ -63,21 +61,18 @@ class LiteralNodeImpl extends LiteralNode {
     }
 
     @Override
-    public Literal getLiteralValue() {
-        IRI datatype = new IRI();
-        datatype.setHasValue(store.retrieve(type));
-        Literal literal = new Literal();
-        literal.setMemberOf(datatype);
-        literal.setLexicalValue(store.retrieve(lexical));
-        if (tag != -1) {
-            literal.setLangTag(store.retrieve(tag));
-        }
-        return literal;
+    public String getLexicalValue() {
+        return store.retrieve(lexical);
     }
 
     @Override
-    public String getLexicalValue() {
-        return store.retrieve(lexical);
+    public String getDatatype() {
+        return store.retrieve(type);
+    }
+
+    @Override
+    public String getLangTag() {
+        return store.retrieve(tag);
     }
 
     @Override

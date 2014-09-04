@@ -20,8 +20,6 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.lang.owl2.Literal;
-
 /**
  * Represents a node associated to a literal value in a RDF graph
  *
@@ -39,31 +37,39 @@ public abstract class LiteralNode implements Node {
     }
 
     /**
-     * Gets the literal value associated to this node
+     * Gets the lexical value of this literal
      *
-     * @return The literal value associated to this node, or null if none is
-     */
-    public abstract Literal getLiteralValue();
-
-    /**
-     * Gets the value of the lexical term of the represented literal
-     *
-     * @return The value of the lexical term of the represented literal
+     * @return The lexical value of this literal
      */
     public abstract String getLexicalValue();
 
+    /**
+     * Gets the IRI of the datatype of this literal
+     *
+     * @return The IRI of the datatype of this literal
+     */
+    public abstract String getDatatype();
+
+    /**
+     * Gets the language tag of this literal
+     *
+     * @return The language tag of this literal
+     */
+    public abstract String getLangTag();
+
     @Override
     public String toString() {
-        Literal literal = getLiteralValue();
         StringBuilder builder = new StringBuilder("\"");
-        builder.append(literal.getLexicalValue());
+        builder.append(getLexicalValue());
         builder.append("\"");
-        if (literal.getLangTag() != null) {
+        String lang = getLangTag();
+        String datatype = getDatatype();
+        if (lang != null) {
             builder.append("@");
-            builder.append(literal.getLangTag());
-        } else if (literal.getMemberOf() != null) {
+            builder.append(lang);
+        } else if (datatype != null) {
             builder.append("^^");
-            builder.append(literal.getMemberOf().getHasValue());
+            builder.append(datatype);
         }
         return builder.toString();
     }

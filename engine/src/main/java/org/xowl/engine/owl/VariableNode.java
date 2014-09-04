@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.owl;
+package org.xowl.engine.owl;
 
 import org.xowl.lang.actions.QueryVariable;
 import org.xowl.store.rdf.Property;

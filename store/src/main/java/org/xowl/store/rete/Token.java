@@ -20,8 +20,8 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.owl.VariableNode;
 import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.VariableNode;
 
 import java.util.IdentityHashMap;
 import java.util.Map;

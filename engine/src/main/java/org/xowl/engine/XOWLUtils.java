@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store;
+package org.xowl.engine;
 
 import org.xowl.lang.actions.*;
 import org.xowl.lang.interop.JavaObjectExpression;
@@ -26,6 +26,7 @@ import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.Entity;
 import org.xowl.lang.runtime.JavaObject;
 import org.xowl.lang.runtime.Value;
+import org.xowl.store.Vocabulary;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 
