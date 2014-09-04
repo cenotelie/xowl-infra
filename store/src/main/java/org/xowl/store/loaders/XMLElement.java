@@ -20,8 +20,6 @@
 
 package org.xowl.store.loaders;
 
-import com.sun.org.apache.xml.internal.security.Init;
-import com.sun.org.apache.xml.internal.security.c14n.Canonicalizer;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -32,7 +30,6 @@ import org.xowl.utils.collections.Couple;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -167,15 +164,8 @@ class XMLElement {
      * @return The XML literal representation of the content of this node
      */
     public String getXMLLiteral() {
-        try {
-            Init.init();
-            Canonicalizer canonicalizer = Canonicalizer.getInstance(Canonicalizer.ALGO_ID_C14N11_WITH_COMMENTS);
-            byte[] buffer = canonicalizer.canonicalizeXPathNodeSet(node.getChildNodes());
-            String value = new String(buffer, Charset.forName("UTF-8"));
-            return value;
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("Unsupported literal node", ex);
-        }
+        RDFXMLCanonicalizer canonicalizer = new RDFXMLCanonicalizer();
+        return canonicalizer.canonicalize(node.getChildNodes());
     }
 
     /**
@@ -241,6 +231,7 @@ class XMLElement {
 
     /**
      * Sanitizes the specified base URI
+     *
      * @param value A base URI
      * @return The equivalent sanitized base URI
      */
