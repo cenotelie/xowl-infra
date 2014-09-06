@@ -99,7 +99,7 @@ public class RETENetwork {
     /**
      * Adds a rule to this network
      *
-     * @param rule The rule to add
+     * @param rule The rule to addMemoryFor
      */
     public void addRule(RETERule rule) {
         List<JoinData> levels = getJoinData(rule);
@@ -108,7 +108,7 @@ public class RETENetwork {
         BetaMemory beta = BetaMemory.getDummy();
         for (Quad pattern : rule.getPositives()) {
             JoinData data = iterData.next();
-            FactHolder alpha = getProvider(pattern);
+            FactHolder alpha = this.alpha.resolveMemory(pattern, input);
             BetaJoinNode join = beta.resolveJoin(alpha, data.tests);
             beta = join.resolveMemory(data.binders);
         }
@@ -118,14 +118,14 @@ public class RETENetwork {
             if (conjunction.size() == 1) {
                 JoinData data = iterData.next();
                 Quad pattern = conjunction.iterator().next();
-                FactHolder alpha = getProvider(pattern);
+                FactHolder alpha = this.alpha.resolveMemory(pattern, input);
                 last = new BetaNegativeJoinNode(alpha, last, data.tests);
             } else {
                 BetaNCCEntryNode entry = new BetaNCCEntryNode(last);
                 last = entry;
                 for (Quad pattern : conjunction) {
                     JoinData data = iterData.next();
-                    FactHolder alpha = getProvider(pattern);
+                    FactHolder alpha = this.alpha.resolveMemory(pattern, input);
                     BetaJoinNode join = new BetaJoinNode(alpha, last, data.tests);
                     last = join.resolveMemory(data.binders);
                 }
@@ -142,7 +142,7 @@ public class RETENetwork {
     /**
      * Removes a rule from this network
      *
-     * @param rule The rule to remove
+     * @param rule The rule to removeMemoryFor
      */
     public void removeRule(RETERule rule) {
         throw new UnsupportedOperationException();
@@ -151,7 +151,7 @@ public class RETENetwork {
     /**
      * Removes a set of rules from this network
      *
-     * @param rules The rules to remove
+     * @param rules The rules to removeMemory
      */
     public void removeRules(Collection<RETERule> rules) {
         throw new UnsupportedOperationException();
@@ -164,21 +164,6 @@ public class RETENetwork {
         alpha.clear();
         BetaMemory.getDummy().removeAllChildren();
         rules.clear();
-    }
-
-    /**
-     * Resolves the provider of facts for the specified pattern
-     *
-     * @param pattern A pattern of triple
-     * @return The corresponding fact provider
-     */
-    private FactHolder getProvider(Quad pattern) {
-        AlphaMemory alpha = this.alpha.resolveMemory(pattern, input);
-        if (pattern.getGraph() != null) {
-            FilterNode fn = new FilterNode(alpha, pattern.getGraph());
-            alpha = fn.getChild();
-        }
-        return alpha;
     }
 
     /**

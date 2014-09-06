@@ -20,10 +20,11 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class AlphaMemory implements FactActivable, FactHolder {
+public class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement {
     /**
      * The facts in this memory
      */
@@ -45,7 +46,6 @@ public class AlphaMemory implements FactActivable, FactHolder {
      * Initializes this memory
      */
     public AlphaMemory() {
-        facts = new ArrayList<>();
         children = new ArrayList<>();
     }
 
@@ -90,5 +90,32 @@ public class AlphaMemory implements FactActivable, FactHolder {
         this.facts.removeAll(facts);
         for (int i = children.size() - 1; i != 0; i--)
             children.get(i).deactivateFacts(new FastBuffer<>(facts));
+    }
+
+    @Override
+    public void matchMemories(AlphaMemoryBuffer buffer, Quad quad) {
+        buffer.add(this);
+    }
+
+    @Override
+    public AlphaMemory resolveMemory(Quad pattern, RDFStore store) {
+        if (facts == null) {
+            // this memory has just been created
+            facts = new ArrayList<>();
+            try {
+                Iterator<Quad> data = store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
+                while (data.hasNext()) {
+                    facts.add(data.next());
+                }
+            } catch (UnsupportedNodeType ex) {
+                // do nothing
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public void removeMemory(Quad quad) {
+
     }
 }

@@ -143,7 +143,7 @@ public class Edge implements Iterable<EdgeTarget> {
      * @return An iterator over the quads
      */
     public Iterator<Quad> getAll(final GraphNode graph, final Node value) {
-        if (value == null) {
+        if (value == null || value.getNodeType() == VariableNode.TYPE) {
             return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(targets), new Adapter<Iterator<Quad>>() {
                 @Override
                 public <X> Iterator<Quad> adapt(X element) {
@@ -184,7 +184,7 @@ public class Edge implements Iterable<EdgeTarget> {
      * @return The number of different quads
      */
     public int count(GraphNode graph, Node value) {
-        if (value == null) {
+        if (value == null || value.getNodeType() == VariableNode.TYPE) {
             int count = 0;
             for (int i = 0; i != targets.length; i++)
                 if (targets[i] != null)

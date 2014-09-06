@@ -127,7 +127,7 @@ public class EdgeBucket implements Iterable<Edge> {
      * @return An iterator over the quads
      */
     public Iterator<Quad> getAll(final GraphNode graph, final Property property, final Node value) {
-        if (property == null) {
+        if (property == null || property.getNodeType() == VariableNode.TYPE) {
             return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(edges), new Adapter<Iterator<Quad>>() {
                 @Override
                 public <X> Iterator<Quad> adapt(X element) {
@@ -169,7 +169,7 @@ public class EdgeBucket implements Iterable<Edge> {
      * @return The number of different quads
      */
     public int count(GraphNode graph, Property property, Node value) {
-        if (property == null) {
+        if (property == null || property.getNodeType() == VariableNode.TYPE) {
             int count = 0;
             for (int i = 0; i != edges.length; i++)
                 if (edges[i] != null)

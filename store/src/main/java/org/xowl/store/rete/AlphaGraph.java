@@ -20,9 +20,13 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.*;
+import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.Quad;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -30,260 +34,140 @@ import java.util.Map.Entry;
  *
  * @author Laurent Wouters
  */
-public class AlphaGraph {
+public class AlphaGraph extends AlphaMemoryBucket {
     /**
-     * The internal representation of the graph
+     * Sub-bucket matching the object field of quads
      */
-    private Map<Node, Map<Node, Map<Node, AlphaMemory>>> map;
+    private static class BucketObject extends AlphaMemoryBucket {
+        @Override
+        protected Node getNode(Quad quad) {
+            return quad.getObject();
+        }
+
+        @Override
+        protected AlphaMemoryBucketElement createSub() {
+            return new AlphaMemory();
+        }
+    }
 
     /**
-     * Initializes this graph
+     * Sub-bucket matching the property field of quads
+     */
+    private static class BucketProperty extends AlphaMemoryBucket {
+        @Override
+        protected Node getNode(Quad quad) {
+            return quad.getProperty();
+        }
+
+        @Override
+        protected AlphaMemoryBucketElement createSub() {
+            return new BucketObject();
+        }
+    }
+
+    /**
+     * Sub-bucket matching the subject field of quads
+     */
+    private static class BucketSubject extends AlphaMemoryBucket {
+        @Override
+        protected Node getNode(Quad quad) {
+            return quad.getSubject();
+        }
+
+        @Override
+        protected AlphaMemoryBucketElement createSub() {
+            return new BucketProperty();
+        }
+    }
+
+    /**
+     * A buffer for caching results
+     */
+    private AlphaMemoryBuffer buffer;
+
+    /**
+     * Initializes this buffer
      */
     public AlphaGraph() {
-        map = new IdentityHashMap<>();
+        buffer = new AlphaMemoryBuffer();
+    }
+
+    @Override
+    protected Node getNode(Quad quad) {
+        return quad.getGraph();
+    }
+
+    @Override
+    protected AlphaMemoryBucketElement createSub() {
+        return new BucketSubject();
     }
 
     /**
-     * Fires the specified fact in this graph
+     * Fires the specified quad in this graph
      *
-     * @param fact A fact
+     * @param quad A quad
      */
-    public void fire(Quad fact) {
-        Node sub = fact.getSubject();
-        Node prop = fact.getProperty();
-        Node obj = fact.getObject();
-        AlphaMemory mem = match(null, null, null);
-        if (mem != null) mem.activateFact(fact);
-        mem = match(null, null, obj);
-        if (mem != null) mem.activateFact(fact);
-        mem = match(null, prop, null);
-        if (mem != null) mem.activateFact(fact);
-        mem = match(null, prop, obj);
-        if (mem != null) mem.activateFact(fact);
-        mem = match(sub, null, null);
-        if (mem != null) mem.activateFact(fact);
-        mem = match(sub, null, obj);
-        if (mem != null) mem.activateFact(fact);
-        mem = match(sub, prop, null);
-        if (mem != null) mem.activateFact(fact);
-        mem = match(sub, prop, obj);
-        if (mem != null) mem.activateFact(fact);
+    public void fire(Quad quad) {
+        matchMemories(buffer, quad);
+        for (int i = 0; i != buffer.size(); i++)
+            buffer.get(i).activateFact(quad);
+        buffer.clear();
     }
 
     /**
-     * Unfires the specified fact from this graph
+     * Unfires the specified quad from this graph
      *
-     * @param fact A fact
+     * @param quad A quad
      */
-    public void unfire(Quad fact) {
-        Node sub = fact.getSubject();
-        Node prop = fact.getProperty();
-        Node obj = fact.getObject();
-        AlphaMemory mem = match(null, null, null);
-        if (mem != null) mem.deactivateFact(fact);
-        mem = match(null, null, obj);
-        if (mem != null) mem.deactivateFact(fact);
-        mem = match(null, prop, null);
-        if (mem != null) mem.deactivateFact(fact);
-        mem = match(null, prop, obj);
-        if (mem != null) mem.deactivateFact(fact);
-        mem = match(sub, null, null);
-        if (mem != null) mem.deactivateFact(fact);
-        mem = match(sub, null, obj);
-        if (mem != null) mem.deactivateFact(fact);
-        mem = match(sub, prop, null);
-        if (mem != null) mem.deactivateFact(fact);
-        mem = match(sub, prop, obj);
-        if (mem != null) mem.deactivateFact(fact);
+    public void unfire(Quad quad) {
+        matchMemories(buffer, quad);
+        for (int i = 0; i != buffer.size(); i++)
+            buffer.get(i).activateFact(quad);
+        buffer.clear();
     }
 
     /**
-     * Fires the specified collection of facts in this graph
+     * Fires the specified collection of quads in this graph
      *
-     * @param facts A collection of facts
+     * @param quads A collection of quads
      */
-    public void fire(Collection<Quad> facts) {
-        Map<AlphaMemory, Collection<Quad>> dispatch = buildDispatch(facts);
+    public void fire(Collection<Quad> quads) {
+        Map<AlphaMemory, Collection<Quad>> dispatch = buildDispatch(quads);
         for (Entry<AlphaMemory, Collection<Quad>> entry : dispatch.entrySet())
             entry.getKey().activateFacts(new FastBuffer<>(entry.getValue()));
     }
 
     /**
-     * Unfires the specified collection of facts from this graph
+     * Unfires the specified collection of quads from this graph
      *
-     * @param facts A collection of facts
+     * @param quads A collection of quads
      */
-    public void unfire(Collection<Quad> facts) {
-        Map<AlphaMemory, Collection<Quad>> dispatch = buildDispatch(facts);
+    public void unfire(Collection<Quad> quads) {
+        Map<AlphaMemory, Collection<Quad>> dispatch = buildDispatch(quads);
         for (Entry<AlphaMemory, Collection<Quad>> entry : dispatch.entrySet())
             entry.getKey().deactivateFacts(new FastBuffer<>(entry.getValue()));
     }
 
     /**
-     * Builds the dispatching data for the specified collection of facts
+     * Builds the dispatching data for the specified collection of quads
      *
-     * @param facts A collection of facts
-     * @return The dispatching data associating alpha memory to the relevant collections of facts
+     * @param quads A collection of quads
+     * @return The dispatching data associating alpha memory to the relevant collections of quads
      */
-    private Map<AlphaMemory, Collection<Quad>> buildDispatch(Collection<Quad> facts) {
+    private Map<AlphaMemory, Collection<Quad>> buildDispatch(Collection<Quad> quads) {
         Map<AlphaMemory, Collection<Quad>> map = new IdentityHashMap<>();
-        for (Quad fact : facts) {
-            AlphaMemory[] mems = getMatches(fact);
-            for (int i = 0; i != 8; i++) {
-                AlphaMemory mem = mems[i];
-                if (mem == null)
-                    continue;
-                Collection<Quad> collec = map.get(mem);
+        for (Quad quad : quads) {
+            matchMemories(buffer, quad);
+            for (int i = 0; i != buffer.size(); i++) {
+                AlphaMemory memory = buffer.get(i);
+                Collection<Quad> collec = map.get(memory);
                 if (collec == null) {
                     collec = new ArrayList<>();
-                    map.put(mem, collec);
+                    map.put(memory, collec);
                 }
-                collec.add(fact);
+                collec.add(quad);
             }
         }
         return map;
-    }
-
-    /**
-     * Gets the alpha memories that match the specified fact
-     *
-     * @param fact A fact
-     * @return The alpha memories that match the fact
-     */
-    private AlphaMemory[] getMatches(Quad fact) {
-        Node sub = fact.getSubject();
-        Node prop = fact.getProperty();
-        Node obj = fact.getObject();
-        AlphaMemory[] result = new AlphaMemory[8];
-        result[0] = match(null, null, null);
-        result[1] = match(null, null, obj);
-        result[2] = match(null, prop, null);
-        result[3] = match(null, prop, obj);
-        result[4] = match(sub, null, null);
-        result[5] = match(sub, null, obj);
-        result[6] = match(sub, prop, null);
-        result[7] = match(sub, prop, obj);
-        return result;
-    }
-
-    /**
-     * Gets the alpha memory matching the specified triple data
-     *
-     * @param sub  The subject node
-     * @param prop The property
-     * @param obj  The object node
-     * @return The matching alpha memory, or null if none is found
-     */
-    private AlphaMemory match(Node sub, Node prop, Node obj) {
-        if (!map.containsKey(sub))
-            return null;
-        Map<Node, Map<Node, AlphaMemory>> mapProp = map.get(sub);
-        if (!mapProp.containsKey(prop))
-            return null;
-        Map<Node, AlphaMemory> mapObj = mapProp.get(prop);
-        if (!mapObj.containsKey(obj))
-            return null;
-        return mapObj.get(obj);
-    }
-
-    /**
-     * Resolves the appropriate alpha memory for the specified triple
-     *
-     * @param quad A triple
-     * @param graph  The RDF graph
-     * @return The corresponding alpha memory
-     */
-    public AlphaMemory resolveMemory(Quad quad, RDFStore graph) {
-        Node subj = quad.getSubject();
-        Node prop = quad.getProperty();
-        Node obj = quad.getObject();
-        if (subj.getNodeType() == VariableNode.TYPE)
-            subj = null;
-        if (prop.getNodeType() == VariableNode.TYPE)
-            prop = null;
-        if (obj.getNodeType() == VariableNode.TYPE)
-            obj = null;
-        if (!map.containsKey(subj))
-            map.put(subj, new IdentityHashMap<Node, Map<Node, AlphaMemory>>());
-        Map<Node, Map<Node, AlphaMemory>> mapProp = map.get(subj);
-        if (!mapProp.containsKey(prop))
-            mapProp.put(prop, new IdentityHashMap<Node, AlphaMemory>());
-        Map<Node, AlphaMemory> mapObj = mapProp.get(prop);
-        if (mapObj.containsKey(obj))
-            return mapObj.get(obj);
-
-        AlphaMemory mem = new AlphaMemory();
-        Collection<Quad> temp = new ArrayList<>();
-        if (mapObj.containsKey(null)) {
-            for (Quad fact : mapObj.get(null).getFacts()) {
-                if (fact.getObject() == obj)
-                    temp.add(fact);
-            }
-        } else {
-            try {
-                Iterator<Quad> iterator = graph.getAll((SubjectNode) subj, (Property) prop, obj);
-                while (iterator.hasNext())
-                    temp.add(iterator.next());
-            } catch (UnsupportedNodeType ex) {
-                // cannot happen
-            }
-        }
-        if (!temp.isEmpty())
-            mem.activateFacts(new FastBuffer<>(temp));
-        mapObj.put(obj, mem);
-        return mem;
-    }
-
-    /**
-     * Gets the appropriate alpha memory for the specified triple
-     *
-     * @param quad A triple
-     * @return The corresponding alpha memory
-     */
-    public AlphaMemory getMemory(Quad quad) {
-        Node subj = quad.getSubject();
-        Node prop = quad.getProperty();
-        Node obj = quad.getObject();
-        if (subj.getNodeType() == VariableNode.TYPE)
-            subj = null;
-        if (prop.getNodeType() == VariableNode.TYPE)
-            prop = null;
-        if (obj.getNodeType() == VariableNode.TYPE)
-            obj = null;
-        Map<Node, Map<Node, AlphaMemory>> mapProp = map.get(subj);
-        Map<Node, AlphaMemory> mapObj = mapProp.get(prop);
-        return mapObj.get(obj);
-    }
-
-    /**
-     * Removes the alpha memory for the specified triple
-     *
-     * @param quad A triple
-     */
-    public void removeMemory(Quad quad) {
-        Node subj = quad.getSubject();
-        Node prop = quad.getProperty();
-        Node obj = quad.getObject();
-        if (subj.getNodeType() == VariableNode.TYPE)
-            subj = null;
-        if (prop.getNodeType() == VariableNode.TYPE)
-            prop = null;
-        if (obj.getNodeType() == VariableNode.TYPE)
-            obj = null;
-        Map<Node, Map<Node, AlphaMemory>> mapProp = map.get(subj);
-        Map<Node, AlphaMemory> mapObj = mapProp.get(prop);
-        mapObj.remove(obj);
-        if (mapObj.isEmpty()) {
-            mapProp.remove(prop);
-            if (mapProp.isEmpty())
-                map.remove(subj);
-        }
-    }
-
-    /**
-     * Completely clear this graph
-     */
-    public void clear() {
-        map = new IdentityHashMap<>();
     }
 }

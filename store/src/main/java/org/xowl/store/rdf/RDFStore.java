@@ -326,7 +326,7 @@ public class RDFStore {
      * @throws UnsupportedNodeType when the subject node type is unsupported
      */
     public Iterator<Quad> getAll(final GraphNode graph, SubjectNode subject, final Property property, final Node object) throws UnsupportedNodeType {
-        if (subject == null) {
+        if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
             return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<Quad>>() {
                 @Override
                 public <X> Iterator<Quad> adapt(X element) {
@@ -402,7 +402,7 @@ public class RDFStore {
      * @throws UnsupportedNodeType when the subject node type is unsupported
      */
     public int count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        if (subject == null) {
+        if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
             int count = 0;
             Iterator<Couple<SubjectNode, EdgeBucket>> iterator = getAllSubjects();
             while (iterator.hasNext())
