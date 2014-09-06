@@ -21,30 +21,10 @@
 package org.xowl.store.rdf;
 
 /**
- * Represents a node associated to an IRI in a RDF graph
+ * Represents a node for a (sub-)graph in a RDF graph
  *
  * @author Laurent Wouters
  */
-public abstract class IRINode implements SubjectNode, Property, GraphNode {
-    /**
-     * The type of node
-     */
-    public static final int TYPE = 0;
+public interface GraphNode extends Node {
 
-    @Override
-    public int getNodeType() {
-        return TYPE;
-    }
-
-    @Override
-    public String toString() {
-        return getIRIValue();
-    }
-
-    /**
-     * Gets the IRI's value associated to this node
-     *
-     * @return The IRI's value associated to this node
-     */
-    public abstract String getIRIValue();
 }

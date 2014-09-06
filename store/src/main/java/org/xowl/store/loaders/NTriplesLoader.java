@@ -32,21 +32,18 @@ import org.xowl.utils.Logger;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Loader for N-Triples sources
  *
  * @author Laurent Wouters
  */
-public class NTriplesLoader extends Loader {
+public class NTriplesLoader implements Loader {
     /**
-     * The RDF graph to load in
+     * The RDF store to create nodes from
      */
-    private RDFGraph graph;
+    private RDFStore store;
     /**
      * Maps of blanks nodes
      */
@@ -55,15 +52,15 @@ public class NTriplesLoader extends Loader {
     /**
      * Initializes this loader
      *
-     * @param graph The RDF graph to load in
+     * @param store The RDF store used to create nodes
      */
-    public NTriplesLoader(RDFGraph graph) {
-        this.graph = graph;
+    public NTriplesLoader(RDFStore store) {
+        this.store = store;
     }
 
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
-        ParseResult result = null;
+        ParseResult result;
         try {
             String content = Files.read(reader);
             NTriplesLexer lexer = new NTriplesLexer(content);
@@ -84,10 +81,10 @@ public class NTriplesLoader extends Loader {
     }
 
     @Override
-    public String load(Logger logger, Reader reader, String uri) {
+    public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
         List<Quad> quads = new ArrayList<>();
-        String ontology = Utils.createNewOntology();
+        GraphNode graph = store.getNodeIRI(Utils.createAnonymousGraph());
 
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
@@ -98,21 +95,14 @@ public class NTriplesLoader extends Loader {
                 Node n1 = getRDFNode(triple.getChildren().get(0));
                 Node n2 = getRDFNode(triple.getChildren().get(1));
                 Node n3 = getRDFNode(triple.getChildren().get(2));
-                quads.add(new Quad(ontology, (SubjectNode) n1, (Property) n2, n3));
+                quads.add(new Quad(graph, (SubjectNode) n1, (Property) n2, n3));
             }
         } catch (IllegalArgumentException ex) {
             // IRI must be absolute
             return null;
         }
 
-        try {
-            for (Quad quad : quads)
-                graph.add(quad);
-        } catch (UnsupportedNodeType ex) {
-            // cannot happen
-        }
-
-        return ontology;
+        return quads;
     }
 
     /**
@@ -145,7 +135,7 @@ public class NTriplesLoader extends Loader {
         URI uri = URI.create(value);
         if (!uri.isAbsolute())
             throw new IllegalArgumentException("IRI must be absolute");
-        return graph.getNodeIRI(value);
+        return store.getNodeIRI(value);
     }
 
     /**
@@ -160,7 +150,7 @@ public class NTriplesLoader extends Loader {
         BlankNode blank = blanks.get(key);
         if (blank != null)
             return blank;
-        blank = graph.getBlankNode();
+        blank = store.getBlankNode();
         blanks.put(key, blank);
         return blank;
     }
@@ -175,7 +165,7 @@ public class NTriplesLoader extends Loader {
         String value = node.getSymbol().getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
         if (node.getChildren().size() == 0) {
-            return graph.getLiteralNode(value, Vocabulary.xsdString, null);
+            return store.getLiteralNode(value, Vocabulary.xsdString, null);
         }
         ASTNode child = node.getChildren().get(0);
         if (child.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
@@ -184,11 +174,11 @@ public class NTriplesLoader extends Loader {
             URI uri = URI.create(type);
             if (!uri.isAbsolute())
                 throw new IllegalArgumentException("IRI must be absolute");
-            return graph.getLiteralNode(value, type, null);
+            return store.getLiteralNode(value, type, null);
         } else if (child.getSymbol().getID() == NTriplesLexer.ID.LANGTAG) {
             String lang = child.getSymbol().getValue();
             lang = lang.substring(1);
-            return graph.getLiteralNode(value, Vocabulary.rdfLangString, lang);
+            return store.getLiteralNode(value, Vocabulary.rdfLangString, lang);
         }
         return null;
     }

@@ -34,7 +34,7 @@ public class RETENetwork {
     /**
      * Cache of inputs for this network
      */
-    private RDFGraph input;
+    private RDFStore input;
     /**
      * The alpha graph, i.e. the input layer of the network
      */
@@ -50,7 +50,7 @@ public class RETENetwork {
      * @throws java.io.IOException when the store cannot allocate a temporary file
      */
     public RETENetwork() throws IOException {
-        this.input = new RDFGraph();
+        this.input = new RDFStore();
         this.alpha = new AlphaGraph();
         this.rules = new HashMap<>();
     }
@@ -174,8 +174,8 @@ public class RETENetwork {
      */
     private FactHolder getProvider(Quad pattern) {
         AlphaMemory alpha = this.alpha.resolveMemory(pattern, input);
-        if (pattern.getOntology() != null) {
-            FilterNode fn = new FilterNode(alpha, pattern.getOntology());
+        if (pattern.getGraph() != null) {
+            FilterNode fn = new FilterNode(alpha, pattern.getGraph());
             alpha = fn.getChild();
         }
         return alpha;

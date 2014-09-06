@@ -51,14 +51,14 @@ public class Edge implements Iterable<EdgeTarget> {
     /**
      * Initializes this edge
      *
-     * @param ontology The ontology containing the triple
+     * @param graph    The graph containing the quad
      * @param property The property on this edge
      * @param object   The first object node for this edge
      */
-    public Edge(String ontology, Property property, Node object) {
+    public Edge(GraphNode graph, Property property, Node object) {
         this.property = property;
         this.targets = new EdgeTarget[INIT_BUFFER_SIZE];
-        this.targets[0] = new EdgeTarget(ontology, object);
+        this.targets[0] = new EdgeTarget(graph, object);
         this.size = 1;
     }
 
@@ -83,27 +83,27 @@ public class Edge implements Iterable<EdgeTarget> {
     /**
      * Adds the specified edge (or increment the counter)
      *
-     * @param ontology The ontology containing the triple
-     * @param value    The edge's target node
+     * @param graph The graph containing the quad
+     * @param value The edge's target node
      */
-    public void add(String ontology, Node value) {
+    public void add(GraphNode graph, Node value) {
         boolean hasEmpty = false;
         for (int i = 0; i != targets.length; i++) {
             hasEmpty = hasEmpty || (targets[i] == null);
             if (targets[i] != null && targets[i].getTarget() == value) {
-                targets[i].add(ontology);
+                targets[i].add(graph);
                 return;
             }
         }
         if (!hasEmpty) {
             targets = Arrays.copyOf(targets, targets.length + INIT_BUFFER_SIZE);
-            targets[size] = new EdgeTarget(ontology, value);
+            targets[size] = new EdgeTarget(graph, value);
             size++;
             return;
         }
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] == null) {
-                targets[i] = new EdgeTarget(ontology, value);
+                targets[i] = new EdgeTarget(graph, value);
                 size++;
                 return;
             }
@@ -113,14 +113,14 @@ public class Edge implements Iterable<EdgeTarget> {
     /**
      * Removes the specified edge (or decrement the counter)
      *
-     * @param ontology The ontology containing the triple
-     * @param value    The edge's target node
+     * @param graph The graph containing the quad
+     * @param value The edge's target node
      * @return true if this edge is now empty and shall be removed
      */
-    public boolean remove(String ontology, Node value) {
+    public boolean remove(GraphNode graph, Node value) {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && targets[i].getTarget() == value) {
-                if (targets[i].remove(ontology)) {
+                if (targets[i].remove(graph)) {
                     targets[i] = null;
                     size--;
                 }
@@ -136,19 +136,19 @@ public class Edge implements Iterable<EdgeTarget> {
     }
 
     /**
-     * Gets all the xOWL triples with the specified data
+     * Gets all the quads with the specified data
      *
-     * @param value    The filtering object value
-     * @param ontology The filtering ontology
-     * @return An iterator over the triples
+     * @param graph The filtering graph
+     * @param value The filtering object value
+     * @return An iterator over the quads
      */
-    public Iterator<Quad> getAllTriples(final Node value, final String ontology) {
+    public Iterator<Quad> getAll(final GraphNode graph, final Node value) {
         if (value == null) {
             return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(targets), new Adapter<Iterator<Quad>>() {
                 @Override
                 public <X> Iterator<Quad> adapt(X element) {
                     Integer index = (Integer) element;
-                    return targets[index].getAllTriples(ontology);
+                    return targets[index].getAll(graph);
                 }
             }), new Adapter<Quad>() {
                 @Override
@@ -162,7 +162,7 @@ public class Edge implements Iterable<EdgeTarget> {
 
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && targets[i].getTarget() == value) {
-                return new AdaptingIterator<>(targets[i].getAllTriples(ontology), new Adapter<Quad>() {
+                return new AdaptingIterator<>(targets[i].getAll(graph), new Adapter<Quad>() {
                     @Override
                     public <X> Quad adapt(X element) {
                         Quad result = (Quad) element;
@@ -177,23 +177,23 @@ public class Edge implements Iterable<EdgeTarget> {
     }
 
     /**
-     * Returns the number of different triples with the specified data
+     * Returns the number of different quads with the specified data
      *
-     * @param value    The filtering object value
-     * @param ontology The filtering ontology
-     * @return The number of different triples
+     * @param graph The filtering graph
+     * @param value The filtering object value
+     * @return The number of different quads
      */
-    public int count(Node value, String ontology) {
+    public int count(GraphNode graph, Node value) {
         if (value == null) {
             int count = 0;
             for (int i = 0; i != targets.length; i++)
                 if (targets[i] != null)
-                    count += targets[i].count(ontology);
+                    count += targets[i].count(graph);
             return count;
         }
         for (int i = 0; i != targets.length; i++)
             if (targets[i] != null && targets[i].getTarget() == value)
-                return targets[i].count(ontology);
+                return targets[i].count(graph);
         return 0;
     }
 }

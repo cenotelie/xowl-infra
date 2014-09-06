@@ -42,9 +42,9 @@ public abstract class W3CTestSuite {
      * @param testedURI        Tested resource's URI
      */
     protected void testEval(String expectedResource, String expectedURI, String testedResource, String testedURI) {
-        RDFGraph graph = null;
+        RDFStore store = null;
         try {
-            graph = new RDFGraph();
+            store = new RDFStore();
         } catch (IOException ex) {
             // do not handle
         }
@@ -59,18 +59,18 @@ public abstract class W3CTestSuite {
         }
         Loader loader = null;
         if (expectedResource.endsWith(".nt"))
-            loader = new NTriplesLoader(graph);
+            loader = new NTriplesLoader(store);
         else if (expectedResource.endsWith(".nq"))
-            loader = new NQuadsLoader(graph);
+            loader = new NQuadsLoader(store);
         else if (expectedResource.endsWith(".ttl"))
-            loader = new TurtleLoader(graph);
+            loader = new TurtleLoader(store);
         else if (expectedResource.endsWith(".rdf"))
-            loader = new RDFXMLLoader(graph);
+            loader = new RDFXMLLoader(store);
         if (loader == null)
             Assert.fail("Failed to recognize resource " + expectedResource);
-        String expectedOntology = loader.load(logger, reader, expectedURI);
+        List<Quad> expected = loader.loadQuads(logger, reader, expectedURI);
         Assert.assertFalse("Failed to parse resource " + expectedResource, logger.isOnError());
-        Assert.assertNotNull("Failed to load resource " + expectedResource, expectedOntology);
+        Assert.assertNotNull("Failed to load resource " + expectedResource, expected);
         try {
             reader.close();
         } catch (IOException ex) {
@@ -85,25 +85,25 @@ public abstract class W3CTestSuite {
         }
         loader = null;
         if (testedResource.endsWith(".nt"))
-            loader = new NTriplesLoader(graph);
+            loader = new NTriplesLoader(store);
         else if (expectedResource.endsWith(".nq"))
-            loader = new NQuadsLoader(graph);
+            loader = new NQuadsLoader(store);
         else if (testedResource.endsWith(".ttl"))
-            loader = new TurtleLoader(graph);
+            loader = new TurtleLoader(store);
         else if (testedResource.endsWith(".rdf"))
-            loader = new RDFXMLLoader(graph);
+            loader = new RDFXMLLoader(store);
         if (loader == null)
             Assert.fail("Failed to recognize resource " + testedResource);
-        String testedOntology = loader.load(logger, reader, testedURI);
+        List<Quad> tested = loader.loadQuads(logger, reader, testedURI);
         Assert.assertFalse("Failed to parse resource " + testedResource, logger.isOnError());
-        Assert.assertNotNull("Failed to load resource " + testedResource, testedOntology);
+        Assert.assertNotNull("Failed to loadQuads resource " + testedResource, tested);
         try {
             reader.close();
         } catch (IOException ex) {
             Assert.fail("Failed to close the resource " + testedResource);
         }
 
-        matches(graph, expectedOntology, testedOntology);
+        matches(expected, tested);
     }
 
     /**
@@ -113,22 +113,22 @@ public abstract class W3CTestSuite {
      * @param uri              The resource's URI
      */
     protected void testPositiveSyntax(String physicalResource, String uri) {
-        RDFGraph graph = null;
+        RDFStore store = null;
         try {
-            graph = new RDFGraph();
+            store = new RDFStore();
         } catch (IOException ex) {
             // do not handle
         }
         TestLogger logger = new TestLogger();
         Loader loader = null;
         if (physicalResource.endsWith(".nt"))
-            loader = new NTriplesLoader(graph);
+            loader = new NTriplesLoader(store);
         else if (physicalResource.endsWith(".nq"))
-            loader = new NQuadsLoader(graph);
+            loader = new NQuadsLoader(store);
         else if (physicalResource.endsWith(".ttl"))
-            loader = new TurtleLoader(graph);
+            loader = new TurtleLoader(store);
         else if (physicalResource.endsWith(".rdf"))
-            loader = new RDFXMLLoader(graph);
+            loader = new RDFXMLLoader(store);
         if (loader == null)
             Assert.fail("Failed to recognize resource " + physicalResource);
 
@@ -140,9 +140,9 @@ public abstract class W3CTestSuite {
             Assert.fail(ex.toString());
         }
 
-        String result = loader.load(logger, reader, uri);
+        List<Quad> result = loader.loadQuads(logger, reader, uri);
         Assert.assertFalse("Failed to parse resource " + physicalResource, logger.isOnError());
-        Assert.assertNotNull("Failed to load resource " + physicalResource, result);
+        Assert.assertNotNull("Failed to loadQuads resource " + physicalResource, result);
 
         try {
             reader.close();
@@ -158,22 +158,22 @@ public abstract class W3CTestSuite {
      * @param uri              The resource's URI
      */
     protected void testNegativeSyntax(String physicalResource, String uri) {
-        RDFGraph graph = null;
+        RDFStore store = null;
         try {
-            graph = new RDFGraph();
+            store = new RDFStore();
         } catch (IOException ex) {
             // do not handle
         }
         TestLogger logger = new TestLogger();
         Loader loader = null;
         if (physicalResource.endsWith(".nt"))
-            loader = new NTriplesLoader(graph);
+            loader = new NTriplesLoader(store);
         else if (physicalResource.endsWith(".nq"))
-            loader = new NQuadsLoader(graph);
+            loader = new NQuadsLoader(store);
         else if (physicalResource.endsWith(".ttl"))
-            loader = new TurtleLoader(graph);
+            loader = new TurtleLoader(store);
         else if (physicalResource.endsWith(".rdf"))
-            loader = new RDFXMLLoader(graph);
+            loader = new RDFXMLLoader(store);
         if (loader == null)
             Assert.fail("Failed to recognize resource " + physicalResource);
 
@@ -185,9 +185,8 @@ public abstract class W3CTestSuite {
             Assert.fail(ex.toString());
         }
 
-        String result = loader.load(logger, reader, uri);
+        List<Quad> result = loader.loadQuads(logger, reader, uri);
         Assert.assertNull("Mistakenly reported success of loading " + physicalResource, result);
-        Assert.assertEquals("Graph has been modified despite errors in input", 0, graph.count());
 
         try {
             reader.close();
@@ -197,30 +196,7 @@ public abstract class W3CTestSuite {
     }
 
     /**
-     * Determines whether two ontologies in a RDF graph contains the same triples
-     *
-     * @param graph    A RDF graph
-     * @param expected The ontology containing the expected triples
-     * @param tested   The ontology containing the tested triples
-     */
-    protected void matches(RDFGraph graph, String expected, String tested) {
-        List<Quad> triplesExpected = new ArrayList<>();
-        Iterator<Quad> iterator = graph.getAll(expected);
-        while (iterator.hasNext()) {
-            triplesExpected.add(iterator.next());
-        }
-
-        List<Quad> triplesTested = new ArrayList<>();
-        iterator = graph.getAll(tested);
-        while (iterator.hasNext()) {
-            triplesTested.add(iterator.next());
-        }
-
-        matches(triplesExpected, triplesTested);
-    }
-
-    /**
-     * Tests whether two sets of triples describe the same graph
+     * Tests whether two sets of quads describe the same graph
      *
      * @param expected The expected set of triples
      * @param tested   The tested set of triples

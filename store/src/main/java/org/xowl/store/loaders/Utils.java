@@ -25,24 +25,23 @@ import java.net.URI;
 /**
  * Utilities for the loaders
  *
- * @author Laurent Zouters
+ * @author Laurent Wouters
  */
 public class Utils {
     /**
-     * Default URIs for the loaded ontologies
+     * Default URIs for the anonymous RDF graphs
      */
     private static final String DEFAULT_GRAPH_URIS = "http://xowl.org/store/rdfgraphs/";
 
     /**
-     * Creates a new ontology based on the default URI prefix
+     * Creates the URI of a new anonymous RDF graph
      *
-     * @return The new ontology
+     * @return The URI of a new anonymous RDF graph
      */
-    public static String createNewOntology() {
+    public static String createAnonymousGraph() {
         java.util.Random rand = new java.util.Random();
         return DEFAULT_GRAPH_URIS + Integer.toHexString(rand.nextInt());
     }
-
 
     /**
      * Strings containing the escaped glyphs

@@ -21,16 +21,18 @@
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ParseResult;
+import org.xowl.store.rdf.Quad;
 import org.xowl.utils.Logger;
 
 import java.io.Reader;
+import java.util.List;
 
 /**
- * Represents a loader for a store
+ * Represents a loader of serialized data
  *
  * @author Laurent Wouters
  */
-public abstract class Loader {
+public interface Loader {
     /**
      * Parses the specified input
      *
@@ -38,15 +40,15 @@ public abstract class Loader {
      * @param reader The input to parse
      * @return The result of the parsing operation
      */
-    public abstract ParseResult parse(Logger logger, Reader reader);
+    public ParseResult parse(Logger logger, Reader reader);
 
     /**
-     * Loads data into the store
+     * Loads quads from the specified input
      *
      * @param logger The logger to use
      * @param reader The resource's reader
      * @param uri    The resource's URI
-     * @return The ontology containing the loaded data
+     * @return The loaded quads, or <code>null</code> if an error occured
      */
-    public abstract String load(Logger logger, Reader reader, String uri);
+    public List<Quad> loadQuads(Logger logger, Reader reader, String uri);
 }

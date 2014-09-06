@@ -20,13 +20,14 @@
 
 package org.xowl.store.rete;
 
+import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Quad;
 
 import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * Represents an ontology filtering node in a RETE network
+ * Represents an graph filtering node in a RETE network
  *
  * @author Laurent Wouters
  */
@@ -36,19 +37,19 @@ public class FilterNode implements FactActivable {
      */
     private AlphaMemory child;
     /**
-     * The ontology to look for
+     * The graph to look for
      */
-    private String ontology;
+    private GraphNode graph;
 
     /**
      * Initializes this filtering node
      *
      * @param parent   The parent fact holder
-     * @param ontology The ontology to look for
+     * @param graph The graph to look for
      */
-    public FilterNode(FactHolder parent, String ontology) {
+    public FilterNode(FactHolder parent, GraphNode graph) {
         this.child = new AlphaMemory();
-        this.ontology = ontology;
+        this.graph = graph;
         parent.addChild(this);
         int size = parent.getFacts().size();
         if (size != 0) {
@@ -70,13 +71,13 @@ public class FilterNode implements FactActivable {
 
     @Override
     public void activateFact(Quad fact) {
-        if (ontology == null || ontology.equals(fact.getOntology()))
+        if (graph == null || graph.equals(fact.getGraph()))
             child.activateFact(fact);
     }
 
     @Override
     public void deactivateFact(Quad fact) {
-        if (ontology == null || ontology.equals(fact.getOntology()))
+        if (graph == null || graph.equals(fact.getGraph()))
             child.deactivateFact(fact);
     }
 
@@ -100,12 +101,12 @@ public class FilterNode implements FactActivable {
      * @param facts The facts to filter
      */
     private void applyFilter(Collection<Quad> facts) {
-        if (ontology == null)
+        if (graph == null)
             return;
         Iterator<Quad> iterator = facts.iterator();
         while (iterator.hasNext()) {
             Quad current = iterator.next();
-            if (!ontology.equals(current.getOntology()))
+            if (!graph.equals(current.getGraph()))
                 iterator.remove();
         }
     }

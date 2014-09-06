@@ -32,42 +32,39 @@ import org.xowl.utils.Logger;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Loader for N-Quads sources
  *
  * @author Laurent Wouters
  */
-public class NQuadsLoader extends Loader {
+public class NQuadsLoader implements Loader {
     /**
-     * The RDF graph to load in
+     * The RDF store to create nodes from
      */
-    private RDFGraph graph;
+    private RDFStore store;
     /**
      * Maps of blanks nodes
      */
     private Map<String, BlankNode> blanks;
     /**
-     * Map of the current ontologies
+     * Map of the current graphs
      */
-    private Map<String, String> ontologies;
+    private Map<String, GraphNode> graphs;
 
     /**
      * Initializes this loader
      *
-     * @param graph The RDF graph to load in
+     * @param store The RDF store used to create nodes
      */
-    public NQuadsLoader(RDFGraph graph) {
-        this.graph = graph;
+    public NQuadsLoader(RDFStore store) {
+        this.store = store;
     }
 
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
-        ParseResult result = null;
+        ParseResult result;
         try {
             String content = Files.read(reader);
             NQuadsLexer lexer = new NQuadsLexer(content);
@@ -88,11 +85,11 @@ public class NQuadsLoader extends Loader {
     }
 
     @Override
-    public String load(Logger logger, Reader reader, String uri) {
+    public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
-        ontologies = new HashMap<>();
+        graphs = new HashMap<>();
         List<Quad> quads = new ArrayList<>();
-        String ontology = Utils.createNewOntology();
+        GraphNode current = store.getNodeIRI(Utils.createAnonymousGraph());
 
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
@@ -103,11 +100,11 @@ public class NQuadsLoader extends Loader {
                 Node n1 = getRDFNode(statement.getChildren().get(0));
                 Node n2 = getRDFNode(statement.getChildren().get(1));
                 Node n3 = getRDFNode(statement.getChildren().get(2));
-                String target;
+                GraphNode target;
                 if (statement.getChildren().size() > 3)
                     target = translateGraphLabel(statement.getChildren().get(3));
                 else
-                    target = ontology;
+                    target = current;
                 quads.add(new Quad(target, (SubjectNode) n1, (Property) n2, n3));
             }
         } catch (IllegalArgumentException ex) {
@@ -115,14 +112,7 @@ public class NQuadsLoader extends Loader {
             return null;
         }
 
-        try {
-            for (Quad quad : quads)
-                graph.add(quad);
-        } catch (UnsupportedNodeType ex) {
-            // cannot happen
-        }
-
-        return ontology;
+        return quads;
     }
 
     /**
@@ -155,7 +145,7 @@ public class NQuadsLoader extends Loader {
         URI uri = URI.create(value);
         if (!uri.isAbsolute())
             throw new IllegalArgumentException("IRI must be absolute");
-        return graph.getNodeIRI(value);
+        return store.getNodeIRI(value);
     }
 
     /**
@@ -170,7 +160,7 @@ public class NQuadsLoader extends Loader {
         BlankNode blank = blanks.get(key);
         if (blank != null)
             return blank;
-        blank = graph.getBlankNode();
+        blank = store.getBlankNode();
         blanks.put(key, blank);
         return blank;
     }
@@ -185,7 +175,7 @@ public class NQuadsLoader extends Loader {
         String value = node.getSymbol().getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
         if (node.getChildren().size() == 0) {
-            return graph.getLiteralNode(value, Vocabulary.xsdString, null);
+            return store.getLiteralNode(value, Vocabulary.xsdString, null);
         }
         ASTNode child = node.getChildren().get(0);
         if (child.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
@@ -194,38 +184,38 @@ public class NQuadsLoader extends Loader {
             URI uri = URI.create(type);
             if (!uri.isAbsolute())
                 throw new IllegalArgumentException("IRI must be absolute");
-            return graph.getLiteralNode(value, type, null);
+            return store.getLiteralNode(value, type, null);
         } else if (child.getSymbol().getID() == NTriplesLexer.ID.LANGTAG) {
             String lang = child.getSymbol().getValue();
             lang = lang.substring(1);
-            return graph.getLiteralNode(value, Vocabulary.rdfLangString, lang);
+            return store.getLiteralNode(value, Vocabulary.rdfLangString, lang);
         }
         return null;
     }
 
     /**
-     * Translates the specified AST node into an Ontology
+     * Translates the specified AST node into a graph
      *
-     * @param node The graph label AST node
-     * @return The corresponding ontology
+     * @param node The store label AST node
+     * @return The corresponding graph
      */
-    private String translateGraphLabel(ASTNode node) {
+    private GraphNode translateGraphLabel(ASTNode node) {
         if (node.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
             String value = node.getSymbol().getValue();
             value = Utils.unescape(value.substring(1, value.length() - 1));
             URI uri = URI.create(value);
             if (!uri.isAbsolute())
                 throw new IllegalArgumentException("IRI must be absolute");
-            return value;
+            return store.getNodeIRI(value);
         } else {
             String key = node.getSymbol().getValue();
             key = key.substring(2);
-            String ontology = ontologies.get(key);
-            if (ontology == null) {
-                ontology = Utils.createNewOntology();
-                ontologies.put(key, ontology);
+            GraphNode graph = graphs.get(key);
+            if (graph == null) {
+                graph = store.getNodeIRI(Utils.createAnonymousGraph());
+                graphs.put(key, graph);
             }
-            return ontology;
+            return graph;
         }
     }
 }

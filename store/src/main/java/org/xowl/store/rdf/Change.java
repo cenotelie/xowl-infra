@@ -38,7 +38,7 @@ public class Change {
     /**
      * Initializes this change
      *
-     * @param quad   The value of this change
+     * @param quad     The value of this change
      * @param positive Whether this change is an addition, or a removal
      */
     public Change(Quad quad, boolean positive) {

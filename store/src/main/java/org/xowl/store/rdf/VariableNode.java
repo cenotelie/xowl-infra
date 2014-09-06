@@ -25,17 +25,11 @@ package org.xowl.store.rdf;
  *
  * @author Laurent Wouters
  */
-public class VariableNode implements SubjectNode, Property {
+public class VariableNode implements SubjectNode, Property, GraphNode {
     /**
      * The type of node
      */
     public static final int TYPE = -1;
-
-    @Override
-    public int getNodeType() {
-        return TYPE;
-    }
-
     /**
      * The variable's name
      */
@@ -48,6 +42,11 @@ public class VariableNode implements SubjectNode, Property {
      */
     public VariableNode(String name) {
         this.name = name;
+    }
+
+    @Override
+    public int getNodeType() {
+        return TYPE;
     }
 
     @Override

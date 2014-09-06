@@ -64,28 +64,28 @@ public class EdgeBucket implements Iterable<Edge> {
     /**
      * Adds the specified edge from this bucket
      *
-     * @param ontology The containing ontology
+     * @param graph    The containing graph
      * @param property The property on this edge
      * @param value    The target value
      */
-    public void add(String ontology, Property property, Node value) {
+    public void add(GraphNode graph, Property property, Node value) {
         boolean hasEmpty = false;
         for (int i = 0; i != edges.length; i++) {
             hasEmpty = hasEmpty || (edges[i] == null);
             if (edges[i] != null && edges[i].getProperty() == property) {
-                edges[i].add(ontology, value);
+                edges[i].add(graph, value);
                 return;
             }
         }
         if (!hasEmpty) {
             edges = Arrays.copyOf(edges, edges.length + INIT_SIZE);
-            edges[size] = new Edge(ontology, property, value);
+            edges[size] = new Edge(graph, property, value);
             size++;
             return;
         }
         for (int i = 0; i != edges.length; i++) {
             if (edges[i] == null) {
-                edges[i] = new Edge(ontology, property, value);
+                edges[i] = new Edge(graph, property, value);
                 size++;
                 return;
             }
@@ -95,15 +95,15 @@ public class EdgeBucket implements Iterable<Edge> {
     /**
      * Removes the specified edge from this bucket
      *
-     * @param ontology The containing ontology
+     * @param graph    The containing graph
      * @param property The property on this edge
      * @param value    The target value
      * @return true if this bucket is now empty and shall be removed
      */
-    public boolean remove(String ontology, Property property, Node value) {
+    public boolean remove(GraphNode graph, Property property, Node value) {
         for (int i = 0; i != edges.length; i++) {
             if (edges[i] != null && edges[i].getProperty() == property) {
-                if (edges[i].remove(ontology, value)) {
+                if (edges[i].remove(graph, value)) {
                     edges[i] = null;
                     size--;
                 }
@@ -119,20 +119,20 @@ public class EdgeBucket implements Iterable<Edge> {
     }
 
     /**
-     * Gets all the xOWL triples with the specified data
+     * Gets all the quads with the specified data
      *
+     * @param graph    The filtering graph
      * @param property The filtering property
      * @param value    The filtering object value
-     * @param ontology The filtering ontology
-     * @return An iterator over the triples
+     * @return An iterator over the quads
      */
-    public Iterator<Quad> getAllTriples(final Property property, final Node value, final String ontology) {
+    public Iterator<Quad> getAll(final GraphNode graph, final Property property, final Node value) {
         if (property == null) {
             return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(edges), new Adapter<Iterator<Quad>>() {
                 @Override
                 public <X> Iterator<Quad> adapt(X element) {
                     Integer index = (Integer) element;
-                    return edges[index].getAllTriples(value, ontology);
+                    return edges[index].getAll(graph, value);
                 }
             }), new Adapter<Quad>() {
                 @Override
@@ -146,7 +146,7 @@ public class EdgeBucket implements Iterable<Edge> {
 
         for (int i = 0; i != edges.length; i++) {
             if (edges[i] != null && edges[i].getProperty() == property) {
-                return new AdaptingIterator<>(edges[i].getAllTriples(value, ontology), new Adapter<Quad>() {
+                return new AdaptingIterator<>(edges[i].getAll(graph, value), new Adapter<Quad>() {
                     @Override
                     public <X> Quad adapt(X element) {
                         Quad result = (Quad) element;
@@ -161,24 +161,24 @@ public class EdgeBucket implements Iterable<Edge> {
     }
 
     /**
-     * Returns the number of different triples with the specified data
+     * Returns the number of different quads with the specified data
      *
+     * @param graph    The filtering graph
      * @param property The filtering property
      * @param value    The filtering object value
-     * @param ontology The filtering ontology
-     * @return The number of different triples
+     * @return The number of different quads
      */
-    public int count(Property property, Node value, String ontology) {
+    public int count(GraphNode graph, Property property, Node value) {
         if (property == null) {
             int count = 0;
             for (int i = 0; i != edges.length; i++)
                 if (edges[i] != null)
-                    count += edges[i].count(value, ontology);
+                    count += edges[i].count(graph, value);
             return count;
         }
         for (int i = 0; i != edges.length; i++)
             if (edges[i] != null && edges[i].getProperty() == property)
-                return edges[i].count(value, ontology);
+                return edges[i].count(graph, value);
         return 0;
     }
 }

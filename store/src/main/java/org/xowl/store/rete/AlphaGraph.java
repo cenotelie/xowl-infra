@@ -193,7 +193,7 @@ public class AlphaGraph {
      * @param graph  The RDF graph
      * @return The corresponding alpha memory
      */
-    public AlphaMemory resolveMemory(Quad quad, RDFGraph graph) {
+    public AlphaMemory resolveMemory(Quad quad, RDFStore graph) {
         Node subj = quad.getSubject();
         Node prop = quad.getProperty();
         Node obj = quad.getObject();

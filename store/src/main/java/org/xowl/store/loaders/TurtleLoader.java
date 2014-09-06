@@ -31,21 +31,18 @@ import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a loader of Turtle syntax
  *
  * @author Laurent Wouters
  */
-public class TurtleLoader extends Loader {
+public class TurtleLoader implements Loader {
     /**
-     * The RDF graph to load in
+     * The RDF store to create nodes from
      */
-    private RDFGraph graph;
+    private RDFStore store;
     /**
      * The loaded triples
      */
@@ -67,9 +64,9 @@ public class TurtleLoader extends Loader {
      */
     private Map<String, BlankNode> blanks;
     /**
-     * The current ontology
+     * The current graph
      */
-    private String ontology;
+    private GraphNode graph;
     /**
      * The cached node for the RDF#type property
      */
@@ -86,15 +83,15 @@ public class TurtleLoader extends Loader {
     /**
      * Initializes this loader
      *
-     * @param graph The RDF graph to load in
+     * @param store The RDF store used to create nodes
      */
-    public TurtleLoader(RDFGraph graph) {
-        this.graph = graph;
+    public TurtleLoader(RDFStore store) {
+        this.store = store;
     }
 
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
-        ParseResult result = null;
+        ParseResult result;
         try {
             String content = Files.read(reader);
             TurtleLexer lexer = new TurtleLexer(content);
@@ -115,9 +112,9 @@ public class TurtleLoader extends Loader {
     }
 
     @Override
-    public String load(Logger logger, Reader reader, String uri) {
+    public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
         quads = new ArrayList<>();
-        ontology = Utils.createNewOntology();
+        graph = store.getNodeIRI(Utils.createAnonymousGraph());
         resource = uri;
         baseURI = null;
         namespaces = new HashMap<>();
@@ -148,14 +145,7 @@ public class TurtleLoader extends Loader {
             }
         }
 
-        try {
-            for (Quad quad : quads)
-                graph.add(quad);
-        } catch (UnsupportedNodeType ex) {
-            // cannot happen
-        }
-
-        return ontology;
+        return quads;
     }
 
     /**
@@ -246,7 +236,7 @@ public class TurtleLoader extends Loader {
      */
     private IRINode getNodeIsA() {
         if (cacheIsA == null)
-            cacheIsA = graph.getNodeIRI(Vocabulary.rdfType);
+            cacheIsA = store.getNodeIRI(Vocabulary.rdfType);
         return cacheIsA;
     }
 
@@ -259,7 +249,7 @@ public class TurtleLoader extends Loader {
     private IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getSymbol().getValue();
         value = value.substring(1, value.length() - 1);
-        return graph.getNodeIRI(Utils.normalizeIRI(resource, baseURI, value));
+        return store.getNodeIRI(Utils.normalizeIRI(resource, baseURI, value));
     }
 
     /**
@@ -270,7 +260,7 @@ public class TurtleLoader extends Loader {
      */
     private IRINode getNodePNameLN(ASTNode node) {
         String value = node.getSymbol().getValue();
-        return graph.getNodeIRI(getIRIForLocalName(value));
+        return store.getNodeIRI(getIRIForLocalName(value));
     }
 
     /**
@@ -283,7 +273,7 @@ public class TurtleLoader extends Loader {
         String value = node.getSymbol().getValue();
         value = Utils.unescape(value.substring(0, value.length() - 1));
         value = namespaces.get(value);
-        return graph.getNodeIRI(value);
+        return store.getNodeIRI(value);
     }
 
     /**
@@ -298,7 +288,7 @@ public class TurtleLoader extends Loader {
         BlankNode blank = blanks.get(value);
         if (blank != null)
             return blank;
-        blank = graph.getBlankNode();
+        blank = store.getBlankNode();
         blanks.put(value, blank);
         return blank;
     }
@@ -309,7 +299,7 @@ public class TurtleLoader extends Loader {
      * @return A new blank node
      */
     private BlankNode getNodeAnon() {
-        return graph.getBlankNode();
+        return store.getBlankNode();
     }
 
     /**
@@ -319,7 +309,7 @@ public class TurtleLoader extends Loader {
      */
     private LiteralNode getNodeTrue() {
         if (cacheTrue == null)
-            cacheTrue = graph.getLiteralNode("true", Vocabulary.xsdBoolean, null);
+            cacheTrue = store.getLiteralNode("true", Vocabulary.xsdBoolean, null);
         return cacheTrue;
     }
 
@@ -330,7 +320,7 @@ public class TurtleLoader extends Loader {
      */
     private LiteralNode getNodeFalse() {
         if (cacheFalse == null)
-            cacheFalse = graph.getLiteralNode("false", Vocabulary.xsdBoolean, null);
+            cacheFalse = store.getLiteralNode("false", Vocabulary.xsdBoolean, null);
         return cacheFalse;
     }
 
@@ -342,7 +332,7 @@ public class TurtleLoader extends Loader {
      */
     private LiteralNode getNodeInteger(ASTNode node) {
         String value = node.getSymbol().getValue();
-        return graph.getLiteralNode(value, Vocabulary.xsdInteger, null);
+        return store.getLiteralNode(value, Vocabulary.xsdInteger, null);
     }
 
     /**
@@ -353,7 +343,7 @@ public class TurtleLoader extends Loader {
      */
     private LiteralNode getNodeDecimal(ASTNode node) {
         String value = node.getSymbol().getValue();
-        return graph.getLiteralNode(value, Vocabulary.xsdDecimal, null);
+        return store.getLiteralNode(value, Vocabulary.xsdDecimal, null);
     }
 
     /**
@@ -364,7 +354,7 @@ public class TurtleLoader extends Loader {
      */
     private LiteralNode getNodeDouble(ASTNode node) {
         String value = node.getSymbol().getValue();
-        return graph.getLiteralNode(value, Vocabulary.xsdDouble, null);
+        return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
     }
 
     /**
@@ -394,28 +384,28 @@ public class TurtleLoader extends Loader {
 
         // No suffix, this is a naked string
         if (node.getChildren().size() <= 1)
-            return graph.getLiteralNode(value, Vocabulary.xsdString, null);
+            return store.getLiteralNode(value, Vocabulary.xsdString, null);
 
         ASTNode suffixChild = node.getChildren().get(1);
         if (suffixChild.getSymbol().getID() == TurtleLexer.ID.LANGTAG) {
             // This is a language-tagged string
             String tag = suffixChild.getSymbol().getValue();
-            return graph.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
+            return store.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getSymbol().getValue();
             iri = iri.substring(1, iri.length() - 1);
-            return graph.getLiteralNode(value, Utils.normalizeIRI(resource, baseURI, iri), null);
+            return store.getLiteralNode(value, Utils.normalizeIRI(resource, baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(suffixChild.getSymbol().getValue());
-            return graph.getLiteralNode(value, local, null);
+            return store.getLiteralNode(value, local, null);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getSymbol().getValue();
             ns = Utils.unescape(ns.substring(0, ns.length() - 1));
             ns = namespaces.get(ns);
-            return graph.getLiteralNode(value, ns, null);
+            return store.getLiteralNode(value, ns, null);
         }
         throw new IllegalArgumentException("Unexpected node " + node.getSymbol().getValue());
     }
@@ -431,17 +421,17 @@ public class TurtleLoader extends Loader {
         for (ASTNode child : node.getChildren())
             elements.add(getNode(child));
         if (elements.isEmpty())
-            return graph.getNodeIRI(Vocabulary.rdfNil);
+            return store.getNodeIRI(Vocabulary.rdfNil);
 
         BlankNode[] proxies = new BlankNode[elements.size()];
         for (int i = 0; i != proxies.length; i++) {
-            proxies[i] = graph.getBlankNode();
-            quads.add(new Quad(ontology, proxies[i], graph.getNodeIRI(Vocabulary.rdfFirst), elements.get(i)));
+            proxies[i] = store.getBlankNode();
+            quads.add(new Quad(graph, proxies[i], store.getNodeIRI(Vocabulary.rdfFirst), elements.get(i)));
         }
         for (int i = 0; i != proxies.length - 1; i++) {
-            quads.add(new Quad(ontology, proxies[i], graph.getNodeIRI(Vocabulary.rdfRest), proxies[i + 1]));
+            quads.add(new Quad(graph, proxies[i], store.getNodeIRI(Vocabulary.rdfRest), proxies[i + 1]));
         }
-        quads.add(new Quad(ontology, proxies[proxies.length - 1], graph.getNodeIRI(Vocabulary.rdfRest), graph.getNodeIRI(Vocabulary.rdfNil)));
+        quads.add(new Quad(graph, proxies[proxies.length - 1], store.getNodeIRI(Vocabulary.rdfRest), store.getNodeIRI(Vocabulary.rdfNil)));
         return proxies[0];
     }
 
@@ -452,7 +442,7 @@ public class TurtleLoader extends Loader {
      * @return The equivalent RDF blank node
      */
     private BlankNode getNodeBlankWithProperties(ASTNode node) {
-        BlankNode subject = graph.getBlankNode();
+        BlankNode subject = store.getBlankNode();
         applyProperties(subject, node);
         return subject;
     }
@@ -493,7 +483,7 @@ public class TurtleLoader extends Loader {
             Property verb = (Property) getNode(children.get(index));
             for (ASTNode objectNode : children.get(index + 1).getChildren()) {
                 Node object = getNode(objectNode);
-                quads.add(new Quad(ontology, subject, verb, object));
+                quads.add(new Quad(graph, subject, verb, object));
             }
             index += 2;
         }

@@ -21,15 +21,15 @@
 package org.xowl.store.rdf;
 
 /**
- * Represents a triple in an ontology
+ * Represents a triple in an graph
  *
  * @author Laurent Wouters
  */
 public class Quad {
     /**
-     * The containing ontology
+     * The containing graph
      */
-    private String ontology;
+    private GraphNode graph;
     /**
      * The subject node
      */
@@ -46,34 +46,34 @@ public class Quad {
     /**
      * Initializes this triple fact
      *
-     * @param ontology The containing ontology
+     * @param graph    The containing graph
      * @param subject  The subject node
      * @param property The property
      * @param object   The object node
      */
-    public Quad(String ontology, SubjectNode subject, Property property, Node object) {
-        this.ontology = ontology;
+    public Quad(GraphNode graph, SubjectNode subject, Property property, Node object) {
+        this.graph = graph;
         this.subject = subject;
         this.property = property;
         this.object = object;
     }
 
     /**
-     * Gets the containing ontology
+     * Gets the containing graph
      *
-     * @return The containing ontology
+     * @return The containing graph
      */
-    public String getOntology() {
-        return ontology;
+    public GraphNode getGraph() {
+        return graph;
     }
 
     /**
-     * Sets the containing ontology
+     * Sets the containing graph
      *
-     * @param ontology The containing ontology
+     * @param graph The containing graph
      */
-    void setOntology(String ontology) {
-        this.ontology = ontology;
+    void setGraph(GraphNode graph) {
+        this.graph = graph;
     }
 
     /**
@@ -144,6 +144,8 @@ public class Quad {
                 return property;
             case VALUE:
                 return object;
+            case GRAPH:
+                return graph;
         }
         return null;
     }
@@ -151,6 +153,7 @@ public class Quad {
     @Override
     public int hashCode() {
         int hash = 5;
+        hash = 53 * hash + (this.graph != null ? this.graph.hashCode() : 0);
         hash = 53 * hash + (this.subject != null ? this.subject.hashCode() : 0);
         hash = 53 * hash + (this.property != null ? this.property.hashCode() : 0);
         hash = 53 * hash + (this.object != null ? this.object.hashCode() : 0);
@@ -161,7 +164,7 @@ public class Quad {
     public boolean equals(Object obj) {
         if (obj instanceof Quad) {
             Quad quad = (Quad) obj;
-            if (!ontology.equals(quad.ontology)) return false;
+            if (!graph.equals(quad.graph)) return false;
             if (!subject.equals(quad.subject)) return false;
             if (!property.equals(quad.property)) return false;
             return (object.equals(quad.object));

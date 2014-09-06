@@ -38,11 +38,11 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class RDFXMLLoader extends Loader {
+public class RDFXMLLoader implements Loader {
     /**
-     * The RDF graph to load into
+     * The RDF store to create nodes from
      */
-    private RDFGraph graph;
+    private RDFStore store;
     /**
      * The loaded triples
      */
@@ -52,9 +52,9 @@ public class RDFXMLLoader extends Loader {
      */
     private Map<String, BlankNode> blanks;
     /**
-     * The current ontology
+     * The current graph
      */
-    private String ontology;
+    private GraphNode graph;
     /**
      * List of all the known IDs so far
      */
@@ -63,10 +63,10 @@ public class RDFXMLLoader extends Loader {
     /**
      * Initializes this loader
      *
-     * @param graph The graph to load in
+     * @param store The RDF store used to create nodes
      */
-    public RDFXMLLoader(RDFGraph graph) {
-        this.graph = graph;
+    public RDFXMLLoader(RDFStore store) {
+        this.store = store;
     }
 
 
@@ -152,9 +152,9 @@ public class RDFXMLLoader extends Loader {
     }
 
     @Override
-    public String load(Logger logger, java.io.Reader reader, String uri) {
+    public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
         quads = new ArrayList<>();
-        ontology = Utils.createNewOntology();
+        graph = store.getNodeIRI(Utils.createAnonymousGraph());
         blanks = new HashMap<>();
         knownIDs = new ArrayList<>();
 
@@ -172,14 +172,7 @@ public class RDFXMLLoader extends Loader {
             return null;
         }
 
-        try {
-            for (Quad quad : quads)
-                graph.add(quad);
-        } catch (UnsupportedNodeType ex) {
-            // cannot happen
-        }
-
-        return ontology;
+        return quads;
     }
 
     /**
@@ -214,7 +207,7 @@ public class RDFXMLLoader extends Loader {
             if (knownIDs.contains(iri))
                 throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
             knownIDs.add(iri);
-            subject = graph.getNodeIRI(iri);
+            subject = store.getNodeIRI(iri);
             hasID = true;
         }
         attribute = element.getAttribute(Vocabulary.rdfNodeID);
@@ -232,19 +225,19 @@ public class RDFXMLLoader extends Loader {
             if (subject != null)
                 throw new IllegalArgumentException("Node cannot have both rdf:nodeID and rdf:about attributes");
             String iri = element.resolve(attribute);
-            subject = graph.getNodeIRI(iri);
+            subject = store.getNodeIRI(iri);
         }
 
         if (subject == null)
-            subject = graph.getBlankNode();
+            subject = store.getBlankNode();
 
         if (!Vocabulary.rdfDescription.equals(element.getNodeIRI())) {
-            register(subject, Vocabulary.rdfType, graph.getNodeIRI(element.getNodeIRI()));
+            register(subject, Vocabulary.rdfType, store.getNodeIRI(element.getNodeIRI()));
         }
 
         attribute = element.getAttribute(Vocabulary.rdfType);
         if (attribute != null) {
-            register(subject, Vocabulary.rdfType, graph.getNodeIRI(element.resolve(attribute)));
+            register(subject, Vocabulary.rdfType, store.getNodeIRI(element.resolve(attribute)));
         }
 
         Iterator<Couple<String, String>> attributes = element.getAttributes();
@@ -252,12 +245,12 @@ public class RDFXMLLoader extends Loader {
             Couple<String, String> couple = attributes.next();
             if (!element.isValidPropertyAttribute(couple.x))
                 throw new IllegalArgumentException("Unexpected property attribute node " + couple.x);
-            IRINode property = graph.getNodeIRI(couple.x);
+            IRINode property = store.getNodeIRI(couple.x);
             LiteralNode literal;
             if (element.getLanguage() != null)
-                literal = graph.getLiteralNode(couple.y, Vocabulary.rdfLangString, element.getLanguage());
+                literal = store.getLiteralNode(couple.y, Vocabulary.rdfLangString, element.getLanguage());
             else
-                literal = graph.getLiteralNode(couple.y, Vocabulary.xsdString, null);
+                literal = store.getLiteralNode(couple.y, Vocabulary.xsdString, null);
             register(subject, property, literal);
         }
 
@@ -312,9 +305,9 @@ public class RDFXMLLoader extends Loader {
     private IRINode getProperty(XMLElement element) {
         if (Vocabulary.rdfLI.equals(element.getNodeIRI())) {
             int index = element.getLIIndex();
-            return graph.getNodeIRI(Vocabulary.rdf + "_" + Integer.toString(index));
+            return store.getNodeIRI(Vocabulary.rdf + "_" + Integer.toString(index));
         } else {
-            return graph.getNodeIRI(element.getNodeIRI());
+            return store.getNodeIRI(element.getNodeIRI());
         }
     }
 
@@ -339,8 +332,8 @@ public class RDFXMLLoader extends Loader {
                 throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
             knownIDs.add(iri);
             // reify the triple
-            IRINode proxy = graph.getNodeIRI(iri);
-            register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
+            IRINode proxy = store.getNodeIRI(iri);
+            register(proxy, Vocabulary.rdfType, store.getNodeIRI(Vocabulary.rdfStatement));
             register(proxy, Vocabulary.rdfSubject, subject);
             register(proxy, Vocabulary.rdfPredicate, property);
             register(proxy, Vocabulary.rdfObject, value);
@@ -359,11 +352,11 @@ public class RDFXMLLoader extends Loader {
         LiteralNode value;
         String attribute = element.getAttribute(Vocabulary.rdfDatatype);
         if (attribute != null) {
-            value = graph.getLiteralNode(lexem, attribute, null);
+            value = store.getLiteralNode(lexem, attribute, null);
         } else if (element.getLanguage() != null) {
-            value = graph.getLiteralNode(lexem, Vocabulary.rdfLangString, element.getLanguage());
+            value = store.getLiteralNode(lexem, Vocabulary.rdfLangString, element.getLanguage());
         } else {
-            value = graph.getLiteralNode(lexem, Vocabulary.xsdString, null);
+            value = store.getLiteralNode(lexem, Vocabulary.xsdString, null);
         }
         register(subject, property, value);
 
@@ -376,8 +369,8 @@ public class RDFXMLLoader extends Loader {
                 throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
             knownIDs.add(iri);
             // reify the triple
-            IRINode proxy = graph.getNodeIRI(iri);
-            register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
+            IRINode proxy = store.getNodeIRI(iri);
+            register(proxy, Vocabulary.rdfType, store.getNodeIRI(Vocabulary.rdfStatement));
             register(proxy, Vocabulary.rdfSubject, subject);
             register(proxy, Vocabulary.rdfPredicate, property);
             register(proxy, Vocabulary.rdfObject, value);
@@ -399,9 +392,9 @@ public class RDFXMLLoader extends Loader {
         if (!attributes.hasNext()) {
             LiteralNode value;
             if (element.getLanguage() != null)
-                value = graph.getLiteralNode("", Vocabulary.rdfLangString, element.getLanguage());
+                value = store.getLiteralNode("", Vocabulary.rdfLangString, element.getLanguage());
             else
-                value = graph.getLiteralNode("", Vocabulary.xsdString, null);
+                value = store.getLiteralNode("", Vocabulary.xsdString, null);
             register(subject, property, value);
             if (attributeID != null) {
                 if (!isValidXMLName(attributeID))
@@ -411,8 +404,8 @@ public class RDFXMLLoader extends Loader {
                     throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
                 knownIDs.add(iri);
                 // reify the triple
-                IRINode proxy = graph.getNodeIRI(iri);
-                register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
+                IRINode proxy = store.getNodeIRI(iri);
+                register(proxy, Vocabulary.rdfType, store.getNodeIRI(Vocabulary.rdfStatement));
                 register(proxy, Vocabulary.rdfSubject, subject);
                 register(proxy, Vocabulary.rdfPredicate, property);
                 register(proxy, Vocabulary.rdfObject, value);
@@ -421,7 +414,7 @@ public class RDFXMLLoader extends Loader {
             SubjectNode value = null;
             attribute = element.getAttribute(Vocabulary.rdfResource);
             if (attribute != null) {
-                value = graph.getNodeIRI(element.resolve(attribute));
+                value = store.getNodeIRI(element.resolve(attribute));
             }
             attribute = element.getAttribute(Vocabulary.rdfNodeID);
             if (attribute != null) {
@@ -432,12 +425,12 @@ public class RDFXMLLoader extends Loader {
                 value = getBlank(attribute);
             }
             if (value == null) {
-                value = graph.getBlankNode();
+                value = store.getBlankNode();
             }
 
             attribute = element.getAttribute(Vocabulary.rdfType);
             if (attribute != null) {
-                register(subject, Vocabulary.rdfType, graph.getNodeIRI(element.resolve(attribute)));
+                register(subject, Vocabulary.rdfType, store.getNodeIRI(element.resolve(attribute)));
             }
 
             attributes = element.getAttributes();
@@ -445,20 +438,20 @@ public class RDFXMLLoader extends Loader {
                 Couple<String, String> att = attributes.next();
                 if (!element.isValidPropertyAttribute(att.x))
                     throw new IllegalArgumentException("Unexpected property attribute node " + att.x);
-                IRINode subProperty = graph.getNodeIRI(att.x);
+                IRINode subProperty = store.getNodeIRI(att.x);
                 LiteralNode literal;
                 if (element.getLanguage() != null)
-                    literal = graph.getLiteralNode(att.y, Vocabulary.rdfLangString, element.getLanguage());
+                    literal = store.getLiteralNode(att.y, Vocabulary.rdfLangString, element.getLanguage());
                 else
-                    literal = graph.getLiteralNode(att.y, Vocabulary.xsdString, null);
+                    literal = store.getLiteralNode(att.y, Vocabulary.xsdString, null);
                 register(value, subProperty, literal);
             }
 
             register(subject, property, value);
             if (attributeID != null) {
                 // reify the triple
-                IRINode proxy = graph.getNodeIRI(element.resolve("#" + attributeID));
-                register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
+                IRINode proxy = store.getNodeIRI(element.resolve("#" + attributeID));
+                register(proxy, Vocabulary.rdfType, store.getNodeIRI(Vocabulary.rdfStatement));
                 register(proxy, Vocabulary.rdfSubject, subject);
                 register(proxy, Vocabulary.rdfPredicate, property);
                 register(proxy, Vocabulary.rdfObject, value);
@@ -482,13 +475,13 @@ public class RDFXMLLoader extends Loader {
         }
 
         String lexem = element.getXMLLiteral();
-        LiteralNode value = graph.getLiteralNode(lexem, Vocabulary.rdfXMLLiteral, null);
+        LiteralNode value = store.getLiteralNode(lexem, Vocabulary.rdfXMLLiteral, null);
 
         register(subject, property, value);
         if (attributeID != null) {
             // reify the triple
-            IRINode proxy = graph.getNodeIRI(element.resolve("#" + attributeID));
-            register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
+            IRINode proxy = store.getNodeIRI(element.resolve("#" + attributeID));
+            register(proxy, Vocabulary.rdfType, store.getNodeIRI(Vocabulary.rdfStatement));
             register(proxy, Vocabulary.rdfSubject, subject);
             register(proxy, Vocabulary.rdfPredicate, property);
             register(proxy, Vocabulary.rdfObject, value);
@@ -503,7 +496,7 @@ public class RDFXMLLoader extends Loader {
      */
     private void loadElementPropertyResourceParseType(XMLElement element, SubjectNode subject) {
         IRINode property = getProperty(element);
-        SubjectNode value = graph.getBlankNode();
+        SubjectNode value = store.getBlankNode();
         register(subject, property, value);
         String attributeID = element.getAttribute(Vocabulary.rdfID);
         if (attributeID != null) {
@@ -514,8 +507,8 @@ public class RDFXMLLoader extends Loader {
                 throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
             knownIDs.add(iri);
             // reify the triple
-            IRINode proxy = graph.getNodeIRI(iri);
-            register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
+            IRINode proxy = store.getNodeIRI(iri);
+            register(proxy, Vocabulary.rdfType, store.getNodeIRI(Vocabulary.rdfStatement));
             register(proxy, Vocabulary.rdfSubject, subject);
             register(proxy, Vocabulary.rdfPredicate, property);
             register(proxy, Vocabulary.rdfObject, value);
@@ -540,9 +533,9 @@ public class RDFXMLLoader extends Loader {
         SubjectNode head;
         if (!children.hasNext()) {
             // no children
-            head = graph.getNodeIRI(Vocabulary.rdfNil);
+            head = store.getNodeIRI(Vocabulary.rdfNil);
         } else {
-            head = graph.getBlankNode();
+            head = store.getBlankNode();
         }
         register(subject, property, head);
         if (attributeID != null) {
@@ -553,8 +546,8 @@ public class RDFXMLLoader extends Loader {
                 throw new IllegalArgumentException("Duplicate rdf:ID " + iri);
             knownIDs.add(iri);
             // reify the triple
-            IRINode proxy = graph.getNodeIRI(iri);
-            register(proxy, Vocabulary.rdfType, graph.getNodeIRI(Vocabulary.rdfStatement));
+            IRINode proxy = store.getNodeIRI(iri);
+            register(proxy, Vocabulary.rdfType, store.getNodeIRI(Vocabulary.rdfStatement));
             register(proxy, Vocabulary.rdfSubject, subject);
             register(proxy, Vocabulary.rdfPredicate, property);
             register(proxy, Vocabulary.rdfObject, head);
@@ -565,12 +558,12 @@ public class RDFXMLLoader extends Loader {
             values.add(loadElement(children.next()));
         for (int i = 0; i != values.size() - 1; i++) {
             register(head, Vocabulary.rdfFirst, values.get(i));
-            SubjectNode next = graph.getBlankNode();
+            SubjectNode next = store.getBlankNode();
             register(head, Vocabulary.rdfRest, next);
             head = next;
         }
         register(head, Vocabulary.rdfFirst, values.get(values.size() - 1));
-        register(head, Vocabulary.rdfRest, graph.getNodeIRI(Vocabulary.rdfNil));
+        register(head, Vocabulary.rdfRest, store.getNodeIRI(Vocabulary.rdfNil));
     }
 
     /**
@@ -583,7 +576,7 @@ public class RDFXMLLoader extends Loader {
         BlankNode node = blanks.get(nodeID);
         if (node != null)
             return node;
-        node = graph.getBlankNode();
+        node = store.getBlankNode();
         blanks.put(nodeID, node);
         return node;
     }
@@ -596,7 +589,7 @@ public class RDFXMLLoader extends Loader {
      * @param value    The triples's value
      */
     private void register(SubjectNode subject, String property, Node value) {
-        quads.add(new Quad(ontology, subject, graph.getNodeIRI(property), value));
+        quads.add(new Quad(graph, subject, store.getNodeIRI(property), value));
     }
 
     /**
@@ -607,6 +600,6 @@ public class RDFXMLLoader extends Loader {
      * @param value    The triples's value
      */
     private void register(SubjectNode subject, Property property, Node value) {
-        quads.add(new Quad(ontology, subject, property, value));
+        quads.add(new Quad(graph, subject, property, value));
     }
 }

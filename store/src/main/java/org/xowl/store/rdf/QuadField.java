@@ -42,7 +42,7 @@ public enum QuadField {
     VALUE,
 
     /**
-     * The enclosing quad's ontology
+     * The enclosing quad's graph
      */
-    ONTOLOGY,
+    GRAPH,
 }

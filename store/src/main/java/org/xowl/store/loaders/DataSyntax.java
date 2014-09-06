@@ -18,33 +18,36 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.loaders;
 
 /**
- * Represents a node associated to an IRI in a RDF graph
+ * Enumeration of the supported data syntaxes
  *
  * @author Laurent Wouters
  */
-public abstract class IRINode implements SubjectNode, Property, GraphNode {
+public enum DataSyntax {
     /**
-     * The type of node
+     * Unknown and unsupported data syntax
      */
-    public static final int TYPE = 0;
-
-    @Override
-    public int getNodeType() {
-        return TYPE;
-    }
-
-    @Override
-    public String toString() {
-        return getIRIValue();
-    }
+    UNKNOWN,
 
     /**
-     * Gets the IRI's value associated to this node
-     *
-     * @return The IRI's value associated to this node
+     * N-Triples syntax
      */
-    public abstract String getIRIValue();
+    NTRIPLES,
+
+    /**
+     * N-Quads syntax
+     */
+    NQUADS,
+
+    /**
+     * Turtle syntax
+     */
+    TURTLE,
+
+    /**
+     * RDF/XML syntax
+     */
+    RDFXML
 }
