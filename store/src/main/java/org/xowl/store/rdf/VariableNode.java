@@ -61,6 +61,6 @@ public class VariableNode implements SubjectNode, Property, GraphNode {
 
     @Override
     public String toString() {
-        return name;
+        return "?" + name;
     }
 }
