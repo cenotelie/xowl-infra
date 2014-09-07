@@ -32,11 +32,11 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * Represents a store of RDF graph with xOWL extensions
+ * Represents a store of RDF store with xOWL extensions
  *
  * @author Laurent Wouters
  */
-public class XOWLGraph extends RDFGraph {
+public class XOWLStore extends RDFStore {
     /**
      * The store of existing anonymous nodes
      */
@@ -44,7 +44,7 @@ public class XOWLGraph extends RDFGraph {
     /**
      * The store of existing variable nodes
      */
-    protected Map<QueryVariable, org.xowl.engine.owl.VariableNode> mapNodeVariables;
+    protected Map<QueryVariable, VariableNode> mapNodeVariables;
     /**
      * The store of existing dynamic nodes
      */
@@ -56,11 +56,11 @@ public class XOWLGraph extends RDFGraph {
     protected Map<AnonymousIndividual, EdgeBucket> edgesAnon;
 
     /**
-     * Initializes this graph
+     * Initializes this store
      *
      * @throws java.io.IOException when the store cannot allocate a temporary file
      */
-    public XOWLGraph() throws IOException {
+    public XOWLStore() throws IOException {
         super();
         mapNodeAnons = new HashMap<>();
         mapNodeVariables = new HashMap<>();
@@ -89,10 +89,10 @@ public class XOWLGraph extends RDFGraph {
      * @param variable A variable
      * @return The associated RDF node
      */
-    public org.xowl.engine.owl.VariableNode getVariableNode(QueryVariable variable) {
+    public VariableNode getVariableNode(QueryVariable variable) {
         if (mapNodeVariables.containsKey(variable))
             return mapNodeVariables.get(variable);
-        org.xowl.engine.owl.VariableNode node = new org.xowl.engine.owl.VariableNode(variable);
+        VariableNode node = new VariableNode(variable.getName());
         mapNodeVariables.put(variable, node);
         return node;
     }
@@ -112,25 +112,25 @@ public class XOWLGraph extends RDFGraph {
     }
 
     /**
-     * Adds the specified triple to this graph
+     * Adds the specified quad to this store
      *
-     * @param ontology The ontology containing the triple
-     * @param subject  The triple subject node
-     * @param property The triple property
-     * @param value    The triple value
+     * @param graph    The store containing the quad
+     * @param subject  The quad subject node
+     * @param property The quad property
+     * @param value    The quad value
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     @Override
-    public void add(String ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+    public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case AnonymousNode.TYPE:
-                addEdgeFromAnonymous(ontology, (AnonymousNode) subject, property, value);
+                addEdgeFromAnonymous(graph, (AnonymousNode) subject, property, value);
                 break;
             case IRINode.TYPE:
-                addEdgeFromIRI(ontology, (IRINode) subject, property, value);
+                addEdgeFromIRI(graph, (IRINode) subject, property, value);
                 break;
             case BlankNode.TYPE:
-                addEdgeFromBlank(ontology, (BlankNode) subject, property, value);
+                addEdgeFromBlank(graph, (BlankNode) subject, property, value);
                 break;
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
@@ -138,43 +138,43 @@ public class XOWLGraph extends RDFGraph {
     }
 
     /**
-     * Adds the specified triple to this graph
+     * Adds the specified triple to this store
      *
-     * @param ontology The ontology containing the triple
+     * @param graph    The store containing the quad
      * @param subject  The triple subject node
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void addEdgeFromAnonymous(String ontology, AnonymousNode subject, Property property, Node value) {
+    protected void addEdgeFromAnonymous(GraphNode graph, AnonymousNode subject, Property property, Node value) {
         AnonymousIndividual key = subject.getAnonymous();
         EdgeBucket bucket = edgesAnon.get(key);
         if (bucket == null) {
             bucket = new EdgeBucket();
             edgesAnon.put(key, bucket);
         }
-        bucket.add(ontology, property, value);
+        bucket.add(graph, property, value);
     }
 
     /**
-     * Removes the specified triple from this graph
+     * Removes the specified quad from this store
      *
-     * @param ontology The ontology containing the triple
-     * @param subject  The triple subject node
-     * @param property The triple property
-     * @param value    The triple value
+     * @param graph    The store containing the quad
+     * @param subject  The quad subject node
+     * @param property The quad property
+     * @param value    The quad value
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     @Override
-    public void remove(String ontology, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+    public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case AnonymousNode.TYPE:
-                removeEdgeFromAnon(ontology, (AnonymousNode) subject, property, value);
+                removeEdgeFromAnon(graph, (AnonymousNode) subject, property, value);
                 break;
             case IRINode.TYPE:
-                removeEdgeFromIRI(ontology, (IRINode) subject, property, value);
+                removeEdgeFromIRI(graph, (IRINode) subject, property, value);
                 break;
             case BlankNode.TYPE:
-                removeEdgeFromBlank(ontology, (BlankNode) subject, property, value);
+                removeEdgeFromBlank(graph, (BlankNode) subject, property, value);
                 break;
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
@@ -182,27 +182,27 @@ public class XOWLGraph extends RDFGraph {
     }
 
     /**
-     * Removes the specified triple from this graph
+     * Removes the specified quad from this store
      *
-     * @param ontology The ontology containing the triple
+     * @param graph    The store containing the quad
      * @param subject  The triple subject node
      * @param property The triple property
      * @param value    The triple value
      */
-    protected void removeEdgeFromAnon(String ontology, AnonymousNode subject, Property property, Node value) {
+    protected void removeEdgeFromAnon(GraphNode graph, AnonymousNode subject, Property property, Node value) {
         AnonymousIndividual key = subject.getAnonymous();
         EdgeBucket bucket = edgesAnon.get(key);
         if (bucket == null)
             return;
-        bucket.remove(ontology, property, value);
+        bucket.remove(graph, property, value);
         if (bucket.getSize() == 0)
             edgesAnon.remove(key);
     }
 
     /**
-     * Gets an iterator over all the subjects starting edges in the graph
+     * Gets an iterator over all the subjects starting edges in the store
      *
-     * @return An iterator over all the subjects starting edges in the graph
+     * @return An iterator over all the subjects starting edges in the store
      */
     @Override
     protected Iterator<Couple<SubjectNode, EdgeBucket>> getAllSubjects() {

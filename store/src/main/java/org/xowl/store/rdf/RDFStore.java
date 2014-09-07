@@ -25,12 +25,10 @@ import org.xowl.store.cache.StringStore;
 import org.xowl.utils.collections.*;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Represents an RDF graph

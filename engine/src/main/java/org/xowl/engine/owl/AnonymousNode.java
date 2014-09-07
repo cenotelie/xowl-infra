@@ -24,7 +24,7 @@ import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.rdf.SubjectNode;
 
 /**
- * Represents a RDF graph associated to an anonymous individual
+ * Represents a RDF store associated to an anonymous individual
  *
  * @author Laurent Wouters
  */

@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Represents a node associated to a dynamic xOWL expression in a RDF graph
+ * Represents a node associated to a dynamic xOWL expression in a RDF store
  *
  * @author Laurent Wouters
  */
@@ -37,7 +37,7 @@ public class DynamicNode implements SubjectNode, Property {
     /**
      * The type of node
      */
-    public static final int TYPE = 6;
+    public static final int TYPE = 5;
 
     /**
      * The associated dynamic expression
