@@ -18,58 +18,42 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.query;
+
+import org.xowl.store.rdf.Change;
+import org.xowl.store.rdf.ChangeListener;
+import org.xowl.store.rdf.Changeset;
+import org.xowl.store.rdf.RDFStore;
+import org.xowl.store.rete.RETENetwork;
+
+import java.io.IOException;
 
 /**
- * Represents a variable in a quad pattern
- *
- * @author Laurent Wouters
+ * Represents a query engine for a RDF store
  */
-public class VariableNode implements SubjectNode, Property, GraphNode {
+public abstract class Engine implements ChangeListener {
     /**
-     * The type of node
+     * The RDF store to query
      */
-    public static final int TYPE = -1;
+    protected RDFStore store;
     /**
-     * The variable's name
+     * A RETE network for the pattern matching of queries
      */
-    private String name;
+    protected RETENetwork rete;
 
-    /**
-     * Initializes this node
-     *
-     * @param name The variable's name
-     */
-    public VariableNode(String name) {
-        this.name = name;
-    }
 
-    /**
-     * Gets the name of the variable represented by this node
-     *
-     * @return The variable's name
-     */
-    public String getName() {
-        return name;
+    public Engine(RDFStore store) throws IOException {
+        this.store = store;
+        this.rete = new RETENetwork();
     }
 
     @Override
-    public int getNodeType() {
-        return TYPE;
+    public void onChange(Change change) {
+
     }
 
     @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
+    public void onChange(Changeset changeset) {
 
-    @Override
-    public boolean equals(Object obj) {
-        return (obj instanceof VariableNode && name.equals(((VariableNode) obj).name));
-    }
-
-    @Override
-    public String toString() {
-        return "?" + name;
     }
 }

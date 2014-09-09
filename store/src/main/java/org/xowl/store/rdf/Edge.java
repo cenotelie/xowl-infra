@@ -85,29 +85,31 @@ public class Edge implements Iterable<EdgeTarget> {
      *
      * @param graph The graph containing the quad
      * @param value The edge's target node
+     * @return The operation result
      */
-    public void add(GraphNode graph, Node value) {
+    public int add(GraphNode graph, Node value) {
         boolean hasEmpty = false;
         for (int i = 0; i != targets.length; i++) {
             hasEmpty = hasEmpty || (targets[i] == null);
             if (targets[i] != null && targets[i].getTarget() == value) {
-                targets[i].add(graph);
-                return;
+                return targets[i].add(graph);
             }
         }
         if (!hasEmpty) {
             targets = Arrays.copyOf(targets, targets.length + INIT_BUFFER_SIZE);
             targets[size] = new EdgeTarget(graph, value);
             size++;
-            return;
+            return RDFStore.ADD_RESULT_NEW;
         }
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] == null) {
                 targets[i] = new EdgeTarget(graph, value);
                 size++;
-                return;
+                return RDFStore.ADD_RESULT_NEW;
             }
         }
+        // cannot happen
+        return RDFStore.ADD_RESULT_UNKNOWN;
     }
 
     /**
@@ -115,19 +117,21 @@ public class Edge implements Iterable<EdgeTarget> {
      *
      * @param graph The graph containing the quad
      * @param value The edge's target node
-     * @return true if this edge is now empty and shall be removed
+     * @return The operation result
      */
-    public boolean remove(GraphNode graph, Node value) {
+    public int remove(GraphNode graph, Node value) {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && targets[i].getTarget() == value) {
-                if (targets[i].remove(graph)) {
+                int result = targets[i].remove(graph);
+                if (result == RDFStore.REMOVE_RESULT_EMPTIED) {
                     targets[i] = null;
                     size--;
+                    return (size == 0) ? RDFStore.REMOVE_RESULT_EMPTIED : RDFStore.REMOVE_RESULT_REMOVED;
                 }
-                return (size == 0);
+                return result;
             }
         }
-        return (size == 0);
+        return RDFStore.REMOVE_RESULT_NOT_FOUND;
     }
 
     @Override

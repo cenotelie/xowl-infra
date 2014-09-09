@@ -21,55 +21,20 @@
 package org.xowl.store.rdf;
 
 /**
- * Represents a variable in a quad pattern
- *
- * @author Laurent Wouters
+ * Represents a listener of changes on a RDF dataset
  */
-public class VariableNode implements SubjectNode, Property, GraphNode {
+public interface ChangeListener {
     /**
-     * The type of node
-     */
-    public static final int TYPE = -1;
-    /**
-     * The variable's name
-     */
-    private String name;
-
-    /**
-     * Initializes this node
+     * Reacts to the specified change
      *
-     * @param name The variable's name
+     * @param change A change
      */
-    public VariableNode(String name) {
-        this.name = name;
-    }
+    void onChange(Change change);
 
     /**
-     * Gets the name of the variable represented by this node
+     * Reacts to the specified changeset
      *
-     * @return The variable's name
+     * @param changeset A changeset
      */
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public int getNodeType() {
-        return TYPE;
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return (obj instanceof VariableNode && name.equals(((VariableNode) obj).name));
-    }
-
-    @Override
-    public String toString() {
-        return "?" + name;
-    }
+    void onChange(Changeset changeset);
 }

@@ -20,56 +20,49 @@
 
 package org.xowl.store.rdf;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+
 /**
- * Represents a variable in a quad pattern
- *
- * @author Laurent Wouters
+ * Represents a set of changes in a RDF database
  */
-public class VariableNode implements SubjectNode, Property, GraphNode {
+public class Changeset {
     /**
-     * The type of node
+     * The quads that are added
      */
-    public static final int TYPE = -1;
+    private Collection<Quad> positives;
     /**
-     * The variable's name
+     * The quads that are removed
      */
-    private String name;
+    private Collection<Quad> negatives;
 
     /**
-     * Initializes this node
+     * Gets the quads that are added
      *
-     * @param name The variable's name
+     * @return The quads that are added
      */
-    public VariableNode(String name) {
-        this.name = name;
+    public Collection<Quad> getPositives() {
+        return Collections.unmodifiableCollection(positives);
     }
 
     /**
-     * Gets the name of the variable represented by this node
+     * Gets the quads that are removed
      *
-     * @return The variable's name
+     * @return The quads that are removed
      */
-    public String getName() {
-        return name;
+    public Collection<Quad> getNegatives() {
+        return Collections.unmodifiableCollection(negatives);
     }
 
-    @Override
-    public int getNodeType() {
-        return TYPE;
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return (obj instanceof VariableNode && name.equals(((VariableNode) obj).name));
-    }
-
-    @Override
-    public String toString() {
-        return "?" + name;
+    /**
+     * Initializes this changeset
+     *
+     * @param positives The quads that are added
+     * @param negatives The quads that are removed
+     */
+    public Changeset(Collection<Quad> positives, Collection<Quad> negatives) {
+        this.positives = new ArrayList<>(positives);
+        this.negatives = new ArrayList<>(negatives);
     }
 }

@@ -25,25 +25,57 @@ import org.xowl.store.cache.StringStore;
 import org.xowl.utils.collections.*;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents an RDF graph
  *
  * @author Laurent Wouters
  */
-public class RDFStore {
+public class RDFStore implements ChangeListener {
+    /**
+     * When adding a quad, something weird happened
+     */
+    public static final int ADD_RESULT_UNKNOWN = 0;
+    /**
+     * When adding a quad, it was already present and its multiplicity incremented
+     */
+    public static final int ADD_RESULT_INCREMENT = 1;
+    /**
+     * When adding a quad, it was not already present and was hterefore new
+     */
+    public static final int ADD_RESULT_NEW = 2;
+    /**
+     * When removing a quad, it was not found in the store
+     */
+    public static final int REMOVE_RESULT_NOT_FOUND = 0;
+    /**
+     * When removing a quad, it was decremented and the multiplicity did not reached 0 yet
+     */
+    public static final int REMOVE_RESULT_DECREMENT = 1;
+    /**
+     * When removing a quad, its multiplicity reached 0
+     */
+    public static final int REMOVE_RESULT_REMOVED = 2;
+    /**
+     * When removing a quad, its multiplicity reached 0 and the child dataset is now empty
+     */
+    public static final int REMOVE_RESULT_EMPTIED = 6;
+
     /**
      * Initial size of the blank node store
      */
     protected static final int INIT_BLANK_SIZE = 1024;
+
+
     /**
      * The embedded string store
      */
     protected StringStore sStore;
+    /**
+     * The current listeners on this store
+     */
+    protected Collection<ChangeListener> listeners;
     /**
      * The store of existing IRI Reference nodes
      */
@@ -72,11 +104,52 @@ public class RDFStore {
      */
     public RDFStore() throws IOException {
         sStore = new StringStore();
+        listeners = new ArrayList<>();
         mapNodeIRIs = new HashMap<>();
         mapNodeLiterals = new HashMap<>();
         edgesIRI = new HashMap<>();
         edgesBlank = new EdgeBucket[INIT_BLANK_SIZE];
         nextBlank = 0;
+    }
+
+    /**
+     * Adds the specified listener to this store
+     *
+     * @param listener A listener
+     */
+    public void addListener(ChangeListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * Removes the specified listener from this store
+     *
+     * @param listener A listener
+     */
+    public void removeListener(ChangeListener listener) {
+        listeners.remove(listener);
+    }
+
+    /**
+     * Broadcasts the information that a new quad was added
+     *
+     * @param quad The quad
+     */
+    protected void onQuadAdded(Quad quad) {
+        Change change = new Change(quad, true);
+        for (ChangeListener listener : listeners)
+            listener.onChange(change);
+    }
+
+    /**
+     * Broadcasts the information that a quad was removed
+     *
+     * @param quad The quad
+     */
+    protected void onQuadRemoved(Quad quad) {
+        Change change = new Change(quad, false);
+        for (ChangeListener listener : listeners)
+            listener.onChange(change);
     }
 
     /**
@@ -132,13 +205,91 @@ public class RDFStore {
     }
 
     /**
+     * Reacts to the specified change
+     *
+     * @param change A change
+     */
+    public void onChange(Change change) {
+        try {
+            insert(change);
+        } catch (UnsupportedNodeType ex) {
+            // do nothing
+        }
+    }
+
+    /**
+     * Reacts to the specified changeset
+     *
+     * @param changeset A changeset
+     */
+    public void onChange(Changeset changeset) {
+        try {
+            insert(changeset);
+        } catch (UnsupportedNodeType ex) {
+            // do nothing
+        }
+    }
+
+    /**
+     * Inserts the specified change in this store
+     *
+     * @param change A change
+     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     */
+    public void insert(Change change) throws UnsupportedNodeType {
+        Quad quad = change.getValue();
+        if (change.isPositive()) {
+            int result = doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            if (result == ADD_RESULT_NEW) {
+                for (ChangeListener listener : listeners) {
+                    listener.onChange(change);
+                }
+            }
+        } else {
+            int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            if (result == REMOVE_RESULT_REMOVED) {
+                for (ChangeListener listener : listeners) {
+                    listener.onChange(change);
+                }
+            }
+        }
+    }
+
+    /**
+     * Inserts the specified changeset in this store
+     *
+     * @param changeset A changeset
+     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     */
+    public void insert(Changeset changeset) throws UnsupportedNodeType {
+        Collection<Quad> positives = new ArrayList<>();
+        Collection<Quad> negatives = new ArrayList<>();
+        for (Quad quad : changeset.getPositives()) {
+            int result = doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            if (result == ADD_RESULT_NEW)
+                positives.add(quad);
+        }
+        for (Quad quad : changeset.getNegatives()) {
+            int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            if (result == REMOVE_RESULT_REMOVED)
+                negatives.add(quad);
+        }
+        Changeset newChangeset = new Changeset(positives, negatives);
+        for (ChangeListener listener : listeners) {
+            listener.onChange(newChangeset);
+        }
+    }
+
+    /**
      * Adds the specified quad to this graph
      *
      * @param quad A quad
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     public void add(Quad quad) throws UnsupportedNodeType {
-        add(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+        int result = doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+        if (result == ADD_RESULT_NEW)
+            onQuadAdded(quad);
     }
 
     /**
@@ -151,13 +302,27 @@ public class RDFStore {
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+        int result = doAddEdge(graph, subject, property, value);
+        if (result == ADD_RESULT_NEW)
+            onQuadAdded(new Quad(graph, subject, property, value));
+    }
+
+    /**
+     * Adds the specified quad to this graph
+     *
+     * @param graph    The graph containing the quad
+     * @param subject  The quad subject node
+     * @param property The quad property
+     * @param value    The quad value
+     * @return The operation result
+     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     */
+    protected int doAddEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case IRINode.TYPE:
-                addEdgeFromIRI(graph, (IRINode) subject, property, value);
-                break;
+                return doAddEdgeFromIRI(graph, (IRINode) subject, property, value);
             case BlankNode.TYPE:
-                addEdgeFromBlank(graph, (BlankNode) subject, property, value);
-                break;
+                return doAddEdgeFromBlank(graph, (BlankNode) subject, property, value);
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
         }
@@ -170,15 +335,16 @@ public class RDFStore {
      * @param subject  The quad subject node
      * @param property The quad property
      * @param value    The quad value
+     * @return The operation result
      */
-    protected void addEdgeFromIRI(GraphNode graph, IRINode subject, Property property, Node value) {
+    protected int doAddEdgeFromIRI(GraphNode graph, IRINode subject, Property property, Node value) {
         int key = ((IRINodeImpl) subject).getKey();
         EdgeBucket bucket = edgesIRI.get(key);
         if (bucket == null) {
             bucket = new EdgeBucket();
             edgesIRI.put(key, bucket);
         }
-        bucket.add(graph, property, value);
+        return bucket.add(graph, property, value);
     }
 
     /**
@@ -188,8 +354,9 @@ public class RDFStore {
      * @param subject  The quad subject node
      * @param property The quad property
      * @param value    The quad value
+     * @return The operation result
      */
-    protected void addEdgeFromBlank(GraphNode graph, BlankNode subject, Property property, Node value) {
+    protected int doAddEdgeFromBlank(GraphNode graph, BlankNode subject, Property property, Node value) {
         int key = subject.getBlankID();
         while (key > edgesBlank.length)
             edgesBlank = Arrays.copyOf(edgesBlank, edgesBlank.length + INIT_BLANK_SIZE);
@@ -198,7 +365,7 @@ public class RDFStore {
             bucket = new EdgeBucket();
             edgesBlank[key] = bucket;
         }
-        bucket.add(graph, property, value);
+        return bucket.add(graph, property, value);
     }
 
     /**
@@ -208,7 +375,9 @@ public class RDFStore {
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     public void remove(Quad quad) throws UnsupportedNodeType {
-        remove(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+        int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+        if (result == REMOVE_RESULT_REMOVED)
+            onQuadRemoved(quad);
     }
 
     /**
@@ -221,13 +390,27 @@ public class RDFStore {
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+        int result = doRemoveEdge(graph, subject, property, value);
+        if (result == REMOVE_RESULT_REMOVED)
+            onQuadRemoved(new Quad(graph, subject, property, value));
+    }
+
+    /**
+     * Removes the specified quad from this graph
+     *
+     * @param graph    The graph containing the quad
+     * @param subject  The quad subject node
+     * @param property The quad property
+     * @param value    The quad value
+     * @return The operation result
+     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     */
+    protected int doRemoveEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case IRINode.TYPE:
-                removeEdgeFromIRI(graph, (IRINode) subject, property, value);
-                break;
+                return doRemoveEdgeFromIRI(graph, (IRINode) subject, property, value);
             case BlankNode.TYPE:
-                removeEdgeFromBlank(graph, (BlankNode) subject, property, value);
-                break;
+                return doRemoveEdgeFromBlank(graph, (BlankNode) subject, property, value);
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
         }
@@ -240,15 +423,19 @@ public class RDFStore {
      * @param subject  The quad subject node
      * @param property The quad property
      * @param value    The quad value
+     * @return The operation result
      */
-    protected void removeEdgeFromIRI(GraphNode graph, IRINode subject, Property property, Node value) {
+    protected int doRemoveEdgeFromIRI(GraphNode graph, IRINode subject, Property property, Node value) {
         int key = ((IRINodeImpl) subject).getKey();
         EdgeBucket bucket = edgesIRI.get(key);
         if (bucket == null)
-            return;
-        bucket.remove(graph, property, value);
-        if (bucket.getSize() == 0)
+            return REMOVE_RESULT_NOT_FOUND;
+        int result = bucket.remove(graph, property, value);
+        if (result == REMOVE_RESULT_EMPTIED) {
             edgesIRI.remove(key);
+            return REMOVE_RESULT_REMOVED;
+        }
+        return result;
     }
 
     /**
@@ -258,17 +445,21 @@ public class RDFStore {
      * @param subject  The quad subject node
      * @param property The quad property
      * @param value    The quad value
+     * @return The operation result
      */
-    protected void removeEdgeFromBlank(GraphNode graph, BlankNode subject, Property property, Node value) {
+    protected int doRemoveEdgeFromBlank(GraphNode graph, BlankNode subject, Property property, Node value) {
         int key = subject.getBlankID();
         if (key >= edgesBlank.length)
-            return;
+            return REMOVE_RESULT_NOT_FOUND;
         EdgeBucket bucket = edgesBlank[key];
         if (bucket == null)
-            return;
-        bucket.remove(graph, property, value);
-        if (bucket.getSize() == 0)
+            return REMOVE_RESULT_NOT_FOUND;
+        int result = bucket.remove(graph, property, value);
+        if (result == REMOVE_RESULT_EMPTIED) {
             edgesBlank[key] = null;
+            return REMOVE_RESULT_REMOVED;
+        }
+        return result;
     }
 
     /**

@@ -92,14 +92,15 @@ public class EdgeTarget implements Iterable<GraphNode> {
      * Adds the specified graph (or increment the counter)
      *
      * @param graph A graph
+     * @return The operation result
      */
-    public void add(GraphNode graph) {
+    public int add(GraphNode graph) {
         boolean hasEmpty = false;
         for (int i = 0; i != graphs.length; i++) {
             hasEmpty = hasEmpty || (graphs[i] == null);
             if (graphs[i] == graph) {
                 multiplicities[i]++;
-                return;
+                return RDFStore.ADD_RESULT_INCREMENT;
             }
         }
         if (!hasEmpty) {
@@ -108,36 +109,39 @@ public class EdgeTarget implements Iterable<GraphNode> {
             graphs[size] = graph;
             multiplicities[size] = 1;
             size++;
-            return;
+            return RDFStore.ADD_RESULT_NEW;
         }
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] == null) {
                 graphs[i] = graph;
                 multiplicities[i] = 1;
                 size++;
-                return;
+                return RDFStore.ADD_RESULT_NEW;
             }
         }
+        // cannot happen
+        return RDFStore.ADD_RESULT_UNKNOWN;
     }
 
     /**
      * Removes the specified graph (or decrement the counter)
      *
      * @param graph A graph
-     * @return true if this target is now empty and should be removed
+     * @return The operation result
      */
-    public boolean remove(GraphNode graph) {
+    public int remove(GraphNode graph) {
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] == graph) {
                 multiplicities[i]--;
                 if (multiplicities[i] == 0) {
                     graphs[i] = null;
                     size--;
+                    return (size == 0) ? RDFStore.REMOVE_RESULT_EMPTIED : RDFStore.REMOVE_RESULT_REMOVED;
                 }
-                return (size == 0);
+                return RDFStore.REMOVE_RESULT_DECREMENT;
             }
         }
-        return (size == 0);
+        return RDFStore.REMOVE_RESULT_NOT_FOUND;
     }
 
     @Override

@@ -74,21 +74,12 @@ public class RETENetwork {
     /**
      * Injects a collection of changes in this network
      *
-     * @param changes A collection of changes
+     * @param changeset A changeset
      * @throws org.xowl.store.rdf.UnsupportedNodeType when a type of node is unsupported
      */
-    public void inject(Collection<Change> changes) throws UnsupportedNodeType {
-        Collection<Quad> positives = new ArrayList<>();
-        Collection<Quad> negatives = new ArrayList<>();
-        for (Change change : changes) {
-            if (change.isPositive()) {
-                input.add(change.getValue());
-                positives.add(change.getValue());
-            } else {
-                input.remove(change.getValue());
-                negatives.add(change.getValue());
-            }
-        }
+    public void inject(Changeset changeset) throws UnsupportedNodeType {
+        Collection<Quad> positives = changeset.getPositives();
+        Collection<Quad> negatives = changeset.getNegatives();
         if (!negatives.isEmpty()) {
             alpha.unfire(negatives);
         }
