@@ -22,7 +22,6 @@ package org.xowl.store.rete;
 
 import org.xowl.store.rdf.*;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -47,10 +46,10 @@ public class RETENetwork {
     /**
      * Initializes this network
      *
-     * @throws java.io.IOException when the store cannot allocate a temporary file
+     * @param input The RDF store to use as input
      */
-    public RETENetwork() throws IOException {
-        this.input = new RDFStore();
+    public RETENetwork(RDFStore input) {
+        this.input = input;
         this.alpha = new AlphaGraph();
         this.rules = new HashMap<>();
     }
@@ -59,14 +58,11 @@ public class RETENetwork {
      * Injects a change in this network
      *
      * @param change A change
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when a type of node is unsupported
      */
-    public void inject(Change change) throws UnsupportedNodeType {
+    public void inject(Change change) {
         if (change.isPositive()) {
-            input.add(change.getValue());
             alpha.fire(change.getValue());
         } else {
-            input.remove(change.getValue());
             alpha.unfire(change.getValue());
         }
     }
@@ -75,16 +71,30 @@ public class RETENetwork {
      * Injects a collection of changes in this network
      *
      * @param changeset A changeset
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when a type of node is unsupported
      */
-    public void inject(Changeset changeset) throws UnsupportedNodeType {
-        Collection<Quad> positives = changeset.getPositives();
-        Collection<Quad> negatives = changeset.getNegatives();
-        if (!negatives.isEmpty()) {
-            alpha.unfire(negatives);
-        }
-        if (!positives.isEmpty())
-            alpha.fire(positives);
+    public void inject(Changeset changeset) {
+        injectPositives(changeset.getPositives());
+        injectNegatives(changeset.getNegatives());
+    }
+
+    /**
+     * Injects a collection of changes in this network
+     *
+     * @param changeset A changeset
+     */
+    public void injectPositives(Collection<Quad> changeset) {
+        if (!changeset.isEmpty())
+            alpha.fire(changeset);
+    }
+
+    /**
+     * Injects a collection of changes in this network
+     *
+     * @param changeset A changeset
+     */
+    public void injectNegatives(Collection<Quad> changeset) {
+        if (!changeset.isEmpty())
+            alpha.unfire(changeset);
     }
 
     /**

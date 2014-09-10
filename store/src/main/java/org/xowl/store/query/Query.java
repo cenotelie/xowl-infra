@@ -51,6 +51,15 @@ public class Query {
     }
 
     /**
+     * Gets the RETE rule used for matching this query
+     *
+     * @return The associated RETE rule
+     */
+    RETERule getRule() {
+        return rule;
+    }
+
+    /**
      * Gets the output for this query
      *
      * @return The output for this query
