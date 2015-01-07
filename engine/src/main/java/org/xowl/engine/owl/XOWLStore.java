@@ -118,20 +118,18 @@ public class XOWLStore extends RDFStore {
      * @param subject  The quad subject node
      * @param property The quad property
      * @param value    The quad value
+     * @return The operation result
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     @Override
-    public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+    protected int doAddEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case AnonymousNode.TYPE:
-                addEdgeFromAnonymous(graph, (AnonymousNode) subject, property, value);
-                break;
+                return doAddEdgeFromAnonymous(graph, (AnonymousNode) subject, property, value);
             case IRINode.TYPE:
-                addEdgeFromIRI(graph, (IRINode) subject, property, value);
-                break;
+                return doAddEdgeFromIRI(graph, (IRINode) subject, property, value);
             case BlankNode.TYPE:
-                addEdgeFromBlank(graph, (BlankNode) subject, property, value);
-                break;
+                return doAddEdgeFromBlank(graph, (BlankNode) subject, property, value);
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
         }
@@ -144,15 +142,16 @@ public class XOWLStore extends RDFStore {
      * @param subject  The triple subject node
      * @param property The triple property
      * @param value    The triple value
+     * @return The operation result
      */
-    protected void addEdgeFromAnonymous(GraphNode graph, AnonymousNode subject, Property property, Node value) {
+    protected int doAddEdgeFromAnonymous(GraphNode graph, AnonymousNode subject, Property property, Node value) {
         AnonymousIndividual key = subject.getAnonymous();
         EdgeBucket bucket = edgesAnon.get(key);
         if (bucket == null) {
             bucket = new EdgeBucket();
             edgesAnon.put(key, bucket);
         }
-        bucket.add(graph, property, value);
+        return bucket.add(graph, property, value);
     }
 
     /**
@@ -162,20 +161,18 @@ public class XOWLStore extends RDFStore {
      * @param subject  The quad subject node
      * @param property The quad property
      * @param value    The quad value
+     * @return The operation result
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     @Override
-    public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+    protected int doRemoveEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case AnonymousNode.TYPE:
-                removeEdgeFromAnon(graph, (AnonymousNode) subject, property, value);
-                break;
+                return doRemoveEdgeFromAnon(graph, (AnonymousNode) subject, property, value);
             case IRINode.TYPE:
-                removeEdgeFromIRI(graph, (IRINode) subject, property, value);
-                break;
+                return doRemoveEdgeFromIRI(graph, (IRINode) subject, property, value);
             case BlankNode.TYPE:
-                removeEdgeFromBlank(graph, (BlankNode) subject, property, value);
-                break;
+                return doRemoveEdgeFromBlank(graph, (BlankNode) subject, property, value);
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
         }
@@ -188,15 +185,19 @@ public class XOWLStore extends RDFStore {
      * @param subject  The triple subject node
      * @param property The triple property
      * @param value    The triple value
+     * @return The operation result
      */
-    protected void removeEdgeFromAnon(GraphNode graph, AnonymousNode subject, Property property, Node value) {
+    protected int doRemoveEdgeFromAnon(GraphNode graph, AnonymousNode subject, Property property, Node value) {
         AnonymousIndividual key = subject.getAnonymous();
         EdgeBucket bucket = edgesAnon.get(key);
         if (bucket == null)
-            return;
-        bucket.remove(graph, property, value);
-        if (bucket.getSize() == 0)
+            return REMOVE_RESULT_NOT_FOUND;
+        int result = bucket.remove(graph, property, value);
+        if (result == REMOVE_RESULT_EMPTIED) {
             edgesAnon.remove(key);
+            return REMOVE_RESULT_REMOVED;
+        }
+        return result;
     }
 
     /**
