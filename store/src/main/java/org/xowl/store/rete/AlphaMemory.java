@@ -32,7 +32,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement {
+class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement {
     /**
      * The facts in this memory
      */

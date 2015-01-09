@@ -30,7 +30,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public abstract class JoinStrategy {
+abstract class JoinStrategy {
     protected BetaJoinNodeTest test1;
     protected BetaJoinNodeTest test2;
     protected BetaJoinNodeTest test3;

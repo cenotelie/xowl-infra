@@ -27,7 +27,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class BetaNCCExitNode implements TokenHolder, TokenActivable {
+class BetaNCCExitNode implements TokenHolder, TokenActivable {
     /**
      * Flag whether a trasaction is in action
      */

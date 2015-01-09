@@ -31,7 +31,7 @@ import java.util.*;
  * @param <RIGHT> The type of the right elements to join
  * @author Laurent Wouters
  */
-public abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterator<Couple> {
+abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterator<Couple> {
     /**
      * Map of all the left elements
      */

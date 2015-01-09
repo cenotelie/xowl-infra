@@ -27,7 +27,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public interface TokenHolder {
+interface TokenHolder {
     /**
      * Gets the tokens in this element
      *

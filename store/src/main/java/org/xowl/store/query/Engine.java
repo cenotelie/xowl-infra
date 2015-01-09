@@ -22,6 +22,9 @@ package org.xowl.store.query;
 
 import org.xowl.store.rdf.*;
 import org.xowl.store.rete.RETENetwork;
+import org.xowl.store.rete.RETERule;
+import org.xowl.store.rete.Token;
+import org.xowl.store.rete.TokenActivable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,35 +33,35 @@ import java.util.List;
 /**
  * Represents a query engine for a RDF store
  */
-public abstract class Engine implements ChangeListener {
-    /**
-     * The RDF store to query
-     */
-    protected RDFStore store;
+public class Engine implements ChangeListener {
     /**
      * A RETE network for the pattern matching of queries
      */
-    protected RETENetwork rete;
+    private RETENetwork rete;
+    /**
+     * The registered continuous queries
+     */
+    private List<ContinuousQuery> continuousQueries;
     /**
      * The new changes since the last application
      */
-    protected List<Change> newChanges;
+    private List<Change> newChanges;
     /**
      * The new changesets since the last application
      */
-    protected List<Changeset> newChangesets;
+    private List<Changeset> newChangesets;
     /**
      * Flag whether outstanding changes are currently being applied
      */
-    protected boolean isApplying;
+    private boolean isApplying;
     /**
      * Buffer of positive quads
      */
-    protected Collection<Quad> bufferPositives;
+    private Collection<Quad> bufferPositives;
     /**
      * Buffer of negative quads
      */
-    protected Collection<Quad> bufferNegatives;
+    private Collection<Quad> bufferNegatives;
 
     /**
      * Initializes this engine
@@ -66,13 +69,13 @@ public abstract class Engine implements ChangeListener {
      * @param store The RDF store to query
      */
     public Engine(RDFStore store) {
-        this.store = store;
         this.rete = new RETENetwork(store);
+        this.continuousQueries = new ArrayList<>();
         this.newChanges = new ArrayList<>();
         this.newChangesets = new ArrayList<>();
         this.bufferPositives = new ArrayList<>();
         this.bufferNegatives = new ArrayList<>();
-        this.store.addListener(this);
+        store.addListener(this);
     }
 
     /**
@@ -81,16 +84,90 @@ public abstract class Engine implements ChangeListener {
      * @param query A query
      * @return The solutions
      */
-    public abstract Collection<Solution> execute(Query query);
+    public Collection<Solution> execute(QueryCondition query) {
+        // build the RETE rule
+        final List<Solution> result = new ArrayList<>();
+        RETERule rule = new RETERule(new TokenActivable() {
+            @Override
+            public void activateToken(Token token) {
+                result.add(new Solution(token.getBindings()));
+            }
+
+            @Override
+            public void deactivateToken(Token token) {
+                // not needed
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void activateTokens(Collection<Token> tokens) {
+                for (Token token : tokens)
+                    activateToken(token);
+            }
+
+            @Override
+            public void deactivateTokens(Collection<Token> tokens) {
+                // not needed
+                throw new UnsupportedOperationException();
+            }
+        });
+        rule.getPositives().addAll(query.getPositives());
+        rule.getNegatives().addAll(query.getNegatives());
+        // execute
+        rete.addRule(rule);
+        // TODO remove the rule from the network
+        // rete.removeRule(rule);
+        return result;
+    }
+
+    /**
+     * Adds a listener on the output of the specified query
+     *
+     * @param condition The conditions for the query
+     * @param listener  The listener for the results
+     */
+    public void addListener(QueryCondition condition, QueryListener listener) {
+        for (ContinuousQuery query : continuousQueries) {
+            if (query.matches(condition)) {
+                query.addListener(listener);
+                return;
+            }
+        }
+        ContinuousQuery query = new ContinuousQuery(condition);
+        query.addListener(listener);
+        rete.addRule(query.getRule());
+    }
+
+    /**
+     * Removes a previously added listener on the output of a query
+     *
+     * @param condition The condition for the query
+     * @param listener  The listener to remove
+     */
+    public void removeListener(QueryCondition condition, QueryListener listener) {
+        for (ContinuousQuery query : continuousQueries) {
+            if (query.matches(condition)) {
+                query.removeListener(listener);
+                if (query.getListenersCount() == 0) {
+                    // TODO remove the rule from the network
+                    // rete.removeRule(query.getRule());
+                    continuousQueries.remove(query);
+                }
+                return;
+            }
+        }
+    }
 
     @Override
     public void onChange(Change change) {
         newChanges.add(change);
+        apply();
     }
 
     @Override
     public void onChange(Changeset changeset) {
         newChangesets.add(changeset);
+        apply();
     }
 
     /**

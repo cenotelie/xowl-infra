@@ -30,7 +30,7 @@ import java.util.Map.Entry;
  *
  * @author Laurent Wouters
  */
-public class BetaMemory implements TokenHolder {
+class BetaMemory implements TokenHolder {
     /**
      * A dummy beta memory
      */

@@ -28,7 +28,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public class BetaNCCEntryNode implements TokenHolder, TokenActivable {
+class BetaNCCEntryNode implements TokenHolder, TokenActivable {
     /**
      * The parent beta memory
      */

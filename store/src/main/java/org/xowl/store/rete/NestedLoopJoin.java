@@ -30,7 +30,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
+class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
     /**
      * The tokens to join
      */

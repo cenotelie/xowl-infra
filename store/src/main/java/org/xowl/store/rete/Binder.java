@@ -29,7 +29,7 @@ import org.xowl.store.rdf.VariableNode;
  *
  * @author Laurent Wouters
  */
-public class Binder {
+class Binder {
     /**
      * The variable to bind to
      */

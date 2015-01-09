@@ -34,7 +34,7 @@ import java.util.Map.Entry;
  *
  * @author Laurent Wouters
  */
-public class AlphaGraph extends AlphaMemoryBucket {
+class AlphaGraph extends AlphaMemoryBucket {
     /**
      * Sub-bucket matching the object field of quads
      */

@@ -29,7 +29,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public class FastBuffer<T> implements Collection<T> {
+class FastBuffer<T> implements Collection<T> {
     /**
      * The internal representation
      */

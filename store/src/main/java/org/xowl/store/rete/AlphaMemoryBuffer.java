@@ -25,7 +25,7 @@ package org.xowl.store.rete;
  *
  * @author Laurent Wouters
  */
-public class AlphaMemoryBuffer {
+class AlphaMemoryBuffer {
     /**
      * The content;
      */

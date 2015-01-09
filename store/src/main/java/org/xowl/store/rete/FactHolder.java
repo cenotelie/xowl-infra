@@ -29,7 +29,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public interface FactHolder {
+interface FactHolder {
     /**
      * Gets the facts in this element
      *

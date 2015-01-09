@@ -29,7 +29,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable {
+class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable {
     /**
      * The parent alpha memory
      */

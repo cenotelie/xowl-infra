@@ -30,7 +30,7 @@ import org.xowl.store.rdf.VariableNode;
  *
  * @author Laurent Wouters
  */
-public class BetaJoinNodeTest {
+class BetaJoinNodeTest {
     /**
      * The variable to test
      */

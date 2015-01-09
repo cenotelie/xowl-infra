@@ -26,7 +26,7 @@ import org.xowl.store.rdf.VariableNode;
 
 import java.util.Arrays;
 
-public abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
+abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
     /**
      * The initial size of the buffer within this bucket
      */

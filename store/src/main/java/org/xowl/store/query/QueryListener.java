@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -18,33 +18,23 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rete;
-
-import org.xowl.store.rdf.Quad;
+package org.xowl.store.query;
 
 /**
- * Represents a couple of matching items
- *
- * @author Laurent Wouters
+ * Listener to the output of a query
  */
-class Couple {
+public interface QueryListener {
     /**
-     * A triple fact
+     * Reacts to a new solution for the query
+     *
+     * @param solution The new solution
      */
-    public Quad fact;
-    /**
-     * A token
-     */
-    public Token token;
+    void onNewSolution(Solution solution);
 
     /**
-     * Initializes this couple
+     * Reacts to a previous solution being retracted (invalidated)
      *
-     * @param fact  The triple fact
-     * @param token The token
+     * @param solution The retracted solution
      */
-    public Couple(Quad fact, Token token) {
-        this.fact = fact;
-        this.token = token;
-    }
+    void onSolutionRetracted(Solution solution);
 }

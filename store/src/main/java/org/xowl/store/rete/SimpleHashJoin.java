@@ -31,7 +31,7 @@ import java.util.*;
  * @param <RIGHT> The type fo the right elements
  * @author Laurent Wouters
  */
-public abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterator<Couple> {
+abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterator<Couple> {
     /**
      * Hash map of the left elements
      */

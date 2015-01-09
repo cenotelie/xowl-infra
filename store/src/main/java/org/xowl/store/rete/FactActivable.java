@@ -29,7 +29,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public interface FactActivable {
+interface FactActivable {
     /**
      * Activates on the specified fact
      *

@@ -28,7 +28,7 @@ import org.xowl.store.rdf.RDFStore;
  *
  * @author Laurent Wouters
  */
-public interface AlphaMemoryBucketElement {
+interface AlphaMemoryBucketElement {
     /**
      * Retrievew the matching memories associated to the specified data
      *

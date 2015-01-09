@@ -31,7 +31,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public class BetaJoinNode implements FactActivable, TokenActivable {
+class BetaJoinNode implements FactActivable, TokenActivable {
     /**
      * The maximal size of a join for which the nested loop strategy should be used
      */
