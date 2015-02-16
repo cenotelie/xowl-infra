@@ -1,4 +1,24 @@
-grammar Functional
+/**********************************************************************
+ * Copyright (c) 2014 Laurent Wouters and others
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General
+ * Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contributors:
+ *     Laurent Wouters - lwouters@xowl.org
+ **********************************************************************/
+
+grammar FunctionalOWL2
 {
 	options
 	{
@@ -50,19 +70,18 @@ grammar Functional
 	}
 	rules
 	{
-		
-
 		document        -> prefixes ontology ;
 		prefixes		-> prefix* ;
 		prefix			-> 'Prefix'! '('! PNAME_NS '='! IRIREF ')'! ;
-		ontology		-> 'Ontology'! '('! ontologyIRI imports annotations axioms ')'! ;
+		ontology		-> 'Ontology'! '('! ontologyIRI imports annotations elements ')'! ;
 		ontologyIRI		-> iri? iri? ;
 		imports			-> import* ;
 		import			-> 'Import'! '('! iri^ ')'! ;
-		axioms			-> axiom* ;
+		elements		-> element* ;
+		element			-> axiom^ ;
 
 		annotations			-> annotation* ;
-		annotation			-> 'Annotation'! '('! annotations annotationProperty annotationValue ')'!
+		annotation			-> 'Annotation'! '('! annotations annotationProperty annotationValue ')'! ;
 		annotationSubject	-> iri^ | anonymousIndividual^ ;
 		annotationProperty	-> iri^ ;
 		annotationValue		-> iri^ | anonymousIndividual^ | literal^ ;
@@ -79,6 +98,7 @@ grammar Functional
 		expObjectProperty			-> iri^ | expInverseObjectProperty^ ;
 		expObjectPropertyChain		-> 'ObjectPropertyChain'! '('! expObjectProperty expObjectProperty+ ')'! ;
 		expInverseObjectProperty	-> 'ObjectInverseOf'! '('! iri ')'! ;
+		expDataProperty				-> iri^ ;
 		expDatarange				-> iri^
 									|  expDataIntersectionOf^
 									|  expDataUnionOf^
@@ -137,21 +157,21 @@ grammar Functional
 									|  axiomAssertion^
 									|  axiomAnnotation^ ;
 
-		axiomDeclaration			-> 'Declaration'! '('! annotations 'Class' '('! iri ')'! ')'! ;
-									|  'Declaration'! '('! annotations 'Datatype' '('! iri ')'! ')'! ;
-									|  'Declaration'! '('! annotations 'ObjectProperty' '('! iri ')'! ')'! ;
-									|  'Declaration'! '('! annotations 'DataProperty' '('! iri ')'! ')'! ;
-									|  'Declaration'! '('! annotations 'AnnotationProperty' '('! iri ')'! ')'! ;
+		axiomDeclaration			-> 'Declaration'! '('! annotations 'Class' '('! iri ')'! ')'!
+									|  'Declaration'! '('! annotations 'Datatype' '('! iri ')'! ')'!
+									|  'Declaration'! '('! annotations 'ObjectProperty' '('! iri ')'! ')'!
+									|  'Declaration'! '('! annotations 'DataProperty' '('! iri ')'! ')'!
+									|  'Declaration'! '('! annotations 'AnnotationProperty' '('! iri ')'! ')'!
 									|  'Declaration'! '('! annotations 'NamedIndividual' '('! iri ')'! ')'! ;
 
-		axiomClass					-> axiomSubClassOf
-									|  axiomEquivalentClasses
-									|  axiomDisjointClasses
-									|  axiomDisjointUnion ;
+		axiomClass					-> axiomSubClassOf^
+									|  axiomEquivalentClasses^
+									|  axiomDisjointClasses^
+									|  axiomDisjointUnion^ ;
 		axiomSubClassOf				-> 'SubClassOf'! '('! annotations expClass expClass ')'! ;
 		axiomEquivalentClasses		-> 'EquivalentClasses'! '('! annotations expClass expClass+ ')'! ;
 		axiomDisjointClasses		-> 'DisjointClasses'! '('! annotations expClass expClass+ ')'! ;
-		axiomDisjointClasses		-> 'DisjointUnion'! '('! annotations iri expClass expClass+ ')'! ;
+		axiomDisjointUnion			-> 'DisjointUnion'! '('! annotations iri expClass expClass+ ')'! ;
 
 		axiomObjectProperty			-> axiomSubOjectPropertyOf^
 									|  axiomEquivalentObjectProperties^
@@ -167,7 +187,52 @@ grammar Functional
 									|  axiomAsymmetricObjectProperty^
 									|  axiomTransitiveObjectProperty^ ;
 		axiomSubOjectPropertyOf		-> 'SubObjectPropertyOf'! '('! annotations (expObjectProperty | expObjectPropertyChain) expObjectProperty ')'! ;
-		axiomEquivalentObjectProperties	-> 
+		axiomEquivalentObjectProperties	-> 'EquivalentObjectProperties'! '('! annotations expObjectProperty expObjectProperty+ ')'! ;
+		axiomDisjointObjectProperties	-> 'DisjointObjectProperties'! '('! annotations expObjectProperty expObjectProperty+ ')'! ;
+		axiomInverseObjectProperties	-> 'InverseObjectProperties'! '('! annotations expObjectProperty expObjectProperty ')'! ;
+		axiomObjectPropertyDomain		-> 'ObjectPropertyDomain'! '('! annotations expObjectProperty expClass ')'! ;
+		axiomObjectPropertyRange		-> 'ObjectPropertyRange'! '('! annotations expObjectProperty expClass ')'! ;
+		axiomFunctionalObjectProperty	-> 'FunctionalObjectProperty'! '('! annotations expObjectProperty ')'! ;
+		axiomInverseFunctionalObjectProperty -> 'InverseFunctionalObjectProperty'! '('! annotations expObjectProperty ')'! ;
+		axiomReflexiveObjectProperty	-> 'ReflexiveObjectProperty'! '('! annotations expObjectProperty ')'! ;
+		axiomIrreflexiveObjectProperty	-> 'IrreflexiveObjectProperty'! '('! annotations expObjectProperty ')'! ;
+		axiomSymmetricObjectProperty	-> 'SymmetricObjectProperty'! '('! annotations expObjectProperty ')'! ;
+		axiomAsymmetricObjectProperty	-> 'AsymmetricObjectProperty'! '('! annotations expObjectProperty ')'! ;
+		axiomTransitiveObjectProperty	-> 'TransitiveObjectProperty'! '('! annotations expObjectProperty ')'! ;
+
+		axiomDataProperty			-> axiomSubDataPropertyOf^
+									|  axiomEquivalentDataProperties^
+									|  axiomDisjointDataProperties^
+									|  axiomDataPropertyDomain^
+									|  axiomDataPropertyRange^
+									|  axiomFunctionalDataProperty^ ;
+		axiomSubDataPropertyOf			-> 'SubDataPropertyOf'! '('! annotations expDataProperty expDataProperty ')'! ;
+		axiomEquivalentDataProperties	-> 'EquivalentDataProperties'! '('! annotations expDataProperty expDataProperty+ ')'! ;
+		axiomDisjointDataProperties		-> 'DisjointDataProperties'! '('! annotations expDataProperty expDataProperty+ ')'! ;
+		axiomDataPropertyDomain			-> 'DataPropertyDomain'! '('! annotations expDataProperty expClass ')'! ;
+		axiomDataPropertyRange			-> 'DataPropertyRange'! '('! annotations expDataProperty expDatarange ')'! ;
+		axiomFunctionalDataProperty		-> 'FunctionalDataProperty'! '('! annotations expDataProperty ')'! ;
+
+		axiomDatatype					-> 'DatatypeDefinition'! '('! annotations iri expDatarange ')'! ;
+
+		axiomHasKey						-> 'HasKey'! '('! annotations expClass axiomHasKeyObjectProperties axiomHasKeyDataProperties ')'! ;
+		axiomHasKeyObjectProperties		-> '('! expObjectProperty* ')'! ;
+		axiomHasKeyDataProperties		-> '('! expDataProperty* ')'! ;
+
+		axiomAssertion					-> axiomSameIndividual^
+										|  axiomDifferentIndividuals^
+										|  axiomClassAssertion^
+										|  axiomObjectPropertyAssertion^
+										|  axiomNegativeObjectPropertyAssertion^
+										|  axiomDataPropertyAssertion^
+										|  axiomNegativeDataPropertyAssertion^ ;
+		axiomSameIndividual					-> 'SameIndividual'! '('! annotations individual individual+ ')'! ;
+		axiomDifferentIndividuals			-> 'DifferentIndividuals'! '('! annotations individual individual+ ')'! ;
+		axiomClassAssertion					-> 'ClassAssertion'! '('! annotations expClass individual ')'! ;
+		axiomObjectPropertyAssertion		-> 'ObjectPropertyAssertion'! '('! annotations expObjectProperty individual individual ')'! ;
+		axiomNegativeObjectPropertyAssertion-> 'NegativeObjectPropertyAssertion'! '('! annotations expObjectProperty individual individual ')'! ;
+		axiomDataPropertyAssertion			-> 'DataPropertyAssertion'! '('! annotations expDataProperty individual literal ')'! ;
+		axiomNegativeDataPropertyAssertion	-> 'NegativeDataPropertyAssertion'! '('! annotations expDataProperty individual literal ')'! ;
 
 		axiomAnnotation					-> axiomAnnotationAssertion
 										|  axiomSubAnnotationPropertyOf
@@ -177,7 +242,40 @@ grammar Functional
 		axiomSubAnnotationPropertyOf	-> 'SubAnnotationPropertyOf'! '('! annotations annotationProperty annotationProperty ')'! ;
 		axiomAnnotationPropertyDomain	-> 'AnnotationPropertyDomain'! '('! annotations annotationProperty iri ')'! ;
 		axiomAnnotationPropertyRange	-> 'AnnotationPropertyRange'! '('! annotations annotationProperty iri ')'! ;
+	}
+}
 
-		
+grammar FunctionXOWL : FunctionalOWL2
+{
+	options
+	{
+		Axiom = "document";
+		Separator = "BLANK";
+	}
+	terminals
+	{
+		QVAR	-> '?' [_a-zA-Z] [_a-zA-Z0-9]* ;
+	}
+	rules
+	{
+		// Add support for integer literals
+		literal						-> literalInteger^ ;
+		literalInteger				-> INTEGER ;
+
+		// Add support for the rules
+		element						-> rule^ ;
+		rule						-> 'Rule'! '('! ruleAntecedents ruleConsequents ')'! ;
+		ruleAntecedents				-> 'Antecedents'! '('! ruleElement* ')'!;
+		ruleConsequents				-> 'Consequents'! '('! ruleElement* ')'!;
+		ruleElement					-> axiomPattern
+									|  'Meta' '('! axiomPattern ')'!
+									|  'Not' '('! axiomPattern ')'!
+									|  'Meta' '('! 'Not' '('! axiomPattern ')'! ')'!
+									|  'Not' '('! 'Meta' '('! axiomPattern ')'! ')'! ;
+		axiomPattern				-> axiom^ ;
+
+		// Add support for variables in expression of elements
+		literal						-> QVAR^ ;
+		iri							-> QVAR^ ;
 	}
 }

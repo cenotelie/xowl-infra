@@ -47,7 +47,7 @@ public interface Loader {
      * @param logger The logger to use
      * @param reader The resource's reader
      * @param uri    The resource's URI
-     * @return The loaded axioms, or <code>null</code> if an error occured
+     * @return The loaded data
      */
-    public List<Axiom> loadAxioms(Logger logger, Reader reader, String uri);
+    public LoaderResult load(Logger logger, Reader reader, String uri);
 }
