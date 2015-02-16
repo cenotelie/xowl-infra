@@ -22,6 +22,8 @@ package org.xowl.store.rdf;
 
 /**
  * Exception thrown when the given RDF node is of an unsupported type
+ *
+ * @author Laurent Wouters
  */
 public class UnsupportedNodeType extends Exception {
 

@@ -22,6 +22,8 @@ package org.xowl.store.rdf;
 
 /**
  * Represents a listener of changes on a RDF dataset
+ *
+ * @author Laurent Wouters
  */
 public interface ChangeListener {
     /**

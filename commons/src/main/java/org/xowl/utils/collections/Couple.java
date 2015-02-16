@@ -22,8 +22,10 @@ package org.xowl.utils.collections;
 
 /**
  * Represents a couple of two elements
+ *
  * @param <X> Type of the first element
  * @param <Y> Type of the second element
+ * @author Laurent Wouters
  */
 public class Couple<X, Y> {
     /**

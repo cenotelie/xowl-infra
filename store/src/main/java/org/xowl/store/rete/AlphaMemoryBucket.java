@@ -26,6 +26,11 @@ import org.xowl.store.rdf.VariableNode;
 
 import java.util.Arrays;
 
+/**
+ * Represents a bucket of alpha memories
+ *
+ * @author Laurent Wouters
+ */
 abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
     /**
      * The initial size of the buffer within this bucket

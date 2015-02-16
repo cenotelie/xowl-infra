@@ -14,6 +14,8 @@ import java.io.InputStream;
 
 /**
  * Represents a lexer
+ *
+ * @author Laurent Wouters
  */
 class NQuadsLexer extends PrefetchedLexer {
     /**

@@ -24,7 +24,9 @@ import java.util.Iterator;
 
 /**
  * Represents an iterator over an array that may contain null values
+ *
  * @param <T> The type of the data to iterate over
+ * @author Laurent Wouters
  */
 public class SparseIterator<T> implements Iterator<T> {
     /**
@@ -38,6 +40,7 @@ public class SparseIterator<T> implements Iterator<T> {
 
     /**
      * Initializes this iterator
+     *
      * @param content The content to iterate over
      */
     public SparseIterator(T[] content) {

@@ -24,6 +24,8 @@ import java.util.Arrays;
 
 /**
  * Represents a bucket of entries with the same hash
+ *
+ * @author Laurent Wouters
  */
 class HashBucket {
     /**

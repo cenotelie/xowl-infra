@@ -28,6 +28,8 @@ import java.util.List;
 
 /**
  * Represents the matching conditions of a query
+ *
+ * @author Laurent Wouters
  */
 public class QueryCondition {
     /**

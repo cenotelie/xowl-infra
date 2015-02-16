@@ -24,8 +24,10 @@ import java.util.Iterator;
 
 /**
  * Representing an iterator computing the cross-produce of two collections
+ *
  * @param <X> The first type of data to iterate over
  * @param <Y> The second type of data to iterate over
+ * @author Laurent Wouters
  */
 public class CombiningIterator<X, Y> implements Iterator<Couple<X, Y>> {
     /**
@@ -51,8 +53,9 @@ public class CombiningIterator<X, Y> implements Iterator<Couple<X, Y>> {
 
     /**
      * Initializes this iterator
+     *
      * @param leftIterator The iterator of values on the left
-     * @param adapter The adapter to get an iterator of Y for each X item
+     * @param adapter      The adapter to get an iterator of Y for each X item
      */
     public CombiningIterator(Iterator<X> leftIterator, Adapter<Iterator<Y>> adapter) {
         this.current = new Couple<>();

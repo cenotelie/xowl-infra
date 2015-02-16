@@ -11,6 +11,8 @@ import org.xowl.hime.redist.parsers.LRkParser;
 
 /**
  * Represents a parser
+ *
+ * @author Laurent Wouters
  */
 class NQuadsParser extends LRkParser {
     /**

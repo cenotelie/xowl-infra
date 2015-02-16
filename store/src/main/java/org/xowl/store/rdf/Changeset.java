@@ -26,6 +26,8 @@ import java.util.Collections;
 
 /**
  * Represents a set of changes in a RDF database
+ *
+ * @author Laurent Wouters
  */
 public class Changeset {
     /**

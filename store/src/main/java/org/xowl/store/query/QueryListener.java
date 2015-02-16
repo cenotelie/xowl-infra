@@ -22,6 +22,8 @@ package org.xowl.store.query;
 
 /**
  * Listener to the output of a query
+ *
+ * @author Laurent Wouters
  */
 public interface QueryListener {
     /**

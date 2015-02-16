@@ -30,6 +30,8 @@ import java.util.List;
 
 /**
  * Represents the data of a continuous query
+ *
+ * @author Laurent Wouters
  */
 class ContinuousQuery {
     /**

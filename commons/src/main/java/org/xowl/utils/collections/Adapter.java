@@ -22,13 +22,16 @@ package org.xowl.utils.collections;
 
 /**
  * Adapts elements from one type to another
+ *
  * @param <T> The type to adapt to
+ * @author Laurent Wouters
  */
 public interface Adapter<T> {
     /**
      * Adapts the specified element
+     *
      * @param element The element to adapt
-     * @param <X> The type of the element to adapt
+     * @param <X>     The type of the element to adapt
      * @return The adapted element
      */
     public <X> T adapt(X element);

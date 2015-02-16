@@ -32,6 +32,8 @@ import java.util.List;
 
 /**
  * Represents a query engine for a RDF store
+ *
+ * @author Laurent Wouters
  */
 public class Engine implements ChangeListener {
     /**

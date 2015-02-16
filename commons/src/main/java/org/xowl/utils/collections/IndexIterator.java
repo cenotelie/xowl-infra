@@ -24,7 +24,9 @@ import java.util.Iterator;
 
 /**
  * Represents an iterator over the indices of an array, skipping null entries
+ *
  * @param <T> The type of the input data
+ * @author Laurent Wouters
  */
 public class IndexIterator<T> implements Iterator<Integer> {
     /**
@@ -38,6 +40,7 @@ public class IndexIterator<T> implements Iterator<Integer> {
 
     /**
      * Initializes this iterator
+     *
      * @param content The content to iterate over
      */
     public IndexIterator(T[] content) {

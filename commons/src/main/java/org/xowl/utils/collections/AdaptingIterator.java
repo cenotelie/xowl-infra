@@ -24,8 +24,10 @@ import java.util.Iterator;
 
 /**
  * Represents an iterator that concatenates other iterators
+ *
  * @param <T> The type of elements to iterator over
  * @param <X> The type of input elements
+ * @author Laurent Wouters
  */
 public class AdaptingIterator<T, X> implements Iterator<T> {
     /**
@@ -39,6 +41,7 @@ public class AdaptingIterator<T, X> implements Iterator<T> {
 
     /**
      * Initializes this iterator
+     *
      * @param content The inner iterator
      * @param adapter The adapter to use
      */

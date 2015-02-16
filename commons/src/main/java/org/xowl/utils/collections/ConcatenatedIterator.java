@@ -24,7 +24,9 @@ import java.util.Iterator;
 
 /**
  * Represents an iterator that concatenates other iterators
+ *
  * @param <T> The type of elements to iterator over
+ * @author Laurent Wouters
  */
 public class ConcatenatedIterator<T> implements Iterator<T> {
     /**
@@ -38,6 +40,7 @@ public class ConcatenatedIterator<T> implements Iterator<T> {
 
     /**
      * Initializes this iterator
+     *
      * @param content The inner iterators
      */
     public ConcatenatedIterator(Iterator<T>[] content) {

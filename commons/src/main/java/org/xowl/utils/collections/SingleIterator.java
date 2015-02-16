@@ -24,7 +24,9 @@ import java.util.Iterator;
 
 /**
  * Represents an iterator over a single instance
+ *
  * @param <T> The type of the data to iterate over
+ * @author Laurent Wouters
  */
 public class SingleIterator<T> implements Iterator<T> {
     /**
@@ -34,6 +36,7 @@ public class SingleIterator<T> implements Iterator<T> {
 
     /**
      * Initializes this iterator
+     *
      * @param content The content to iterate over
      */
     public SingleIterator(T content) {
