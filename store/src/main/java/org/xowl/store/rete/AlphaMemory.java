@@ -20,7 +20,9 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.*;
+import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.RDFStore;
+import org.xowl.store.rdf.UnsupportedNodeType;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -20,11 +20,9 @@
 package org.xowl.engine.loaders;
 
 import org.xowl.hime.redist.ParseResult;
-import org.xowl.lang.owl2.Axiom;
 import org.xowl.utils.Logger;
 
 import java.io.Reader;
-import java.util.List;
 
 /**
  * Represents a loader of serialized data

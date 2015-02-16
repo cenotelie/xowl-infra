@@ -32,7 +32,10 @@ import org.xowl.utils.Logger;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Loader for N-Triples sources

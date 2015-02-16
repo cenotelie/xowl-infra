@@ -31,7 +31,10 @@ import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a loader of Turtle syntax

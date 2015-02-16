@@ -21,7 +21,10 @@
 package org.xowl.engine.loaders;
 
 import org.xowl.engine.owl.XOWLStore;
-import org.xowl.hime.redist.*;
+import org.xowl.hime.redist.ASTNode;
+import org.xowl.hime.redist.Context;
+import org.xowl.hime.redist.ParseError;
+import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.*;
 import org.xowl.store.loaders.Utils;
 import org.xowl.utils.Files;
@@ -274,7 +277,8 @@ public class FunctionalOWL2Loader implements Loader {
 
     /**
      * Loads the base information of an axiom
-     * @param node The axiom's AST node
+     *
+     * @param node  The axiom's AST node
      * @param axiom The axiom
      */
     private void loadAxiomBase(ASTNode node, Axiom axiom) {
@@ -287,6 +291,7 @@ public class FunctionalOWL2Loader implements Loader {
 
     /**
      * Loads a declaration axiom from an AST node
+     *
      * @param node The AST node
      * @return The axiom
      */
