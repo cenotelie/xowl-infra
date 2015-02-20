@@ -73,16 +73,27 @@ public class FunctionalXOWLLoader extends FunctionalOWL2Loader {
     @Override
     protected void loadElement(ASTNode node) {
         if (node.getSymbol().getID() == FunctionalXOWLParser.ID.rule) {
-            context = new LexicalContext();
-            Rule rule = new Rule();
-            rule.setHasIRI(loadEntity(node.getChildren().get(0)));
-            for (ASTNode child : node.getChildren().get(1).getChildren())
-                rule.addAntecedents(loadAssertion(child));
-            for (ASTNode child : node.getChildren().get(2).getChildren())
-                rule.addConsequents(loadAssertion(child));
+            cache.addRule(loadRule(node));
         } else {
             super.loadElement(node);
         }
+    }
+
+    /**
+     * Loads a rule from an AST node
+     *
+     * @param node The AST node
+     * @return The rule
+     */
+    protected Rule loadRule(ASTNode node) {
+        context = new LexicalContext();
+        Rule rule = new Rule();
+        rule.setHasIRI(loadEntity(node.getChildren().get(0)));
+        for (ASTNode child : node.getChildren().get(1).getChildren())
+            rule.addAntecedents(loadAssertion(child));
+        for (ASTNode child : node.getChildren().get(2).getChildren())
+            rule.addConsequents(loadAssertion(child));
+        return rule;
     }
 
     /**

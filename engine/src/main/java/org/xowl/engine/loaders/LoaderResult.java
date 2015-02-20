@@ -22,7 +22,9 @@ package org.xowl.engine.loaders;
 
 import org.xowl.lang.owl2.Annotation;
 import org.xowl.lang.owl2.Axiom;
+import org.xowl.lang.rules.Rule;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -42,6 +44,10 @@ public class LoaderResult {
      * The axioms contained in the ontology
      */
     private List<Axiom> axioms;
+    /**
+     * The rules contained in the ontology
+     */
+    private List<Rule> rules;
     /**
      * The ontology-level annotations
      */
@@ -79,6 +85,15 @@ public class LoaderResult {
     }
 
     /**
+     * Gets the loaded rules
+     *
+     * @return The loaded rules
+     */
+    public Collection<Rule> getRules() {
+        return rules;
+    }
+
+    /**
      * Gets the annotations on the loaded ontology
      *
      * @return The annotations on the loaded ontology
@@ -105,6 +120,10 @@ public class LoaderResult {
     public LoaderResult(String iri, String version) {
         this.iri = iri;
         this.version = version;
+        this.axioms = new ArrayList<>();
+        this.rules = new ArrayList<>();
+        this.annotations = new ArrayList<>();
+        this.imports = new ArrayList<>();
     }
 
     /**
@@ -114,6 +133,15 @@ public class LoaderResult {
      */
     public void addAxiom(Axiom axiom) {
         axioms.add(axiom);
+    }
+
+    /**
+     * Adds a rule to this result
+     *
+     * @param rule The rule to add
+     */
+    public void addRule(Rule rule) {
+        rules.add(rule);
     }
 
     /**

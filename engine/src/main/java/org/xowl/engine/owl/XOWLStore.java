@@ -20,6 +20,7 @@
 
 package org.xowl.engine.owl;
 
+import org.xowl.engine.loaders.LoaderResult;
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.*;
@@ -72,6 +73,18 @@ public class XOWLStore extends RDFStore {
     }
 
     /**
+     * Loads the axioms provided by the specified loader result
+     *
+     * @param input A loader result
+     * @throws TranslationException                   When a runtime entity is not named
+     * @throws org.xowl.store.rdf.UnsupportedNodeType When the subject node type is unsupported
+     */
+    public void add(LoaderResult input) throws TranslationException, UnsupportedNodeType {
+        Translator translator = new Translator(null, this, input, null);
+        insert(translator.execute());
+    }
+
+    /**
      * Adds the specified quad to this store
      *
      * @param graph    The store containing the quad
@@ -79,7 +92,7 @@ public class XOWLStore extends RDFStore {
      * @param property The quad property
      * @param value    The quad value
      * @return The operation result
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     * @throws org.xowl.store.rdf.UnsupportedNodeType When the subject node type is unsupported
      */
     @Override
     protected int doAddEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {

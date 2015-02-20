@@ -101,25 +101,6 @@ public class XOWLUtils {
     }
 
     /**
-     * Gets the sequence equivalent to the specified class expressions
-     *
-     * @param expressions An iterator over class expressions
-     * @return The equivalent sequence
-     */
-    public static ClassSequence getSequenceOfClasses(Iterator<ClassExpression> expressions) {
-        ClassSequence seq = new ClassSequence();
-        int index = 0;
-        while (expressions.hasNext()) {
-            ClassElement elem = new ClassElement();
-            elem.setClasse(expressions.next());
-            elem.setIndex(index);
-            seq.addClassElements(elem);
-            index++;
-        }
-        return seq;
-    }
-
-    /**
      * Gets an iterator over all the expressions within the specified expression of a sequence
      *
      * @param expression The expression of a sequence
@@ -134,25 +115,6 @@ public class XOWLUtils {
                 return ((DatarangeElement) element).getDatarange();
             }
         });
-    }
-
-    /**
-     * Gets the sequence equivalent to the specified dataranges
-     *
-     * @param expressions An iterator over dataranges
-     * @return The equivalent sequence
-     */
-    public static DatarangeSequence getSequenceOfDataranges(Iterator<Datarange> expressions) {
-        DatarangeSequence seq = new DatarangeSequence();
-        int index = 0;
-        while (expressions.hasNext()) {
-            DatarangeElement elem = new DatarangeElement();
-            elem.setDatarange(expressions.next());
-            elem.setIndex(index);
-            seq.addDatarangeElements(elem);
-            index++;
-        }
-        return seq;
     }
 
     /**
@@ -173,25 +135,6 @@ public class XOWLUtils {
     }
 
     /**
-     * Gets the sequence equivalent to the specified object properties
-     *
-     * @param expressions An iterator over object properties
-     * @return The equivalent sequence
-     */
-    public static ObjectPropertySequence getSequenceOfObjectProperties(Iterator<ObjectPropertyExpression> expressions) {
-        ObjectPropertySequence seq = new ObjectPropertySequence();
-        int index = 0;
-        while (expressions.hasNext()) {
-            ObjectPropertyElement elem = new ObjectPropertyElement();
-            elem.setObjectProperty(expressions.next());
-            elem.setIndex(index);
-            seq.addObjectPropertyElements(elem);
-            index++;
-        }
-        return seq;
-    }
-
-    /**
      * Gets an iterator over all the expressions within the specified expression of a sequence
      *
      * @param expression The expression of a sequence
@@ -206,25 +149,6 @@ public class XOWLUtils {
                 return ((DataPropertyElement) element).getDataProperty();
             }
         });
-    }
-
-    /**
-     * Gets the sequence equivalent to the specified data properties
-     *
-     * @param expressions An iterator over data properties
-     * @return The equivalent sequence
-     */
-    public static DataPropertySequence getSequenceOfDataProperties(Iterator<DataPropertyExpression> expressions) {
-        DataPropertySequence seq = new DataPropertySequence();
-        int index = 0;
-        while (expressions.hasNext()) {
-            DataPropertyElement elem = new DataPropertyElement();
-            elem.setDataProperty(expressions.next());
-            elem.setIndex(index);
-            seq.addDataPropertyElements(elem);
-            index++;
-        }
-        return seq;
     }
 
     /**
@@ -245,25 +169,6 @@ public class XOWLUtils {
     }
 
     /**
-     * Gets the sequence equivalent to the specified individuals
-     *
-     * @param expressions An iterator over individuals
-     * @return The equivalent sequence
-     */
-    public static IndividualSequence getSequenceOfIndividuals(Iterator<IndividualExpression> expressions) {
-        IndividualSequence seq = new IndividualSequence();
-        int index = 0;
-        while (expressions.hasNext()) {
-            IndividualElement elem = new IndividualElement();
-            elem.setIndividual(expressions.next());
-            elem.setIndex(index);
-            seq.addIndividualElements(elem);
-            index++;
-        }
-        return seq;
-    }
-
-    /**
      * Gets an iterator over all the expressions within the specified expression of a sequence
      *
      * @param expression The expression of a sequence
@@ -278,61 +183,6 @@ public class XOWLUtils {
                 return ((LiteralElement) element).getLiteral();
             }
         });
-    }
-
-    /**
-     * Gets the sequence equivalent to the specified literals
-     *
-     * @param expressions An iterator over literals
-     * @return The equivalent sequence
-     */
-    public static LiteralSequence getSequenceOfLiterals(Iterator<LiteralExpression> expressions) {
-        LiteralSequence seq = new LiteralSequence();
-        int index = 0;
-        while (expressions.hasNext()) {
-            LiteralElement elem = new LiteralElement();
-            elem.setLiteral(expressions.next());
-            elem.setIndex(index);
-            seq.addLiteralElements(elem);
-            index++;
-        }
-        return seq;
-    }
-
-    /**
-     * Gets an iterator over all the expressions within the specified expression of a sequence
-     *
-     * @param expression The expression of a sequence
-     * @return An iterator over the contained expressions
-     */
-    public static Iterator<QueryVariable> getAll(QueryVariableSequenceExpression expression) {
-        List<QueryVariableElement> elements = new ArrayList<>(((QueryVariableSequence) expression).getAllVariableElements());
-        sortElements(elements);
-        return new AdaptingIterator<>(elements.iterator(), new Adapter<QueryVariable>() {
-            @Override
-            public <X> QueryVariable adapt(X element) {
-                return ((QueryVariableElement) element).getQvariable();
-            }
-        });
-    }
-
-    /**
-     * Gets the sequence equivalent to the specified query variables
-     *
-     * @param expressions An iterator over query variables
-     * @return The equivalent sequence
-     */
-    public static QueryVariableSequence getSequenceOfQueryVariables(Iterator<QueryVariable> expressions) {
-        QueryVariableSequence seq = new QueryVariableSequence();
-        int index = 0;
-        while (expressions.hasNext()) {
-            QueryVariableElement elem = new QueryVariableElement();
-            elem.setQvariable(expressions.next());
-            elem.setIndex(index);
-            seq.addVariableElements(elem);
-            index++;
-        }
-        return seq;
     }
 
     /**

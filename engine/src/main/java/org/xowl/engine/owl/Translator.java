@@ -22,6 +22,7 @@ package org.xowl.engine.owl;
 
 import org.xowl.engine.Vocabulary;
 import org.xowl.engine.XOWLUtils;
+import org.xowl.engine.loaders.LoaderResult;
 import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.owl2.DataAllValuesFrom;
@@ -64,11 +65,11 @@ public class Translator {
     /**
      * The graph that contains the translated input
      */
-    protected GraphNode graph;
+    protected IRINode graph;
     /**
      * The input OWL axioms
      */
-    protected Iterator<Axiom> input;
+    protected LoaderResult input;
     /**
      * The resulting triples
      */
@@ -78,10 +79,6 @@ public class Translator {
      */
     protected TranslationContext context;
     /**
-     * Flag whether to translate the OWL annotations
-     */
-    protected boolean translateAnnotations;
-    /**
      * The evaluator for dynamic expressions
      */
     protected Evaluator evaluator;
@@ -89,22 +86,19 @@ public class Translator {
     /**
      * Initializes this translator
      *
-     * @param context              The existing translation context, or null if a new one shall be used
-     * @param store                The XOWL store used for the creation of new RDF nodes
-     * @param graph                The target graph for the translated elements
-     * @param input                An iterator over the input axioms to translate
-     * @param evaluator            The evaluator for dynamic expressions, or null if dyanmic expression shall no be translated and kept as is
-     * @param translateAnnotations Whether to translate the OWL annotations
+     * @param context   The existing translation context, or null if a new one shall be used
+     * @param store     The XOWL store used for the creation of new RDF nodes
+     * @param input     The input to translate
+     * @param evaluator The evaluator for dynamic expressions, or null if dynamic expression shall no be translated and kept as is
      */
-    public Translator(TranslationContext context, XOWLStore store, GraphNode graph, Iterator<Axiom> input, Evaluator evaluator, boolean translateAnnotations) {
+    public Translator(TranslationContext context, XOWLStore store, LoaderResult input, Evaluator evaluator) {
         this.store = store;
-        this.graph = graph;
+        this.graph = store.getNodeIRI(input.getIri());
         this.input = input;
         this.quads = new ArrayList<>();
         this.context = context;
         if (this.context == null)
             this.context = new TranslationContext();
-        this.translateAnnotations = translateAnnotations;
         this.evaluator = evaluator;
     }
 
@@ -123,10 +117,12 @@ public class Translator {
      * @return The translation result
      * @throws TranslationException When a runtime entity is not named
      */
-    public Collection<Quad> execute() throws TranslationException {
-        while (input.hasNext())
-            translateAxiom(input.next());
-        return quads;
+    public Changeset execute() throws TranslationException {
+        for (Axiom axiom : input.getAxioms())
+            translateAxiom(axiom);
+        for (Annotation annotation : input.getAnnotations())
+            translateAnnotation(graph, annotation);
+        return new Changeset(quads, new ArrayList<Quad>(0));
     }
 
     /**
@@ -303,8 +299,7 @@ public class Translator {
             quad = getTriple(entityNode, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAnnotationProperty);
         if (quad != null) {
             quads.add(quad);
-            if (translateAnnotations)
-                translateAxiomAnnotations(axiom, quad);
+            translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -331,8 +326,7 @@ public class Translator {
         SubjectNode sup = translateClassExpression(axiom.getSuperClass());
         Quad quad = getTriple(sub, org.xowl.store.Vocabulary.rdfsSubClassOf, sup);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -349,8 +343,7 @@ public class Translator {
         for (int i = 0; i != elements.size() - 1; i++) {
             Quad quad = getTriple(elements.get(i), Vocabulary.owlEquivalentClass, elements.get(i + 1));
             quads.add(quad);
-            if (translateAnnotations)
-                translateAxiomAnnotations(axiom, quad);
+            translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -368,16 +361,13 @@ public class Translator {
         if (elements.size() == 2) {
             Quad quad = getTriple((SubjectNode) elements.get(0), Vocabulary.owlDisjointWith, elements.get(1));
             quads.add(quad);
-            if (translateAnnotations)
-                translateAxiomAnnotations(axiom, quad);
+            translateAxiomAnnotations(axiom, quad);
         } else {
             SubjectNode main = store.getBlankNode();
             quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAllDisjointClasses));
             quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
-            if (translateAnnotations) {
-                for (Annotation annotation : axiom.getAllAnnotations())
-                    translateAnnotation(main, annotation);
-            }
+            for (Annotation annotation : axiom.getAllAnnotations())
+                translateAnnotation(main, annotation);
         }
     }
 
@@ -395,8 +385,7 @@ public class Translator {
             elements.add(translateClassExpression(expressions.next()));
         Quad quad = getTriple(classe, Vocabulary.owlDisjointUnionOf, translateUnorderedSequence(elements));
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -414,15 +403,13 @@ public class Translator {
             SubjectNode sup = translateObjectPropertyExpression(axiom.getSuperObjectProperty());
             Quad quad = getTriple(sup, Vocabulary.owlPropertyChainAxiom, translateOrderedSequence(elements));
             quads.add(quad);
-            if (translateAnnotations)
-                translateAxiomAnnotations(axiom, quad);
+            translateAxiomAnnotations(axiom, quad);
         } else {
             SubjectNode sub = translateObjectPropertyExpression(axiom.getObjectProperty());
             SubjectNode sup = translateObjectPropertyExpression(axiom.getSuperObjectProperty());
             Quad quad = getTriple(sub, org.xowl.store.Vocabulary.rdfsSubPropertyOf, sup);
             quads.add(quad);
-            if (translateAnnotations)
-                translateAxiomAnnotations(axiom, quad);
+            translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -440,8 +427,7 @@ public class Translator {
         for (int i = 0; i != elements.size() - 1; i++) {
             Quad quad = getTriple(elements.get(i), Vocabulary.owlEquivalentProperty, elements.get(i + 1));
             quads.add(quad);
-            if (translateAnnotations)
-                translateAxiomAnnotations(axiom, quad);
+            translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -459,16 +445,13 @@ public class Translator {
         if (elements.size() == 2) {
             Quad quad = getTriple((SubjectNode) elements.get(0), Vocabulary.owlPropertyDisjointWith, elements.get(1));
             quads.add(quad);
-            if (translateAnnotations)
-                translateAxiomAnnotations(axiom, quad);
+            translateAxiomAnnotations(axiom, quad);
         } else {
             SubjectNode main = store.getBlankNode();
             quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAllDisjointProperties));
             quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
-            if (translateAnnotations) {
-                for (Annotation annotation : axiom.getAllAnnotations())
-                    translateAnnotation(main, annotation);
-            }
+            for (Annotation annotation : axiom.getAllAnnotations())
+                translateAnnotation(main, annotation);
         }
     }
 
@@ -483,8 +466,7 @@ public class Translator {
         SubjectNode inv = translateObjectPropertyExpression(axiom.getInverse());
         Quad quad = getTriple(prop, Vocabulary.owlInverseOf, inv);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -498,8 +480,7 @@ public class Translator {
         SubjectNode classe = translateClassExpression(axiom.getClasse());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfsDomain, classe);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -513,8 +494,7 @@ public class Translator {
         SubjectNode classe = translateClassExpression(axiom.getClasse());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfsRange, classe);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -527,8 +507,7 @@ public class Translator {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlFunctionalProperty);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -541,8 +520,7 @@ public class Translator {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlInverseFunctionalProperty);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -555,8 +533,7 @@ public class Translator {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlReflexiveProperty);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -569,8 +546,7 @@ public class Translator {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlIrreflexiveProperty);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -583,8 +559,7 @@ public class Translator {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlSymmetricProperty);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -597,8 +572,7 @@ public class Translator {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAsymmetricProperty);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -611,8 +585,7 @@ public class Translator {
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlTransitiveProperty);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -626,8 +599,7 @@ public class Translator {
         SubjectNode sup = translateDataPropertyExpression(axiom.getSuperDataProperty());
         Quad quad = getTriple(sub, org.xowl.store.Vocabulary.rdfsSubPropertyOf, sup);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -644,8 +616,7 @@ public class Translator {
         for (int i = 0; i != elements.size() - 1; i++) {
             Quad quad = getTriple(elements.get(i), Vocabulary.owlEquivalentProperty, elements.get(i + 1));
             quads.add(quad);
-            if (translateAnnotations)
-                translateAxiomAnnotations(axiom, quad);
+            translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -663,16 +634,13 @@ public class Translator {
         if (elements.size() == 2) {
             Quad quad = getTriple((SubjectNode) elements.get(0), Vocabulary.owlPropertyDisjointWith, elements.get(1));
             quads.add(quad);
-            if (translateAnnotations)
-                translateAxiomAnnotations(axiom, quad);
+            translateAxiomAnnotations(axiom, quad);
         } else {
             SubjectNode main = store.getBlankNode();
             quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAllDisjointProperties));
             quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
-            if (translateAnnotations) {
-                for (Annotation annotation : axiom.getAllAnnotations())
-                    translateAnnotation(main, annotation);
-            }
+            for (Annotation annotation : axiom.getAllAnnotations())
+                translateAnnotation(main, annotation);
         }
     }
 
@@ -687,8 +655,7 @@ public class Translator {
         SubjectNode classe = translateClassExpression(axiom.getClasse());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfsDomain, classe);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -702,8 +669,7 @@ public class Translator {
         SubjectNode datatype = translateDatarange(axiom.getDatarange());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfsRange, datatype);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -716,8 +682,7 @@ public class Translator {
         SubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
         Quad quad = getTriple(prop, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlFunctionalProperty);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -734,8 +699,7 @@ public class Translator {
         for (int i = 0; i != elements.size() - 1; i++) {
             Quad quad = getTriple(elements.get(i), Vocabulary.owlSameAs, elements.get(i + 1));
             quads.add(quad);
-            if (translateAnnotations)
-                translateAxiomAnnotations(axiom, quad);
+            translateAxiomAnnotations(axiom, quad);
         }
     }
 
@@ -753,16 +717,13 @@ public class Translator {
         if (elements.size() == 2) {
             Quad quad = getTriple((SubjectNode) elements.get(0), Vocabulary.owlDifferentFrom, elements.get(1));
             quads.add(quad);
-            if (translateAnnotations)
-                translateAxiomAnnotations(axiom, quad);
+            translateAxiomAnnotations(axiom, quad);
         } else {
             SubjectNode main = store.getBlankNode();
             quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAllDifferent));
             quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
-            if (translateAnnotations) {
-                for (Annotation annotation : axiom.getAllAnnotations())
-                    translateAnnotation(main, annotation);
-            }
+            for (Annotation annotation : axiom.getAllAnnotations())
+                translateAnnotation(main, annotation);
         }
     }
 
@@ -777,8 +738,7 @@ public class Translator {
         SubjectNode classe = translateClassExpression(axiom.getClasse());
         Quad quad = getTriple(ind, org.xowl.store.Vocabulary.rdfType, classe);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -798,8 +758,7 @@ public class Translator {
         SubjectNode value = translateIndividualExpression(axiom.getValueIndividual());
         Quad quad = new Quad(graph, ind, prop, value);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -817,10 +776,8 @@ public class Translator {
         quads.add(getTriple(main, Vocabulary.owlSourceIndividual, ind));
         quads.add(getTriple(main, Vocabulary.owlAssertionProperty, prop));
         quads.add(getTriple(main, Vocabulary.owlTargetIndividual, value));
-        if (translateAnnotations) {
-            for (Annotation annotation : axiom.getAllAnnotations())
-                translateAnnotation(main, annotation);
-        }
+        for (Annotation annotation : axiom.getAllAnnotations())
+            translateAnnotation(main, annotation);
     }
 
     /**
@@ -835,8 +792,7 @@ public class Translator {
         Node value = translateLiteralExpression(axiom.getValueLiteral());
         Quad quad = new Quad(graph, ind, prop, value);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -854,10 +810,8 @@ public class Translator {
         quads.add(getTriple(main, Vocabulary.owlSourceIndividual, ind));
         quads.add(getTriple(main, Vocabulary.owlAssertionProperty, prop));
         quads.add(getTriple(main, Vocabulary.owlTargetValue, value));
-        if (translateAnnotations) {
-            for (Annotation annotation : axiom.getAllAnnotations())
-                translateAnnotation(main, annotation);
-        }
+        for (Annotation annotation : axiom.getAllAnnotations())
+            translateAnnotation(main, annotation);
     }
 
     /**
@@ -877,8 +831,7 @@ public class Translator {
             elements.add(translateDataPropertyExpression(dataExpressions.next()));
         Quad quad = getTriple(classe, Vocabulary.owlHasKey, translateUnorderedSequence(elements));
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
@@ -923,8 +876,7 @@ public class Translator {
         Node value = translateAnnotationValue(axiom.getAnnotValue());
         Quad quad = new Quad(graph, subject, prop, value);
         quads.add(quad);
-        if (translateAnnotations)
-            translateAxiomAnnotations(axiom, quad);
+        translateAxiomAnnotations(axiom, quad);
     }
 
     /**
