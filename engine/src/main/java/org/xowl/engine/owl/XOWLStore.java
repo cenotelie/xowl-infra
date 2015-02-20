@@ -20,9 +20,7 @@
 
 package org.xowl.engine.owl;
 
-import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.Expression;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.*;
 
@@ -41,14 +39,6 @@ public class XOWLStore extends RDFStore {
      * The store of existing anonymous nodes
      */
     protected Map<AnonymousIndividual, AnonymousNode> mapNodeAnons;
-    /**
-     * The store of existing variable nodes
-     */
-    protected Map<QueryVariable, VariableNode> mapNodeVariables;
-    /**
-     * The store of existing dynamic nodes
-     */
-    protected Map<Expression, DynamicNode> mapNodeDynamics;
 
     /**
      * The store for edges starting from anonymous nodes
@@ -63,8 +53,6 @@ public class XOWLStore extends RDFStore {
     public XOWLStore() throws IOException {
         super();
         mapNodeAnons = new HashMap<>();
-        mapNodeVariables = new HashMap<>();
-        mapNodeDynamics = new HashMap<>();
         edgesAnon = new HashMap<>();
     }
 
@@ -80,34 +68,6 @@ public class XOWLStore extends RDFStore {
             return node;
         node = new AnonymousNode(anon);
         mapNodeAnons.put(anon, node);
-        return node;
-    }
-
-    /**
-     * Gets the RDF node for the specified variable
-     *
-     * @param variable A variable
-     * @return The associated RDF node
-     */
-    public VariableNode getVariableNode(QueryVariable variable) {
-        if (mapNodeVariables.containsKey(variable))
-            return mapNodeVariables.get(variable);
-        VariableNode node = new VariableNode(variable.getName());
-        mapNodeVariables.put(variable, node);
-        return node;
-    }
-
-    /**
-     * Gets the RDF node for the specified expression
-     *
-     * @param expression An expression
-     * @return The associated RDF node
-     */
-    public DynamicNode getDynamicNode(Expression expression) {
-        if (mapNodeDynamics.containsKey(expression))
-            return mapNodeDynamics.get(expression);
-        DynamicNode node = new DynamicNode(expression);
-        mapNodeDynamics.put(expression, node);
         return node;
     }
 

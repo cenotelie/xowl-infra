@@ -130,16 +130,6 @@ public class Translator {
     }
 
     /**
-     * Gets a dynamic node for the specified dynamic expression
-     *
-     * @param expression A dynamic expression
-     * @return The representing dynamic node
-     */
-    protected DynamicNode getDynamicNode(Expression expression) {
-        return new DynamicNode(expression);
-    }
-
-    /**
      * Gets a dynamic node for the specified dynamic expression of the specified expected type
      *
      * @param expression A dynamic expression

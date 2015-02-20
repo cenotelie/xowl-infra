@@ -21,6 +21,7 @@
 package org.xowl.engine.owl;
 
 import org.xowl.lang.owl2.Expression;
+import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Property;
 import org.xowl.store.rdf.SubjectNode;
 
@@ -33,7 +34,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class DynamicNode implements SubjectNode, Property {
+public class DynamicNode implements SubjectNode, Property, GraphNode {
     /**
      * The type of node
      */

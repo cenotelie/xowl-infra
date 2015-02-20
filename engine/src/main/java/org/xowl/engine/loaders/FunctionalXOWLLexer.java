@@ -15,11 +15,11 @@ import java.io.InputStream;
 /**
  * Represents a lexer
  */
-class FunctionalOWL2Lexer extends PrefetchedLexer {
+class FunctionalXOWLLexer extends PrefetchedLexer {
     /**
      * The automaton for this lexer
      */
-    private static final Automaton automaton = Automaton.find(FunctionalOWL2Lexer.class, "FunctionalOWL2Lexer.bin");
+    private static final Automaton automaton = Automaton.find(FunctionalXOWLLexer.class, "FunctionalXOWLLexer.bin");
 
     /**
      * Contains the constant IDs for the terminals for this lexer
@@ -58,6 +58,10 @@ class FunctionalOWL2Lexer extends PrefetchedLexer {
          */
         public static final int STRING = 0x0013;
         /**
+         * The unique identifier for terminal QVAR
+         */
+        public static final int QVAR = 0x00D9;
+        /**
          * The unique identifier for terminal PNAME_LN
          */
         public static final int PNAME_LN = 0x0010;
@@ -65,6 +69,14 @@ class FunctionalOWL2Lexer extends PrefetchedLexer {
          * The unique identifier for terminal BLANK_NODE_LABEL
          */
         public static final int BLANK_NODE_LABEL = 0x0011;
+        /**
+         * The unique identifier for terminal RULE_ELEMENT_NOT
+         */
+        public static final int RULE_ELEMENT_NOT = 0x00DB;
+        /**
+         * The unique identifier for terminal RULE_ELEMENT_META
+         */
+        public static final int RULE_ELEMENT_META = 0x00DA;
     }
 
     /**
@@ -88,8 +100,12 @@ class FunctionalOWL2Lexer extends PrefetchedLexer {
             new Symbol(0x0008, "IRIREF"),
             new Symbol(0x0013, "STRING"),
             new Symbol(0x0080, "^^"),
+            new Symbol(0x00D9, "QVAR"),
             new Symbol(0x0010, "PNAME_LN"),
             new Symbol(0x0011, "BLANK_NODE_LABEL"),
+            new Symbol(0x00DB, "RULE_ELEMENT_NOT"),
+            new Symbol(0x00E2, "Rule"),
+            new Symbol(0x00DA, "RULE_ELEMENT_META"),
             new Symbol(0x00A4, "Class"),
             new Symbol(0x0076, "Prefix"),
             new Symbol(0x007C, "Import"),
@@ -100,8 +116,10 @@ class FunctionalOWL2Lexer extends PrefetchedLexer {
             new Symbol(0x007F, "Annotation"),
             new Symbol(0x00AA, "SubClassOf"),
             new Symbol(0x0092, "ObjectOneOf"),
+            new Symbol(0x00E3, "Antecedents"),
             new Symbol(0x0086, "DataUnionOf"),
             new Symbol(0x00A3, "Declaration"),
+            new Symbol(0x00E5, "Consequents"),
             new Symbol(0x009F, "DataHasValue"),
             new Symbol(0x00A7, "DataProperty"),
             new Symbol(0x008F, "ObjectUnionOf"),
@@ -167,7 +185,7 @@ class FunctionalOWL2Lexer extends PrefetchedLexer {
      *
      * @param input The lexer's input
      */
-    public FunctionalOWL2Lexer(String input) {
+    public FunctionalXOWLLexer(String input) {
         super(automaton, terminals, 0x0006, input);
     }
 
@@ -176,7 +194,7 @@ class FunctionalOWL2Lexer extends PrefetchedLexer {
      *
      * @param input The lexer's input
      */
-    public FunctionalOWL2Lexer(InputStream input) throws IOException {
+    public FunctionalXOWLLexer(InputStream input) throws IOException {
         super(automaton, terminals, 0x0006, input);
     }
 }

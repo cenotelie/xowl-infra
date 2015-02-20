@@ -75,6 +75,7 @@ grammar FunctionalOWL2
 		prefix			-> 'Prefix'! '('! PNAME_NS '='! IRIREF ')'! ;
 		ontology		-> 'Ontology'! '('! ontologyIRI imports annotations elements ')'! ;
 		ontologyIRI		-> iri? iri? ;
+		iri				-> IRIREF^ | PNAME_LN^ ;
 		imports			-> import* ;
 		import			-> 'Import'! '('! iri^ ')'! ;
 		elements		-> element* ;
@@ -82,24 +83,24 @@ grammar FunctionalOWL2
 
 		annotations			-> annotation* ;
 		annotation			-> 'Annotation'! '('! annotations annotationProperty annotationValue ')'! ;
-		annotationSubject	-> iri^ | anonymousIndividual^ ;
-		annotationProperty	-> iri^ ;
-		annotationValue		-> iri^ | anonymousIndividual^ | literal^ ;
+		annotationSubject	-> entity^ | anonymousIndividual^ ;
+		annotationProperty	-> entity^ ;
+		annotationValue		-> entity^ | anonymousIndividual^ | literal^ ;
 
-		iri							-> IRIREF^ | PNAME_LN^ ;
+		entity						-> iri^ ;
 		individual					-> anonymousIndividual^ | namedIndividual^ ;
-		namedIndividual				-> iri^ ;
+		namedIndividual				-> entity^ ;
 		anonymousIndividual			-> BLANK_NODE_LABEL^ ;
 		literal						-> literalTyped^ | literalString^ | literalLang^ ;
 		literalTyped				-> STRING '^^'! iri ;
 		literalString				-> STRING ;
 		literalLang					-> STRING LANGTAG ;
 
-		expObjectProperty			-> iri^ | expInverseObjectProperty^ ;
+		expObjectProperty			-> entity^ | expInverseObjectProperty^ ;
 		expObjectPropertyChain		-> 'ObjectPropertyChain'! '('! expObjectProperty expObjectProperty+ ')'! ;
-		expInverseObjectProperty	-> 'ObjectInverseOf'! '('! iri ')'! ;
-		expDataProperty				-> iri^ ;
-		expDatarange				-> iri^
+		expInverseObjectProperty	-> 'ObjectInverseOf'! '('! expObjectProperty ')'! ;
+		expDataProperty				-> entity^ ;
+		expDatarange				-> entity^
 									|  expDataIntersectionOf^
 									|  expDataUnionOf^
 									|  expDataComplementOf^
@@ -109,9 +110,9 @@ grammar FunctionalOWL2
 		expDataUnionOf				-> 'DataUnionOf'! '('! expDatarange expDatarange+ ')'! ;
 		expDataComplementOf			-> 'DataComplementOf'! '('! expDatarange ')'! ;
 		expDataOneOf				-> 'DataOneOf'! '('! literal+ ')'! ;
-		expDatatypeRestriction		-> 'DatatypeRestriction'! '('! iri expRestriction+ ')'! ;
-		expRestriction				-> iri literal ;
-		expClass					-> iri^
+		expDatatypeRestriction		-> 'DatatypeRestriction'! '('! entity expRestriction+ ')'! ;
+		expRestriction				-> entity literal ;
+		expClass					-> entity^
 									|  expObjectInterfactionOf^
 									|  expObjectUnionOf^
 									|  expObjectComplementOf^
@@ -140,12 +141,12 @@ grammar FunctionalOWL2
 		expObjectMinCardinality		-> 'ObjectMinCardinality'! '('! INTEGER expObjectProperty expClass? ')'! ;
 		expObjectMaxCardinality		-> 'ObjectMaxCardinality'! '('! INTEGER expObjectProperty expClass? ')'! ;
 		expObjectExactCardinality	-> 'ObjectExactCardinality'! '('! INTEGER expObjectProperty expClass? ')'! ;
-		expDataSomeValuesFrom		-> 'DataSomeValuesFrom'! '('! iri expDatarange ')'! ;
-		expDataAllValuesFrom		-> 'DataAllValuesFrom'! '('! iri expDatarange ')'! ;
-		expDataHasValue				-> 'DataHasValue'! '('! iri literal ')'! ;
-		expDataMinCardinality		-> 'DataMinCardinality'! '('! INTEGER iri expDatarange? ')'! ;
-		expDataMaxCardinality		-> 'DataMaxCardinality'! '('! INTEGER iri expDatarange? ')'! ;
-		expDataExactCardinality		-> 'DataExactCardinality'! '('! INTEGER iri expDatarange? ')'! ;
+		expDataSomeValuesFrom		-> 'DataSomeValuesFrom'! '('! expDataProperty+ expDatarange ')'! ;
+		expDataAllValuesFrom		-> 'DataAllValuesFrom'! '('! expDataProperty+ expDatarange ')'! ;
+		expDataHasValue				-> 'DataHasValue'! '('! expDataProperty literal ')'! ;
+		expDataMinCardinality		-> 'DataMinCardinality'! '('! INTEGER expDataProperty expDatarange? ')'! ;
+		expDataMaxCardinality		-> 'DataMaxCardinality'! '('! INTEGER expDataProperty expDatarange? ')'! ;
+		expDataExactCardinality		-> 'DataExactCardinality'! '('! INTEGER expDataProperty expDatarange? ')'! ;
 
 
 		axiom						-> axiomDeclaration^
@@ -157,12 +158,12 @@ grammar FunctionalOWL2
 									|  axiomAssertion^
 									|  axiomAnnotation^ ;
 
-		axiomDeclaration			-> 'Declaration'! '('! annotations 'Class' '('! iri ')'! ')'!
-									|  'Declaration'! '('! annotations 'Datatype' '('! iri ')'! ')'!
-									|  'Declaration'! '('! annotations 'ObjectProperty' '('! iri ')'! ')'!
-									|  'Declaration'! '('! annotations 'DataProperty' '('! iri ')'! ')'!
-									|  'Declaration'! '('! annotations 'AnnotationProperty' '('! iri ')'! ')'!
-									|  'Declaration'! '('! annotations 'NamedIndividual' '('! iri ')'! ')'! ;
+		axiomDeclaration			-> 'Declaration'! '('! annotations 'Class' '('! entity ')'! ')'!
+									|  'Declaration'! '('! annotations 'Datatype' '('! entity ')'! ')'!
+									|  'Declaration'! '('! annotations 'ObjectProperty' '('! entity ')'! ')'!
+									|  'Declaration'! '('! annotations 'DataProperty' '('! entity ')'! ')'!
+									|  'Declaration'! '('! annotations 'AnnotationProperty' '('! entity ')'! ')'!
+									|  'Declaration'! '('! annotations 'NamedIndividual' '('! entity ')'! ')'! ;
 
 		axiomClass					-> axiomSubClassOf^
 									|  axiomEquivalentClasses^
@@ -171,7 +172,7 @@ grammar FunctionalOWL2
 		axiomSubClassOf				-> 'SubClassOf'! '('! annotations expClass expClass ')'! ;
 		axiomEquivalentClasses		-> 'EquivalentClasses'! '('! annotations expClass expClass+ ')'! ;
 		axiomDisjointClasses		-> 'DisjointClasses'! '('! annotations expClass expClass+ ')'! ;
-		axiomDisjointUnion			-> 'DisjointUnion'! '('! annotations iri expClass expClass+ ')'! ;
+		axiomDisjointUnion			-> 'DisjointUnion'! '('! annotations entity expClass expClass+ ')'! ;
 
 		axiomObjectProperty			-> axiomSubOjectPropertyOf^
 									|  axiomEquivalentObjectProperties^
@@ -213,7 +214,7 @@ grammar FunctionalOWL2
 		axiomDataPropertyRange			-> 'DataPropertyRange'! '('! annotations expDataProperty expDatarange ')'! ;
 		axiomFunctionalDataProperty		-> 'FunctionalDataProperty'! '('! annotations expDataProperty ')'! ;
 
-		axiomDatatype					-> 'DatatypeDefinition'! '('! annotations iri expDatarange ')'! ;
+		axiomDatatype					-> 'DatatypeDefinition'! '('! annotations entity expDatarange ')'! ;
 
 		axiomHasKey						-> 'HasKey'! '('! annotations expClass axiomHasKeyObjectProperties axiomHasKeyDataProperties ')'! ;
 		axiomHasKeyObjectProperties		-> '('! expObjectProperty* ')'! ;
@@ -240,12 +241,12 @@ grammar FunctionalOWL2
 										|  axiomAnnotationPropertyRange ;
 		axiomAnnotationAssertion		-> 'AnnotationAssertion'! '('! annotations annotationProperty annotationSubject annotationValue ')'! ;
 		axiomSubAnnotationPropertyOf	-> 'SubAnnotationPropertyOf'! '('! annotations annotationProperty annotationProperty ')'! ;
-		axiomAnnotationPropertyDomain	-> 'AnnotationPropertyDomain'! '('! annotations annotationProperty iri ')'! ;
-		axiomAnnotationPropertyRange	-> 'AnnotationPropertyRange'! '('! annotations annotationProperty iri ')'! ;
+		axiomAnnotationPropertyDomain	-> 'AnnotationPropertyDomain'! '('! annotations annotationProperty entity ')'! ;
+		axiomAnnotationPropertyRange	-> 'AnnotationPropertyRange'! '('! annotations annotationProperty entity ')'! ;
 	}
 }
 
-grammar FunctionXOWL : FunctionalOWL2
+grammar FunctionalXOWL : FunctionalOWL2
 {
 	options
 	{
@@ -254,7 +255,9 @@ grammar FunctionXOWL : FunctionalOWL2
 	}
 	terminals
 	{
-		QVAR	-> '?' [_a-zA-Z] [_a-zA-Z0-9]* ;
+		QVAR				-> '?' [_a-zA-Z] [_a-zA-Z0-9]* ;
+		RULE_ELEMENT_META	-> 'META';
+		RULE_ELEMENT_NOT	-> 'NOT';
 	}
 	rules
 	{
@@ -264,18 +267,18 @@ grammar FunctionXOWL : FunctionalOWL2
 
 		// Add support for the rules
 		element						-> rule^ ;
-		rule						-> 'Rule'! '('! ruleAntecedents ruleConsequents ')'! ;
-		ruleAntecedents				-> 'Antecedents'! '('! ruleElement* ')'!;
-		ruleConsequents				-> 'Consequents'! '('! ruleElement* ')'!;
-		ruleElement					-> axiomPattern
-									|  'Meta' '('! axiomPattern ')'!
-									|  'Not' '('! axiomPattern ')'!
-									|  'Meta' '('! 'Not' '('! axiomPattern ')'! ')'!
-									|  'Not' '('! 'Meta' '('! axiomPattern ')'! ')'! ;
+		rule						-> 'Rule'! '('! iri ruleAntecedents ruleConsequents ')'! ;
+		ruleAntecedents				-> 'Antecedents'! '('! assertion* ')'!;
+		ruleConsequents				-> 'Consequents'! '('! assertion* ')'!;
+		assertion					-> axiomPattern
+									|  RULE_ELEMENT_META '('! axiomPattern+ ')'!
+									|  RULE_ELEMENT_NOT '('! axiomPattern+ ')'!
+									|  RULE_ELEMENT_META '('! RULE_ELEMENT_NOT '('! axiomPattern+ ')'! ')'!
+									|  RULE_ELEMENT_NOT '('! RULE_ELEMENT_META '('! axiomPattern+ ')'! ')'! ;
 		axiomPattern				-> axiom^ ;
 
 		// Add support for variables in expression of elements
 		literal						-> QVAR^ ;
-		iri							-> QVAR^ ;
+		entity						-> QVAR^ ;
 	}
 }

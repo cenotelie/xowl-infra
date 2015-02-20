@@ -6,17 +6,18 @@
 package org.xowl.engine.loaders;
 
 import org.xowl.hime.redist.Symbol;
-import org.xowl.hime.redist.parsers.LRkAutomaton;
-import org.xowl.hime.redist.parsers.LRkParser;
+import org.xowl.hime.redist.parsers.InitializationException;
+import org.xowl.hime.redist.parsers.RNGLRAutomaton;
+import org.xowl.hime.redist.parsers.RNGLRParser;
 
 /**
  * Represents a parser
  */
-class FunctionalOWL2Parser extends LRkParser {
+class FunctionalXOWLParser extends RNGLRParser {
     /**
      * The automaton for this parser
      */
-    private static final LRkAutomaton automaton = LRkAutomaton.find(FunctionalOWL2Parser.class, "FunctionalOWL2Parser.bin");
+    private static final RNGLRAutomaton automaton = RNGLRAutomaton.find(FunctionalXOWLParser.class, "FunctionalXOWLParser.bin");
 
     /**
      * Contains the constant IDs for the variables and virtuals in this parser
@@ -411,9 +412,33 @@ class FunctionalOWL2Parser extends LRkParser {
          */
         public static final int axiomAnnotationPropertyRange = 0x0074;
         /**
+         * The unique identifier for variable literalInteger
+         */
+        public static final int literalInteger = 0x00DC;
+        /**
+         * The unique identifier for variable rule
+         */
+        public static final int rule = 0x00DD;
+        /**
+         * The unique identifier for variable ruleAntecedents
+         */
+        public static final int ruleAntecedents = 0x00DE;
+        /**
+         * The unique identifier for variable ruleConsequents
+         */
+        public static final int ruleConsequents = 0x00DF;
+        /**
+         * The unique identifier for variable assertion
+         */
+        public static final int assertion = 0x00E0;
+        /**
+         * The unique identifier for variable axiomPattern
+         */
+        public static final int axiomPattern = 0x00E1;
+        /**
          * The unique identifier for variable _Axiom_
          */
-        public static final int _Axiom_ = 0x00D9;
+        public static final int _Axiom_ = 0x00EB;
     }
 
     /**
@@ -545,7 +570,19 @@ class FunctionalOWL2Parser extends LRkParser {
             new Symbol(0x00CB, "_gen_V203"),
             new Symbol(0x00CD, "_gen_V205"),
             new Symbol(0x00CF, "_gen_V207"),
-            new Symbol(0x00D9, "_Axiom_")};
+            new Symbol(0x00DC, "literalInteger"),
+            new Symbol(0x00DD, "rule"),
+            new Symbol(0x00DE, "ruleAntecedents"),
+            new Symbol(0x00DF, "ruleConsequents"),
+            new Symbol(0x00E0, "assertion"),
+            new Symbol(0x00E1, "axiomPattern"),
+            new Symbol(0x00E4, "_gen_V228"),
+            new Symbol(0x00E6, "_gen_V230"),
+            new Symbol(0x00E7, "_gen_V231"),
+            new Symbol(0x00E8, "_gen_V232"),
+            new Symbol(0x00E9, "_gen_V233"),
+            new Symbol(0x00EA, "_gen_V234"),
+            new Symbol(0x00EB, "_Axiom_")};
     /**
      * The collection of virtuals matched by this parser
      * <p/>
@@ -560,7 +597,7 @@ class FunctionalOWL2Parser extends LRkParser {
      *
      * @param lexer The input lexer
      */
-    public FunctionalOWL2Parser(FunctionalOWL2Lexer lexer) {
+    public FunctionalXOWLParser(FunctionalXOWLLexer lexer) throws InitializationException {
         super(automaton, variables, virtuals, null, lexer);
     }
 }
