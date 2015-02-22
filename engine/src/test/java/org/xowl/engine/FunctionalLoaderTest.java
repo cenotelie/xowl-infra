@@ -24,8 +24,8 @@ import org.junit.Test;
 import org.xowl.engine.loaders.FunctionalOWL2Loader;
 import org.xowl.engine.loaders.Loader;
 import org.xowl.engine.loaders.LoaderResult;
-import org.xowl.engine.owl.TranslationException;
-import org.xowl.engine.owl.XOWLStore;
+import org.xowl.engine.backend.TranslationException;
+import org.xowl.engine.backend.XOWLStore;
 import org.xowl.store.rdf.UnsupportedNodeType;
 
 import java.io.*;
