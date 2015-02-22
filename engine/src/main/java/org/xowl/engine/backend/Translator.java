@@ -18,8 +18,9 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.engine.owl;
+package org.xowl.engine.backend;
 
+import org.xowl.engine.Evaluator;
 import org.xowl.engine.Vocabulary;
 import org.xowl.engine.XOWLUtils;
 import org.xowl.engine.loaders.LoaderResult;

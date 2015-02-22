@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.engine.owl;
+package org.xowl.engine.backend;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.rdf.SubjectNode;

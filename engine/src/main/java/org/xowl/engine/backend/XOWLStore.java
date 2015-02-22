@@ -18,17 +18,14 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.engine.owl;
+package org.xowl.engine.backend;
 
-import org.xowl.engine.loaders.LoaderResult;
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.*;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a store of RDF store with xOWL extensions
@@ -49,7 +46,7 @@ public class XOWLStore extends RDFStore {
     /**
      * Initializes this store
      *
-     * @throws java.io.IOException when the store cannot allocate a temporary file
+     * @throws java.io.IOException When the store cannot allocate a temporary file
      */
     public XOWLStore() throws IOException {
         super();
@@ -73,15 +70,17 @@ public class XOWLStore extends RDFStore {
     }
 
     /**
-     * Loads the axioms provided by the specified loader result
+     * Gets the IRI nodes that are within the specified iri namespace
      *
-     * @param input A loader result
-     * @throws TranslationException                   When a runtime entity is not named
-     * @throws org.xowl.store.rdf.UnsupportedNodeType When the subject node type is unsupported
+     * @param iri An iri namespace
+     * @return The corresponding IRI nodes
      */
-    public void add(LoaderResult input) throws TranslationException, UnsupportedNodeType {
-        Translator translator = new Translator(null, this, input, null);
-        insert(translator.execute());
+    public Collection<IRINode> getNodesWithin(String iri) {
+        List<IRINode> result = new ArrayList<>();
+        for (IRINode node : mapNodeIRIs.values())
+            if (node.getIRIValue().startsWith(iri))
+                result.add(node);
+        return result;
     }
 
     /**
