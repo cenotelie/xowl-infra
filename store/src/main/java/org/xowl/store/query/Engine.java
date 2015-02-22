@@ -117,8 +117,7 @@ public class Engine implements ChangeListener {
         rule.getNegatives().addAll(query.getNegatives());
         // execute
         rete.addRule(rule);
-        // TODO remove the rule from the network
-        // rete.removeRule(rule);
+        rete.removeRule(rule);
         return result;
     }
 
@@ -151,8 +150,7 @@ public class Engine implements ChangeListener {
             if (query.matches(condition)) {
                 query.removeListener(listener);
                 if (query.getListenersCount() == 0) {
-                    // TODO remove the rule from the network
-                    // rete.removeRule(query.getRule());
+                    rete.removeRule(query.getRule());
                     continuousQueries.remove(query);
                 }
                 return;

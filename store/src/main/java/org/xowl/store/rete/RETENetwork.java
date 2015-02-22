@@ -41,7 +41,7 @@ public class RETENetwork {
     /**
      * The implementation data of the RETE rules
      */
-    private Map<RETERule, List<JoinData>> rules;
+    private Map<RETERule, RuleData> rules;
 
     /**
      * Initializes this network
@@ -103,15 +103,18 @@ public class RETENetwork {
      * @param rule The rule to addMemoryFor
      */
     public void addRule(RETERule rule) {
-        List<JoinData> levels = getJoinData(rule);
+        RuleData ruleData = new RuleData();
+        ruleData.positives = getJoinData(rule);
         // Build RETE for positives
-        Iterator<JoinData> iterData = levels.iterator();
+        Iterator<JoinData> iterData = ruleData.positives.iterator();
         BetaMemory beta = BetaMemory.getDummy();
         for (Quad pattern : rule.getPositives()) {
             JoinData data = iterData.next();
             FactHolder alpha = this.alpha.resolveMemory(pattern, input);
             BetaJoinNode join = beta.resolveJoin(alpha, data.tests);
             beta = join.resolveMemory(data.binders);
+            data.nodeJoin = join;
+            data.nodeMemory = beta;
         }
         // Append negative conditions
         TokenHolder last = beta;
@@ -121,6 +124,7 @@ public class RETENetwork {
                 Quad pattern = conjunction.iterator().next();
                 FactHolder alpha = this.alpha.resolveMemory(pattern, input);
                 last = new BetaNegativeJoinNode(alpha, last, data.tests);
+                ruleData.negatives.add(last);
             } else {
                 BetaNCCEntryNode entry = new BetaNCCEntryNode(last);
                 last = entry;
@@ -132,11 +136,13 @@ public class RETENetwork {
                 }
                 last.addChild(entry.getExitNode());
                 last = entry.getExitNode();
+                ruleData.negatives.add(entry);
+                ruleData.negatives.add(last);
             }
         }
         // Append output node
         last.addChild(rule.getOutput());
-        rules.put(rule, levels);
+        rules.put(rule, ruleData);
         beta.push();
     }
 
@@ -146,7 +152,36 @@ public class RETENetwork {
      * @param rule The rule to removeMemoryFor
      */
     public void removeRule(RETERule rule) {
-        throw new UnsupportedOperationException();
+        RuleData data = rules.get(rule);
+        if (data == null)
+            // the rule is not in this network ...
+            return;
+        // remove the rule's output
+        // if there is a negative join network, this is not necessary because we will also remove it
+        if (data.negatives.isEmpty()) {
+            // no negative, remove from the positive network
+            data.positives.get(data.positives.size() - 1).nodeMemory.removeChild(rule.getOutput());
+        } else {
+            // remove the negative network
+            int index = data.negatives.size() - 1;
+            while (index != -1) {
+                TokenHolder node = data.negatives.get(index);
+                node.onDestroy();
+                index--;
+            }
+        }
+        // remove the positive network
+        {
+            for (int i = data.positives.size() - 1; i != -1; i--) {
+                JoinData join = data.positives.get(i);
+                join.nodeJoin.counter--;
+                if (join.nodeJoin.counter == 0) {
+                    // this join is no longer required, remove it from the network
+                    join.nodeMemory.onDestroy();
+                    join.nodeJoin.onDestroy();
+                }
+            }
+        }
     }
 
     /**
@@ -155,7 +190,8 @@ public class RETENetwork {
      * @param rules The rules to removeMemory
      */
     public void removeRules(Collection<RETERule> rules) {
-        throw new UnsupportedOperationException();
+        for (RETERule rule : rules)
+            removeRule(rule);
     }
 
     /**
@@ -235,6 +271,27 @@ public class RETENetwork {
     }
 
     /**
+     * Represents the data of a compiled RETE rule
+     */
+    private static class RuleData {
+        /**
+         * The data for the positive joins
+         */
+        public List<JoinData> positives;
+        /**
+         * The nodes for the negative joins
+         */
+        public List<TokenHolder> negatives;
+
+        /**
+         * Initializes this data
+         */
+        public RuleData() {
+            this.negatives = new ArrayList<>();
+        }
+    }
+
+    /**
      * Represents the data of a join node
      */
     private static class JoinData {
@@ -246,6 +303,14 @@ public class RETENetwork {
          * The binding operations
          */
         public List<Binder> binders;
+        /**
+         * The corresponding join node
+         */
+        public BetaJoinNode nodeJoin;
+        /**
+         * The child memory
+         */
+        public BetaMemory nodeMemory;
 
         /**
          * Initializes the data

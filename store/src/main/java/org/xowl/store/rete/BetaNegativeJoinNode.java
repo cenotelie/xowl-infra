@@ -96,6 +96,14 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
     }
 
     @Override
+    public void onDestroy() {
+        alphaMem.removeChild(this);
+        betaMem.removeChild(this);
+        child = null;
+        matches = null;
+    }
+
+    @Override
     public void activateToken(Token token) {
         for (Quad fact : alphaMem.getFacts())
             applyPositive(token, fact);

@@ -85,6 +85,14 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
     }
 
     @Override
+    public void onDestroy() {
+        // The child will be dropped in every case before this method is called.
+        // We do not have to unregister from the parents because we are the end of a NCC network.
+        child = null;
+        matches = null;
+    }
+
+    @Override
     public void activateToken(Token token) {
         Token original = getOriginal(token);
         matches.get(original).add(token);

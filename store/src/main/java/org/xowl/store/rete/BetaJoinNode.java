@@ -65,6 +65,10 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      * The downstream beta memory
      */
     private BetaMemory child;
+    /**
+     * The counter of the number of rules using this node
+     */
+    protected int counter;
 
     /**
      * Initializes this joi node
@@ -82,6 +86,7 @@ class BetaJoinNode implements FactActivable, TokenActivable {
         if (iter.hasNext()) test3 = iter.next();
         this.alphaMem.addChild(this);
         this.betaMem.addChild(this);
+        this.counter = 1;
     }
 
     /**
@@ -91,6 +96,15 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      */
     public BetaMemory getChild() {
         return child;
+    }
+
+    /**
+     * Prepares this node for its destruction
+     */
+    public void onDestroy() {
+        alphaMem.removeChild(this);
+        betaMem.removeChild(this);
+        child = null;
     }
 
     /**

@@ -117,4 +117,10 @@ class BetaNCCEntryNode implements TokenHolder, TokenActivable {
     public void removeAllChildren() {
         this.child = null;
     }
+
+    @Override
+    public void onDestroy() {
+        betaMem.removeChild(this);
+        child = null;
+    }
 }

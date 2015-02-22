@@ -100,6 +100,13 @@ class BetaMemory implements TokenHolder {
         children.clear();
     }
 
+    @Override
+    public void onDestroy() {
+        mapAscendants = null;
+        tokens = null;
+        children = null;
+    }
+
     /**
      * Adds the specified collection of binding operation to this node
      *
@@ -255,8 +262,10 @@ class BetaMemory implements TokenHolder {
         for (int i = children.size() - 1; i != -1; i--) {
             if (children.get(i) instanceof BetaJoinNode) {
                 BetaJoinNode join = (BetaJoinNode) children.get(i);
-                if (join.match(alpha, tests))
+                if (join.match(alpha, tests)) {
+                    join.counter++;
                     return join;
+                }
             }
         }
         return new BetaJoinNode(alpha, this, tests);

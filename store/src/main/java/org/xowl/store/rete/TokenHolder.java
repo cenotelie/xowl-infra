@@ -60,4 +60,9 @@ interface TokenHolder {
      * Removes all children from this element
      */
     void removeAllChildren();
+
+    /**
+     * Prepares this node for its destruction
+     */
+    void onDestroy();
 }
