@@ -20,12 +20,20 @@
 
 package org.xowl.store.rdf;
 
+import org.xowl.utils.data.Attribute;
+import org.xowl.utils.data.Dataset;
+
 /**
  * Represents a blank node in a RDF graph
  *
  * @author Laurent Wouters
  */
 public class BlankNode implements SubjectNode {
+    /**
+     * The identifier key for the serialization of the id attribute
+     */
+    private static final String SERIALIZATION_ID = "id";
+
     /**
      * The type of node
      */
@@ -45,6 +53,15 @@ public class BlankNode implements SubjectNode {
         blankID = id;
     }
 
+    /**
+     * Initializes this node from a dataset
+     *
+     * @param data The node of serialized data
+     */
+    public BlankNode(org.xowl.utils.data.Node data) {
+        this.blankID = (int) data.attribute(SERIALIZATION_ID).getValue();
+    }
+
     @Override
     public int getNodeType() {
         return TYPE;
@@ -57,6 +74,18 @@ public class BlankNode implements SubjectNode {
      */
     public int getBlankID() {
         return blankID;
+    }
+
+    @Override
+    public org.xowl.utils.data.Node serialize(Dataset dataset) {
+        org.xowl.utils.data.Node result = new org.xowl.utils.data.Node(dataset, SERIALIZATION_NAME);
+        Attribute attributeType = new Attribute(dataset, SERIALIZATION_TYPE);
+        attributeType.setValue(TYPE);
+        result.getAttributes().add(attributeType);
+        Attribute attributeID = new Attribute(dataset, SERIALIZATION_ID);
+        attributeID.setValue(blankID);
+        result.getAttributes().add(attributeID);
+        return result;
     }
 
     @Override

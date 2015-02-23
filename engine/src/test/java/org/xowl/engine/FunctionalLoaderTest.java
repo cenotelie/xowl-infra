@@ -25,7 +25,6 @@ import org.xowl.engine.loaders.FunctionalOWL2Loader;
 import org.xowl.engine.loaders.Loader;
 import org.xowl.engine.loaders.LoaderResult;
 import org.xowl.engine.backend.TranslationException;
-import org.xowl.engine.backend.XOWLStore;
 import org.xowl.store.rdf.UnsupportedNodeType;
 
 import java.io.*;
@@ -64,10 +63,10 @@ public class FunctionalLoaderTest {
             Assert.fail("Failed to close the resource " + physicalResource);
         }
 
-        XOWLStore store = null;
+        Repository repository = null;
         try {
-            store = new XOWLStore();
-            store.add(result);
+            repository = new Repository();
+            repository.add(result);
         } catch (IOException ex) {
             // do not handle
         } catch (TranslationException | UnsupportedNodeType ex) {

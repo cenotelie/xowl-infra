@@ -20,6 +20,8 @@
 
 package org.xowl.store.rdf;
 
+import org.xowl.utils.data.Dataset;
+
 /**
  * Represents a node in a RDF graph
  *
@@ -27,9 +29,26 @@ package org.xowl.store.rdf;
  */
 public interface Node {
     /**
+     * The identifier key for the serialization of this element
+     */
+    public static final String SERIALIZATION_NAME = "Node";
+    /**
+     * The identifier key for the serialization of the type attribute
+     */
+    public static final String SERIALIZATION_TYPE = "type";
+
+    /**
      * Gets the node's type
      *
      * @return The node's type
      */
     int getNodeType();
+
+    /**
+     * Serializes this node
+     *
+     * @param dataset The dataset to serialize to
+     * @return The serialized data
+     */
+    org.xowl.utils.data.Node serialize(Dataset dataset);
 }

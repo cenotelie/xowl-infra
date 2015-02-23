@@ -20,6 +20,7 @@
 package org.xowl.store.rdf;
 
 import org.xowl.utils.collections.*;
+import org.xowl.utils.data.Dataset;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -34,6 +35,10 @@ public class EdgeBucket implements Iterable<Edge> {
      * Initial size of a bucket
      */
     private static final int INIT_SIZE = 8;
+    /**
+     * The identifier key for the serialization of this element
+     */
+    private static final String SERIALIZATION_NAME = "EdgeBucket";
 
     /**
      * The buffer of edges
@@ -50,6 +55,20 @@ public class EdgeBucket implements Iterable<Edge> {
     public EdgeBucket() {
         this.edges = new Edge[INIT_SIZE];
         this.size = 0;
+    }
+
+    /**
+     * Initializes this edge from a dataset
+     *
+     * @param store The parent RDF store
+     * @param data  The node of serialized data
+     */
+    public EdgeBucket(RDFStore store, org.xowl.utils.data.Node data) {
+        this.size = data.getChildren().size();
+        this.edges = new Edge[Math.max(INIT_SIZE, size)];
+        for (int i = 0; i != size; i++) {
+            edges[i] = new Edge(store, data.getChildren().get(i));
+        }
     }
 
     /**
@@ -184,5 +203,21 @@ public class EdgeBucket implements Iterable<Edge> {
             if (edges[i] != null && edges[i].getProperty() == property)
                 return edges[i].count(graph, value);
         return 0;
+    }
+
+    /**
+     * Serializes this edge bucket
+     *
+     * @param dataset The dataset to serialize to
+     * @return The serialized data
+     */
+    public org.xowl.utils.data.Node serialize(Dataset dataset) {
+        org.xowl.utils.data.Node result = new org.xowl.utils.data.Node(dataset, SERIALIZATION_NAME);
+        for (int i = 0; i != edges.length; i++) {
+            if (edges[i] == null)
+                continue;
+            result.getChildren().add(edges[i].serialize(dataset));
+        }
+        return result;
     }
 }

@@ -23,6 +23,8 @@ import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.SingleIterator;
 import org.xowl.utils.collections.SparseIterator;
+import org.xowl.utils.data.Attribute;
+import org.xowl.utils.data.Dataset;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -37,6 +39,26 @@ public class EdgeTarget implements Iterable<GraphNode> {
      * The initial size of the buffer of the multiplicities
      */
     private static final int INIT_BUFFER_SIZE = 3;
+    /**
+     * The identifier key for the serialization of this element
+     */
+    private static final String SERIALIZATION_NAME = "EdgeTarget";
+    /**
+     * The identifier key for the serialization of a target element
+     */
+    private static final String SERIALIZATION_TARGET = "Target";
+    /**
+     * The identifier key for the serialization of the graphs
+     */
+    private static final String SERIALIZATION_GRAPHS = "Graphs";
+    /**
+     * The identifier key for the serialization of a graph element
+     */
+    private static final String SERIALIZATION_GRAPH = "Graph";
+    /**
+     * The identifier key for the serialization of the multiplicity attribute
+     */
+    private static final String SERIALIZATION_MULTIPLICITY = "multiplicity";
 
     /**
      * The represented target node
@@ -69,6 +91,26 @@ public class EdgeTarget implements Iterable<GraphNode> {
         this.multiplicities[0] = 1;
         this.size = 1;
     }
+
+    /**
+     * Initializes this target from a dataset
+     *
+     * @param store The parent RDF store
+     * @param data  The node of serialized data
+     */
+    public EdgeTarget(RDFStore store, org.xowl.utils.data.Node data) {
+        this.target = store.getNodeFor(data.child(SERIALIZATION_TARGET).getChildren().get(0));
+        org.xowl.utils.data.Node nodeGraphs = data.child(SERIALIZATION_GRAPHS);
+        this.size = nodeGraphs.getChildren().size();
+        this.graphs = new GraphNode[Math.max(INIT_BUFFER_SIZE, size)];
+        this.multiplicities = new int[Math.max(INIT_BUFFER_SIZE, size)];
+        for (int i = 0; i != size; i++) {
+            org.xowl.utils.data.Node nodeGraph = nodeGraphs.getChildren().get(0);
+            graphs[i] = (GraphNode) store.getNodeFor(nodeGraph.getChildren().get(0));
+            multiplicities[i] = (int) nodeGraph.attribute(SERIALIZATION_MULTIPLICITY).getValue();
+        }
+    }
+
 
     /**
      * Gets the represented target node
@@ -192,5 +234,30 @@ public class EdgeTarget implements Iterable<GraphNode> {
             if (graphs[i] == graph)
                 return 1;
         return 0;
+    }
+
+    /**
+     * Serializes this target
+     *
+     * @param dataset The dataset to serialize to
+     * @return The serialized data
+     */
+    public org.xowl.utils.data.Node serialize(Dataset dataset) {
+        org.xowl.utils.data.Node result = new org.xowl.utils.data.Node(dataset, SERIALIZATION_NAME);
+        org.xowl.utils.data.Node nodeTarget = new org.xowl.utils.data.Node(dataset, SERIALIZATION_TARGET);
+        result.getChildren().add(nodeTarget);
+        nodeTarget.getChildren().add(target.serialize(dataset));
+        org.xowl.utils.data.Node nodeGraphs = new org.xowl.utils.data.Node(dataset, SERIALIZATION_GRAPHS);
+        result.getChildren().add(nodeGraphs);
+        for (int i = 0; i != graphs.length; i++) {
+            if (graphs[i] == null)
+                continue;
+            org.xowl.utils.data.Node nodeGraph = new org.xowl.utils.data.Node(dataset, SERIALIZATION_GRAPH);
+            Attribute attributeType = new Attribute(dataset, SERIALIZATION_MULTIPLICITY);
+            attributeType.setValue(multiplicities[i]);
+            nodeGraph.getAttributes().add(attributeType);
+            nodeGraph.getChildren().add(graphs[i].serialize(dataset));
+        }
+        return result;
     }
 }

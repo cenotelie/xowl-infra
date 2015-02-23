@@ -21,6 +21,8 @@
 package org.xowl.store.rdf;
 
 import org.xowl.store.cache.StringStore;
+import org.xowl.utils.data.Attribute;
+import org.xowl.utils.data.Dataset;
 
 /**
  * Represents a node associated to a literal value in a RDF graph
@@ -28,6 +30,19 @@ import org.xowl.store.cache.StringStore;
  * @author Laurent Wouters
  */
 class LiteralNodeImpl extends LiteralNode {
+    /**
+     * The identifier key for the serialization of the lexical attribute
+     */
+    private static final String SERIALIZATION_LEXICAL = "lexical";
+    /**
+     * The identifier key for the serialization of the datatype attribute
+     */
+    public static final String SERIALIZATION_DATATYPE = "datatype";
+    /**
+     * The identifier key for the serialization of the tag attribute
+     */
+    public static final String SERIALIZATION_TAG = "tag";
+
     /**
      * The string store
      */
@@ -39,7 +54,7 @@ class LiteralNodeImpl extends LiteralNode {
     /**
      * Key to the datatype IRI
      */
-    private int type;
+    private int datatype;
     /**
      * Key to the language tag
      */
@@ -48,16 +63,29 @@ class LiteralNodeImpl extends LiteralNode {
     /**
      * Initializes this node
      *
-     * @param store   The string store
-     * @param lexical Key to the lexical value
-     * @param type    Key to the datatype IRI
-     * @param tag     Key to the language tag
+     * @param store    The string store
+     * @param lexical  Key to the lexical value
+     * @param datatype Key to the datatype IRI
+     * @param tag      Key to the language tag
      */
-    public LiteralNodeImpl(StringStore store, int lexical, int type, int tag) {
+    public LiteralNodeImpl(StringStore store, int lexical, int datatype, int tag) {
         this.store = store;
         this.lexical = lexical;
-        this.type = type;
+        this.datatype = datatype;
         this.tag = tag;
+    }
+
+    /**
+     * Initializes this node from a dataset
+     *
+     * @param store The string store storing the IRI value
+     * @param data  The node of serialized data
+     */
+    public LiteralNodeImpl(StringStore store, org.xowl.utils.data.Node data) {
+        this.store = store;
+        this.lexical = (int) data.attribute(SERIALIZATION_LEXICAL).getValue();
+        this.datatype = (int) data.attribute(SERIALIZATION_DATATYPE).getValue();
+        this.tag = (int) data.attribute(SERIALIZATION_TAG).getValue();
     }
 
     @Override
@@ -67,7 +95,7 @@ class LiteralNodeImpl extends LiteralNode {
 
     @Override
     public String getDatatype() {
-        return store.retrieve(type);
+        return store.retrieve(datatype);
     }
 
     @Override
@@ -76,15 +104,33 @@ class LiteralNodeImpl extends LiteralNode {
     }
 
     @Override
+    public org.xowl.utils.data.Node serialize(Dataset dataset) {
+        org.xowl.utils.data.Node result = new org.xowl.utils.data.Node(dataset, SERIALIZATION_NAME);
+        Attribute attributeType = new Attribute(dataset, SERIALIZATION_TYPE);
+        attributeType.setValue(TYPE);
+        result.getAttributes().add(attributeType);
+        Attribute attributeLexical = new Attribute(dataset, SERIALIZATION_LEXICAL);
+        attributeLexical.setValue(lexical);
+        result.getAttributes().add(attributeLexical);
+        Attribute attributeDatatype = new Attribute(dataset, SERIALIZATION_DATATYPE);
+        attributeDatatype.setValue(datatype);
+        result.getAttributes().add(attributeDatatype);
+        Attribute attributeTag = new Attribute(dataset, SERIALIZATION_TAG);
+        attributeTag.setValue(tag);
+        result.getAttributes().add(attributeTag);
+        return result;
+    }
+
+    @Override
     public int hashCode() {
-        return lexical ^ type ^ tag;
+        return lexical ^ datatype ^ tag;
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof LiteralNodeImpl) {
             LiteralNodeImpl node = (LiteralNodeImpl) obj;
-            return (this.lexical == node.lexical && this.type == node.type && this.tag == node.tag);
+            return (this.lexical == node.lexical && this.datatype == node.datatype && this.tag == node.tag);
         }
         return false;
     }

@@ -21,6 +21,8 @@
 package org.xowl.store.rdf;
 
 import org.xowl.store.cache.StringStore;
+import org.xowl.utils.data.Attribute;
+import org.xowl.utils.data.Dataset;
 
 /**
  * Represents a node associated to an IRI in a RDF graph
@@ -28,6 +30,11 @@ import org.xowl.store.cache.StringStore;
  * @author Laurent Wouters
  */
 class IRINodeImpl extends IRINode {
+    /**
+     * The identifier key for the serialization of the key attribute
+     */
+    private static final String SERIALIZATION_KEY = "key";
+
     /**
      * The string store storing the IRI value
      */
@@ -49,6 +56,17 @@ class IRINodeImpl extends IRINode {
     }
 
     /**
+     * Initializes this node from a dataset
+     *
+     * @param store The string store storing the IRI value
+     * @param data  The node of serialized data
+     */
+    public IRINodeImpl(StringStore store, org.xowl.utils.data.Node data) {
+        this.store = store;
+        this.key = (int) data.attribute(SERIALIZATION_KEY).getValue();
+    }
+
+    /**
      * Gets the key to the IRI in the string store
      *
      * @return The key to the IRI
@@ -60,6 +78,18 @@ class IRINodeImpl extends IRINode {
     @Override
     public String getIRIValue() {
         return store.retrieve(key);
+    }
+
+    @Override
+    public org.xowl.utils.data.Node serialize(Dataset dataset) {
+        org.xowl.utils.data.Node result = new org.xowl.utils.data.Node(dataset, SERIALIZATION_NAME);
+        Attribute attributeType = new Attribute(dataset, SERIALIZATION_TYPE);
+        attributeType.setValue(TYPE);
+        result.getAttributes().add(attributeType);
+        Attribute attributeKey = new Attribute(dataset, SERIALIZATION_KEY);
+        attributeKey.setValue(key);
+        result.getAttributes().add(attributeKey);
+        return result;
     }
 
     @Override

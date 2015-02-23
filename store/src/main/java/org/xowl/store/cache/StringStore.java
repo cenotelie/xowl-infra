@@ -20,9 +20,11 @@
 
 package org.xowl.store.cache;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import org.xowl.utils.data.AttributeTypeException;
+import org.xowl.utils.data.Dataset;
+import org.xowl.utils.data.Node;
+
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
@@ -81,7 +83,7 @@ public class StringStore {
     /**
      * Initializes this store
      *
-     * @throws java.io.IOException when the store cannot allocate a temporary file
+     * @throws java.io.IOException When the store cannot allocate a temporary file
      */
     public StringStore() throws IOException {
         File file = File.createTempFile("store", null);
@@ -92,6 +94,22 @@ public class StringStore {
         this.buckets = new HashBucket[INIT_BUCKET_COUNT];
         this.bucketCount = 0;
         this.inner = new byte[BUFFER_SIZE];
+    }
+
+    /**
+     * Initializes this store from an existing dataset
+     *
+     * @param fileData  The file for the data
+     * @param fileIndex The file for the index
+     * @throws IOException When an IO error occurs
+     */
+    public StringStore(String fileData, String fileIndex) throws IOException {
+        File file = File.createTempFile("store", null);
+        this.fileData = new RandomAccessFile(file.getAbsolutePath(), "rw");
+        this.charset = Charset.forName("UTF-8");
+        this.inner = new byte[BUFFER_SIZE];
+        loadData(fileData);
+        loadIndex(fileIndex);
     }
 
     /**
@@ -218,5 +236,105 @@ public class StringStore {
             if (left[i] != right[i])
                 return false;
         return true;
+    }
+
+    /**
+     * Saves this store to the specified resources
+     *
+     * @param fileData  The file for the data
+     * @param fileIndex The file for the index
+     * @throws IOException When an IO error occurs
+     */
+    public void save(String fileData, String fileIndex) throws IOException {
+        saveData(fileData);
+        saveIndex(fileIndex);
+    }
+
+    /**
+     * Saves the data to the specified file
+     *
+     * @param file A file
+     * @throws IOException When an IO error occurs
+     */
+    private void saveData(String file) throws IOException {
+        FileOutputStream stream = new FileOutputStream(file);
+        int current = 0;
+        fileData.seek(0);
+        while (current < size) {
+            int read = fileData.read(inner, 0, inner.length);
+            stream.write(inner, 0, read);
+            current += read;
+        }
+        stream.flush();
+        stream.close();
+    }
+
+    /**
+     * Saves the index to the specified file
+     *
+     * @param file A file
+     * @throws IOException When an IO error occurs
+     */
+    private void saveIndex(String file) throws IOException {
+        Dataset dataset = new Dataset();
+        Node treeEntries = new Node(dataset, "Entries");
+        dataset.getTrees().add(treeEntries);
+        for (int i = 0; i != entryCount; i++) {
+            treeEntries.getChildren().add(entries[i].serializes(dataset));
+        }
+        Node treeBuckets = new Node(dataset, "Buckets");
+        dataset.getTrees().add(treeBuckets);
+        for (int i = 0; i != bucketCount; i++) {
+            treeBuckets.getChildren().add(buckets[i].serializes(dataset));
+        }
+        dataset.write(file);
+    }
+
+    /**
+     * Loads the data from the specified file
+     *
+     * @param file A file
+     * @throws IOException When an IO error occurs
+     */
+    private void loadData(String file) throws IOException {
+        FileInputStream stream = new FileInputStream(file);
+        fileData.seek(0);
+        int read = stream.read(inner, 0, inner.length);
+        while (read != -1) {
+            fileData.write(inner, 0, read);
+            read = stream.read(inner, 0, inner.length);
+        }
+        fileData.seek(0);
+        stream.close();
+    }
+
+    /**
+     * Loads the index from the specified file
+     *
+     * @param file A file
+     * @throws IOException When an IO error occurs
+     */
+    private void loadIndex(String file) throws IOException {
+        Dataset dataset = null;
+        try {
+            dataset = Dataset.load(file);
+        } catch (AttributeTypeException ex) {
+            // cannot happen ...
+        }
+
+        Node treeEntries = dataset.tree("Entries");
+        entryCount = treeEntries.getChildren().size();
+        entries = new Entry[Math.max(entryCount, INIT_ENTRY_COUNT)];
+        for (int i = 0; i != entryCount; i++) {
+            entries[i] = new Entry(treeEntries.getChildren().get(i));
+        }
+
+        Node treeBuckets = dataset.tree("Buckets");
+        bucketCount = treeBuckets.getChildren().size();
+        buckets = new HashBucket[Math.max(bucketCount, INIT_BUCKET_COUNT)];
+        for (int i = 0; i != bucketCount; i++) {
+            buckets[i] = new HashBucket(treeBuckets.getChildren().get(i));
+        }
+        dataset.write(file);
     }
 }

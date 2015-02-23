@@ -20,12 +20,29 @@
 
 package org.xowl.store.cache;
 
+import org.xowl.utils.data.Attribute;
+import org.xowl.utils.data.Dataset;
+import org.xowl.utils.data.Node;
+
 /**
  * Represents an entry in a store
  *
  * @author Laurent Wouters
  */
 class Entry {
+    /**
+     * The identifier key for the serialization of this element
+     */
+    private static final String SERIALIZATION_KEY = "Entry";
+    /**
+     * The identifier key for the serialization of the offset attribute
+     */
+    private static final String SERIALIZATION_OFFSET = "offset";
+    /**
+     * The identifier key for the serialization of the size attribute
+     */
+    private static final String SERIALIZATION_SIZE = "size";
+
     /**
      * Offset in the store of the value associated to this key
      */
@@ -47,6 +64,16 @@ class Entry {
     }
 
     /**
+     * Loads this entry from the specified serialized data node
+     *
+     * @param node A data node
+     */
+    public Entry(Node node) {
+        this.offset = (int) node.attribute(SERIALIZATION_OFFSET).getValue();
+        this.size = (int) node.attribute(SERIALIZATION_SIZE).getValue();
+    }
+
+    /**
      * Gets the starting offset of this entry
      *
      * @return The starting offset of this entry
@@ -62,6 +89,23 @@ class Entry {
      */
     public int getSize() {
         return size;
+    }
+
+    /**
+     * Gets the serialization of this entry
+     *
+     * @param dataset The dataset to serialize in
+     * @return The node containing the serailized data
+     */
+    public Node serializes(Dataset dataset) {
+        Node node = new Node(dataset, SERIALIZATION_KEY);
+        Attribute attributeOffset = new Attribute(dataset, SERIALIZATION_OFFSET);
+        Attribute attributeSize = new Attribute(dataset, SERIALIZATION_SIZE);
+        attributeOffset.setValue(offset);
+        attributeSize.setValue(size);
+        node.getAttributes().add(attributeOffset);
+        node.getAttributes().add(attributeSize);
+        return node;
     }
 
     @Override

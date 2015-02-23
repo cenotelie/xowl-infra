@@ -20,6 +20,10 @@
 
 package org.xowl.store.cache;
 
+import org.xowl.utils.data.Attribute;
+import org.xowl.utils.data.Dataset;
+import org.xowl.utils.data.Node;
+
 import java.util.Arrays;
 
 /**
@@ -36,6 +40,22 @@ class HashBucket {
      * Increment for the bucket expansion
      */
     private static final int SIZE_INCREMENT = 4;
+    /**
+     * The identifier key for the serialization of this element
+     */
+    private static final String SERIALIZATION_KEY = "Bucket";
+    /**
+     * The identifier key for the serialization of the entry element
+     */
+    private static final String SERIALIZATION_ENTRY = "Entry";
+    /**
+     * The identifier key for the serialization of the index attribute
+     */
+    private static final String SERIALIZATION_HASH = "hash";
+    /**
+     * The identifier key for the serialization of the index attribute
+     */
+    private static final String SERIALIZATION_INDEX = "index";
 
     /**
      * The common hash
@@ -59,6 +79,20 @@ class HashBucket {
         this.hash = hash;
         this.content = new int[INIT_SIZE];
         this.size = 0;
+    }
+
+    /**
+     * Loads this bucket from the specified serialized data node
+     *
+     * @param node A data node
+     */
+    public HashBucket(Node node) {
+        this.hash = (int) node.attribute(SERIALIZATION_HASH).getValue();
+        this.size = node.getChildren().size();
+        this.content = new int[Math.max(INIT_SIZE, node.getChildren().size())];
+        for (int i = 0; i != size; i++) {
+            content[i] = (int) node.getChildren().get(i).attribute(SERIALIZATION_INDEX).getValue();
+        }
     }
 
     /**
@@ -99,5 +133,26 @@ class HashBucket {
             content = Arrays.copyOf(content, content.length + SIZE_INCREMENT);
         content[size] = index;
         size++;
+    }
+
+    /**
+     * Gets the serialization of this bucket
+     *
+     * @param dataset The dataset to serialize in
+     * @return The node containing the serailized data
+     */
+    public Node serializes(Dataset dataset) {
+        Node node = new Node(dataset, SERIALIZATION_KEY);
+        Attribute attributeHash = new Attribute(dataset, SERIALIZATION_HASH);
+        attributeHash.setValue(hash);
+        node.getAttributes().add(attributeHash);
+        for (int i = 0; i != size; i++) {
+            Node nodeEntry = new Node(dataset, SERIALIZATION_ENTRY);
+            Attribute attributeIndex = new Attribute(dataset, SERIALIZATION_INDEX);
+            attributeIndex.setValue(content[i]);
+            nodeEntry.getAttributes().add(attributeIndex);
+            node.getChildren().add(nodeEntry);
+        }
+        return node;
     }
 }

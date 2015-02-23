@@ -20,6 +20,7 @@
 package org.xowl.store.rdf;
 
 import org.xowl.utils.collections.*;
+import org.xowl.utils.data.Dataset;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -34,6 +35,18 @@ public class Edge implements Iterable<EdgeTarget> {
      * The initial size of the buffer of the targets
      */
     private static final int INIT_BUFFER_SIZE = 10;
+    /**
+     * The identifier key for the serialization of this element
+     */
+    private static final String SERIALIZATION_NAME = "Edge";
+    /**
+     * The identifier key for the serialization of a property element
+     */
+    private static final String SERIALIZATION_PROPERTY = "Property";
+    /**
+     * The identifier key for the serialization of the targets
+     */
+    private static final String SERIALIZATION_TARGETS = "Targets";
 
     /**
      * The label on this edge
@@ -60,6 +73,22 @@ public class Edge implements Iterable<EdgeTarget> {
         this.targets = new EdgeTarget[INIT_BUFFER_SIZE];
         this.targets[0] = new EdgeTarget(graph, object);
         this.size = 1;
+    }
+
+    /**
+     * Initializes this edge from a dataset
+     *
+     * @param store The parent RDF store
+     * @param data  The node of serialized data
+     */
+    public Edge(RDFStore store, org.xowl.utils.data.Node data) {
+        this.property = (Property) store.getNodeFor(data.child(SERIALIZATION_PROPERTY).getChildren().get(0));
+        org.xowl.utils.data.Node nodeTargets = data.child(SERIALIZATION_TARGETS);
+        this.size = nodeTargets.getChildren().size();
+        this.targets = new EdgeTarget[Math.max(INIT_BUFFER_SIZE, size)];
+        for (int i = 0; i != size; i++) {
+            targets[i] = new EdgeTarget(store, nodeTargets.getChildren().get(i));
+        }
     }
 
     /**
@@ -199,5 +228,26 @@ public class Edge implements Iterable<EdgeTarget> {
             if (targets[i] != null && targets[i].getTarget() == value)
                 return targets[i].count(graph);
         return 0;
+    }
+
+    /**
+     * Serializes this edge
+     *
+     * @param dataset The dataset to serialize to
+     * @return The serialized data
+     */
+    public org.xowl.utils.data.Node serialize(Dataset dataset) {
+        org.xowl.utils.data.Node result = new org.xowl.utils.data.Node(dataset, SERIALIZATION_NAME);
+        org.xowl.utils.data.Node nodeProperty = new org.xowl.utils.data.Node(dataset, SERIALIZATION_PROPERTY);
+        result.getChildren().add(nodeProperty);
+        nodeProperty.getChildren().add(property.serialize(dataset));
+        org.xowl.utils.data.Node nodeTargets = new org.xowl.utils.data.Node(dataset, SERIALIZATION_TARGETS);
+        result.getChildren().add(nodeTargets);
+        for (int i = 0; i != targets.length; i++) {
+            if (targets[i] == null)
+                continue;
+            nodeTargets.getChildren().add(targets[i].serialize(dataset));
+        }
+        return result;
     }
 }

@@ -23,6 +23,8 @@ package org.xowl.store.rdf;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.cache.StringStore;
 import org.xowl.utils.collections.*;
+import org.xowl.utils.data.Attribute;
+import org.xowl.utils.data.Dataset;
 
 import java.io.IOException;
 import java.util.*;
@@ -67,6 +69,39 @@ public class RDFStore implements ChangeListener {
      */
     protected static final int INIT_BLANK_SIZE = 1024;
 
+    /**
+     * The resource name for the string store data file
+     */
+    private static final String RESOURCE_STRINGS_DATA = ".strings.txt";
+    /**
+     * The resource name for the string store index file
+     */
+    private static final String RESOURCE_STRINGS_INDEX = ".strings.index";
+    /**
+     * The resource name for the RDF graph
+     */
+    private static final String RESOURCE_GRAPH = ".graph";
+    /**
+     * The identifier key for the serialization of the nodes
+     */
+    protected static final String SERIALIZATION_NODES = "Nodes";
+    /**
+     * The identifier key for the serialization of a collection of nodes or edges
+     */
+    protected static final String SERIALIZATION_COLLECTION = "Collection";
+    /**
+     * The identifier key for the serialization of the edges
+     */
+    protected static final String SERIALIZATION_EDGES = "Edges";
+    /**
+     * The identifier key for the serialization of the nextBlank attribute
+     */
+    protected static final String SERIALIZATION_NEXT_BLANK = "nextBlank";
+    /**
+     * The identifier key for the serialization of the id attribute
+     */
+    protected static final String SERIALIZATION_ID = "id";
+
 
     /**
      * The embedded string store
@@ -110,6 +145,20 @@ public class RDFStore implements ChangeListener {
         edgesIRI = new HashMap<>();
         edgesBlank = new EdgeBucket[INIT_BLANK_SIZE];
         nextBlank = 0;
+    }
+
+    /**
+     * Initializes this graph from a serialized data source
+     *
+     * @param path The common path for the store resources
+     * @throws java.io.IOException when the store cannot allocate a temporary file
+     */
+    public RDFStore(String path) throws IOException {
+        sStore = new StringStore(path + RESOURCE_STRINGS_DATA, path + RESOURCE_STRINGS_INDEX);
+        listeners = new ArrayList<>();
+        mapNodeIRIs = new HashMap<>();
+        mapNodeLiterals = new HashMap<>();
+        edgesIRI = new HashMap<>();
     }
 
     /**
@@ -670,5 +719,151 @@ public class RDFStore implements ChangeListener {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Saves this store to the specified resources
+     *
+     * @param path The common path for the store resources
+     * @throws IOException When an IO error occurs
+     */
+    public void save(String path) throws IOException {
+        sStore.save(path + RESOURCE_STRINGS_DATA, path + RESOURCE_STRINGS_INDEX);
+        Dataset dataset = new Dataset();
+        org.xowl.utils.data.Node treeNodes = new org.xowl.utils.data.Node(dataset, SERIALIZATION_NODES);
+        org.xowl.utils.data.Node treeEdges = new org.xowl.utils.data.Node(dataset, SERIALIZATION_EDGES);
+        dataset.getTrees().add(treeNodes);
+        dataset.getTrees().add(treeEdges);
+        serializeIRINodes(dataset, treeNodes);
+        serializeBlankNodes(dataset, treeNodes);
+        serializeLiteralNodes(dataset, treeNodes);
+        serializeIRIEdges(dataset, treeEdges);
+        serializeBlankEdges(dataset, treeEdges);
+        serializeOtherNodeCollections(dataset, treeNodes);
+        serializeOtherEdgeCollections(dataset, treeEdges);
+        dataset.write(path + RESOURCE_GRAPH);
+    }
+
+    /**
+     * Serializes the IRI nodes
+     *
+     * @param dataset   The parent dataset
+     * @param treeNodes The parent node to use
+     */
+    protected void serializeIRINodes(Dataset dataset, org.xowl.utils.data.Node treeNodes) {
+        org.xowl.utils.data.Node collection = new org.xowl.utils.data.Node(dataset, SERIALIZATION_COLLECTION);
+        Attribute attributeType = new Attribute(dataset, Node.SERIALIZATION_TYPE);
+        attributeType.setValue(IRINode.TYPE);
+        collection.getAttributes().add(attributeType);
+        for (IRINode iriNode : mapNodeIRIs.values()) {
+            collection.getChildren().add(iriNode.serialize(dataset));
+        }
+        treeNodes.getChildren().add(collection);
+    }
+
+    /**
+     * Serializes the IRI nodes
+     *
+     * @param dataset   The parent dataset
+     * @param treeNodes The parent node to use
+     */
+    protected void serializeBlankNodes(Dataset dataset, org.xowl.utils.data.Node treeNodes) {
+        org.xowl.utils.data.Node collection = new org.xowl.utils.data.Node(dataset, SERIALIZATION_COLLECTION);
+        Attribute attributeType = new Attribute(dataset, Node.SERIALIZATION_TYPE);
+        attributeType.setValue(BlankNode.TYPE);
+        collection.getAttributes().add(attributeType);
+        Attribute attributeNextBlank = new Attribute(dataset, SERIALIZATION_NEXT_BLANK);
+        attributeNextBlank.setValue(nextBlank);
+        collection.getAttributes().add(attributeNextBlank);
+        treeNodes.getChildren().add(collection);
+    }
+
+    /**
+     * Serializes the IRI nodes
+     *
+     * @param dataset   The parent dataset
+     * @param treeNodes The parent node to use
+     */
+    protected void serializeLiteralNodes(Dataset dataset, org.xowl.utils.data.Node treeNodes) {
+        org.xowl.utils.data.Node collection = new org.xowl.utils.data.Node(dataset, SERIALIZATION_COLLECTION);
+        Attribute attributeType = new Attribute(dataset, Node.SERIALIZATION_TYPE);
+        attributeType.setValue(LiteralNode.TYPE);
+        collection.getAttributes().add(attributeType);
+        for (LiteralBucket bucket : mapNodeLiterals.values()) {
+            collection.getChildren().add(bucket.serialize(dataset));
+        }
+        treeNodes.getChildren().add(collection);
+    }
+
+    /**
+     * Serializes the edges starting from IRI nodes
+     *
+     * @param dataset   The parent dataset
+     * @param treeEdges The parent node to use
+     */
+    protected void serializeIRIEdges(Dataset dataset, org.xowl.utils.data.Node treeEdges) {
+        org.xowl.utils.data.Node collection = new org.xowl.utils.data.Node(dataset, SERIALIZATION_COLLECTION);
+        Attribute attributeType = new Attribute(dataset, Node.SERIALIZATION_TYPE);
+        attributeType.setValue(IRINode.TYPE);
+        collection.getAttributes().add(attributeType);
+        for (Map.Entry<Integer, EdgeBucket> entry : edgesIRI.entrySet()) {
+            org.xowl.utils.data.Node nodeBucket = entry.getValue().serialize(dataset);
+            Attribute attributeID = new Attribute(dataset, SERIALIZATION_ID);
+            attributeID.setValue(entry.getKey());
+            nodeBucket.getAttributes().add(attributeID);
+        }
+        treeEdges.getChildren().add(collection);
+    }
+
+    /**
+     * Serializes the edges starting from blank nodes
+     *
+     * @param dataset   The parent dataset
+     * @param treeEdges The parent node to use
+     */
+    protected void serializeBlankEdges(Dataset dataset, org.xowl.utils.data.Node treeEdges) {
+        org.xowl.utils.data.Node collection = new org.xowl.utils.data.Node(dataset, SERIALIZATION_COLLECTION);
+        Attribute attributeType = new Attribute(dataset, Node.SERIALIZATION_TYPE);
+        attributeType.setValue(BlankNode.TYPE);
+        collection.getAttributes().add(attributeType);
+        for (int i = 0; i != nextBlank; i++) {
+            if (edgesBlank[i] == null)
+                continue;
+            org.xowl.utils.data.Node nodeBucket = edgesBlank[i].serialize(dataset);
+            Attribute attributeID = new Attribute(dataset, SERIALIZATION_ID);
+            attributeID.setValue(i);
+            nodeBucket.getAttributes().add(attributeID);
+        }
+        treeEdges.getChildren().add(collection);
+    }
+
+    /**
+     * Serializes the remaining node collections
+     *
+     * @param dataset   The parent dataset
+     * @param treeNodes The parent node to use
+     */
+    protected void serializeOtherNodeCollections(Dataset dataset, org.xowl.utils.data.Node treeNodes) {
+        // do nothing here
+    }
+
+    /**
+     * Serializes the remaining edge collections
+     *
+     * @param dataset   The parent dataset
+     * @param treeEdges The parent node to use
+     */
+    protected void serializeOtherEdgeCollections(Dataset dataset, org.xowl.utils.data.Node treeEdges) {
+        // do nothing here
+    }
+
+    /**
+     * Gets the RDF node for the specified serialized data node
+     *
+     * @param data A serialized data node
+     * @return the corresponding RDF node
+     */
+    protected Node getNodeFor(org.xowl.utils.data.Node data) {
+        return null;
     }
 }
