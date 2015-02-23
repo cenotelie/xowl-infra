@@ -811,6 +811,7 @@ public class RDFStore implements ChangeListener {
             Attribute attributeID = new Attribute(dataset, SERIALIZATION_ID);
             attributeID.setValue(entry.getKey());
             nodeBucket.getAttributes().add(attributeID);
+            collection.getChildren().add(nodeBucket);
         }
         treeEdges.getChildren().add(collection);
     }
@@ -833,6 +834,7 @@ public class RDFStore implements ChangeListener {
             Attribute attributeID = new Attribute(dataset, SERIALIZATION_ID);
             attributeID.setValue(i);
             nodeBucket.getAttributes().add(attributeID);
+            collection.getChildren().add(nodeBucket);
         }
         treeEdges.getChildren().add(collection);
     }

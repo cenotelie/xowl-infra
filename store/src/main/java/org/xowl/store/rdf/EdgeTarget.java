@@ -257,6 +257,7 @@ public class EdgeTarget implements Iterable<GraphNode> {
             attributeType.setValue(multiplicities[i]);
             nodeGraph.getAttributes().add(attributeType);
             nodeGraph.getChildren().add(graphs[i].serialize(dataset));
+            nodeGraphs.getChildren().add(nodeGraph);
         }
         return result;
     }
