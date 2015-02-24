@@ -1422,12 +1422,12 @@ public class Translator {
     protected SubjectNode translateDatarange(Datarange expression) throws TranslationException {
         if (XOWLUtils.isDynamicExpression(expression)) {
             if (evaluator != null)
-                return translateDatatype(evaluator.evalDataProperty(expression));
+                return translateDatatype(evaluator.evalDatatype(expression));
             return getDynamicNode(expression, Datatype.class);
         }
         if (XOWLUtils.isQueryVar(expression)) {
             if (evaluator != null && evaluator.can(expression))
-                return translateDatatype(evaluator.evalDataProperty(expression));
+                return translateDatatype(evaluator.evalDatatype(expression));
             else
                 return context.getVariableNode((QueryVariable) expression, org.xowl.lang.runtime.Datatype.class);
         }

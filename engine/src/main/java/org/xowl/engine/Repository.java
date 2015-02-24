@@ -23,15 +23,15 @@ import org.xowl.engine.backend.TranslationException;
 import org.xowl.engine.backend.Translator;
 import org.xowl.engine.backend.XOWLStore;
 import org.xowl.engine.loaders.LoaderResult;
-import org.xowl.engine.owl.Entity;
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.rdf.GraphNode;
-import org.xowl.store.rdf.IRINode;
 import org.xowl.store.rdf.UnsupportedNodeType;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents a repository of xOWL ontologies
@@ -65,20 +65,6 @@ public class Repository {
      */
     public Collection<Ontology> getOntologies() {
         return ontologies.keySet();
-    }
-
-    /**
-     * Gets all the entities in the specified ontology
-     *
-     * @param ontology An ontology
-     * @return The contained entities
-     */
-    public Collection<Entity> getEntities(Ontology ontology) {
-        Collection<IRINode> nodes = backend.getNodesWithin(ontology.getHasIRI().getHasValue() + "#");
-        List<Entity> result = new ArrayList<>(nodes.size());
-        for (IRINode node : nodes)
-            result.add(new Entity(this, node));
-        return result;
     }
 
     /**

@@ -78,7 +78,7 @@ public interface Evaluator {
      * @param expression A datarange
      * @return The evaluated runtime datatype
      */
-    Datatype evalDataProperty(Datarange expression);
+    Datatype evalDatatype(Datarange expression);
 
     /**
      * Evaluates the specified individual expression
