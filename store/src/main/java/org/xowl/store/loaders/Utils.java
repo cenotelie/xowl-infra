@@ -21,6 +21,7 @@
 package org.xowl.store.loaders;
 
 import java.net.URI;
+import java.util.UUID;
 
 /**
  * Utilities for the loaders
@@ -39,8 +40,7 @@ public class Utils {
      * @return The URI of a new anonymous RDF graph
      */
     public static String createAnonymousGraph() {
-        java.util.Random rand = new java.util.Random();
-        return DEFAULT_GRAPH_URIS + Integer.toHexString(rand.nextInt());
+        return DEFAULT_GRAPH_URIS + UUID.randomUUID().toString();
     }
 
     /**
