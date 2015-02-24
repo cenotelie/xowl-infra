@@ -87,7 +87,7 @@ public class NTriplesLoader implements Loader {
     public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
         List<Quad> quads = new ArrayList<>();
-        GraphNode graph = store.getNodeIRI(Utils.createAnonymousGraph());
+        GraphNode graph = store.getNodeIRI(uri);
 
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)

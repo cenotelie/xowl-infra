@@ -92,7 +92,7 @@ public class NQuadsLoader implements Loader {
         blanks = new HashMap<>();
         graphs = new HashMap<>();
         List<Quad> quads = new ArrayList<>();
-        GraphNode current = store.getNodeIRI(Utils.createAnonymousGraph());
+        GraphNode current = store.getNodeIRI(uri);
 
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
@@ -215,7 +215,7 @@ public class NQuadsLoader implements Loader {
             key = key.substring(2);
             GraphNode graph = graphs.get(key);
             if (graph == null) {
-                graph = store.getNodeIRI(Utils.createAnonymousGraph());
+                graph = store.getBlankNode();
                 graphs.put(key, graph);
             }
             return graph;

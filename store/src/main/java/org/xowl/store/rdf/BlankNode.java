@@ -28,7 +28,7 @@ import org.xowl.utils.data.Dataset;
  *
  * @author Laurent Wouters
  */
-public class BlankNode implements SubjectNode {
+public class BlankNode implements SubjectNode, GraphNode {
     /**
      * The identifier key for the serialization of the id attribute
      */

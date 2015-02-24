@@ -117,7 +117,7 @@ public class TurtleLoader implements Loader {
     @Override
     public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
         quads = new ArrayList<>();
-        graph = store.getNodeIRI(Utils.createAnonymousGraph());
+        graph = store.getNodeIRI(uri);
         resource = uri;
         baseURI = null;
         namespaces = new HashMap<>();

@@ -154,7 +154,7 @@ public class RDFXMLLoader implements Loader {
     @Override
     public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
         quads = new ArrayList<>();
-        graph = store.getNodeIRI(Utils.createAnonymousGraph());
+        graph = store.getNodeIRI(uri);
         blanks = new HashMap<>();
         knownIDs = new ArrayList<>();
 
