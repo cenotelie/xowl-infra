@@ -33,7 +33,7 @@ class LiteralNodeImpl extends LiteralNode {
     /**
      * The identifier key for the serialization of the lexical attribute
      */
-    private static final String SERIALIZATION_LEXICAL = "lexical";
+    public static final String SERIALIZATION_LEXICAL = "lexical";
     /**
      * The identifier key for the serialization of the datatype attribute
      */
@@ -86,6 +86,15 @@ class LiteralNodeImpl extends LiteralNode {
         this.lexical = (int) data.attribute(SERIALIZATION_LEXICAL).getValue();
         this.datatype = (int) data.attribute(SERIALIZATION_DATATYPE).getValue();
         this.tag = (int) data.attribute(SERIALIZATION_TAG).getValue();
+    }
+
+    /**
+     * Gets the key to the lexical value
+     *
+     * @return Key to the lexical value
+     */
+    protected int getLexicalKey() {
+        return lexical;
     }
 
     @Override

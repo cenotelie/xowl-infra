@@ -201,7 +201,7 @@ public abstract class W3CTestSuite {
      * @param expected The expected set of triples
      * @param tested   The tested set of triples
      */
-    protected void matches(List<Quad> expected, List<Quad> tested) {
+    public static void matches(List<Quad> expected, List<Quad> tested) {
         Map<BlankNode, BlankNode> blanks = new HashMap<>();
         for (int i = 0; i != expected.size(); i++) {
             Quad quad = expected.get(i);
@@ -265,7 +265,7 @@ public abstract class W3CTestSuite {
      * @param blanks  A map of blank nodes
      * @return <code>true</code> if the two triples are equivalent
      */
-    protected boolean sameTriple(Quad quad1, Quad quad2, Map<BlankNode, BlankNode> blanks) {
+    public static boolean sameTriple(Quad quad1, Quad quad2, Map<BlankNode, BlankNode> blanks) {
         SubjectNode subject = quad1.getSubject();
         Property property = quad1.getProperty();
         Node object = quad1.getObject();

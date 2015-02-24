@@ -24,6 +24,7 @@ import org.xowl.store.Vocabulary;
 import org.xowl.store.cache.StringStore;
 import org.xowl.utils.collections.*;
 import org.xowl.utils.data.Attribute;
+import org.xowl.utils.data.AttributeTypeException;
 import org.xowl.utils.data.Dataset;
 
 import java.io.IOException;
@@ -154,11 +155,12 @@ public class RDFStore implements ChangeListener {
      * @throws java.io.IOException when the store cannot allocate a temporary file
      */
     public RDFStore(String path) throws IOException {
-        sStore = new StringStore(path + RESOURCE_STRINGS_DATA, path + RESOURCE_STRINGS_INDEX);
         listeners = new ArrayList<>();
         mapNodeIRIs = new HashMap<>();
         mapNodeLiterals = new HashMap<>();
         edgesIRI = new HashMap<>();
+        edgesBlank = new EdgeBucket[INIT_BLANK_SIZE];
+        load(path);
     }
 
     /**
@@ -739,8 +741,8 @@ public class RDFStore implements ChangeListener {
         serializeLiteralNodes(dataset, treeNodes);
         serializeIRIEdges(dataset, treeEdges);
         serializeBlankEdges(dataset, treeEdges);
-        serializeOtherNodeCollections(dataset, treeNodes);
-        serializeOtherEdgeCollections(dataset, treeEdges);
+        serializeOtherNodes(dataset, treeNodes);
+        serializeOtherEdges(dataset, treeEdges);
         dataset.write(path + RESOURCE_GRAPH);
     }
 
@@ -762,7 +764,7 @@ public class RDFStore implements ChangeListener {
     }
 
     /**
-     * Serializes the IRI nodes
+     * Serializes the blank nodes
      *
      * @param dataset   The parent dataset
      * @param treeNodes The parent node to use
@@ -779,7 +781,7 @@ public class RDFStore implements ChangeListener {
     }
 
     /**
-     * Serializes the IRI nodes
+     * Serializes the literal nodes
      *
      * @param dataset   The parent dataset
      * @param treeNodes The parent node to use
@@ -845,7 +847,7 @@ public class RDFStore implements ChangeListener {
      * @param dataset   The parent dataset
      * @param treeNodes The parent node to use
      */
-    protected void serializeOtherNodeCollections(Dataset dataset, org.xowl.utils.data.Node treeNodes) {
+    protected void serializeOtherNodes(Dataset dataset, org.xowl.utils.data.Node treeNodes) {
         // do nothing here
     }
 
@@ -855,7 +857,148 @@ public class RDFStore implements ChangeListener {
      * @param dataset   The parent dataset
      * @param treeEdges The parent node to use
      */
-    protected void serializeOtherEdgeCollections(Dataset dataset, org.xowl.utils.data.Node treeEdges) {
+    protected void serializeOtherEdges(Dataset dataset, org.xowl.utils.data.Node treeEdges) {
+        // do nothing here
+    }
+
+    /**
+     * Loads this store from the specified resources
+     *
+     * @param path The common path for the store resources
+     * @throws IOException When an IO error occurs
+     */
+    protected void load(String path) throws IOException {
+        sStore = new StringStore(path + RESOURCE_STRINGS_DATA, path + RESOURCE_STRINGS_INDEX);
+        try {
+            Dataset dataset = Dataset.load(path + RESOURCE_GRAPH);
+            for (org.xowl.utils.data.Node collection : dataset.tree(SERIALIZATION_NODES).getChildren())
+                deserializeNodes(collection);
+            for (org.xowl.utils.data.Node collection : dataset.tree(SERIALIZATION_EDGES).getChildren())
+                deserializeEdges(collection);
+        } catch (AttributeTypeException ex) {
+            // cannot happen
+        }
+    }
+
+    /**
+     * Deserializes the specified collection of nodes
+     *
+     * @param collection The collection to deserialize
+     */
+    protected void deserializeNodes(org.xowl.utils.data.Node collection) {
+        int type = (int) collection.attribute(Node.SERIALIZATION_TYPE).getValue();
+        switch (type) {
+            case IRINode.TYPE:
+                deserializeIRINodes(collection);
+                break;
+            case BlankNode.TYPE:
+                deserializeBlankNodes(collection);
+                break;
+            case LiteralNode.TYPE:
+                deserializeLiteralNodes(collection);
+                break;
+            default:
+                deserializeOtherNodes(collection);
+                break;
+        }
+    }
+
+    /**
+     * Deserializes the IRI nodes
+     *
+     * @param collection The collection to deserialize
+     */
+    protected void deserializeIRINodes(org.xowl.utils.data.Node collection) {
+        for (org.xowl.utils.data.Node node : collection.getChildren()) {
+            IRINodeImpl iriNode = new IRINodeImpl(sStore, node);
+            mapNodeIRIs.put(iriNode.getKey(), iriNode);
+        }
+    }
+
+    /**
+     * Deserializes the blank nodes
+     *
+     * @param collection The collection to deserialize
+     */
+    protected void deserializeBlankNodes(org.xowl.utils.data.Node collection) {
+        nextBlank = (int) collection.attribute(SERIALIZATION_NEXT_BLANK).getValue();
+    }
+
+    /**
+     * Deserializes the literal nodes
+     *
+     * @param collection The collection to deserialize
+     */
+    protected void deserializeLiteralNodes(org.xowl.utils.data.Node collection) {
+        for (org.xowl.utils.data.Node node : collection.getChildren()) {
+            LiteralBucket bucket = new LiteralBucket(sStore, node);
+            mapNodeLiterals.put(bucket.getLexicalKey(), bucket);
+        }
+    }
+
+    /**
+     * Deserializes the specified collection of nodes
+     *
+     * @param collection The collection to deserialize
+     */
+    protected void deserializeOtherNodes(org.xowl.utils.data.Node collection) {
+        // do nothing here
+    }
+
+    /**
+     * Deserializes the specified collection of edges
+     *
+     * @param collection The collection to deserialize
+     */
+    protected void deserializeEdges(org.xowl.utils.data.Node collection) {
+        int type = (int) collection.attribute(Node.SERIALIZATION_TYPE).getValue();
+        switch (type) {
+            case IRINode.TYPE:
+                deserializeIRIEdges(collection);
+                break;
+            case BlankNode.TYPE:
+                deserializeBlankEdges(collection);
+                break;
+            default:
+                deserializeOtherEdges(collection);
+                break;
+        }
+    }
+
+    /**
+     * Deserializes the IRI edges
+     *
+     * @param collection The collection to deserialize
+     */
+    protected void deserializeIRIEdges(org.xowl.utils.data.Node collection) {
+        for (org.xowl.utils.data.Node node : collection.getChildren()) {
+            int id = (int) node.attribute(SERIALIZATION_ID).getValue();
+            EdgeBucket bucket = new EdgeBucket(this, node);
+            edgesIRI.put(id, bucket);
+        }
+    }
+
+    /**
+     * Deserializes the blank edges
+     *
+     * @param collection The collection to deserialize
+     */
+    protected void deserializeBlankEdges(org.xowl.utils.data.Node collection) {
+        for (org.xowl.utils.data.Node node : collection.getChildren()) {
+            int id = (int) node.attribute(SERIALIZATION_ID).getValue();
+            EdgeBucket bucket = new EdgeBucket(this, node);
+            while (id > edgesBlank.length)
+                edgesBlank = Arrays.copyOf(edgesBlank, edgesBlank.length + INIT_BLANK_SIZE);
+            edgesBlank[id] = bucket;
+        }
+    }
+
+    /**
+     * Deserializes the specified collection of edges
+     *
+     * @param collection The collection to deserialize
+     */
+    protected void deserializeOtherEdges(org.xowl.utils.data.Node collection) {
         // do nothing here
     }
 
@@ -866,6 +1009,30 @@ public class RDFStore implements ChangeListener {
      * @return the corresponding RDF node
      */
     protected Node getNodeFor(org.xowl.utils.data.Node data) {
+        int type = (int) data.attribute(Node.SERIALIZATION_TYPE).getValue();
+        switch (type) {
+            case IRINode.TYPE:
+                return mapNodeIRIs.get(data.attribute(IRINodeImpl.SERIALIZATION_KEY).getValue());
+            case BlankNode.TYPE:
+                return new BlankNode(data);
+            case LiteralNode.TYPE:
+                int lexical = (int) data.attribute(LiteralNodeImpl.SERIALIZATION_LEXICAL).getValue();
+                int datatype = (int) data.attribute(LiteralNodeImpl.SERIALIZATION_DATATYPE).getValue();
+                int tag = (int) data.attribute(LiteralNodeImpl.SERIALIZATION_TAG).getValue();
+                return mapNodeLiterals.get(lexical).get(datatype, tag);
+            default:
+                return getOherNodeFor(data);
+        }
+    }
+
+    /**
+     * Gets the RDF node for the specified serialized data node
+     *
+     * @param data A serialized data node
+     * @return the corresponding RDF node
+     */
+    protected Node getOherNodeFor(org.xowl.utils.data.Node data) {
+        // do nothing here
         return null;
     }
 }

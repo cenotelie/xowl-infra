@@ -33,7 +33,7 @@ class IRINodeImpl extends IRINode {
     /**
      * The identifier key for the serialization of the key attribute
      */
-    private static final String SERIALIZATION_KEY = "key";
+    public static final String SERIALIZATION_KEY = "key";
 
     /**
      * The string store storing the IRI value
@@ -71,7 +71,7 @@ class IRINodeImpl extends IRINode {
      *
      * @return The key to the IRI
      */
-    int getKey() {
+    protected int getKey() {
         return key;
     }
 

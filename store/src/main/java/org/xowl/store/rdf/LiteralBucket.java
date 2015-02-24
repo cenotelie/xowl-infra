@@ -87,6 +87,16 @@ public class LiteralBucket {
     }
 
     /**
+     * Gets the key to the lexical value
+     *
+     * @return Key to the lexical value
+     */
+    protected int getLexicalKey() {
+        // assumes there is at least one node in this bucket
+        return ((LiteralNodeImpl) nodes[0]).getLexicalKey();
+    }
+
+    /**
      * Gets the literal with the specified type and language tag already exists in this bucket
      *
      * @param type The key to the type

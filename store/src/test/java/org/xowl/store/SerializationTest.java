@@ -29,6 +29,7 @@ import org.xowl.store.rdf.UnsupportedNodeType;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -38,12 +39,12 @@ import java.util.List;
  */
 public class SerializationTest {
     /**
-     * Tests that the specified resource is correctly serialized
+     * Loads the specified resource into a new store
      *
      * @param physicalResource The physical path to the resource
      * @param uri              The resource's URI
      */
-    protected void testSerialization(String physicalResource, String uri) {
+    protected RDFStore load(String physicalResource, String uri) {
         RDFStore store = null;
         try {
             store = new RDFStore();
@@ -86,16 +87,54 @@ public class SerializationTest {
         } catch (UnsupportedNodeType ex) {
             Assert.fail("Unable to load the resource " + physicalResource);
         }
-        try {
-            store.save("target/test-classes/serialization");
-        } catch (IOException e) {
-            Assert.fail("Failed to serialize the resource " + physicalResource);
-        }
+        return store;
     }
 
+    /**
+     * Loads a RDF store from the specified resources
+     *
+     * @param resources The physical path to the resources
+     */
+    protected RDFStore load(String resources) {
+        RDFStore store = null;
+        try {
+            store = new RDFStore(resources);
+        } catch (IOException ex) {
+            // do not handle
+        }
+        return store;
+    }
 
+    /**
+     * Gets all quads in the store
+     *
+     * @param store A store
+     * @return The contained quads
+     */
+    protected List<Quad> getAll(RDFStore store) {
+        List<Quad> result = new ArrayList<>();
+        Iterator<Quad> iterator = store.getAll();
+        while (iterator.hasNext()) {
+            result.add(iterator.next());
+        }
+        return result;
+    }
+
+    /**
+     * Tests the round trip serialization and deserialization of a RDF graph
+     */
     @Test
-    public void test_nq_syntax_uri_01() {
-        testSerialization("/org/xowl/store/rdf/testOntology.rdf", "http://www.w3.org/2007/OWL/testOntology");
+    public void roundTripTest() {
+        RDFStore store1 = load("/org/xowl/store/rdf/testOntology.rdf", "http://www.w3.org/2007/OWL/testOntology");
+        List<Quad> originals = getAll(store1);
+        try {
+            store1.save("target/test-classes/serialization");
+        } catch (IOException e) {
+            Assert.fail("Failed to serialize the resource");
+        }
+
+        RDFStore store2 = load("target/test-classes/serialization");
+        List<Quad> reloaded = getAll(store2);
+        W3CTestSuite.matches(originals, reloaded);
     }
 }
