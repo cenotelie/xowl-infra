@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Loader of ontologies serialized in the Functional syntax
@@ -1283,7 +1284,7 @@ public class FunctionalOWL2Loader implements Loader {
         if (result != null)
             return result;
         result = new AnonymousIndividual();
-        result.setNodeID(name);
+        result.setNodeID(UUID.randomUUID().toString());
         blanks.put(name, result);
         return result;
     }

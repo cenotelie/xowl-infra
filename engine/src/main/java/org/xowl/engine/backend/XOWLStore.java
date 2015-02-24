@@ -23,6 +23,8 @@ package org.xowl.engine.backend;
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.*;
+import org.xowl.utils.data.Attribute;
+import org.xowl.utils.data.Dataset;
 
 import java.io.IOException;
 import java.util.*;
@@ -36,12 +38,12 @@ public class XOWLStore extends RDFStore {
     /**
      * The store of existing anonymous nodes
      */
-    protected Map<AnonymousIndividual, AnonymousNode> mapNodeAnons;
+    protected Map<String, AnonymousNode> mapNodeAnons;
 
     /**
      * The store for edges starting from anonymous nodes
      */
-    protected Map<AnonymousIndividual, EdgeBucket> edgesAnon;
+    protected Map<String, EdgeBucket> edgesAnon;
 
     /**
      * Initializes this store
@@ -61,11 +63,11 @@ public class XOWLStore extends RDFStore {
      * @return The associated RDF node
      */
     public AnonymousNode getAnonymousNode(AnonymousIndividual anon) {
-        AnonymousNode node = mapNodeAnons.get(anon);
+        AnonymousNode node = mapNodeAnons.get(anon.getNodeID());
         if (node != null)
             return node;
         node = new AnonymousNode(anon);
-        mapNodeAnons.put(anon, node);
+        mapNodeAnons.put(anon.getNodeID(), node);
         return node;
     }
 
@@ -117,7 +119,7 @@ public class XOWLStore extends RDFStore {
      * @return The operation result
      */
     protected int doAddEdgeFromAnonymous(GraphNode graph, AnonymousNode subject, Property property, Node value) {
-        AnonymousIndividual key = subject.getAnonymous();
+        String key = subject.getAnonymous().getNodeID();
         EdgeBucket bucket = edgesAnon.get(key);
         if (bucket == null) {
             bucket = new EdgeBucket();
@@ -160,7 +162,7 @@ public class XOWLStore extends RDFStore {
      * @return The operation result
      */
     protected int doRemoveEdgeFromAnon(GraphNode graph, AnonymousNode subject, Property property, Node value) {
-        AnonymousIndividual key = subject.getAnonymous();
+        String key = subject.getAnonymous().getNodeID();
         EdgeBucket bucket = edgesAnon.get(key);
         if (bucket == null)
             return REMOVE_RESULT_NOT_FOUND;
@@ -220,7 +222,57 @@ public class XOWLStore extends RDFStore {
     @Override
     protected EdgeBucket getBucketFor(Node node) {
         if (node != null && node.getNodeType() == AnonymousNode.TYPE)
-            return edgesAnon.get(((AnonymousNode) node).getAnonymous());
+            return edgesAnon.get(((AnonymousNode) node).getAnonymous().getNodeID());
         return super.getBucketFor(node);
+    }
+
+    @Override
+    protected void serializeOtherNodes(Dataset dataset, org.xowl.utils.data.Node treeNodes) {
+        org.xowl.utils.data.Node collection = new org.xowl.utils.data.Node(dataset, SERIALIZATION_COLLECTION);
+        Attribute attributeType = new Attribute(dataset, Node.SERIALIZATION_TYPE);
+        attributeType.setValue(AnonymousNode.TYPE);
+        collection.getAttributes().add(attributeType);
+        for (AnonymousNode anon : mapNodeAnons.values()) {
+            collection.getChildren().add(anon.serialize(dataset));
+        }
+        treeNodes.getChildren().add(collection);
+    }
+
+    @Override
+    protected void serializeOtherEdges(Dataset dataset, org.xowl.utils.data.Node treeEdges) {
+        org.xowl.utils.data.Node collection = new org.xowl.utils.data.Node(dataset, SERIALIZATION_COLLECTION);
+        Attribute attributeType = new Attribute(dataset, Node.SERIALIZATION_TYPE);
+        attributeType.setValue(AnonymousNode.TYPE);
+        collection.getAttributes().add(attributeType);
+        for (Map.Entry<String, AnonymousNode> entry : mapNodeAnons.entrySet()) {
+            org.xowl.utils.data.Node nodeBucket = entry.getValue().serialize(dataset);
+            Attribute attributeID = new Attribute(dataset, SERIALIZATION_ID);
+            attributeID.setValue(entry.getKey());
+            nodeBucket.getAttributes().add(attributeID);
+            collection.getChildren().add(nodeBucket);
+        }
+        treeEdges.getChildren().add(collection);
+    }
+
+    @Override
+    protected void deserializeOtherNodes(org.xowl.utils.data.Node collection) {
+        for (org.xowl.utils.data.Node node : collection.getChildren()) {
+            AnonymousNode anon = new AnonymousNode(node);
+            mapNodeAnons.put(anon.getAnonymous().getNodeID(), anon);
+        }
+    }
+
+    @Override
+    protected void deserializeOtherEdges(org.xowl.utils.data.Node collection) {
+        for (org.xowl.utils.data.Node node : collection.getChildren()) {
+            String id = (String) node.attribute(SERIALIZATION_ID).getValue();
+            EdgeBucket bucket = new EdgeBucket(this, node);
+            edgesAnon.put(id, bucket);
+        }
+    }
+
+    @Override
+    protected Node getOherNodeFor(org.xowl.utils.data.Node data) {
+        return mapNodeAnons.get(data.attribute(AnonymousNode.SERIALIZATION_ID).getValue());
     }
 }
