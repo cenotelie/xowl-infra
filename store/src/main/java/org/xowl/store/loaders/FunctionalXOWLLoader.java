@@ -17,7 +17,7 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.engine.loaders;
+package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.Context;

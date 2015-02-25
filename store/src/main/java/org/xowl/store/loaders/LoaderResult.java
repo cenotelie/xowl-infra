@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.engine.loaders;
+package org.xowl.store.loaders;
 
 import org.xowl.lang.owl2.Annotation;
 import org.xowl.lang.owl2.Axiom;

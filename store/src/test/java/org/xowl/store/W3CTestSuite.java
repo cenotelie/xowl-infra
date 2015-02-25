@@ -70,7 +70,7 @@ public abstract class W3CTestSuite {
             Assert.fail("Failed to recognize resource " + expectedResource);
         List<Quad> expected = loader.loadQuads(logger, reader, expectedURI);
         Assert.assertFalse("Failed to parse resource " + expectedResource, logger.isOnError());
-        Assert.assertNotNull("Failed to load resource " + expectedResource, expected);
+        Assert.assertNotNull("Failed to loadAxioms resource " + expectedResource, expected);
         try {
             reader.close();
         } catch (IOException ex) {

@@ -17,11 +17,11 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.engine.owl;
+package org.xowl.store.owl;
 
-import org.xowl.engine.loaders.LoaderResult;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.Entity;
+import org.xowl.store.loaders.LoaderResult;
 
 import java.util.*;
 

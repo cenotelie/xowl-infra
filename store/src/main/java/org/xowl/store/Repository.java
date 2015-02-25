@@ -17,12 +17,12 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.engine;
+package org.xowl.store;
 
-import org.xowl.engine.backend.TranslationException;
-import org.xowl.engine.backend.Translator;
-import org.xowl.engine.backend.XOWLStore;
-import org.xowl.engine.loaders.LoaderResult;
+import org.xowl.store.owl.TranslationException;
+import org.xowl.store.owl.Translator;
+import org.xowl.store.owl.XOWLStore;
+import org.xowl.store.loaders.LoaderResult;
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.rdf.GraphNode;
@@ -71,7 +71,7 @@ public class Repository {
      * Loads the axioms provided by the specified loader result
      *
      * @param input A loader result
-     * @throws org.xowl.engine.backend.TranslationException When a runtime entity is not named
+     * @throws org.xowl.store.owl.TranslationException When a runtime entity is not named
      * @throws org.xowl.store.rdf.UnsupportedNodeType       When the subject node type is unsupported
      */
     public void add(LoaderResult input) throws TranslationException, UnsupportedNodeType {

@@ -85,7 +85,7 @@ public class SerializationTest {
         try {
             store.insert(new Changeset(result, new ArrayList<Quad>()));
         } catch (UnsupportedNodeType ex) {
-            Assert.fail("Unable to load the resource " + physicalResource);
+            Assert.fail("Unable to loadAxioms the resource " + physicalResource);
         }
         return store;
     }

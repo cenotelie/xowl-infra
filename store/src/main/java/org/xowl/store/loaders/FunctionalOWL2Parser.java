@@ -3,7 +3,7 @@
  * Hime Parser Generator 1.3.2.0
  */
 
-package org.xowl.engine.loaders;
+package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.Symbol;
 import org.xowl.hime.redist.parsers.LRkAutomaton;

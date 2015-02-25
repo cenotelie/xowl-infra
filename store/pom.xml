@@ -9,8 +9,8 @@
 	<artifactId>store</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0.0</version>
-	<name>xOWL RDF Store</name>
-	<description>Provides storage and querying facilities for RDF graphs</description>
+	<name>xOWL Store</name>
+	<description>Provides storage and querying facilities for xOWL ontologies and RDF graphs</description>
 	<dependencies>
 		<dependency>
 			<groupId>xerces</groupId>
@@ -27,6 +27,12 @@
 		<dependency>
 			<groupId>org.xowl.infra</groupId>
 			<artifactId>commons</artifactId>
+			<version>1.0.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.xowl.infra</groupId>
+			<artifactId>lang</artifactId>
 			<version>1.0.0</version>
 			<scope>compile</scope>
 		</dependency>

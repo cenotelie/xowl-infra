@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.engine;
+package org.xowl.store.owl;
 
 import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.*;

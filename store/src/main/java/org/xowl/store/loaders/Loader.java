@@ -51,4 +51,14 @@ public interface Loader {
      * @return The loaded quads, or <code>null</code> if an error occured
      */
     public List<Quad> loadQuads(Logger logger, Reader reader, String uri);
+
+    /**
+     * Loads axioms from the specified input
+     *
+     * @param logger The logger to use
+     * @param reader The resource's reader
+     * @param uri    The resource's URI
+     * @return The loaded data
+     */
+    public LoaderResult loadAxioms(Logger logger, Reader reader, String uri);
 }

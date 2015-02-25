@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2014 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -17,63 +17,55 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.engine.loaders;
+
+package org.xowl.store.owl;
 
 import org.xowl.lang.actions.QueryVariable;
+import org.xowl.store.rdf.VariableNode;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Represents a lexical context for a loader
+ * Represents the context of a translation
  *
  * @author Laurent Wouters
  */
-class LexicalContext {
+public class TranslationContext {
     /**
-     * The parent context
+     * Map associating input query variables to RDF variable nodes
      */
-    private LexicalContext parent;
-    /**
-     * The query variables
-     */
-    private Map<String, QueryVariable> queryVariables;
-
-    /**
-     * Initializes this context
-     *
-     * @param parent The parent context
-     */
-    public LexicalContext(LexicalContext parent) {
-        this.parent = parent;
-        this.queryVariables = new HashMap<>();
-    }
+    private Map<QueryVariable, VariableNode> mapVariables;
 
     /**
      * Initializes this context
      */
-    public LexicalContext() {
-        this(null);
+    public TranslationContext() {
+        this.mapVariables = new HashMap<>();
     }
 
     /**
-     * Resolves a query variable with the specified name
+     * Determines whether this context is empty
      *
-     * @param name The name of a variable
-     * @return The variable
+     * @return <code>true</code> if this context is empty
      */
-    public QueryVariable resolveQVar(String name) {
-        LexicalContext current = this;
-        while (current != null) {
-            QueryVariable var = current.queryVariables.get(name);
-            if (var != null)
-                return var;
-            current = current.parent;
+    public boolean isEmpty() {
+        return (mapVariables.isEmpty());
+    }
+
+    /**
+     * Gets the RDF variable node associated to the specified query variable with the specified type
+     *
+     * @param variable A query variable
+     * @param type     The expected type of the variable
+     * @return The associated RDF variable node
+     */
+    public VariableNode getVariableNode(QueryVariable variable, Class type) {
+        VariableNode node = mapVariables.get(variable);
+        if (node == null) {
+            node = new VariableNode(variable.getName());
+            mapVariables.put(variable, node);
         }
-        // not found in the parents
-        QueryVariable variable = new QueryVariable();
-        variable.setName(name);
-        queryVariables.put(name, variable);
-        return variable;
+        return node;
     }
 }

@@ -17,14 +17,14 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.engine;
+package org.xowl.store;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xowl.engine.loaders.FunctionalOWL2Loader;
-import org.xowl.engine.loaders.Loader;
-import org.xowl.engine.loaders.LoaderResult;
-import org.xowl.engine.backend.TranslationException;
+import org.xowl.store.loaders.FunctionalOWL2Loader;
+import org.xowl.store.loaders.Loader;
+import org.xowl.store.loaders.LoaderResult;
+import org.xowl.store.owl.TranslationException;
 import org.xowl.store.rdf.UnsupportedNodeType;
 
 import java.io.*;
@@ -53,7 +53,7 @@ public class FunctionalLoaderTest {
             Assert.fail(ex.toString());
         }
 
-        LoaderResult result = loader.load(logger, reader, uri);
+        LoaderResult result = loader.loadAxioms(logger, reader, uri);
         Assert.assertFalse("Failed to parse resource " + physicalResource, logger.isOnError());
         Assert.assertNotNull("Failed to loadQuads resource " + physicalResource, result);
 

@@ -18,12 +18,8 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.engine.backend;
+package org.xowl.store.owl;
 
-import org.xowl.engine.Evaluator;
-import org.xowl.engine.Vocabulary;
-import org.xowl.engine.XOWLUtils;
-import org.xowl.engine.loaders.LoaderResult;
 import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.owl2.DataAllValuesFrom;
@@ -45,6 +41,9 @@ import org.xowl.lang.owl2.ObjectPropertyAssertion;
 import org.xowl.lang.owl2.ObjectSomeValuesFrom;
 import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
+import org.xowl.store.Vocabulary;
+import org.xowl.store.XOWLUtils;
+import org.xowl.store.loaders.LoaderResult;
 import org.xowl.store.rdf.*;
 import org.xowl.store.rdf.Property;
 

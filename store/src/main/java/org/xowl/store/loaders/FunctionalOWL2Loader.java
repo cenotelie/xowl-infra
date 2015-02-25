@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.engine.loaders;
+package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.Context;
@@ -26,13 +26,14 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.*;
 import org.xowl.store.Vocabulary;
-import org.xowl.store.loaders.Utils;
+import org.xowl.store.rdf.Quad;
 import org.xowl.utils.Files;
 import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -86,7 +87,12 @@ public class FunctionalOWL2Loader implements Loader {
     }
 
     @Override
-    public LoaderResult load(Logger logger, Reader reader, String uri) {
+    public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LoaderResult loadAxioms(Logger logger, Reader reader, String uri) {
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
             return null;
@@ -122,15 +128,15 @@ public class FunctionalOWL2Loader implements Loader {
                 version = loadIRI(nodeIRIs.getChildren().get(1));
         }
         this.cache = new LoaderResult(baseURI, version);
-        // load the imports
+        // loadAxioms the imports
         for (ASTNode child : node.getChildren().get(1).getChildren()) {
             cache.addImport(loadIRI(child));
         }
-        // load the annotations
+        // loadAxioms the annotations
         for (ASTNode child : node.getChildren().get(2).getChildren()) {
             cache.addAnnotation(loadAnnotation(child));
         }
-        // load the axioms
+        // loadAxioms the axioms
         for (ASTNode child : node.getChildren().get(3).getChildren()) {
             loadElement(child);
         }

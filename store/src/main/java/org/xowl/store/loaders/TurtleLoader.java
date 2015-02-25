@@ -151,6 +151,11 @@ public class TurtleLoader implements Loader {
         return quads;
     }
 
+    @Override
+    public LoaderResult loadAxioms(Logger logger, Reader reader, String uri) {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Loads a prefix and its associated namespace represented by the specified AST node
      *

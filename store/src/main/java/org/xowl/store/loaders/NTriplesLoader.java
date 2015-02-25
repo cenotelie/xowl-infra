@@ -108,6 +108,11 @@ public class NTriplesLoader implements Loader {
         return quads;
     }
 
+    @Override
+    public LoaderResult loadAxioms(Logger logger, Reader reader, String uri) {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Gets the RDF node represented by the specified AST node
      *
