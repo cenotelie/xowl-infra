@@ -125,7 +125,7 @@ public class SerializationTest {
      */
     @Test
     public void roundTripTest() {
-        RDFStore store1 = load("/org/xowl/store/rdf/testOntology.rdf", "http://www.w3.org/2007/OWL/testOntology");
+        RDFStore store1 = load("/tests/testOntology.rdf", "http://www.w3.org/2007/OWL/testOntology");
         List<Quad> originals = getAll(store1);
         try {
             store1.save("target/test-classes/serialization");

@@ -168,6 +168,7 @@ public class FunctionalOWL2Loader implements Loader {
      * Loads an IRI from an AST node
      *
      * @param node An AST node
+     * @return The loaded IRI
      */
     protected String loadIRI(ASTNode node) {
         if (node.getSymbol().getID() == FunctionalOWL2Lexer.ID.IRIREF) {
