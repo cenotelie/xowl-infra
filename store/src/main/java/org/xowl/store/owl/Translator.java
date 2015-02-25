@@ -93,7 +93,7 @@ public class Translator {
      */
     public Translator(TranslationContext context, XOWLStore store, LoaderResult input, Evaluator evaluator) {
         this.store = store;
-        this.graph = store.getNodeIRI(input.getIri());
+        this.graph = store.getNodeIRI(input.getIRI());
         this.input = input;
         this.quads = new ArrayList<>();
         this.context = context;

@@ -10,7 +10,7 @@
 	<packaging>jar</packaging>
 	<version>1.0.0</version>
 	<name>xOWL Engine</name>
-	<description>Provides manipulation and execution facilities for xOWL ontologies</description>
+	<description>Provides facilities for the execution of xOWL ontologies</description>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>

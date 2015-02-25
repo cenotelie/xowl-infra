@@ -62,7 +62,7 @@ public class LoaderResult {
      *
      * @return The iri of the loaded ontology
      */
-    public String getIri() {
+    public String getIRI() {
         return iri;
     }
 

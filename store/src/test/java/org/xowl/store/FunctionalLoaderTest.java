@@ -39,43 +39,22 @@ public class FunctionalLoaderTest {
     /**
      * Tests that the specified resource is correctly loaded
      *
-     * @param physicalResource The physical path to the resource
      * @param uri              The resource's URI
      */
-    protected void testLoading(String physicalResource, String uri) {
+    protected void testLoading(String uri) {
         TestLogger logger = new TestLogger();
-        Loader loader = new FunctionalOWL2Loader();
-        InputStream stream = FunctionalLoaderTest.class.getResourceAsStream(physicalResource);
-        Reader reader = null;
         try {
-            reader = new InputStreamReader(stream, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            Assert.fail(ex.toString());
-        }
-
-        LoaderResult result = loader.loadAxioms(logger, reader, uri);
-        Assert.assertFalse("Failed to parse resource " + physicalResource, logger.isOnError());
-        Assert.assertNotNull("Failed to loadQuads resource " + physicalResource, result);
-
-        try {
-            reader.close();
-        } catch (IOException ex) {
-            Assert.fail("Failed to close the resource " + physicalResource);
-        }
-
-        Repository repository = null;
-        try {
-            repository = new Repository();
-            repository.add(result);
+            Repository repository = new Repository();
+            repository.load(logger, uri);
+            Assert.assertFalse("Failed to load resource " + uri, logger.isOnError());
         } catch (IOException ex) {
             // do not handle
-        } catch (TranslationException | UnsupportedNodeType ex) {
-            Assert.fail("Failed to translate " + physicalResource);
+            Assert.fail(ex.getMessage());
         }
     }
 
     @Test
     public void testLoadingOfDefinitionOWL2() {
-        testLoading("/org/xowl/lang/defs/OWL2.owl", "http://xowl.org/lang/defs/OWL2.owl");
+        testLoading("http://xowl.org/lang/owl2");
     }
 }
