@@ -34,10 +34,7 @@ import org.xowl.utils.Logger;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.jar.JarFile;
 
 /**
@@ -310,8 +307,9 @@ public class Repository {
     private void loadResourceAxioms(Logger logger, Reader reader, String iri, Loader loader) {
         try {
             LoaderResult result = loader.loadAxioms(logger, reader, iri);
-            Translator translator = new Translator(null, backend, result, null);
-            backend.insert(translator.execute());
+            Translator translator = new Translator(null, backend, null);
+            Collection<Quad> quads = translator.translate(result);
+            backend.insert(new Changeset(quads, new ArrayList<Quad>(0)));
             registerResource(iri, result.getIRI());
             for (String importedIRI : result.getImports())
                 dependencies.add(importedIRI);

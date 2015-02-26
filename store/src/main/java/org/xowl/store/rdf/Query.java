@@ -18,20 +18,18 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.query;
-
-import org.xowl.store.rdf.Quad;
+package org.xowl.store.rdf;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 /**
- * Represents the matching conditions of a query
+ * Represents the matching conditions of a RDF query
  *
  * @author Laurent Wouters
  */
-public class QueryCondition {
+public class Query {
     /**
      * The positive conditions
      */
@@ -44,27 +42,9 @@ public class QueryCondition {
     /**
      * Initializes this condition
      */
-    public QueryCondition() {
+    public Query() {
         this.positives = new ArrayList<>();
         this.negatives = new ArrayList<>();
-    }
-
-    /**
-     * Adds a positive condition
-     *
-     * @param condition A positive condition
-     */
-    public void addPositiveCondition(Quad condition) {
-        positives.add(condition);
-    }
-
-    /**
-     * Adds a negative set of conjunctive conditions
-     *
-     * @param conditions A set of conjunctive conditions
-     */
-    public void addNegativeConsitions(Collection<Quad> conditions) {
-        negatives.add(conditions);
     }
 
     /**
@@ -87,9 +67,9 @@ public class QueryCondition {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof QueryCondition))
+        if (!(obj instanceof Query))
             return false;
-        QueryCondition c = (QueryCondition) obj;
+        Query c = (Query) obj;
         // match the sizes
         if (this.positives.size() != c.positives.size())
             return false;

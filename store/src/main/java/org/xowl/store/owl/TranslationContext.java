@@ -36,12 +36,17 @@ public class TranslationContext {
      * Map associating input query variables to RDF variable nodes
      */
     private Map<QueryVariable, VariableNode> mapVariables;
+    /**
+     * The inverse map
+     */
+    private Map<VariableNode, QueryVariable> mapInverse;
 
     /**
      * Initializes this context
      */
     public TranslationContext() {
         this.mapVariables = new HashMap<>();
+        this.mapInverse = new HashMap<>();
     }
 
     /**
@@ -54,18 +59,29 @@ public class TranslationContext {
     }
 
     /**
-     * Gets the RDF variable node associated to the specified query variable with the specified type
+     * Resolves the RDF variable node associated to the specified query variable with the specified type
      *
      * @param variable A query variable
      * @param type     The expected type of the variable
      * @return The associated RDF variable node
      */
-    public VariableNode getVariableNode(QueryVariable variable, Class type) {
+    public VariableNode resolve(QueryVariable variable, Class type) {
         VariableNode node = mapVariables.get(variable);
         if (node == null) {
             node = new VariableNode(variable.getName());
             mapVariables.put(variable, node);
+            mapInverse.put(node, variable);
         }
         return node;
+    }
+
+    /**
+     * Gets the query variable associated to the specified variable node
+     *
+     * @param node A variable node
+     * @return The associated query variable
+     */
+    public QueryVariable get(VariableNode node) {
+        return mapInverse.get(node);
     }
 }

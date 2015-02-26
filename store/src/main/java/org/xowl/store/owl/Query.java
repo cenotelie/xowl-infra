@@ -17,26 +17,52 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
+package org.xowl.store.owl;
 
-package org.xowl.store.query;
+import org.xowl.lang.owl2.Axiom;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
- * Listener to the output of a query
+ * Represents the matching conditions of an OWL query
  *
  * @author Laurent Wouters
  */
-public interface QueryListener {
+public class Query {
     /**
-     * Reacts to a new solution for the query
-     *
-     * @param solution The new solution
+     * The positive conditions
      */
-    void onNewSolution(Solution solution);
+    private List<Axiom> positives;
+    /**
+     * The list of conjunctive negative conditions
+     */
+    private List<Collection<Axiom>> negatives;
 
     /**
-     * Reacts to a previous solution being retracted (invalidated)
-     *
-     * @param solution The retracted solution
+     * Initializes this condition
      */
-    void onSolutionRetracted(Solution solution);
+    public Query() {
+        this.positives = new ArrayList<>();
+        this.negatives = new ArrayList<>();
+    }
+
+    /**
+     * Gets the positive conditions
+     *
+     * @return The positive conditions of this rule
+     */
+    public Collection<Axiom> getPositives() {
+        return positives;
+    }
+
+    /**
+     * Gets all the negative conjunctions of conditions
+     *
+     * @return The negative conjunctions of conditions
+     */
+    public Collection<Collection<Axiom>> getNegatives() {
+        return negatives;
+    }
 }

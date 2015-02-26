@@ -53,7 +53,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Represents a single use OWL to RDF translator
+ * Represents a OWL to RDF translator
  *
  * @author Laurent Wouters
  */
@@ -66,10 +66,6 @@ public class Translator {
      * The graph that contains the translated input
      */
     protected IRINode graph;
-    /**
-     * The input OWL axioms
-     */
-    protected LoaderResult input;
     /**
      * The resulting triples
      */
@@ -88,14 +84,10 @@ public class Translator {
      *
      * @param context   The existing translation context, or null if a new one shall be used
      * @param store     The XOWL store used for the creation of new RDF nodes
-     * @param input     The input to translate
      * @param evaluator The evaluator for dynamic expressions, or null if dynamic expression shall no be translated and kept as is
      */
-    public Translator(TranslationContext context, XOWLStore store, LoaderResult input, Evaluator evaluator) {
+    public Translator(TranslationContext context, XOWLStore store, Evaluator evaluator) {
         this.store = store;
-        this.graph = store.getNodeIRI(input.getIRI());
-        this.input = input;
-        this.quads = new ArrayList<>();
         this.context = context;
         if (this.context == null)
             this.context = new TranslationContext();
@@ -103,26 +95,36 @@ public class Translator {
     }
 
     /**
-     * Gets the context associated to this translator
+     * Translates the specified input coming from a loader
      *
-     * @return The translation context
-     */
-    public TranslationContext getContext() {
-        return context;
-    }
-
-    /**
-     * Executes this job and gets the translation result
-     *
+     * @param input The loader result to translate
      * @return The translation result
      * @throws TranslationException When a runtime entity is not named
      */
-    public Changeset execute() throws TranslationException {
+    public Collection<Quad> translate(LoaderResult input) throws TranslationException {
+        graph = store.getNodeIRI(input.getIRI());
+        quads = new ArrayList<>();
         for (Axiom axiom : input.getAxioms())
             translateAxiom(axiom);
         for (Annotation annotation : input.getAnnotations())
             translateAnnotation(graph, annotation);
-        return new Changeset(quads, new ArrayList<Quad>(0));
+        return quads;
+    }
+
+    /**
+     * Translates the specified axioms
+     *
+     * @param input    The OWL axioms to translate
+     * @param graphIRI The IRI of the target graph
+     * @return The translation result
+     * @throws TranslationException When a runtime entity is not named
+     */
+    public Collection<Quad> translate(Collection<Axiom> input, String graphIRI) throws TranslationException {
+        graph = store.getNodeIRI(graphIRI);
+        quads = new ArrayList<>();
+        for (Axiom axiom : input)
+            translateAxiom(axiom);
+        return quads;
     }
 
     /**
@@ -896,7 +898,7 @@ public class Translator {
             if (evaluator != null && evaluator.can((QueryVariable) expression))
                 return translateClassRuntime(evaluator.evalClass(expression));
             else
-                return context.getVariableNode((QueryVariable) expression, Class.class);
+                return context.resolve((QueryVariable) expression, Class.class);
         }
         if (expression instanceof IRI)
             return translateClassIRI((IRI) expression);
@@ -1319,7 +1321,7 @@ public class Translator {
             if (evaluator != null && evaluator.can((QueryVariable) expression))
                 return translateObjectPropertyRuntime(evaluator.evalObjectProperty(expression));
             else
-                return context.getVariableNode((QueryVariable) expression, ObjectProperty.class);
+                return context.resolve((QueryVariable) expression, ObjectProperty.class);
         }
         if (expression instanceof IRI)
             return translateObjectPropertyIRI((IRI) expression);
@@ -1382,7 +1384,7 @@ public class Translator {
             if (evaluator != null && evaluator.can(expression))
                 return translateDataPropertyRuntime(evaluator.evalDataProperty(expression));
             else
-                return context.getVariableNode((org.xowl.lang.actions.QueryVariable) expression, org.xowl.lang.runtime.DataProperty.class);
+                return context.resolve((org.xowl.lang.actions.QueryVariable) expression, org.xowl.lang.runtime.DataProperty.class);
         }
         if (expression instanceof IRI) return translateDataPropertyIRI((IRI) expression);
         return null;
@@ -1428,7 +1430,7 @@ public class Translator {
             if (evaluator != null && evaluator.can(expression))
                 return translateDatatype(evaluator.evalDatatype(expression));
             else
-                return context.getVariableNode((QueryVariable) expression, org.xowl.lang.runtime.Datatype.class);
+                return context.resolve((QueryVariable) expression, org.xowl.lang.runtime.Datatype.class);
         }
         if (expression instanceof IRI)
             return translateDatatypeIRI((IRI) expression);
@@ -1599,7 +1601,7 @@ public class Translator {
                 if (ind instanceof NamedIndividual)
                     return translateNamedIndividual((NamedIndividual) ind);
             } else
-                return context.getVariableNode((org.xowl.lang.actions.QueryVariable) expression, org.xowl.lang.runtime.Individual.class);
+                return context.resolve((org.xowl.lang.actions.QueryVariable) expression, org.xowl.lang.runtime.Individual.class);
         }
         if (expression instanceof IRI)
             return translateNamedIndividualIRI((IRI) expression);
@@ -1657,7 +1659,7 @@ public class Translator {
             if (evaluator != null && evaluator.can(expression))
                 return translateLiteralRuntime(evaluator.evalLiteral(expression));
             else
-                return context.getVariableNode((org.xowl.lang.actions.QueryVariable) expression, org.xowl.lang.runtime.Literal.class);
+                return context.resolve((org.xowl.lang.actions.QueryVariable) expression, org.xowl.lang.runtime.Literal.class);
         }
         if (expression instanceof Literal)
             return translateLiteral((Literal) expression);

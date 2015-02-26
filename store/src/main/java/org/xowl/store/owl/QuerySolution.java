@@ -18,32 +18,31 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.query;
+package org.xowl.store.owl;
 
-import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.VariableNode;
+import org.xowl.lang.actions.QueryVariable;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Represents a solution to a query
+ * Represents a solution to an OWL query
  *
  * @author Laurent Wouters
  */
-public class Solution {
+public class QuerySolution {
     /**
      * The content of this solution
      */
-    private Map<VariableNode, Node> content;
+    private Map<QueryVariable, Object> content;
 
     /**
      * Initializes this solution
      *
      * @param bindings The bindings represented by this solution
      */
-    Solution(Map<VariableNode, Node> bindings) {
+    QuerySolution(Map<QueryVariable, Object> bindings) {
         this.content = new HashMap<>(bindings);
     }
 
@@ -61,7 +60,7 @@ public class Solution {
      *
      * @return The list if the matched variables in this solution
      */
-    public Collection<VariableNode> getVariables() {
+    public Collection<QueryVariable> getVariables() {
         return content.keySet();
     }
 
@@ -71,7 +70,7 @@ public class Solution {
      * @param variable A variable
      * @return The value associated to the specified variable
      */
-    public Node get(VariableNode variable) {
+    public Object get(QueryVariable variable) {
         return content.get(variable);
     }
 
@@ -81,8 +80,8 @@ public class Solution {
      * @param variable A variable
      * @return The value associated to the specified variable
      */
-    public Node get(String variable) {
-        for (VariableNode var : content.keySet()) {
+    public Object get(String variable) {
+        for (QueryVariable var : content.keySet()) {
             if (var.getName().equals(variable))
                 return content.get(var);
         }

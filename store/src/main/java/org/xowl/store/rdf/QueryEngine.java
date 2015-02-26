@@ -18,9 +18,8 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.query;
+package org.xowl.store.rdf;
 
-import org.xowl.store.rdf.*;
 import org.xowl.store.rete.RETENetwork;
 import org.xowl.store.rete.RETERule;
 import org.xowl.store.rete.Token;
@@ -35,15 +34,11 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class Engine implements ChangeListener {
+public class QueryEngine implements ChangeListener {
     /**
      * A RETE network for the pattern matching of queries
      */
     private RETENetwork rete;
-    /**
-     * The registered continuous queries
-     */
-    private List<ContinuousQuery> continuousQueries;
     /**
      * The new changes since the last application
      */
@@ -70,9 +65,8 @@ public class Engine implements ChangeListener {
      *
      * @param store The RDF store to query
      */
-    public Engine(RDFStore store) {
+    public QueryEngine(RDFStore store) {
         this.rete = new RETENetwork(store);
-        this.continuousQueries = new ArrayList<>();
         this.newChanges = new ArrayList<>();
         this.newChangesets = new ArrayList<>();
         this.bufferPositives = new ArrayList<>();
@@ -86,13 +80,13 @@ public class Engine implements ChangeListener {
      * @param query A query
      * @return The solutions
      */
-    public Collection<Solution> execute(QueryCondition query) {
+    public Collection<QuerySolution> execute(Query query) {
         // build the RETE rule
-        final List<Solution> result = new ArrayList<>();
+        final List<QuerySolution> result = new ArrayList<>();
         RETERule rule = new RETERule(new TokenActivable() {
             @Override
             public void activateToken(Token token) {
-                result.add(new Solution(token.getBindings()));
+                result.add(new QuerySolution(token.getBindings()));
             }
 
             @Override
@@ -119,43 +113,6 @@ public class Engine implements ChangeListener {
         rete.addRule(rule);
         rete.removeRule(rule);
         return result;
-    }
-
-    /**
-     * Adds a listener on the output of the specified query
-     *
-     * @param condition The conditions for the query
-     * @param listener  The listener for the results
-     */
-    public void addListener(QueryCondition condition, QueryListener listener) {
-        for (ContinuousQuery query : continuousQueries) {
-            if (query.matches(condition)) {
-                query.addListener(listener);
-                return;
-            }
-        }
-        ContinuousQuery query = new ContinuousQuery(condition);
-        query.addListener(listener);
-        rete.addRule(query.getRule());
-    }
-
-    /**
-     * Removes a previously added listener on the output of a query
-     *
-     * @param condition The condition for the query
-     * @param listener  The listener to remove
-     */
-    public void removeListener(QueryCondition condition, QueryListener listener) {
-        for (ContinuousQuery query : continuousQueries) {
-            if (query.matches(condition)) {
-                query.removeListener(listener);
-                if (query.getListenersCount() == 0) {
-                    rete.removeRule(query.getRule());
-                    continuousQueries.remove(query);
-                }
-                return;
-            }
-        }
     }
 
     @Override

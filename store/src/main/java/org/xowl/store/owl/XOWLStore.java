@@ -21,6 +21,8 @@
 package org.xowl.store.owl;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.lang.owl2.IRI;
+import org.xowl.lang.owl2.Literal;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.*;
 import org.xowl.utils.data.Attribute;
@@ -83,6 +85,48 @@ public class XOWLStore extends RDFStore {
             if (node.getIRIValue().startsWith(iri))
                 result.add(node);
         return result;
+    }
+
+    /**
+     * Gets the OWL element represented by the specified RDF node
+     *
+     * @param node A RDF node
+     * @return The represented OWL element
+     */
+    public Object getOWL(Node node) {
+        switch (node.getNodeType()) {
+            case IRINode.TYPE: {
+                IRI iri = new IRI();
+                iri.setHasValue(((IRINode) node).getIRIValue());
+                return iri;
+            }
+            case BlankNode.TYPE: {
+                // cannot translate back blank nodes ...
+                // TODO: throw an error here
+                return null;
+            }
+            case LiteralNode.TYPE: {
+                LiteralNode literalNode = (LiteralNode) node;
+                Literal result = new Literal();
+                String value = result.getLexicalValue();
+                if (value != null)
+                    result.setLexicalValue(literalNode.getLexicalValue());
+                value = literalNode.getDatatype();
+                if (value != null) {
+                    IRI iri = new IRI();
+                    iri.setHasValue(value);
+                    result.setMemberOf(iri);
+                }
+                value = literalNode.getLangTag();
+                if (value != null)
+                    result.setLangTag(value);
+                return result;
+            }
+            case AnonymousNode.TYPE: {
+                return ((AnonymousNode) node).getAnonymous();
+            }
+        }
+        return null;
     }
 
     /**
