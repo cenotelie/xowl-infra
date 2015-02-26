@@ -27,6 +27,7 @@ import org.xowl.store.rete.TokenActivable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -35,6 +36,115 @@ import java.util.List;
  * @author Laurent Wouters
  */
 public class QueryEngine implements ChangeListener {
+    /**
+     * The number of queries in the cache above which the cache starts to clear itself by removing less used queries
+     */
+    private static final int CACHE_CLEAR_THRESHOLD = 300;
+    /**
+     * The number of times a query has been used under which it is susceptible to be dropped from the cache
+     */
+    private static final int CACHE_DROP_THRESHOLD = 5;
+
+    /**
+     * Represents a cached query that continues being executed
+     */
+    private static class CacheElem implements TokenActivable {
+        /**
+         * The original query
+         */
+        private Query query;
+        /**
+         * The associated RETE rule
+         */
+        private RETERule rule;
+        /**
+         * The solution tokens
+         */
+        private List<Token> tokens;
+        /**
+         * The number of times this query has been used
+         */
+        private int hitCount;
+
+        /**
+         * Initializes this cache element
+         *
+         * @param query The original query
+         */
+        public CacheElem(Query query) {
+            this.query = query;
+            this.rule = new RETERule(this);
+            this.rule.getPositives().addAll(query.getPositives());
+            this.rule.getNegatives().addAll(query.getNegatives());
+            this.tokens = new ArrayList<>();
+            this.hitCount = 0;
+        }
+
+        /**
+         * Gets the RETE rule associated to this query
+         *
+         * @return The associated RETE rule
+         */
+        public RETERule getRule() {
+            return rule;
+        }
+
+        /**
+         * Gets the hit count for this cache element
+         *
+         * @return The hit count
+         */
+        public int getHitCount() {
+            return hitCount;
+        }
+
+        @Override
+        public void activateToken(Token token) {
+            tokens.add(token);
+        }
+
+        @Override
+        public void deactivateToken(Token token) {
+            tokens.remove(token);
+        }
+
+        @Override
+        public void activateTokens(Collection<Token> tokens) {
+            for (Token token : tokens)
+                this.tokens.add(token);
+        }
+
+        @Override
+        public void deactivateTokens(Collection<Token> tokens) {
+            for (Token token : tokens)
+                this.tokens.remove(token);
+        }
+
+        /**
+         * Determines whether this cache element matches the specified query
+         *
+         * @param candidate A query candidate
+         * @return true if the candidate matches the query represented by this cache element
+         */
+        public boolean matches(Query candidate) {
+            return query.equals(candidate);
+        }
+
+        /**
+         * Gets the current solutions to the query represented by this cache element
+         *
+         * @return the current solutions
+         */
+        public List<QuerySolution> getSolutions() {
+            hitCount++;
+            List<QuerySolution> results = new ArrayList<>();
+            for (Token token : tokens)
+                results.add(new QuerySolution(token.getBindings()));
+            return results;
+        }
+    }
+
+
     /**
      * A RETE network for the pattern matching of queries
      */
@@ -59,6 +169,10 @@ public class QueryEngine implements ChangeListener {
      * Buffer of negative quads
      */
     private Collection<Quad> bufferNegatives;
+    /**
+     * The cache of queries
+     */
+    private List<CacheElem> cache;
 
     /**
      * Initializes this engine
@@ -71,6 +185,7 @@ public class QueryEngine implements ChangeListener {
         this.newChangesets = new ArrayList<>();
         this.bufferPositives = new ArrayList<>();
         this.bufferNegatives = new ArrayList<>();
+        this.cache = new ArrayList<>();
         store.addListener(this);
     }
 
@@ -81,38 +196,40 @@ public class QueryEngine implements ChangeListener {
      * @return The solutions
      */
     public Collection<QuerySolution> execute(Query query) {
-        // build the RETE rule
-        final List<QuerySolution> result = new ArrayList<>();
-        RETERule rule = new RETERule(new TokenActivable() {
-            @Override
-            public void activateToken(Token token) {
-                result.add(new QuerySolution(token.getBindings()));
+        // try from the cache
+        for (final CacheElem element : cache) {
+            if (element.matches(query)) {
+                Collection<QuerySolution> result = element.getSolutions();
+                // re-sort the cache by hit count (hottest on top)
+                cache.sort(new Comparator<CacheElem>() {
+                    @Override
+                    public int compare(CacheElem element1, CacheElem element2) {
+                        return Integer.compare(element2.getHitCount(), element1.getHitCount());
+                    }
+                });
+                return result;
             }
+        }
 
-            @Override
-            public void deactivateToken(Token token) {
-                // not needed
-                throw new UnsupportedOperationException();
+        // shall we clear the cache
+        if (cache.size() > CACHE_CLEAR_THRESHOLD) {
+            for (int i = cache.size() - 1; i != -1; i--) {
+                CacheElem element = cache.get(i);
+                if (element.getHitCount() < CACHE_DROP_THRESHOLD) {
+                    rete.removeRule(element.getRule());
+                    cache.remove(i);
+                } else {
+                    // stop here because we go increasing
+                    break;
+                }
             }
+        }
 
-            @Override
-            public void activateTokens(Collection<Token> tokens) {
-                for (Token token : tokens)
-                    activateToken(token);
-            }
-
-            @Override
-            public void deactivateTokens(Collection<Token> tokens) {
-                // not needed
-                throw new UnsupportedOperationException();
-            }
-        });
-        rule.getPositives().addAll(query.getPositives());
-        rule.getNegatives().addAll(query.getNegatives());
-        // execute
-        rete.addRule(rule);
-        rete.removeRule(rule);
-        return result;
+        // build the new query and register it in the cache
+        CacheElem element = new CacheElem(query);
+        cache.add(element);
+        rete.addRule(element.getRule());
+        return element.getSolutions();
     }
 
     @Override

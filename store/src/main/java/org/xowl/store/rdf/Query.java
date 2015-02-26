@@ -69,19 +69,19 @@ public class Query {
     public boolean equals(Object obj) {
         if (!(obj instanceof Query))
             return false;
-        Query c = (Query) obj;
+        Query query = (Query) obj;
         // match the sizes
-        if (this.positives.size() != c.positives.size())
+        if (this.positives.size() != query.positives.size())
             return false;
-        if (this.negatives.size() != c.negatives.size())
+        if (this.negatives.size() != query.negatives.size())
             return false;
         // match the positives
         for (Quad quad : this.positives)
-            if (!c.positives.contains(quad))
+            if (!query.positives.contains(quad))
                 return false;
         // match the negatives
         List<Collection<Quad>> temp = new ArrayList<>(negatives);
-        for (Collection<Quad> conjunction : c.negatives) {
+        for (Collection<Quad> conjunction : query.negatives) {
             boolean matches = false;
             for (int i = 0; i != temp.size(); i++) {
                 if (conjunction.size() != temp.get(i).size())
