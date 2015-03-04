@@ -159,8 +159,17 @@ public class DirectSemantics extends AbstractRepository {
      * @return The corresponding entity
      */
     public Entity resolveEntity(IRI iri) {
-        String value = iri.getHasValue();
-        String[] parts = value.split("#");
+        return resolveEntity(iri.getHasValue());
+    }
+
+    /**
+     * Resolves an entity for the specified IRI
+     *
+     * @param iriValue An IRI
+     * @return The corresponding entity
+     */
+    public Entity resolveEntity(String iriValue) {
+        String[] parts = iriValue.split("#");
         Ontology ontology = null;
         String name;
         Map<String, Entity> sub;
@@ -174,13 +183,15 @@ public class DirectSemantics extends AbstractRepository {
                 sub = new HashMap<>();
                 mapEntities.put(null, sub);
             }
-            name = value;
+            name = iriValue;
         }
 
         Entity entity = sub.get(name);
         if (entity != null)
             return entity;
         entity = new Entity();
+        IRI iri = new IRI();
+        iri.setHasValue(iriValue);
         entity.setHasIRI(iri);
         if (ontology != null)
             ontology.addContains(entity);

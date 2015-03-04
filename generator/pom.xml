@@ -36,12 +36,6 @@
 			<version>1.0.0</version>
 			<scope>compile</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.xowl.infra</groupId>
-			<artifactId>engine</artifactId>
-			<version>1.0.0</version>
-			<scope>compile</scope>
-		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
