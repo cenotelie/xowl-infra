@@ -109,7 +109,7 @@ public class ReflectionPackage extends PackageModel {
     }
 
     @Override
-    public void write(String folder, Program options) throws IOException {
+    public void writeStandalone(String folder) throws IOException {
         // do nothing
     }
 
