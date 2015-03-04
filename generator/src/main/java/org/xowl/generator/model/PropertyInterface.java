@@ -20,6 +20,9 @@
 
 package org.xowl.generator.model;
 
+import java.io.IOException;
+import java.io.Writer;
+
 /**
  * Represents the interface of a property
  *
@@ -66,5 +69,88 @@ public class PropertyInterface extends PropertyData {
         if (this.rangeDatatype != propertyInterface.rangeDatatype)
             return false;
         return (this.isVector() == propertyInterface.isVector());
+    }
+
+    /**
+     * Generates and writes the code for this property interface as a standalone distribution
+     *
+     * @param writer The writer to write to
+     * @throws java.io.IOException When an IO error occurs
+     */
+    public void writeStandalone(Writer writer) throws IOException {
+        writer.write("    // <editor-fold defaultstate=\"collapsed\" desc=\"Property " + getProperty().getName() + "\">\n");
+        String type = null;
+        if (getRangeClass() != null)
+            type = getRangeClass().getJavaName();
+        else
+            type = getRangeDatatype().getJavaType();
+        if (getProperty().getDomain() == getParentClass())
+            writeStandaloneInterface(writer, type);
+        if (isVector())
+            writeStandaloneAsVector(writer, type);
+        else
+            writeStandaloneAsScalar(writer, type);
+        writer.write("    // </editor-fold>\n");
+    }
+
+    /**
+     * Generates and writes the code for this property getter and setter
+     *
+     * @param writer The writer to write to
+     * @param type   The property's type as a string
+     * @throws java.io.IOException When an IO error occurs
+     */
+    private void writeStandaloneAsVector(Writer writer, String type) throws IOException {
+        String property = getProperty().getName();
+        property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
+        writer.append("    boolean add" + property + "(" + type + " elem);\n");
+        writer.append("    boolean remove" + property + "(" + type + " elem);\n");
+        if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain())
+            writer.append("    java.util.Collection<" + type + "> getAll" + property + "();\n");
+        else
+            writer.append("    java.util.Collection<" + type + "> getAll" + property + "As(" + type + " type);\n");
+    }
+
+    /**
+     * Generates and writes the code for this property getter and setter
+     *
+     * @param writer The writer to write to
+     * @param type   The property's type as a string
+     * @throws java.io.IOException When an IO error occurs
+     */
+    private void writeStandaloneAsScalar(Writer writer, String type) throws IOException {
+        String property = getProperty().getName();
+        property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
+        writer.append("    boolean set" + property + "(" + type + " elem);\n");
+        if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain())
+            writer.append("    " + type + " get" + property + "();\n");
+        else
+            writer.append("    " + type + " get" + property + "As(" + type + " type);\n");
+    }
+
+    /**
+     * Generates and writes the code for this property reification interface
+     *
+     * @param writer The writer to write to
+     * @param type   The property's type as a string
+     * @throws java.io.IOException When an IO error occurs
+     */
+    private void writeStandaloneInterface(Writer writer, String type) throws IOException {
+        writer.append("    public static interface " + getProperty().getName() + " {\n");
+        writer.append("        boolean check_contains(" + type + " elem);\n");
+
+        writer.append("        boolean user_check_add(" + type + " elem);\n");
+        writer.append("        boolean user_check_remove(" + type + " elem);\n");
+        writer.append("        boolean user_check_replace(" + type + " oldElem, " + type + "  newElem);\n");
+        writer.append("        void user_add(" + type + " elem);\n");
+        writer.append("        void user_remove(" + type + " elem);\n");
+
+        writer.append("        boolean inverse_check_add(" + type + " elem);\n");
+        writer.append("        boolean inverse_check_remove(" + type + " elem);\n");
+        writer.append("        boolean inverse_check_replace(" + type + " oldElem, " + type + "  newElem);\n");
+        writer.append("        void inverse_add(" + type + " elem);\n");
+        writer.append("        void inverse_remove(" + type + " elem);\n");
+        writer.append("    }\n");
+        writer.append("    " + getProperty().getName() + " __getImplOf" + getProperty().getName() + "();\n");
     }
 }

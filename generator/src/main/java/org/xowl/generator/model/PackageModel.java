@@ -20,13 +20,13 @@
 
 package org.xowl.generator.model;
 
-import org.xowl.generator.Program;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.Entity;
 import org.xowl.lang.runtime.Interpretation;
 import org.xowl.lang.runtime.Property;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -188,21 +188,20 @@ public class PackageModel {
     }
 
     /**
-     * Generates and writes the code for this package
+     * Generates and writes the code for this package as a standalone distribution
      *
-     * @param folder  The target folder
-     * @param options The generation options
-     * @throws IOException When an IO error occurs
+     * @param folder The target folder
+     * @throws java.io.IOException When an IO error occurs
      */
-    public void write(String folder, Program options) throws IOException {
-        /*if ((classes.size() + anonymousClasses.size()) == 0)
+    public void writeStandalone(String folder) throws IOException {
+        if ((classes.size() + anonymousClasses.size()) == 0)
             return;
         String myFolder = folder + name + "/";
-        java.io.File directory = new java.io.File(myFolder);
+        File directory = new File(myFolder);
         directory.mkdir();
-        for (ClassGenerator gen : classes.values())
-            gen.write(myFolder, mode, signature);
-        for (ClassGenerator gen : anonymousClasses.values())
-            gen.write(myFolder, mode, signature);*/
+        for (ClassModel classModel : classes.values())
+            classModel.writeStandalone(myFolder);
+        for (ClassModel classModel : anonymousClasses.values())
+            classModel.writeStandalone(myFolder);
     }
 }

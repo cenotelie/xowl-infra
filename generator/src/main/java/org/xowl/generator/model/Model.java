@@ -20,7 +20,6 @@
 
 package org.xowl.generator.model;
 
-import org.xowl.generator.Program;
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.runtime.Class;
@@ -29,6 +28,7 @@ import org.xowl.store.Vocabulary;
 import org.xowl.store.owl.DirectSemantics;
 import org.xowl.utils.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -350,25 +350,18 @@ public class Model {
     }
 
     /**
-     * Writes the generated data
+     * Generates and writes the code for this model as a standalone distribution
      *
-     * @param options The program options
-     * @throws IOException When an IO error occurs
+     * @param folder The target folder
+     * @throws java.io.IOException When an IO error occurs
      */
-    public void write(Program options) throws IOException {
-        /*folder += "src/";
+    public void writeStandalone(String folder) throws IOException {
         String[] subs = basePackage.split("\\.");
         for (String sub : subs)
             folder += sub + "/";
-        java.io.File dir = new java.io.File(folder);
+        File dir = new File(folder);
         dir.mkdirs();
-
-        java.util.Random rand = new java.util.Random();
-        int signature = rand.nextInt();
-
-        if (mode == GenerationMode.Proxy)
-            ActivatorWriter.write(folder, this);
-        for (PackageGenerator gen : packages.values())
-            gen.write(folder, mode, signature);*/
+        for (PackageModel packageModel : packages.values())
+            packageModel.writeStandalone(folder);
     }
 }

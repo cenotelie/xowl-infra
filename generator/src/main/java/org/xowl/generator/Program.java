@@ -177,29 +177,21 @@ public class Program {
         for (String input : inputs)
             repository.load(logger, input);
 
-        Model generator = new Model(repository, basePackage);
-        generator.load();
-        generator.build(logger);
+        Model model = new Model(repository, basePackage);
+        model.load();
+        model.build(logger);
 
-        /*
-        java.lang.System.out.println("-- Generating java code");
-        model.build();
         try {
-            model.write(outputDirectory, outputMode);
+            model.writeStandalone(outputDirectory + "src/");
         } catch (Exception ex) {
-            logger.fatal(Program.class.getName(), ex.getMessage(), ex);
+            logger.error(ex);
         }
 
         try {
             Builder builder = new Builder(outputDirectory, debug);
-            for (String library : jars) {
-                builder.addLibrary(library);
-                xowl.interpreter.Interpreter.loadLibraries(new String[]{library});
-            }
             builder.build(outputJarName);
         } catch (Exception ex) {
-            logger.fatal(Program.class.getName(), ex.getMessage(), ex);
+            logger.error(ex);
         }
-        java.lang.System.out.println("-- Done");*/
     }
 }
