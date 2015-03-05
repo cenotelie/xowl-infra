@@ -25,10 +25,7 @@ import org.xowl.store.rete.RETERule;
 import org.xowl.store.rete.Token;
 import org.xowl.store.rete.TokenActivable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a query engine for a RDF store
@@ -201,7 +198,7 @@ public class QueryEngine implements ChangeListener {
             if (element.matches(query)) {
                 Collection<QuerySolution> result = element.getSolutions();
                 // re-sort the cache by hit count (hottest on top)
-                cache.sort(new Comparator<CacheElem>() {
+                Collections.sort(cache, new Comparator<CacheElem>() {
                     @Override
                     public int compare(CacheElem element1, CacheElem element2) {
                         return Integer.compare(element2.getHitCount(), element1.getHitCount());
