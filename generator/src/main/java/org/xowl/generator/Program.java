@@ -39,6 +39,33 @@ import java.util.List;
  */
 public class Program {
     /**
+     * Configures a mapping (writted as "iri | physical_location") for the forthcoming inputs
+     */
+    public static final String CONFIG_REPOSITORY = "repository";
+    /**
+     * Configures the IRI of an input ontology
+     */
+    public static final String CONFIG_INPUT = "input";
+    /**
+     * Configures the name of the base Java package for the code to generate
+     */
+    public static final String CONFIG_BASE_PACKAGE = "basePackage";
+    /**
+     * Configures whether to emit debug information in the compiled Java bytecode
+     */
+    public static final String CONFIG_DEBUG = "debug";
+    /**
+     * Configures the output directory
+     */
+    public static final String CONFIG_OUTPUT = "output";
+    /**
+     * Configures the name of the jar to generate (without the .jar extension).
+     * If this option is left undefined, the generated code is not built.
+     */
+    public static final String CONFIG_JAR_NAME = "jarName";
+
+
+    /**
      * Main entry point for this program
      *
      * @param args The command-line arguments
@@ -81,10 +108,6 @@ public class Program {
      */
     private boolean debug;
     /**
-     * Whether to generate a proxy for the engine
-     */
-    private boolean proxy;
-    /**
      * The path to the output directory
      */
     private String outputDirectory;
@@ -92,19 +115,6 @@ public class Program {
      * The name of the jar to generate
      */
     private String outputJarName;
-    /**
-     * The maximum length for the name of the generated files
-     */
-    private int outputMaxFileLength;
-
-    /**
-     * Gets the maximum length for the name of the generated files
-     *
-     * @return The maximum length for the name of the generated files
-     */
-    public int getMaxFileLength() {
-        return outputMaxFileLength;
-    }
 
     /**
      * Initializes this program
@@ -117,9 +127,6 @@ public class Program {
         this.repositories = new ArrayList<>();
         this.inputs = new ArrayList<>();
         this.debug = false;
-        this.proxy = false;
-        this.outputJarName = "Model";
-        this.outputMaxFileLength = 100;
         loadConfig(configuration);
     }
 
@@ -129,7 +136,7 @@ public class Program {
      * @param config The configuration to loadAxioms
      */
     private void loadConfig(Configuration config) {
-        List<String> values = config.getValues(null, "repository");
+        List<String> values = config.getValues(null, CONFIG_REPOSITORY);
         for (String val : values) {
             String[] parts = val.split("\\|");
             Couple<String, String> mapping = new Couple<>();
@@ -137,40 +144,33 @@ public class Program {
             mapping.y = parts[1].trim();
             repositories.add(mapping);
         }
-        values = config.getValues(null, "input");
+        values = config.getValues(null, CONFIG_INPUT);
         for (String val : values) {
             inputs.add(val.trim());
         }
 
-        String value = config.getValue("basePackage");
+        String value = config.getValue(CONFIG_BASE_PACKAGE);
         if (value != null)
             basePackage = value;
 
-        value = config.getValue("debug");
+        value = config.getValue(CONFIG_DEBUG);
         if (value != null)
             debug = Boolean.valueOf(value);
 
-        value = config.getValue("proxy");
-        if (value != null)
-            proxy = Boolean.valueOf(value);
-
-        value = config.getValue("output");
+        value = config.getValue(CONFIG_OUTPUT);
         if (value != null)
             outputDirectory = value;
 
-        value = config.getValue("jarName");
+        value = config.getValue(CONFIG_JAR_NAME);
         if (value != null)
             outputJarName = value;
-
-        value = config.getValue("maxFileLength");
-        if (value != null)
-            outputMaxFileLength = java.lang.Integer.parseInt(value);
     }
 
     /**
      * Executes the generation
      */
     public void execute() {
+        // load the inputs
         DirectSemantics repository = new DirectSemantics();
         for (Couple<String, String> mapping : repositories)
             repository.getIRIMapper().addRegexpMap(mapping.x, mapping.y);
@@ -181,17 +181,23 @@ public class Program {
         model.load();
         model.build(logger);
 
+        // generate the code
+        if (!outputDirectory.endsWith("/"))
+            outputDirectory += "/";
         try {
             model.writeStandalone(outputDirectory + "src/");
         } catch (Exception ex) {
             logger.error(ex);
         }
 
-        try {
-            Builder builder = new Builder(outputDirectory, debug);
-            builder.build(outputJarName);
-        } catch (Exception ex) {
-            logger.error(ex);
+        // build the code, if required
+        if (outputJarName != null) {
+            try {
+                Builder builder = new Builder(outputDirectory, debug);
+                builder.build(outputJarName);
+            } catch (Exception ex) {
+                logger.error(ex);
+            }
         }
     }
 }

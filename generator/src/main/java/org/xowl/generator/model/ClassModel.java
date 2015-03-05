@@ -36,6 +36,11 @@ import java.util.*;
  */
 public class ClassModel {
     /**
+     * Maximum length of the generated class names for the unions and intersections
+     */
+    public static final int MAX_NAME_LENGTH = 100;
+
+    /**
      * The counter for the truncated names
      */
     private static int counter = 0;
@@ -389,6 +394,10 @@ public class ClassModel {
             builder.append(name);
         }
         name = builder.toString();
+        if (name.length() > MAX_NAME_LENGTH) {
+            name = name.substring(0, MAX_NAME_LENGTH - 1) + Integer.toString(counter);
+            counter++;
+        }
     }
 
     /**
@@ -410,6 +419,10 @@ public class ClassModel {
             builder.append(name);
         }
         name = builder.toString();
+        if (name.length() > MAX_NAME_LENGTH) {
+            name = name.substring(0, MAX_NAME_LENGTH - 1) + Integer.toString(counter);
+            counter++;
+        }
     }
 
     /**

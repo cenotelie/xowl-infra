@@ -1,0 +1,54 @@
+/**********************************************************************
+ * Copyright (c) 2015 Laurent Wouters
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General
+ * Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contributors:
+ *     Laurent Wouters - lwouters@xowl.org
+ **********************************************************************/
+package org.xowl.generator;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.xowl.utils.Logger;
+import org.xowl.utils.config.Configuration;
+
+/**
+ * Tests for the generator
+ *
+ * @author Laurent Wouters
+ */
+public class GeneratorTest {
+
+    /**
+     * Tests the correct re-generation of the xOWL abstract syntax implementation
+     */
+    @Test
+    public void reflectiveXOWLGeneration() {
+        TestLogger logger = new TestLogger();
+        Configuration config = new Configuration();
+        config.addValue(null, "input", "http://xowl.org/lang/owl2");
+        config.addValue(null, "input", "http://xowl.org/lang/actions");
+        config.addValue(null, "input", "http://xowl.org/lang/rules");
+        config.addValue(null, "input", "http://xowl.org/lang/runtime");
+        config.addValue(null, "input", "http://xowl.org/lang/instrumentation");
+        config.addValue(null, "input", "http://xowl.org/lang/interop");
+        config.addValue(null, "basePackage", "org.xowl.lang");
+        config.addValue(null, "output", "target/tests/");
+        config.addValue(null, "jarName", "XOWLModel.jar");
+        Program program = new Program(logger, config);
+        program.execute();
+        Assert.assertFalse("Failed to re-generate xOWL abstract syntax", logger.isOnError());
+    }
+}
