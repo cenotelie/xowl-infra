@@ -36,10 +36,6 @@ import java.util.*;
  */
 public class DirectSemantics extends AbstractRepository {
     /**
-     * The loaded ontologies
-     */
-    private Map<String, Ontology> mapOntologies;
-    /**
      * The entities contained by the ontologies
      */
     private Map<Ontology, Map<String, Entity>> mapEntities;
@@ -88,7 +84,6 @@ public class DirectSemantics extends AbstractRepository {
      * Initializes this interpreter
      */
     public DirectSemantics() {
-        this.mapOntologies = new HashMap<>();
         this.mapEntities = new HashMap<>();
         this.classUnions = new ArrayList<>();
         this.classIntersections = new ArrayList<>();
@@ -100,15 +95,6 @@ public class DirectSemantics extends AbstractRepository {
         this.dataOneOfs = new ArrayList<>();
         this.dataComplements = new ArrayList<>();
         this.anonymousIndividuals = new ArrayList<>();
-    }
-
-    /**
-     * Gets the known ontologies
-     *
-     * @return The known ontologies
-     */
-    public Collection<Ontology> getOntologies() {
-        return mapOntologies.values();
     }
 
     /**
@@ -125,31 +111,16 @@ public class DirectSemantics extends AbstractRepository {
     }
 
     /**
-     * Gets an IRI for the specified value
-     *
-     * @param value The value of an IRI
-     * @return The IRI
-     */
-    public IRI getIRI(String value) {
-        IRI iri = new IRI();
-        iri.setHasValue(value);
-        return iri;
-    }
-
-    /**
      * Resolves an ontology for the specified IRI
      *
      * @param iri An IRI
      * @return The corresponding ontology
      */
     public Ontology resolveOntology(String iri) {
-        if (mapOntologies.containsKey(iri))
-            return mapOntologies.get(iri);
-        Ontology ontology = new Ontology();
-        ontology.setHasIRI(getIRI(iri));
-        mapOntologies.put(iri, ontology);
-        mapEntities.put(ontology, new HashMap<String, Entity>());
-        return ontology;
+        Ontology result = super.resolveOntology(iri);
+        if (!mapEntities.containsKey(result))
+            mapEntities.put(result, new HashMap<String, Entity>());
+        return result;
     }
 
     /**

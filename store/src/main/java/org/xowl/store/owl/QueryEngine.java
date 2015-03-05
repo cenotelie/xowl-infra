@@ -50,6 +50,15 @@ public class QueryEngine {
     private String graphIRI;
 
     /**
+     * Gets the RDF backend engine
+     *
+     * @return The RDF backend engine
+     */
+    public org.xowl.store.rdf.QueryEngine getRDFBackend() {
+        return rdfEngine;
+    }
+
+    /**
      * Initializes this engine
      *
      * @param store     The OWL store to query

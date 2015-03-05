@@ -90,6 +90,10 @@ public abstract class AbstractRepository {
      */
     protected Map<String, Ontology> resources;
     /**
+     * The loaded ontologies by IRI
+     */
+    protected Map<String, Ontology> ontologies;
+    /**
      * The remaining dependencies
      */
     protected List<String> dependencies;
@@ -119,7 +123,45 @@ public abstract class AbstractRepository {
     public AbstractRepository(IRIMapper mapper) {
         this.mapper = mapper;
         this.resources = new HashMap<>();
+        this.ontologies = new HashMap<>();
         this.dependencies = new ArrayList<>();
+    }
+
+    /**
+     * Gets the known ontologies
+     *
+     * @return The known ontologies
+     */
+    public Collection<Ontology> getOntologies() {
+        return ontologies.values();
+    }
+
+    /**
+     * Gets an IRI for the specified value
+     *
+     * @param value The value of an IRI
+     * @return The IRI
+     */
+    public IRI getIRI(String value) {
+        IRI iri = new IRI();
+        iri.setHasValue(value);
+        return iri;
+    }
+
+    /**
+     * Resolves an ontology for the specified IRI
+     *
+     * @param iri An IRI
+     * @return The corresponding ontology
+     */
+    public Ontology resolveOntology(String iri) {
+        Ontology ontology = ontologies.get(iri);
+        if (ontology == null) {
+            ontology = new Ontology();
+            ontology.setHasIRI(getIRI(iri));
+            ontologies.put(iri, ontology);
+        }
+        return ontology;
     }
 
     /**
@@ -294,10 +336,7 @@ public abstract class AbstractRepository {
      * @return The corresponding Ontology
      */
     private Ontology registerResource(String documentIRI, String logicalIRI) {
-        Ontology ontology = new Ontology();
-        IRI ontoIRI = new IRI();
-        ontoIRI.setHasValue(logicalIRI);
-        ontology.setHasIRI(ontoIRI);
+        Ontology ontology = resolveOntology(logicalIRI);
         resources.put(documentIRI, ontology);
         return ontology;
     }

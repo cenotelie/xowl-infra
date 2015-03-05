@@ -21,20 +21,15 @@ package org.xowl.store;
 
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.*;
+import org.xowl.store.owl.QueryEngine;
 import org.xowl.store.owl.TranslationException;
 import org.xowl.store.owl.Translator;
 import org.xowl.store.owl.XOWLStore;
-import org.xowl.store.rdf.Changeset;
-import org.xowl.store.rdf.GraphNode;
-import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.UnsupportedNodeType;
+import org.xowl.store.rdf.*;
 import org.xowl.utils.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a repository of xOWL ontologies
@@ -49,7 +44,33 @@ public class Repository extends AbstractRepository {
     /**
      * The ontologies in this repository
      */
-    private Map<Ontology, GraphNode> ontologies;
+    private Map<Ontology, GraphNode> graphs;
+    /**
+     * The proxies onto this repository
+     */
+    private Map<Ontology, Map<String, ProxyObject>> proxies;
+    /**
+     * The query engine for this
+     */
+    private QueryEngine queryEngine;
+
+    /**
+     * Gets the backend store
+     *
+     * @return the backend store
+     */
+    protected XOWLStore getBackend() {
+        return backend;
+    }
+
+    /**
+     * Gets the associated query engine
+     *
+     * @return The associated query engine
+     */
+    protected QueryEngine getQueryEngine() {
+        return queryEngine;
+    }
 
     /**
      * Initializes this repository
@@ -59,7 +80,9 @@ public class Repository extends AbstractRepository {
     public Repository() throws IOException {
         super();
         this.backend = new XOWLStore();
-        this.ontologies = new HashMap<>();
+        this.graphs = new HashMap<>();
+        this.proxies = new HashMap<>();
+        this.queryEngine = new QueryEngine(backend, null);
     }
 
     /**
@@ -71,7 +94,62 @@ public class Repository extends AbstractRepository {
     public Repository(IRIMapper mapper) throws IOException {
         super(mapper);
         this.backend = new XOWLStore();
-        this.ontologies = new HashMap<>();
+        this.graphs = new HashMap<>();
+        this.proxies = new HashMap<>();
+        this.queryEngine = new QueryEngine(backend, null);
+    }
+
+    /**
+     * Gets a proxy on an existing entity in this repository
+     *
+     * @param iri The iri of an entity
+     * @return The associated proxy
+     */
+    public ProxyObject getProxy(String iri) {
+        String[] parts = iri.split("#");
+        Ontology ontology = resolveOntology(parts[0]);
+        Map<String, ProxyObject> sub = proxies.get(ontology);
+        if (sub == null) {
+            sub = new HashMap<>();
+            proxies.put(ontology, sub);
+        }
+        ProxyObject proxy = sub.get(iri);
+        if (proxy != null)
+            return proxy;
+        proxy = new ProxyObject(this, ontology, backend.getNodeIRI(iri));
+        sub.put(iri, proxy);
+        return proxy;
+    }
+
+    /**
+     * Creates a new object and gets a proxy on it
+     *
+     * @param ontology The containing ontology for the new object
+     * @return A proxy on the new object
+     */
+    public ProxyObject newObject(Ontology ontology) {
+        Map<String, ProxyObject> sub = proxies.get(ontology);
+        if (sub == null) {
+            sub = new HashMap<>();
+            proxies.put(ontology, sub);
+        }
+        String iri = ontology.getHasIRI().getHasValue() + "#" + UUID.randomUUID().toString();
+        IRINode entity = backend.getNodeIRI(iri);
+        ProxyObject proxy = new ProxyObject(this, ontology, entity);
+        sub.put(iri, proxy);
+        return proxy;
+    }
+
+    /**
+     * Removes the specified proxy
+     *
+     * @param proxy A proxy
+     */
+    protected void remove(ProxyObject proxy) {
+        Map<String, ProxyObject> sub = proxies.get(proxy.getOntology());
+        if (sub == null)
+            return;
+        sub.remove(proxy.getIRIString());
     }
 
     @Override
@@ -92,7 +170,7 @@ public class Repository extends AbstractRepository {
     @Override
     protected void loadResourceQuads(Logger logger, Ontology ontology, Collection<Quad> quads) {
         GraphNode graphNode = backend.getNodeIRI(ontology.getHasIRI().getHasValue());
-        ontologies.put(ontology, graphNode);
+        graphs.put(ontology, graphNode);
         try {
             backend.insert(new Changeset(quads, new ArrayList<Quad>(0)));
         } catch (UnsupportedNodeType ex) {
