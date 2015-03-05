@@ -26,7 +26,6 @@ import org.xowl.store.rdf.*;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -295,8 +294,6 @@ public class ProxyObject {
                 } catch (ParseException ex) {
                     return null;
                 }
-            case Vocabulary.xsdDuration:
-                return Duration.parse(lexicalValue);
             case Vocabulary.xsdBoolean:
                 return Boolean.parseBoolean(lexicalValue);
             case Vocabulary.xsdDecimal:
@@ -309,6 +306,7 @@ public class ProxyObject {
                 return Float.parseFloat(lexicalValue);
             case Vocabulary.xsdDouble:
                 return Double.parseDouble(lexicalValue);
+            case Vocabulary.xsdDuration:
             case Vocabulary.xsdUnsignedLong:
             case Vocabulary.xsdLong:
                 return Long.parseLong(lexicalValue);
@@ -345,8 +343,6 @@ public class ProxyObject {
             case Vocabulary.xsdDateTime:
             case Vocabulary.xsdDate:
                 return repository.getBackend().getLiteralNode(DateFormat.getInstance().format((Date) value), range, null);
-            case Vocabulary.xsdDuration:
-                return repository.getBackend().getLiteralNode(value.toString(), range, null);
             case Vocabulary.xsdBoolean:
                 return repository.getBackend().getLiteralNode(Boolean.toString((boolean) value), range, null);
             case Vocabulary.xsdDecimal:
@@ -355,6 +351,7 @@ public class ProxyObject {
                 return repository.getBackend().getLiteralNode(Float.toString((float) value), range, null);
             case Vocabulary.xsdDouble:
                 return repository.getBackend().getLiteralNode(Double.toString((double) value), range, null);
+            case Vocabulary.xsdDuration:
             case Vocabulary.xsdUnsignedLong:
             case Vocabulary.xsdLong:
                 return repository.getBackend().getLiteralNode(Long.toString((long) value), range, null);
