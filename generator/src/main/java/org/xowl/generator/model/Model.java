@@ -120,15 +120,6 @@ public class Model {
     }
 
     /**
-     * Gets all the package models in this model
-     *
-     * @return All the package models
-     */
-    public Collection<PackageModel> getPackages() {
-        return packages.values();
-    }
-
-    /**
      * Gets the model for the specified class
      *
      * @param classe A class
@@ -277,7 +268,7 @@ public class Model {
     public void load() {
         for (Ontology ontology : repository.getOntologies()) {
             String uri = ontology.getHasIRI().getHasValue();
-            PackageModel packageModel = null;
+            PackageModel packageModel;
             if (OWL.equals(uri))
                 packageModel = new ReflectionPackage(this, ontology);
             else

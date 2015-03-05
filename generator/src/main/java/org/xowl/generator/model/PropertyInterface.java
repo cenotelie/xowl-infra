@@ -79,7 +79,7 @@ public class PropertyInterface extends PropertyData {
      */
     public void writeStandalone(Writer writer) throws IOException {
         writer.write("    // <editor-fold defaultstate=\"collapsed\" desc=\"Property " + getProperty().getName() + "\">\n");
-        String type = null;
+        String type;
         if (getRangeClass() != null)
             type = getRangeClass().getJavaName();
         else

@@ -24,7 +24,6 @@ import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -147,26 +146,6 @@ public class PropertyModel {
                 return range;
         }
         return null;
-    }
-
-    /**
-     * Gets the equivalent properties
-     *
-     * @return The equivalent properties
-     */
-    public Collection<PropertyModel> getEquivalents() {
-        return equivalents;
-    }
-
-    /**
-     * Gets the equivalency group for this property, i.e. this property and its equivalents
-     *
-     * @return The equivalenct group for this property
-     */
-    public Collection<PropertyModel> getEquivalencyGroup() {
-        List<PropertyModel> group = new ArrayList<>(equivalents);
-        group.add(this);
-        return group;
     }
 
     /**

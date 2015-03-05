@@ -55,24 +55,6 @@ public abstract class DatatypeModel {
     protected String javaType;
 
     /**
-     * Gets the implemented OWL2 datatype
-     *
-     * @return The implemented OWL2 datatype
-     */
-    public Datatype getDatatype() {
-        return datatype;
-    }
-
-    /**
-     * Gets the IRI of the implemented OWL2 datatype
-     *
-     * @return The IRI of the implemented OWL2 datatype
-     */
-    public String getIRI() {
-        return iri;
-    }
-
-    /**
      * Gets the implementing Java class
      *
      * @return The implementing Java class

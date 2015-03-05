@@ -20,7 +20,6 @@
 
 package org.xowl.generator.model;
 
-import org.xowl.generator.Program;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.Entity;
@@ -35,10 +34,6 @@ import java.io.IOException;
  * @author Laurent Wouters
  */
 public class ReflectionPackage extends PackageModel {
-    /**
-     * The model for OWL Thing
-     */
-    private ClassModel classThing;
     /**
      * The model for OWL Class
      */
@@ -94,8 +89,7 @@ public class ReflectionPackage extends PackageModel {
      * @param classe The metaclass Thing
      */
     private void addClassThing(Class classe) {
-        classThing = new OWLThing(this, classe);
-        classes.put(classe, classThing);
+        classes.put(classe, new OWLThing(this, classe));
     }
 
     /**

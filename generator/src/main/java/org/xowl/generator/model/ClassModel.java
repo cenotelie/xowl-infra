@@ -105,15 +105,6 @@ public class ClassModel {
     }
 
     /**
-     * Gets the equivalent classes
-     *
-     * @return The equivalent classes
-     */
-    public Collection<ClassModel> getEquivalents() {
-        return equivalents;
-    }
-
-    /**
      * Gets the equivalency group containing this class and all its equivalents
      *
      * @return Gets the equivalency group in which this class belongs
@@ -122,15 +113,6 @@ public class ClassModel {
         List<ClassModel> group = new ArrayList<>(equivalents);
         group.add(this);
         return group;
-    }
-
-    /**
-     * Gets the direct super-classes of this class
-     *
-     * @return The direct super-classes
-     */
-    public Collection<ClassModel> getDirectSuperClasses() {
-        return superClasses;
     }
 
     /**
@@ -147,15 +129,6 @@ public class ClassModel {
             }
         }
         return ancestors;
-    }
-
-    /**
-     * Gets the direct sub-classes of this class
-     *
-     * @return The direct sub-classes
-     */
-    public Collection<ClassModel> getDirectSubClasses() {
-        return subClasses;
     }
 
     /**
@@ -265,30 +238,12 @@ public class ClassModel {
     }
 
     /**
-     * Gets whether this is an anonymous class
-     *
-     * @return true if this is an anonymous class, false otherwise
-     */
-    public boolean isAnonymous() {
-        return (classe.getInterpretationOf() == null);
-    }
-
-    /**
      * Gets whether this class is abstract, i.e. it has at least one sub-class
      *
      * @return true if this is an abstract class, false otherwise
      */
     public boolean isAbstract() {
         return (!subClasses.isEmpty());
-    }
-
-    /**
-     * Gets whether this class is defined as an enumeration of statis instances
-     *
-     * @return true if this clas is an enumeration of static instances
-     */
-    public boolean isEnumeration() {
-        return (!classe.getAllClassOneOf().isEmpty());
     }
 
     /**
@@ -299,15 +254,6 @@ public class ClassModel {
      */
     public boolean isCompatibleWith(ClassModel classe) {
         return ((classe == this) || this.getSuperClasses().contains(classe));
-    }
-
-    /**
-     * Registers a static instance of this class
-     *
-     * @param instance The instance to register
-     */
-    public void addInstance(InstanceModel instance) {
-        staticInstances.add(instance);
     }
 
     /**

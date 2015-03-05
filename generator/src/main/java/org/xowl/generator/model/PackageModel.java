@@ -118,15 +118,6 @@ public class PackageModel {
     }
 
     /**
-     * Gets the models for the anonymous classes in this package
-     *
-     * @return The models for the anonymous classes
-     */
-    public Collection<ClassModel> getAnonymousClasses() {
-        return anonymousClasses.values();
-    }
-
-    /**
      * Gets the model for the specified OWL property
      *
      * @param owlProperty An OWL property

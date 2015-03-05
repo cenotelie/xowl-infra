@@ -21,7 +21,6 @@ package org.xowl.generator;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xowl.utils.Logger;
 import org.xowl.utils.config.Configuration;
 
 /**

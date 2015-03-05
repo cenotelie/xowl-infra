@@ -43,10 +43,6 @@ public class InstanceModel {
      * The instance's name
      */
     private String name;
-    /**
-     * The instance's IRI
-     */
-    private String iri;
 
     /**
      * Gets the type of this instance
@@ -76,15 +72,6 @@ public class InstanceModel {
     }
 
     /**
-     * Gets the instance's IRI
-     *
-     * @return The instance's IRI
-     */
-    public String getIRI() {
-        return iri;
-    }
-
-    /**
      * Initializes this instance
      *
      * @param type       The typing class
@@ -93,7 +80,7 @@ public class InstanceModel {
     public InstanceModel(ClassModel type, NamedIndividual individual) {
         this.type = type;
         this.individual = individual;
-        this.iri = this.individual.getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.individual.getInterpretationOf().getHasIRI().getHasValue();
         String[] parts = iri.split("#");
         this.name = parts[parts.length - 1];
     }
