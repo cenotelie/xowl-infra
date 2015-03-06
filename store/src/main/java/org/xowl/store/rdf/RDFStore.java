@@ -204,6 +204,21 @@ public class RDFStore implements ChangeListener {
     }
 
     /**
+     * Creates a new node within the specified graph
+     *
+     * @param graph A graph node
+     * @return The new IRI node
+     */
+    public IRINode newNodeIRI(GraphNode graph) {
+        if (graph.getNodeType() == IRINode.TYPE) {
+            String value = ((IRINode) graph).getIRIValue();
+            return getNodeIRI(value + "#" + UUID.randomUUID().toString());
+        } else {
+            return getNodeIRI("http://xowl.org/store#" + UUID.randomUUID().toString());
+        }
+    }
+
+    /**
      * Gets the RDF node for the given IRI
      *
      * @param iri An IRI

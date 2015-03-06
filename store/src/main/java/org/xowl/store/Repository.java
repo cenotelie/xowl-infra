@@ -29,7 +29,10 @@ import org.xowl.store.rdf.*;
 import org.xowl.utils.Logger;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents a repository of xOWL ontologies
@@ -133,10 +136,9 @@ public class Repository extends AbstractRepository {
             sub = new HashMap<>();
             proxies.put(ontology, sub);
         }
-        String iri = ontology.getHasIRI().getHasValue() + "#" + UUID.randomUUID().toString();
-        IRINode entity = backend.getNodeIRI(iri);
+        IRINode entity = backend.newNodeIRI(getGraph(ontology));
         ProxyObject proxy = new ProxyObject(this, ontology, entity);
-        sub.put(iri, proxy);
+        sub.put(entity.getIRIValue(), proxy);
         return proxy;
     }
 

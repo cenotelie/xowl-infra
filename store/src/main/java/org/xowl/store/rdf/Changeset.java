@@ -67,4 +67,13 @@ public class Changeset {
         this.positives = new ArrayList<>(positives);
         this.negatives = new ArrayList<>(negatives);
     }
+
+    /**
+     * Gets the inverse changeset
+     *
+     * @return the inverse changeset
+     */
+    public Changeset getInverse() {
+        return new Changeset(negatives, positives);
+    }
 }
