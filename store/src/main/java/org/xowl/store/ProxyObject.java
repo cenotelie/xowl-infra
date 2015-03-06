@@ -26,10 +26,7 @@ import org.xowl.store.rdf.*;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents an object in an ontology
@@ -114,7 +111,7 @@ public class ProxyObject {
      * @return The classifiers of this object
      */
     public Collection<ProxyObject> getClassifiers() {
-        return queryObjects(Vocabulary.rdfType);
+        return queryObjects(node(Vocabulary.rdfType));
     }
 
     /**
@@ -124,7 +121,7 @@ public class ProxyObject {
      * @return The value
      */
     public ProxyObject getObjectValue(String property) {
-        Collection<ProxyObject> result = queryObjects(property);
+        Collection<ProxyObject> result = queryObjects(node(property));
         if (result.isEmpty())
             return null;
         return result.iterator().next();
@@ -137,7 +134,7 @@ public class ProxyObject {
      * @return The value
      */
     public Object getDataValue(String property) {
-        Collection<Object> result = queryData(property);
+        Collection<Object> result = queryData(node(property));
         if (result.isEmpty())
             return null;
         return result.iterator().next();
@@ -150,7 +147,7 @@ public class ProxyObject {
      * @return The values
      */
     public Collection<ProxyObject> getObjectValues(String property) {
-        return queryObjects(property);
+        return queryObjects(node(property));
     }
 
     /**
@@ -160,7 +157,7 @@ public class ProxyObject {
      * @return The values
      */
     public Collection<Object> getDataValues(String property) {
-        return queryData(property);
+        return queryData(node(property));
     }
 
     /**
@@ -169,8 +166,12 @@ public class ProxyObject {
      * @param property The property
      * @param value    The new value
      */
-    public void set(String property, ProxyObject value) {
-        set(property, value.entity);
+    public void setValue(String property, ProxyObject value) {
+        IRINode propertyNode = node(property);
+        if (isFunctional(propertyNode)) {
+            removeAllValues(propertyNode);
+        }
+        addValue(propertyNode, value.entity);
     }
 
     /**
@@ -179,8 +180,42 @@ public class ProxyObject {
      * @param property The property
      * @param value    The new value
      */
-    public void set(String property, Object value) {
-        set(property, encode(property, value));
+    public void setValue(String property, Object value) {
+        IRINode propertyNode = node(property);
+        if (isFunctional(propertyNode)) {
+            removeAllValues(propertyNode);
+        }
+        addValue(propertyNode, encode(propertyNode, value));
+    }
+
+    /**
+     * Unsets all values of the property
+     *
+     * @param property The property
+     */
+    public void unset(String property) {
+        removeAllValues(node(property));
+    }
+
+    /**
+     * Unsets the value of a property
+     *
+     * @param property The property
+     * @param value    The value
+     */
+    public void unset(String property, ProxyObject value) {
+        removeValue(node(property), value.entity);
+    }
+
+    /**
+     * Unsets the value of a property
+     *
+     * @param property The property
+     * @param value    The value
+     */
+    public void unset(String property, Object value) {
+        IRINode propertyNode = node(property);
+        removeValue(propertyNode, encode(propertyNode, value));
     }
 
     /**
@@ -188,32 +223,25 @@ public class ProxyObject {
      */
     public void delete() {
         List<Quad> toRemove = new ArrayList<>();
-
-        VariableNode varGraph = new VariableNode("graph");
-        VariableNode varProperty = new VariableNode("property");
-        VariableNode varValue = new VariableNode("value");
-
-        Quad pattern = new Quad(varGraph, entity, varProperty, varValue);
-        Query query = new Query();
-        query.getPositives().add(pattern);
-        Collection<QuerySolution> solutions = repository.getQueryEngine().getRDFBackend().execute(query);
-        for (QuerySolution solution : solutions) {
-            toRemove.add(new Quad((GraphNode) solution.get(varGraph), entity, (Property) solution.get(varProperty), solution.get(varValue)));
-        }
-
-        pattern = new Quad(varGraph, varValue, varProperty, entity);
-        query = new Query();
-        query.getPositives().add(pattern);
-        solutions = repository.getQueryEngine().getRDFBackend().execute(query);
-        for (QuerySolution solution : solutions) {
-            toRemove.add(new Quad((GraphNode) solution.get(varGraph), (SubjectNode) solution.get(varValue), (Property) solution.get(varProperty), entity));
-        }
-
         try {
+            // get all triple of the form
+            // [entity ? ?]
+            Iterator<Quad> iterator = repository.getBackend().getAll(entity, null, null);
+            while (iterator.hasNext()) {
+                toRemove.add(iterator.next());
+            }
+            // get all triple of the form
+            // [? ? entity]
+            iterator = repository.getBackend().getAll(null, null, entity);
+            while (iterator.hasNext()) {
+                toRemove.add(iterator.next());
+            }
+            // remove
             repository.getBackend().insert(new Changeset(new ArrayList<Quad>(0), toRemove));
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }
+        // clear the internal data
         repository.remove(this);
         repository = null;
         ontology = null;
@@ -223,22 +251,23 @@ public class ProxyObject {
     /**
      * Queries the values for the specified property
      *
-     * @param propertyIRI The IRI of a property
+     * @param property The RDF node for the property
      * @return The corresponding values
      */
-    private Collection<ProxyObject> queryObjects(String propertyIRI) {
-        VariableNode varGraph = new VariableNode("graph");
-        VariableNode varValue = new VariableNode("value");
-        Quad pattern = new Quad(varGraph, entity, repository.getBackend().getNodeIRI(propertyIRI), varValue);
-        Query query = new Query();
-        query.getPositives().add(pattern);
-        Collection<QuerySolution> solutions = repository.getQueryEngine().getRDFBackend().execute(query);
-        Collection<ProxyObject> result = new ArrayList<>(solutions.size());
-        for (QuerySolution solution : solutions) {
-            Node node = solution.get(varValue);
-            if (node.getNodeType() == IRINode.TYPE) {
-                result.add(repository.getProxy(((IRINode) node).getIRIValue()));
+    private Collection<ProxyObject> queryObjects(IRINode property) {
+        Collection<ProxyObject> result = new ArrayList<>();
+        try {
+            // get all triple of the form
+            // [entity property ?]
+            Iterator<Quad> iterator = repository.getBackend().getAll(entity, property, null);
+            while (iterator.hasNext()) {
+                Node node = iterator.next().getObject();
+                if (node.getNodeType() == IRINode.TYPE) {
+                    result.add(repository.getProxy(((IRINode) node).getIRIValue()));
+                }
             }
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
         }
         return result;
     }
@@ -246,35 +275,101 @@ public class ProxyObject {
     /**
      * Queries the values for the specified property
      *
-     * @param propertyIRI The IRI of a property
+     * @param property The RDF node for the property
      * @return The corresponding values
      */
-    private Collection<Object> queryData(String propertyIRI) {
-        VariableNode varGraph = new VariableNode("graph");
-        VariableNode varValue = new VariableNode("value");
-        Quad pattern = new Quad(varGraph, entity, repository.getBackend().getNodeIRI(propertyIRI), varValue);
-        Query query = new Query();
-        query.getPositives().add(pattern);
-        Collection<QuerySolution> solutions = repository.getQueryEngine().getRDFBackend().execute(query);
-        Collection<Object> result = new ArrayList<>(solutions.size());
-        for (QuerySolution solution : solutions) {
-            Node node = solution.get(varValue);
-            if (node.getNodeType() == LiteralNode.TYPE) {
-                result.add(retrieve((LiteralNode) node));
+    private Collection<Object> queryData(IRINode property) {
+        Collection<Object> result = new ArrayList<>();
+        try {
+            // get all triple of the form
+            // [entity property ?]
+            Iterator<Quad> iterator = repository.getBackend().getAll(entity, property, null);
+            while (iterator.hasNext()) {
+                Node node = iterator.next().getObject();
+                if (node.getNodeType() == LiteralNode.TYPE) {
+                    result.add(decode((LiteralNode) node));
+                }
             }
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
         }
         return result;
     }
 
     /**
-     * Sets the value of the specified property
+     * Adds the triple for the specified property and value
      *
-     * @param property The property's IRI
-     * @param value    The value to set
+     * @param property The RDF node for the property
+     * @param value    The value
      */
-    private void set(String property, Node value) {
-        // check whether the property is functional
-        // TODO: implement
+    private void addValue(IRINode property, Node value) {
+        try {
+            repository.getBackend().add(repository.getGraph(ontology), entity, property, value);
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
+        }
+    }
+
+    /**
+     * Removes the triple for the specified property and value
+     *
+     * @param property The RDF node for the property
+     * @param value    The value
+     */
+    private void removeValue(IRINode property, Node value) {
+        try {
+            repository.getBackend().remove(repository.getGraph(ontology), entity, property, value);
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
+        }
+    }
+
+    /**
+     * Removes all the triple for the specified property
+     *
+     * @param property The RDF node for the property
+     */
+    private void removeAllValues(IRINode property) {
+        try {
+            // get all triple of the form
+            // [entity property ?]
+            Iterator<Quad> iterator = repository.getBackend().getAll(entity, property, null);
+            List<Quad> toRemove = new ArrayList<>();
+            while (iterator.hasNext()) {
+                toRemove.add(iterator.next());
+            }
+            repository.getBackend().insert(new Changeset(new ArrayList<Quad>(0), toRemove));
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
+        }
+    }
+
+    /**
+     * Gets whether the specified property is functional
+     *
+     * @param property The RDF node for the property
+     * @return true if the property is functional, false otherwise
+     */
+    private boolean isFunctional(IRINode property) {
+        try {
+            // do we have the triple:
+            // [property rdf:type owl:FunctionalProperty]
+            int count = repository.getBackend().count(null, property, node(Vocabulary.rdfType), node(Vocabulary.owlFunctionalProperty));
+            return count > 1;
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen here
+            return false;
+        }
+    }
+
+    /**
+     * Gets the RDF IRI node for the specified IRI
+     *
+     * @param iri An IRI
+     * @return The associated IRI node
+     */
+    private IRINode node(String iri) {
+        return repository.getBackend().getNodeIRI(iri);
     }
 
     /**
@@ -283,7 +378,7 @@ public class ProxyObject {
      * @param node A RDF Literal node
      * @return The corresponding data
      */
-    private Object retrieve(LiteralNode node) {
+    private Object decode(LiteralNode node) {
         String lexicalValue = node.getLexicalValue();
         switch (node.getDatatype()) {
             case Vocabulary.xsdTime:
@@ -336,7 +431,7 @@ public class ProxyObject {
      * @param value    A data value
      * @return The literal node
      */
-    private LiteralNode encode(String property, Object value) {
+    private LiteralNode encode(IRINode property, Object value) {
         String range = getRangeOf(property);
         switch (range) {
             case Vocabulary.xsdTime:
@@ -377,23 +472,26 @@ public class ProxyObject {
     /**
      * Gets the range of the specified property
      *
-     * @param property A property
+     * @param property The RDF node for the property
      * @return The range's IRI
      */
-    private String getRangeOf(String property) {
-        VariableNode varGraph = new VariableNode("graph");
-        VariableNode varValue = new VariableNode("value");
-        Quad pattern = new Quad(varGraph, repository.getBackend().getNodeIRI(property), repository.getBackend().getNodeIRI(Vocabulary.rdfsRange), varValue);
-        Query query = new Query();
-        query.getPositives().add(pattern);
-        Collection<QuerySolution> solutions = repository.getQueryEngine().getRDFBackend().execute(query);
-        for (QuerySolution solution : solutions) {
-            Node node = solution.get(varValue);
-            if (node.getNodeType() == IRINode.TYPE) {
-                return ((IRINode) node).getIRIValue();
-            }
+    private String getRangeOf(IRINode property) {
+        try {
+            // get all the triple like
+            // [property rdfs:range ?]
+            Iterator<Quad> iterator = repository.getBackend().getAll(property, node(Vocabulary.rdfsRange), null);
+            if (!iterator.hasNext())
+                // range is undefined, return xsd:String
+                return Vocabulary.xsdString;
+            Node rangeNode = iterator.next().getObject();
+            if (rangeNode.getNodeType() == IRINode.TYPE)
+                return ((IRINode) rangeNode).getIRIValue();
+            // range is defined, but is either a blank, or an anonymous node, return xsd:String
+            return Vocabulary.xsdString;
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen here
+            return null;
         }
-        return null;
     }
 
     @Override

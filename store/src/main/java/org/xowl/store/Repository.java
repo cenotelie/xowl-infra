@@ -152,6 +152,21 @@ public class Repository extends AbstractRepository {
         sub.remove(proxy.getIRIString());
     }
 
+    /**
+     * Resolves a graph node for the specified ontology
+     *
+     * @param ontology An ontology
+     * @return The associated graph node
+     */
+    protected GraphNode getGraph(Ontology ontology) {
+        GraphNode node = graphs.get(ontology);
+        if (node != null)
+            return node;
+        node = backend.getNodeIRI(ontology.getHasIRI().getHasValue());
+        graphs.put(ontology, node);
+        return node;
+    }
+
     @Override
     protected Loader newRDFLoader(String syntax) {
         switch (syntax) {
@@ -169,8 +184,7 @@ public class Repository extends AbstractRepository {
 
     @Override
     protected void loadResourceQuads(Logger logger, Ontology ontology, Collection<Quad> quads) {
-        GraphNode graphNode = backend.getNodeIRI(ontology.getHasIRI().getHasValue());
-        graphs.put(ontology, graphNode);
+        getGraph(ontology);
         try {
             backend.insert(new Changeset(quads, new ArrayList<Quad>(0)));
         } catch (UnsupportedNodeType ex) {

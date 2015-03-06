@@ -36,4 +36,22 @@ public class Couple<X, Y> {
      * The second element
      */
     public Y y;
+
+    /**
+     * Initializes this couple
+     */
+    public Couple() {
+
+    }
+
+    /**
+     * Initializes this couple
+     *
+     * @param x The first element
+     * @param y The second element
+     */
+    public Couple(X x, Y y) {
+        this.x = x;
+        this.y = y;
+    }
 }
