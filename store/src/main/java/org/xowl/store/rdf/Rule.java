@@ -20,6 +20,7 @@
 package org.xowl.store.rdf;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -42,7 +43,7 @@ public class Rule {
     /**
      * The negative antecedents conjunctions to NOT match in the source ontology
      */
-    private List<List<Quad>> antecedentSourceNegatives;
+    private List<Collection<Quad>> antecedentSourceNegatives;
     /**
      * The positive antecedents to match in the meta ontology
      */
@@ -50,7 +51,7 @@ public class Rule {
     /**
      * The negative antecedents conjunctions to NOT match in the meta ontology
      */
-    private List<List<Quad>> antecedentMetaNegatives;
+    private List<Collection<Quad>> antecedentMetaNegatives;
     /**
      * The positive consequents for the target ontology
      */
@@ -67,14 +68,6 @@ public class Rule {
      * The negative consequents for the meta ontology
      */
     private List<Quad> consequentMetaNegatives;
-    /**
-     * The variables found in the antecedents
-     */
-    private List<VariableNode> antecedentVariables;
-    /**
-     * The variables found in the consequents
-     */
-    private List<VariableNode> consequentVariables;
 
     /**
      * Gets the rule's identifying IRI
@@ -99,7 +92,7 @@ public class Rule {
      *
      * @return The negative antecedents conjunctions to NOT match in the source ontology
      */
-    public List<List<Quad>> getAntecedentSourceNegatives() {
+    public List<Collection<Quad>> getAntecedentSourceNegatives() {
         return antecedentSourceNegatives;
     }
 
@@ -117,7 +110,7 @@ public class Rule {
      *
      * @return The negative antecedents conjunctions to NOT match in the meta ontology
      */
-    public List<List<Quad>> getAntecedentMetaNegatives() {
+    public List<Collection<Quad>> getAntecedentMetaNegatives() {
         return antecedentMetaNegatives;
     }
 
@@ -172,7 +165,5 @@ public class Rule {
         this.consequentTargetNegatives = new ArrayList<>();
         this.consequentMetaPositives = new ArrayList<>();
         this.consequentMetaNegatives = new ArrayList<>();
-        this.antecedentVariables = new ArrayList<>();
-        this.consequentVariables = new ArrayList<>();
     }
 }

@@ -49,6 +49,14 @@ public interface Evaluator {
     boolean can(QueryVariable variable);
 
     /**
+     * Evaluates the specified expression
+     *
+     * @param expression An expression
+     * @return The evaluated value
+     */
+    Object eval(Expression expression);
+
+    /**
      * Evaluates the specified class expression
      *
      * @param expression A class expression

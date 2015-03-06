@@ -20,16 +20,17 @@
 
 package org.xowl.store.owl;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Literal;
+import org.xowl.lang.owl2.*;
+import org.xowl.lang.runtime.Entity;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.*;
 import org.xowl.utils.data.Attribute;
 import org.xowl.utils.data.Dataset;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Represents a store of RDF store with xOWL extensions
@@ -74,20 +75,6 @@ public class XOWLStore extends RDFStore {
     }
 
     /**
-     * Gets the IRI nodes that are within the specified iri namespace
-     *
-     * @param iri An iri namespace
-     * @return The corresponding IRI nodes
-     */
-    public Collection<IRINode> getNodesWithin(String iri) {
-        List<IRINode> result = new ArrayList<>();
-        for (IRINode node : mapNodeIRIs.values())
-            if (node.getIRIValue().startsWith(iri))
-                result.add(node);
-        return result;
-    }
-
-    /**
      * Gets the OWL element represented by the specified RDF node
      *
      * @param node A RDF node
@@ -127,6 +114,35 @@ public class XOWLStore extends RDFStore {
             }
         }
         return null;
+    }
+
+    /**
+     * Gets the RDF node representing the specified OWL element
+     *
+     * @param element An OWL element
+     * @return The representing RDF node
+     */
+    public Node getRDF(Object element) {
+        if (element instanceof IRI) {
+            return getNodeIRI(((IRI) element).getHasValue());
+        } else if (element instanceof Entity) {
+            return getNodeIRI(((Entity) element).getHasIRI().getHasValue());
+        } else if (element instanceof Ontology) {
+            return getNodeIRI(((Ontology) element).getHasIRI().getHasValue());
+        } else if (element instanceof AnonymousIndividual) {
+            return getAnonymousNode((AnonymousIndividual) element);
+        } else if (element instanceof Literal) {
+            Literal literal = (Literal) element;
+            return getLiteralNode(literal.getLexicalValue(), literal.getMemberOf().getHasValue(), literal.getLangTag());
+        } else if (element instanceof org.xowl.lang.runtime.Literal) {
+            org.xowl.lang.runtime.Literal literal = (org.xowl.lang.runtime.Literal) element;
+            return getLiteralNode(literal.getLexicalValue(), literal.getMemberOf().getInterpretationOf().getHasIRI().getHasValue(), literal.getLangTag());
+        } else if (element instanceof Expression) {
+            return new DynamicNode((Expression) element);
+        } else {
+            // TODO: throw an error here
+            return null;
+        }
     }
 
     /**

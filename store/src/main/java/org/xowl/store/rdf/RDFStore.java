@@ -105,6 +105,25 @@ public class RDFStore implements ChangeListener {
 
 
     /**
+     * Default URIs for the anonymous RDF graphs
+     */
+    private static final String DEFAULT_GRAPH_URIS = "http://xowl.org/store/rdfgraphs/";
+    /**
+     * URI of the default graph
+     */
+    private static final String DEFAULT_GRAPH = "http://xowl.org/store/rdfgraphs/default";
+
+    /**
+     * Creates the URI of a new anonymous RDF graph
+     *
+     * @return The URI of a new anonymous RDF graph
+     */
+    public static String createAnonymousGraph() {
+        return DEFAULT_GRAPH_URIS + UUID.randomUUID().toString();
+    }
+
+
+    /**
      * The embedded string store
      */
     protected StringStore sStore;
@@ -210,11 +229,11 @@ public class RDFStore implements ChangeListener {
      * @return The new IRI node
      */
     public IRINode newNodeIRI(GraphNode graph) {
-        if (graph.getNodeType() == IRINode.TYPE) {
+        if (graph != null && graph.getNodeType() == IRINode.TYPE) {
             String value = ((IRINode) graph).getIRIValue();
             return getNodeIRI(value + "#" + UUID.randomUUID().toString());
         } else {
-            return getNodeIRI("http://xowl.org/store#" + UUID.randomUUID().toString());
+            return getNodeIRI(DEFAULT_GRAPH + "#" + UUID.randomUUID().toString());
         }
     }
 

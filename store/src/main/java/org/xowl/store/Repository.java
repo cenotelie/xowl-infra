@@ -22,9 +22,8 @@ package org.xowl.store;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.*;
 import org.xowl.store.owl.QueryEngine;
-import org.xowl.store.owl.TranslationException;
-import org.xowl.store.owl.Translator;
-import org.xowl.store.owl.XOWLStore;
+import org.xowl.store.owl.RuleEngine;
+import org.xowl.store.owl.*;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.Logger;
 
@@ -53,9 +52,13 @@ public class Repository extends AbstractRepository {
      */
     private Map<Ontology, Map<String, ProxyObject>> proxies;
     /**
-     * The query engine for this
+     * The query engine for this repository
      */
     private QueryEngine queryEngine;
+    /**
+     * The rule engine for this repository
+     */
+    private RuleEngine ruleEngine;
 
     /**
      * Gets the backend store
@@ -71,8 +74,17 @@ public class Repository extends AbstractRepository {
      *
      * @return The associated query engine
      */
-    protected QueryEngine getQueryEngine() {
+    public QueryEngine getQueryEngine() {
         return queryEngine;
+    }
+
+    /**
+     * Gets the associated rule engine
+     *
+     * @return The associated rule engine
+     */
+    public RuleEngine getRuleEngine() {
+        return ruleEngine;
     }
 
     /**
@@ -100,6 +112,7 @@ public class Repository extends AbstractRepository {
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
         this.queryEngine = new QueryEngine(backend, null);
+        this.ruleEngine = new RuleEngine(backend, null);
     }
 
     /**

@@ -318,8 +318,27 @@ public class RuleEngine implements ChangeListener {
             result = store.newNodeIRI(graph);
             creations.put(variable, result);
             return result;
-        } else {
+        } else if (node.getNodeType() == IRINode.TYPE) {
             return node;
+        } else if (node.getNodeType() == BlankNode.TYPE) {
+            return node;
+        } else if (node.getNodeType() == LiteralNode.TYPE) {
+            return node;
+        } else {
+            return processOtherNode(graph, node, bindings, creations);
         }
+    }
+
+    /**
+     * Processes the specified node that is not supported by this engine
+     *
+     * @param graph     The parent graph
+     * @param node      The node to process
+     * @param bindings  The map of bindings
+     * @param creations The map of creations
+     * @return The processed node
+     */
+    protected Node processOtherNode(GraphNode graph, Node node, Map<VariableNode, Node> bindings, Map<VariableNode, Node> creations) {
+        return node;
     }
 }

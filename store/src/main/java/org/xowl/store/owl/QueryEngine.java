@@ -21,7 +21,7 @@ package org.xowl.store.owl;
 
 import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.Axiom;
-import org.xowl.store.loaders.Utils;
+import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.VariableNode;
 
 import java.util.*;
@@ -45,18 +45,9 @@ public class QueryEngine {
      */
     private org.xowl.store.rdf.QueryEngine rdfEngine;
     /**
-     * The IRI of the graph for the translated quads
+     * The graph for the translated quads
      */
-    private String graphIRI;
-
-    /**
-     * Gets the RDF backend engine
-     *
-     * @return The RDF backend engine
-     */
-    public org.xowl.store.rdf.QueryEngine getRDFBackend() {
-        return rdfEngine;
-    }
+    private GraphNode graph;
 
     /**
      * Initializes this engine
@@ -68,7 +59,7 @@ public class QueryEngine {
         this.store = store;
         this.evaluator = evaluator;
         this.rdfEngine = new org.xowl.store.rdf.QueryEngine(store);
-        this.graphIRI = Utils.createAnonymousGraph();
+        this.graph = new VariableNode("__graph__");
     }
 
     /**
@@ -103,10 +94,10 @@ public class QueryEngine {
         org.xowl.store.rdf.Query result = new org.xowl.store.rdf.Query();
         Translator translator = new Translator(context, store, evaluator);
         // translate the positive axioms
-        result.getPositives().addAll(translator.translate(query.getPositives(), graphIRI));
+        result.getPositives().addAll(translator.translate(query.getPositives(), graph));
         // translate the negative conjunctions
         for (Collection<Axiom> conjunction : query.getNegatives()) {
-            result.getNegatives().add(translator.translate(conjunction, graphIRI));
+            result.getNegatives().add(translator.translate(conjunction, graph));
         }
         return result;
     }

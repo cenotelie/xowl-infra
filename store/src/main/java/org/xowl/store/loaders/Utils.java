@@ -30,20 +30,6 @@ import java.util.UUID;
  */
 public class Utils {
     /**
-     * Default URIs for the anonymous RDF graphs
-     */
-    private static final String DEFAULT_GRAPH_URIS = "http://xowl.org/store/rdfgraphs/";
-
-    /**
-     * Creates the URI of a new anonymous RDF graph
-     *
-     * @return The URI of a new anonymous RDF graph
-     */
-    public static String createAnonymousGraph() {
-        return DEFAULT_GRAPH_URIS + UUID.randomUUID().toString();
-    }
-
-    /**
      * Strings containing the escaped glyphs
      */
     private static final String ESCAPED_GLYHPS = "\\'\"_~.!$&()*+,;=/?#@%-";

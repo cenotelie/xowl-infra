@@ -65,7 +65,7 @@ public class Translator {
     /**
      * The graph that contains the translated input
      */
-    protected IRINode graph;
+    protected GraphNode graph;
     /**
      * The resulting triples
      */
@@ -107,20 +107,20 @@ public class Translator {
         for (Axiom axiom : input.getAxioms())
             translateAxiom(axiom);
         for (Annotation annotation : input.getAnnotations())
-            translateAnnotation(graph, annotation);
+            translateAnnotation((SubjectNode) graph, annotation);
         return quads;
     }
 
     /**
      * Translates the specified axioms
      *
-     * @param input    The OWL axioms to translate
-     * @param graphIRI The IRI of the target graph
+     * @param input The OWL axioms to translate
+     * @param graph The target graph
      * @return The translation result
      * @throws TranslationException When a runtime entity is not named
      */
-    public Collection<Quad> translate(Collection<Axiom> input, String graphIRI) throws TranslationException {
-        graph = store.getNodeIRI(graphIRI);
+    public Collection<Quad> translate(Collection<Axiom> input, GraphNode graph) throws TranslationException {
+        this.graph = graph;
         quads = new ArrayList<>();
         for (Axiom axiom : input)
             translateAxiom(axiom);
