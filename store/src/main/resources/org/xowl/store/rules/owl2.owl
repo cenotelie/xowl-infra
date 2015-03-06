@@ -1,0 +1,33 @@
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Prefix(:=<http://xowl.org/store/rules/owl2#>)
+
+Ontology(<http://xowl.org/store/rules/owl2>
+	Rule(:TransitiveSubClassing
+		Antecedents(
+			ClassAssertion(?c ?x)
+			SubClassOf(?c ?u)
+		)
+		Consequents(
+			ClassAssertion(?u ?x)
+		)
+	)
+	
+	Rule(:InverseRelations
+		Antecedents(
+			InverseObjectProperties(?p1 ?p2)
+		)
+		Consequents(
+			InverseObjectProperties(?p2 ?p1)
+		)
+	)
+	
+	Rule(:InverseAssertions
+		Antecedents(
+			InverseObjectProperties(?p1 ?p2)
+			ObjectPropertyAssertion(?p1 ?o1 ?o2)
+		)
+		Consequents(
+			ObjectPropertyAssertion(?p2 ?o2 ?o1)
+		)
+	)
+)

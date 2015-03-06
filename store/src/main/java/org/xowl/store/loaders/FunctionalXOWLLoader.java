@@ -105,6 +105,7 @@ public class FunctionalXOWLLoader extends FunctionalOWL2Loader {
     protected Assertion loadAssertion(ASTNode node) {
         Assertion assertion = new Assertion();
         assertion.setIsPositive(true);
+        assertion.setIsMeta(false);
         for (ASTNode child : node.getChildren()) {
             if (child.getSymbol().getID() == FunctionalXOWLLexer.ID.RULE_ELEMENT_META)
                 assertion.setIsMeta(true);

@@ -20,6 +20,7 @@
 package org.xowl.store;
 
 import org.xowl.lang.owl2.Ontology;
+import org.xowl.lang.rules.Rule;
 import org.xowl.store.loaders.*;
 import org.xowl.store.owl.QueryEngine;
 import org.xowl.store.owl.RuleEngine;
@@ -98,6 +99,7 @@ public class Repository extends AbstractRepository {
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
         this.queryEngine = new QueryEngine(backend, null);
+        this.ruleEngine = new RuleEngine(backend, null);
     }
 
     /**
@@ -113,6 +115,15 @@ public class Repository extends AbstractRepository {
         this.proxies = new HashMap<>();
         this.queryEngine = new QueryEngine(backend, null);
         this.ruleEngine = new RuleEngine(backend, null);
+    }
+
+    /**
+     * Adds the default inference rules to the rule engine
+     *
+     * @param logger The logger to use
+     */
+    public void addDefaultInferenceRules(Logger logger) {
+        load(logger, "http://xowl.org/store/rules/owl2");
     }
 
     /**
@@ -215,6 +226,10 @@ public class Repository extends AbstractRepository {
             loadResourceQuads(logger, ontology, quads);
         } catch (TranslationException ex) {
             logger.error(ex);
+        }
+
+        for (Rule rule : input.getRules()) {
+            ruleEngine.add(rule, null, null, null);
         }
     }
 }
