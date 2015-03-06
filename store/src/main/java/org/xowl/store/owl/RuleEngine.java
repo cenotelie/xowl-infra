@@ -85,9 +85,9 @@ public class RuleEngine {
      * @param rule The rule to add
      */
     public void add(Rule rule, Ontology source, Ontology target, Ontology meta) {
-        GraphNode graphSource = getGraph(source);
-        GraphNode graphTarget = getGraph(target);
-        GraphNode graphMeta = getGraph(meta);
+        GraphNode graphSource = getGraph(source, true);
+        GraphNode graphTarget = getGraph(target, false);
+        GraphNode graphMeta = getGraph(meta, false);
         org.xowl.store.rdf.Rule rdfRule = new org.xowl.store.rdf.Rule(rule.getHasIRI().getHasValue());
         Translator translator = new Translator(new TranslationContext(), store, evaluator);
         List<Axiom> positiveNormal = new ArrayList<>();
@@ -164,12 +164,17 @@ public class RuleEngine {
     /**
      * Gets the graph node for the specified ontology
      *
-     * @param ontology An ontology
+     * @param ontology      An ontology
+     * @param allowsPattern Whether to allow the graph to be part of the pattern
      * @return The associated graph node
      */
-    private GraphNode getGraph(Ontology ontology) {
-        if (ontology == null)
-            return store.getNodeIRI(RDFStore.createAnonymousGraph());
+    private GraphNode getGraph(Ontology ontology, boolean allowsPattern) {
+        if (ontology == null) {
+            if (allowsPattern)
+                return new VariableNode("__graph__");
+            else
+                return store.getNodeIRI(RDFStore.createAnonymousGraph());
+        }
         return store.getNodeIRI(ontology.getHasIRI().getHasValue());
     }
 }

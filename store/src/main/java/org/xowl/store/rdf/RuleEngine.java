@@ -304,17 +304,6 @@ public class RuleEngine implements ChangeListener {
             if (result != null)
                 return result;
             // new creation
-            if (graph.getNodeType() == VariableNode.TYPE) {
-                if (bindings.containsKey(graph)) {
-                    graph = (GraphNode) bindings.get(graph);
-                } else if (creations.containsKey(graph)) {
-                    graph = (GraphNode) creations.get(graph);
-                } else {
-                    result = store.newNodeIRI(graph);
-                    creations.put((VariableNode) graph, result);
-                    graph = (GraphNode) result;
-                }
-            }
             result = store.newNodeIRI(graph);
             creations.put(variable, result);
             return result;
