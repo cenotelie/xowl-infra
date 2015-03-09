@@ -443,7 +443,7 @@ public class RDFStore implements ChangeListener {
      */
     protected int doAddEdgeFromBlank(GraphNode graph, BlankNode subject, Property property, Node value) {
         int key = subject.getBlankID();
-        while (key > edgesBlank.length)
+        while (key >= edgesBlank.length)
             edgesBlank = Arrays.copyOf(edgesBlank, edgesBlank.length + INIT_BLANK_SIZE);
         EdgeBucket bucket = edgesBlank[key];
         if (bucket == null) {

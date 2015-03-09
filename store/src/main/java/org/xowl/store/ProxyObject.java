@@ -115,6 +115,29 @@ public class ProxyObject {
     }
 
     /**
+     * Gets the instances of this objects, i.e. objects classified by this object
+     *
+     * @return the instances of this object
+     */
+    public Collection<ProxyObject> getInstances() {
+        Collection<ProxyObject> result = new ArrayList<>();
+        try {
+            // get all triple of the form
+            // [entity property ?]
+            Iterator<Quad> iterator = repository.getBackend().getAll(null, node(Vocabulary.rdfType), entity);
+            while (iterator.hasNext()) {
+                Node node = iterator.next().getSubject();
+                if (node.getNodeType() == IRINode.TYPE) {
+                    result.add(repository.getProxy(((IRINode) node).getIRIValue()));
+                }
+            }
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
+        }
+        return result;
+    }
+
+    /**
      * Gets the value for the specified object property
      *
      * @param property An object property
