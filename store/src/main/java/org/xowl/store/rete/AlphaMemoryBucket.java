@@ -118,6 +118,7 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
 
         for (int i = 0; i != nodes.length; i++) {
             if (nodes[i] == null) {
+                nodes[i] = node;
                 subs[i] = createSub();
                 size++;
                 return subs[i].resolveMemory(pattern, store);
@@ -126,23 +127,6 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
 
         // cannot happen
         return null;
-    }
-
-    @Override
-    public void removeMemory(Quad quad) {
-        Node node = getNode(quad);
-        if (node == null || node.getNodeType() == VariableNode.TYPE) {
-            catchAll = null;
-            return;
-        }
-
-        for (int i = 0; i != nodes.length; i++) {
-            if (nodes[i] == node) {
-                subs[i] = null;
-                size--;
-                return;
-            }
-        }
     }
 
     /**

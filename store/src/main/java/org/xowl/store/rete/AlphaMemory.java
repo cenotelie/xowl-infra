@@ -69,28 +69,28 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     @Override
     public void activateFact(Quad fact) {
         facts.add(fact);
-        for (int i = children.size() - 1; i != 0; i--)
+        for (int i = children.size() - 1; i != -1; i--)
             children.get(i).activateFact(fact);
     }
 
     @Override
     public void deactivateFact(Quad fact) {
         facts.remove(fact);
-        for (int i = children.size() - 1; i != 0; i--)
+        for (int i = children.size() - 1; i != -1; i--)
             children.get(i).deactivateFact(fact);
     }
 
     @Override
     public void activateFacts(Collection<Quad> facts) {
         this.facts.addAll(facts);
-        for (int i = children.size() - 1; i != 0; i--)
+        for (int i = children.size() - 1; i != -1; i--)
             children.get(i).activateFacts(new FastBuffer<>(facts));
     }
 
     @Override
     public void deactivateFacts(Collection<Quad> facts) {
         this.facts.removeAll(facts);
-        for (int i = children.size() - 1; i != 0; i--)
+        for (int i = children.size() - 1; i != -1; i--)
             children.get(i).deactivateFacts(new FastBuffer<>(facts));
     }
 
@@ -114,10 +114,5 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
             }
         }
         return this;
-    }
-
-    @Override
-    public void removeMemory(Quad quad) {
-
     }
 }

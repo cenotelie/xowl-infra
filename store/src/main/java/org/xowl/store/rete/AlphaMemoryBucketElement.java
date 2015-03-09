@@ -45,11 +45,4 @@ interface AlphaMemoryBucketElement {
      * @return The associated memory
      */
     AlphaMemory resolveMemory(Quad pattern, RDFStore store);
-
-    /**
-     * Removes the alpha memory associated to the specified data
-     *
-     * @param quad The data to match
-     */
-    void removeMemory(Quad quad);
 }

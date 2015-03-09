@@ -132,9 +132,13 @@ class AlphaGraph extends AlphaMemoryBucket {
      * @param quads A collection of quads
      */
     public void fire(Collection<Quad> quads) {
-        Map<AlphaMemory, Collection<Quad>> dispatch = buildDispatch(quads);
-        for (Entry<AlphaMemory, Collection<Quad>> entry : dispatch.entrySet())
-            entry.getKey().activateFacts(new FastBuffer<>(entry.getValue()));
+        if (quads.size() == 1) {
+            fire(quads.iterator().next());
+        } else {
+            Map<AlphaMemory, Collection<Quad>> dispatch = buildDispatch(quads);
+            for (Entry<AlphaMemory, Collection<Quad>> entry : dispatch.entrySet())
+                entry.getKey().activateFacts(new FastBuffer<>(entry.getValue()));
+        }
     }
 
     /**
@@ -143,9 +147,13 @@ class AlphaGraph extends AlphaMemoryBucket {
      * @param quads A collection of quads
      */
     public void unfire(Collection<Quad> quads) {
-        Map<AlphaMemory, Collection<Quad>> dispatch = buildDispatch(quads);
-        for (Entry<AlphaMemory, Collection<Quad>> entry : dispatch.entrySet())
-            entry.getKey().deactivateFacts(new FastBuffer<>(entry.getValue()));
+        if (quads.size() == 1) {
+            unfire(quads.iterator().next());
+        } else {
+            Map<AlphaMemory, Collection<Quad>> dispatch = buildDispatch(quads);
+            for (Entry<AlphaMemory, Collection<Quad>> entry : dispatch.entrySet())
+                entry.getKey().deactivateFacts(new FastBuffer<>(entry.getValue()));
+        }
     }
 
     /**
@@ -167,6 +175,7 @@ class AlphaGraph extends AlphaMemoryBucket {
                 }
                 collec.add(quad);
             }
+            buffer.clear();
         }
         return map;
     }
