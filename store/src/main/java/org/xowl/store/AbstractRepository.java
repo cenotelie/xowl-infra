@@ -169,9 +169,10 @@ public abstract class AbstractRepository {
      *
      * @param logger The current logger
      * @param iri    The resource's IRI
+     * @return The loaded ontology
      */
-    public void load(Logger logger, String iri) {
-        loadResource(logger, iri);
+    public Ontology load(Logger logger, String iri) {
+        Ontology result = loadResource(logger, iri);
         while (!dependencies.isEmpty()) {
             List<String> batch = new ArrayList<>(dependencies);
             dependencies.clear();
@@ -179,6 +180,7 @@ public abstract class AbstractRepository {
                 loadResource(logger, dependency);
             }
         }
+        return result;
     }
 
     /**
@@ -245,20 +247,21 @@ public abstract class AbstractRepository {
      *
      * @param logger The current logger
      * @param iri    The resource's IRI
+     * @return The loaded ontology
      */
-    private void loadResource(Logger logger, String iri) {
+    private Ontology loadResource(Logger logger, String iri) {
         String resource = mapper.get(iri);
         if (resource == null) {
             logger.error("Cannot identify the location of " + iri);
-            return;
+            return null;
         }
         Reader reader = getReaderFor(logger, resource);
         if (reader == null)
-            return;
+            return null;
         String syntax = getSyntax(logger, resource);
         if (syntax == null)
-            return;
-        loadResource(logger, reader, iri, syntax);
+            return null;
+        return loadResource(logger, reader, iri, syntax);
     }
 
     /**
@@ -268,10 +271,12 @@ public abstract class AbstractRepository {
      * @param reader The input reader
      * @param iri    The resource's IRI
      * @param syntax The resource's syntax
+     * @return The loaded ontology
      */
-    private void loadResource(Logger logger, Reader reader, String iri, String syntax) {
-        if (resources.containsKey(iri))
-            return;
+    private Ontology loadResource(Logger logger, Reader reader, String iri, String syntax) {
+        Ontology ontology = resources.get(iri);
+        if (ontology != null)
+            return ontology;
         switch (syntax) {
             case SYNTAX_NTRIPLES:
             case SYNTAX_NQUADS:
@@ -279,19 +284,19 @@ public abstract class AbstractRepository {
             case SYNTAX_RDFXML: {
                 Loader loader = newRDFLoader(syntax);
                 List<Quad> quads = loader.loadQuads(logger, reader, iri);
-                loadResourceRDF(logger, iri, quads);
+                ontology = loadResourceRDF(logger, iri, quads);
                 break;
             }
             case SYNTAX_FUNCTIONAL_OWL2: {
                 Loader loader = new FunctionalOWL2Loader();
                 LoaderResult input = loader.loadAxioms(logger, reader, iri);
-                loadResourceOWL(logger, iri, input);
+                ontology = loadResourceOWL(logger, iri, input);
                 break;
             }
             case SYNTAX_FUNCTIONAL_XOWL: {
                 Loader loader = new FunctionalXOWLLoader();
                 LoaderResult input = loader.loadAxioms(logger, reader, iri);
-                loadResourceOWL(logger, iri, input);
+                ontology = loadResourceOWL(logger, iri, input);
                 break;
             }
         }
@@ -300,6 +305,7 @@ public abstract class AbstractRepository {
         } catch (IOException ex) {
             logger.error(ex);
         }
+        return ontology;
     }
 
     /**
@@ -308,10 +314,12 @@ public abstract class AbstractRepository {
      * @param logger The current logger
      * @param iri    The resource's IRI
      * @param input  The resource's content
+     * @return The loaded ontology
      */
-    private void loadResourceRDF(Logger logger, String iri, List<Quad> input) {
+    private Ontology loadResourceRDF(Logger logger, String iri, List<Quad> input) {
         Ontology ontology = registerResource(iri, iri);
         loadResourceQuads(logger, ontology, input);
+        return ontology;
     }
 
     /**
@@ -320,12 +328,14 @@ public abstract class AbstractRepository {
      * @param logger The current logger
      * @param iri    The resource's IRI
      * @param input  The resource's content
+     * @return The loaded ontology
      */
-    private void loadResourceOWL(Logger logger, String iri, LoaderResult input) {
+    private Ontology loadResourceOWL(Logger logger, String iri, LoaderResult input) {
         Ontology ontology = registerResource(iri, input.getIRI());
         for (String importedIRI : input.getImports())
             dependencies.add(importedIRI);
         loadResourceOntology(logger, ontology, input);
+        return ontology;
     }
 
     /**
