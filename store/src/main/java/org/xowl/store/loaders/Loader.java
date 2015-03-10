@@ -21,11 +21,9 @@
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ParseResult;
-import org.xowl.store.rdf.Quad;
 import org.xowl.utils.Logger;
 
 import java.io.Reader;
-import java.util.List;
 
 /**
  * Represents a loader of serialized data
@@ -48,9 +46,9 @@ public interface Loader {
      * @param logger The logger to use
      * @param reader The resource's reader
      * @param uri    The resource's URI
-     * @return The loaded quads, or <code>null</code> if an error occured
+     * @return The loaded data
      */
-    public List<Quad> loadQuads(Logger logger, Reader reader, String uri);
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri);
 
     /**
      * Loads axioms from the specified input
@@ -60,5 +58,5 @@ public interface Loader {
      * @param uri    The resource's URI
      * @return The loaded data
      */
-    public LoaderResult loadAxioms(Logger logger, Reader reader, String uri);
+    public OWLLoaderResult loadOWL(Logger logger, Reader reader, String uri);
 }

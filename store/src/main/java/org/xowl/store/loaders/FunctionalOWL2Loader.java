@@ -26,14 +26,12 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.*;
 import org.xowl.store.Vocabulary;
-import org.xowl.store.rdf.Quad;
 import org.xowl.utils.Files;
 import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -62,7 +60,7 @@ public class FunctionalOWL2Loader implements Loader {
     /**
      * The cached result
      */
-    protected LoaderResult cache;
+    protected OWLLoaderResult cache;
 
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
@@ -87,12 +85,12 @@ public class FunctionalOWL2Loader implements Loader {
     }
 
     @Override
-    public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public LoaderResult loadAxioms(Logger logger, Reader reader, String uri) {
+    public OWLLoaderResult loadOWL(Logger logger, Reader reader, String uri) {
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
             return null;
@@ -127,16 +125,16 @@ public class FunctionalOWL2Loader implements Loader {
             if (nodeIRIs.getChildren().size() > 1)
                 version = loadIRI(nodeIRIs.getChildren().get(1));
         }
-        this.cache = new LoaderResult(baseURI, version);
-        // loadAxioms the imports
+        this.cache = new OWLLoaderResult(baseURI, version);
+        // loadOWL the imports
         for (ASTNode child : node.getChildren().get(1).getChildren()) {
             cache.addImport(loadIRI(child));
         }
-        // loadAxioms the annotations
+        // loadOWL the annotations
         for (ASTNode child : node.getChildren().get(2).getChildren()) {
             cache.addAnnotation(loadAnnotation(child));
         }
-        // loadAxioms the axioms
+        // loadOWL the axioms
         for (ASTNode child : node.getChildren().get(3).getChildren()) {
             loadElement(child);
         }

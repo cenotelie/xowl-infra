@@ -11,7 +11,27 @@ Ontology(<http://xowl.org/store/rules/owl2>
 			ClassAssertion(?u ?x)
 		)
 	)
-	
+
+	Rule(:TransitiveSuperClasses
+	    Antecedents(
+            SubClassOf(?c ?u)
+            SubClassOf(?u ?v)
+        )
+        Consequents(
+            SubClassOf(?c ?v)
+        )
+	)
+
+	Rule(:TransitiveEquivalentClasses
+		Antecedents(
+			EquivalentClasses(?c ?u)
+			EquivalentClasses(?u ?v)
+		)
+		Consequents(
+			EquivalentClasses(?c ?v)
+		)
+	)
+
 	Rule(:InverseRelations
 		Antecedents(
 			InverseObjectProperties(?p1 ?p2)
@@ -20,7 +40,7 @@ Ontology(<http://xowl.org/store/rules/owl2>
 			InverseObjectProperties(?p2 ?p1)
 		)
 	)
-	
+
 	Rule(:InverseAssertions
 		Antecedents(
 			InverseObjectProperties(?p1 ?p2)

@@ -152,8 +152,9 @@ public class RDFXMLLoader implements Loader {
     }
 
     @Override
-    public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
-        quads = new ArrayList<>();
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
+        RDFLoaderResult result = new RDFLoaderResult();
+        quads = result.getQuads();
         graph = store.getNodeIRI(uri);
         blanks = new HashMap<>();
         knownIDs = new ArrayList<>();
@@ -172,11 +173,11 @@ public class RDFXMLLoader implements Loader {
             return null;
         }
 
-        return quads;
+        return result;
     }
 
     @Override
-    public LoaderResult loadAxioms(Logger logger, Reader reader, String uri) {
+    public OWLLoaderResult loadOWL(Logger logger, Reader reader, String uri) {
         throw new UnsupportedOperationException();
     }
 

@@ -29,9 +29,11 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Represents the data de-serialized by a loader
+ * Represents the data de-serialized by an OWL loader
+ *
+ * @author Laurent Wouters
  */
-public class LoaderResult {
+public class OWLLoaderResult {
     /**
      * The iri of the containing ontology
      */
@@ -117,7 +119,7 @@ public class LoaderResult {
      * @param iri     The iri of the loaded ontology
      * @param version The version iri of the loaded ontology
      */
-    public LoaderResult(String iri, String version) {
+    public OWLLoaderResult(String iri, String version) {
         this.iri = iri;
         this.version = version;
         this.axioms = new ArrayList<>();

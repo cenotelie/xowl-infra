@@ -32,9 +32,7 @@ import org.xowl.utils.Logger;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -88,18 +86,18 @@ public class NQuadsLoader implements Loader {
     }
 
     @Override
-    public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
         graphs = new HashMap<>();
-        List<Quad> quads = new ArrayList<>();
+        RDFLoaderResult result = new RDFLoaderResult();
         GraphNode current = store.getNodeIRI(uri);
 
-        ParseResult result = parse(logger, reader);
-        if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
+        ParseResult parseResult = parse(logger, reader);
+        if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
 
         try {
-            for (ASTNode statement : result.getRoot().getChildren()) {
+            for (ASTNode statement : parseResult.getRoot().getChildren()) {
                 Node n1 = getRDFNode(statement.getChildren().get(0));
                 Node n2 = getRDFNode(statement.getChildren().get(1));
                 Node n3 = getRDFNode(statement.getChildren().get(2));
@@ -108,18 +106,18 @@ public class NQuadsLoader implements Loader {
                     target = translateGraphLabel(statement.getChildren().get(3));
                 else
                     target = current;
-                quads.add(new Quad(target, (SubjectNode) n1, (Property) n2, n3));
+                result.getQuads().add(new Quad(target, (SubjectNode) n1, (Property) n2, n3));
             }
         } catch (IllegalArgumentException ex) {
             // IRI must be absolute
             return null;
         }
 
-        return quads;
+        return result;
     }
 
     @Override
-    public LoaderResult loadAxioms(Logger logger, Reader reader, String uri) {
+    public OWLLoaderResult loadOWL(Logger logger, Reader reader, String uri) {
         throw new UnsupportedOperationException();
     }
 

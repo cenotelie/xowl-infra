@@ -202,6 +202,8 @@ public class Repository extends AbstractRepository {
                 return new NQuadsLoader(backend);
             case SYNTAX_TURTLE:
                 return new TurtleLoader(backend);
+            case SYNTAX_RDFT:
+                return new RDFTLoader(backend);
             case SYNTAX_RDFXML:
                 return new RDFXMLLoader(backend);
         }
@@ -209,22 +211,26 @@ public class Repository extends AbstractRepository {
     }
 
     @Override
-    protected void loadResourceQuads(Logger logger, Ontology ontology, Collection<Quad> quads) {
+    protected void loadResourceRDF(Logger logger, Ontology ontology, RDFLoaderResult input) {
         getGraph(ontology);
         try {
-            backend.insert(new Changeset(quads, new ArrayList<Quad>(0)));
+            backend.insert(new Changeset(input.getQuads(), new ArrayList<Quad>(0)));
         } catch (UnsupportedNodeType ex) {
             logger.error(ex);
+        }
+
+        for (org.xowl.store.rdf.Rule rule : input.getRules()) {
+            ruleEngine.getBackend().add(rule);
         }
     }
 
     @Override
-    protected void loadResourceOntology(Logger logger, Ontology ontology, LoaderResult input) {
+    protected void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input) {
         try {
             Translator translator = new Translator(null, backend, null);
             Collection<Quad> quads = translator.translate(input);
-            loadResourceQuads(logger, ontology, quads);
-        } catch (TranslationException ex) {
+            backend.insert(new Changeset(quads, new ArrayList<Quad>(0)));
+        } catch (TranslationException | UnsupportedNodeType ex) {
             logger.error(ex);
         }
 

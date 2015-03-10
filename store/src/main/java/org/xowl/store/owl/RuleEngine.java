@@ -57,6 +57,15 @@ public class RuleEngine {
     private Map<Rule, org.xowl.store.rdf.Rule> rules;
 
     /**
+     * Gets the RDF backend
+     *
+     * @return The RDF backend
+     */
+    public org.xowl.store.rdf.RuleEngine getBackend() {
+        return backend;
+    }
+
+    /**
      * Initializes this engine
      *
      * @param store     The store to operate over

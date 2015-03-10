@@ -23,8 +23,8 @@ import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.Entity;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.loaders.Loader;
-import org.xowl.store.loaders.LoaderResult;
-import org.xowl.store.rdf.Quad;
+import org.xowl.store.loaders.OWLLoaderResult;
+import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.utils.Logger;
 
 import java.util.*;
@@ -256,12 +256,12 @@ public class DirectSemantics extends AbstractRepository {
     }
 
     @Override
-    protected void loadResourceQuads(Logger logger, Ontology ontology, Collection<Quad> quads) {
+    protected void loadResourceRDF(Logger logger, Ontology ontology, RDFLoaderResult input) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void loadResourceOntology(Logger logger, Ontology ontology, LoaderResult input) {
+    protected void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input) {
         for (Axiom axiom : input.getAxioms())
             apply(axiom, false);
     }

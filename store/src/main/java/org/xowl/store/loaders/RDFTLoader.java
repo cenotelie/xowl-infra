@@ -31,25 +31,22 @@ import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Represents a loader of Turtle syntax
+ * Represents a loader of RDFT syntax
  *
  * @author Laurent Wouters
  */
-public class TurtleLoader implements Loader {
+public class RDFTLoader implements Loader {
     /**
      * The RDF store to create nodes from
      */
     private RDFStore store;
     /**
-     * The loaded triples
+     * The loaded rules
      */
-    private List<Quad> quads;
+    private List<Rule> rules;
     /**
      * The URI of the resource currently being loaded
      */
@@ -67,13 +64,13 @@ public class TurtleLoader implements Loader {
      */
     private Map<String, BlankNode> blanks;
     /**
-     * The current graph
+     * The graph node for the antecedents
      */
-    private GraphNode graph;
+    private GraphNode graphSource;
     /**
-     * The cached node for the RDF#type property
+     * The graph node for the consequents
      */
-    private IRINode cacheIsA;
+    private GraphNode graphTarget;
     /**
      * The cached node for the literal true node
      */
@@ -88,7 +85,7 @@ public class TurtleLoader implements Loader {
      *
      * @param store The RDF store used to create nodes
      */
-    public TurtleLoader(RDFStore store) {
+    public RDFTLoader(RDFStore store) {
         this.store = store;
     }
 
@@ -97,8 +94,8 @@ public class TurtleLoader implements Loader {
         ParseResult result;
         try {
             String content = Files.read(reader);
-            TurtleLexer lexer = new TurtleLexer(content);
-            TurtleParser parser = new TurtleParser(lexer);
+            RDFTLexer lexer = new RDFTLexer(content);
+            RDFTParser parser = new RDFTParser(lexer);
             parser.setRecover(false);
             result = parser.parse();
         } catch (IOException ex) {
@@ -117,8 +114,9 @@ public class TurtleLoader implements Loader {
     @Override
     public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
         RDFLoaderResult result = new RDFLoaderResult();
-        quads = result.getQuads();
-        graph = store.getNodeIRI(uri);
+        rules = result.getRules();
+        graphSource = new VariableNode("__graph__");
+        graphTarget = store.getNodeIRI(uri);
         resource = uri;
         baseURI = null;
         namespaces = new HashMap<>();
@@ -127,34 +125,43 @@ public class TurtleLoader implements Loader {
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
-
-        for (ASTNode node : parseResult.getRoot().getChildren()) {
-            try {
-                switch (node.getSymbol().getID()) {
-                    case TurtleParser.ID.prefixID:
-                    case TurtleParser.ID.sparqlPrefix:
-                        loadPrefixID(node);
-                        break;
-                    case TurtleParser.ID.base:
-                    case TurtleParser.ID.sparqlBase:
-                        loadBase(node);
-                        break;
-                    default:
-                        loadTriples(node);
-                        break;
-                }
-            } catch (IllegalArgumentException ex) {
-                logger.error(ex);
-                return null;
-            }
-        }
-
+        loadDocument(parseResult.getRoot());
         return result;
     }
 
     @Override
     public OWLLoaderResult loadOWL(Logger logger, Reader reader, String uri) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Loads the document represented by the specified AST node
+     *
+     * @param node An AST node
+     */
+    private void loadDocument(ASTNode node) {
+        for (ASTNode child : node.getChildren().get(0).getChildren())
+            loadDirective(child);
+        for (ASTNode child : node.getChildren().get(1).getChildren())
+            loadRule(child);
+    }
+
+    /**
+     * Loads the directive represented by the specified AST node
+     *
+     * @param node An AST node
+     */
+    private void loadDirective(ASTNode node) {
+        switch (node.getSymbol().getID()) {
+            case RDFTParser.ID.prefixID:
+            case RDFTParser.ID.sparqlPrefix:
+                loadPrefixID(node);
+                break;
+            case RDFTParser.ID.base:
+            case RDFTParser.ID.sparqlBase:
+                loadBase(node);
+                break;
+        }
     }
 
     /**
@@ -182,71 +189,143 @@ public class TurtleLoader implements Loader {
     }
 
     /**
-     * Loads the triples represented by the specified AST node
+     * Loads the rule represented by the specified AST node
      *
      * @param node An AST node
      */
-    private void loadTriples(ASTNode node) {
-        if (node.getChildren().get(0).getSymbol().getID() == TurtleParser.ID.predicateObjectList) {
-            // the subject is a blank node
-            BlankNode subject = getNodeBlankWithProperties(node.getChildren().get(0));
-            if (node.getChildren().size() > 1)
-                applyProperties(subject, node.getChildren().get(1));
-        } else {
-            Node subject = getNode(node.getChildren().get(0));
-            applyProperties((SubjectNode) subject, node.getChildren().get(1));
+    private void loadRule(ASTNode node) {
+        String name = null;
+        switch (node.getChildren().get(0).getSymbol().getID()) {
+            case RDFTLexer.ID.IRIREF: {
+                name = node.getChildren().get(0).getSymbol().getValue();
+                name = name.substring(1, name.length() - 1);
+                name = Utils.normalizeIRI(resource, baseURI, name);
+                break;
+            }
+            case RDFTLexer.ID.PNAME_LN: {
+                name = node.getChildren().get(0).getSymbol().getValue();
+                name = getIRIForLocalName(name);
+                break;
+            }
+            case RDFTLexer.ID.PNAME_NS: {
+                name = node.getChildren().get(0).getSymbol().getValue();
+                name = Utils.unescape(name.substring(0, name.length() - 1));
+                name = namespaces.get(name);
+                break;
+            }
         }
+        Rule rule = new Rule(name);
+        Map<String, VariableNode> variables = new HashMap<>();
+
+        // add the antecedents
+        for (ASTNode child : node.getChildren().get(1).getChildren()) {
+            boolean positive = true;
+            boolean meta = false;
+            Collection<Quad> quads = new ArrayList<>();
+            for (ASTNode element : child.getChildren()) {
+                switch (element.getSymbol().getID()) {
+                    case RDFTLexer.ID.MARKER_NOT:
+                        positive = false;
+                        break;
+                    case RDFTLexer.ID.MARKER_META:
+                        meta = true;
+                        break;
+                    default:
+                        quads.add(new Quad(
+                                graphSource,
+                                (SubjectNode) getNode(element.getChildren().get(0), variables),
+                                (Property) getNode(element.getChildren().get(1), variables),
+                                getNode(element.getChildren().get(2), variables)
+                        ));
+                        break;
+                }
+            }
+            if (positive) {
+                if (meta)
+                    rule.getAntecedentSourcePositives().addAll(quads);
+                else
+                    rule.getAntecedentMetaPositives().addAll(quads);
+            } else {
+                if (meta)
+                    rule.getAntecedentSourceNegatives().add(quads);
+                else
+                    rule.getAntecedentMetaNegatives().add(quads);
+            }
+        }
+
+        // add the consequents
+        for (ASTNode child : node.getChildren().get(2).getChildren()) {
+            boolean positive = true;
+            boolean meta = false;
+            Collection<Quad> quads = new ArrayList<>();
+            for (ASTNode element : child.getChildren()) {
+                switch (element.getSymbol().getID()) {
+                    case RDFTLexer.ID.MARKER_NOT:
+                        positive = false;
+                        break;
+                    case RDFTLexer.ID.MARKER_META:
+                        meta = true;
+                        break;
+                    default:
+                        quads.add(new Quad(
+                                graphTarget,
+                                (SubjectNode) getNode(element.getChildren().get(0), variables),
+                                (Property) getNode(element.getChildren().get(1), variables),
+                                getNode(element.getChildren().get(2), variables)
+                        ));
+                        break;
+                }
+            }
+            if (positive) {
+                if (meta)
+                    rule.getConsequentTargetPositives().addAll(quads);
+                else
+                    rule.getConsequentMetaPositives().addAll(quads);
+            } else {
+                if (meta)
+                    rule.getConsequentTargetNegatives().addAll(quads);
+                else
+                    rule.getConsequentMetaNegatives().addAll(quads);
+            }
+        }
+        rules.add(rule);
     }
 
     /**
      * Gets the RDF node equivalent to the specified AST node
      *
-     * @param node An AST node
+     * @param node      An AST node
+     * @param variables The current variables
      * @return The equivalent RDF nodes
      */
-    private Node getNode(ASTNode node) {
+    private Node getNode(ASTNode node, Map<String, VariableNode> variables) {
         switch (node.getSymbol().getID()) {
-            case 0x003C: // a
-                return getNodeIsA();
-            case TurtleLexer.ID.IRIREF:
+            case RDFTLexer.ID.IRIREF:
                 return getNodeIRIRef(node);
-            case TurtleLexer.ID.PNAME_LN:
+            case RDFTLexer.ID.PNAME_LN:
                 return getNodePNameLN(node);
-            case TurtleLexer.ID.PNAME_NS:
+            case RDFTLexer.ID.PNAME_NS:
                 return getNodePNameNS(node);
-            case TurtleLexer.ID.BLANK_NODE_LABEL:
+            case RDFTLexer.ID.BLANK_NODE_LABEL:
                 return getNodeBlank(node);
-            case TurtleLexer.ID.ANON:
+            case RDFTLexer.ID.ANON:
                 return getNodeAnon();
-            case 0x0042: // true
+            case 0x0045: // true
                 return getNodeTrue();
-            case 0x0043: // false
+            case 0x0046: // false
                 return getNodeFalse();
-            case TurtleLexer.ID.INTEGER:
+            case RDFTLexer.ID.INTEGER:
                 return getNodeInteger(node);
-            case TurtleLexer.ID.DECIMAL:
+            case RDFTLexer.ID.DECIMAL:
                 return getNodeDecimal(node);
-            case TurtleLexer.ID.DOUBLE:
+            case RDFTLexer.ID.DOUBLE:
                 return getNodeDouble(node);
-            case TurtleParser.ID.rdfLiteral:
+            case RDFTParser.ID.rdfLiteral:
                 return getNodeLiteral(node);
-            case TurtleParser.ID.collection:
-                return getNodeCollection(node);
-            case TurtleParser.ID.predicateObjectList:
-                return getNodeBlankWithProperties(node);
+            case RDFTLexer.ID.QVAR:
+                return getNodeVariable(node, variables);
         }
         throw new IllegalArgumentException("Unexpected node " + node.getSymbol().getValue());
-    }
-
-    /**
-     * Gets the RDF IRI node for the RDF type element
-     *
-     * @return The RDF IRI node
-     */
-    private IRINode getNodeIsA() {
-        if (cacheIsA == null)
-            cacheIsA = store.getNodeIRI(Vocabulary.rdfType);
-        return cacheIsA;
     }
 
     /**
@@ -377,14 +456,14 @@ public class TurtleLoader implements Loader {
         String value = null;
         ASTNode childString = node.getChildren().get(0);
         switch (childString.getSymbol().getID()) {
-            case TurtleLexer.ID.STRING_LITERAL_SINGLE_QUOTE:
-            case TurtleLexer.ID.STRING_LITERAL_QUOTE:
+            case RDFTLexer.ID.STRING_LITERAL_SINGLE_QUOTE:
+            case RDFTLexer.ID.STRING_LITERAL_QUOTE:
                 value = childString.getSymbol().getValue();
                 value = value.substring(1, value.length() - 1);
                 value = Utils.unescape(value);
                 break;
-            case TurtleLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
-            case TurtleLexer.ID.STRING_LITERAL_LONG_QUOTE:
+            case RDFTLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
+            case RDFTLexer.ID.STRING_LITERAL_LONG_QUOTE:
                 value = childString.getSymbol().getValue();
                 value = value.substring(3, value.length() - 3);
                 value = Utils.unescape(value);
@@ -396,20 +475,20 @@ public class TurtleLoader implements Loader {
             return store.getLiteralNode(value, Vocabulary.xsdString, null);
 
         ASTNode suffixChild = node.getChildren().get(1);
-        if (suffixChild.getSymbol().getID() == TurtleLexer.ID.LANGTAG) {
+        if (suffixChild.getSymbol().getID() == RDFTLexer.ID.LANGTAG) {
             // This is a language-tagged string
             String tag = suffixChild.getSymbol().getValue();
             return store.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
-        } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.IRIREF) {
+        } else if (suffixChild.getSymbol().getID() == RDFTLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getSymbol().getValue();
             iri = iri.substring(1, iri.length() - 1);
             return store.getLiteralNode(value, Utils.normalizeIRI(resource, baseURI, iri), null);
-        } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_LN) {
+        } else if (suffixChild.getSymbol().getID() == RDFTLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(suffixChild.getSymbol().getValue());
             return store.getLiteralNode(value, local, null);
-        } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_NS) {
+        } else if (suffixChild.getSymbol().getID() == RDFTLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getSymbol().getValue();
             ns = Utils.unescape(ns.substring(0, ns.length() - 1));
@@ -420,40 +499,21 @@ public class TurtleLoader implements Loader {
     }
 
     /**
-     * Gets the RDF list node equivalent to the specified AST node representing a collection of RDF nodes
+     * Gets the RDF variable node equivalent to the specified AST node
      *
-     * @param node An AST node
-     * @return A RDF list node
+     * @param node      An AST node
+     * @param variables The current variables
+     * @return The equivalent RDF variable node
      */
-    private Node getNodeCollection(ASTNode node) {
-        List<Node> elements = new ArrayList<>();
-        for (ASTNode child : node.getChildren())
-            elements.add(getNode(child));
-        if (elements.isEmpty())
-            return store.getNodeIRI(Vocabulary.rdfNil);
-
-        BlankNode[] proxies = new BlankNode[elements.size()];
-        for (int i = 0; i != proxies.length; i++) {
-            proxies[i] = store.getBlankNode();
-            quads.add(new Quad(graph, proxies[i], store.getNodeIRI(Vocabulary.rdfFirst), elements.get(i)));
+    private VariableNode getNodeVariable(ASTNode node, Map<String, VariableNode> variables) {
+        String name = node.getSymbol().getValue();
+        name = name.substring(1);
+        VariableNode variable = variables.get(name);
+        if (variable == null) {
+            variable = new VariableNode(name);
+            variables.put(name, variable);
         }
-        for (int i = 0; i != proxies.length - 1; i++) {
-            quads.add(new Quad(graph, proxies[i], store.getNodeIRI(Vocabulary.rdfRest), proxies[i + 1]));
-        }
-        quads.add(new Quad(graph, proxies[proxies.length - 1], store.getNodeIRI(Vocabulary.rdfRest), store.getNodeIRI(Vocabulary.rdfNil)));
-        return proxies[0];
-    }
-
-    /**
-     * Gets the RDF blank node (with its properties) equivalent to the specified AST node
-     *
-     * @param node An AST node
-     * @return The equivalent RDF blank node
-     */
-    private BlankNode getNodeBlankWithProperties(ASTNode node) {
-        BlankNode subject = store.getBlankNode();
-        applyProperties(subject, node);
-        return subject;
+        return variable;
     }
 
     /**
@@ -477,24 +537,5 @@ public class TurtleLoader implements Loader {
             index++;
         }
         throw new IllegalArgumentException("Failed to resolve local name " + value);
-    }
-
-    /**
-     * Applies the RDF verbs and properties described in the specified AST node to the given RDF subject node
-     *
-     * @param subject An RDF subject node
-     * @param node    An AST node
-     */
-    private void applyProperties(SubjectNode subject, ASTNode node) {
-        int index = 0;
-        List<ASTNode> children = node.getChildren();
-        while (index != children.size()) {
-            Property verb = (Property) getNode(children.get(index));
-            for (ASTNode objectNode : children.get(index + 1).getChildren()) {
-                Node object = getNode(objectNode);
-                quads.add(new Quad(graph, subject, verb, object));
-            }
-            index += 2;
-        }
     }
 }

@@ -17,16 +17,19 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.store;
+package org.xowl.store.generators;
 
 import org.junit.Assert;
+import org.xowl.store.TestLogger;
+import org.xowl.store.Vocabulary;
+import org.xowl.store.W3CTestSuite;
 import org.xowl.store.loaders.Loader;
+import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.TurtleLoader;
 import org.xowl.store.rdf.*;
 
 import java.io.*;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Represents a generator of tests based on a W3C manifest
@@ -88,7 +91,7 @@ public class W3CTestSuiteGenerator {
             Assert.fail(ex.toString());
         }
         Loader loader = new TurtleLoader(store);
-        List<Quad> quads = loader.loadQuads(logger, reader, BASE_LOCATION);
+        RDFLoaderResult input = loader.loadRDF(logger, reader, BASE_LOCATION);
         try {
             reader.close();
         } catch (IOException ex) {
@@ -96,7 +99,7 @@ public class W3CTestSuiteGenerator {
         }
 
         try {
-            for (Quad quad : quads)
+            for (Quad quad : input.getQuads())
                 store.add(quad);
         } catch (UnsupportedNodeType ex) {
             Assert.fail("Unsupported quad");

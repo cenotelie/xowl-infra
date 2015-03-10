@@ -22,7 +22,6 @@ package org.xowl.store;
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.*;
-import org.xowl.store.rdf.Quad;
 import org.xowl.utils.Logger;
 
 import java.io.*;
@@ -67,6 +66,10 @@ public abstract class AbstractRepository {
      * Supported Turtle syntax
      */
     public static final String SYNTAX_TURTLE = ".ttl";
+    /**
+     * Supported RDF Transform syntax
+     */
+    public static final String SYNTAX_RDFT = ".rdft";
     /**
      * Supported RDF/XML syntax
      */
@@ -232,6 +235,8 @@ public abstract class AbstractRepository {
             return SYNTAX_NQUADS;
         if (resource.endsWith(SYNTAX_TURTLE))
             return SYNTAX_TURTLE;
+        if (resource.endsWith(SYNTAX_RDFT))
+            return SYNTAX_RDFT;
         if (resource.endsWith(SYNTAX_RDFXML))
             return SYNTAX_RDFXML;
         if (resource.endsWith(SYNTAX_FUNCTIONAL_OWL2))
@@ -281,21 +286,22 @@ public abstract class AbstractRepository {
             case SYNTAX_NTRIPLES:
             case SYNTAX_NQUADS:
             case SYNTAX_TURTLE:
-            case SYNTAX_RDFXML: {
+            case SYNTAX_RDFXML:
+            case SYNTAX_RDFT: {
                 Loader loader = newRDFLoader(syntax);
-                List<Quad> quads = loader.loadQuads(logger, reader, iri);
-                ontology = loadResourceRDF(logger, iri, quads);
+                RDFLoaderResult input = loader.loadRDF(logger, reader, iri);
+                ontology = loadResourceRDF(logger, iri, input);
                 break;
             }
             case SYNTAX_FUNCTIONAL_OWL2: {
                 Loader loader = new FunctionalOWL2Loader();
-                LoaderResult input = loader.loadAxioms(logger, reader, iri);
+                OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
                 ontology = loadResourceOWL(logger, iri, input);
                 break;
             }
             case SYNTAX_FUNCTIONAL_XOWL: {
                 Loader loader = new FunctionalXOWLLoader();
-                LoaderResult input = loader.loadAxioms(logger, reader, iri);
+                OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
                 ontology = loadResourceOWL(logger, iri, input);
                 break;
             }
@@ -316,9 +322,9 @@ public abstract class AbstractRepository {
      * @param input  The resource's content
      * @return The loaded ontology
      */
-    private Ontology loadResourceRDF(Logger logger, String iri, List<Quad> input) {
+    private Ontology loadResourceRDF(Logger logger, String iri, RDFLoaderResult input) {
         Ontology ontology = registerResource(iri, iri);
-        loadResourceQuads(logger, ontology, input);
+        loadResourceRDF(logger, ontology, input);
         return ontology;
     }
 
@@ -330,11 +336,11 @@ public abstract class AbstractRepository {
      * @param input  The resource's content
      * @return The loaded ontology
      */
-    private Ontology loadResourceOWL(Logger logger, String iri, LoaderResult input) {
+    private Ontology loadResourceOWL(Logger logger, String iri, OWLLoaderResult input) {
         Ontology ontology = registerResource(iri, input.getIRI());
         for (String importedIRI : input.getImports())
             dependencies.add(importedIRI);
-        loadResourceOntology(logger, ontology, input);
+        loadResourceOWL(logger, ontology, input);
         return ontology;
     }
 
@@ -364,9 +370,9 @@ public abstract class AbstractRepository {
      *
      * @param logger   The current logger
      * @param ontology The containing ontology
-     * @param quads    The quads
+     * @param input    The input data
      */
-    protected abstract void loadResourceQuads(Logger logger, Ontology ontology, Collection<Quad> quads);
+    protected abstract void loadResourceRDF(Logger logger, Ontology ontology, RDFLoaderResult input);
 
     /**
      * Loads an ontology as a set of axioms
@@ -375,5 +381,5 @@ public abstract class AbstractRepository {
      * @param ontology The containing ontology
      * @param input    The input data
      */
-    protected abstract void loadResourceOntology(Logger logger, Ontology ontology, LoaderResult input);
+    protected abstract void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input);
 }

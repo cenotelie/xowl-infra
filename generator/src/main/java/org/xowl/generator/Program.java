@@ -80,7 +80,7 @@ public class Program {
         try {
             config.load(args[0]);
         } catch (IOException ex) {
-            log.error("Failed to loadAxioms configuration file: " + args[0]);
+            log.error("Failed to load configuration file: " + args[0]);
             return;
         }
         Program app = new Program(log, config);
@@ -133,7 +133,7 @@ public class Program {
     /**
      * Loads the specified configuration
      *
-     * @param config The configuration to loadAxioms
+     * @param config The configuration to load
      */
     private void loadConfig(Configuration config) {
         List<String> values = config.getValues(null, CONFIG_REPOSITORY);

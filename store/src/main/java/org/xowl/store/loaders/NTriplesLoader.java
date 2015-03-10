@@ -32,9 +32,7 @@ import org.xowl.utils.Logger;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -84,32 +82,32 @@ public class NTriplesLoader implements Loader {
     }
 
     @Override
-    public List<Quad> loadQuads(Logger logger, Reader reader, String uri) {
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
-        List<Quad> quads = new ArrayList<>();
+        RDFLoaderResult result = new RDFLoaderResult();
         GraphNode graph = store.getNodeIRI(uri);
 
-        ParseResult result = parse(logger, reader);
-        if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
+        ParseResult parseResult = parse(logger, reader);
+        if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
 
         try {
-            for (ASTNode triple : result.getRoot().getChildren()) {
+            for (ASTNode triple : parseResult.getRoot().getChildren()) {
                 Node n1 = getRDFNode(triple.getChildren().get(0));
                 Node n2 = getRDFNode(triple.getChildren().get(1));
                 Node n3 = getRDFNode(triple.getChildren().get(2));
-                quads.add(new Quad(graph, (SubjectNode) n1, (Property) n2, n3));
+                result.getQuads().add(new Quad(graph, (SubjectNode) n1, (Property) n2, n3));
             }
         } catch (IllegalArgumentException ex) {
             // IRI must be absolute
             return null;
         }
 
-        return quads;
+        return result;
     }
 
     @Override
-    public LoaderResult loadAxioms(Logger logger, Reader reader, String uri) {
+    public OWLLoaderResult loadOWL(Logger logger, Reader reader, String uri) {
         throw new UnsupportedOperationException();
     }
 

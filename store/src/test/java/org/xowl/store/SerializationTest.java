@@ -72,9 +72,9 @@ public class SerializationTest {
             Assert.fail(ex.toString());
         }
 
-        List<Quad> result = loader.loadQuads(logger, reader, uri);
+        RDFLoaderResult input = loader.loadRDF(logger, reader, uri);
         Assert.assertFalse("Failed to parse resource " + physicalResource, logger.isOnError());
-        Assert.assertNotNull("Failed to loadQuads resource " + physicalResource, result);
+        Assert.assertNotNull("Failed to loadRDF resource " + physicalResource, input);
 
         try {
             reader.close();
@@ -83,9 +83,9 @@ public class SerializationTest {
         }
 
         try {
-            store.insert(new Changeset(result, new ArrayList<Quad>()));
+            store.insert(new Changeset(input.getQuads(), new ArrayList<Quad>()));
         } catch (UnsupportedNodeType ex) {
-            Assert.fail("Unable to loadAxioms the resource " + physicalResource);
+            Assert.fail("Unable to loadOWL the resource " + physicalResource);
         }
         return store;
     }

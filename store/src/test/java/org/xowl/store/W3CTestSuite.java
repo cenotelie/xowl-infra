@@ -24,7 +24,9 @@ import org.xowl.store.loaders.*;
 import org.xowl.store.rdf.*;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a base class for all W3C test suites
@@ -68,9 +70,9 @@ public abstract class W3CTestSuite {
             loader = new RDFXMLLoader(store);
         if (loader == null)
             Assert.fail("Failed to recognize resource " + expectedResource);
-        List<Quad> expected = loader.loadQuads(logger, reader, expectedURI);
+        RDFLoaderResult expected = loader.loadRDF(logger, reader, expectedURI);
         Assert.assertFalse("Failed to parse resource " + expectedResource, logger.isOnError());
-        Assert.assertNotNull("Failed to loadAxioms resource " + expectedResource, expected);
+        Assert.assertNotNull("Failed to loadOWL resource " + expectedResource, expected);
         try {
             reader.close();
         } catch (IOException ex) {
@@ -94,16 +96,16 @@ public abstract class W3CTestSuite {
             loader = new RDFXMLLoader(store);
         if (loader == null)
             Assert.fail("Failed to recognize resource " + testedResource);
-        List<Quad> tested = loader.loadQuads(logger, reader, testedURI);
+        RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI);
         Assert.assertFalse("Failed to parse resource " + testedResource, logger.isOnError());
-        Assert.assertNotNull("Failed to loadQuads resource " + testedResource, tested);
+        Assert.assertNotNull("Failed to loadRDF resource " + testedResource, tested);
         try {
             reader.close();
         } catch (IOException ex) {
             Assert.fail("Failed to close the resource " + testedResource);
         }
 
-        matches(expected, tested);
+        matches(expected.getQuads(), tested.getQuads());
     }
 
     /**
@@ -140,9 +142,9 @@ public abstract class W3CTestSuite {
             Assert.fail(ex.toString());
         }
 
-        List<Quad> result = loader.loadQuads(logger, reader, uri);
+        RDFLoaderResult result = loader.loadRDF(logger, reader, uri);
         Assert.assertFalse("Failed to parse resource " + physicalResource, logger.isOnError());
-        Assert.assertNotNull("Failed to loadQuads resource " + physicalResource, result);
+        Assert.assertNotNull("Failed to loadRDF resource " + physicalResource, result);
 
         try {
             reader.close();
@@ -185,7 +187,7 @@ public abstract class W3CTestSuite {
             Assert.fail(ex.toString());
         }
 
-        List<Quad> result = loader.loadQuads(logger, reader, uri);
+        RDFLoaderResult result = loader.loadRDF(logger, reader, uri);
         Assert.assertNull("Mistakenly reported success of loading " + physicalResource, result);
 
         try {
@@ -260,9 +262,9 @@ public abstract class W3CTestSuite {
     /**
      * Determines whether the specified triples are equivalent, using the given blank nde mapping
      *
-     * @param quad1 A triple
-     * @param quad2 Another triple
-     * @param blanks  A map of blank nodes
+     * @param quad1  A triple
+     * @param quad2  Another triple
+     * @param blanks A map of blank nodes
      * @return <code>true</code> if the two triples are equivalent
      */
     public static boolean sameTriple(Quad quad1, Quad quad2, Map<BlankNode, BlankNode> blanks) {

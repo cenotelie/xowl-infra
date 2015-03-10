@@ -43,7 +43,7 @@ import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.XOWLUtils;
-import org.xowl.store.loaders.LoaderResult;
+import org.xowl.store.loaders.OWLLoaderResult;
 import org.xowl.store.rdf.*;
 import org.xowl.store.rdf.Property;
 
@@ -101,7 +101,7 @@ public class Translator {
      * @return The translation result
      * @throws TranslationException When a runtime entity is not named
      */
-    public Collection<Quad> translate(LoaderResult input) throws TranslationException {
+    public Collection<Quad> translate(OWLLoaderResult input) throws TranslationException {
         graph = store.getNodeIRI(input.getIRI());
         quads = new ArrayList<>();
         for (Axiom axiom : input.getAxioms())

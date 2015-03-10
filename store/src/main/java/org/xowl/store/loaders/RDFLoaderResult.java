@@ -17,39 +17,52 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.store;
+package org.xowl.store.loaders;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.Rule;
 
-import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Tests for the functional loaders
+ * Represents the data de-serialized by a RDF loader
  *
  * @author Laurent Wouters
  */
-public class FunctionalLoaderTest {
+public class RDFLoaderResult {
+    /**
+     * The loaded quads
+     */
+    private List<Quad> quads;
+    /**
+     * The loaded rules
+     */
+    private List<Rule> rules;
 
     /**
-     * Tests that the specified resource is correctly loaded
+     * Gets the loaded quads
      *
-     * @param uri              The resource's URI
+     * @return The loaded quads
      */
-    protected void testLoading(String uri) {
-        TestLogger logger = new TestLogger();
-        try {
-            Repository repository = new Repository();
-            repository.load(logger, uri);
-            Assert.assertFalse("Failed to load resource " + uri, logger.isOnError());
-        } catch (IOException ex) {
-            // do not handle
-            Assert.fail(ex.getMessage());
-        }
+    public List<Quad> getQuads() {
+        return quads;
     }
 
-    @Test
-    public void testLoadingOfDefinitionOWL2() {
-        testLoading("http://xowl.org/lang/owl2");
+    /**
+     * Gets the loaded rules
+     *
+     * @return The loaded rules
+     */
+    public List<Rule> getRules() {
+        return rules;
+    }
+
+    /**
+     * Initializes an empty result
+     */
+    public RDFLoaderResult() {
+        quads = new ArrayList<>();
+        rules = new ArrayList<>();
     }
 }
