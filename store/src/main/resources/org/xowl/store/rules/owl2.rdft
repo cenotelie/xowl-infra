@@ -1,0 +1,248 @@
+######################################################################
+# Copyright (c) 2015 Laurent Wouters and others
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General
+# Public License along with this program.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+# Contributors:
+#     Laurent Wouters - lwouters@xowl.org
+######################################################################
+
+@base <http://xowl.org/store/rules/owl2> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xowl: <http://xowl.org/store/rules/owl2#> .
+
+# Rules in this document are based on those given at http://www.w3.org/TR/owl2-profiles/#Reasoning_in_OWL_2_RL_and_RDF_Graphs_using_Rules
+# Inconsistency is indicated on an entity using:
+#   ?e xowl:status xowl:inconsistent
+
+
+# Expansion of RDF lists
+#   For a RDF node h representing a list, all elements can be found with:
+#   ?h xowl:listElement ?e
+
+rule xowl:list-expansion-init {
+    ?h rdf:first ?e1
+} => {
+    ?h xowl:listElement ?e1
+}
+
+rule xowl:list-expansion-aggregate {
+    ?h rdf:rest ?z
+    ?z xowl:listElement ?e
+} => {
+    ?h xowl:listElement ?e
+}
+
+
+# Table 4. The Semantics of Equality
+
+rule xowl:eq-sym {
+    ?x owl:sameAs ?y
+} => {
+    ?y owl:sameAs ?x
+}
+
+rule xowl:eq-trans {
+    ?x owl:sameAs ?y
+    ?y owl:sameAs ?z
+} => {
+    ?x owl:sameAs ?z
+}
+
+rule xowl:eq-rep-s {
+    ?s owl:sameAs ?s2
+    ?s ?p ?o
+} => {
+    ?s2 ?p ?o
+}
+
+rule xowl:eq-rep-p {
+    ?p owl:sameAs ?p2
+    ?s ?p ?o
+} => {
+    ?s ?p2 ?o
+}
+
+rule xowl:eq-rep-o {
+    ?o owl:sameAs ?o2
+    ?s ?p ?o
+} => {
+    ?s ?p ?o2
+}
+
+rule xowl:diff1 {
+    ?x owl:sameAs ?y
+    ?x owl:differentFrom ?y
+} => {
+    ?x xowl:status xowl:inconsistent
+    ?y xowl:status xowl:inconsistent
+}
+
+rule xowl:diff2 {
+    ?x rdf:type owl:AllDifferent
+    ?x owl:members ?y
+    ?y xowl:listElement ?e1
+    ?y xowl:listElement ?e2
+    ?e1 owl:sameAs ?e2
+} => {
+    ?x xowl:status xowl:inconsistent
+}
+
+rule xowl:diff3 {
+    ?x rdf:type owl:AllDifferent
+    ?x owl:distinctMembers ?y
+    ?y xowl:listElement ?e1
+    ?y xowl:listElement ?e2
+    ?e1 owl:sameAs ?e2
+} => {
+    ?x xowl:status xowl:inconsistent
+}
+
+
+# Table 5. The Semantics of Axioms about Properties
+
+rule xowl:prp-dom {
+    ?p rdfs:domain ?c
+    ?x ?p ?y
+} => {
+    ?x rdf:type ?c
+}
+
+rule xowl:prp-rng {
+    ?p rdfs:range ?c
+    ?x ?p ?y
+} => {
+    ?y rdf:type ?c
+}
+
+rule xowl:prp-fp {
+    ?p rdf:type owl:FunctionalProperty
+    ?x ?p ?y1
+    ?x ?p ?y2
+} => {
+    ?y1 owl:sameAs ?y2
+}
+
+rule xowl:prp-ifp {
+    ?p rdf:type owl:InverseFunctionalProperty
+    ?x1 ?p ?y
+    ?x2 ?p ?y
+} => {
+    ?x1 owl:sameAs ?x2
+}
+
+rule xowl:prp-symp {
+    ?p rdf:type owl:SymmetricProperty
+    ?x ?p ?y
+} => {
+    ?y ?p ?x
+}
+
+rule xowl:prp-trp {
+    ?p rdf:type owl:TransitiveProperty
+    ?x ?p ?y
+    ?y ?p ?z
+} => {
+    ?x ?p ?z
+}
+
+rule xowl:prp-spo1 {
+    ?p1 rdfs:subPropertyOf ?p2
+    ?x ?p1 ?y
+} => {
+    ?x ?p2 ?y
+}
+
+# TODO: Implement prp-spo2 for owl:propertyChainAxiom
+
+rule xowl:prp-eqp1 {
+    ?p1 owl:equivalentProperty ?p2
+    ?x ?p1 ?y
+} => {
+    ?x ?p2 ?y
+}
+
+rule xowl:prp-eqp2 {
+    ?p1 owl:equivalentProperty ?p2
+    ?x ?p2 ?y
+} => {
+    ?x ?p1 ?y
+}
+
+rule xowl:prp-pdw {
+    ?p1 owl:propertyDisjointWith ?p2
+    ?x ?p1 ?y
+    ?x ?p2 ?y
+} => {
+    ?x xowl:status xowl:inconsistent
+    ?y xowl:status xowl:inconsistent
+}
+
+rule xowl:prp-adp {
+    ?x rdf:type owl:AllDisjointProperties
+    ?x owl:members ?y
+    ?y xowl:listElement ?p1
+    ?y xowl:listElement ?p2
+    ?x ?p1 ?y
+    ?x ?p2 ?y
+} => {
+    ?x xowl:status xowl:inconsistent
+    ?y xowl:status xowl:inconsistent
+}
+
+rule xowl:prp-inv1 {
+    ?p1 owl:inverseOf ?p2
+    ?x ?p1 ?y
+} => {
+    ?y ?p2 ?x
+}
+
+rule xowl:prp-inv2 {
+    ?p1 owl:inverseOf ?p2
+    ?y ?p2 ?x
+} => {
+    ?x ?p1 ?y
+}
+
+# TODO: Implement prp-key for owl:hasKey
+
+rule xowl:prp-npa1 {
+    ?x owl:sourceIndividual  ?i1
+    ?x owl:assertionProperty ?p
+    ?x owl:targetIndividual  ?i2
+    ?i1 ?p ?i2
+} => {
+    ?x xowl:status xowl:inconsistent
+}
+
+rule xowl:prp-npa2 {
+    ?x owl:sourceIndividual  ?i
+    ?x owl:assertionProperty ?p
+    ?x owl:targetValue       ?lt
+    ?i ?p ?lt
+} => {
+    ?x xowl:status xowl:inconsistent
+}
+
+
+# Table 6. The Semantics of Classes
+
+rule xowl:cls-nothing2 {
+    ?x rdf:type owl:Nothing
+} => {
+    ?x xowl:status xowl:inconsistent
+}

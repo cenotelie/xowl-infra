@@ -123,6 +123,7 @@ public class Repository extends AbstractRepository {
      * @param logger The logger to use
      */
     public void addDefaultInferenceRules(Logger logger) {
+        load(logger, "http://xowl.org/store/base/owl2");
         load(logger, "http://xowl.org/store/rules/owl2");
     }
 

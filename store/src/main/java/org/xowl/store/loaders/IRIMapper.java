@@ -151,7 +151,8 @@ public class IRIMapper {
     public static IRIMapper getDefault() {
         IRIMapper mapper = new IRIMapper();
         mapper.addRegexpMap("http://xowl.org/lang/(.*)", "resource:///org/xowl/lang/defs/\\1.owl");
-        mapper.addRegexpMap("http://xowl.org/store/rules/(.*)", "resource:///org/xowl/store/rules/\\1.owl");
+        mapper.addRegexpMap("http://xowl.org/store/base/(.*)", "resource:///org/xowl/store/base/\\1.fs");
+        mapper.addRegexpMap("http://xowl.org/store/rules/(.*)", "resource:///org/xowl/store/rules/\\1.rdft");
         return mapper;
     }
 }

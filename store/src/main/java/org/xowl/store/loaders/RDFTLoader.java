@@ -64,11 +64,15 @@ public class RDFTLoader implements Loader {
      */
     private Map<String, BlankNode> blanks;
     /**
-     * The graph node for the antecedents
+     * The graph node for the source
      */
     private GraphNode graphSource;
     /**
-     * The graph node for the consequents
+     * The graph node for the meta
+     */
+    private GraphNode graphMeta;
+    /**
+     * The graph node for the target
      */
     private GraphNode graphTarget;
     /**
@@ -115,8 +119,9 @@ public class RDFTLoader implements Loader {
     public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
         RDFLoaderResult result = new RDFLoaderResult();
         rules = result.getRules();
-        graphSource = new VariableNode("__graph__");
-        graphTarget = store.getNodeIRI(uri);
+        graphSource = new VariableNode("__source");
+        graphMeta = new VariableNode("__meta");
+        graphTarget = graphSource;
         resource = uri;
         baseURI = null;
         namespaces = new HashMap<>();
@@ -232,7 +237,7 @@ public class RDFTLoader implements Loader {
                         break;
                     default:
                         quads.add(new Quad(
-                                graphSource,
+                                meta ? graphMeta : graphSource,
                                 (SubjectNode) getNode(element.getChildren().get(0), variables),
                                 (Property) getNode(element.getChildren().get(1), variables),
                                 getNode(element.getChildren().get(2), variables)
@@ -242,14 +247,14 @@ public class RDFTLoader implements Loader {
             }
             if (positive) {
                 if (meta)
-                    rule.getAntecedentSourcePositives().addAll(quads);
-                else
                     rule.getAntecedentMetaPositives().addAll(quads);
+                else
+                    rule.getAntecedentSourcePositives().addAll(quads);
             } else {
                 if (meta)
-                    rule.getAntecedentSourceNegatives().add(quads);
-                else
                     rule.getAntecedentMetaNegatives().add(quads);
+                else
+                    rule.getAntecedentSourceNegatives().add(quads);
             }
         }
 
@@ -268,7 +273,7 @@ public class RDFTLoader implements Loader {
                         break;
                     default:
                         quads.add(new Quad(
-                                graphTarget,
+                                meta ? graphMeta : graphTarget,
                                 (SubjectNode) getNode(element.getChildren().get(0), variables),
                                 (Property) getNode(element.getChildren().get(1), variables),
                                 getNode(element.getChildren().get(2), variables)
@@ -278,14 +283,14 @@ public class RDFTLoader implements Loader {
             }
             if (positive) {
                 if (meta)
-                    rule.getConsequentTargetPositives().addAll(quads);
-                else
                     rule.getConsequentMetaPositives().addAll(quads);
+                else
+                    rule.getConsequentTargetPositives().addAll(quads);
             } else {
                 if (meta)
-                    rule.getConsequentTargetNegatives().addAll(quads);
-                else
                     rule.getConsequentMetaNegatives().addAll(quads);
+                else
+                    rule.getConsequentTargetNegatives().addAll(quads);
             }
         }
         rules.add(rule);

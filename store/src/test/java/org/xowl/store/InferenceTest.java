@@ -41,16 +41,13 @@ public class InferenceTest {
         Repository repository = getRepository(logger);
         repository.addDefaultInferenceRules(logger);
         Ontology metamodel = repository.resolveOntology("http://xowl.org/store/tests/inferences");
-        ProxyObject classA = repository.newObject(metamodel);
-        ProxyObject classB = repository.newObject(metamodel);
-        ProxyObject individual = repository.newObject(metamodel);
-        classB.setValue(Vocabulary.rdfsSubClassOf, classA);
-        individual.setValue(Vocabulary.rdfType, classB);
-
-        Collection<ProxyObject> classifiers = individual.getClassifiers();
-        Assert.assertEquals(2, classifiers.size());
-        Assert.assertTrue(classifiers.contains(classB));
-        Assert.assertTrue(classifiers.contains(classA));
+        ProxyObject a = repository.newObject(metamodel);
+        ProxyObject b = repository.newObject(metamodel);
+        a.setValue(Vocabulary.owlSameAs, b);
+        Collection<ProxyObject> values = b.getObjectValues(Vocabulary.owlSameAs);
+        Assert.assertEquals(2, values.size());
+        Assert.assertTrue(values.contains(a));
+        Assert.assertTrue(values.contains(b));
     }
 
     /**

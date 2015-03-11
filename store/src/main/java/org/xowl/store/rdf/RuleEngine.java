@@ -296,17 +296,7 @@ public class RuleEngine implements ChangeListener {
      */
     private Node process(GraphNode graph, Node node, Map<VariableNode, Node> bindings, Map<VariableNode, Node> creations) {
         if (node.getNodeType() == VariableNode.TYPE) {
-            VariableNode variable = (VariableNode) node;
-            Node result = bindings.get(variable);
-            if (result != null)
-                return result;
-            result = creations.get(variable);
-            if (result != null)
-                return result;
-            // new creation
-            result = store.newNodeIRI(graph);
-            creations.put(variable, result);
-            return result;
+            return processResolve(graph, (VariableNode) node, bindings, creations);
         } else if (node.getNodeType() == IRINode.TYPE) {
             return node;
         } else if (node.getNodeType() == BlankNode.TYPE) {
@@ -316,6 +306,30 @@ public class RuleEngine implements ChangeListener {
         } else {
             return processOtherNode(graph, node, bindings, creations);
         }
+    }
+
+    /**
+     * Resolves the specified variable node
+     *
+     * @param graph     The parent graph
+     * @param variable  A variable node
+     * @param bindings  The map of bindings
+     * @param creations The map of creations
+     * @return The variable value
+     */
+    private Node processResolve(GraphNode graph, VariableNode variable, Map<VariableNode, Node> bindings, Map<VariableNode, Node> creations) {
+        Node result = bindings.get(variable);
+        if (result != null)
+            return result;
+        result = creations.get(variable);
+        if (result != null)
+            return result;
+        if (graph != null && graph.getNodeType() == VariableNode.TYPE) {
+            graph = (GraphNode) processResolve(null, (VariableNode) graph, bindings, creations);
+        }
+        result = store.newNodeIRI(graph);
+        creations.put(variable, result);
+        return result;
     }
 
     /**

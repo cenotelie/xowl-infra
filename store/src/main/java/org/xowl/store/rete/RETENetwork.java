@@ -229,45 +229,32 @@ public class RETENetwork {
      */
     private JoinData getJoinData(Quad pattern, Collection<VariableNode> variables) {
         JoinData currentData = new JoinData();
-        Node node = pattern.getSubject();
-        if (node.getNodeType() == VariableNode.TYPE) {
-            VariableNode var = (VariableNode) node;
-            if (variables.contains(var)) {
-                QuadField field = QuadField.SUBJECT;
-                BetaJoinNodeTest test = new BetaJoinNodeTest(var, field);
-                currentData.tests.add(test);
-            } else {
-                currentData.binders.add(new Binder(var, QuadField.SUBJECT));
-            }
-            variables.add(var);
-        }
-
-        node = pattern.getProperty();
-        if (node.getNodeType() == VariableNode.TYPE) {
-            VariableNode var = (VariableNode) node;
-            if (variables.contains(var)) {
-                QuadField field = QuadField.PROPERTY;
-                BetaJoinNodeTest test = new BetaJoinNodeTest(var, field);
-                currentData.tests.add(test);
-            } else {
-                currentData.binders.add(new Binder(var, QuadField.PROPERTY));
-            }
-            variables.add(var);
-        }
-
-        node = pattern.getObject();
-        if (node.getNodeType() == VariableNode.TYPE) {
-            VariableNode var = (VariableNode) node;
-            if (variables.contains(var)) {
-                QuadField field = QuadField.VALUE;
-                BetaJoinNodeTest test = new BetaJoinNodeTest(var, field);
-                currentData.tests.add(test);
-            } else {
-                currentData.binders.add(new Binder(var, QuadField.VALUE));
-            }
-            variables.add(var);
-        }
+        buildJoinData(currentData, pattern, QuadField.SUBJECT, variables);
+        buildJoinData(currentData, pattern, QuadField.PROPERTY, variables);
+        buildJoinData(currentData, pattern, QuadField.VALUE, variables);
+        buildJoinData(currentData, pattern, QuadField.GRAPH, variables);
         return currentData;
+    }
+
+    /**
+     * Builds the join data
+     *
+     * @param data      The join data to build
+     * @param pattern   The pattern quad to build from
+     * @param field     The quad field to inspect
+     * @param variables The current found variables so far
+     */
+    private void buildJoinData(JoinData data, Quad pattern, QuadField field, Collection<VariableNode> variables) {
+        Node node = pattern.getField(field);
+        if (node.getNodeType() == VariableNode.TYPE) {
+            VariableNode var = (VariableNode) node;
+            if (variables.contains(var)) {
+                data.tests.add(new BetaJoinNodeTest(var, field));
+            } else {
+                data.binders.add(new Binder(var, field));
+                variables.add(var);
+            }
+        }
     }
 
     /**
