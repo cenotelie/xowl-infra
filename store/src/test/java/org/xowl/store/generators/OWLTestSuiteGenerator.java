@@ -65,8 +65,7 @@ public class OWLTestSuiteGenerator {
      */
     private void generatePositiveEntailmentTest(ProxyObject test) {
         String id = (String) test.getDataValue("http://www.w3.org/2007/OWL/testOntology#identifier");
-        String name = id.replace("-", "_");
-        System.out.println("@Test public void test_" + name + "() { testPositiveEntailment(\"" + id + "\"); }");
+        String name = id.replace("-", "_").replace(".", "_");
 
         ProxyObject objSyntax = test.getObjectValue("http://www.w3.org/2007/OWL/testOntology#normativeSyntax");
         String syntax = null;
@@ -94,5 +93,7 @@ public class OWLTestSuiteGenerator {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+
+        System.out.println("@Test public void test_" + name + "() { testPositiveEntailment(\"" + id + ".premise." + syntax + "\", \"" + id + ".conclusion." + syntax + "\"); }");
     }
 }

@@ -260,7 +260,7 @@ public abstract class W3CTestSuite {
     }
 
     /**
-     * Determines whether the specified triples are equivalent, using the given blank nde mapping
+     * Determines whether the specified triples are equivalent, using the given blank node mapping
      *
      * @param quad1  A triple
      * @param quad2  Another triple
