@@ -32,20 +32,34 @@
 
 # Expansion of RDF lists
 #   For a RDF node h representing a list, all elements can be found with:
-#   ?h xowl:listElement ?e
+#   ?h xowl:contains ?e
 
 rule xowl:list-expansion-init {
     ?h rdf:first ?e1
 } => {
-    ?h xowl:listElement ?e1
+    ?h xowl:contains ?e1
 }
 
 rule xowl:list-expansion-aggregate {
     ?h rdf:rest ?z
-    ?z xowl:listElement ?e
+    ?z xowl:contains ?e
 } => {
-    ?h xowl:listElement ?e
+    ?h xowl:contains ?e
 }
+
+rule xowl:list-order-init {
+    ?p1 rdf:rest ?p2
+} => {
+    ?p2 xowl:after ?p1
+}
+
+rule xowl:list-order-transitive {
+    ?p1 xowl:after ?p2
+    ?p2 xowl:after ?p3
+} => {
+    ?p1 xowl:after ?p3
+}
+
 
 
 # Table 4. The Semantics of Equality
@@ -84,7 +98,7 @@ rule xowl:eq-rep-o {
     ?s ?p ?o2
 }
 
-rule xowl:diff1 {
+rule xowl:eq-diff1 {
     ?x owl:sameAs ?y
     ?x owl:differentFrom ?y
 } => {
@@ -92,21 +106,27 @@ rule xowl:diff1 {
     ?y xowl:status xowl:inconsistent
 }
 
-rule xowl:diff2 {
+rule xowl:eq-diff2 {
     ?x rdf:type owl:AllDifferent
-    ?x owl:members ?y
-    ?y xowl:listElement ?e1
-    ?y xowl:listElement ?e2
+    ?x owl:members ?list
+    ?list xowl:contains ?e1
+    ?list xowl:contains ?e2
+    ?proxy1 rdf:first ?e1
+    ?proxy2 rdf:first ?e2
+    ?proxy2 xowl:after ?proxy1
     ?e1 owl:sameAs ?e2
 } => {
     ?x xowl:status xowl:inconsistent
 }
 
-rule xowl:diff3 {
+rule xowl:eq-diff3 {
     ?x rdf:type owl:AllDifferent
     ?x owl:distinctMembers ?y
-    ?y xowl:listElement ?e1
-    ?y xowl:listElement ?e2
+    ?y xowl:contains ?e1
+    ?y xowl:contains ?e2
+    ?proxy1 rdf:first ?e1
+    ?proxy2 rdf:first ?e2
+    ?proxy2 xowl:after ?proxy1
     ?e1 owl:sameAs ?e2
 } => {
     ?x xowl:status xowl:inconsistent
@@ -124,6 +144,7 @@ rule xowl:prp-dom {
 
 rule xowl:prp-rng {
     ?p rdfs:range ?c
+    ?p rdf:type owl:ObjectProperty
     ?x ?p ?y
 } => {
     ?y rdf:type ?c
@@ -194,9 +215,12 @@ rule xowl:prp-pdw {
 
 rule xowl:prp-adp {
     ?x rdf:type owl:AllDisjointProperties
-    ?x owl:members ?y
-    ?y xowl:listElement ?p1
-    ?y xowl:listElement ?p2
+    ?x owl:members ?list
+    ?list xowl:contains ?p1
+    ?list xowl:contains ?p2
+    ?proxy1 rdf:first ?p1
+    ?proxy2 rdf:first ?p2
+    ?proxy2 xowl:after ?proxy1
     ?x ?p1 ?y
     ?x ?p2 ?y
 } => {
@@ -245,4 +269,349 @@ rule xowl:cls-nothing2 {
     ?x rdf:type owl:Nothing
 } => {
     ?x xowl:status xowl:inconsistent
+}
+
+# TODO: Implement cls-int1 for owl:intersectionOf
+
+rule xowl:cls-int2 {
+    ?c owl:intersectionOf ?x
+    ?x xowl:contains ?cx
+    ?y rdf:type ?c
+} => {
+    ?y rdf:type ?cx
+}
+
+rule xowl:cls-uni {
+    ?c owl:unionOf ?x
+    ?x xowl:contains ?cx
+    ?y rdf:type ?cx
+} => {
+    ?y rdf:type ?c
+}
+
+rule xowl:cls-com {
+    ?c1 owl:complementOf ?c2
+    ?x rdf:type ?c1
+    ?x rdf:type ?c2
+} => {
+    ?x xowl:status xowl:inconsistent
+}
+
+rule xowl:cls-svf1 {
+    ?x owl:someValuesFrom ?y
+    ?x owl:onProperty ?p
+    ?u ?p ?v
+    ?v rdf:type ?y
+} => {
+    ?u rdf:type ?x
+}
+
+rule xowl:cls-svf2 {
+    ?x owl:someValuesFrom owl:Thing
+    ?x owl:onProperty ?p
+    ?u ?p ?v
+} => {
+    ?u rdf:type ?x
+}
+
+rule xowl:cls-avf {
+    ?x owl:allValuesFrom ?y
+    ?x owl:onProperty ?p
+    ?u rdf:type ?x
+    ?u ?p ?v
+} => {
+    ?v rdf:type ?y
+}
+
+rule xowl:cls-hv1 {
+    ?x owl:hasValue ?y
+    ?x owl:onProperty ?p
+    ?u rdf:type ?x
+} => {
+    ?u ?p ?y
+}
+
+rule xowl:cls-hv2 {
+    ?x owl:hasValue ?y
+    ?x owl:onProperty ?p
+    ?u ?p ?y
+} => {
+    ?u rdf:type ?x
+}
+
+rule xowl:cls-maxc1 {
+    ?x owl:maxCardinality "0"^^xsd:nonNegativeInteger
+    ?x owl:onProperty ?p
+    ?u rdf:type ?x
+    ?u ?p ?y
+} => {
+    ?u xowl:status xowl:inconsistent
+}
+
+rule xowl:cls-maxc2 {
+    ?x owl:maxCardinality "1"^^xsd:nonNegativeInteger
+    ?x owl:onProperty ?p
+    ?u rdf:type ?x
+    ?u ?p ?y1
+    ?u ?p ?y2
+} => {
+    ?y1 owl:sameAs ?y2
+}
+
+rule xowl:cls-maxqc1 {
+    ?x owl:maxQualifiedCardinality "0"^^xsd:nonNegativeInteger
+    ?x owl:onProperty ?p
+    ?x owl:onClass ?c
+    ?u rdf:type ?x
+    ?u ?p ?y
+    ?y rdf:type ?c
+} => {
+    ?u xowl:status xowl:inconsistent
+}
+
+rule xowl:cls-maxqc2 {
+    ?x owl:maxQualifiedCardinality "0"^^xsd:nonNegativeInteger
+    ?x owl:onProperty ?p
+    ?x owl:onClass owl:Thing
+    ?u rdf:type ?x
+    ?u ?p ?y
+} => {
+    ?u xowl:status xowl:inconsistent
+}
+
+rule xowl:cls-maxqc3 {
+    ?x owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ?x owl:onProperty ?p
+    ?x owl:onClass ?c
+    ?u rdf:type ?x
+    ?u ?p ?y1
+    ?y1 rdf:type ?c
+    ?u ?p ?y2
+    ?y2 rdf:type ?c
+} => {
+    ?y1 owl:sameAs ?y2
+}
+
+rule xowl:cls-maxqc4 {
+    ?x owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger
+    ?x owl:onProperty ?p
+    ?x owl:onClass owl:Thing
+    ?u rdf:type ?x
+    ?u ?p ?y1
+    ?u ?p ?y2
+} => {
+    ?y1 owl:sameAs ?y2
+}
+
+rule xowl:cls-oo {
+    ?c owl:oneOf ?x
+    ?x xowl:contains ?y
+} => {
+    ?y rdf:type ?c
+}
+
+
+# Table 7. The Semantics of Class Axioms
+
+rule xowl:cax-sco {
+    ?c1 rdfs:subClassOf ?c2
+    ?x rdf:type ?c1
+} => {
+    ?x rdf:type ?c2
+}
+
+rule xowl:cax-eqc1 {
+    ?c1 owl:equivalentClass ?c2
+    ?x rdf:type ?c1
+} => {
+    ?x rdf:type ?c2
+}
+
+rule xowl:cax-eqc2 {
+    ?c1 owl:equivalentClass ?c2
+    ?x rdf:type ?c2
+} => {
+    ?x rdf:type ?c1
+}
+
+rule xowl:cax-dw {
+    ?c1 owl:disjointWith ?c2
+    ?x rdf:type ?c1
+    ?x rdf:type ?c2
+} => {
+    ?x xowl:status xowl:inconsistent
+}
+
+rule xowl:cax-adc {
+    ?c1 rdf:type owl:AllDisjointClasses
+    ?x owl:members ?list
+    ?list xowl:contains ?c1
+    ?list xowl:contains ?c2
+    ?proxy1 rdf:first ?c1
+    ?proxy2 rdf:first ?c2
+    ?proxy2 xowl:after ?proxy1
+    ?z rdf:type ?c1
+    ?z rdf:type ?c2
+} => {
+    ?z xowl:status xowl:inconsistent
+}
+
+
+# Table 9. The Semantics of Schema Vocabulary
+
+rule xowl:scm-cls {
+    ?c rdf:type owl:Class
+} => {
+    ?c rdfs:subClassOf ?c
+    ?c rdfs:subClassOf owl:Thing
+    ?c owl:equivalentClass ?c
+    owl:Nothing rdfs:subClassOf ?c
+}
+
+rule xowl:scm-sco {
+    ?c1 rdfs:subClassOf ?c2
+    ?c2 rdfs:subClassOf ?c3
+} => {
+    ?c1 rdfs:subClassOf ?c3
+}
+
+rule xowl:scm-eqc1 {
+    ?c1 owl:equivalentClass ?c2
+} => {
+    ?c1 rdfs:subClassOf ?c2
+    ?c2 rdfs:subClassOf ?c1
+}
+
+rule xowl:scm-eqc2 {
+    ?c1 rdfs:subClassOf ?c2
+    ?c2 rdfs:subClassOf ?c1
+} => {
+    ?c1 owl:equivalentClass ?c2
+}
+
+rule xowl:scm-op {
+    ?p rdf:type owl:ObjectProperty
+} => {
+    ?p rdfs:subPropertyOf ?p
+    ?p owl:equivalentProperty ?p
+}
+
+rule xowl:scm-dp {
+    ?p rdf:type owl:DatatypeProperty
+} => {
+    ?p rdfs:subPropertyOf ?p
+    ?p owl:equivalentProperty ?p
+}
+
+rule xowl:scm-spo {
+    ?p1 rdfs:subPropertyOf ?p2
+    ?p2 rdfs:subPropertyOf ?p3
+} => {
+    ?p1 rdfs:subPropertyOf ?p3
+}
+
+rule xowl:scm-eqp1 {
+    ?p1 owl:equivalentProperty ?p2
+} => {
+    ?p1 rdfs:subPropertyOf ?p2
+    ?p2 rdfs:subPropertyOf ?p1
+}
+
+rule xowl:scm-eqp2 {
+    ?p1 rdfs:subPropertyOf ?p2
+    ?p2 rdfs:subPropertyOf ?p1
+} => {
+    ?p1 owl:equivalentProperty ?p2
+}
+
+rule xowl:scm-dom1 {
+    ?p rdfs:domain ?c1
+    ?c1 rdfs:subClassOf ?c2
+} => {
+    ?p rdfs:domain ?c2
+}
+
+rule xowl:scm-dom2 {
+    ?p2 rdfs:domain ?c
+    ?p1 rdfs:subPropertyOf ?p2
+} => {
+    ?p1 rdfs:domain ?c
+}
+
+rule xowl:scm-rng1 {
+    ?p rdfs:range ?c1
+    ?c1 rdfs:subClassOf ?c2
+} => {
+    ?p rdfs:range ?c2
+}
+
+rule xowl:scm-rng2 {
+    ?p2 rdfs:range ?c
+    ?p1 rdfs:subPropertyOf ?p2
+} => {
+    ?p1 rdfs:range ?c
+}
+
+rule xowl:scm-hv {
+    ?c1 owl:hasValue ?i
+    ?c1 owl:onProperty ?p1
+    ?c2 owl:hasValue ?i
+    ?c2 owl:onProperty ?p2
+    ?p1 rdfs:subPropertyOf ?p2
+} => {
+    ?c1 rdfs:subClassOf ?c2
+}
+
+rule xowl:scm-svf1 {
+    ?c1 owl:someValuesFrom ?y1
+    ?c1 owl:onProperty ?p
+    ?c2 owl:someValuesFrom ?y2
+    ?c2 owl:onProperty ?p
+    ?y1 rdfs:subClassOf ?y2
+} => {
+    ?c1 rdfs:subClassOf ?c2
+}
+
+rule xowl:scm-svf2 {
+    ?c1 owl:someValuesFrom ?y
+    ?c1 owl:onProperty ?p1
+    ?c2 owl:someValuesFrom ?y
+    ?c2 owl:onProperty ?p2
+    ?p1 rdfs:subPropertyOf ?p2
+} => {
+    ?c1 rdfs:subClassOf ?c2
+}
+
+rule xowl:scm-avf1 {
+    ?c1 owl:allValuesFrom ?y1
+    ?c1 owl:onProperty ?p
+    ?c2 owl:allValuesFrom ?y2
+    ?c2 owl:onProperty ?p
+    ?y1 rdfs:subClassOf ?y2
+} => {
+    ?c1 rdfs:subClassOf ?c2
+}
+
+rule xowl:scm-avf2 {
+    ?c1 owl:allValuesFrom ?y
+    ?c1 owl:onProperty ?p1
+    ?c2 owl:allValuesFrom ?y
+    ?c2 owl:onProperty ?p2
+    ?p1 rdfs:subPropertyOf ?p2
+} => {
+    ?c1 rdfs:subClassOf ?c2
+}
+
+rule xowl:scm-int {
+    ?c owl:intersectionOf ?x
+    ?x xowl:contains ?cx
+} => {
+    ?c rdfs:subClassOf ?cx
+}
+
+rule xowl:scm-uni {
+    ?c owl:unionOf ?x
+    ?x xowl:contains ?cx
+} => {
+    ?cx rdfs:subClassOf ?c
 }

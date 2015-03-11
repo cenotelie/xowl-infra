@@ -123,7 +123,11 @@ public class Repository extends AbstractRepository {
      * @param logger The logger to use
      */
     public void addDefaultInferenceRules(Logger logger) {
-        load(logger, "http://xowl.org/store/base/owl2");
+        // load the owl2, rdf and rdfs ontologies
+        load(logger, "http://www.w3.org/2002/07/owl");
+        load(logger, "http://www.w3.org/1999/02/22-rdf-syntax-ns");
+        load(logger, "http://www.w3.org/2000/01/rdf-schema");
+        // load the OWL2 RL reasoning rules
         load(logger, "http://xowl.org/store/rules/owl2");
     }
 

@@ -108,6 +108,17 @@ public class IRIMapper {
     }
 
     /**
+     * Adds the specified simple map
+     *
+     * @param iri      The iri prefix to match
+     * @param location The physical pattern's root
+     */
+    public void addSimpleMap(String iri, String location) {
+        Pattern pattern = Pattern.compile(iri);
+        entries.add(new Entry(pattern, location));
+    }
+
+    /**
      * Adds the specified map matched by a prefix
      *
      * @param prefix   The iri prefix to match
@@ -150,8 +161,13 @@ public class IRIMapper {
      */
     public static IRIMapper getDefault() {
         IRIMapper mapper = new IRIMapper();
+        // map the owl2, rdf and rdfs ontologies to the embarked one
+        mapper.addSimpleMap("http://www.w3.org/2002/07/owl", "resource:///org/xowl/store/base/owl2.ttl");
+        mapper.addSimpleMap("http://www.w3.org/1999/02/22-rdf-syntax-ns", "resource:///org/xowl/store/base/rdf.ttl");
+        mapper.addSimpleMap("http://www.w3.org/2000/01/rdf-schema", "resource:///org/xowl/store/base/rdfs.ttl");
+        // map the xOWL abstract syntax
         mapper.addRegexpMap("http://xowl.org/lang/(.*)", "resource:///org/xowl/lang/defs/\\1.owl");
-        mapper.addRegexpMap("http://xowl.org/store/base/(.*)", "resource:///org/xowl/store/base/\\1.fs");
+        // map the OWL2 RL reasoning rules
         mapper.addRegexpMap("http://xowl.org/store/rules/(.*)", "resource:///org/xowl/store/rules/\\1.rdft");
         return mapper;
     }
