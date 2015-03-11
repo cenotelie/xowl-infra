@@ -39,7 +39,6 @@ public class OWLTestSuiteGenerator {
     /**
      * Generates the OWL2 test suite
      */
-    @Test
     public void generate() {
         TestLogger logger = new TestLogger();
         Repository repository = null;
