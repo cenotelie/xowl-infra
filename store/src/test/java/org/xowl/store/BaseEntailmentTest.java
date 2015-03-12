@@ -61,10 +61,14 @@ public class BaseEntailmentTest {
 
         // activate the default reasoning rules
         repository.addDefaultInferenceRules(logger);
-        // load the premise ontology
+        // load the premise ontology and the default ontologies
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
         List<Quad> premise = new ArrayList<>();
         iterator = repository.getBackend().getAll(repository.getGraph(ontologyPremise));
+        while (iterator.hasNext()) {
+            premise.add(iterator.next());
+        }
+        iterator = repository.getBackend().getAll(repository.getGraph(repository.resolveOntology("http://www.w3.org/2002/07/owl")));
         while (iterator.hasNext()) {
             premise.add(iterator.next());
         }

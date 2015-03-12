@@ -1494,6 +1494,9 @@ public class FunctionalOWL2Loader implements Loader {
         String value = node.getChildren().get(0).getSymbol().getValue();
         value = value.substring(1, value.length() - 1);
         result.setLexicalValue(value);
+        IRI type = new IRI();
+        type.setHasValue(Vocabulary.xsdString);
+        result.setMemberOf(type);
         return result;
     }
 
@@ -1527,6 +1530,9 @@ public class FunctionalOWL2Loader implements Loader {
         result.setLexicalValue(value);
         String tag = node.getChildren().get(1).getSymbol().getValue();
         result.setLangTag(tag.substring(1));
+        IRI type = new IRI();
+        type.setHasValue(Vocabulary.rdfLangString);
+        result.setMemberOf(type);
         return result;
     }
 
