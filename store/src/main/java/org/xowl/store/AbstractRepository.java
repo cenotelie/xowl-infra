@@ -57,32 +57,35 @@ public abstract class AbstractRepository {
     /**
      * Supported N-Triples syntax
      */
-    public static final String SYNTAX_NTRIPLES = ".nt";
+    public static final String SYNTAX_NTRIPLES = "NTriples";
     /**
      * Supported N-Quads syntax
      */
-    public static final String SYNTAX_NQUADS = ".nq";
+    public static final String SYNTAX_NQUADS = "NQuads";
     /**
      * Supported Turtle syntax
      */
-    public static final String SYNTAX_TURTLE = ".ttl";
+    public static final String SYNTAX_TURTLE = "Turtle";
     /**
      * Supported RDF Transform syntax
      */
-    public static final String SYNTAX_RDFT = ".rdft";
+    public static final String SYNTAX_RDFT = "RDFTransform";
     /**
      * Supported RDF/XML syntax
      */
-    public static final String SYNTAX_RDFXML = ".rdf";
+    public static final String SYNTAX_RDFXML = "RDF/XML";
     /**
      * Supported Functional OWL2 syntax
      */
-    public static final String SYNTAX_FUNCTIONAL_OWL2 = ".fs";
+    public static final String SYNTAX_FUNCTIONAL_OWL2 = "FunctionalOWL";
+    /**
+     * Supported OWL/XML OWL2 syntax
+     */
+    public static final String SYNTAX_OWLXML = "OWL/XML";
     /**
      * Supported Functional xOWL syntax
      */
-    public static final String SYNTAX_FUNCTIONAL_XOWL = ".owl";
-
+    public static final String SYNTAX_XOWL = "FunctionalXOWL";
 
     /**
      * The IRI mapper
@@ -195,26 +198,7 @@ public abstract class AbstractRepository {
      */
     private Reader getReaderFor(Logger logger, String resource) {
         try {
-            if (resource.startsWith(SCHEME_HTTP)) {
-                URL url = new URL(resource);
-                URLConnection connection = url.openConnection();
-                return new InputStreamReader(connection.getInputStream());
-            } else if (resource.startsWith(SCHEME_RESOURCE)) {
-                InputStream stream = Repository.class.getResourceAsStream(resource.substring(SCHEME_RESOURCE.length()));
-                return new InputStreamReader(stream);
-            } else if (resource.startsWith(SCHEME_JAR)) {
-                String parts[] = resource.substring(SCHEME_JAR.length()).split("!");
-                JarFile jar = new JarFile(parts[0]);
-                InputStream stream = jar.getInputStream(jar.getEntry(parts[1]));
-                return new InputStreamReader(stream);
-            } else if (resource.startsWith(SCHEME_FILE)) {
-                FileInputStream stream = new FileInputStream(resource.substring(SCHEME_FILE.length()));
-                return new InputStreamReader(stream);
-            } else {
-                // assume a local path
-                FileInputStream stream = new FileInputStream(resource);
-                return new InputStreamReader(stream);
-            }
+            return getReaderFor(resource);
         } catch (IOException ex) {
             logger.error(ex);
             return null;
@@ -229,20 +213,9 @@ public abstract class AbstractRepository {
      * @return The recognized syntax
      */
     private String getSyntax(Logger logger, String resource) {
-        if (resource.endsWith(SYNTAX_NTRIPLES))
-            return SYNTAX_NTRIPLES;
-        if (resource.endsWith(SYNTAX_NQUADS))
-            return SYNTAX_NQUADS;
-        if (resource.endsWith(SYNTAX_TURTLE))
-            return SYNTAX_TURTLE;
-        if (resource.endsWith(SYNTAX_RDFT))
-            return SYNTAX_RDFT;
-        if (resource.endsWith(SYNTAX_RDFXML))
-            return SYNTAX_RDFXML;
-        if (resource.endsWith(SYNTAX_FUNCTIONAL_OWL2))
-            return SYNTAX_FUNCTIONAL_OWL2;
-        if (resource.endsWith(SYNTAX_FUNCTIONAL_XOWL))
-            return SYNTAX_FUNCTIONAL_XOWL;
+        String syntax = getSyntax(resource);
+        if (syntax != null)
+            return syntax;
         logger.error("Unknown syntax for resource " + resource);
         return null;
     }
@@ -280,30 +253,33 @@ public abstract class AbstractRepository {
      */
     private Ontology loadResource(Logger logger, Reader reader, String iri, String syntax) {
         Ontology ontology = resources.get(iri);
-        if (ontology != null)
-            return ontology;
-        switch (syntax) {
-            case SYNTAX_NTRIPLES:
-            case SYNTAX_NQUADS:
-            case SYNTAX_TURTLE:
-            case SYNTAX_RDFXML:
-            case SYNTAX_RDFT: {
-                Loader loader = newRDFLoader(syntax);
-                RDFLoaderResult input = loader.loadRDF(logger, reader, iri);
-                ontology = loadResourceRDF(logger, iri, input);
-                break;
-            }
-            case SYNTAX_FUNCTIONAL_OWL2: {
-                Loader loader = new FunctionalOWL2Loader();
-                OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
-                ontology = loadResourceOWL(logger, iri, input);
-                break;
-            }
-            case SYNTAX_FUNCTIONAL_XOWL: {
-                Loader loader = new FunctionalXOWLLoader();
-                OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
-                ontology = loadResourceOWL(logger, iri, input);
-                break;
+        if (ontology == null) {
+            switch (syntax) {
+                case SYNTAX_NTRIPLES:
+                case SYNTAX_NQUADS:
+                case SYNTAX_TURTLE:
+                case SYNTAX_RDFXML:
+                case SYNTAX_RDFT: {
+                    Loader loader = newRDFLoader(syntax);
+                    RDFLoaderResult input = loader.loadRDF(logger, reader, iri);
+                    ontology = loadResourceRDF(logger, iri, input);
+                    break;
+                }
+                case SYNTAX_FUNCTIONAL_OWL2: {
+                    Loader loader = new FunctionalOWL2Loader();
+                    OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
+                    ontology = loadResourceOWL(logger, iri, input);
+                    break;
+                }
+                case SYNTAX_XOWL: {
+                    Loader loader = new FunctionalXOWLLoader();
+                    OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
+                    ontology = loadResourceOWL(logger, iri, input);
+                    break;
+                }
+                default:
+                    logger.error("Unsupported syntax: " + syntax);
+                    break;
             }
         }
         try {
@@ -382,4 +358,62 @@ public abstract class AbstractRepository {
      * @param input    The input data
      */
     protected abstract void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input);
+
+
+    /**
+     * Determines the syntax for the specified resource
+     *
+     * @param resource The resource to identify
+     * @return The recognized syntax
+     */
+    public static String getSyntax(String resource) {
+        if (resource.endsWith(".nt"))
+            return SYNTAX_NTRIPLES;
+        if (resource.endsWith(".nq"))
+            return SYNTAX_NQUADS;
+        if (resource.endsWith(".ttl"))
+            return SYNTAX_TURTLE;
+        if (resource.endsWith(".rdft"))
+            return SYNTAX_RDFT;
+        if (resource.endsWith(".rdf"))
+            return SYNTAX_RDFXML;
+        if (resource.endsWith(".fs"))
+            return SYNTAX_FUNCTIONAL_OWL2;
+        if (resource.endsWith(".owl"))
+            return SYNTAX_OWLXML;
+        if (resource.endsWith(".xowl"))
+            return SYNTAX_XOWL;
+        // TODO: try to look into the file to determine the syntax
+        return null;
+    }
+
+    /**
+     * Gets a reader for a resource
+     *
+     * @param resource The resource to read
+     * @return The appropriate reader
+     * @throws java.io.IOException When the reader cannot be created
+     */
+    public static Reader getReaderFor(String resource) throws IOException {
+        if (resource.startsWith(SCHEME_HTTP)) {
+            URL url = new URL(resource);
+            URLConnection connection = url.openConnection();
+            return new InputStreamReader(connection.getInputStream());
+        } else if (resource.startsWith(SCHEME_RESOURCE)) {
+            InputStream stream = Repository.class.getResourceAsStream(resource.substring(SCHEME_RESOURCE.length()));
+            return new InputStreamReader(stream);
+        } else if (resource.startsWith(SCHEME_JAR)) {
+            String parts[] = resource.substring(SCHEME_JAR.length()).split("!");
+            JarFile jar = new JarFile(parts[0]);
+            InputStream stream = jar.getInputStream(jar.getEntry(parts[1]));
+            return new InputStreamReader(stream);
+        } else if (resource.startsWith(SCHEME_FILE)) {
+            FileInputStream stream = new FileInputStream(resource.substring(SCHEME_FILE.length()));
+            return new InputStreamReader(stream);
+        } else {
+            // assume a local path
+            FileInputStream stream = new FileInputStream(resource);
+            return new InputStreamReader(stream);
+        }
+    }
 }
