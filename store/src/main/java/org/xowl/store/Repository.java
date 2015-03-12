@@ -129,6 +129,7 @@ public class Repository extends AbstractRepository {
         load(logger, "http://www.w3.org/2000/01/rdf-schema");
         // load the OWL2 RL reasoning rules
         load(logger, "http://xowl.org/store/rules/owl2");
+        load(logger, "http://xowl.org/store/rules/xowl");
     }
 
     /**
