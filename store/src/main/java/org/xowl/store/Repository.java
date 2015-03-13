@@ -27,12 +27,12 @@ import org.xowl.store.owl.RuleEngine;
 import org.xowl.store.owl.*;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.Logger;
+import org.xowl.utils.collections.Adapter;
+import org.xowl.utils.collections.AdaptingIterator;
+import org.xowl.utils.collections.SkippableIterator;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a repository of xOWL ontologies
@@ -51,7 +51,7 @@ public class Repository extends AbstractRepository {
     /**
      * The proxies onto this repository
      */
-    private Map<Ontology, Map<String, ProxyObject>> proxies;
+    private Map<Ontology, Map<IRINode, ProxyObject>> proxies;
     /**
      * The query engine for this repository
      */
@@ -133,25 +133,69 @@ public class Repository extends AbstractRepository {
     }
 
     /**
-     * Gets a proxy on an existing entity in this repository
+     * Gets the proxy objects on entities defined in the specified ontology
+     * An entity is defined within an ontology if at least one of its property is asserted in this ontology.
+     * The IRI of this entity may or may not start with the IRI of the ontology, although it easier if it does.
      *
-     * @param iri The iri of an entity
+     * @param ontology An ontology
+     * @return An iterator over the proxy objects
+     */
+    public Iterator<ProxyObject> getProxiesIn(final Ontology ontology) {
+        Iterator<Quad> quads = backend.getAll(getGraph(ontology));
+        return new SkippableIterator<>(new AdaptingIterator<>(quads, new Adapter<ProxyObject>() {
+            @Override
+            public <X> ProxyObject adapt(X element) {
+                Node subject = ((Quad) element).getSubject();
+                if (subject.getNodeType() != IRINode.TYPE)
+                    return null;
+                return getProxy(ontology, (IRINode) subject);
+            }
+        }));
+    }
+
+    /**
+     * Gets a proxy on the entity represented by the specified node in the specified ontology
+     *
+     * @param ontology The ontology defining the entity
+     * @param iriNode  The IRI node representing the entity
+     * @return The proxy
+     */
+    private ProxyObject getProxy(Ontology ontology, IRINode iriNode) {
+        Map<IRINode, ProxyObject> sub = proxies.get(ontology);
+        if (sub == null) {
+            sub = new HashMap<>();
+            proxies.put(ontology, sub);
+        }
+        ProxyObject proxy = sub.get(iriNode);
+        if (proxy != null)
+            return proxy;
+        proxy = new ProxyObject(this, ontology, iriNode);
+        sub.put(iriNode, proxy);
+        return proxy;
+    }
+
+    /**
+     * Gets a proxy on the entity having the specified IRI in the specified ontology
+     *
+     * @param ontology The ontology defining the entity
+     * @param iri      The IRI of an entity
+     * @return The proxy
+     */
+    public ProxyObject getProxy(Ontology ontology, String iri) {
+        return getProxy(ontology, backend.getNodeIRI(iri));
+    }
+
+    /**
+     * Gets a proxy on the entity having the specified IRI
+     * The containing ontology will be computed based on the entity's IRI
+     *
+     * @param iri The IRI of an entity
      * @return The associated proxy
      */
     public ProxyObject getProxy(String iri) {
         String[] parts = iri.split("#");
         Ontology ontology = resolveOntology(parts[0]);
-        Map<String, ProxyObject> sub = proxies.get(ontology);
-        if (sub == null) {
-            sub = new HashMap<>();
-            proxies.put(ontology, sub);
-        }
-        ProxyObject proxy = sub.get(iri);
-        if (proxy != null)
-            return proxy;
-        proxy = new ProxyObject(this, ontology, backend.getNodeIRI(iri));
-        sub.put(iri, proxy);
-        return proxy;
+        return getProxy(ontology, backend.getNodeIRI(iri));
     }
 
     /**
@@ -161,14 +205,14 @@ public class Repository extends AbstractRepository {
      * @return A proxy on the new object
      */
     public ProxyObject newObject(Ontology ontology) {
-        Map<String, ProxyObject> sub = proxies.get(ontology);
+        Map<IRINode, ProxyObject> sub = proxies.get(ontology);
         if (sub == null) {
             sub = new HashMap<>();
             proxies.put(ontology, sub);
         }
         IRINode entity = backend.newNodeIRI(getGraph(ontology));
         ProxyObject proxy = new ProxyObject(this, ontology, entity);
-        sub.put(entity.getIRIValue(), proxy);
+        sub.put(entity, proxy);
         return proxy;
     }
 
@@ -178,10 +222,10 @@ public class Repository extends AbstractRepository {
      * @param proxy A proxy
      */
     protected void remove(ProxyObject proxy) {
-        Map<String, ProxyObject> sub = proxies.get(proxy.getOntology());
+        Map<IRINode, ProxyObject> sub = proxies.get(proxy.getOntology());
         if (sub == null)
             return;
-        sub.remove(proxy.getIRIString());
+        sub.remove(proxy.entity);
     }
 
     /**

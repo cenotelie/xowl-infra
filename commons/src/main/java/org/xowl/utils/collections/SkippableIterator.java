@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -17,51 +17,56 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-
 package org.xowl.utils.collections;
 
 import java.util.Iterator;
 
 /**
- * Represents an iterator that adapts the elements of another iterator
+ * Represents an iterator that adapts another while skipping over null values
  *
- * @param <T> The type of elements to iterator over
- * @param <X> The type of input elements
+ * @param <T> The type of the data to iterate over
  * @author Laurent Wouters
  */
-public class AdaptingIterator<T, X> implements Iterator<T> {
+public class SkippableIterator<T> implements Iterator<T> {
     /**
-     * The innner iterator
+     * The original iterator
      */
-    private Iterator<X> content;
+    private Iterator<T> original;
     /**
-     * The adapter for translating the element
+     * The next item
      */
-    private Adapter<T> adapter;
+    private T nextItem;
 
     /**
      * Initializes this iterator
      *
-     * @param content The inner iterator
-     * @param adapter The adapter to use
+     * @param original The original iterator
      */
-    public AdaptingIterator(Iterator<X> content, Adapter<T> adapter) {
-        this.content = content;
-        this.adapter = adapter;
+    public SkippableIterator(Iterator<T> original) {
+        this.original = original;
+        while (original.hasNext() && nextItem == null) {
+            nextItem = original.next();
+        }
     }
 
     @Override
     public boolean hasNext() {
-        return content.hasNext();
+        return (nextItem != null);
     }
 
     @Override
     public T next() {
-        return adapter.adapt(content.next());
+        T result = nextItem;
+        nextItem = null;
+        while (original.hasNext() && nextItem == null) {
+            nextItem = original.next();
+        }
+        return result;
     }
 
     @Override
     public void remove() {
         throw new UnsupportedOperationException();
     }
+
 }
