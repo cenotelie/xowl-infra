@@ -22,6 +22,10 @@ package org.xowl.store;
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.rdf.*;
+import org.xowl.utils.collections.Adapter;
+import org.xowl.utils.collections.AdaptingIterator;
+import org.xowl.utils.collections.Couple;
+import org.xowl.utils.collections.SkippableIterator;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -173,6 +177,22 @@ public class ProxyObject {
     }
 
     /**
+     * Gets the values for all the set object properties
+     *
+     * @return The couple of (property IRI, value)
+     */
+    public Collection<Couple<String, ProxyObject>> getObjectValues() {
+        List<Couple<String, ProxyObject>> result = new ArrayList<>();
+        Iterator<Couple<String, Object>> iterator = queryProperties();
+        while (iterator.hasNext()) {
+            Couple<String, Object> couple = iterator.next();
+            if (couple.y instanceof ProxyObject)
+                result.add(new Couple<>(couple.x, (ProxyObject) couple.y));
+        }
+        return result;
+    }
+
+    /**
      * Gets the objects for which this one is a value for the specified property
      *
      * @param property An object property
@@ -190,6 +210,36 @@ public class ProxyObject {
      */
     public Collection<Object> getDataValues(String property) {
         return queryData(node(property));
+    }
+
+    /**
+     * Gets the values for all the set data properties
+     *
+     * @return The couple of (property IRI, value)
+     */
+    public Collection<Couple<String, Object>> getDataValues() {
+        List<Couple<String, Object>> result = new ArrayList<>();
+        Iterator<Couple<String, Object>> iterator = queryProperties();
+        while (iterator.hasNext()) {
+            Couple<String, Object> couple = iterator.next();
+            if (!(couple.y instanceof ProxyObject))
+                result.add(new Couple<>(couple.x, couple.y));
+        }
+        return result;
+    }
+
+    /**
+     * Gets the values for all the set properties
+     *
+     * @return The couple of (property IRI, value)
+     */
+    public Collection<Couple<String, Object>> getValues() {
+        List<Couple<String, Object>> result = new ArrayList<>();
+        Iterator<Couple<String, Object>> iterator = queryProperties();
+        while (iterator.hasNext()) {
+            result.add(iterator.next());
+        }
+        return result;
     }
 
     /**
@@ -278,6 +328,36 @@ public class ProxyObject {
         repository = null;
         ontology = null;
         entity = null;
+    }
+
+    /**
+     * Queries all the set properties
+     *
+     * @return The properties and the values
+     */
+    private Iterator<Couple<String, Object>> queryProperties() {
+        try {
+            return new SkippableIterator<>(new AdaptingIterator<>(repository.getBackend().getAll(entity, null, null), new Adapter<Couple<String, Object>>() {
+                @Override
+                public <X> Couple<String, Object> adapt(X element) {
+                    Quad quad = (Quad) element;
+                    Node nodeProperty = quad.getProperty();
+                    if (nodeProperty.getNodeType() != IRINode.TYPE)
+                        return null;
+                    String property = ((IRINode) nodeProperty).getIRIValue();
+                    Node nodeValue = quad.getObject();
+                    if (nodeValue.getNodeType() == IRINode.TYPE) {
+                        return new Couple<String, Object>(property, repository.getProxy(((IRINode) nodeValue).getIRIValue()));
+                    } else if (nodeValue.getNodeType() == LiteralNode.TYPE) {
+                        return new Couple<>(property, decode((LiteralNode) nodeValue));
+                    }
+                    return null;
+                }
+            }));
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
+            return null;
+        }
     }
 
     /**
