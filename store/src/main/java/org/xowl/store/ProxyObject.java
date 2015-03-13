@@ -120,21 +120,7 @@ public class ProxyObject {
      * @return the instances of this object
      */
     public Collection<ProxyObject> getInstances() {
-        Collection<ProxyObject> result = new ArrayList<>();
-        try {
-            // get all triple of the form
-            // [entity property ?]
-            Iterator<Quad> iterator = repository.getBackend().getAll(null, node(Vocabulary.rdfType), entity);
-            while (iterator.hasNext()) {
-                Node node = iterator.next().getSubject();
-                if (node.getNodeType() == IRINode.TYPE) {
-                    result.add(repository.getProxy(((IRINode) node).getIRIValue()));
-                }
-            }
-        } catch (UnsupportedNodeType ex) {
-            // cannot happen
-        }
-        return result;
+        return queryInverseObjects(node(Vocabulary.rdfType));
     }
 
     /**
@@ -145,6 +131,19 @@ public class ProxyObject {
      */
     public ProxyObject getObjectValue(String property) {
         Collection<ProxyObject> result = queryObjects(node(property));
+        if (result.isEmpty())
+            return null;
+        return result.iterator().next();
+    }
+
+    /**
+     * Gets the object for which this one is a value for the specified property
+     *
+     * @param property An object property
+     * @return The object
+     */
+    public ProxyObject getObjectFrom(String property) {
+        Collection<ProxyObject> result = queryInverseObjects(node(property));
         if (result.isEmpty())
             return null;
         return result.iterator().next();
@@ -171,6 +170,16 @@ public class ProxyObject {
      */
     public Collection<ProxyObject> getObjectValues(String property) {
         return queryObjects(node(property));
+    }
+
+    /**
+     * Gets the objects for which this one is a value for the specified property
+     *
+     * @param property An object property
+     * @return The objects
+     */
+    public Collection<ProxyObject> getObjectsFrom(String property) {
+        return queryInverseObjects(node(property));
     }
 
     /**
@@ -283,6 +292,30 @@ public class ProxyObject {
             // get all triple of the form
             // [entity property ?]
             Iterator<Quad> iterator = repository.getBackend().getAll(entity, property, null);
+            while (iterator.hasNext()) {
+                Node node = iterator.next().getObject();
+                if (node.getNodeType() == IRINode.TYPE) {
+                    result.add(repository.getProxy(((IRINode) node).getIRIValue()));
+                }
+            }
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
+        }
+        return result;
+    }
+
+    /**
+     * Queries the object for which this on is a value for the specified property
+     *
+     * @param property The RDF node for the property
+     * @return The corresponding objects
+     */
+    private Collection<ProxyObject> queryInverseObjects(IRINode property) {
+        Collection<ProxyObject> result = new ArrayList<>();
+        try {
+            // get all triple of the form
+            // [entity property ?]
+            Iterator<Quad> iterator = repository.getBackend().getAll(null, property, entity);
             while (iterator.hasNext()) {
                 Node node = iterator.next().getObject();
                 if (node.getNodeType() == IRINode.TYPE) {
