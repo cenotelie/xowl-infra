@@ -26,7 +26,7 @@ import org.junit.Test;
  *
  * @author Laurent Wouters
  */
-public class EntailmentTest extends BaseEntailmentTest {
+public class EntailmentTest extends OWLEntailmentTest {
     @Test
     public void test_WebOnt_I5_5_005() {
         testPositiveEntailment("WebOnt-I5.5-005.premise.rdf", "WebOnt-I5.5-005.conclusion.rdf");

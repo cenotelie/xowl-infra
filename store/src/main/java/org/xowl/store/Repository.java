@@ -118,11 +118,11 @@ public class Repository extends AbstractRepository {
     }
 
     /**
-     * Adds the default inference rules to the rule engine
+     * Adds the entailment rules for the OWL2 - RDF Based Semantics
      *
      * @param logger The logger to use
      */
-    public void addDefaultInferenceRules(Logger logger) {
+    public void addEntailmentRulesForOWL2_RDFBasedSemantics(Logger logger) {
         // load the owl2, rdf and rdfs ontologies
         load(logger, "http://www.w3.org/2002/07/owl");
         load(logger, "http://www.w3.org/1999/02/22-rdf-syntax-ns");

@@ -20,7 +20,6 @@
 package org.xowl.store;
 
 import org.junit.Assert;
-import org.junit.Test;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.rdf.BlankNode;
 import org.xowl.store.rdf.Quad;
@@ -33,7 +32,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class BaseEntailmentTest {
+public class OWLEntailmentTest {
     /**
      * Test of positive entailment
      *
@@ -60,7 +59,7 @@ public class BaseEntailmentTest {
         }
 
         // activate the default reasoning rules
-        repository.addDefaultInferenceRules(logger);
+        repository.addEntailmentRulesForOWL2_RDFBasedSemantics(logger);
         // load the premise ontology and the default ontologies
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
         List<Quad> premise = new ArrayList<>();
