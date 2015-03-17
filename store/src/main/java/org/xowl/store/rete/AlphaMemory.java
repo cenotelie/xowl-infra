@@ -104,13 +104,16 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
         if (facts == null) {
             // this memory has just been created
             facts = new ArrayList<>();
-            try {
-                Iterator<Quad> data = store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
-                while (data.hasNext()) {
-                    facts.add(data.next());
+            if (store != null) {
+                // if we have a store attached, populate the this memory with the matching triples
+                try {
+                    Iterator<Quad> data = store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
+                    while (data.hasNext()) {
+                        facts.add(data.next());
+                    }
+                } catch (UnsupportedNodeType ex) {
+                    // do nothing
                 }
-            } catch (UnsupportedNodeType ex) {
-                // do nothing
             }
         }
         return this;
