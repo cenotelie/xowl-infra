@@ -17,7 +17,7 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.store.loaders;
+package org.xowl.store;
 
 import java.util.ArrayList;
 import java.util.List;
