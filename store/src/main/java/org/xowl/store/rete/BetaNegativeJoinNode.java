@@ -31,17 +31,35 @@ import java.util.*;
  */
 class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable {
     /**
-     * The parent alpha memory
+     * Represents a counter of matches
+     */
+    private static class Counter {
+        /**
+         * The encapsulated value
+         */
+        public int value;
+    }
+
+    /**
+     * The associated upstream alpha memory
      */
     private FactHolder alphaMem;
     /**
-     * The parent beta memory
+     * The associated upstream beta memory
      */
     private TokenHolder betaMem;
     /**
-     * The joining tests for this node
+     * The first test
      */
-    private List<BetaJoinNodeTest> tests;
+    private BetaJoinNodeTest test1;
+    /**
+     * The second test
+     */
+    private BetaJoinNodeTest test2;
+    /**
+     * The third test
+     */
+    private BetaJoinNodeTest test3;
     /**
      * The child node
      */
@@ -49,7 +67,7 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
     /**
      * The current matches in this node
      */
-    private Map<Token, List<Quad>> matches;
+    private Map<Token, Counter> matches;
 
     /**
      * Initializes this node
@@ -61,7 +79,10 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
     public BetaNegativeJoinNode(FactHolder alpha, TokenHolder beta, Collection<BetaJoinNodeTest> tests) {
         this.alphaMem = alpha;
         this.betaMem = beta;
-        this.tests = new ArrayList<>(tests);
+        Iterator<BetaJoinNodeTest> iter = tests.iterator();
+        if (iter.hasNext()) test1 = iter.next();
+        if (iter.hasNext()) test2 = iter.next();
+        if (iter.hasNext()) test3 = iter.next();
         this.alphaMem.addChild(this);
         this.betaMem.addChild(this);
         this.matches = new IdentityHashMap<>();
@@ -74,7 +95,7 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
 
     @Override
     public Collection<TokenActivable> getChildren() {
-        Collection<TokenActivable> list = new ArrayList<TokenActivable>();
+        Collection<TokenActivable> list = new ArrayList<>();
         if (child != null)
             list.add(child);
         return list;
@@ -103,28 +124,51 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
         matches = null;
     }
 
+    /**
+     * Acts on receiving a new activating token
+     *
+     * @param token An activating token
+     * @return Whether to transmit the token to the child
+     */
+    private boolean onTokenActivated(Token token) {
+        Counter counter = new Counter();
+        matches.put(token, counter);
+        for (Quad fact : alphaMem.getFacts()) {
+            if (passTests(token, fact)) {
+                counter.value++;
+            }
+        }
+        return (counter.value == 0);
+    }
+
+    /**
+     * Acts on receiving a deactivating token
+     *
+     * @param token A deactivating token
+     * @return Whether to transmit the token to the child
+     */
+    private boolean onTokenDeactivated(Token token) {
+        Counter counter = matches.remove(token);
+        return (counter.value == 0);
+    }
+
     @Override
     public void activateToken(Token token) {
-        for (Quad fact : alphaMem.getFacts())
-            applyPositive(token, fact);
-        if (!matches.containsKey(token))
+        if (onTokenActivated(token))
             child.activateToken(token);
     }
 
     @Override
     public void deactivateToken(Token token) {
-        matches.remove(token);
-        child.deactivateToken(token);
+        if (onTokenDeactivated(token))
+            child.deactivateToken(token);
     }
 
     @Override
     public void activateTokens(Collection<Token> tokens) {
         Iterator<Token> iterator = tokens.iterator();
         while (iterator.hasNext()) {
-            Token token = iterator.next();
-            for (Quad fact : alphaMem.getFacts())
-                applyPositive(token, fact);
-            if (matches.containsKey(token))
+            if (!onTokenActivated(iterator.next()))
                 iterator.remove();
         }
         int size = tokens.size();
@@ -138,102 +182,125 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
 
     @Override
     public void deactivateTokens(Collection<Token> tokens) {
-        for (Token token : tokens)
-            matches.remove(token);
-        child.deactivateTokens(tokens);
+        Iterator<Token> iterator = tokens.iterator();
+        while (iterator.hasNext()) {
+            if (!onTokenDeactivated(iterator.next()))
+                iterator.remove();
+        }
+        int size = tokens.size();
+        if (size != 0) {
+            if (size == 1)
+                child.deactivateToken(tokens.iterator().next());
+            else
+                child.deactivateTokens(tokens);
+        }
+    }
+
+    /**
+     * Determines whether the specified token an fact pass the tests in this node
+     *
+     * @param token A token
+     * @param fact  A fact
+     * @return true if the couple passes the tests
+     */
+    private boolean passTests(Token token, Quad fact) {
+        if (test1 == null) return true;
+        if (!test1.check(token, fact)) return false;
+        if (test2 == null) return true;
+        if (!test2.check(token, fact)) return false;
+        if (test3 == null) return true;
+        return test3.check(token, fact);
+    }
+
+    /**
+     * Acts on receiving a new activating fact
+     *
+     * @param fact         An activating fact
+     * @param toDeactivate The buffer of token that will be subsequently deactivated
+     */
+    private void onFactActivated(Quad fact, Collection<Token> toDeactivate) {
+        for (Map.Entry<Token, Counter> entry : matches.entrySet()) {
+            if (passTests(entry.getKey(), fact)) {
+                entry.getValue().value++;
+                if (entry.getValue().value == 1) {
+                    // was 0, we should deactivate the token
+                    toDeactivate.add(entry.getKey());
+                }
+            }
+        }
+    }
+
+    /**
+     * Acts on receiving a deactivating fact
+     *
+     * @param fact       A deactivating fact
+     * @param toActivate The buffer of token that will be subsequently activated
+     */
+    private void onFactDeactivated(Quad fact, Collection<Token> toActivate) {
+        for (Map.Entry<Token, Counter> entry : matches.entrySet()) {
+            if (passTests(entry.getKey(), fact)) {
+                entry.getValue().value--;
+                if (entry.getValue().value == 0) {
+                    // now 0, we should activate the token
+                    toActivate.add(entry.getKey());
+                }
+            }
+        }
     }
 
     @Override
     public void activateFact(Quad fact) {
-        for (Token token : betaMem.getTokens()) {
-            applyPositive(token, fact);
-            if (matches.containsKey(token))
-                child.deactivateToken(token);
+        ArrayList<Token> toDeactivate = new ArrayList<>();
+        onFactActivated(fact, toDeactivate);
+        if (toDeactivate.size() > 0) {
+            if (toDeactivate.size() == 1) {
+                child.deactivateToken(toDeactivate.get(0));
+            } else {
+                child.deactivateTokens(new FastBuffer<>(toDeactivate));
+            }
         }
     }
 
     @Override
     public void deactivateFact(Quad fact) {
-        for (Token token : betaMem.getTokens()) {
-            if (applyNegative(token, fact)) {
-                child.activateToken(token);
+        ArrayList<Token> toActivate = new ArrayList<>();
+        onFactDeactivated(fact, toActivate);
+        if (toActivate.size() > 0) {
+            if (toActivate.size() == 1) {
+                child.activateToken(toActivate.get(0));
+            } else {
+                child.activateTokens(new FastBuffer<>(toActivate));
             }
         }
     }
 
     @Override
     public void activateFacts(Collection<Quad> facts) {
-        List<Token> deactivated = new ArrayList<Token>();
-        for (Quad fact : facts) {
-            for (Token token : betaMem.getTokens()) {
-                applyPositive(token, fact);
-                if (matches.containsKey(token))
-                    deactivated.add(token);
+        ArrayList<Token> toDeactivate = new ArrayList<>();
+        for (Quad fact : facts)
+            onFactActivated(fact, toDeactivate);
+        if (toDeactivate.size() > 0) {
+            if (toDeactivate.size() == 1) {
+                child.deactivateToken(toDeactivate.get(0));
+            } else {
+                child.deactivateTokens(new FastBuffer<>(toDeactivate));
             }
-        }
-        int size = deactivated.size();
-        if (size != 0) {
-            if (size == 1)
-                child.deactivateToken(deactivated.get(0));
-            else
-                child.deactivateTokens(new FastBuffer<Token>(deactivated));
         }
     }
 
     @Override
     public void deactivateFacts(Collection<Quad> facts) {
-        List<Token> reactivated = new ArrayList<Token>();
-        for (Quad fact : facts) {
-            for (Token token : betaMem.getTokens()) {
-                if (applyNegative(token, fact))
-                    reactivated.add(token);
+        ArrayList<Token> toActivate = new ArrayList<>();
+        for (Quad fact : facts)
+            onFactDeactivated(fact, toActivate);
+        if (toActivate.size() > 0) {
+            if (toActivate.size() == 1) {
+                child.activateToken(toActivate.get(0));
+            } else {
+                child.activateTokens(new FastBuffer<>(toActivate));
             }
-        }
-        int size = reactivated.size();
-        if (size != 0) {
-            if (size == 1)
-                child.activateToken(reactivated.get(0));
-            else
-                child.activateTokens(new FastBuffer<Token>(reactivated));
         }
     }
 
-    /**
-     * Positively applies the join operation for the specified element
-     *
-     * @param token A parent token
-     * @param fact  An input fact
-     */
-    private void applyPositive(Token token, Quad fact) {
-        for (BetaJoinNodeTest test : tests) {
-            if (!test.check(token, fact)) {
-                return;
-            }
-        }
-        List<Quad> tsm = matches.get(token);
-        if (tsm == null) {
-            tsm = new ArrayList<>();
-            matches.put(token, tsm);
-        }
-        tsm.add(fact);
-    }
 
-    /**
-     * Negatively applies the join operation to the specified element
-     *
-     * @param token A parent token
-     * @param fact  An input fact
-     * @return True if the negative join was triggered
-     */
-    private boolean applyNegative(Token token, Quad fact) {
-        List<Quad> tsm = matches.get(token);
-        if (tsm == null)
-            return false;
-        if (!tsm.remove(fact))
-            return false;
-        if (!tsm.isEmpty())
-            return false;
-        matches.remove(token);
-        return true;
-    }
 }
