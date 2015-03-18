@@ -32,7 +32,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class OWLEntailmentTest {
+public class BaseOWLReasoningTest {
     /**
      * Test of positive entailment
      *
@@ -86,5 +86,33 @@ public class OWLEntailmentTest {
         }
 
         Assert.assertFalse("Some error occurred", logger.isOnError());
+    }
+
+    /**
+     * Test of negative entailment
+     *
+     * @param premiseResource    The resource for the premise
+     * @param conclusionResource The resource for the conclusion
+     */
+    protected void testNegativeEntailment(String premiseResource, String conclusionResource) {
+
+    }
+
+    /**
+     * Test of consistency
+     *
+     * @param premiseResource The resource for the premise
+     */
+    protected void testConsistency(String premiseResource) {
+
+    }
+
+    /**
+     * Test of inconsistency
+     *
+     * @param premiseResource The resource for the premise
+     */
+    protected void testInconsistency(String premiseResource) {
+
     }
 }

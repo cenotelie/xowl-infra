@@ -28,6 +28,7 @@ import org.xowl.utils.Files;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 
 /**
  * Generator for the OWL2 test suite
@@ -39,6 +40,7 @@ public class OWLTestSuiteGenerator {
     /**
      * Generates the OWL2 test suite
      */
+    @Test
     public void generate() {
         TestLogger logger = new TestLogger();
         Repository repository = null;
@@ -52,21 +54,21 @@ public class OWLTestSuiteGenerator {
         repository.load(logger, "http://owl.semanticweb.org/exports/testOntology.rdf");
         repository.load(logger, "http://owl.semanticweb.org/exports/all.rdf");
 
-        ProxyObject classPositiveEntailment = repository.getProxy("http://www.w3.org/2007/OWL/testOntology#PositiveEntailmentTest");
-        for (ProxyObject test : classPositiveEntailment.getInstances()) {
-            generatePositiveEntailmentTest(test);
+        ProxyObject classTestCase = repository.getProxy("http://www.w3.org/2007/OWL/testOntology#TestCase");
+        for (ProxyObject test : classTestCase.getInstances()) {
+            exportResources(test);
+            generateCode(test);
         }
     }
 
     /**
-     * Generates a positive entailment test from the specified specification
+     * Export the resources for the specified test
      *
      * @param test A test specification
      */
-    private void generatePositiveEntailmentTest(ProxyObject test) {
+    private void exportResources(ProxyObject test) {
         String id = (String) test.getDataValue("http://www.w3.org/2007/OWL/testOntology#identifier");
-        String name = id.replace("-", "_").replace(".", "_");
-
+        String name = getName(id);
         ProxyObject objSyntax = test.getObjectValue("http://www.w3.org/2007/OWL/testOntology#normativeSyntax");
         String syntax = null;
         String premise = null;
@@ -84,16 +86,77 @@ public class OWLTestSuiteGenerator {
                 break;
         }
         try {
-            Writer writer = Files.getWriter("src/test/resources/entailment/" + id + ".premise." + syntax);
+            Writer writer = Files.getWriter("src/test/resources/entailment/" + name + ".premise." + syntax);
             writer.write(premise);
             writer.close();
-            writer = Files.getWriter("src/test/resources/entailment/" + id + ".conclusion." + syntax);
-            writer.write(conclusion);
-            writer.close();
+            if (conclusion != null) {
+                writer = Files.getWriter("src/test/resources/entailment/" + name + ".conclusion." + syntax);
+                writer.write(conclusion);
+                writer.close();
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
 
-        System.out.println("@Test public void test_" + name + "() { testPositiveEntailment(\"" + id + ".premise." + syntax + "\", \"" + id + ".conclusion." + syntax + "\"); }");
+    /**
+     * Generates the code for the specified test
+     *
+     * @param test A test specification
+     */
+    private void generateCode(ProxyObject test) {
+        String id = (String) test.getDataValue("http://www.w3.org/2007/OWL/testOntology#identifier");
+        String name = getName(id);
+        ProxyObject objSyntax = test.getObjectValue("http://www.w3.org/2007/OWL/testOntology#normativeSyntax");
+        String syntax = null;
+        switch (objSyntax.getIRIString()) {
+            case "http://www.w3.org/2007/OWL/testOntology#RDFXML":
+                syntax = "rdf";
+                break;
+            case "http://www.w3.org/2007/OWL/testOntology#FUNCTIONAL":
+                syntax = "fs";
+                break;
+        }
+
+        Collection<ProxyObject> types = test.getClassifiers();
+        for (ProxyObject type : types) {
+            switch (type.getIRIString()) {
+                case "http://www.w3.org/2007/OWL/testOntology#PositiveEntailmentTest":
+                    System.out.println("@Test public void testPositiveEntailment_" + name + "() { testPositiveEntailment(\"" + name + ".premise." + syntax + "\", \"" + name + ".conclusion." + syntax + "\"); }");
+                    break;
+                case "http://www.w3.org/2007/OWL/testOntology#NegativeEntailmentTest":
+                    System.out.println("@Test public void testNegativeEntailment_" + name + "() { testNegativeEntailment(\"" + name + ".premise." + syntax + "\", \"" + name + ".conclusion." + syntax + "\"); }");
+                    break;
+                case "http://www.w3.org/2007/OWL/testOntology#ConsistencyTest":
+                    System.out.println("@Test public void testConsistency_" + name + "() { testConsistency(\"" + name + ".premise." + syntax + "\"); }");
+                    break;
+                case "http://www.w3.org/2007/OWL/testOntology#InconsistencyTest":
+                    System.out.println("@Test public void testInconsistency_" + name + "() { testInconsistency(\"" + name + ".premise." + syntax + "\"); }");
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Gets the sanitized name for the specified origina name
+     *
+     * @param original The original name
+     * @return The sanitized name
+     */
+    private String getName(String original) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i != original.length(); i++) {
+            char c = original.charAt(i);
+            if (c >= 'a' && c <= 'z') {
+                builder.append(c);
+            } else if (c >= 'A' && c <= 'Z') {
+                builder.append(c);
+            } else if (c >= '0' && c <= '9') {
+                builder.append(c);
+            } else {
+                builder.append('_');
+            }
+        }
+        return builder.toString();
     }
 }

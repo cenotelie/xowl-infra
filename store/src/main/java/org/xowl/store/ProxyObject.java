@@ -397,7 +397,7 @@ public class ProxyObject {
             // [entity property ?]
             Iterator<Quad> iterator = repository.getBackend().getAll(null, property, entity);
             while (iterator.hasNext()) {
-                Node node = iterator.next().getObject();
+                Node node = iterator.next().getSubject();
                 if (node.getNodeType() == IRINode.TYPE) {
                     result.add(repository.getProxy(((IRINode) node).getIRIValue()));
                 }
