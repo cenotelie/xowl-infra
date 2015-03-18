@@ -258,7 +258,7 @@ public class RDFStore implements ChangeListener {
      *
      * @return A new RDF blank node
      */
-    public BlankNode getBlankNode() {
+    public BlankNode newNodeBlank() {
         return new BlankNode(nextBlank++);
     }
 

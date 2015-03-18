@@ -156,7 +156,7 @@ public class NTriplesLoader implements Loader {
         BlankNode blank = blanks.get(key);
         if (blank != null)
             return blank;
-        blank = store.getBlankNode();
+        blank = store.newNodeBlank();
         blanks.put(key, blank);
         return blank;
     }

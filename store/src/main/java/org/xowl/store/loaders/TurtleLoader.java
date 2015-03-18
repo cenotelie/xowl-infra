@@ -297,7 +297,7 @@ public class TurtleLoader implements Loader {
         BlankNode blank = blanks.get(value);
         if (blank != null)
             return blank;
-        blank = store.getBlankNode();
+        blank = store.newNodeBlank();
         blanks.put(value, blank);
         return blank;
     }
@@ -308,7 +308,7 @@ public class TurtleLoader implements Loader {
      * @return A new blank node
      */
     private BlankNode getNodeAnon() {
-        return store.getBlankNode();
+        return store.newNodeBlank();
     }
 
     /**
@@ -434,7 +434,7 @@ public class TurtleLoader implements Loader {
 
         BlankNode[] proxies = new BlankNode[elements.size()];
         for (int i = 0; i != proxies.length; i++) {
-            proxies[i] = store.getBlankNode();
+            proxies[i] = store.newNodeBlank();
             quads.add(new Quad(graph, proxies[i], store.getNodeIRI(Vocabulary.rdfFirst), elements.get(i)));
         }
         for (int i = 0; i != proxies.length - 1; i++) {
@@ -451,7 +451,7 @@ public class TurtleLoader implements Loader {
      * @return The equivalent RDF blank node
      */
     private BlankNode getNodeBlankWithProperties(ASTNode node) {
-        BlankNode subject = store.getBlankNode();
+        BlankNode subject = store.newNodeBlank();
         applyProperties(subject, node);
         return subject;
     }

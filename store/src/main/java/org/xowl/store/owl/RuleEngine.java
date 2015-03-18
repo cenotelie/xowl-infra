@@ -75,7 +75,7 @@ public class RuleEngine {
         this.store = store;
         this.evaluator = evaluator;
         this.backend = new org.xowl.store.rdf.RuleEngine(store) {
-            protected Node processOtherNode(GraphNode graph, Node node, Map<VariableNode, Node> bindings, Map<VariableNode, Node> creations) {
+            protected Node processOtherNode(Node node) {
                 if (node.getNodeType() == DynamicNode.TYPE) {
                     DynamicNode dynamicNode = (DynamicNode) node;
                     if (RuleEngine.this.evaluator == null)

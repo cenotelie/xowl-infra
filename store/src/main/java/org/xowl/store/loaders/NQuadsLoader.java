@@ -166,7 +166,7 @@ public class NQuadsLoader implements Loader {
         BlankNode blank = blanks.get(key);
         if (blank != null)
             return blank;
-        blank = store.getBlankNode();
+        blank = store.newNodeBlank();
         blanks.put(key, blank);
         return blank;
     }
@@ -218,7 +218,7 @@ public class NQuadsLoader implements Loader {
             key = key.substring(2);
             GraphNode graph = graphs.get(key);
             if (graph == null) {
-                graph = store.getBlankNode();
+                graph = store.newNodeBlank();
                 graphs.put(key, graph);
             }
             return graph;

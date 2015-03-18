@@ -255,48 +255,45 @@ public class RuleEngine implements ChangeListener {
      * @return The corresponding production
      */
     private Changeset process(Rule rule, Token token) {
-        Map<VariableNode, Node> bindings = token.getBindings();
-        Map<VariableNode, Node> creations = new HashMap<>();
+        Map<VariableNode, Node> bindings = new HashMap<>(token.getBindings());
         List<Quad> positives = new ArrayList<>();
         List<Quad> negatives = new ArrayList<>();
         for (Quad quad : rule.getConsequentTargetPositives())
-            positives.add(process(quad, bindings, creations));
+            positives.add(process(quad, bindings));
         for (Quad quad : rule.getConsequentMetaPositives())
-            positives.add(process(quad, bindings, creations));
+            positives.add(process(quad, bindings));
         for (Quad quad : rule.getConsequentTargetNegatives())
-            negatives.add(process(quad, bindings, creations));
+            negatives.add(process(quad, bindings));
         for (Quad quad : rule.getConsequentMetaNegatives())
-            negatives.add(process(quad, bindings, creations));
+            negatives.add(process(quad, bindings));
         return new Changeset(positives, negatives);
     }
 
     /**
      * Processes the specified quad
      *
-     * @param quad      The quad to process
-     * @param bindings  The map of bindings
-     * @param creations The map of creations
+     * @param quad     The quad to process
+     * @param bindings The map of bindings
      * @return The processed node
      */
-    private Quad process(Quad quad, Map<VariableNode, Node> bindings, Map<VariableNode, Node> creations) {
-        return new Quad((GraphNode) process(quad.getGraph(), quad.getGraph(), bindings, creations),
-                (SubjectNode) process(quad.getGraph(), quad.getSubject(), bindings, creations),
-                (Property) process(quad.getGraph(), quad.getProperty(), bindings, creations),
-                process(quad.getGraph(), quad.getObject(), bindings, creations));
+    private Quad process(Quad quad, Map<VariableNode, Node> bindings) {
+        return new Quad((GraphNode) process(quad.getGraph(), bindings, true),
+                (SubjectNode) process(quad.getSubject(), bindings, false),
+                (Property) process(quad.getProperty(), bindings, false),
+                process(quad.getObject(), bindings, false));
     }
 
     /**
      * Processes the specified node
      *
-     * @param graph     The parent graph
      * @param node      The node to process
      * @param bindings  The map of bindings
-     * @param creations The map of creations
+     * @param createIRI Whether to create an IRI node or a blank node in the case of an unbound variable
      * @return The processed node
      */
-    private Node process(GraphNode graph, Node node, Map<VariableNode, Node> bindings, Map<VariableNode, Node> creations) {
+    private Node process(Node node, Map<VariableNode, Node> bindings, boolean createIRI) {
         if (node.getNodeType() == VariableNode.TYPE) {
-            return processResolve(graph, (VariableNode) node, bindings, creations);
+            return processResolve((VariableNode) node, bindings, createIRI);
         } else if (node.getNodeType() == IRINode.TYPE) {
             return node;
         } else if (node.getNodeType() == BlankNode.TYPE) {
@@ -304,44 +301,37 @@ public class RuleEngine implements ChangeListener {
         } else if (node.getNodeType() == LiteralNode.TYPE) {
             return node;
         } else {
-            return processOtherNode(graph, node, bindings, creations);
+            return processOtherNode(node);
         }
     }
 
     /**
      * Resolves the specified variable node
      *
-     * @param graph     The parent graph
      * @param variable  A variable node
      * @param bindings  The map of bindings
-     * @param creations The map of creations
+     * @param createIRI Whether to create an IRI node or a blank node in the case of an unbound variable
      * @return The variable value
      */
-    private Node processResolve(GraphNode graph, VariableNode variable, Map<VariableNode, Node> bindings, Map<VariableNode, Node> creations) {
+    private Node processResolve(VariableNode variable, Map<VariableNode, Node> bindings, boolean createIRI) {
         Node result = bindings.get(variable);
         if (result != null)
             return result;
-        result = creations.get(variable);
-        if (result != null)
-            return result;
-        if (graph != null && graph.getNodeType() == VariableNode.TYPE) {
-            graph = (GraphNode) processResolve(null, (VariableNode) graph, bindings, creations);
-        }
-        result = store.newNodeIRI(graph);
-        creations.put(variable, result);
+        if (createIRI)
+            result = store.newNodeIRI(null);
+        else
+            result = store.newNodeBlank();
+        bindings.put(variable, result);
         return result;
     }
 
     /**
      * Processes the specified node that is not supported by this engine
      *
-     * @param graph     The parent graph
-     * @param node      The node to process
-     * @param bindings  The map of bindings
-     * @param creations The map of creations
+     * @param node The node to process
      * @return The processed node
      */
-    protected Node processOtherNode(GraphNode graph, Node node, Map<VariableNode, Node> bindings, Map<VariableNode, Node> creations) {
+    protected Node processOtherNode(Node node) {
         return node;
     }
 }

@@ -235,7 +235,7 @@ public class RDFXMLLoader implements Loader {
         }
 
         if (subject == null)
-            subject = store.getBlankNode();
+            subject = store.newNodeBlank();
 
         if (!Vocabulary.rdfDescription.equals(element.getNodeIRI())) {
             register(subject, Vocabulary.rdfType, store.getNodeIRI(element.getNodeIRI()));
@@ -431,7 +431,7 @@ public class RDFXMLLoader implements Loader {
                 value = getBlank(attribute);
             }
             if (value == null) {
-                value = store.getBlankNode();
+                value = store.newNodeBlank();
             }
 
             attribute = element.getAttribute(Vocabulary.rdfType);
@@ -502,7 +502,7 @@ public class RDFXMLLoader implements Loader {
      */
     private void loadElementPropertyResourceParseType(XMLElement element, SubjectNode subject) {
         IRINode property = getProperty(element);
-        SubjectNode value = store.getBlankNode();
+        SubjectNode value = store.newNodeBlank();
         register(subject, property, value);
         String attributeID = element.getAttribute(Vocabulary.rdfID);
         if (attributeID != null) {
@@ -541,7 +541,7 @@ public class RDFXMLLoader implements Loader {
             // no children
             head = store.getNodeIRI(Vocabulary.rdfNil);
         } else {
-            head = store.getBlankNode();
+            head = store.newNodeBlank();
         }
         register(subject, property, head);
         if (attributeID != null) {
@@ -564,7 +564,7 @@ public class RDFXMLLoader implements Loader {
             values.add(loadElement(children.next()));
         for (int i = 0; i != values.size() - 1; i++) {
             register(head, Vocabulary.rdfFirst, values.get(i));
-            SubjectNode next = store.getBlankNode();
+            SubjectNode next = store.newNodeBlank();
             register(head, Vocabulary.rdfRest, next);
             head = next;
         }
@@ -582,7 +582,7 @@ public class RDFXMLLoader implements Loader {
         BlankNode node = blanks.get(nodeID);
         if (node != null)
             return node;
-        node = store.getBlankNode();
+        node = store.newNodeBlank();
         blanks.put(nodeID, node);
         return node;
     }

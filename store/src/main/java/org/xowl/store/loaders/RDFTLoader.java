@@ -381,7 +381,7 @@ public class RDFTLoader implements Loader {
         BlankNode blank = blanks.get(value);
         if (blank != null)
             return blank;
-        blank = store.getBlankNode();
+        blank = store.newNodeBlank();
         blanks.put(value, blank);
         return blank;
     }
@@ -392,7 +392,7 @@ public class RDFTLoader implements Loader {
      * @return A new blank node
      */
     private BlankNode getNodeAnon() {
-        return store.getBlankNode();
+        return store.newNodeBlank();
     }
 
     /**
