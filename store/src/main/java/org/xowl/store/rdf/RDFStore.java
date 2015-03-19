@@ -599,7 +599,7 @@ public class RDFStore implements ChangeListener {
      * @return An iterator over the results
      * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public Iterator<Quad> getAll(final GraphNode graph, SubjectNode subject, final Property property, final Node object) throws UnsupportedNodeType {
+    public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) throws UnsupportedNodeType {
         if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
             return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<Quad>>() {
                 @Override
@@ -619,7 +619,14 @@ public class RDFStore implements ChangeListener {
             EdgeBucket bucket = getBucketFor(subject);
             if (bucket == null)
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
-            return bucket.getAll(graph, property, object);
+            return new AdaptingIterator<>(bucket.getAll(graph, property, object), new Adapter<Quad>() {
+                @Override
+                public <X> Quad adapt(X element) {
+                    Quad quad = (Quad) element;
+                    quad.setSubject(subject);
+                    return quad;
+                }
+            });
         }
     }
 
