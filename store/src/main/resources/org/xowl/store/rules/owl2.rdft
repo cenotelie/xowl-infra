@@ -120,6 +120,7 @@ rule owl:prp-rng {
 
 rule owl:prp-fp {
     ?p rdf:type owl:FunctionalProperty
+    ?p rdf:type owl:ObjectProperty
     ?x ?p ?y1
     ?x ?p ?y2
 } => {
@@ -178,7 +179,6 @@ rule owl:prp-pdw {
     ?x ?p2 ?y
 } => {
     ?x xowl:status xowl:inconsistent
-    ?y xowl:status xowl:inconsistent
 }
 
 rule owl:prp-adp {
@@ -193,7 +193,6 @@ rule owl:prp-adp {
     ?x ?p2 ?y
 } => {
     ?x xowl:status xowl:inconsistent
-    ?y xowl:status xowl:inconsistent
 }
 
 rule owl:prp-inv1 {
@@ -285,6 +284,7 @@ rule owl:cls-svf2 {
 rule owl:cls-avf {
     ?x owl:allValuesFrom ?y
     ?x owl:onProperty ?p
+    ?p rdf:type owl:ObjectProperty
     ?u rdf:type ?x
     ?u ?p ?v
 } => {
@@ -319,6 +319,7 @@ rule owl:cls-maxc1 {
 rule owl:cls-maxc2 {
     ?x owl:maxCardinality "1"^^xsd:nonNegativeInteger
     ?x owl:onProperty ?p
+    ?p rdf:type owl:ObjectProperty
     ?u rdf:type ?x
     ?u ?p ?y1
     ?u ?p ?y2
@@ -350,6 +351,7 @@ rule owl:cls-maxqc2 {
 rule owl:cls-maxqc3 {
     ?x owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger
     ?x owl:onProperty ?p
+    ?p rdf:type owl:ObjectProperty
     ?x owl:onClass ?c
     ?u rdf:type ?x
     ?u ?p ?y1
@@ -363,6 +365,7 @@ rule owl:cls-maxqc3 {
 rule owl:cls-maxqc4 {
     ?x owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger
     ?x owl:onProperty ?p
+    ?p rdf:type owl:ObjectProperty
     ?x owl:onClass owl:Thing
     ?u rdf:type ?x
     ?u ?p ?y1
