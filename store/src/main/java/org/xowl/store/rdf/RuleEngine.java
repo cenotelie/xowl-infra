@@ -252,10 +252,12 @@ public class RuleEngine implements ChangeListener {
         requestsToUnfire.clear();
         for (Token token : requests) {
             ExecutedRule data = executed.remove(token);
-            try {
-                store.insert(data.changeset.getInverse());
-            } catch (UnsupportedNodeType ex) {
-                // cannot happen since the original changeset was supposed to work
+            if (data != null) {
+                try {
+                    store.insert(data.changeset.getInverse());
+                } catch (UnsupportedNodeType ex) {
+                    // cannot happen since the original changeset was supposed to work
+                }
             }
         }
     }
@@ -267,10 +269,13 @@ public class RuleEngine implements ChangeListener {
         Map<Token, Rule> requests = new HashMap<>(requestsToFire);
         requestsToFire.clear();
         for (Map.Entry<Token, Rule> entry : requests.entrySet()) {
-            ExecutedRule data = new ExecutedRule(entry.getValue(), entry.getKey(), process(entry.getValue(), entry.getKey()));
+            Changeset changeset = process(entry.getValue(), entry.getKey());
+            if (changeset == null)
+                continue;
+            ExecutedRule data = new ExecutedRule(entry.getValue(), entry.getKey(), changeset);
             executed.put(data.token, data);
             try {
-                store.insert(data.changeset);
+                store.insert(changeset);
             } catch (UnsupportedNodeType ex) {
                 // TODO: report this
             }
@@ -288,14 +293,30 @@ public class RuleEngine implements ChangeListener {
         Map<VariableNode, Node> bindings = new HashMap<>(token.getBindings());
         List<Quad> positives = new ArrayList<>();
         List<Quad> negatives = new ArrayList<>();
-        for (Quad quad : rule.getConsequentTargetPositives())
-            positives.add(process(quad, bindings));
-        for (Quad quad : rule.getConsequentMetaPositives())
-            positives.add(process(quad, bindings));
-        for (Quad quad : rule.getConsequentTargetNegatives())
-            negatives.add(process(quad, bindings));
-        for (Quad quad : rule.getConsequentMetaNegatives())
-            negatives.add(process(quad, bindings));
+        for (Quad quad : rule.getConsequentTargetPositives()) {
+            Quad result = process(quad, bindings);
+            if (result == null)
+                return null;
+            positives.add(result);
+        }
+        for (Quad quad : rule.getConsequentMetaPositives()) {
+            Quad result = process(quad, bindings);
+            if (result == null)
+                return null;
+            positives.add(result);
+        }
+        for (Quad quad : rule.getConsequentTargetNegatives()) {
+            Quad result = process(quad, bindings);
+            if (result == null)
+                return null;
+            negatives.add(result);
+        }
+        for (Quad quad : rule.getConsequentMetaNegatives()) {
+            Quad result = process(quad, bindings);
+            if (result == null)
+                return null;
+            negatives.add(result);
+        }
         return new Changeset(positives, negatives);
     }
 
@@ -307,10 +328,13 @@ public class RuleEngine implements ChangeListener {
      * @return The processed node
      */
     private Quad process(Quad quad, Map<VariableNode, Node> bindings) {
-        return new Quad((GraphNode) process(quad.getGraph(), bindings, true),
-                (SubjectNode) process(quad.getSubject(), bindings, false),
-                (Property) process(quad.getProperty(), bindings, false),
-                process(quad.getObject(), bindings, false));
+        Node nodeGraph = process(quad.getGraph(), bindings, true);
+        Node nodeSubject = process(quad.getSubject(), bindings, false);
+        Node nodeProperty = process(quad.getProperty(), bindings, false);
+        Node nodeObject = process(quad.getObject(), bindings, false);
+        if ((!(nodeGraph instanceof GraphNode)) || (!(nodeSubject instanceof SubjectNode)) || (!(nodeProperty instanceof Property)))
+            return null;
+        return new Quad((GraphNode) nodeGraph, (SubjectNode) nodeSubject, (Property) nodeProperty, nodeObject);
     }
 
     /**
