@@ -21,10 +21,7 @@ package org.xowl.store;
 
 import org.junit.Assert;
 import org.xowl.lang.owl2.Ontology;
-import org.xowl.store.rdf.BlankNode;
-import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.RuleEngineExplanation;
-import org.xowl.store.rdf.UnsupportedNodeType;
+import org.xowl.store.rdf.*;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -65,30 +62,38 @@ public class BaseOWLReasoningTest {
         repository.addEntailmentRulesForOWL2_RDFBasedSemantics(logger);
         // load the premise ontology and the default ontologies
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
-        List<Quad> premise = new ArrayList<>();
-        iterator = repository.getBackend().getAll(repository.getGraph(ontologyPremise));
-        while (iterator.hasNext()) {
-            premise.add(iterator.next());
-        }
-        iterator = repository.getBackend().getAll(repository.getGraph(repository.resolveOntology("http://www.w3.org/2002/07/owl")));
-        while (iterator.hasNext()) {
-            premise.add(iterator.next());
-        }
-
-        Map<BlankNode, BlankNode> blanks = new HashMap<>();
-        for (Quad quad : conclusion) {
-            boolean found = false;
-            for (Quad candidate : premise) {
-                if (W3CTestSuite.sameTriple(quad, candidate, blanks)) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-                Assert.fail("Expected triple not produced: " + quad.toString());
-        }
 
         Assert.assertFalse("Some error occurred", logger.isOnError());
+
+        // query the premise for a matching conclusion, modulo the blank nodes
+        Query query = new Query();
+        Map<BlankNode, VariableNode> variables = new HashMap<>();
+        for (Quad quad : conclusion) {
+            GraphNode nodeGraph = repository.getGraph(ontologyPremise);
+            SubjectNode nodeSubject = quad.getSubject();
+            Property nodeProperty = quad.getProperty();
+            Node nodeObject = quad.getObject();
+            if (nodeSubject.getNodeType() == BlankNode.TYPE) {
+                VariableNode variableNode = variables.get(nodeSubject);
+                if (variableNode == null) {
+                    variableNode = new VariableNode(UUID.randomUUID().toString());
+                    variables.put((BlankNode) nodeSubject, variableNode);
+                }
+                nodeSubject = variableNode;
+            }
+            if (nodeObject.getNodeType() == BlankNode.TYPE) {
+                VariableNode variableNode = variables.get(nodeObject);
+                if (variableNode == null) {
+                    variableNode = new VariableNode(UUID.randomUUID().toString());
+                    variables.put((BlankNode) nodeObject, variableNode);
+                }
+                nodeObject = variableNode;
+            }
+            query.getPositives().add(new Quad(nodeGraph, nodeSubject, nodeProperty, nodeObject));
+        }
+
+        Collection<QuerySolution> solutions = repository.getQueryEngine().getBackend().execute(query);
+        Assert.assertFalse("Entailment failed", solutions.isEmpty());
     }
 
     /**

@@ -91,3 +91,17 @@ rule xowl:some-value-from-thing {
     ?x ?p ?o
     # There should be a value but we do not have one
 }
+
+rule xowl:card-to-min-max {
+    ?x owl:onProperty ?p
+    ?x owl:cardinality ?v
+} => {
+    ?y1 rdf:type owl:Restriction
+    ?y1 owl:onProperty ?p
+    ?y1 owl:maxCardinality ?v
+    ?y2 rdf:type owl:Restriction
+    ?y2 owl:onProperty ?p
+    ?y2 owl:minCardinality ?v
+    ?x rdfs:subClassOf ?y1
+    ?x rdfs:subClassOf ?y2
+}
