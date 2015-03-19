@@ -46,7 +46,7 @@ class BetaMemory implements TokenHolder {
     /**
      * The children of this node
      */
-    private LinkedList<TokenActivable> children;
+    private List<TokenActivable> children;
     /**
      * The binding operations in this node
      */
@@ -57,7 +57,7 @@ class BetaMemory implements TokenHolder {
      */
     public BetaMemory() {
         mapAscendants = new IdentityHashMap<>();
-        children = new LinkedList<>();
+        children = new ArrayList<>();
         tokens = new ArrayList<>();
         binders = new ArrayList<>();
     }
@@ -144,14 +144,14 @@ class BetaMemory implements TokenHolder {
      * @param buffer A buffer of couples
      */
     public void activate(Iterator<Couple> buffer) {
-        Collection<Token> result = new ArrayList<Token>();
+        Collection<Token> result = new ArrayList<>();
         while (buffer.hasNext()) {
             Couple couple = buffer.next();
             result.add(buildToken(couple.token, couple.fact));
         }
         if (!result.isEmpty())
             for (int i = children.size() - 1; i != -1; i--)
-                children.get(i).activateTokens(new FastBuffer<Token>(result));
+                children.get(i).activateTokens(new FastBuffer<>(result));
     }
 
     /**
@@ -193,14 +193,14 @@ class BetaMemory implements TokenHolder {
      * @param buffer A buffer of couples
      */
     public void deactivate(Iterator<Couple> buffer) {
-        Collection<Token> result = new ArrayList<Token>();
+        Collection<Token> result = new ArrayList<>();
         while (buffer.hasNext()) {
             Couple couple = buffer.next();
             result.add(resolveToken(couple.token, couple.fact));
         }
         if (!result.isEmpty())
             for (int i = children.size() - 1; i != -1; i--)
-                children.get(i).deactivateTokens(new FastBuffer<Token>(result));
+                children.get(i).deactivateTokens(new FastBuffer<>(result));
     }
 
     /**
