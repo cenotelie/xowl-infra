@@ -1200,7 +1200,7 @@ public class Translator {
         if (expression.getClasse() != null) {
             quads.add(getTriple(main, Vocabulary.owlQualifiedCardinality, n));
             SubjectNode classe = translateClassExpression(expression.getClasse());
-            quads.add(getTriple(main, Vocabulary.owlOnDatarange, classe));
+            quads.add(getTriple(main, Vocabulary.owlOnClass, classe));
         } else {
             quads.add(getTriple(main, Vocabulary.owlCardinality, n));
         }
@@ -1257,7 +1257,7 @@ public class Translator {
         if (expression.getClasse() != null) {
             quads.add(getTriple(main, Vocabulary.owlMaxQualifiedCardinality, n));
             SubjectNode classe = translateClassExpression(expression.getClasse());
-            quads.add(getTriple(main, Vocabulary.owlOnDatarange, classe));
+            quads.add(getTriple(main, Vocabulary.owlOnClass, classe));
         } else {
             quads.add(getTriple(main, Vocabulary.owlMaxCardinality, n));
         }
@@ -1280,7 +1280,7 @@ public class Translator {
         if (expression.getClasse() != null) {
             quads.add(getTriple(main, Vocabulary.owlMinQualifiedCardinality, n));
             SubjectNode classe = translateClassExpression(expression.getClasse());
-            quads.add(getTriple(main, Vocabulary.owlOnDatarange, classe));
+            quads.add(getTriple(main, Vocabulary.owlOnClass, classe));
         } else {
             quads.add(getTriple(main, Vocabulary.owlMinCardinality, n));
         }
