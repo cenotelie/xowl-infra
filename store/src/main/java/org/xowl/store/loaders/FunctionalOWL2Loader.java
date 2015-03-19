@@ -32,6 +32,7 @@ import org.xowl.utils.Logger;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -1393,9 +1394,10 @@ public class FunctionalOWL2Loader implements Loader {
      */
     protected Datarange loadExpDatatypeRestriction(ASTNode node) {
         DatatypeRestriction expression = new DatatypeRestriction();
-        expression.setDatarange(loadExpDatarange(node.getChildren().get(0)));
-        for (ASTNode child : node.getChildren().get(1).getChildren())
-            expression.addFacetRestrictions(loadExpFacetRestriction(child));
+        List<ASTNode> children = node.getChildren();
+        expression.setDatarange(loadExpDatarange(children.get(0)));
+        for (int i = 1; i != children.size(); i++)
+            expression.addFacetRestrictions(loadExpFacetRestriction(children.get(i)));
         return expression;
     }
 
