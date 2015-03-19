@@ -23,6 +23,7 @@ import org.junit.Assert;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.rdf.BlankNode;
 import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.UnsupportedNodeType;
 
 import java.io.IOException;
 import java.util.*;
@@ -104,7 +105,25 @@ public class BaseOWLReasoningTest {
      * @param premiseResource The resource for the premise
      */
     protected void testConsistency(String premiseResource) {
+        TestLogger logger = new TestLogger();
+        Repository repository = null;
+        try {
+            repository = new Repository();
+        } catch (IOException e) {
+            Assert.fail("Failed to initialize the repository");
+        }
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
 
+        // activate the default reasoning rules
+        repository.addEntailmentRulesForOWL2_RDFBasedSemantics(logger);
+        // load the premise ontology and the default ontologies
+        Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
+        try {
+            Iterator<Quad> iterator = repository.getBackend().getAll(repository.getGraph(ontologyPremise), null, repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#status"), repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#inconsistent"));
+            Assert.assertFalse(iterator.hasNext());
+        } catch (UnsupportedNodeType ex) {
+            Assert.fail(ex.getMessage());
+        }
     }
 
     /**
@@ -113,6 +132,24 @@ public class BaseOWLReasoningTest {
      * @param premiseResource The resource for the premise
      */
     protected void testInconsistency(String premiseResource) {
+        TestLogger logger = new TestLogger();
+        Repository repository = null;
+        try {
+            repository = new Repository();
+        } catch (IOException e) {
+            Assert.fail("Failed to initialize the repository");
+        }
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
 
+        // activate the default reasoning rules
+        repository.addEntailmentRulesForOWL2_RDFBasedSemantics(logger);
+        // load the premise ontology and the default ontologies
+        Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
+        try {
+            Iterator<Quad> iterator = repository.getBackend().getAll(repository.getGraph(ontologyPremise), null, repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#status"), repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#inconsistent"));
+            Assert.assertTrue(iterator.hasNext());
+        } catch (UnsupportedNodeType ex) {
+            Assert.fail(ex.getMessage());
+        }
     }
 }
