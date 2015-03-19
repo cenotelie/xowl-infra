@@ -166,7 +166,7 @@ public class IRIMapper {
         mapper.addSimpleMap("http://www.w3.org/1999/02/22-rdf-syntax-ns", "resource:///org/xowl/store/base/rdf.ttl");
         mapper.addSimpleMap("http://www.w3.org/2000/01/rdf-schema", "resource:///org/xowl/store/base/rdfs.ttl");
         // map the xOWL abstract syntax
-        mapper.addRegexpMap("http://xowl.org/lang/(.*)", "resource:///org/xowl/lang/defs/\\1.owl");
+        mapper.addRegexpMap("http://xowl.org/lang/(.*)", "resource:///org/xowl/lang/defs/\\1.fs");
         // map the OWL2 RL reasoning rules
         mapper.addRegexpMap("http://xowl.org/store/rules/(.*)", "resource:///org/xowl/store/rules/\\1.rdft");
         return mapper;
