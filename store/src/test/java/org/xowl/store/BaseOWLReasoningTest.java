@@ -23,9 +23,11 @@ import org.junit.Assert;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.rdf.BlankNode;
 import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.RuleEngineExplanation;
 import org.xowl.store.rdf.UnsupportedNodeType;
 
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.*;
 
 /**
@@ -120,7 +122,21 @@ public class BaseOWLReasoningTest {
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
         try {
             Iterator<Quad> iterator = repository.getBackend().getAll(repository.getGraph(ontologyPremise), null, repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#status"), repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#inconsistent"));
-            Assert.assertFalse(iterator.hasNext());
+            if (iterator.hasNext()) {
+                StringBuilder builder = new StringBuilder("Spurious inconsistencies:");
+                while (iterator.hasNext()) {
+                    Quad quad = iterator.next();
+                    builder.append(" ");
+                    builder.append(quad.toString());
+                    RuleEngineExplanation explanation = repository.getRuleEngine().getBackend().explain(quad);
+                    try {
+                        explanation.print(new OutputStreamWriter(System.out));
+                    } catch (IOException ex) {
+                        // do nothing
+                    }
+                }
+                Assert.fail(builder.toString());
+            }
         } catch (UnsupportedNodeType ex) {
             Assert.fail(ex.getMessage());
         }
@@ -147,7 +163,7 @@ public class BaseOWLReasoningTest {
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
         try {
             Iterator<Quad> iterator = repository.getBackend().getAll(repository.getGraph(ontologyPremise), null, repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#status"), repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#inconsistent"));
-            Assert.assertTrue(iterator.hasNext());
+            Assert.assertTrue("Failed to detect inconsistency", iterator.hasNext());
         } catch (UnsupportedNodeType ex) {
             Assert.fail(ex.getMessage());
         }

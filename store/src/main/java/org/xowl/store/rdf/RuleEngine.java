@@ -33,6 +33,37 @@ import java.util.*;
  */
 public class RuleEngine implements ChangeListener {
     /**
+     * Represents the data of a rule fired by this engine
+     */
+    private static class ExecutedRule {
+        /**
+         * The fired rule
+         */
+        public Rule rule;
+        /**
+         * The token that triggered the rule
+         */
+        public Token token;
+        /**
+         * The produced changeset
+         */
+        public Changeset changeset;
+
+        /**
+         * Initializes this data
+         *
+         * @param rule      The fired rule
+         * @param token     The token that triggered the rule
+         * @param changeset The produced changeset
+         */
+        public ExecutedRule(Rule rule, Token token, Changeset changeset) {
+            this.rule = rule;
+            this.token = token;
+            this.changeset = changeset;
+        }
+    }
+
+    /**
      * The RDF store to operate over
      */
     private RDFStore store;
@@ -75,7 +106,7 @@ public class RuleEngine implements ChangeListener {
     /**
      * The currently produced data
      */
-    private Map<Token, Changeset> executed;
+    private Map<Token, ExecutedRule> executed;
 
     /**
      * Initializes this engine
@@ -220,10 +251,9 @@ public class RuleEngine implements ChangeListener {
         List<Token> requests = new ArrayList<>(requestsToUnfire);
         requestsToUnfire.clear();
         for (Token token : requests) {
-            Changeset changeset = executed.get(token);
-            executed.remove(token);
+            ExecutedRule data = executed.remove(token);
             try {
-                store.insert(changeset.getInverse());
+                store.insert(data.changeset.getInverse());
             } catch (UnsupportedNodeType ex) {
                 // cannot happen since the original changeset was supposed to work
             }
@@ -237,10 +267,10 @@ public class RuleEngine implements ChangeListener {
         Map<Token, Rule> requests = new HashMap<>(requestsToFire);
         requestsToFire.clear();
         for (Map.Entry<Token, Rule> entry : requests.entrySet()) {
-            Changeset changeset = process(entry.getValue(), entry.getKey());
-            executed.put(entry.getKey(), changeset);
+            ExecutedRule data = new ExecutedRule(entry.getValue(), entry.getKey(), process(entry.getValue(), entry.getKey()));
+            executed.put(data.token, data);
             try {
-                store.insert(changeset);
+                store.insert(data.changeset);
             } catch (UnsupportedNodeType ex) {
                 // TODO: report this
             }
@@ -333,5 +363,26 @@ public class RuleEngine implements ChangeListener {
      */
     protected Node processOtherNode(Node node) {
         return node;
+    }
+
+    /**
+     * Gets an explanation for the specified quad
+     *
+     * @param quad A quad
+     * @return an explanation, or null if the quad does not come from this engine
+     */
+    public RuleEngineExplanation explain(Quad quad) {
+        for (ExecutedRule data : executed.values()) {
+            if (data.changeset.getPositives().contains(quad) || data.changeset.getNegatives().contains(quad)) {
+                RuleEngineExplanation explanation = new RuleEngineExplanation(data.rule, data.token, quad);
+                for (Quad antecedent : explanation.getAntecedents()) {
+                    RuleEngineExplanation parent = explain(antecedent);
+                    if (parent != null)
+                        explanation.getParents().add(parent);
+                }
+                return explanation;
+            }
+        }
+        return null;
     }
 }
