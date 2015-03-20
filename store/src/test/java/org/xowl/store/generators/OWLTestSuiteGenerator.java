@@ -77,11 +77,15 @@ public class OWLTestSuiteGenerator {
                 syntax = "rdf";
                 premise = (String) test.getDataValue("http://www.w3.org/2007/OWL/testOntology#rdfXmlPremiseOntology");
                 conclusion = (String) test.getDataValue("http://www.w3.org/2007/OWL/testOntology#rdfXmlConclusionOntology");
+                if (conclusion == null)
+                    conclusion = (String) test.getDataValue("http://www.w3.org/2007/OWL/testOntology#rdfXmlNonConclusionOntology");
                 break;
             case "http://www.w3.org/2007/OWL/testOntology#FUNCTIONAL":
                 syntax = "fs";
                 premise = (String) test.getDataValue("http://www.w3.org/2007/OWL/testOntology#fsPremiseOntology");
                 conclusion = (String) test.getDataValue("http://www.w3.org/2007/OWL/testOntology#fsConclusionOntology");
+                if (conclusion == null)
+                    conclusion = (String) test.getDataValue("http://www.w3.org/2007/OWL/testOntology#fsNonConclusionOntology");
                 break;
         }
         try {

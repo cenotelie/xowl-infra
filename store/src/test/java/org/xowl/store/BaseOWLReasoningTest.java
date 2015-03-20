@@ -103,7 +103,60 @@ public class BaseOWLReasoningTest {
      * @param conclusionResource The resource for the conclusion
      */
     protected void testNegativeEntailment(String premiseResource, String conclusionResource) {
+        TestLogger logger = new TestLogger();
+        Repository repository = null;
+        try {
+            repository = new Repository();
+        } catch (IOException e) {
+            Assert.fail("Failed to initialize the repository");
+        }
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/conclusion", "resource:///entailment/" + conclusionResource);
 
+        // load the conclusion ontology at get all the quads in it
+        Ontology ontologyConclusion = repository.load(logger, "http://xowl.org/store/tests/entailment/conclusion");
+        List<Quad> conclusion = new ArrayList<>();
+        Iterator<Quad> iterator = repository.getBackend().getAll(repository.getGraph(ontologyConclusion));
+        while (iterator.hasNext()) {
+            conclusion.add(iterator.next());
+        }
+
+        // activate the default reasoning rules
+        repository.addEntailmentRulesForOWL2_RDFBasedSemantics(logger);
+        // load the premise ontology and the default ontologies
+        Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
+
+        Assert.assertFalse("Some error occurred", logger.isOnError());
+
+        // query the premise for a matching conclusion, modulo the blank nodes
+        Query query = new Query();
+        Map<BlankNode, VariableNode> variables = new HashMap<>();
+        for (Quad quad : conclusion) {
+            GraphNode nodeGraph = repository.getGraph(ontologyPremise);
+            SubjectNode nodeSubject = quad.getSubject();
+            Property nodeProperty = quad.getProperty();
+            Node nodeObject = quad.getObject();
+            if (nodeSubject.getNodeType() == BlankNode.TYPE) {
+                VariableNode variableNode = variables.get(nodeSubject);
+                if (variableNode == null) {
+                    variableNode = new VariableNode(UUID.randomUUID().toString());
+                    variables.put((BlankNode) nodeSubject, variableNode);
+                }
+                nodeSubject = variableNode;
+            }
+            if (nodeObject.getNodeType() == BlankNode.TYPE) {
+                VariableNode variableNode = variables.get(nodeObject);
+                if (variableNode == null) {
+                    variableNode = new VariableNode(UUID.randomUUID().toString());
+                    variables.put((BlankNode) nodeObject, variableNode);
+                }
+                nodeObject = variableNode;
+            }
+            query.getPositives().add(new Quad(nodeGraph, nodeSubject, nodeProperty, nodeObject));
+        }
+
+        Collection<QuerySolution> solutions = repository.getQueryEngine().getBackend().execute(query);
+        Assert.assertTrue("Erroneous entailment", solutions.isEmpty());
     }
 
     /**
