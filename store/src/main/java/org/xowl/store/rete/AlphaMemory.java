@@ -22,11 +22,9 @@ package org.xowl.store.rete;
 
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.RDFStore;
-import org.xowl.store.rdf.UnsupportedNodeType;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -36,9 +34,17 @@ import java.util.List;
  */
 class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement {
     /**
-     * The facts in this memory
+     * The parent RDF store
      */
-    private Collection<Quad> facts;
+    private RDFStore store;
+    /**
+     * The pattern matched by this memory
+     */
+    private Quad pattern;
+    /**
+     * The cache of facts
+     */
+    private Collection<Quad> cache;
     /**
      * List of the children of this node
      */
@@ -53,7 +59,10 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
 
     @Override
     public Collection<Quad> getFacts() {
-        return facts;
+        if (cache == null) {
+            cache = new FactCollection(store, pattern);
+        }
+        return cache;
     }
 
     @Override
@@ -68,28 +77,28 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
 
     @Override
     public void activateFact(Quad fact) {
-        facts.add(fact);
+        cache = null;
         for (int i = children.size() - 1; i != -1; i--)
             children.get(i).activateFact(fact);
     }
 
     @Override
     public void deactivateFact(Quad fact) {
-        facts.remove(fact);
+        cache = null;
         for (int i = children.size() - 1; i != -1; i--)
             children.get(i).deactivateFact(fact);
     }
 
     @Override
     public void activateFacts(Collection<Quad> facts) {
-        this.facts.addAll(facts);
+        cache = null;
         for (int i = children.size() - 1; i != -1; i--)
             children.get(i).activateFacts(new FastBuffer<>(facts));
     }
 
     @Override
     public void deactivateFacts(Collection<Quad> facts) {
-        this.facts.removeAll(facts);
+        cache = null;
         for (int i = children.size() - 1; i != -1; i--)
             children.get(i).deactivateFacts(new FastBuffer<>(facts));
     }
@@ -101,20 +110,10 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
 
     @Override
     public AlphaMemory resolveMemory(Quad pattern, RDFStore store) {
-        if (facts == null) {
-            // this memory has just been created
-            facts = new ArrayList<>();
-            if (store != null) {
-                // if we have a store attached, populate the this memory with the matching triples
-                try {
-                    Iterator<Quad> data = store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
-                    while (data.hasNext()) {
-                        facts.add(data.next());
-                    }
-                } catch (UnsupportedNodeType ex) {
-                    // do nothing
-                }
-            }
+        if (this.store == null) {
+            this.store = store;
+            this.pattern = pattern;
+            this.cache = null;
         }
         return this;
     }
