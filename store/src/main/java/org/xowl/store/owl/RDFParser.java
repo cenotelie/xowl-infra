@@ -125,7 +125,7 @@ public class RDFParser {
      * @param quads The quads to parse
      */
     private void execute(Collection<Quad> quads) {
-        RETENetwork network = new RETENetwork(null);
+        RETENetwork network = new RETENetwork(store);
         rules = new ArrayList<>();
         triggers = new ArrayList<>();
         expDatarange = new HashMap<>();

@@ -216,6 +216,16 @@ public class RuleEngine implements ChangeListener {
             injectChanges();
             performUnfire();
             performFire();
+            // inject the changes if necessary
+            if (!bufferPositives.isEmpty() || !bufferNegatives.isEmpty()) {
+                try {
+                    store.insert(new Changeset(bufferPositives, bufferNegatives));
+                } catch (UnsupportedNodeType ex) {
+                    // TODO: report this
+                }
+                bufferPositives.clear();
+                bufferNegatives.clear();
+            }
         }
         isApplying = false;
     }
@@ -253,11 +263,8 @@ public class RuleEngine implements ChangeListener {
         for (Token token : requests) {
             ExecutedRule data = executed.remove(token);
             if (data != null) {
-                try {
-                    store.insert(data.changeset.getInverse());
-                } catch (UnsupportedNodeType ex) {
-                    // cannot happen since the original changeset was supposed to work
-                }
+                bufferPositives.addAll(data.changeset.getNegatives());
+                bufferNegatives.addAll(data.changeset.getPositives());
             }
         }
     }
@@ -274,11 +281,8 @@ public class RuleEngine implements ChangeListener {
                 continue;
             ExecutedRule data = new ExecutedRule(entry.getValue(), entry.getKey(), changeset);
             executed.put(data.token, data);
-            try {
-                store.insert(changeset);
-            } catch (UnsupportedNodeType ex) {
-                // TODO: report this
-            }
+            bufferPositives.addAll(changeset.getPositives());
+            bufferNegatives.addAll(changeset.getNegatives());
         }
     }
 

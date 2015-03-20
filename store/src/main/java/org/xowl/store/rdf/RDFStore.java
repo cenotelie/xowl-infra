@@ -359,9 +359,12 @@ public class RDFStore implements ChangeListener {
             if (result == REMOVE_RESULT_REMOVED)
                 negatives.add(quad);
         }
-        Changeset newChangeset = new Changeset(positives, negatives);
-        for (ChangeListener listener : listeners) {
-            listener.onChange(newChangeset);
+        if (!positives.isEmpty() || !negatives.isEmpty()) {
+            // transmit the changes only if a there are some!
+            Changeset newChangeset = new Changeset(positives, negatives);
+            for (ChangeListener listener : listeners) {
+                listener.onChange(newChangeset);
+            }
         }
     }
 
