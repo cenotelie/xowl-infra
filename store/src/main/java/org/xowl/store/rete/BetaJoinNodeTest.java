@@ -79,7 +79,7 @@ class BetaJoinNodeTest {
     public boolean check(Token token, Quad fact) {
         Node arg1 = token.getBinding(variable);
         Node arg2 = fact.getField(field);
-        return (arg1 == arg2);
+        return (arg1.getNodeType() == arg2.getNodeType() && arg1.equals(arg2));
     }
 
     @Override
