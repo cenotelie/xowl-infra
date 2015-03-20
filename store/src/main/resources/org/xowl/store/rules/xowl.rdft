@@ -95,6 +95,7 @@ rule xowl:some-value-from-thing {
 rule xowl:card-to-min-max {
     ?x owl:onProperty ?p
     ?x owl:cardinality ?v
+    not ( ?x xowl:marker xowl:min-max-to-card )
 } => {
     ?y1 rdf:type owl:Restriction
     ?y1 owl:onProperty ?p
@@ -102,6 +103,40 @@ rule xowl:card-to-min-max {
     ?y2 rdf:type owl:Restriction
     ?y2 owl:onProperty ?p
     ?y2 owl:minCardinality ?v
-    ?x rdfs:subClassOf ?y1
-    ?x rdfs:subClassOf ?y2
+    ?x owl:equivalentClass ?i
+    ?i owl:intersectionOf ?l
+    ?l rdf:first ?y1
+    ?l rdf:rest ?e
+    ?e rdf:first ?y2
+    ?e rdf:rest rdf:nil
+    ?x xowl:marker xowl:card-to-min-max
+}
+
+rule xowl:min-max-to-card {
+    ?y1 rdf:type owl:Restriction
+    ?y1 owl:onProperty ?p
+    ?y1 owl:maxCardinality ?v
+    ?y2 rdf:type owl:Restriction
+    ?y2 owl:onProperty ?p
+    ?y2 owl:minCardinality ?v
+    not (
+        ?l xowl:contains ?y1
+        ?l xowl:contains ?y2
+        ?i owl:intersectionOf ?l
+        ?x owl:equivalentClass ?i
+        ?x owl:onProperty ?p
+        ?x owl:cardinality ?v
+        ?x xowl:marker xowl:card-to-min-max
+    )
+} => {
+    ?x rdf:type owl:Restriction
+    ?x owl:onProperty ?p
+    ?x owl:cardinality ?v
+    ?x owl:equivalentClass ?i
+    ?i owl:intersectionOf ?l
+    ?l rdf:first ?y1
+    ?l rdf:rest ?e
+    ?e rdf:first ?y2
+    ?e rdf:rest rdf:nil
+    ?x xowl:marker xowl:min-max-to-card
 }

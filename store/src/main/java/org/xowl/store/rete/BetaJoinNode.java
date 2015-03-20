@@ -141,9 +141,7 @@ class BetaJoinNode implements FactActivable, TokenActivable {
 
     @Override
     public void deactivateToken(Token t) {
-        for (Quad fact : alphaMem.getFacts())
-            if (passTests(t, fact))
-                child.deactivate(t, fact);
+        child.deactivateToken(t);
     }
 
     @Override
@@ -154,8 +152,7 @@ class BetaJoinNode implements FactActivable, TokenActivable {
 
     @Override
     public void deactivateTokens(Collection<Token> tokens) {
-        if (!alphaMem.getFacts().isEmpty())
-            child.deactivate(getJoin(tokens, alphaMem.getFacts()));
+        child.deactivateTokens(tokens);
     }
 
     @Override
@@ -169,7 +166,7 @@ class BetaJoinNode implements FactActivable, TokenActivable {
     public void deactivateFact(Quad fact) {
         for (Token t : betaMem.getTokens())
             if (passTests(t, fact))
-                child.deactivate(t, fact);
+                child.deactivateCouple(t, fact);
     }
 
     @Override
@@ -181,7 +178,7 @@ class BetaJoinNode implements FactActivable, TokenActivable {
     @Override
     public void deactivateFacts(Collection<Quad> facts) {
         if (!betaMem.getTokens().isEmpty())
-            child.deactivate(getJoin(betaMem.getTokens(), facts));
+            child.deactivateCouples(getJoin(betaMem.getTokens(), facts));
     }
 
     /**

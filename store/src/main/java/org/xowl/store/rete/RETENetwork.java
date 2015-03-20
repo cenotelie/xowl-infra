@@ -126,7 +126,7 @@ public class RETENetwork {
                 last = new BetaNegativeJoinNode(alpha, last, data.tests);
                 ruleData.negatives.add(last);
             } else {
-                BetaNCCEntryNode entry = new BetaNCCEntryNode(last);
+                BetaNCCEntryNode entry = new BetaNCCEntryNode(last, conjunction.size());
                 last = entry;
                 for (Quad pattern : conjunction) {
                     JoinData data = iterData.next();

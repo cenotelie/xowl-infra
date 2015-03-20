@@ -29,7 +29,29 @@ import java.util.*;
  */
 class BetaNCCExitNode implements TokenHolder, TokenActivable {
     /**
-     * Flag whether a trasaction is in action
+     * The data about a token in a NCC network
+     */
+    private static class Data {
+        /**
+         * The number of derived tokens
+         */
+        public int counter;
+        /**
+         * Whether the original token was fired to the children
+         */
+        public boolean isOriginalFired;
+
+        /**
+         * Initializes this data
+         */
+        public Data() {
+            this.counter = 0;
+            this.isOriginalFired = false;
+        }
+    }
+
+    /**
+     * Flag whether a transaction is in action
      */
     private boolean isInTransaction;
     /**
@@ -41,19 +63,25 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
      */
     private TokenActivable child;
     /**
-     * Cache of the current matches
+     * Cache of the current data
      */
-    private Map<Token, List<Token>> matches;
+    private Map<Token, Data> tokenData;
+    /**
+     * The number of hops in the NCC
+     */
+    private int hop;
 
     /**
      * Initializes this node
      *
      * @param beta The parent beta memory
+     * @param hop  The number of hops in the NCC
      */
-    public BetaNCCExitNode(TokenHolder beta) {
+    public BetaNCCExitNode(TokenHolder beta, int hop) {
         this.isInTransaction = false;
         this.betaMem = beta;
-        this.matches = new IdentityHashMap<>();
+        this.tokenData = new IdentityHashMap<>();
+        this.hop = hop;
     }
 
     @Override
@@ -89,51 +117,60 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
         // The child will be dropped in every case before this method is called.
         // We do not have to unregister from the parents because we are the end of a NCC network.
         child = null;
-        matches = null;
+        tokenData = null;
     }
 
     @Override
     public void activateToken(Token token) {
         Token original = getOriginal(token);
-        matches.get(original).add(token);
-        if (!isInTransaction)
+        Data data = tokenData.get(original);
+        data.counter++;
+        if (!isInTransaction && data.isOriginalFired) {
+            data.isOriginalFired = false;
             child.deactivateToken(original);
+        }
     }
 
     @Override
     public void deactivateToken(Token token) {
         Token original = getOriginal(token);
-        List<Token> sm = matches.get(original);
-        sm.remove(token);
-        if (!isInTransaction && sm.isEmpty())
+        Data data = tokenData.get(original);
+        data.counter--;
+        if (!isInTransaction && data.counter == 0) {
+            data.isOriginalFired = true;
             child.activateToken(original);
+        }
     }
 
     @Override
     public void activateTokens(Collection<Token> tokens) {
-        Token[] buffer = new Token[tokens.size()];
-        int i = 0;
+        Collection<Token> buffer = (!isInTransaction) ? new ArrayList<Token>(tokens.size()) : null;
         for (Token token : tokens) {
             Token original = getOriginal(token);
-            matches.get(original).add(token);
-            buffer[i] = original;
-            i++;
+            Data data = tokenData.get(original);
+            data.counter++;
+            if (!isInTransaction && data.isOriginalFired) {
+                data.isOriginalFired = false;
+                buffer.add(original);
+            }
         }
-        if (!isInTransaction)
+        if (!isInTransaction && !buffer.isEmpty())
             child.deactivateTokens(new FastBuffer<>(buffer));
     }
 
     @Override
     public void deactivateTokens(Collection<Token> tokens) {
-        Collection<Token> buffer = new ArrayList<>();
+        Collection<Token> buffer = (!isInTransaction) ? new ArrayList<Token>(tokens.size()) : null;
         for (Token token : tokens) {
             Token original = getOriginal(token);
-            List<Token> sm = matches.get(original);
-            sm.remove(token);
-            if (!isInTransaction && sm.isEmpty())
+            Data data = tokenData.get(original);
+            data.counter--;
+            if (!isInTransaction && data.counter == 0) {
+                data.isOriginalFired = true;
                 buffer.add(original);
+            }
         }
-        if (!buffer.isEmpty())
+        if (!isInTransaction && !buffer.isEmpty())
             child.activateTokens(new FastBuffer<>(buffer));
     }
 
@@ -143,7 +180,7 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
      * @param token A parent token
      */
     public void preActivation(Token token) {
-        matches.put(token, new ArrayList<Token>());
+        tokenData.put(token, new Data());
         isInTransaction = true;
     }
 
@@ -154,8 +191,11 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
      */
     public void postActivation(Token token) {
         isInTransaction = false;
-        if (matches.get(token).isEmpty())
+        Data data = tokenData.get(token);
+        if (data.counter == 0) {
+            data.isOriginalFired = true;
             child.activateToken(token);
+        }
     }
 
     /**
@@ -165,7 +205,7 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
      */
     public void preActivation(Collection<Token> tokens) {
         for (Token token : tokens)
-            matches.put(token, new ArrayList<Token>());
+            tokenData.put(token, new Data());
         isInTransaction = true;
     }
 
@@ -179,8 +219,11 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
         Iterator<Token> iterator = tokens.iterator();
         while (iterator.hasNext()) {
             Token token = iterator.next();
-            if (!matches.get(token).isEmpty())
+            Data data = tokenData.get(token);
+            if (data.counter > 0)
                 iterator.remove();
+            else
+                data.isOriginalFired = true;
         }
         if (!tokens.isEmpty())
             child.activateTokens(tokens);
@@ -199,8 +242,10 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
      * @param token A parent token
      */
     public void postDeactivation(Token token) {
-        matches.remove(token);
-        child.deactivateToken(token);
+        isInTransaction = false;
+        Data data = tokenData.remove(token);
+        if (data.isOriginalFired)
+            child.deactivateToken(token);
     }
 
     /**
@@ -209,9 +254,16 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
      * @param tokens A collection of parent token
      */
     public void postDeactivation(Collection<Token> tokens) {
-        for (Token token : tokens)
-            matches.remove(token);
-        child.deactivateTokens(tokens);
+        isInTransaction = false;
+        Iterator<Token> iterator = tokens.iterator();
+        while (iterator.hasNext()) {
+            Token token = iterator.next();
+            Data data = tokenData.remove(token);
+            if (!data.isOriginalFired)
+                iterator.remove();
+        }
+        if (!tokens.isEmpty())
+            child.deactivateTokens(tokens);
     }
 
     /**
@@ -221,11 +273,8 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
      * @return The corresponding original token
      */
     private Token getOriginal(Token token) {
-        while (token != null) {
-            if (matches.containsKey(token))
-                return token;
+        for (int i = 0; i != hop; i++)
             token = token.getParent();
-        }
-        return null;
+        return token;
     }
 }

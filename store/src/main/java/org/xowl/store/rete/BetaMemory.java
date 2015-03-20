@@ -23,7 +23,6 @@ package org.xowl.store.rete;
 import org.xowl.store.rdf.Quad;
 
 import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * Represents a beta memory in a RETE network
@@ -38,7 +37,7 @@ class BetaMemory implements TokenHolder {
     /**
      * The ascendants of this node
      */
-    private Map<Token, Map<Quad, Token>> mapAscendants;
+    private Map<Token, List<Couple>> mapAscendants;
     /**
      * The tokens stored in this memory
      */
@@ -133,7 +132,7 @@ class BetaMemory implements TokenHolder {
      * @param fact  The input fact
      */
     public void activate(Token token, Quad fact) {
-        Token newToken = buildToken(token, fact);
+        Token newToken = buildToken(new Couple(fact, token));
         for (int i = children.size() - 1; i != -1; i--)
             children.get(i).activateToken(newToken);
     }
@@ -147,7 +146,7 @@ class BetaMemory implements TokenHolder {
         Collection<Token> result = new ArrayList<>();
         while (buffer.hasNext()) {
             Couple couple = buffer.next();
-            result.add(buildToken(couple.token, couple.fact));
+            result.add(buildToken(couple));
         }
         if (!result.isEmpty())
             for (int i = children.size() - 1; i != -1; i--)
@@ -157,67 +156,107 @@ class BetaMemory implements TokenHolder {
     /**
      * Builds the token for this store
      *
-     * @param token The parent token
-     * @param fact  The input fact
+     * @param couple The couple to build from
      * @return The corresponding token
      */
-    private Token buildToken(Token token, Quad fact) {
-        Token childToken = new Token(token);
+    private Token buildToken(Couple couple) {
+        Token childToken = new Token(couple.token);
         for (Binder binder : binders)
-            binder.execute(childToken, fact);
-        Map<Quad, Token> subMap = mapAscendants.get(token);
-        if (subMap == null) {
-            subMap = new IdentityHashMap<>();
-            mapAscendants.put(token, subMap);
+            binder.execute(childToken, couple.fact);
+        List<Couple> sub = mapAscendants.get(couple.token);
+        if (sub == null) {
+            sub = new ArrayList<>();
+            mapAscendants.put(couple.token, sub);
         }
-        subMap.put(fact, childToken);
+        sub.add(new Couple(couple.fact, childToken));
         tokens.add(childToken);
         return childToken;
     }
 
     /**
-     * Deactivates this store
+     * Deactivates on the specified token
      *
-     * @param token The parent token
-     * @param fact  The input fact
+     * @param token A token
      */
-    public void deactivate(Token token, Quad fact) {
-        Token newToken = resolveToken(token, fact);
-        for (int i = children.size() - 1; i != -1; i--)
-            children.get(i).deactivateToken(newToken);
-    }
-
-    /**
-     * Deactivates this store
-     *
-     * @param buffer A buffer of couples
-     */
-    public void deactivate(Iterator<Couple> buffer) {
-        Collection<Token> result = new ArrayList<>();
-        while (buffer.hasNext()) {
-            Couple couple = buffer.next();
-            result.add(resolveToken(couple.token, couple.fact));
+    public void deactivateToken(Token token) {
+        List<Couple> couples = mapAscendants.remove(token);
+        if (couples != null) {
+            Collection<Token> buffer = new ArrayList<>();
+            for (Couple couple : couples) {
+                buffer.add(couple.token);
+                tokens.remove(couple.token);
+            }
+            if (!buffer.isEmpty())
+                for (int i = children.size() - 1; i != -1; i--)
+                    children.get(i).deactivateTokens(new FastBuffer<>(buffer));
         }
-        if (!result.isEmpty())
-            for (int i = children.size() - 1; i != -1; i--)
-                children.get(i).deactivateTokens(new FastBuffer<>(result));
     }
 
     /**
-     * Retrieve the child token in this store corresponding to the specified items
+     * Deactivates on the specified token and fact
      *
-     * @param token The parent token
-     * @param fact  The input fact
-     * @return The corresponding token in this store
+     * @param token A token
+     * @param fact  A fact
      */
-    private Token resolveToken(Token token, Quad fact) {
-        Map<Quad, Token> subMap = mapAscendants.get(token);
-        Token newToken = subMap.get(fact);
-        subMap.remove(fact);
-        if (subMap.isEmpty())
+    public void deactivateCouple(Token token, Quad fact) {
+        List<Couple> sub = mapAscendants.get(token);
+        for (Couple couple : sub) {
+            if (couple.fact == fact) {
+                tokens.remove(couple.token);
+                for (int i = children.size() - 1; i != -1; i--)
+                    children.get(i).deactivateToken(couple.token);
+                break;
+            }
+        }
+        if (sub.isEmpty())
             mapAscendants.remove(token);
-        tokens.remove(newToken);
-        return newToken;
+    }
+
+    /**
+     * Deactivates on the specified tokens
+     *
+     * @param tokens Some tokens
+     */
+    public void deactivateTokens(Collection<Token> tokens) {
+        Collection<Token> buffer = new ArrayList<>();
+        for (Token token : tokens) {
+            List<Couple> couples = mapAscendants.remove(token);
+            if (couples != null) {
+                for (Couple couple : couples) {
+                    buffer.add(couple.token);
+                    tokens.remove(couple.token);
+                }
+            }
+        }
+        if (!buffer.isEmpty())
+            for (int i = children.size() - 1; i != -1; i--)
+                children.get(i).deactivateTokens(new FastBuffer<>(buffer));
+    }
+
+    /**
+     * Deactivates on the specified couples
+     *
+     * @param couples Some couples
+     */
+    public void deactivateCouples(Iterator<Couple> couples) {
+        Collection<Token> buffer = new ArrayList<>();
+        while (couples.hasNext()) {
+            Couple couple = couples.next();
+            List<Couple> sub = mapAscendants.get(couple.token);
+            if (sub != null) {
+                for (Couple potential : sub) {
+                    if (potential.fact == couple.fact) {
+                        buffer.add(potential.token);
+                        tokens.remove(potential.token);
+                    }
+                }
+                if (sub.isEmpty())
+                    mapAscendants.remove(couple.token);
+            }
+        }
+        if (!buffer.isEmpty())
+            for (int i = children.size() - 1; i != -1; i--)
+                children.get(i).deactivateTokens(new FastBuffer<>(buffer));
     }
 
     /**
@@ -244,10 +283,9 @@ class BetaMemory implements TokenHolder {
      */
     private void updateTokens(Collection<Binder> binders) {
         for (Token base : mapAscendants.keySet()) {
-            Map<Quad, Token> subMap = mapAscendants.get(base);
-            for (Entry<Quad, Token> entry : subMap.entrySet())
+            for (Couple couple : mapAscendants.get(base))
                 for (Binder binder : binders)
-                    binder.execute(entry.getValue(), entry.getKey());
+                    binder.execute(couple.token, couple.fact);
         }
     }
 

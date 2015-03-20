@@ -46,10 +46,11 @@ class BetaNCCEntryNode implements TokenHolder, TokenActivable {
      * Initializes this node
      *
      * @param beta The parent beta memory
+     * @param hop  The number of hops in the NCC
      */
-    public BetaNCCEntryNode(TokenHolder beta) {
+    public BetaNCCEntryNode(TokenHolder beta, int hop) {
         this.betaMem = beta;
-        this.exit = new BetaNCCExitNode(beta);
+        this.exit = new BetaNCCExitNode(beta, hop);
         this.betaMem.addChild(this);
     }
 
