@@ -70,6 +70,9 @@ public class Query {
         if (!(obj instanceof Query))
             return false;
         Query query = (Query) obj;
+        // match identity?
+        if (query == this)
+            return true;
         // match the sizes
         if (this.positives.size() != query.positives.size())
             return false;

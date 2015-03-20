@@ -204,6 +204,30 @@ public class RETENetwork {
     }
 
     /**
+     * Gets the status of the specified rule in this network
+     *
+     * @param rule A rule in this network
+     * @return The rule's status
+     */
+    public MatchStatus getStatus(RETERule rule) {
+        RuleData data = rules.get(rule);
+        MatchStatus result = new MatchStatus();
+        if (data == null)
+            // the rule is not in this network ...
+            return result;
+        int index = 0;
+        for (Quad positivePattern : rule.getPositives()) {
+            JoinData joinData = data.positives.get(index);
+            index++;
+            MatchStatusStep step = new MatchStatusStep(positivePattern);
+            for (Token token : joinData.nodeMemory.getTokens())
+                step.addBindings(token);
+            result.addStep(step);
+        }
+        return result;
+    }
+
+    /**
      * Gets the join data for the specified RETE rule
      *
      * @param rule A RETE rule

@@ -20,10 +20,7 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.store.rete.RETENetwork;
-import org.xowl.store.rete.RETERule;
-import org.xowl.store.rete.Token;
-import org.xowl.store.rete.TokenActivable;
+import org.xowl.store.rete.*;
 
 import java.util.*;
 
@@ -227,6 +224,23 @@ public class QueryEngine implements ChangeListener {
         cache.add(element);
         rete.addRule(element.getRule());
         return element.getSolutions();
+    }
+
+    /**
+     * Gets the matching status of the specified query
+     *
+     * @param query A query
+     * @return The matching status
+     */
+    public MatchStatus getMatchStatus(Query query) {
+        // try from the cache
+        for (final CacheElem element : cache) {
+            if (element.matches(query)) {
+                return rete.getStatus(element.getRule());
+            }
+        }
+        // the query is not in the cache
+        return null;
     }
 
     @Override

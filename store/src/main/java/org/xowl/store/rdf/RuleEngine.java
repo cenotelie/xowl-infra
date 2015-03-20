@@ -19,10 +19,7 @@
  **********************************************************************/
 package org.xowl.store.rdf;
 
-import org.xowl.store.rete.RETENetwork;
-import org.xowl.store.rete.RETERule;
-import org.xowl.store.rete.Token;
-import org.xowl.store.rete.TokenActivable;
+import org.xowl.store.rete.*;
 
 import java.util.*;
 
@@ -391,6 +388,20 @@ public class RuleEngine implements ChangeListener {
      */
     protected Node processOtherNode(Node node) {
         return node;
+    }
+
+    /**
+     * Gets the matching status of the specified rule
+     *
+     * @param rule A rule
+     * @return The matching status
+     */
+    public MatchStatus getMatchStatus(Rule rule) {
+        RETERule reteRule = rules.get(rule);
+        if (reteRule == null)
+            // not a rule in this engine
+            return null;
+        return rete.getStatus(reteRule);
     }
 
     /**
