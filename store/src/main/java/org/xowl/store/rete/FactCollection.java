@@ -21,7 +21,6 @@ package org.xowl.store.rete;
 
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.RDFStore;
-import org.xowl.store.rdf.UnsupportedNodeType;
 import org.xowl.store.rdf.VariableNode;
 
 import java.util.Collection;
@@ -64,24 +63,14 @@ class FactCollection implements Collection<Quad> {
      * @return A new iterator
      */
     private Iterator<Quad> getNewIterator() {
-        try {
-            return store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
-        } catch (UnsupportedNodeType ex) {
-            // TODO: report this
-            return null;
-        }
+        return store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
     }
 
     @Override
     public int size() {
         if (size > -1)
             return size;
-        try {
-            size = store.count(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
-        } catch (UnsupportedNodeType ex) {
-            // TODO: report this
-            size = 0;
-        }
+        size = store.count(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
         return size;
     }
 
@@ -117,12 +106,8 @@ class FactCollection implements Collection<Quad> {
         if (pattern.getObject().getNodeType() != VariableNode.TYPE && pattern.getObject() != quad.getObject())
             return false;
         // the quad matches the pattern
-        try {
-            Iterator<Quad> iterator = store.getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            return iterator.hasNext();
-        } catch (UnsupportedNodeType ex) {
-            return false;
-        }
+        Iterator<Quad> iterator = store.getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+        return iterator.hasNext();
     }
 
     @Override

@@ -556,12 +556,7 @@ public class RDFStore implements ChangeListener {
      * @return An iterator over the results
      */
     public Iterator<Quad> getAll() {
-        try {
-            return getAll(null, null, null, null);
-        } catch (UnsupportedNodeType ex) {
-            // cannot happen ...
-            return null;
-        }
+        return getAll(null, null, null, null);
     }
 
     /**
@@ -571,12 +566,7 @@ public class RDFStore implements ChangeListener {
      * @return An iterator over the results
      */
     public Iterator<Quad> getAll(GraphNode graph) {
-        try {
-            return getAll(graph, null, null, null);
-        } catch (UnsupportedNodeType ex) {
-            // cannot happen ...
-            return null;
-        }
+        return getAll(graph, null, null, null);
     }
 
     /**
@@ -586,9 +576,8 @@ public class RDFStore implements ChangeListener {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return An iterator over the results
-     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
         return getAll(null, subject, property, object);
     }
 
@@ -600,9 +589,8 @@ public class RDFStore implements ChangeListener {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return An iterator over the results
-     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) throws UnsupportedNodeType {
+    public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) {
         if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
             return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<Quad>>() {
                 @Override
@@ -621,7 +609,7 @@ public class RDFStore implements ChangeListener {
         } else {
             EdgeBucket bucket = getBucketFor(subject);
             if (bucket == null)
-                throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
+                return new SingleIterator<>(null);
             return new AdaptingIterator<>(bucket.getAll(graph, property, object), new Adapter<Quad>() {
                 @Override
                 public <X> Quad adapt(X element) {
@@ -639,12 +627,7 @@ public class RDFStore implements ChangeListener {
      * @return The number of different quads
      */
     public int count() {
-        try {
-            return count(null, null, null, null);
-        } catch (UnsupportedNodeType ex) {
-            // cannot happen ...
-            return 0;
-        }
+        return count(null, null, null, null);
     }
 
     /**
@@ -654,12 +637,7 @@ public class RDFStore implements ChangeListener {
      * @return The number of different quads
      */
     public int count(GraphNode graph) {
-        try {
-            return count(graph, null, null, null);
-        } catch (UnsupportedNodeType ex) {
-            // cannot happen ...
-            return 0;
-        }
+        return count(graph, null, null, null);
     }
 
     /**
@@ -669,9 +647,8 @@ public class RDFStore implements ChangeListener {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return The number of different quads
-     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public int count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+    public int count(SubjectNode subject, Property property, Node object) {
         return count(null, subject, property, object);
     }
 
@@ -683,9 +660,8 @@ public class RDFStore implements ChangeListener {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return The number of different quads
-     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
-    public int count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+    public int count(GraphNode graph, SubjectNode subject, Property property, Node object) {
         if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
             int count = 0;
             Iterator<Couple<SubjectNode, EdgeBucket>> iterator = getAllSubjects();
@@ -695,7 +671,7 @@ public class RDFStore implements ChangeListener {
         } else {
             EdgeBucket bucket = getBucketFor(subject);
             if (bucket == null)
-                throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
+                return 0;
             return bucket.count(graph, property, object);
         }
     }

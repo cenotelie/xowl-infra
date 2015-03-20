@@ -449,13 +449,9 @@ public class RDFParser {
      */
     private List<Node> getValues(SubjectNode subject, String property) {
         List<Node> results = new ArrayList<>();
-        try {
-            Iterator<Quad> iterator = store.getAll(subject, store.getNodeIRI(property), null);
-            while (iterator.hasNext()) {
-                results.add(iterator.next().getObject());
-            }
-        } catch (UnsupportedNodeType ex) {
-            // TODO: log this
+        Iterator<Quad> iterator = store.getAll(subject, store.getNodeIRI(property), null);
+        while (iterator.hasNext()) {
+            results.add(iterator.next().getObject());
         }
         return results;
     }
@@ -467,15 +463,10 @@ public class RDFParser {
      * @return The first triple
      */
     private Quad getTriple(SubjectNode subject) {
-        try {
-            Iterator<Quad> iterator = store.getAll(subject, null, null);
-            if (!iterator.hasNext())
-                return null;
-            return iterator.next();
-        } catch (UnsupportedNodeType ex) {
-            // TODO: log this
+        Iterator<Quad> iterator = store.getAll(subject, null, null);
+        if (!iterator.hasNext())
             return null;
-        }
+        return iterator.next();
     }
 
     /**
