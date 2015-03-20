@@ -186,12 +186,6 @@ public class BaseOWLReasoningTest {
                     Quad quad = iterator.next();
                     builder.append(" ");
                     builder.append(quad.toString());
-                    RuleEngineExplanation explanation = repository.getRuleEngine().getBackend().explain(quad);
-                    try {
-                        explanation.print(new OutputStreamWriter(System.out));
-                    } catch (IOException ex) {
-                        // do nothing
-                    }
                 }
                 Assert.fail(builder.toString());
             }
