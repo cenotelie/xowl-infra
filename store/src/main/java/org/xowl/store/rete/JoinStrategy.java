@@ -31,21 +31,36 @@ import java.util.Iterator;
  * @author Laurent Wouters
  */
 abstract class JoinStrategy {
+    /**
+     * The first test
+     */
     protected BetaJoinNodeTest test1;
+    /**
+     * The second test
+     */
     protected BetaJoinNodeTest test2;
+    /**
+     * The third test
+     */
     protected BetaJoinNodeTest test3;
+    /**
+     * The fourth test
+     */
+    protected BetaJoinNodeTest test4;
 
     /**
      * Initializes this strategy
      *
-     * @param t1 The first test
-     * @param t2 The second test
-     * @param t3 The third test
+     * @param test1 The first test
+     * @param test2 The second test
+     * @param test3 The third test
+     * @param test4 The fourth test
      */
-    public JoinStrategy(BetaJoinNodeTest t1, BetaJoinNodeTest t2, BetaJoinNodeTest t3) {
-        this.test1 = t1;
-        this.test2 = t2;
-        this.test3 = t3;
+    public JoinStrategy(BetaJoinNodeTest test1, BetaJoinNodeTest test2, BetaJoinNodeTest test3, BetaJoinNodeTest test4) {
+        this.test1 = test1;
+        this.test2 = test2;
+        this.test3 = test3;
+        this.test4 = test4;
     }
 
     /**
@@ -56,12 +71,10 @@ abstract class JoinStrategy {
      * @return true if the couple passes the tests
      */
     protected boolean passTests(Token token, Quad fact) {
-        if (test1 == null) return true;
-        if (!test1.check(token, fact)) return false;
-        if (test2 == null) return true;
-        if (!test2.check(token, fact)) return false;
-        if (test3 == null) return true;
-        return test3.check(token, fact);
+        return ((test1 == null || test1.check(token, fact))
+                && (test2 == null || test2.check(token, fact))
+                && (test3 == null || test3.check(token, fact))
+                && (test4 == null || test4.check(token, fact)));
     }
 
     /**

@@ -61,6 +61,10 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
      */
     private BetaJoinNodeTest test3;
     /**
+     * The fourth test
+     */
+    private BetaJoinNodeTest test4;
+    /**
      * The child node
      */
     private TokenActivable child;
@@ -76,13 +80,13 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
      * @param beta  The parent beta memory
      * @param tests The joining tests
      */
-    public BetaNegativeJoinNode(FactHolder alpha, TokenHolder beta, Collection<BetaJoinNodeTest> tests) {
+    public BetaNegativeJoinNode(FactHolder alpha, TokenHolder beta, List<BetaJoinNodeTest> tests) {
         this.alphaMem = alpha;
         this.betaMem = beta;
-        Iterator<BetaJoinNodeTest> iter = tests.iterator();
-        if (iter.hasNext()) test1 = iter.next();
-        if (iter.hasNext()) test2 = iter.next();
-        if (iter.hasNext()) test3 = iter.next();
+        this.test1 = tests.size() > 0 ? tests.get(0) : null;
+        this.test2 = tests.size() > 1 ? tests.get(1) : null;
+        this.test3 = tests.size() > 2 ? tests.get(2) : null;
+        this.test4 = tests.size() > 3 ? tests.get(3) : null;
         this.alphaMem.addChild(this);
         this.betaMem.addChild(this);
         this.matches = new IdentityHashMap<>();
@@ -204,12 +208,10 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
      * @return true if the couple passes the tests
      */
     private boolean passTests(Token token, Quad fact) {
-        if (test1 == null) return true;
-        if (!test1.check(token, fact)) return false;
-        if (test2 == null) return true;
-        if (!test2.check(token, fact)) return false;
-        if (test3 == null) return true;
-        return test3.check(token, fact);
+        return ((test1 == null || test1.check(token, fact))
+                && (test2 == null || test2.check(token, fact))
+                && (test3 == null || test3.check(token, fact))
+                && (test4 == null || test4.check(token, fact)));
     }
 
     /**

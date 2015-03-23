@@ -56,12 +56,13 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
     /**
      * Initializes this strategy
      *
-     * @param t1 The first test
-     * @param t2 The second test
-     * @param t3 The third test
+     * @param test1 The first test
+     * @param test2 The second test
+     * @param test3 The third test
+     * @param test4 The fourth test
      */
-    public SimpleHashJoin(BetaJoinNodeTest t1, BetaJoinNodeTest t2, BetaJoinNodeTest t3) {
-        super(t1, t2, t3);
+    public SimpleHashJoin(BetaJoinNodeTest test1, BetaJoinNodeTest test2, BetaJoinNodeTest test3, BetaJoinNodeTest test4) {
+        super(test1, test2, test3, test4);
         mapLefts = new HashMap<>();
     }
 

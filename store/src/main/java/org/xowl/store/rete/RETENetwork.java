@@ -327,7 +327,7 @@ public class RETENetwork {
          * Initializes the data
          */
         public JoinData() {
-            this.tests = new ArrayList<>();
+            this.tests = new ArrayList<>(4);
             this.binders = new ArrayList<>();
         }
     }

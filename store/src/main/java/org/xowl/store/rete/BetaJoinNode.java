@@ -25,6 +25,7 @@ import org.xowl.store.rdf.Quad;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Represents a join node in the beta graph of a RETE network
@@ -62,6 +63,10 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      */
     private BetaJoinNodeTest test3;
     /**
+     * The fourth test
+     */
+    private BetaJoinNodeTest test4;
+    /**
      * The downstream beta memory
      */
     private BetaMemory child;
@@ -75,15 +80,15 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      *
      * @param alpha The upstream alpha memory
      * @param beta  The upstream beta memory
-     * @param tests The tests on this node
+     * @param tests The joining tests
      */
-    public BetaJoinNode(FactHolder alpha, TokenHolder beta, Collection<BetaJoinNodeTest> tests) {
+    public BetaJoinNode(FactHolder alpha, TokenHolder beta, List<BetaJoinNodeTest> tests) {
         this.alphaMem = alpha;
         this.betaMem = beta;
-        Iterator<BetaJoinNodeTest> iter = tests.iterator();
-        if (iter.hasNext()) test1 = iter.next();
-        if (iter.hasNext()) test2 = iter.next();
-        if (iter.hasNext()) test3 = iter.next();
+        this.test1 = tests.size() > 0 ? tests.get(0) : null;
+        this.test2 = tests.size() > 1 ? tests.get(1) : null;
+        this.test3 = tests.size() > 2 ? tests.get(2) : null;
+        this.test4 = tests.size() > 3 ? tests.get(3) : null;
         this.alphaMem.addChild(this);
         this.betaMem.addChild(this);
         this.counter = 1;
@@ -114,22 +119,23 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      * @param tests The tests to look for
      * @return true if this node matches the provided specifications
      */
-    public boolean match(FactHolder alpha, Collection<BetaJoinNodeTest> tests) {
+    public boolean match(FactHolder alpha, List<BetaJoinNodeTest> tests) {
         if (this.alphaMem != alpha)
             return false;
-        if (this.test1 != null) {
-            if (!tests.contains(this.test1))
+        switch (tests.size()) {
+            case 0:
+                return (test1 == null);
+            case 1:
+                return (test2 == null && tests.contains(test1));
+            case 2:
+                return (test3 == null && tests.contains(test1) && tests.contains(test2));
+            case 3:
+                return (test4 == null && tests.contains(test1) && tests.contains(test2) && tests.contains(test3));
+            case 4:
+                return (tests.contains(test1) && tests.contains(test2) && tests.contains(test3) && tests.contains(test4));
+            default:
                 return false;
-            else if (this.test2 != null) {
-                if (!tests.contains(this.test2))
-                    return false;
-                else if (this.test3 != null)
-                    return tests.contains(this.test3);
-                return (tests.size() == 2);
-            }
-            return (tests.size() == 1);
         }
-        return (tests.isEmpty());
     }
 
     @Override
@@ -190,9 +196,9 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      */
     private Iterator<Couple> getJoin(Collection<Token> tokens, Collection<Quad> facts) {
         int size = tokens.size() * facts.size();
-        JoinStrategy join = null;
+        JoinStrategy join;
         if (size <= MAX_SIZE_JOIN_LOOPS)
-            join = new NestedLoopJoin(test1, test2, test3);
+            join = new NestedLoopJoin(test1, test2, test3, test4);
         else if (size <= MAX_SIZE_JOIN_DOUBLE_HASH)
             join = createDoubeHashJoin();
         else if (facts.size() < tokens.size())
@@ -208,7 +214,7 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      * @return A double hash join strategy
      */
     private JoinStrategy createDoubeHashJoin() {
-        return new GraceHashJoin<Token, Quad>(test1, test2, test3) {
+        return new GraceHashJoin<Token, Quad>(test1, test2, test3, test4) {
             @Override
             protected Couple createCouple(Token left, Quad right) {
                 return new Couple(right, left);
@@ -237,7 +243,7 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      * @return A simple hash join strategy
      */
     private JoinStrategy createSimpleHashJoinToken() {
-        return new SimpleHashJoin<Token, Quad>(test1, test2, test3) {
+        return new SimpleHashJoin<Token, Quad>(test1, test2, test3, test4) {
             @Override
             protected Couple createCouple(Token left, Quad right) {
                 return new Couple(right, left);
@@ -266,7 +272,7 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      * @return A simple hash join strategy
      */
     private JoinStrategy createSimpleHashJoinFact() {
-        return new SimpleHashJoin<Quad, Token>(test1, test2, test3) {
+        return new SimpleHashJoin<Quad, Token>(test1, test2, test3, test4) {
             @Override
             protected Couple createCouple(Quad left, Token right) {
                 return new Couple(left, right);
@@ -297,12 +303,10 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      * @return true if the couple passes the tests
      */
     private boolean passTests(Token token, Quad fact) {
-        if (test1 == null) return true;
-        if (!test1.check(token, fact)) return false;
-        if (test2 == null) return true;
-        if (!test2.check(token, fact)) return false;
-        if (test3 == null) return true;
-        return test3.check(token, fact);
+        return ((test1 == null || test1.check(token, fact))
+                && (test2 == null || test2.check(token, fact))
+                && (test3 == null || test3.check(token, fact))
+                && (test4 == null || test4.check(token, fact)));
     }
 
     /**

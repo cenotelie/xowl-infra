@@ -296,7 +296,7 @@ class BetaMemory implements TokenHolder {
      * @param tests The set of tests to match
      * @return The corresponding join node
      */
-    public BetaJoinNode resolveJoin(FactHolder alpha, Collection<BetaJoinNodeTest> tests) {
+    public BetaJoinNode resolveJoin(FactHolder alpha, List<BetaJoinNodeTest> tests) {
         for (int i = children.size() - 1; i != -1; i--) {
             if (children.get(i) instanceof BetaJoinNode) {
                 BetaJoinNode join = (BetaJoinNode) children.get(i);
