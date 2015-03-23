@@ -57,11 +57,6 @@ public class BaseOWLReasoningTest {
         }
 
         // load the premise ontology and the default ontologies
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
         repository.addEntailmentRulesForOWL2_RDFBasedSemantics(logger);
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
@@ -70,8 +65,8 @@ public class BaseOWLReasoningTest {
         // query the premise for a matching conclusion, modulo the blank nodes
         Query query = new Query();
         Map<BlankNode, VariableNode> variables = new HashMap<>();
+        GraphNode nodeGraph = repository.getGraph(ontologyPremise);
         for (Quad quad : conclusion) {
-            GraphNode nodeGraph = repository.getGraph(ontologyPremise);
             SubjectNode nodeSubject = quad.getSubject();
             Property nodeProperty = quad.getProperty();
             Node nodeObject = quad.getObject();
@@ -123,11 +118,6 @@ public class BaseOWLReasoningTest {
         }
 
         // load the premise ontology and the default ontologies
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
         repository.addEntailmentRulesForOWL2_RDFBasedSemantics(logger);
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
@@ -136,8 +126,8 @@ public class BaseOWLReasoningTest {
         // query the premise for a matching conclusion, modulo the blank nodes
         Query query = new Query();
         Map<BlankNode, VariableNode> variables = new HashMap<>();
+        GraphNode nodeGraph = repository.getGraph(ontologyPremise);
         for (Quad quad : conclusion) {
-            GraphNode nodeGraph = repository.getGraph(ontologyPremise);
             SubjectNode nodeSubject = quad.getSubject();
             Property nodeProperty = quad.getProperty();
             Node nodeObject = quad.getObject();
