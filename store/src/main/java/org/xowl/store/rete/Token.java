@@ -23,7 +23,8 @@ package org.xowl.store.rete;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.VariableNode;
 
-import java.util.IdentityHashMap;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -33,13 +34,22 @@ import java.util.Map;
  */
 public class Token {
     /**
+     * The initial size of the binding buffers
+     */
+    private static final int BINDINGS_SIZE = 4;
+
+    /**
      * The parent token
      */
     private Token parent;
     /**
-     * The bindings in this token
+     * The variables bound in this token
      */
-    private Map<VariableNode, Node> bindings;
+    private VariableNode[] variables;
+    /**
+     * The values for the bound variables
+     */
+    private Node[] values;
 
     /**
      * Initializes this token with the specified parent
@@ -48,10 +58,8 @@ public class Token {
      */
     public Token(Token parent) {
         this.parent = parent;
-        if (parent != null)
-            this.bindings = new IdentityHashMap<>(parent.bindings);
-        else
-            this.bindings = new IdentityHashMap<>();
+        this.variables = new VariableNode[BINDINGS_SIZE];
+        this.values = new Node[BINDINGS_SIZE];
     }
 
     /**
@@ -70,7 +78,18 @@ public class Token {
      * @param value    A value
      */
     public void bind(VariableNode variable, Node value) {
-        bindings.put(variable, value);
+        for (int i = 0; i != variables.length; i++) {
+            if (variables[i] == null) {
+                variables[i] = variable;
+                values[i] = value;
+                return;
+            }
+        }
+        int index = variables.length;
+        variables = Arrays.copyOf(variables, variables.length + BINDINGS_SIZE);
+        values = Arrays.copyOf(values, values.length + BINDINGS_SIZE);
+        variables[index] = variable;
+        values[index] = value;
     }
 
     /**
@@ -80,7 +99,28 @@ public class Token {
      * @return The value bound to the variable, or null if none is
      */
     public Node getBinding(VariableNode variable) {
-        return bindings.get(variable);
+        Token current = this;
+        while (current != null) {
+            Node value = current.getLocalBinding(variable);
+            if (value != null)
+                return value;
+            current = current.parent;
+        }
+        return null;
+    }
+
+    /**
+     * Gets the local binding of the specified variable
+     *
+     * @param variable A variable
+     * @return The local binding of the variable
+     */
+    private Node getLocalBinding(VariableNode variable) {
+        for (int i = 0; i != variables.length; i++) {
+            if (variables[i] == variable)
+                return values[i];
+        }
+        return null;
     }
 
     /**
@@ -89,6 +129,16 @@ public class Token {
      * @return The bindings in this token
      */
     public Map<VariableNode, Node> getBindings() {
+        HashMap<VariableNode, Node> bindings = new HashMap<>();
+        Token current = this;
+        while (current != null) {
+            for (int i = 0; i != current.variables.length; i++) {
+                if (current.variables[i] == null)
+                    break;
+                bindings.put(current.variables[i], current.values[i]);
+            }
+            current = current.parent;
+        }
         return bindings;
     }
 }
