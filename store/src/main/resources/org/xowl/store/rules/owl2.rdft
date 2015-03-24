@@ -133,11 +133,26 @@ rule owl:prp-ifp {
     ?x1 owl:sameAs ?x2
 }
 
+rule owl:prp-irp {
+    ?p rdf:type owl:IrreflexiveProperty
+    ?x ?p ?x
+} => {
+    ?p xowl:status xowl:inconsistent
+}
+
 rule owl:prp-symp {
     ?p rdf:type owl:SymmetricProperty
     ?x ?p ?y
 } => {
     ?y ?p ?x
+}
+
+rule owl:prp-asmp {
+    ?p rdf:type owl:AsymmetricProperty
+    ?x ?p ?y
+    ?y ?p ?x
+} => {
+    ?p xowl:status xowl:inconsistent
 }
 
 rule owl:prp-trp {
@@ -155,7 +170,45 @@ rule owl:prp-spo1 {
     ?x ?p2 ?y
 }
 
-# TODO: Implement prp-spo2 for owl:propertyChainAxiom
+rule xowl:prp-spo2-init {
+    ?p owl:propertyChainAxiom ?l
+    ?l rdf:first ?p1
+    ?u ?p1 ?v1
+} => {
+    ?u xowl:chain ?x
+    ?x xowl:property ?p
+    ?x xowl:chainLink ?y
+    ?y xowl:proxy ?l
+    ?y xowl:from ?u
+    ?y xowl:item ?v1
+}
+
+rule xowl:prp-spo2-transitive {
+    ?u xowl:chain ?x
+    ?x xowl:chainLink ?y
+    ?y xowl:proxy ?l
+    ?y xowl:item ?v1
+    ?l rdf:rest ?e
+    ?e rdf:first ?p2
+    ?v1 ?p2 ?v2
+} => {
+    ?x xowl:chainLink ?z
+    ?z xowl:proxy ?e
+    ?z xowl:from ?v1
+    ?z xowl:item ?v2
+}
+
+rule xowl:prp-spo2-final {
+    ?u xowl:chain ?x
+    ?x xowl:property ?p
+    ?x xowl:chainLink ?z
+    ?z xowl:proxy ?e
+    ?z xowl:from ?v1
+    ?z xowl:item ?w
+    ?e rdf:rest rdf:nil
+} => {
+    ?u ?p ?w
+}
 
 rule owl:prp-eqp1 {
     ?p1 owl:equivalentProperty ?p2
@@ -244,7 +297,7 @@ rule xowl:cls-int1-init {
     ?x xowl:instantiating ?l
 }
 
-rule xowl:cls-int1-init-transitive {
+rule xowl:cls-int1-transitive {
     ?x xowl:instantiating ?l
     ?l rdf:rest ?e
     ?e rdf:first ?c2
@@ -253,7 +306,7 @@ rule xowl:cls-int1-init-transitive {
     ?x xowl:instantiating ?e
 }
 
-rule xowl:cls-int1-init-final {
+rule xowl:cls-int1-final {
     ?x xowl:instantiating ?e
     ?e rdf:rest rdf:nil
     ?e xowl:after ?l
