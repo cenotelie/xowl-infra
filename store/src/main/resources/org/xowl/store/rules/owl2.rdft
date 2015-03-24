@@ -236,7 +236,31 @@ rule owl:cls-nothing2 {
     ?x xowl:status xowl:inconsistent
 }
 
-# TODO: Implement cls-int1 for owl:intersectionOf
+rule xowl:cls-int1-init {
+    ?i owl:intersectionOf ?l
+    ?l rdf:first ?c1
+    ?x rdf:type ?c1
+} => {
+    ?x xowl:instantiating ?l
+}
+
+rule xowl:cls-int1-init-transitive {
+    ?x xowl:instantiating ?l
+    ?l rdf:rest ?e
+    ?e rdf:first ?c2
+    ?x rdf:type ?c2
+} => {
+    ?x xowl:instantiating ?e
+}
+
+rule xowl:cls-int1-init-final {
+    ?x xowl:instantiating ?e
+    ?e rdf:rest rdf:nil
+    ?e xowl:after ?l
+    ?i owl:intersectionOf ?l
+} => {
+    ?x rdf:type ?i
+}
 
 rule owl:cls-int2 {
     ?c owl:intersectionOf ?x
