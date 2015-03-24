@@ -70,28 +70,25 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      * The downstream beta memory
      */
     private BetaMemory child;
-    /**
-     * The counter of the number of rules using this node
-     */
-    protected int counter;
 
     /**
      * Initializes this joi node
      *
-     * @param alpha The upstream alpha memory
-     * @param beta  The upstream beta memory
-     * @param tests The joining tests
+     * @param alpha   The upstream alpha memory
+     * @param beta    The upstream beta memory
+     * @param tests   The joining tests
+     * @param binders The binding operations
      */
-    public BetaJoinNode(FactHolder alpha, TokenHolder beta, List<BetaJoinNodeTest> tests) {
+    public BetaJoinNode(FactHolder alpha, TokenHolder beta, List<BetaJoinNodeTest> tests, Collection<Binder> binders) {
         this.alphaMem = alpha;
         this.betaMem = beta;
+        this.alphaMem.addChild(this);
+        this.betaMem.addChild(this);
         this.test1 = tests.size() > 0 ? tests.get(0) : null;
         this.test2 = tests.size() > 1 ? tests.get(1) : null;
         this.test3 = tests.size() > 2 ? tests.get(2) : null;
         this.test4 = tests.size() > 3 ? tests.get(3) : null;
-        this.alphaMem.addChild(this);
-        this.betaMem.addChild(this);
-        this.counter = 1;
+        this.child = new BetaMemory(binders);
     }
 
     /**
@@ -307,23 +304,5 @@ class BetaJoinNode implements FactActivable, TokenActivable {
                 && (test2 == null || test2.check(token, fact))
                 && (test3 == null || test3.check(token, fact))
                 && (test4 == null || test4.check(token, fact)));
-    }
-
-    /**
-     * Resolves the downstream memory of this node with the specified binding operations
-     *
-     * @param binders The binding operations
-     * @return The downstream memory
-     */
-    public BetaMemory resolveMemory(Collection<Binder> binders) {
-        if (child != null) {
-            child.addBinders(binders);
-            return child;
-        }
-        child = new BetaMemory();
-        child.addBinders(binders);
-        if (!alphaMem.getFacts().isEmpty())
-            activateFacts(alphaMem.getFacts());
-        return child;
     }
 }

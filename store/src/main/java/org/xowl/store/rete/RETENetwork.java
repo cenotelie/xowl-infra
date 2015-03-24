@@ -111,10 +111,8 @@ public class RETENetwork {
         for (Quad pattern : rule.getPositives()) {
             JoinData data = iterData.next();
             FactHolder alpha = this.alpha.resolveMemory(pattern, input);
-            BetaJoinNode join = beta.resolveJoin(alpha, data.tests);
-            beta = join.resolveMemory(data.binders);
-            data.nodeJoin = join;
-            data.nodeMemory = beta;
+            data.nodeJoin = new BetaJoinNode(alpha, beta, data.tests, data.binders);
+            beta = data.nodeJoin.getChild();
         }
         // Append negative conditions
         TokenHolder last = beta;
@@ -131,8 +129,8 @@ public class RETENetwork {
                 for (Quad pattern : conjunction) {
                     JoinData data = iterData.next();
                     FactHolder alpha = this.alpha.resolveMemory(pattern, input);
-                    BetaJoinNode join = new BetaJoinNode(alpha, last, data.tests);
-                    last = join.resolveMemory(data.binders);
+                    BetaJoinNode join = new BetaJoinNode(alpha, last, data.tests, data.binders);
+                    last = join.getChild();
                 }
                 last.addChild(entry.getExitNode());
                 last = entry.getExitNode();
@@ -160,7 +158,7 @@ public class RETENetwork {
         // if there is a negative join network, this is not necessary because we will also remove it
         if (data.negatives.isEmpty()) {
             // no negative, remove from the positive network
-            data.positives.get(data.positives.size() - 1).nodeMemory.removeChild(rule.getOutput());
+            data.positives.get(data.positives.size() - 1).nodeJoin.getChild().removeChild(rule.getOutput());
         } else {
             // remove the negative network
             int index = data.negatives.size() - 1;
@@ -174,12 +172,8 @@ public class RETENetwork {
         {
             for (int i = data.positives.size() - 1; i != -1; i--) {
                 JoinData join = data.positives.get(i);
-                join.nodeJoin.counter--;
-                if (join.nodeJoin.counter == 0) {
-                    // this join is no longer required, remove it from the network
-                    join.nodeMemory.onDestroy();
-                    join.nodeJoin.onDestroy();
-                }
+                join.nodeJoin.getChild().onDestroy();
+                join.nodeJoin.onDestroy();
             }
         }
     }
@@ -220,7 +214,7 @@ public class RETENetwork {
             JoinData joinData = data.positives.get(index);
             index++;
             MatchStatusStep step = new MatchStatusStep(positivePattern);
-            for (Token token : joinData.nodeMemory.getTokens())
+            for (Token token : joinData.nodeJoin.getChild().getTokens())
                 step.addBindings(token);
             result.addStep(step);
         }
@@ -238,9 +232,12 @@ public class RETENetwork {
         List<VariableNode> variables = new ArrayList<>();
         for (Quad pattern : rule.getPositives())
             tests.add(getJoinData(pattern, variables));
-        for (Collection<Quad> conjunction : rule.getNegatives())
+        for (Collection<Quad> conjunction : rule.getNegatives()) {
+            // prevent registering negative variables as bound
+            List<VariableNode> negativeVariables = new ArrayList<>(variables);
             for (Quad pattern : conjunction)
-                tests.add(getJoinData(pattern, variables));
+                tests.add(getJoinData(pattern, negativeVariables));
+        }
         return tests;
     }
 
@@ -318,10 +315,6 @@ public class RETENetwork {
          * The corresponding join node
          */
         public BetaJoinNode nodeJoin;
-        /**
-         * The child memory
-         */
-        public BetaMemory nodeMemory;
 
         /**
          * Initializes the data

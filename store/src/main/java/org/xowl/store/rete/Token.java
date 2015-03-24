@@ -23,7 +23,6 @@ package org.xowl.store.rete;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.VariableNode;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,11 +32,6 @@ import java.util.Map;
  * @author Laurent Wouters
  */
 public class Token {
-    /**
-     * The initial size of the binding buffers
-     */
-    private static final int BINDINGS_SIZE = 4;
-
     /**
      * The parent token
      */
@@ -52,14 +46,24 @@ public class Token {
     private Node[] values;
 
     /**
+     * Initializes a dummy token
+     */
+    protected Token() {
+        this.parent = null;
+        this.variables = null;
+        this.values = null;
+    }
+
+    /**
      * Initializes this token with the specified parent
      *
-     * @param parent The parent token
+     * @param parent       The parent token
+     * @param bindingCount The number of bindings that will be applied
      */
-    public Token(Token parent) {
+    protected Token(Token parent, int bindingCount) {
         this.parent = parent;
-        this.variables = new VariableNode[BINDINGS_SIZE];
-        this.values = new Node[BINDINGS_SIZE];
+        this.variables = new VariableNode[bindingCount];
+        this.values = new Node[bindingCount];
     }
 
     /**
@@ -85,11 +89,6 @@ public class Token {
                 return;
             }
         }
-        int index = variables.length;
-        variables = Arrays.copyOf(variables, variables.length + BINDINGS_SIZE);
-        values = Arrays.copyOf(values, values.length + BINDINGS_SIZE);
-        variables[index] = variable;
-        values[index] = value;
     }
 
     /**
@@ -100,7 +99,7 @@ public class Token {
      */
     public Node getBinding(VariableNode variable) {
         Token current = this;
-        while (current != null) {
+        while (current.variables != null) {
             Node value = current.getLocalBinding(variable);
             if (value != null)
                 return value;
@@ -115,7 +114,7 @@ public class Token {
      * @param variable A variable
      * @return The local binding of the variable
      */
-    private Node getLocalBinding(VariableNode variable) {
+    public Node getLocalBinding(VariableNode variable) {
         for (int i = 0; i != variables.length; i++) {
             if (variables[i] == variable)
                 return values[i];
@@ -131,12 +130,9 @@ public class Token {
     public Map<VariableNode, Node> getBindings() {
         HashMap<VariableNode, Node> bindings = new HashMap<>();
         Token current = this;
-        while (current != null) {
-            for (int i = 0; i != current.variables.length; i++) {
-                if (current.variables[i] == null)
-                    break;
+        while (current.variables != null) {
+            for (int i = 0; i != current.variables.length; i++)
                 bindings.put(current.variables[i], current.values[i]);
-            }
             current = current.parent;
         }
         return bindings;

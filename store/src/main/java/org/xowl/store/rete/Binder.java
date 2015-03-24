@@ -40,6 +40,24 @@ class Binder {
     private QuadField field;
 
     /**
+     * Gets the variable to bind
+     *
+     * @return The variable to bind
+     */
+    public VariableNode getVariable() {
+        return variable;
+    }
+
+    /**
+     * Gets the field to bind
+     *
+     * @return The field to bind
+     */
+    public QuadField getField() {
+        return field;
+    }
+
+    /**
      * Initializes this element
      *
      * @param variable The variable to bind to
