@@ -105,6 +105,7 @@ public class RETENetwork {
     public void addRule(RETERule rule) {
         RuleData ruleData = new RuleData();
         ruleData.positives = getJoinData(rule);
+
         // Build RETE for positives
         Iterator<JoinData> iterData = ruleData.positives.iterator();
         BetaMemory beta = BetaMemory.getDummy();
@@ -114,6 +115,7 @@ public class RETENetwork {
             data.nodeJoin = new BetaJoinNode(alpha, beta, data.tests, data.binders);
             beta = data.nodeJoin.getChild();
         }
+
         // Append negative conditions
         TokenHolder last = beta;
         for (Collection<Quad> conjunction : rule.getNegatives()) {
@@ -138,10 +140,23 @@ public class RETENetwork {
                 ruleData.negatives.add(last);
             }
         }
+
         // Append output node
         last.addChild(rule.getOutput());
         rules.put(rule, ruleData);
-        beta.push();
+
+        // push the dummy token into this network to trigger the beta network
+        if (!ruleData.positives.isEmpty()) {
+            // we have a positive network to begin with
+            ruleData.positives.get(0).nodeJoin.activateTokens(BetaMemory.getDummy().getTokens());
+        } else if (!ruleData.negatives.isEmpty()) {
+            // no positive network, but a negative one
+            TokenHolder first = ruleData.negatives.get(0);
+            if (first instanceof BetaNegativeJoinNode)
+                ((BetaNegativeJoinNode) first).activateTokens(BetaMemory.getDummy().getTokens());
+            else if (first instanceof BetaNCCEntryNode)
+                ((BetaNCCEntryNode) first).activateTokens(BetaMemory.getDummy().getTokens());
+        }
     }
 
     /**
