@@ -140,3 +140,29 @@ rule xowl:min-max-to-card {
     ?e rdf:rest rdf:nil
     ?x xowl:marker xowl:min-max-to-card
 }
+
+rule xowl:subclass-of-intersection-init {
+    ?i owl:intersectionOf ?l
+    ?l rdf:first ?c1
+    ?x rdfs:subClassOf ?c1
+} => {
+    ?x xowl:intersecting ?l
+}
+
+rule xowl:subclass-of-intersection-transitive {
+    ?x xowl:intersecting ?l
+    ?l rdf:rest ?e
+    ?e rdf:first ?c2
+    ?x rdfs:subClassOf ?c2
+} => {
+    ?x xowl:intersecting ?e
+}
+
+rule xowl:subclass-of-intersection-final {
+    ?x xowl:intersecting ?e
+    ?e rdf:rest rdf:nil
+    ?e xowl:after ?l
+    ?i owl:intersectionOf ?l
+} => {
+    ?x rdfs:subClassOf ?i
+}
