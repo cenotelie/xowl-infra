@@ -62,8 +62,10 @@ public class Token {
      */
     protected Token(Token parent, int bindingCount) {
         this.parent = parent;
-        this.variables = new VariableNode[bindingCount];
-        this.values = new Node[bindingCount];
+        if (bindingCount > 0) {
+            this.variables = new VariableNode[bindingCount];
+            this.values = new Node[bindingCount];
+        }
     }
 
     /**
@@ -99,7 +101,7 @@ public class Token {
      */
     public Node getBinding(VariableNode variable) {
         Token current = this;
-        while (current.variables != null) {
+        while (current != null) {
             Node value = current.getLocalBinding(variable);
             if (value != null)
                 return value;
@@ -115,6 +117,8 @@ public class Token {
      * @return The local binding of the variable
      */
     public Node getLocalBinding(VariableNode variable) {
+        if (variables == null)
+            return null;
         for (int i = 0; i != variables.length; i++) {
             if (variables[i] == variable)
                 return values[i];
@@ -130,9 +134,11 @@ public class Token {
     public Map<VariableNode, Node> getBindings() {
         HashMap<VariableNode, Node> bindings = new HashMap<>();
         Token current = this;
-        while (current.variables != null) {
-            for (int i = 0; i != current.variables.length; i++)
-                bindings.put(current.variables[i], current.values[i]);
+        while (current != null) {
+            if (current.variables != null) {
+                for (int i = 0; i != current.variables.length; i++)
+                    bindings.put(current.variables[i], current.values[i]);
+            }
             current = current.parent;
         }
         return bindings;
