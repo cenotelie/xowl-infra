@@ -24,6 +24,7 @@ import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
+import org.xowl.utils.collections.CombiningIterator;
 import org.xowl.utils.collections.SparseIterator;
 
 import java.util.*;
@@ -159,7 +160,40 @@ class BetaMemory implements TokenHolder {
 
     @Override
     public Collection<Token> getTokens() {
-        return new TokenCollection(store);
+        return new TokenCollection() {
+            @Override
+            protected int getSize() {
+                int result = 0;
+                for (TChildren tChildren : store.values())
+                    result += tChildren.count;
+                return result;
+            }
+
+            @Override
+            protected boolean contains(Token token) {
+                for (BetaMemory.TChildren children : store.values()) {
+                    if (children.contains(token))
+                        return true;
+                }
+                return false;
+            }
+
+            @Override
+            public Iterator<Token> iterator() {
+                CombiningIterator<Map.Entry<Token, TChildren>, Token> coupleIterator = new CombiningIterator<>(store.entrySet().iterator(), new Adapter<Iterator<Token>>() {
+                    @Override
+                    public <X> Iterator<Token> adapt(X element) {
+                        return ((Map.Entry<Token, BetaMemory.TChildren>) element).getValue().iterator();
+                    }
+                });
+                return new AdaptingIterator<>(coupleIterator, new Adapter<Token>() {
+                    @Override
+                    public <X> Token adapt(X element) {
+                        return ((org.xowl.utils.collections.Couple<Map.Entry<Token, TChildren>, Token>) element).y;
+                    }
+                });
+            }
+        };
     }
 
     @Override

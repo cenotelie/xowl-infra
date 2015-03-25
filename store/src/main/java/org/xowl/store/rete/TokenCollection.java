@@ -19,25 +19,15 @@
  **********************************************************************/
 package org.xowl.store.rete;
 
-import org.xowl.utils.collections.Adapter;
-import org.xowl.utils.collections.AdaptingIterator;
-import org.xowl.utils.collections.CombiningIterator;
-import org.xowl.utils.collections.Couple;
-
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Represents a collection of tokens in a Beta Memory
  *
  * @author Laurent Wouters
  */
-class TokenCollection implements Collection<Token> {
-    /**
-     * The token store
-     */
-    private Map<Token, BetaMemory.TChildren> store;
+abstract class TokenCollection implements Collection<Token> {
     /**
      * The size of this collection
      */
@@ -45,21 +35,31 @@ class TokenCollection implements Collection<Token> {
 
     /**
      * Initializes this collection
-     *
-     * @param store The parent store
      */
-    public TokenCollection(Map<Token, BetaMemory.TChildren> store) {
-        this.store = store;
+    public TokenCollection() {
         this.size = -1;
     }
+
+    /**
+     * Computes the size of this collection
+     *
+     * @return The size of this collection
+     */
+    protected abstract int getSize();
+
+    /**
+     * Gets whether the specified token is in this collection
+     *
+     * @param token A token
+     * @return Whether the specified token is in this collection
+     */
+    protected abstract boolean contains(Token token);
 
     @Override
     public int size() {
         if (size > -1)
             return size;
-        size = 0;
-        for (BetaMemory.TChildren children : store.values())
-            size += children.count;
+        size = getSize();
         return size;
     }
 
@@ -71,31 +71,10 @@ class TokenCollection implements Collection<Token> {
     }
 
     @Override
-    public Iterator<Token> iterator() {
-        CombiningIterator<Map.Entry<Token, BetaMemory.TChildren>, Token> coupleIterator = new CombiningIterator<>(store.entrySet().iterator(), new Adapter<Iterator<Token>>() {
-            @Override
-            public <X> Iterator<Token> adapt(X element) {
-                return ((Map.Entry<Token, BetaMemory.TChildren>) element).getValue().iterator();
-            }
-        });
-        return new AdaptingIterator<>(coupleIterator, new Adapter<Token>() {
-            @Override
-            public <X> Token adapt(X element) {
-                return ((Couple<Map.Entry<Token, BetaMemory.TChildren>, Token>) element).y;
-            }
-        });
-    }
-
-    @Override
     public boolean contains(Object o) {
         if (!(o instanceof Token))
             return false;
-        Token token = (Token) o;
-        for (BetaMemory.TChildren children : store.values()) {
-            if (children.contains(token))
-                return true;
-        }
-        return false;
+        return contains((Token) o);
     }
 
     @Override

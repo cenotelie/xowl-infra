@@ -21,6 +21,9 @@
 package org.xowl.store.rete;
 
 import org.xowl.store.rdf.Quad;
+import org.xowl.utils.collections.Adapter;
+import org.xowl.utils.collections.AdaptingIterator;
+import org.xowl.utils.collections.SkippableIterator;
 
 import java.util.*;
 
@@ -78,7 +81,32 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
 
     @Override
     public Collection<Token> getTokens() {
-        return betaMem.getTokens();
+        return new TokenCollection() {
+            @Override
+            protected int getSize() {
+                int result = 0;
+                for (Counter counter : matches.values())
+                    result += (counter.value == 0 ? 1 : 0);
+                return result;
+            }
+
+            @Override
+            protected boolean contains(Token token) {
+                Counter counter = matches.get(token);
+                return (counter != null && counter.value == 0);
+            }
+
+            @Override
+            public Iterator<Token> iterator() {
+                return new SkippableIterator<>(new AdaptingIterator<>(matches.entrySet().iterator(), new Adapter<Token>() {
+                    @Override
+                    public <X> Token adapt(X element) {
+                        Map.Entry<Token, Counter> entry = (Map.Entry<Token, Counter>) element;
+                        return (entry.getValue().value == 0 ? entry.getKey() : null);
+                    }
+                }));
+            }
+        };
     }
 
     @Override
