@@ -62,6 +62,115 @@ rule xowl:list-order-transitive {
 
 
 
+# Equivalence of RDF lists
+#   Two lists are equivalent if the members are equivalent
+
+rule xowl:list-equivalence-init-identical {
+    ?l1 rdf:first ?x
+    ?l1 rdf:rest rdf:nil
+    ?l2 rdf:first ?x
+    ?l2 rdf:rest rdf:nil
+} => {
+    ?l1 xowl:equivalentList ?l2
+}
+
+rule xowl:list-equivalence-init-equivalent-classes {
+    ?l1 rdf:first ?x
+    ?l1 rdf:rest rdf:nil
+    ?l2 rdf:first ?y
+    ?l2 rdf:rest rdf:nil
+    ?x owl:equivalentClass ?y
+} => {
+    ?l1 xowl:equivalentList ?l2
+}
+
+rule xowl:list-equivalence-init-equivalent-properties {
+    ?l1 rdf:first ?x
+    ?l1 rdf:rest rdf:nil
+    ?l2 rdf:first ?y
+    ?l2 rdf:rest rdf:nil
+    ?x owl:equivalentProperty ?y
+} => {
+    ?l1 xowl:equivalentList ?l2
+}
+
+rule xowl:list-equivalence-init-same {
+    ?l1 rdf:first ?x
+    ?l1 rdf:rest rdf:nil
+    ?l2 rdf:first ?y
+    ?l2 rdf:rest rdf:nil
+    ?x owl:sameAs ?y
+} => {
+    ?l1 xowl:equivalentList ?l2
+}
+
+rule xowl:list-equivalence-transitive-identical {
+    ?l1 rdf:first ?x
+    ?l1 rdf:rest ?u1
+    ?l2 rdf:first ?x
+    ?l2 rdf:rest ?u2
+    ?u1 xowl:equivalentList ?u2
+} => {
+    ?l1 xowl:equivalentList ?l2
+}
+
+rule xowl:list-equivalence-transitive-equivalent-classes {
+    ?l1 rdf:first ?x
+    ?l1 rdf:rest ?u1
+    ?l2 rdf:first ?y
+    ?l2 rdf:rest ?u2
+    ?u1 xowl:equivalentList ?u2
+    ?x owl:equivalentClass ?y
+} => {
+    ?l1 xowl:equivalentList ?l2
+}
+
+rule xowl:list-equivalence-transitive-equivalent-properties {
+    ?l1 rdf:first ?x
+    ?l1 rdf:rest ?u1
+    ?l2 rdf:first ?y
+    ?l2 rdf:rest ?u2
+    ?u1 xowl:equivalentList ?u2
+    ?x owl:equivalentProperty ?y
+} => {
+    ?l1 xowl:equivalentList ?l2
+}
+
+rule xowl:list-equivalence-transitive-same {
+    ?l1 rdf:first ?x
+    ?l1 rdf:rest ?u1
+    ?l2 rdf:first ?y
+    ?l2 rdf:rest ?u2
+    ?u1 xowl:equivalentList ?u2
+    ?x owl:sameAs ?y
+} => {
+    ?l1 xowl:equivalentList ?l2
+}
+
+
+
+# Equivalence of intersection and union classes
+
+rule xowl:equivalent-class-intersection {
+    ?x owl:intersectionOf ?i
+    ?y owl:intersectionOf ?j
+    ?i xowl:equivalentList ?j
+} => {
+    ?x owl:equivalentClass ?y
+}
+
+rule xowl:equivalent-class-intersection {
+    ?x owl:unionOf ?i
+    ?y owl:unionOf ?j
+    ?i xowl:equivalentList ?j
+} => {
+    ?x owl:equivalentClass ?y
+}
+
+
+
+# Additional rules for functional properties
+
 rule xowl:functional-property-different-from {
     ?p rdf:type owl:FunctionalProperty
     ?x1 ?p ?y1
@@ -82,6 +191,10 @@ rule xowl:inverse-functional-property-different-from {
     # this is because if y1 and y2 were the same, x1 and x2 would have to be the same
 }
 
+
+
+# Infer some missing information from the someValuesFrom restriction
+
 rule xowl:some-value-from-thing {
     ?x rdf:type ?r
     ?r owl:onProperty ?p
@@ -91,6 +204,10 @@ rule xowl:some-value-from-thing {
     ?x ?p ?o
     # There should be a value but we do not have one
 }
+
+
+
+# Equivalence between (min and max and exact cardinality on the same value
 
 rule xowl:card-to-min-max {
     ?x owl:onProperty ?p
@@ -140,6 +257,10 @@ rule xowl:min-max-to-card {
     ?e rdf:rest rdf:nil
     ?x xowl:marker xowl:min-max-to-card
 }
+
+
+
+# A class is a sub-class of an intersection if it is a sub-class of all the intersected classes
 
 rule xowl:subclass-of-intersection-init {
     ?i owl:intersectionOf ?l
