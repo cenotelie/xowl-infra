@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -17,38 +17,59 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-
 package org.xowl.store.rete;
 
 import org.xowl.store.rdf.Quad;
 
-import java.util.Collection;
-import java.util.Iterator;
-
 /**
- * Represents a join strategy in a RETE network
+ * Represents the basic infrastructure for the realisation of join tests
  *
  * @author Laurent Wouters
  */
-abstract class JoinStrategy extends JoinBase {
+class JoinBase {
     /**
-     * Initializes this strategy
+     * The first test
+     */
+    protected JoinTest test1;
+    /**
+     * The second test
+     */
+    protected JoinTest test2;
+    /**
+     * The third test
+     */
+    protected JoinTest test3;
+    /**
+     * The fourth test
+     */
+    protected JoinTest test4;
+
+    /**
+     * Initializes this element
      *
      * @param test1 The first test
      * @param test2 The second test
      * @param test3 The third test
      * @param test4 The fourth test
      */
-    public JoinStrategy(JoinTest test1, JoinTest test2, JoinTest test3, JoinTest test4) {
-        super(test1, test2, test3, test4);
+    public JoinBase(JoinTest test1, JoinTest test2, JoinTest test3, JoinTest test4) {
+        this.test1 = test1;
+        this.test2 = test2;
+        this.test3 = test3;
+        this.test4 = test4;
     }
 
     /**
-     * Joins the token and fact collections
+     * Determines whether the specified couple passes the tests
      *
-     * @param tokens A collection of tokens
-     * @param facts  A collection of facts
-     * @return The result
+     * @param token A token
+     * @param fact  A fact
+     * @return true if the couple passes the tests
      */
-    public abstract Iterator<Couple> join(Collection<Token> tokens, Collection<Quad> facts);
+    protected boolean passTests(Token token, Quad fact) {
+        return ((test1 == null || test1.check(token, fact))
+                && (test2 == null || test2.check(token, fact))
+                && (test3 == null || test3.check(token, fact))
+                && (test4 == null || test4.check(token, fact)));
+    }
 }

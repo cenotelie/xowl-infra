@@ -32,7 +32,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-class BetaJoinNode implements FactActivable, TokenActivable {
+class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
     /**
      * The maximal size of a join for which the nested loop strategy should be used
      */
@@ -51,43 +51,27 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      */
     private TokenHolder betaMem;
     /**
-     * The first test
-     */
-    private BetaJoinNodeTest test1;
-    /**
-     * The second test
-     */
-    private BetaJoinNodeTest test2;
-    /**
-     * The third test
-     */
-    private BetaJoinNodeTest test3;
-    /**
-     * The fourth test
-     */
-    private BetaJoinNodeTest test4;
-    /**
      * The downstream beta memory
      */
     private BetaMemory child;
 
     /**
-     * Initializes this joi node
+     * Initializes this join node
      *
      * @param alpha   The upstream alpha memory
      * @param beta    The upstream beta memory
      * @param tests   The joining tests
      * @param binders The binding operations
      */
-    public BetaJoinNode(FactHolder alpha, TokenHolder beta, List<BetaJoinNodeTest> tests, Collection<Binder> binders) {
+    public BetaJoinNode(FactHolder alpha, TokenHolder beta, List<JoinTest> tests, Collection<Binder> binders) {
+        super(tests.size() > 0 ? tests.get(0) : null,
+                tests.size() > 1 ? tests.get(1) : null,
+                tests.size() > 2 ? tests.get(2) : null,
+                tests.size() > 3 ? tests.get(3) : null);
         this.alphaMem = alpha;
         this.betaMem = beta;
         this.alphaMem.addChild(this);
         this.betaMem.addChild(this);
-        this.test1 = tests.size() > 0 ? tests.get(0) : null;
-        this.test2 = tests.size() > 1 ? tests.get(1) : null;
-        this.test3 = tests.size() > 2 ? tests.get(2) : null;
-        this.test4 = tests.size() > 3 ? tests.get(3) : null;
         this.child = new BetaMemory(binders);
     }
 
@@ -116,7 +100,7 @@ class BetaJoinNode implements FactActivable, TokenActivable {
      * @param tests The tests to look for
      * @return true if this node matches the provided specifications
      */
-    public boolean match(FactHolder alpha, List<BetaJoinNodeTest> tests) {
+    public boolean match(FactHolder alpha, List<JoinTest> tests) {
         if (this.alphaMem != alpha)
             return false;
         switch (tests.size()) {
@@ -218,13 +202,13 @@ class BetaJoinNode implements FactActivable, TokenActivable {
             }
 
             @Override
-            protected Node getValueForLeft(Token left, BetaJoinNodeTest test) {
-                return left.getBinding(test.getVariable());
+            protected Node getValueForLeft(Token left, JoinTest test) {
+                return test.getIndex(left);
             }
 
             @Override
-            protected Node getValueForRight(Quad right, BetaJoinNodeTest test) {
-                return right.getField(test.getField());
+            protected Node getValueForRight(Quad right, JoinTest test) {
+                return test.getIndex(right);
             }
 
             @Override
@@ -247,13 +231,13 @@ class BetaJoinNode implements FactActivable, TokenActivable {
             }
 
             @Override
-            protected Node getValueForLeft(Token left, BetaJoinNodeTest test) {
-                return left.getBinding(test.getVariable());
+            protected Node getValueForLeft(Token left, JoinTest test) {
+                return test.getIndex(left);
             }
 
             @Override
-            protected Node getValueForRight(Quad right, BetaJoinNodeTest test) {
-                return right.getField(test.getField());
+            protected Node getValueForRight(Quad right, JoinTest test) {
+                return test.getIndex(right);
             }
 
             @Override
@@ -276,13 +260,13 @@ class BetaJoinNode implements FactActivable, TokenActivable {
             }
 
             @Override
-            protected Node getValueForLeft(Quad left, BetaJoinNodeTest test) {
-                return left.getField(test.getField());
+            protected Node getValueForLeft(Quad left, JoinTest test) {
+                return test.getIndex(left);
             }
 
             @Override
-            protected Node getValueForRight(Token right, BetaJoinNodeTest test) {
-                return right.getBinding(test.getVariable());
+            protected Node getValueForRight(Token right, JoinTest test) {
+                return test.getIndex(right);
             }
 
             @Override
@@ -290,19 +274,5 @@ class BetaJoinNode implements FactActivable, TokenActivable {
                 return joinGenerics(facts, tokens);
             }
         };
-    }
-
-    /**
-     * Determines whether the specified token an fact pass the tests in this node
-     *
-     * @param token A token
-     * @param fact  A fact
-     * @return true if the couple passes the tests
-     */
-    private boolean passTests(Token token, Quad fact) {
-        return ((test1 == null || test1.check(token, fact))
-                && (test2 == null || test2.check(token, fact))
-                && (test3 == null || test3.check(token, fact))
-                && (test4 == null || test4.check(token, fact)));
     }
 }

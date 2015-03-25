@@ -364,24 +364,6 @@ class BetaMemory implements TokenHolder {
     }
 
     /**
-     * Pushes tokens in this store down to its buffer
-     */
-    public void push() {
-        Collection<Token> tokens = getTokens();
-        int size = tokens.size();
-        if (size != 0) {
-            if (size == 1) {
-                Token token = tokens.iterator().next();
-                for (int i = children.size() - 1; i != -1; i--)
-                    children.get(i).activateToken(token);
-            } else {
-                for (int i = children.size() - 1; i != -1; i--)
-                    children.get(i).activateTokens(new FastBuffer<>(tokens));
-            }
-        }
-    }
-
-    /**
      * Gets whether the specified child token can be matched by the specified fact
      *
      * @param token A child token in this tore

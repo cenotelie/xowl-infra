@@ -93,7 +93,7 @@ abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterat
      * @param test3 The third test
      * @param test4 The fourth test
      */
-    public GraceHashJoin(BetaJoinNodeTest test1, BetaJoinNodeTest test2, BetaJoinNodeTest test3, BetaJoinNodeTest test4) {
+    public GraceHashJoin(JoinTest test1, JoinTest test2, JoinTest test3, JoinTest test4) {
         super(test1, test2, test3, test4);
         mapLeftElements = new HashMap<>();
         mapRightElements = new HashMap<>();
@@ -115,7 +115,7 @@ abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterat
      * @param test A test
      * @return The value corresponding to the element
      */
-    protected abstract Node getValueForLeft(LEFT left, BetaJoinNodeTest test);
+    protected abstract Node getValueForLeft(LEFT left, JoinTest test);
 
     /**
      * Gets the value for the specified right element
@@ -124,7 +124,7 @@ abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterat
      * @param test  A test
      * @return The value corresponding to the element
      */
-    protected abstract Node getValueForRight(RIGHT right, BetaJoinNodeTest test);
+    protected abstract Node getValueForRight(RIGHT right, JoinTest test);
 
     /**
      * Creates a generic iterator over the joined elelements
@@ -239,9 +239,9 @@ abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterat
      * @param left A left element
      */
     private void insertLeft(LEFT left) {
-        Node v1 = (test1 != null ? getValueForLeft(left, test1) : null);
-        Node v2 = (test2 != null ? getValueForLeft(left, test2) : null);
-        Node v3 = (test3 != null ? getValueForLeft(left, test3) : null);
+        Node v1 = (test1 != null && test1.useInIndex()) ? getValueForLeft(left, test1) : null;
+        Node v2 = (test2 != null && test2.useInIndex()) ? getValueForLeft(left, test2) : null;
+        Node v3 = (test3 != null && test3.useInIndex()) ? getValueForLeft(left, test3) : null;
         Collection<LEFT> collec = resolveLefts(v1, v2, v3);
         collec.add(left);
     }
@@ -252,9 +252,9 @@ abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterat
      * @param right A right element
      */
     private void insertRight(RIGHT right) {
-        Node v1 = (test1 != null ? getValueForRight(right, test1) : null);
-        Node v2 = (test2 != null ? getValueForRight(right, test2) : null);
-        Node v3 = (test3 != null ? getValueForRight(right, test3) : null);
+        Node v1 = (test1 != null && test1.useInIndex()) ? getValueForRight(right, test1) : null;
+        Node v2 = (test2 != null && test2.useInIndex()) ? getValueForRight(right, test2) : null;
+        Node v3 = (test3 != null && test3.useInIndex()) ? getValueForRight(right, test3) : null;
         Collection<RIGHT> collec = resolveRights(v1, v2, v3);
         collec.add(right);
     }

@@ -29,7 +29,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable {
+class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivable, FactActivable {
     /**
      * Represents a counter of matches
      */
@@ -49,22 +49,6 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
      */
     private TokenHolder betaMem;
     /**
-     * The first test
-     */
-    private BetaJoinNodeTest test1;
-    /**
-     * The second test
-     */
-    private BetaJoinNodeTest test2;
-    /**
-     * The third test
-     */
-    private BetaJoinNodeTest test3;
-    /**
-     * The fourth test
-     */
-    private BetaJoinNodeTest test4;
-    /**
      * The child node
      */
     private TokenActivable child;
@@ -80,13 +64,13 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
      * @param beta  The parent beta memory
      * @param tests The joining tests
      */
-    public BetaNegativeJoinNode(FactHolder alpha, TokenHolder beta, List<BetaJoinNodeTest> tests) {
+    public BetaNegativeJoinNode(FactHolder alpha, TokenHolder beta, List<JoinTest> tests) {
+        super(tests.size() > 0 ? tests.get(0) : null,
+                tests.size() > 1 ? tests.get(1) : null,
+                tests.size() > 2 ? tests.get(2) : null,
+                tests.size() > 3 ? tests.get(3) : null);
         this.alphaMem = alpha;
         this.betaMem = beta;
-        this.test1 = tests.size() > 0 ? tests.get(0) : null;
-        this.test2 = tests.size() > 1 ? tests.get(1) : null;
-        this.test3 = tests.size() > 2 ? tests.get(2) : null;
-        this.test4 = tests.size() > 3 ? tests.get(3) : null;
         this.alphaMem.addChild(this);
         this.betaMem.addChild(this);
         this.matches = new IdentityHashMap<>();
@@ -201,20 +185,6 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
     }
 
     /**
-     * Determines whether the specified token an fact pass the tests in this node
-     *
-     * @param token A token
-     * @param fact  A fact
-     * @return true if the couple passes the tests
-     */
-    private boolean passTests(Token token, Quad fact) {
-        return ((test1 == null || test1.check(token, fact))
-                && (test2 == null || test2.check(token, fact))
-                && (test3 == null || test3.check(token, fact))
-                && (test4 == null || test4.check(token, fact)));
-    }
-
-    /**
      * Acts on receiving a new activating fact
      *
      * @param fact         An activating fact
@@ -303,6 +273,4 @@ class BetaNegativeJoinNode implements TokenHolder, TokenActivable, FactActivable
             }
         }
     }
-
-
 }

@@ -244,12 +244,12 @@ public class RETENetwork {
      */
     private List<JoinData> getJoinData(RETERule rule) {
         List<JoinData> tests = new ArrayList<>();
-        List<VariableNode> variables = new ArrayList<>();
+        List<VariableNode> boundVariables = new ArrayList<>();
         for (Quad pattern : rule.getPositives())
-            tests.add(getJoinData(pattern, variables));
+            tests.add(getJoinData(pattern, boundVariables));
         for (Collection<Quad> conjunction : rule.getNegatives()) {
             // prevent registering negative variables as bound
-            List<VariableNode> negativeVariables = new ArrayList<>(variables);
+            List<VariableNode> negativeVariables = new ArrayList<>(boundVariables);
             for (Quad pattern : conjunction)
                 tests.add(getJoinData(pattern, negativeVariables));
         }
@@ -259,36 +259,46 @@ public class RETENetwork {
     /**
      * Gets the join data for the specified items
      *
-     * @param pattern   The pattern at this level
-     * @param variables The pre-existing variables
+     * @param pattern        The pattern at this level
+     * @param boundVariables The bound variables
      * @return The join data
      */
-    private JoinData getJoinData(Quad pattern, Collection<VariableNode> variables) {
+    private JoinData getJoinData(Quad pattern, Collection<VariableNode> boundVariables) {
         JoinData currentData = new JoinData();
-        buildJoinData(currentData, pattern, QuadField.SUBJECT, variables);
-        buildJoinData(currentData, pattern, QuadField.PROPERTY, variables);
-        buildJoinData(currentData, pattern, QuadField.VALUE, variables);
-        buildJoinData(currentData, pattern, QuadField.GRAPH, variables);
+        Map<VariableNode, QuadField> unboundVariables = new HashMap<>();
+        buildJoinData(currentData, pattern, QuadField.SUBJECT, boundVariables, unboundVariables);
+        buildJoinData(currentData, pattern, QuadField.PROPERTY, boundVariables, unboundVariables);
+        buildJoinData(currentData, pattern, QuadField.VALUE, boundVariables, unboundVariables);
+        buildJoinData(currentData, pattern, QuadField.GRAPH, boundVariables, unboundVariables);
+        boundVariables.addAll(unboundVariables.keySet());
         return currentData;
     }
 
     /**
      * Builds the join data
      *
-     * @param data      The join data to build
-     * @param pattern   The pattern quad to build from
-     * @param field     The quad field to inspect
-     * @param variables The current found variables so far
+     * @param data             The join data to build
+     * @param pattern          The pattern quad to build from
+     * @param field            The quad field to inspect
+     * @param boundVariables   The bound variables
+     * @param unboundVariables The unbound variables in this quad pattern
      */
-    private void buildJoinData(JoinData data, Quad pattern, QuadField field, Collection<VariableNode> variables) {
+    private void buildJoinData(JoinData data, Quad pattern, QuadField field, Collection<VariableNode> boundVariables, Map<VariableNode, QuadField> unboundVariables) {
         Node node = pattern.getField(field);
         if (node.getNodeType() == VariableNode.TYPE) {
-            VariableNode var = (VariableNode) node;
-            if (variables.contains(var)) {
-                data.tests.add(new BetaJoinNodeTest(var, field));
+            VariableNode variable = (VariableNode) node;
+            if (boundVariables.contains(variable)) {
+                // the variable is bound, test the value of the fact against the bound variable's value
+                data.tests.add(new JoinTestBound(variable, field));
+            } else if (unboundVariables.containsKey(variable)) {
+                // the value is not bound but it has already been found in another field
+                // test that the two fields are the same
+                data.tests.add(new JoinTestUnbound(unboundVariables.get(variable), field));
             } else {
-                data.binders.add(new Binder(var, field));
-                variables.add(var);
+                // this variable is not known
+                // create the binder and register it as an unbound variable at this point
+                data.binders.add(new Binder(variable, field));
+                unboundVariables.put(variable, field);
             }
         }
     }
@@ -321,7 +331,7 @@ public class RETENetwork {
         /**
          * The tests for the join
          */
-        public List<BetaJoinNodeTest> tests;
+        public List<JoinTest> tests;
         /**
          * The binding operations
          */

@@ -60,7 +60,7 @@ class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
      * @param test3 The third test
      * @param test4 The fourth test
      */
-    public NestedLoopJoin(BetaJoinNodeTest test1, BetaJoinNodeTest test2, BetaJoinNodeTest test3, BetaJoinNodeTest test4) {
+    public NestedLoopJoin(JoinTest test1, JoinTest test2, JoinTest test3, JoinTest test4) {
         super(test1, test2, test3, test4);
     }
 

@@ -61,7 +61,7 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
      * @param test3 The third test
      * @param test4 The fourth test
      */
-    public SimpleHashJoin(BetaJoinNodeTest test1, BetaJoinNodeTest test2, BetaJoinNodeTest test3, BetaJoinNodeTest test4) {
+    public SimpleHashJoin(JoinTest test1, JoinTest test2, JoinTest test3, JoinTest test4) {
         super(test1, test2, test3, test4);
         mapLefts = new HashMap<>();
     }
@@ -82,7 +82,7 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
      * @param test A test
      * @return The value corresponding to the element
      */
-    protected abstract Node getValueForLeft(LEFT left, BetaJoinNodeTest test);
+    protected abstract Node getValueForLeft(LEFT left, JoinTest test);
 
     /**
      * Gets the value for the specified right element
@@ -91,7 +91,7 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
      * @param test  A test
      * @return The value corresponding to the element
      */
-    protected abstract Node getValueForRight(RIGHT right, BetaJoinNodeTest test);
+    protected abstract Node getValueForRight(RIGHT right, JoinTest test);
 
     /**
      * Creates a generic iterator over the joined elelements
@@ -146,9 +146,9 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
      * @return The matching left elements
      */
     private Iterator<LEFT> getMatchingCollection(RIGHT current) {
-        Node n1 = (test1 != null) ? getValueForRight(current, test1) : null;
-        Node n2 = (test2 != null) ? getValueForRight(current, test2) : null;
-        Node n3 = (test3 != null) ? getValueForRight(current, test3) : null;
+        Node n1 = (test1 != null && test1.useInIndex()) ? getValueForRight(current, test1) : null;
+        Node n2 = (test2 != null && test2.useInIndex()) ? getValueForRight(current, test2) : null;
+        Node n3 = (test3 != null && test3.useInIndex()) ? getValueForRight(current, test3) : null;
         Map<Node, Map<Node, Collection<LEFT>>> sub1 = mapLefts.get(n1);
         if (sub1 == null)
             return null;
@@ -167,9 +167,9 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
      * @param left A left element
      */
     private void insertLeft(LEFT left) {
-        Node v1 = (test1 != null ? getValueForLeft(left, test1) : null);
-        Node v2 = (test2 != null ? getValueForLeft(left, test2) : null);
-        Node v3 = (test3 != null ? getValueForLeft(left, test3) : null);
+        Node v1 = (test1 != null && test1.useInIndex()) ? getValueForLeft(left, test1) : null;
+        Node v2 = (test2 != null && test2.useInIndex()) ? getValueForLeft(left, test2) : null;
+        Node v3 = (test3 != null && test3.useInIndex()) ? getValueForLeft(left, test3) : null;
         Collection<LEFT> collec = resolveLefts(v1, v2, v3);
         collec.add(left);
     }
