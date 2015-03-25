@@ -62,6 +62,31 @@ rule xowl:list-order-transitive {
 
 
 
+# List derivation
+
+rule xowl:list-derivation-equivalent-classes {
+    ?l xowl:contains ?x
+    ?x owl:equivalentClass ?y
+} => {
+    ?l xowl:contains ?y
+}
+
+rule xowl:list-derivation-equivalent-properties {
+    ?l xowl:contains ?x
+    ?x owl:equivalentProperty ?y
+} => {
+    ?l xowl:contains ?y
+}
+
+rule xowl:list-derivation-same {
+    ?l xowl:contains ?x
+    ?x owl:sameAs ?y
+} => {
+    ?l xowl:contains ?y
+}
+
+
+
 # Equivalence of RDF lists
 #   Two lists are equivalent if the members are equivalent
 
@@ -286,4 +311,57 @@ rule xowl:subclass-of-intersection-final {
     ?i owl:intersectionOf ?l
 } => {
     ?x rdfs:subClassOf ?i
+}
+
+
+
+# Set theory logic on classes
+
+rule xowl:unsatisfiable-class {
+    ?x owl:equivalentClass owl:Nothing
+} => {
+    ?x xowl:status xowl:inconsistent
+}
+
+rule xowl:complement-of-thing {
+    ?x owl:equivalentClass ?y
+    ?y owl:complementOf owl:Thing
+} => {
+    ?x owl:equivalentClass owl:Nothing
+}
+
+rule xowl:complement-of-nothing {
+    ?x owl:equivalentClass ?y
+    ?y owl:complementOf owl:Nothing
+} => {
+    ?x owl:equivalentClass owl:Thing
+}
+
+rule xowl:disjoint-with-complement {
+    ?x owl:complementOf ?y
+} => {
+    ?x owl:disjointWith ?y
+    ?y owl:disjointWith ?x
+}
+
+rule xowl:intersection-of-disjoints {
+    ?x owl:equivalentClass ?i
+    ?i owl:intersectionOf ?l
+    ?l xowl:contains ?c
+    ?l xowl:contains ?nc
+    ?nc owl:disjointWith ?z
+    ?z owl:equivalentClass ?c
+} => {
+    ?x owl:equivalentClass owl:Nothing
+}
+
+rule xowl:union-of-c-and-not-c {
+    ?x owl:equivalentClass ?i
+    ?i owl:unionOf ?l
+    ?l xowl:contains ?c
+    ?l xowl:contains ?nc
+    ?nc owl:complementOf ?z
+    ?z owl:equivalentClass ?c
+} => {
+    ?x owl:equivalentClass owl:Nothing
 }
