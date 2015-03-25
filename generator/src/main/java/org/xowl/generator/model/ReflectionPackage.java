@@ -25,6 +25,7 @@ import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.Entity;
 import org.xowl.lang.runtime.Interpretation;
 import org.xowl.lang.runtime.Property;
+import org.xowl.store.Vocabulary;
 
 import java.io.IOException;
 
@@ -47,7 +48,7 @@ public class ReflectionPackage extends PackageModel {
     public ClassModel getClassClass() {
         if (classClass != null)
             return classClass;
-        Entity entity = parent.getRepository().resolveEntity(Model.OWL_CLASS);
+        Entity entity = parent.getRepository().resolveEntity(Vocabulary.owlClass);
         Class interpretation = parent.getRepository().interpretAsClass(entity);
         addClassClass(interpretation);
         return classClass;
@@ -70,9 +71,9 @@ public class ReflectionPackage extends PackageModel {
                 if (interpretation instanceof Class) {
                     Class classe = (Class) interpretation;
                     String iri = entity.getHasIRI().getHasValue();
-                    if (Model.OWL_THING.equals(iri))
+                    if (Vocabulary.owlThing.equals(iri))
                         addClassThing(classe);
-                    else if (Model.OWL_CLASS.equals(iri))
+                    else if (Vocabulary.owlClass.equals(iri))
                         addClassClass(classe);
                     else
                         classes.put(classe, new ClassModel(this, classe));

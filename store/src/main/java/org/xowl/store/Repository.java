@@ -118,16 +118,11 @@ public class Repository extends AbstractRepository {
     }
 
     /**
-     * Adds the entailment rules for the OWL2 - RDF Based Semantics
+     * Activates the entailment rules
      *
      * @param logger The logger to use
      */
-    public void addEntailmentRulesForOWL2_RDFBasedSemantics(Logger logger) {
-        // load the owl2, rdf and rdfs ontologies
-        load(logger, "http://www.w3.org/2002/07/owl");
-        load(logger, "http://www.w3.org/1999/02/22-rdf-syntax-ns");
-        load(logger, "http://www.w3.org/2000/01/rdf-schema");
-        // load the OWL2 RL reasoning rules
+    public void activateEntailmentRules(Logger logger) {
         load(logger, "http://xowl.org/store/rules/owl2");
         load(logger, "http://xowl.org/store/rules/xowl");
     }

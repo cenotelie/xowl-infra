@@ -42,14 +42,6 @@ public class Model {
      * The IRI of the OWL2 ontology
      */
     public static final String OWL = "http://www.w3.org/2002/07/owl";
-    /**
-     * The IRI for the Thing OWL2 concept
-     */
-    public static final String OWL_THING = Vocabulary.owl + "Thing";
-    /**
-     * The IRI for the Class OWL2 concept
-     */
-    public static final String OWL_CLASS = Vocabulary.owl + "Class";
 
     /**
      * The repository
@@ -230,7 +222,7 @@ public class Model {
             if (interpretation instanceof Class)
                 return new InstanceModel(getModelForOWLClass(), individual);
         }
-        if (individual.getInterpretationOf().getHasIRI().getHasValue().equals(OWL_THING))
+        if (individual.getInterpretationOf().getHasIRI().getHasValue().equals(Vocabulary.owlThing))
             return new InstanceModel(null, individual);
         return null;
     }

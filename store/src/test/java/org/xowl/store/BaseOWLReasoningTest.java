@@ -58,7 +58,7 @@ public class BaseOWLReasoningTest {
 
         // load the premise ontology and the default ontologies
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
-        repository.addEntailmentRulesForOWL2_RDFBasedSemantics(logger);
+        repository.activateEntailmentRules(logger);
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
         Assert.assertFalse("Some error occurred", logger.isOnError());
 
@@ -119,7 +119,7 @@ public class BaseOWLReasoningTest {
 
         // load the premise ontology and the default ontologies
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
-        repository.addEntailmentRulesForOWL2_RDFBasedSemantics(logger);
+        repository.activateEntailmentRules(logger);
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
         Assert.assertFalse("Some error occurred", logger.isOnError());
 
@@ -170,7 +170,7 @@ public class BaseOWLReasoningTest {
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
 
         // activate the default reasoning rules
-        repository.addEntailmentRulesForOWL2_RDFBasedSemantics(logger);
+        repository.activateEntailmentRules(logger);
         // load the premise ontology and the default ontologies
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
         Iterator<Quad> iterator = repository.getBackend().getAll(repository.getGraph(ontologyPremise), null, repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#status"), repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#inconsistent"));
@@ -201,7 +201,7 @@ public class BaseOWLReasoningTest {
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
 
         // activate the default reasoning rules
-        repository.addEntailmentRulesForOWL2_RDFBasedSemantics(logger);
+        repository.activateEntailmentRules(logger);
         // load the premise ontology and the default ontologies
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
         Iterator<Quad> iterator = repository.getBackend().getAll(repository.getGraph(ontologyPremise), null, repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#status"), repository.getBackend().getNodeIRI("http://xowl.org/store/rules/xowl#inconsistent"));

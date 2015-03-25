@@ -230,7 +230,7 @@ public abstract class PropertyData {
         applyRestrictions();
         if (this.property.isObjectProperty()) {
             if (rangeClass == null)
-                rangeClass = parentClass.getModelFor(this.parentClass.getPackage().getModel().getRepository().interpretAsClass(parentClass.getPackage().getModel().getRepository().resolveEntity(Model.OWL_THING)));
+                rangeClass = parentClass.getModelFor(this.parentClass.getPackage().getModel().getRepository().interpretAsClass(parentClass.getPackage().getModel().getRepository().resolveEntity(Vocabulary.owlThing)));
         } else {
             if (rangeDatatype == null)
                 rangeDatatype = property.getModelFor(parentClass.getPackage().getModel().getRepository().interpretAsDatatype(parentClass.getPackage().getModel().getRepository().resolveEntity(Vocabulary.xsdString)));

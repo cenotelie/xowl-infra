@@ -230,4 +230,6 @@ public class Vocabulary {
     public static final String owlAnnotatedSource = owl + "annotatedSource";
     public static final String owlAnnotatedProperty = owl + "annotatedProperty";
     public static final String owlAnnotatedTarget = owl + "annotatedTarget";
+    public static final String owlThing = owl + "Thing";
+    public static final String owlNothing = owl + "Nothing";
 }
