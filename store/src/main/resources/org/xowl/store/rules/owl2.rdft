@@ -260,7 +260,39 @@ rule owl:prp-inv2 {
     ?x ?p1 ?y
 }
 
-# TODO: Implement prp-key for owl:hasKey
+rule xowl:prp-key-init {
+    ?c owl:hasKey ?l
+    ?l rdf:first ?p1
+    ?x rdf:type ?c
+    ?y rdf:type ?c
+    ?x ?p1 ?z1
+    ?y ?p1 ?z1
+} => {
+    ?u xowl:keyMatching ?l
+    ?u xowl:left ?x
+    ?u xowl:right ?y
+}
+
+rule xowl:prp-key-transitive {
+    ?u xowl:keyMatching ?l
+    ?u xowl:left ?x
+    ?u xowl:right ?y
+    ?l rdf:rest ?e
+    ?e rdf:first ?p2
+    ?x ?p2 ?z2
+    ?y ?p2 ?z2
+} => {
+    ?u xowl:keyMatching ?e
+}
+
+rule xowl:prp-key-final {
+    ?u xowl:keyMatching ?l
+    ?u xowl:left ?x
+    ?u xowl:right ?y
+    ?l rdf:rest rdf:nil
+} => {
+    ?x owl:sameAs ?y
+}
 
 rule owl:prp-npa1 {
     ?x owl:sourceIndividual  ?i1
