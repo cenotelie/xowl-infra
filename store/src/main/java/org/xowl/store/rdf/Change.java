@@ -29,11 +29,11 @@ public class Change {
     /**
      * The value of the change
      */
-    private Quad quad;
+    private final Quad quad;
     /**
      * Whether this change is an addition, or a removal
      */
-    private boolean positive;
+    private final boolean positive;
 
     /**
      * Initializes this change

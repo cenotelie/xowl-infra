@@ -32,11 +32,11 @@ class JoinTestUnbound extends JoinTest {
     /**
      * The reference field to test against
      */
-    private QuadField reference;
+    private final QuadField reference;
     /**
      * The field to be tested
      */
-    private QuadField tested;
+    private final QuadField tested;
 
     /**
      * Initializes this test

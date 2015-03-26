@@ -83,7 +83,7 @@ class AlphaGraph extends AlphaMemoryBucket {
     /**
      * A buffer for caching results
      */
-    private AlphaMemoryBuffer buffer;
+    private final AlphaMemoryBuffer buffer;
 
     /**
      * Initializes this buffer
@@ -122,7 +122,7 @@ class AlphaGraph extends AlphaMemoryBucket {
     public void unfire(Quad quad) {
         matchMemories(buffer, quad);
         for (int i = 0; i != buffer.size(); i++)
-            buffer.get(i).activateFact(quad);
+            buffer.get(i).deactivateFact(quad);
         buffer.clear();
     }
 

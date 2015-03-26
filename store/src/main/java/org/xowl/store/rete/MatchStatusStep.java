@@ -34,11 +34,11 @@ public class MatchStatusStep {
     /**
      * The pattern that need to be matched
      */
-    private Quad pattern;
+    private final Quad pattern;
     /**
      * The current bindings at the end of this step
      */
-    private List<Map<VariableNode, Node>> bindings;
+    private final List<Map<VariableNode, Node>> bindings;
 
     /**
      * Gets the pattern that need to be matched

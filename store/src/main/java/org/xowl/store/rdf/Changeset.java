@@ -33,11 +33,11 @@ public class Changeset {
     /**
      * The quads that are added
      */
-    private Collection<Quad> positives;
+    private final Collection<Quad> positives;
     /**
      * The quads that are removed
      */
-    private Collection<Quad> negatives;
+    private final Collection<Quad> negatives;
 
     /**
      * Gets the quads that are added

@@ -66,7 +66,7 @@ class XMLElement {
     /**
      * The represented XML element node
      */
-    private Element node;
+    private final Element node;
     /**
      * The node complete IRI
      */
@@ -78,11 +78,11 @@ class XMLElement {
     /**
      * IRI of the document's parent
      */
-    private String resource;
+    private final String resource;
     /**
      * Maps of the current namespaces
      */
-    private Map<String, String> namespaces;
+    private final Map<String, String> namespaces;
     /**
      * The current XML namespace
      */

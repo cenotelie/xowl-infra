@@ -20,7 +20,6 @@
 package org.xowl.store.rete;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * Represents a collection of tokens in a Beta Memory
@@ -72,9 +71,7 @@ abstract class TokenCollection implements Collection<Token> {
 
     @Override
     public boolean contains(Object o) {
-        if (!(o instanceof Token))
-            return false;
-        return contains((Token) o);
+        return o instanceof Token && contains((Token) o);
     }
 
     @Override

@@ -35,15 +35,15 @@ public class RETERule {
     /**
      * The positive conditions to this rule
      */
-    private List<Quad> positives;
+    private final List<Quad> positives;
     /**
      * The list of conjunctive negative conditions to this rule
      */
-    private List<Collection<Quad>> negatives;
+    private final List<Collection<Quad>> negatives;
     /**
      * The output node in the RETE network for elements matching this rule
      */
-    private TokenActivable output;
+    private final TokenActivable output;
 
     /**
      * Initializes this rule
@@ -54,24 +54,6 @@ public class RETERule {
         this.positives = new ArrayList<>();
         this.negatives = new ArrayList<>();
         this.output = output;
-    }
-
-    /**
-     * Adds a positive condition to this rule
-     *
-     * @param condition A positive condition
-     */
-    public void addPositiveCondition(Quad condition) {
-        positives.add(condition);
-    }
-
-    /**
-     * Adds a negative set of conjunctive conditions to this rule
-     *
-     * @param conditions A set of conjunctive conditions
-     */
-    public void addNegativeConsitions(Collection<Quad> conditions) {
-        negatives.add(conditions);
     }
 
     /**

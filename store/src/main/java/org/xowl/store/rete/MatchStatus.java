@@ -32,7 +32,7 @@ public class MatchStatus {
     /**
      * The match steps
      */
-    private List<MatchStatusStep> steps;
+    private final List<MatchStatusStep> steps;
 
     /**
      * Gets the match steps

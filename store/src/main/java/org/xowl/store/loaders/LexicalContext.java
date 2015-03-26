@@ -33,11 +33,11 @@ class LexicalContext {
     /**
      * The parent context
      */
-    private LexicalContext parent;
+    private final LexicalContext parent;
     /**
      * The query variables
      */
-    private Map<String, QueryVariable> queryVariables;
+    private final Map<String, QueryVariable> queryVariables;
 
     /**
      * Initializes this context

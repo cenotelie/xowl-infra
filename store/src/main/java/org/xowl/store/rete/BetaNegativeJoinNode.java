@@ -46,11 +46,11 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
     /**
      * The associated upstream alpha memory
      */
-    private FactHolder alphaMem;
+    private final FactHolder alphaMem;
     /**
      * The associated upstream beta memory
      */
-    private TokenHolder betaMem;
+    private final TokenHolder betaMem;
     /**
      * The child node
      */
@@ -110,25 +110,12 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
     }
 
     @Override
-    public Collection<TokenActivable> getChildren() {
-        Collection<TokenActivable> list = new ArrayList<>();
-        if (child != null)
-            list.add(child);
-        return list;
-    }
-
-    @Override
     public void addChild(TokenActivable activable) {
         this.child = activable;
     }
 
     @Override
     public void removeChild(TokenActivable activable) {
-        this.child = null;
-    }
-
-    @Override
-    public void removeAllChildren() {
         this.child = null;
     }
 

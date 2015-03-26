@@ -42,19 +42,19 @@ public class RuleEngine {
     /**
      * The XOWL store to operate over
      */
-    private XOWLStore store;
+    private final XOWLStore store;
     /**
      * The current evaluator
      */
-    private Evaluator evaluator;
+    private final Evaluator evaluator;
     /**
      * The RDF backend
      */
-    private org.xowl.store.rdf.RuleEngine backend;
+    private final org.xowl.store.rdf.RuleEngine backend;
     /**
      * The current rules
      */
-    private Map<Rule, org.xowl.store.rdf.Rule> rules;
+    private final Map<Rule, org.xowl.store.rdf.Rule> rules;
 
     /**
      * Gets the RDF backend

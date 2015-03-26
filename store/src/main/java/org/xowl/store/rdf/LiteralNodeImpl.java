@@ -46,19 +46,19 @@ class LiteralNodeImpl extends LiteralNode {
     /**
      * The string store
      */
-    private StringStore store;
+    private final StringStore store;
     /**
      * Key to the lexical value
      */
-    private int lexical;
+    private final int lexical;
     /**
      * Key to the datatype IRI
      */
-    private int datatype;
+    private final int datatype;
     /**
      * Key to the language tag
      */
-    private int tag;
+    private final int tag;
 
     /**
      * Initializes this node

@@ -44,7 +44,7 @@ public class NTriplesLoader implements Loader {
     /**
      * The RDF store to create nodes from
      */
-    private RDFStore store;
+    private final RDFStore store;
     /**
      * Maps of blanks nodes
      */

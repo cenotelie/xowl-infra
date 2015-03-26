@@ -36,13 +36,6 @@ interface TokenHolder {
     Collection<Token> getTokens();
 
     /**
-     * Gets the children of this element
-     *
-     * @return The children of this element
-     */
-    Collection<TokenActivable> getChildren();
-
-    /**
      * Adds the specified child to this element
      *
      * @param activable A child element
@@ -55,11 +48,6 @@ interface TokenHolder {
      * @param activable A child element
      */
     void removeChild(TokenActivable activable);
-
-    /**
-     * Removes all children from this element
-     */
-    void removeAllChildren();
 
     /**
      * Prepares this node for its destruction

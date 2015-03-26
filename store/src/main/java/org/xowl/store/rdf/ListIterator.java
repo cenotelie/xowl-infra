@@ -27,9 +27,9 @@ import java.util.Iterator;
  * @author Laurent Wouters
  */
 public abstract class ListIterator implements Iterator<Node> {
-    private int keyFirst;
-    private int keyRest;
-    private int keyNil;
+    private final int keyFirst;
+    private final int keyRest;
+    private final int keyNil;
     private Node proxy;
     private Node nextValue;
 

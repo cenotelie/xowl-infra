@@ -57,7 +57,7 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
     /**
      * The parent beta memory
      */
-    private TokenHolder betaMem;
+    private final TokenHolder betaMem;
     /**
      * The child node
      */
@@ -69,7 +69,7 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
     /**
      * The number of hops in the NCC
      */
-    private int hop;
+    private final int hop;
 
     /**
      * Initializes this node
@@ -90,25 +90,12 @@ class BetaNCCExitNode implements TokenHolder, TokenActivable {
     }
 
     @Override
-    public Collection<TokenActivable> getChildren() {
-        Collection<TokenActivable> list = new ArrayList<>();
-        if (child != null)
-            list.add(child);
-        return list;
-    }
-
-    @Override
     public void addChild(TokenActivable activable) {
         this.child = activable;
     }
 
     @Override
     public void removeChild(TokenActivable activable) {
-        this.child = null;
-    }
-
-    @Override
-    public void removeAllChildren() {
         this.child = null;
     }
 

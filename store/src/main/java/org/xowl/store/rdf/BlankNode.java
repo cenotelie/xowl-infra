@@ -42,7 +42,7 @@ public class BlankNode implements SubjectNode, GraphNode {
     /**
      * the node's unique identifier
      */
-    private int blankID;
+    private final int blankID;
 
     /**
      * Initializes this node

@@ -46,11 +46,11 @@ class Entry {
     /**
      * Offset in the store of the value associated to this key
      */
-    private int offset;
+    private final int offset;
     /**
      * Size of the value associated to this key
      */
-    private int size;
+    private final int size;
 
     /**
      * Initializes this entry

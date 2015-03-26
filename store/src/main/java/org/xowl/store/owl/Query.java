@@ -34,11 +34,11 @@ public class Query {
     /**
      * The positive conditions
      */
-    private List<Axiom> positives;
+    private final List<Axiom> positives;
     /**
      * The list of conjunctive negative conditions
      */
-    private List<Collection<Axiom>> negatives;
+    private final List<Collection<Axiom>> negatives;
 
     /**
      * Initializes this condition

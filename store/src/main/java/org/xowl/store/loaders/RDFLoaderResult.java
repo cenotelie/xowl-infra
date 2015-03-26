@@ -34,11 +34,11 @@ public class RDFLoaderResult {
     /**
      * The loaded quads
      */
-    private List<Quad> quads;
+    private final List<Quad> quads;
     /**
      * The loaded rules
      */
-    private List<Rule> rules;
+    private final List<Rule> rules;
 
     /**
      * Gets the loaded quads

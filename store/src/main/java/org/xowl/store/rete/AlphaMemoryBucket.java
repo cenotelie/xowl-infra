@@ -57,7 +57,7 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
     /**
      * Initializes this bucket
      */
-    public AlphaMemoryBucket() {
+    AlphaMemoryBucket() {
         this.nodes = new Node[INIT_SIZE];
         this.subs = new AlphaMemoryBucketElement[INIT_SIZE];
     }

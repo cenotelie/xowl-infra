@@ -35,7 +35,7 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
     /**
      * Hash map of the left elements
      */
-    private Map<Node, Map<Node, Map<Node, Collection<LEFT>>>> mapLefts;
+    private final Map<Node, Map<Node, Map<Node, Collection<LEFT>>>> mapLefts;
     /**
      * Innermost iterator of left elements
      */

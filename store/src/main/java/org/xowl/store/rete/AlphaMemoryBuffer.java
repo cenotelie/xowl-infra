@@ -29,7 +29,7 @@ class AlphaMemoryBuffer {
     /**
      * The content;
      */
-    private AlphaMemory[] content;
+    private final AlphaMemory[] content;
     /**
      * The number of contained elements
      */

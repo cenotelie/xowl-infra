@@ -35,39 +35,39 @@ public class Rule {
     /**
      * The rule's identifying IRI
      */
-    private String iri;
+    private final String iri;
     /**
      * The positive antecedents to match in the source ontology
      */
-    private List<Quad> antecedentSourcePositives;
+    private final List<Quad> antecedentSourcePositives;
     /**
      * The negative antecedents conjunctions to NOT match in the source ontology
      */
-    private List<Collection<Quad>> antecedentSourceNegatives;
+    private final List<Collection<Quad>> antecedentSourceNegatives;
     /**
      * The positive antecedents to match in the meta ontology
      */
-    private List<Quad> antecedentMetaPositives;
+    private final List<Quad> antecedentMetaPositives;
     /**
      * The negative antecedents conjunctions to NOT match in the meta ontology
      */
-    private List<Collection<Quad>> antecedentMetaNegatives;
+    private final List<Collection<Quad>> antecedentMetaNegatives;
     /**
      * The positive consequents for the target ontology
      */
-    private List<Quad> consequentTargetPositives;
+    private final List<Quad> consequentTargetPositives;
     /**
      * The negative consequents for the target ontology
      */
-    private List<Quad> consequentTargetNegatives;
+    private final List<Quad> consequentTargetNegatives;
     /**
      * The positive consequents for the meta ontology
      */
-    private List<Quad> consequentMetaPositives;
+    private final List<Quad> consequentMetaPositives;
     /**
      * The negative consequents for the meta ontology
      */
-    private List<Quad> consequentMetaNegatives;
+    private final List<Quad> consequentMetaNegatives;
 
     /**
      * Gets the rule's identifying IRI

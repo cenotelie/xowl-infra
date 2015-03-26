@@ -68,15 +68,6 @@ public class Quad {
     }
 
     /**
-     * Sets the containing graph
-     *
-     * @param graph The containing graph
-     */
-    void setGraph(GraphNode graph) {
-        this.graph = graph;
-    }
-
-    /**
      * Gets the subject node
      *
      * @return The subject node
@@ -174,13 +165,6 @@ public class Quad {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder("[");
-        builder.append(subject.toString());
-        builder.append(" ");
-        builder.append(property.toString());
-        builder.append(" ");
-        builder.append(object.toString());
-        builder.append("]");
-        return builder.toString();
+        return "[" + subject.toString() + " " + property.toString() + " " + object.toString() + "]";
     }
 }

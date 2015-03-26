@@ -35,11 +35,11 @@ class FactCollection implements Collection<Quad> {
     /**
      * The parent RDF store
      */
-    private RDFStore store;
+    private final RDFStore store;
     /**
      * The matched pattern
      */
-    private Quad pattern;
+    private final Quad pattern;
     /**
      * The size of this collection
      */

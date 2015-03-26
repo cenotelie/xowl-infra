@@ -45,11 +45,11 @@ class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
     /**
      * The associated upstream alpha memory
      */
-    private FactHolder alphaMem;
+    private final FactHolder alphaMem;
     /**
      * The associated upstream beta memory
      */
-    private TokenHolder betaMem;
+    private final TokenHolder betaMem;
     /**
      * The downstream beta memory
      */
@@ -91,32 +91,6 @@ class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
         alphaMem.removeChild(this);
         betaMem.removeChild(this);
         child = null;
-    }
-
-    /**
-     * Determines whether this node matches the provided specifications
-     *
-     * @param alpha The upstream alpha memory to look for
-     * @param tests The tests to look for
-     * @return true if this node matches the provided specifications
-     */
-    public boolean match(FactHolder alpha, List<JoinTest> tests) {
-        if (this.alphaMem != alpha)
-            return false;
-        switch (tests.size()) {
-            case 0:
-                return (test1 == null);
-            case 1:
-                return (test2 == null && tests.contains(test1));
-            case 2:
-                return (test3 == null && tests.contains(test1) && tests.contains(test2));
-            case 3:
-                return (test4 == null && tests.contains(test1) && tests.contains(test2) && tests.contains(test3));
-            case 4:
-                return (tests.contains(test1) && tests.contains(test2) && tests.contains(test3) && tests.contains(test4));
-            default:
-                return false;
-        }
     }
 
     @Override

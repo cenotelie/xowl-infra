@@ -37,11 +37,11 @@ public class IRIMapper {
         /**
          * The pattern to match
          */
-        private Pattern pattern;
+        private final Pattern pattern;
         /**
          * The corresponding physical template
          */
-        private String physical;
+        private final String physical;
 
         /**
          * Initializes this entry
@@ -98,7 +98,7 @@ public class IRIMapper {
     /**
      * The entries in this mapper
      */
-    private List<Entry> entries;
+    private final List<Entry> entries;
 
     /**
      * Initializes this mapper

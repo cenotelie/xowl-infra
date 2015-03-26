@@ -20,7 +20,6 @@
 
 package org.xowl.store.rete;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -32,7 +31,7 @@ class BetaNCCEntryNode implements TokenHolder, TokenActivable {
     /**
      * The parent beta memory
      */
-    private TokenHolder betaMem;
+    private final TokenHolder betaMem;
     /**
      * The child node
      */
@@ -40,7 +39,7 @@ class BetaNCCEntryNode implements TokenHolder, TokenActivable {
     /**
      * The exit node for the sub-graph
      */
-    private BetaNCCExitNode exit;
+    private final BetaNCCExitNode exit;
 
     /**
      * Initializes this node
@@ -97,25 +96,12 @@ class BetaNCCEntryNode implements TokenHolder, TokenActivable {
     }
 
     @Override
-    public Collection<TokenActivable> getChildren() {
-        Collection<TokenActivable> list = new ArrayList<>();
-        if (child != null)
-            list.add(child);
-        return list;
-    }
-
-    @Override
     public void addChild(TokenActivable activable) {
         this.child = activable;
     }
 
     @Override
     public void removeChild(TokenActivable activable) {
-        this.child = null;
-    }
-
-    @Override
-    public void removeAllChildren() {
         this.child = null;
     }
 

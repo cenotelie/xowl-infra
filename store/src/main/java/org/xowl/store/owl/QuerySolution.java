@@ -35,7 +35,7 @@ public class QuerySolution {
     /**
      * The content of this solution
      */
-    private Map<QueryVariable, Object> content;
+    private final Map<QueryVariable, Object> content;
 
     /**
      * Initializes this solution

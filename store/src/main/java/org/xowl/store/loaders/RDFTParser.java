@@ -5,14 +5,9 @@
 
 package org.xowl.store.loaders;
 
-import org.xowl.hime.redist.SemanticAction;
-import org.xowl.hime.redist.SemanticBody;
 import org.xowl.hime.redist.Symbol;
-import org.xowl.hime.redist.parsers.InitializationException;
 import org.xowl.hime.redist.parsers.LRkAutomaton;
 import org.xowl.hime.redist.parsers.LRkParser;
-
-import java.util.Map;
 
 /**
  * Represents a parser
@@ -22,6 +17,7 @@ class RDFTParser extends LRkParser {
      * The automaton for this parser
      */
     private static final LRkAutomaton automaton = LRkAutomaton.find(RDFTParser.class, "RDFTParser.bin");
+
     /**
      * Contains the constant IDs for the variables and virtuals in this parser
      */
@@ -127,51 +123,53 @@ class RDFTParser extends LRkParser {
          */
         public static final int _Axiom_ = 0x0048;
     }
+
     /**
      * The collection of variables matched by this parser
-     *
+     * <p/>
      * The variables are in an order consistent with the automaton,
      * so that variable indices in the automaton can be used to retrieve the variables in this table
      */
     private static final Symbol[] variables = {
-        new Symbol(0x001F, "document"), 
-        new Symbol(0x0020, "directives"), 
-        new Symbol(0x0021, "directive"), 
-        new Symbol(0x0022, "prefixID"), 
-        new Symbol(0x0023, "base"), 
-        new Symbol(0x0024, "sparqlBase"), 
-        new Symbol(0x0025, "sparqlPrefix"), 
-        new Symbol(0x0026, "rdfrules"), 
-        new Symbol(0x0027, "rule"), 
-        new Symbol(0x0028, "assertions"), 
-        new Symbol(0x0029, "assertion"), 
-        new Symbol(0x002A, "triple"), 
-        new Symbol(0x002B, "subject"), 
-        new Symbol(0x002C, "predicate"), 
-        new Symbol(0x002D, "object"), 
-        new Symbol(0x002E, "iri"), 
-        new Symbol(0x002F, "prefixedName"), 
-        new Symbol(0x0030, "blankNode"), 
-        new Symbol(0x0031, "literal"), 
-        new Symbol(0x0032, "booleanLiteral"), 
-        new Symbol(0x0033, "numericLiteral"), 
-        new Symbol(0x0034, "rdfLiteral"), 
-        new Symbol(0x0035, "string"), 
-        new Symbol(0x0036, "variable"), 
-        new Symbol(0x0037, "_gen_V55"), 
-        new Symbol(0x003B, "_gen_V59"), 
-        new Symbol(0x003F, "_gen_V63"), 
-        new Symbol(0x0042, "_gen_V66"), 
-        new Symbol(0x0044, "_gen_V68"), 
-        new Symbol(0x0048, "_Axiom_") };
+            new Symbol(0x001F, "document"),
+            new Symbol(0x0020, "directives"),
+            new Symbol(0x0021, "directive"),
+            new Symbol(0x0022, "prefixID"),
+            new Symbol(0x0023, "base"),
+            new Symbol(0x0024, "sparqlBase"),
+            new Symbol(0x0025, "sparqlPrefix"),
+            new Symbol(0x0026, "rdfrules"),
+            new Symbol(0x0027, "rule"),
+            new Symbol(0x0028, "assertions"),
+            new Symbol(0x0029, "assertion"),
+            new Symbol(0x002A, "triple"),
+            new Symbol(0x002B, "subject"),
+            new Symbol(0x002C, "predicate"),
+            new Symbol(0x002D, "object"),
+            new Symbol(0x002E, "iri"),
+            new Symbol(0x002F, "prefixedName"),
+            new Symbol(0x0030, "blankNode"),
+            new Symbol(0x0031, "literal"),
+            new Symbol(0x0032, "booleanLiteral"),
+            new Symbol(0x0033, "numericLiteral"),
+            new Symbol(0x0034, "rdfLiteral"),
+            new Symbol(0x0035, "string"),
+            new Symbol(0x0036, "variable"),
+            new Symbol(0x0037, "_gen_V55"),
+            new Symbol(0x003B, "_gen_V59"),
+            new Symbol(0x003F, "_gen_V63"),
+            new Symbol(0x0042, "_gen_V66"),
+            new Symbol(0x0044, "_gen_V68"),
+            new Symbol(0x0048, "_Axiom_")};
     /**
      * The collection of virtuals matched by this parser
-     *
+     * <p/>
      * The virtuals are in an order consistent with the automaton,
      * so that virtual indices in the automaton can be used to retrieve the virtuals in this table
      */
     private static final Symbol[] virtuals = {
- };
+    };
+
     /**
      * Initializes a new instance of the parser
      *

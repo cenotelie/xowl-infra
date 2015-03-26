@@ -30,19 +30,19 @@ class JoinBase {
     /**
      * The first test
      */
-    protected JoinTest test1;
+    protected final JoinTest test1;
     /**
      * The second test
      */
-    protected JoinTest test2;
+    protected final JoinTest test2;
     /**
      * The third test
      */
-    protected JoinTest test3;
+    protected final JoinTest test3;
     /**
      * The fourth test
      */
-    protected JoinTest test4;
+    protected final JoinTest test4;
 
     /**
      * Initializes this element

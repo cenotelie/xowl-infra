@@ -30,7 +30,7 @@ import org.xowl.store.rdf.RDFStore;
  */
 interface AlphaMemoryBucketElement {
     /**
-     * Retrievew the matching memories associated to the specified data
+     * Retrieve the matching memories associated to the specified data
      *
      * @param buffer The buffer to fill
      * @param quad   The data to match

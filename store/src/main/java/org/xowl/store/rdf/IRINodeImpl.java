@@ -38,11 +38,11 @@ class IRINodeImpl extends IRINode {
     /**
      * The string store storing the IRI value
      */
-    private StringStore store;
+    private final StringStore store;
     /**
      * The key in the store
      */
-    private int key;
+    private final int key;
 
     /**
      * Initializes this node

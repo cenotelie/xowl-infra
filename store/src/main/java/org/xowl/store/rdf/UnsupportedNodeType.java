@@ -30,7 +30,7 @@ public class UnsupportedNodeType extends Exception {
     /**
      * The node that was unexpected
      */
-    private Node node;
+    private final Node node;
 
     /**
      * Initializes this exception

@@ -44,11 +44,11 @@ public class DynamicNode implements SubjectNode, Property, GraphNode {
     /**
      * The associated dynamic expression
      */
-    private Expression dynExpression;
+    private final Expression dynExpression;
     /**
      * The possible types for the expression
      */
-    private List<Class> types;
+    private final List<Class> types;
 
     /**
      * Initializes this node

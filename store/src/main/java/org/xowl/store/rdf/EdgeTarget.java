@@ -34,7 +34,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public class EdgeTarget implements Iterable<GraphNode> {
+class EdgeTarget implements Iterable<GraphNode> {
     /**
      * The initial size of the buffer of the multiplicities
      */
@@ -63,7 +63,7 @@ public class EdgeTarget implements Iterable<GraphNode> {
     /**
      * The represented target node
      */
-    private Node target;
+    private final Node target;
     /**
      * The containing graphs
      */
@@ -119,15 +119,6 @@ public class EdgeTarget implements Iterable<GraphNode> {
      */
     public Node getTarget() {
         return target;
-    }
-
-    /**
-     * Gets the number of graphs for this target
-     *
-     * @return The number of graphs
-     */
-    public int getSize() {
-        return size;
     }
 
     /**

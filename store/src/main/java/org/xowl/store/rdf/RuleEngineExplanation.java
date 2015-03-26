@@ -34,19 +34,19 @@ public class RuleEngineExplanation {
     /**
      * The rule the caused a fact to be produced
      */
-    private Rule rule;
+    private final Rule rule;
     /**
      * The bindings used for firing the rule
      */
-    private Map<VariableNode, Node> bindings;
+    private final Map<VariableNode, Node> bindings;
     /**
      * The fact that has been produced
      */
-    private Quad produced;
+    private final Quad produced;
     /**
      * The parent explanations
      */
-    private List<RuleEngineExplanation> parents;
+    private final List<RuleEngineExplanation> parents;
 
     /**
      * Gets the rule the caused a fact to be produced

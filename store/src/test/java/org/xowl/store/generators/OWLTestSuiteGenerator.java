@@ -20,7 +20,6 @@
 package org.xowl.store.generators;
 
 import org.junit.Assert;
-import org.junit.Test;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;
 import org.xowl.store.TestLogger;

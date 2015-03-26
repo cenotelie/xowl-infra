@@ -35,7 +35,7 @@ public class VariableNode implements SubjectNode, Property, GraphNode {
     /**
      * The variable's name
      */
-    private String name;
+    private final String name;
 
     /**
      * Initializes this node

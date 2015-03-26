@@ -90,19 +90,19 @@ public abstract class AbstractRepository {
     /**
      * The IRI mapper
      */
-    protected IRIMapper mapper;
+    protected final IRIMapper mapper;
     /**
      * The loaded resources
      */
-    protected Map<String, Ontology> resources;
+    protected final Map<String, Ontology> resources;
     /**
      * The loaded ontologies by IRI
      */
-    protected Map<String, Ontology> ontologies;
+    protected final Map<String, Ontology> ontologies;
     /**
      * The remaining dependencies
      */
-    protected List<String> dependencies;
+    protected final List<String> dependencies;
 
     /**
      * Gets the IRI mapper used by this repository
@@ -117,7 +117,7 @@ public abstract class AbstractRepository {
     /**
      * Initializes this repository
      */
-    public AbstractRepository() {
+    protected AbstractRepository() {
         this(IRIMapper.getDefault());
     }
 

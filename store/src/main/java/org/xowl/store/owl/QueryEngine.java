@@ -35,19 +35,19 @@ public class QueryEngine {
     /**
      * The xOWL store
      */
-    private XOWLStore store;
+    private final XOWLStore store;
     /**
      * The current evaluator
      */
-    private Evaluator evaluator;
+    private final Evaluator evaluator;
     /**
      * The underlying RDF engine
      */
-    private org.xowl.store.rdf.QueryEngine rdfEngine;
+    private final org.xowl.store.rdf.QueryEngine rdfEngine;
     /**
      * The graph for the translated quads
      */
-    private GraphNode graph;
+    private final GraphNode graph;
 
     /**
      * Gets the RDF backend

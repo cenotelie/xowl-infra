@@ -41,13 +41,6 @@ public class TestLogger implements Logger {
         return onError;
     }
 
-    /**
-     * Resets the status of this logger
-     */
-    public void reset() {
-        onError = false;
-    }
-
     @Override
     public void debug(Object message) {
 

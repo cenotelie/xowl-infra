@@ -94,6 +94,9 @@ class RDFXMLCanonicalizer {
         output.write(node.getNodeName());
 
         List<Node> attributes = new ArrayList<>(node.getAttributes().getLength());
+        for (int i = 0; i != node.getAttributes().getLength(); i++) {
+            attributes.add(node.getAttributes().item(i));
+        }
         Collections.sort(attributes, new Comparator<Node>() {
             @Override
             public int compare(Node node1, Node node2) {

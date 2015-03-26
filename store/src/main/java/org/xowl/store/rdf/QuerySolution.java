@@ -33,7 +33,7 @@ public class QuerySolution {
     /**
      * The content of this solution
      */
-    private Map<VariableNode, Node> content;
+    private final Map<VariableNode, Node> content;
 
     /**
      * Initializes this solution

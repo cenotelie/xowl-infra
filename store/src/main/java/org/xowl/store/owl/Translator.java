@@ -61,7 +61,7 @@ public class Translator {
     /**
      * The RDF store used to create new RDF nodes
      */
-    protected XOWLStore store;
+    protected final XOWLStore store;
     /**
      * The graph that contains the translated input
      */
@@ -77,7 +77,7 @@ public class Translator {
     /**
      * The evaluator for dynamic expressions
      */
-    protected Evaluator evaluator;
+    protected final Evaluator evaluator;
 
     /**
      * Initializes this translator

@@ -31,11 +31,11 @@ class Couple {
     /**
      * A triple fact
      */
-    public Quad fact;
+    public final Quad fact;
     /**
      * A token
      */
-    public Token token;
+    public final Token token;
 
     /**
      * Initializes this couple

@@ -42,7 +42,7 @@ public class RDFXMLLoader implements Loader {
     /**
      * The RDF store to create nodes from
      */
-    private RDFStore store;
+    private final RDFStore store;
     /**
      * The loaded triples
      */

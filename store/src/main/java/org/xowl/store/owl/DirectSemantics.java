@@ -38,47 +38,47 @@ public class DirectSemantics extends AbstractRepository {
     /**
      * The entities contained by the ontologies
      */
-    private Map<Ontology, Map<String, Entity>> mapEntities;
+    private final Map<Ontology, Map<String, Entity>> mapEntities;
     /**
      * The known class unions
      */
-    private List<org.xowl.lang.runtime.Class> classUnions;
+    private final List<org.xowl.lang.runtime.Class> classUnions;
     /**
      * The known class intersections
      */
-    private List<org.xowl.lang.runtime.Class> classIntersections;
+    private final List<org.xowl.lang.runtime.Class> classIntersections;
     /**
      * The known enumeration classes
      */
-    private List<org.xowl.lang.runtime.Class> classOneOfs;
+    private final List<org.xowl.lang.runtime.Class> classOneOfs;
     /**
      * The known class complements
      */
-    private List<org.xowl.lang.runtime.Class> classComplements;
+    private final List<org.xowl.lang.runtime.Class> classComplements;
     /**
      * The known inverse properties
      */
-    private List<org.xowl.lang.runtime.ObjectProperty> propInverses;
+    private final List<org.xowl.lang.runtime.ObjectProperty> propInverses;
     /**
      * The known data unions
      */
-    private List<org.xowl.lang.runtime.Datatype> dataUnions;
+    private final List<org.xowl.lang.runtime.Datatype> dataUnions;
     /**
      * The known data intersections
      */
-    private List<org.xowl.lang.runtime.Datatype> dataIntersections;
+    private final List<org.xowl.lang.runtime.Datatype> dataIntersections;
     /**
      * The known enumeration datatypes
      */
-    private List<org.xowl.lang.runtime.Datatype> dataOneOfs;
+    private final List<org.xowl.lang.runtime.Datatype> dataOneOfs;
     /**
      * The known complement datatypes
      */
-    private List<org.xowl.lang.runtime.Datatype> dataComplements;
+    private final List<org.xowl.lang.runtime.Datatype> dataComplements;
     /**
      * The known anonymous individuals
      */
-    private List<org.xowl.lang.owl2.AnonymousIndividual> anonymousIndividuals;
+    private final List<org.xowl.lang.owl2.AnonymousIndividual> anonymousIndividuals;
 
     /**
      * Initializes this interpreter

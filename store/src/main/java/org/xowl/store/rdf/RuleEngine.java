@@ -36,15 +36,15 @@ public class RuleEngine implements ChangeListener {
         /**
          * The fired rule
          */
-        public Rule rule;
+        public final Rule rule;
         /**
          * The token that triggered the rule
          */
-        public Token token;
+        public final Token token;
         /**
          * The produced changeset
          */
-        public Changeset changeset;
+        public final Changeset changeset;
 
         /**
          * Initializes this data
@@ -63,23 +63,23 @@ public class RuleEngine implements ChangeListener {
     /**
      * The RDF store to operate over
      */
-    private RDFStore store;
+    private final RDFStore store;
     /**
      * The corpus of active rules
      */
-    private Map<Rule, RETERule> rules;
+    private final Map<Rule, RETERule> rules;
     /**
      * A RETE network for the pattern matching of queries
      */
-    private RETENetwork rete;
+    private final RETENetwork rete;
     /**
      * The new changes since the last application
      */
-    private List<Change> newChanges;
+    private final List<Change> newChanges;
     /**
      * The new changesets since the last application
      */
-    private List<Changeset> newChangesets;
+    private final List<Changeset> newChangesets;
     /**
      * Flag whether outstanding changes are currently being applied
      */
@@ -87,23 +87,23 @@ public class RuleEngine implements ChangeListener {
     /**
      * Buffer of positive quads
      */
-    private Collection<Quad> bufferPositives;
+    private final Collection<Quad> bufferPositives;
     /**
      * Buffer of negative quads
      */
-    private Collection<Quad> bufferNegatives;
+    private final Collection<Quad> bufferNegatives;
     /**
      * The current requests to fire a rule
      */
-    private Map<Token, Rule> requestsToFire;
+    private final Map<Token, Rule> requestsToFire;
     /**
      * The current requests to unfire a rule
      */
-    private List<Token> requestsToUnfire;
+    private final List<Token> requestsToUnfire;
     /**
      * The currently produced data
      */
-    private Map<Token, ExecutedRule> executed;
+    private final Map<Token, ExecutedRule> executed;
 
     /**
      * Initializes this engine

@@ -21,7 +21,6 @@
 package org.xowl.store.loaders;
 
 import java.net.URI;
-import java.util.UUID;
 
 /**
  * Utilities for the loaders

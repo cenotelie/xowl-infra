@@ -33,11 +33,11 @@ public class Query {
     /**
      * The positive conditions
      */
-    private List<Quad> positives;
+    private final List<Quad> positives;
     /**
      * The list of conjunctive negative conditions
      */
-    private List<Collection<Quad>> negatives;
+    private final List<Collection<Quad>> negatives;
 
     /**
      * Initializes this condition

@@ -72,15 +72,6 @@ public class EdgeBucket implements Iterable<Edge> {
     }
 
     /**
-     * Gets the number of edges in this bucket
-     *
-     * @return The number of edges in this bucket
-     */
-    public int getSize() {
-        return size;
-    }
-
-    /**
      * Adds the specified edge from this bucket
      *
      * @param graph    The containing graph

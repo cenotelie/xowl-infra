@@ -37,27 +37,27 @@ public class OWLLoaderResult {
     /**
      * The iri of the containing ontology
      */
-    private String iri;
+    private final String iri;
     /**
      * The version iri of the ontology
      */
-    private String version;
+    private final String version;
     /**
      * The axioms contained in the ontology
      */
-    private List<Axiom> axioms;
+    private final List<Axiom> axioms;
     /**
      * The rules contained in the ontology
      */
-    private List<Rule> rules;
+    private final List<Rule> rules;
     /**
      * The ontology-level annotations
      */
-    private List<Annotation> annotations;
+    private final List<Annotation> annotations;
     /**
      * The imported IRIs
      */
-    private List<String> imports;
+    private final List<String> imports;
 
     /**
      * Gets the iri of the loaded ontology

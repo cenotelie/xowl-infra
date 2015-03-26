@@ -54,27 +54,22 @@ public class W3CTestSuiteGenerator {
      * Generates all the tests
      */
     public void generate() {
-        try {
-            System.out.println("==== NTriples ====");
-            generate("/ntriples/manifest.ttl");
-            System.out.println("==== NQuads ====");
-            generate("/nquads/manifest.ttl");
-            System.out.println("==== Turtle ====");
-            generate("/turtle/manifest.ttl");
-            System.out.println("==== RDF/XML ====");
-            generate("/rdfxml/manifest.ttl");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        System.out.println("==== NTriples ====");
+        generate("/ntriples/manifest.ttl");
+        System.out.println("==== NQuads ====");
+        generate("/nquads/manifest.ttl");
+        System.out.println("==== Turtle ====");
+        generate("/turtle/manifest.ttl");
+        System.out.println("==== RDF/XML ====");
+        generate("/rdfxml/manifest.ttl");
     }
 
     /**
      * Generates the tests for the specified manifest
      *
      * @param manifest The path to a manifest
-     * @throws IOException When the manifest cannot be accessed
      */
-    public void generate(String manifest) throws IOException {
+    public void generate(String manifest) {
         RDFStore store = null;
         try {
             store = new RDFStore();

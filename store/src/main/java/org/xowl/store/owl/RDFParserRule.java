@@ -35,11 +35,11 @@ abstract class RDFParserRule {
     /**
      * The rule's priority
      */
-    protected int priority;
+    protected final int priority;
     /**
      * The variables nodes
      */
-    protected Map<String, VariableNode> variables;
+    protected final Map<String, VariableNode> variables;
 
     /**
      * Initializes this rule

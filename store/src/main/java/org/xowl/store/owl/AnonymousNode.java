@@ -45,7 +45,7 @@ public class AnonymousNode implements SubjectNode {
     /**
      * The associated anonymous individual
      */
-    private AnonymousIndividual anonInd;
+    private final AnonymousIndividual anonInd;
 
     /**
      * Initializes this node

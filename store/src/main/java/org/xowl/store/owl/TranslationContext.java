@@ -35,11 +35,11 @@ public class TranslationContext {
     /**
      * Map associating input query variables to RDF variable nodes
      */
-    private Map<QueryVariable, VariableNode> mapVariables;
+    private final Map<QueryVariable, VariableNode> mapVariables;
     /**
      * The inverse map
      */
-    private Map<VariableNode, QueryVariable> mapInverse;
+    private final Map<VariableNode, QueryVariable> mapInverse;
 
     /**
      * Initializes this context
@@ -47,15 +47,6 @@ public class TranslationContext {
     public TranslationContext() {
         this.mapVariables = new HashMap<>();
         this.mapInverse = new HashMap<>();
-    }
-
-    /**
-     * Determines whether this context is empty
-     *
-     * @return <code>true</code> if this context is empty
-     */
-    public boolean isEmpty() {
-        return (mapVariables.isEmpty());
     }
 
     /**

@@ -30,7 +30,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public class Edge implements Iterable<EdgeTarget> {
+class Edge implements Iterable<EdgeTarget> {
     /**
      * The initial size of the buffer of the targets
      */
@@ -51,7 +51,7 @@ public class Edge implements Iterable<EdgeTarget> {
     /**
      * The label on this edge
      */
-    private Property property;
+    private final Property property;
     /**
      * The target for this edges
      */
@@ -98,15 +98,6 @@ public class Edge implements Iterable<EdgeTarget> {
      */
     public Property getProperty() {
         return property;
-    }
-
-    /**
-     * Gets the number of targets for this edge
-     *
-     * @return The number of targets for this edge
-     */
-    public int getSize() {
-        return size;
     }
 
     /**

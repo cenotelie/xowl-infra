@@ -60,7 +60,7 @@ class HashBucket {
     /**
      * The common hash
      */
-    private int hash;
+    private final int hash;
     /**
      * Indices of the entries in this bucket
      */

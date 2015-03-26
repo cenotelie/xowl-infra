@@ -34,11 +34,11 @@ class JoinTestBound extends JoinTest {
     /**
      * The variable to test
      */
-    private VariableNode variable;
+    private final VariableNode variable;
     /**
      * The field of a triple to test
      */
-    private QuadField field;
+    private final QuadField field;
 
     /**
      * Initializes this test

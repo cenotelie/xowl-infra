@@ -96,7 +96,7 @@ class BetaMemory implements TokenHolder {
         /**
          * The child token
          */
-        public Token token;
+        public final Token token;
         /**
          * The multiplicity
          */
@@ -129,7 +129,7 @@ class BetaMemory implements TokenHolder {
     /**
      * The binding operations in this node
      */
-    private List<Binder> binders;
+    private final List<Binder> binders;
 
     /**
      * Initializes this node
@@ -156,6 +156,13 @@ class BetaMemory implements TokenHolder {
         tChildren.count = 1;
         dummy.store.put(null, tChildren);
         return dummy;
+    }
+
+    /**
+     * Removes all the children of this memory
+     */
+    void removeAllChildren() {
+        children.clear();
     }
 
     @Override
@@ -197,11 +204,6 @@ class BetaMemory implements TokenHolder {
     }
 
     @Override
-    public Collection<TokenActivable> getChildren() {
-        return children;
-    }
-
-    @Override
     public void addChild(TokenActivable activable) {
         children.add(activable);
     }
@@ -209,11 +211,6 @@ class BetaMemory implements TokenHolder {
     @Override
     public void removeChild(TokenActivable activable) {
         children.remove(activable);
-    }
-
-    @Override
-    public void removeAllChildren() {
-        children.clear();
     }
 
     @Override

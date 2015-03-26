@@ -46,15 +46,15 @@ public class QueryEngine implements ChangeListener {
         /**
          * The original query
          */
-        private Query query;
+        private final Query query;
         /**
          * The associated RETE rule
          */
-        private RETERule rule;
+        private final RETERule rule;
         /**
          * The solution tokens
          */
-        private List<Token> tokens;
+        private final List<Token> tokens;
         /**
          * The number of times this query has been used
          */
@@ -142,15 +142,15 @@ public class QueryEngine implements ChangeListener {
     /**
      * A RETE network for the pattern matching of queries
      */
-    private RETENetwork rete;
+    private final RETENetwork rete;
     /**
      * The new changes since the last application
      */
-    private List<Change> newChanges;
+    private final List<Change> newChanges;
     /**
      * The new changesets since the last application
      */
-    private List<Changeset> newChangesets;
+    private final List<Changeset> newChangesets;
     /**
      * Flag whether outstanding changes are currently being applied
      */
@@ -158,15 +158,15 @@ public class QueryEngine implements ChangeListener {
     /**
      * Buffer of positive quads
      */
-    private Collection<Quad> bufferPositives;
+    private final Collection<Quad> bufferPositives;
     /**
      * Buffer of negative quads
      */
-    private Collection<Quad> bufferNegatives;
+    private final Collection<Quad> bufferNegatives;
     /**
      * The cache of queries
      */
-    private List<CacheElem> cache;
+    private final List<CacheElem> cache;
 
     /**
      * Initializes this engine

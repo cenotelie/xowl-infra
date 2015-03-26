@@ -35,7 +35,7 @@ public class Token {
     /**
      * The parent token
      */
-    private Token parent;
+    private final Token parent;
     /**
      * The variables bound in this token
      */

@@ -33,11 +33,11 @@ class RDFParserTrigger {
     /**
      * The triggered rule
      */
-    public RDFParserRule rule;
+    public final RDFParserRule rule;
     /**
      * The bindings
      */
-    public Map<VariableNode, Node> bindings;
+    public final Map<VariableNode, Node> bindings;
 
     /**
      * Initializes this trigger

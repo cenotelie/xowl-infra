@@ -78,8 +78,7 @@ public class XOWLUtils {
      * @return <code>true</code> if the expression is static (not dynamic)
      */
     public static boolean isStaticExpression(Expression expression) {
-        if (isQueryVar(expression)) return false;
-        return !isDynamicExpression(expression);
+        return !isQueryVar(expression) && !isDynamicExpression(expression);
     }
 
     /**

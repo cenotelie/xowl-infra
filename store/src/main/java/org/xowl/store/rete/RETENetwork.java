@@ -33,15 +33,15 @@ public class RETENetwork {
     /**
      * Cache of inputs for this network
      */
-    private RDFStore input;
+    private final RDFStore input;
     /**
      * The alpha graph, i.e. the input layer of the network
      */
-    private AlphaGraph alpha;
+    private final AlphaGraph alpha;
     /**
      * The implementation data of the RETE rules
      */
-    private Map<RETERule, RuleData> rules;
+    private final Map<RETERule, RuleData> rules;
 
     /**
      * Initializes this network
@@ -314,7 +314,7 @@ public class RETENetwork {
         /**
          * The nodes for the negative joins
          */
-        public List<TokenHolder> negatives;
+        public final List<TokenHolder> negatives;
 
         /**
          * Initializes this data
@@ -331,11 +331,11 @@ public class RETENetwork {
         /**
          * The tests for the join
          */
-        public List<JoinTest> tests;
+        public final List<JoinTest> tests;
         /**
          * The binding operations
          */
-        public List<Binder> binders;
+        public final List<Binder> binders;
         /**
          * The corresponding join node
          */

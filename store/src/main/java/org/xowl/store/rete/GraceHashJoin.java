@@ -35,11 +35,11 @@ abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterat
     /**
      * Map of all the left elements
      */
-    private Map<Node, Map<Node, Map<Node, Collection<LEFT>>>> mapLeftElements;
+    private final Map<Node, Map<Node, Map<Node, Collection<LEFT>>>> mapLeftElements;
     /**
      * Map of all the right elements
      */
-    private Map<Node, Map<Node, Map<Node, Collection<RIGHT>>>> mapRightElements;
+    private final Map<Node, Map<Node, Map<Node, Collection<RIGHT>>>> mapRightElements;
     /**
      * Outer iterator over the left elements
      */

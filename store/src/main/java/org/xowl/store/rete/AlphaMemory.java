@@ -48,7 +48,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     /**
      * List of the children of this node
      */
-    private List<FactActivable> children;
+    private final List<FactActivable> children;
 
     /**
      * Initializes this memory

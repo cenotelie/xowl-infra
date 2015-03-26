@@ -33,11 +33,11 @@ class Binder {
     /**
      * The variable to bind to
      */
-    private VariableNode variable;
+    private final VariableNode variable;
     /**
      * The field in a triple that shall be bound
      */
-    private QuadField field;
+    private final QuadField field;
 
     /**
      * Gets the variable to bind

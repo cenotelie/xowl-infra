@@ -40,25 +40,6 @@ class FastBuffer<T> implements Collection<T> {
     private int size;
 
     /**
-     * Initializes this buffer
-     *
-     * @param array The original elements
-     */
-    public FastBuffer(T[] array) {
-        this.inner = array;
-        this.size = array.length;
-    }
-
-    /**
-     * Initializes this buffer a copy of the specified one
-     *
-     * @param original The original buffer
-     */
-    public FastBuffer(FastBuffer<T> original) {
-        copy(original);
-    }
-
-    /**
      * Initializes this buffer with the specified elements
      *
      * @param init The original elements
