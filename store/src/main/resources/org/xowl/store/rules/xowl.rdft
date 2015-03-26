@@ -223,11 +223,18 @@ rule xowl:inverse-functional-property-different-from {
 rule xowl:some-value-from-thing {
     ?x rdf:type ?r
     ?r owl:onProperty ?p
-    ?r owl:someValuesFrom owl:Thing
-    not (?x ?p ?y)
+    not ( ?r owl:onProperty owl:bottomObjectProperty )
 } => {
-    ?x ?p ?o
+    # ?x ?p ?o
+    # ?o xowl:status xowl:filler
     # There should be a value but we do not have one
+}
+
+rule xowl:inconsistent-restriction {
+    ?r owl:onProperty owl:bottomObjectProperty
+    ?r owl:someValuesFrom ?x
+} => {
+    ?r xowl:status xowl:inconsistent
 }
 
 
