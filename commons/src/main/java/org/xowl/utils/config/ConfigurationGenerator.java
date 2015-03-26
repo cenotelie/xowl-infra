@@ -35,19 +35,19 @@ public class ConfigurationGenerator {
     /**
      * Input sample of configuration
      */
-    private String input;
+    private final String input;
     /**
      * Output file
      */
-    private String output;
+    private final String output;
     /**
      * Package for the generated code
      */
-    private String pack;
+    private final String pack;
     /**
      * Generated class name
      */
-    private String name;
+    private final String name;
 
     /**
      * Initializes this generator
@@ -77,7 +77,7 @@ public class ConfigurationGenerator {
     public void generate() throws IOException {
         Configuration config = new Configuration();
         config.load(input);
-        List<String> properties = new ArrayList<String>(config.getGlobalSection().getProperties());
+        List<String> properties = new ArrayList<>(config.getGlobalSection().getProperties());
         Collections.sort(properties);
         Writer writer = null;
         try {
@@ -129,8 +129,6 @@ public class ConfigurationGenerator {
             }
             writer.append("    }" + System.lineSeparator());
             writer.append("}" + System.lineSeparator());
-        } catch (IOException ex) {
-            throw ex;
         } finally {
             if (writer != null)
                 writer.close();

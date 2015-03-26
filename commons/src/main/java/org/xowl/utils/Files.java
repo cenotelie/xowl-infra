@@ -91,7 +91,7 @@ public class Files {
     public static String read(Reader reader) throws IOException {
         StringBuilder fileData = new StringBuilder(1000);
         char[] buf = new char[bufferSize];
-        int numRead = 0;
+        int numRead;
         while ((numRead = reader.read(buf)) != -1) {
             fileData.append(buf, 0, numRead);
         }
@@ -107,11 +107,8 @@ public class Files {
      * @throws IOException when reading fails
      */
     public static Charset detectEncoding(String file) throws IOException {
-        FileInputStream stream = new FileInputStream(file);
-        try {
+        try (FileInputStream stream = new FileInputStream(file)) {
             return detectEncoding(stream);
-        } finally {
-            stream.close();
         }
     }
 
@@ -122,7 +119,7 @@ public class Files {
      * @return The stream's encoding
      * @throws IOException when reading fails
      */
-    public static Charset detectEncoding(InputStream stream) throws IOException {
+    private static Charset detectEncoding(InputStream stream) throws IOException {
         int b0 = stream.read();
         int b1 = stream.read();
         if (b0 == -1 || b1 == -1) {

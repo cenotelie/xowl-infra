@@ -33,11 +33,11 @@ class CompositeInputStream extends InputStream {
     /**
      * The header before the encapsulated input stream
      */
-    private int[] buffer;
+    private final int[] buffer;
     /**
      * The encapsulated input stream
      */
-    private InputStream stream;
+    private final InputStream stream;
     /**
      * The current index in the buffer
      */

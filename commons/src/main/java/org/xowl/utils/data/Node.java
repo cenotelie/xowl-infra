@@ -34,7 +34,7 @@ public class Node {
     /**
      * The parent dataset
      */
-    private Dataset dataset;
+    private final Dataset dataset;
     /**
      * The attribute's name
      */

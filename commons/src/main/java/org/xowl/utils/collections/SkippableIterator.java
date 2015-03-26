@@ -31,7 +31,7 @@ public class SkippableIterator<T> implements Iterator<T> {
     /**
      * The original iterator
      */
-    private Iterator<T> original;
+    private final Iterator<T> original;
     /**
      * The next item
      */

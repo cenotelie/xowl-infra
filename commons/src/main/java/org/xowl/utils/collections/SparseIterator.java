@@ -32,7 +32,7 @@ public class SparseIterator<T> implements Iterator<T> {
     /**
      * The content to iterate over
      */
-    private T[] content;
+    private final T[] content;
     /**
      * The current index
      */

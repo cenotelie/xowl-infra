@@ -32,7 +32,7 @@ public class IndexIterator<T> implements Iterator<Integer> {
     /**
      * The content to iterate over
      */
-    private T[] content;
+    private final T[] content;
     /**
      * The current index
      */

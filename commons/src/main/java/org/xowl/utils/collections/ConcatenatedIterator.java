@@ -32,7 +32,7 @@ public class ConcatenatedIterator<T> implements Iterator<T> {
     /**
      * The innner iterators
      */
-    private Iterator<T>[] content;
+    private final Iterator<T>[] content;
     /**
      * The index of the current iterator
      */

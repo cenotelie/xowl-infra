@@ -24,7 +24,7 @@ package org.xowl.utils.data;
  *
  * @author Laurent Wouters
  */
-public class AttributeType {
+class AttributeType {
     public static final int EMPTY = 0x00;
     public static final int BOOLEAN = 0x01;
     public static final int INT8 = 0x02;

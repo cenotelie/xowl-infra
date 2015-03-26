@@ -33,11 +33,11 @@ public class Section {
     /**
      * The section's name
      */
-    private String name;
+    private final String name;
     /**
      * The properties in this section
      */
-    private Map<String, List<String>> properties;
+    private final Map<String, List<String>> properties;
 
     /**
      * Initializes this section

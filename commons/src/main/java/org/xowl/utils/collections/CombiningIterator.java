@@ -33,15 +33,15 @@ public class CombiningIterator<X, Y> implements Iterator<Couple<X, Y>> {
     /**
      * The current result that has been return by the next function
      */
-    private Couple<X, Y> current;
+    private final Couple<X, Y> current;
     /**
      * The next result to be returned
      */
-    private Couple<X, Y> nextResult;
+    private final Couple<X, Y> nextResult;
     /**
      * The iterator of values on the left
      */
-    private Iterator<X> leftIterator;
+    private final Iterator<X> leftIterator;
     /**
      * The current iterator for the right elements
      */
@@ -49,7 +49,7 @@ public class CombiningIterator<X, Y> implements Iterator<Couple<X, Y>> {
     /**
      * The adapter to get an iterator of Y for each X item
      */
-    private Adapter<Iterator<Y>> adapter;
+    private final Adapter<Iterator<Y>> adapter;
 
     /**
      * Initializes this iterator

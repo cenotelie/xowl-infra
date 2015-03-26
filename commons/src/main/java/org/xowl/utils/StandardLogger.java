@@ -31,7 +31,7 @@ public class StandardLogger implements org.xowl.utils.Logger {
     /**
      * The backend logger
      */
-    private Logger inner;
+    private final Logger inner;
 
     /**
      * Initializes this logger

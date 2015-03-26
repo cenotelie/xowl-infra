@@ -42,7 +42,7 @@ public class ConcatenatedIteratorTest {
 
     @Test
     public void test_1seq_size() {
-        Iterator<Integer> iterator = new ConcatenatedIterator<Integer>(new Iterator[] {
+        Iterator<Integer> iterator = new ConcatenatedIterator<>(new Iterator[] {
                 Arrays.asList(content0).iterator()
         });
         int index = 0;
@@ -55,7 +55,7 @@ public class ConcatenatedIteratorTest {
 
     @Test
     public void test_1seq_content() {
-        Iterator<Integer> iterator = new ConcatenatedIterator<Integer>(new Iterator[] {
+        Iterator<Integer> iterator = new ConcatenatedIterator<>(new Iterator[] {
                 Arrays.asList(content0).iterator()
         });
         int index = 0;
@@ -68,7 +68,7 @@ public class ConcatenatedIteratorTest {
 
     @Test
     public void test_2seq_size() {
-        Iterator<Integer> iterator = new ConcatenatedIterator<Integer>(new Iterator[] {
+        Iterator<Integer> iterator = new ConcatenatedIterator<>(new Iterator[] {
                 Arrays.asList(content0).iterator(),
                 Arrays.asList(content1).iterator()
         });
@@ -82,7 +82,7 @@ public class ConcatenatedIteratorTest {
 
     @Test
     public void test_2seq_content() {
-        Iterator<Integer> iterator = new ConcatenatedIterator<Integer>(new Iterator[] {
+        Iterator<Integer> iterator = new ConcatenatedIterator<>(new Iterator[] {
                 Arrays.asList(content0).iterator(),
                 Arrays.asList(content1).iterator()
         });
@@ -99,7 +99,7 @@ public class ConcatenatedIteratorTest {
 
     @Test
     public void test_3seq_size() {
-        Iterator<Integer> iterator = new ConcatenatedIterator<Integer>(new Iterator[] {
+        Iterator<Integer> iterator = new ConcatenatedIterator<>(new Iterator[] {
                 Arrays.asList(content0).iterator(),
                 Arrays.asList(content1).iterator(),
                 Arrays.asList(content2).iterator()
@@ -114,7 +114,7 @@ public class ConcatenatedIteratorTest {
 
     @Test
     public void test_3seq_content() {
-        Iterator<Integer> iterator = new ConcatenatedIterator<Integer>(new Iterator[] {
+        Iterator<Integer> iterator = new ConcatenatedIterator<>(new Iterator[] {
                 Arrays.asList(content0).iterator(),
                 Arrays.asList(content1).iterator(),
                 Arrays.asList(content2).iterator()

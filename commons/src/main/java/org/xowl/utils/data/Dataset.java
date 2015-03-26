@@ -50,11 +50,11 @@ public class Dataset {
     /**
      * The map of identifiers
      */
-    private List<String> identifiers;
+    private final List<String> identifiers;
     /**
      * The trees in this dataset
      */
-    private List<Node> trees;
+    private final List<Node> trees;
 
     /**
      * Gets the trees in this dataset
@@ -93,7 +93,7 @@ public class Dataset {
      * @throws IOException            on reading
      * @throws AttributeTypeException on unexpected attribute type
      */
-    public Dataset(DataInput input) throws IOException, AttributeTypeException {
+    private Dataset(DataInput input) throws IOException, AttributeTypeException {
         this.identifiers = new ArrayList<>();
         this.trees = new ArrayList<>();
         int nbIDs = input.readInt();

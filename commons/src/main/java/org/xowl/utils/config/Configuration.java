@@ -36,11 +36,11 @@ public class Configuration {
     /**
      * The global section of this configuration
      */
-    private Section global;
+    private final Section global;
     /**
      * The named sections
      */
-    private Map<String, Section> sections;
+    private final Map<String, Section> sections;
 
     /**
      * Initializes an empty configuration
