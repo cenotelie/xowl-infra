@@ -346,7 +346,7 @@ public class ProxyObject {
                 String property = ((IRINode) nodeProperty).getIRIValue();
                 Node nodeValue = quad.getObject();
                 if (nodeValue.getNodeType() == IRINode.TYPE) {
-                    return new Couple<String, Object>(property, repository.getProxy(((IRINode) nodeValue).getIRIValue()));
+                    return new Couple<String, Object>(property, repository.resolveProxy(((IRINode) nodeValue).getIRIValue()));
                 } else if (nodeValue.getNodeType() == LiteralNode.TYPE) {
                     return new Couple<>(property, decode((LiteralNode) nodeValue));
                 }
@@ -369,7 +369,7 @@ public class ProxyObject {
         while (iterator.hasNext()) {
             Node node = iterator.next().getObject();
             if (node.getNodeType() == IRINode.TYPE) {
-                result.add(repository.getProxy(((IRINode) node).getIRIValue()));
+                result.add(repository.resolveProxy(((IRINode) node).getIRIValue()));
             }
         }
         return result;
@@ -389,7 +389,7 @@ public class ProxyObject {
         while (iterator.hasNext()) {
             Node node = iterator.next().getSubject();
             if (node.getNodeType() == IRINode.TYPE) {
-                result.add(repository.getProxy(((IRINode) node).getIRIValue()));
+                result.add(repository.resolveProxy(((IRINode) node).getIRIValue()));
             }
         }
         return result;

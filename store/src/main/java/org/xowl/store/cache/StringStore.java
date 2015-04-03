@@ -46,6 +46,10 @@ public class StringStore {
      * The initial size of the buffer storing the bucket data
      */
     private static final int INIT_BUCKET_COUNT = 200;
+    /**
+     * The special key for missing string values
+     */
+    public static final int VALUE_NOT_PRESENT = -1;
 
     /**
      * The backing data file
@@ -149,6 +153,24 @@ public class StringStore {
     }
 
     /**
+     * Gets the key in this store for the specified value, or VALUE_NOT_PRESENT if it is not present
+     * @param value The value to look for
+     * @return The key used to retrieve the value, or VALUE_NOT_PRESENT if it is not present
+     */
+    public int contains(String value) {
+        if (value == null)
+            return VALUE_NOT_PRESENT;
+        int hash = value.hashCode();
+        byte[] bytes = value.getBytes(charset);
+        for (int i = 0; i != bucketCount; i++) {
+            if (buckets[i].getHash() == hash) {
+                return getInBucket(buckets[i], bytes);
+            }
+        }
+        return VALUE_NOT_PRESENT;
+    }
+
+    /**
      * Stores the specified value in this store
      *
      * @param value The value to store
@@ -156,7 +178,7 @@ public class StringStore {
      */
     public int store(String value) {
         if (value == null)
-            return -1;
+            return VALUE_NOT_PRESENT;
         int hash = value.hashCode();
         byte[] bytes = value.getBytes(charset);
         for (int i = 0; i != bucketCount; i++) {
@@ -182,6 +204,23 @@ public class StringStore {
      * @return The index of the entry
      */
     private int storeInBucket(HashBucket bucket, byte[] bytes) {
+        int index = getInBucket(bucket, bytes);
+        if (index == VALUE_NOT_PRESENT) {
+            // not yet in this bucket ...
+            index = dump(bytes);
+            bucket.add(index);
+        }
+        return index;
+    }
+
+    /**
+     * Gets the key in the bucket of the specified value, or -1 if it is not present
+     *
+     * @param bucket The bucket
+     * @param bytes  The bytes to look for
+     * @return The index of the entry, or VALUE_NOT_PRESENT if it is not present
+     */
+    private int getInBucket(HashBucket bucket, byte[] bytes) {
         for (int i = 0; i != bucket.getSize(); i++) {
             int index = bucket.getEntry(i);
             Entry entry = entries[bucket.getEntry(i)];
@@ -196,10 +235,7 @@ public class StringStore {
                     return index;
             }
         }
-        // not in this bucket yet ...
-        int index = dump(bytes);
-        bucket.add(index);
-        return index;
+        return VALUE_NOT_PRESENT;
     }
 
     /**
@@ -220,7 +256,7 @@ public class StringStore {
             entryCount++;
             return entryCount - 1;
         } catch (IOException ex) {
-            return -1;
+            return VALUE_NOT_PRESENT;
         }
     }
 

@@ -52,7 +52,7 @@ public class OWLTestSuiteGenerator {
         repository.load(logger, "http://owl.semanticweb.org/exports/testOntology.rdf");
         repository.load(logger, "http://owl.semanticweb.org/exports/all.rdf");
 
-        ProxyObject classTestCase = repository.getProxy("http://www.w3.org/2007/OWL/testOntology#TestCase");
+        ProxyObject classTestCase = repository.resolveProxy("http://www.w3.org/2007/OWL/testOntology#TestCase");
         for (ProxyObject test : classTestCase.getInstances()) {
             exportResources(test);
             generateCode(test);

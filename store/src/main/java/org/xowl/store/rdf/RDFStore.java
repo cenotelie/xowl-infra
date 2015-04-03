@@ -254,6 +254,20 @@ public class RDFStore implements ChangeListener {
     }
 
     /**
+     * Gets the RDF node for the given existing IRI
+     * If the IRI is not registered to a node in this store, return null
+     *
+     * @param iri An IRI
+     * @return The associated RDF node, or null if the IRI is not registered to any node
+     */
+    public IRINode getNodeExistingIRI(String iri) {
+        int key = sStore.contains(iri);
+        if (key == StringStore.VALUE_NOT_PRESENT)
+            return null;
+        return mapNodeIRIs.get(key);
+    }
+
+    /**
      * Gets a new RDF blank node
      *
      * @return A new RDF blank node

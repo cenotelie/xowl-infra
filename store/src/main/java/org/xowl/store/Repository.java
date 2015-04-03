@@ -128,6 +128,38 @@ public class Repository extends AbstractRepository {
     }
 
     /**
+     * Resolves a proxy on the existing entity having the specified IRI in the specified ontology
+     *
+     * @param ontology The ontology defining the entity
+     * @param iri      The IRI of an entity
+     * @return The proxy, or null if the entity does not exist
+     */
+    public ProxyObject getProxy(Ontology ontology, String iri) {
+        IRINode node = backend.getNodeExistingIRI(iri);
+        if (node == null)
+            return null;
+        return resolveProxy(ontology, node);
+    }
+
+    /**
+     * Gets a proxy on the existing entity having the specified IRI
+     * The containing ontology will be computed based on the entity's IRI
+     *
+     * @param iri The IRI of an entity
+     * @return The associated proxy, or null if the entity does not exist
+     */
+    public ProxyObject getProxy(String iri) {
+        String[] parts = iri.split("#");
+        Ontology ontology = ontologies.get(parts[0]);
+        if (ontology == null)
+            return null;
+        IRINode node = backend.getNodeExistingIRI(iri);
+        if (node == null)
+            return null;
+        return resolveProxy(ontology, node);
+    }
+
+    /**
      * Gets the proxy objects on entities defined in the specified ontology
      * An entity is defined within an ontology if at least one of its property is asserted in this ontology.
      * The IRI of this entity may or may not start with the IRI of the ontology, although it easier if it does.
@@ -143,19 +175,19 @@ public class Repository extends AbstractRepository {
                 Node subject = ((Quad) element).getSubject();
                 if (subject.getNodeType() != IRINode.TYPE)
                     return null;
-                return getProxy(ontology, (IRINode) subject);
+                return resolveProxy(ontology, (IRINode) subject);
             }
         }));
     }
 
     /**
-     * Gets a proxy on the entity represented by the specified node in the specified ontology
+     * Resolves a proxy on the entity represented by the specified node in the specified ontology
      *
      * @param ontology The ontology defining the entity
      * @param iriNode  The IRI node representing the entity
      * @return The proxy
      */
-    private ProxyObject getProxy(Ontology ontology, IRINode iriNode) {
+    private ProxyObject resolveProxy(Ontology ontology, IRINode iriNode) {
         Map<IRINode, ProxyObject> sub = proxies.get(ontology);
         if (sub == null) {
             sub = new HashMap<>();
@@ -170,27 +202,27 @@ public class Repository extends AbstractRepository {
     }
 
     /**
-     * Gets a proxy on the entity having the specified IRI in the specified ontology
+     * Resolves a proxy on the entity having the specified IRI in the specified ontology
      *
      * @param ontology The ontology defining the entity
      * @param iri      The IRI of an entity
      * @return The proxy
      */
-    public ProxyObject getProxy(Ontology ontology, String iri) {
-        return getProxy(ontology, backend.getNodeIRI(iri));
+    public ProxyObject resolveProxy(Ontology ontology, String iri) {
+        return resolveProxy(ontology, backend.getNodeIRI(iri));
     }
 
     /**
-     * Gets a proxy on the entity having the specified IRI
+     * Resolves a proxy on the entity having the specified IRI
      * The containing ontology will be computed based on the entity's IRI
      *
      * @param iri The IRI of an entity
      * @return The associated proxy
      */
-    public ProxyObject getProxy(String iri) {
+    public ProxyObject resolveProxy(String iri) {
         String[] parts = iri.split("#");
         Ontology ontology = resolveOntology(parts[0]);
-        return getProxy(ontology, backend.getNodeIRI(iri));
+        return resolveProxy(ontology, backend.getNodeIRI(iri));
     }
 
     /**
