@@ -271,6 +271,12 @@ public abstract class AbstractRepository {
                     ontology = loadResourceOWL(logger, iri, input);
                     break;
                 }
+                case SYNTAX_OWLXML: {
+                    Loader loader = new OWLXMLLoader();
+                    OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
+                    ontology = loadResourceOWL(logger, iri, input);
+                    break;
+                }
                 case SYNTAX_XOWL: {
                     Loader loader = new FunctionalXOWLLoader();
                     OWLLoaderResult input = loader.loadOWL(logger, reader, iri);

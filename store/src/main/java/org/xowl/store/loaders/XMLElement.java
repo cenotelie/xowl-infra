@@ -37,7 +37,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class XMLElement {
+class XMLElement implements Iterable<XMLElement> {
     /**
      * Reserved core syntax terms
      */
@@ -103,6 +103,15 @@ class XMLElement {
      */
     public String getNodeIRI() {
         return nodeIRI;
+    }
+
+    /**
+     * Gets the local name of this node
+     *
+     * @return The local name of this node
+     */
+    public String getNodeName() {
+        return node.getLocalName();
     }
 
     /**
@@ -367,6 +376,16 @@ class XMLElement {
      * @return An iterator over the Element children
      */
     public Iterator<XMLElement> getChildren() {
+        return iterator();
+    }
+
+    /**
+     * Gets an iterator over the Element children of the specified XML node
+     *
+     * @return An iterator over the Element children
+     */
+    @Override
+    public Iterator<XMLElement> iterator() {
         final NodeList list = node.getChildNodes();
         return new Iterator<XMLElement>() {
             int index = getNext(0);

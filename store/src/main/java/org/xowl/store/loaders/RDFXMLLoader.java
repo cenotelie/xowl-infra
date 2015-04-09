@@ -187,9 +187,8 @@ public class RDFXMLLoader implements Loader {
      * @param element A RDF document node
      */
     private void loadDocument(XMLElement element) {
-        Iterator<XMLElement> children = element.getChildren();
-        while (children.hasNext())
-            loadElement(children.next());
+        for (XMLElement child : element)
+            loadElement(child);
     }
 
     /**
@@ -260,9 +259,8 @@ public class RDFXMLLoader implements Loader {
             register(subject, property, literal);
         }
 
-        Iterator<XMLElement> children = element.getChildren();
-        while (children.hasNext())
-            loadElementProperty(children.next(), subject);
+        for (XMLElement child : element)
+            loadElementProperty(child, subject);
 
         return subject;
     }
@@ -520,9 +518,8 @@ public class RDFXMLLoader implements Loader {
             register(proxy, Vocabulary.rdfObject, value);
         }
 
-        Iterator<XMLElement> children = element.getChildren();
-        while (children.hasNext())
-            loadElementProperty(children.next(), value);
+        for (XMLElement child : element)
+            loadElementProperty(child, value);
     }
 
     /**
