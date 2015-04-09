@@ -38,7 +38,7 @@ public interface Loader {
      * @param reader The input to parse
      * @return The result of the parsing operation
      */
-    public ParseResult parse(Logger logger, Reader reader);
+    ParseResult parse(Logger logger, Reader reader);
 
     /**
      * Loads quads from the specified input
@@ -48,7 +48,7 @@ public interface Loader {
      * @param uri    The resource's URI
      * @return The loaded data
      */
-    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri);
+    RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri);
 
     /**
      * Loads axioms from the specified input
@@ -58,5 +58,5 @@ public interface Loader {
      * @param uri    The resource's URI
      * @return The loaded data
      */
-    public OWLLoaderResult loadOWL(Logger logger, Reader reader, String uri);
+    OWLLoaderResult loadOWL(Logger logger, Reader reader, String uri);
 }
