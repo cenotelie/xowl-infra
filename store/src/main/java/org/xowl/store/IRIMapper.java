@@ -20,6 +20,8 @@
 package org.xowl.store;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,28 +33,53 @@ import java.util.regex.Pattern;
  */
 public class IRIMapper {
     /**
+     * The default priority of simple (exact matches)
+     */
+    public static final int PRIORITY_SIMPLE_MATCH = 100;
+    /**
+     * The default priority of prefix matches
+     */
+    public static final int PRIORITY_PREFIX_MATCH = 50;
+    /**
+     * The default priority of regular expression matches
+     */
+    public static final int PRIORITY_REGEXP_MATCH = 20;
+    /**
+     * The default priority of identity HTTP matches (defer to downloading the resource)
+     */
+    public static final int PRIORITY_HTTP_MATCH = 0;
+
+    /**
      * Represents an entry in this mapper
      */
-    private static class Entry {
+    private static abstract class BaseEntry {
         /**
-         * The pattern to match
+         * The priority of this entry
          */
-        private final Pattern pattern;
+        protected final int priority;
         /**
          * The corresponding physical template
          */
-        private final String physical;
+        protected final String physical;
 
         /**
          * Initializes this entry
          *
-         * @param pattern  The pattern to match
+         * @param priority The priority of this entry
          * @param physical The corresponding physical template
          */
-        public Entry(Pattern pattern, String physical) {
-            this.pattern = pattern;
+        protected BaseEntry(int priority, String physical) {
+            this.priority = priority;
             this.physical = physical;
+        }
 
+        /**
+         * Gets the priority of this matcher, the greater the number the more priority it has
+         *
+         * @return The priority of this matcher, as a positive integer
+         */
+        public final int getPriority() {
+            return priority;
         }
 
         /**
@@ -61,9 +88,7 @@ public class IRIMapper {
          * @param iri An iri
          * @return true if this entry matches the iri
          */
-        public boolean matches(String iri) {
-            return pattern.matcher(iri).matches();
-        }
+        public abstract boolean matches(String iri);
 
         /**
          * Gets the physical pattern for the specified iri
@@ -71,6 +96,133 @@ public class IRIMapper {
          * @param iri An iri
          * @return The corresponding physical location
          */
+        public abstract String getLocationFor(String iri);
+    }
+
+    /**
+     * Represents a simple entry in this mapper matching a single IRI for a single resource
+     */
+    private static class SimpleEntry extends BaseEntry {
+        /**
+         * The iri to match
+         */
+        protected final String iri;
+
+        /**
+         * Initializes this entry
+         *
+         * @param iri      The iri to match
+         * @param physical The corresponding physical template
+         */
+        public SimpleEntry(String iri, String physical) {
+            super(PRIORITY_SIMPLE_MATCH, physical);
+            this.iri = iri;
+        }
+
+        /**
+         * Initializes this entry
+         *
+         * @param priority The priority of this entry
+         * @param iri      The iri to match
+         * @param physical The corresponding physical template
+         */
+        public SimpleEntry(int priority, String iri, String physical) {
+            super(priority, physical);
+            this.iri = iri;
+        }
+
+        @Override
+        public boolean matches(String iri) {
+            return this.iri.equals(iri);
+        }
+
+        @Override
+        public String getLocationFor(String iri) {
+            return physical;
+        }
+    }
+
+    /**
+     * Represents an entry in this mapper matching a prefix IRI for a set of resources
+     */
+    private static class PrefixEntry extends BaseEntry {
+        /**
+         * The iri prefix to match
+         */
+        protected final String prefix;
+
+        /**
+         * Initializes this entry
+         *
+         * @param prefix   The iri to match
+         * @param physical The corresponding physical template
+         */
+        public PrefixEntry(String prefix, String physical) {
+            super(PRIORITY_PREFIX_MATCH, physical);
+            this.prefix = prefix;
+        }
+
+        /**
+         * Initializes this entry
+         *
+         * @param priority The priority of this entry
+         * @param prefix   The iri to match
+         * @param physical The corresponding physical template
+         */
+        public PrefixEntry(int priority, String prefix, String physical) {
+            super(priority, physical);
+            this.prefix = prefix;
+        }
+
+        @Override
+        public boolean matches(String iri) {
+            return iri.startsWith(prefix);
+        }
+
+        @Override
+        public String getLocationFor(String iri) {
+            return physical + iri.substring(physical.length());
+        }
+    }
+
+    /**
+     * Represents an entry in this mapper matching IRIs with a regular expression
+     */
+    private static class RegExpEntry extends BaseEntry {
+        /**
+         * The pattern to match
+         */
+        protected final Pattern pattern;
+
+        /**
+         * Initializes this entry
+         *
+         * @param pattern  The pattern to match
+         * @param physical The corresponding physical template
+         */
+        public RegExpEntry(String pattern, String physical) {
+            super(PRIORITY_REGEXP_MATCH, physical);
+            this.pattern = Pattern.compile(pattern);
+        }
+
+        /**
+         * Initializes this entry
+         *
+         * @param priority The priority of this entry
+         * @param pattern  The pattern to match
+         * @param physical The corresponding physical template
+         */
+        public RegExpEntry(int priority, String pattern, String physical) {
+            super(priority, physical);
+            this.pattern = Pattern.compile(pattern);
+        }
+
+        @Override
+        public boolean matches(String iri) {
+            return pattern.matcher(iri).matches();
+        }
+
+        @Override
         public String getLocationFor(String iri) {
             Matcher matcher = pattern.matcher(iri);
             if (!matcher.matches())
@@ -96,9 +248,40 @@ public class IRIMapper {
     }
 
     /**
+     * Represents a HTTP matching entry mapping to identity IRIs
+     */
+    private static class HTTPEntry extends BaseEntry {
+        /**
+         * Initializes this entry
+         */
+        public HTTPEntry() {
+            super(PRIORITY_HTTP_MATCH, null);
+        }
+
+        /**
+         * Initializes this entry
+         *
+         * @param priority The priority of this entry
+         */
+        public HTTPEntry(int priority) {
+            super(priority, null);
+        }
+
+        @Override
+        public boolean matches(String iri) {
+            return iri.startsWith("http://");
+        }
+
+        @Override
+        public String getLocationFor(String iri) {
+            return iri;
+        }
+    }
+
+    /**
      * The entries in this mapper
      */
-    private final List<Entry> entries;
+    private final List<BaseEntry> entries;
 
     /**
      * Initializes this mapper
@@ -114,8 +297,18 @@ public class IRIMapper {
      * @param location The physical pattern's root
      */
     public void addSimpleMap(String iri, String location) {
-        Pattern pattern = Pattern.compile(iri);
-        entries.add(new Entry(pattern, location));
+        entries.add(new SimpleEntry(iri, location));
+    }
+
+    /**
+     * Adds the specified simple map
+     *
+     * @param priority The priority of this mapping
+     * @param iri      The iri prefix to match
+     * @param location The physical pattern's root
+     */
+    public void addSimpleMap(int priority, String iri, String location) {
+        entries.add(new SimpleEntry(priority, iri, location));
     }
 
     /**
@@ -125,8 +318,18 @@ public class IRIMapper {
      * @param location The physical pattern's root
      */
     public void addPrefixMap(String prefix, String location) {
-        Pattern pattern = Pattern.compile(prefix + "(.*)");
-        entries.add(new Entry(pattern, location + "\1"));
+        entries.add(new PrefixEntry(prefix, location));
+    }
+
+    /**
+     * Adds the specified map matched by a prefix
+     *
+     * @param priority The priority of this mapping
+     * @param prefix   The iri prefix to match
+     * @param location The physical pattern's root
+     */
+    public void addPrefixMap(int priority, String prefix, String location) {
+        entries.add(new PrefixEntry(priority, prefix, location));
     }
 
     /**
@@ -136,7 +339,34 @@ public class IRIMapper {
      * @param location The template for the physical location
      */
     public void addRegexpMap(String pattern, String location) {
-        entries.add(new Entry(Pattern.compile(pattern), location));
+        entries.add(new RegExpEntry(pattern, location));
+    }
+
+    /**
+     * Adds the specified map matched using a regular expression
+     *
+     * @param priority The priority of this mapping
+     * @param pattern  The regular expression to be matched by an iri
+     * @param location The template for the physical location
+     */
+    public void addRegexpMap(int priority, String pattern, String location) {
+        entries.add(new RegExpEntry(priority, pattern, location));
+    }
+
+    /**
+     * Adds a mapping of HTTP URIs to themselves
+     */
+    public void addHTTPMap() {
+        entries.add(new HTTPEntry());
+    }
+
+    /**
+     * Adds a mapping of HTTP URIs to themselves
+     *
+     * @param priority The priority of this mapping
+     */
+    public void addHTTPMap(int priority) {
+        entries.add(new HTTPEntry(priority));
     }
 
     /**
@@ -146,13 +376,22 @@ public class IRIMapper {
      * @return The corresponding physical pattern
      */
     public String get(String iri) {
-        for (Entry entry : entries) {
-            if (entry.matches(iri))
-                return entry.getLocationFor(iri);
+        List<BaseEntry> matches = new ArrayList<>(entries.size());
+        for (BaseEntry entry : entries) {
+            if (entry.matches(iri)) {
+                matches.add(entry);
+            }
         }
-        return null;
+        if (matches.isEmpty())
+            return null;
+        Collections.sort(matches, new Comparator<BaseEntry>() {
+            @Override
+            public int compare(BaseEntry e1, BaseEntry e2) {
+                return e2.getPriority() - e1.getPriority();
+            }
+        });
+        return matches.get(0).getLocationFor(iri);
     }
-
 
     /**
      * Returns a IRI mapper with the default mappings
@@ -169,6 +408,8 @@ public class IRIMapper {
         mapper.addRegexpMap("http://xowl.org/lang/(.*)", "resource:///org/xowl/lang/defs/\\1.fs");
         // map the OWL2 RL reasoning rules
         mapper.addRegexpMap("http://xowl.org/store/rules/(.*)", "resource:///org/xowl/store/rules/\\1.rdft");
+        // map HTTP protocol to itself
+        mapper.addHTTPMap();
         return mapper;
     }
 }
