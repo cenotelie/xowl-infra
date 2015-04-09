@@ -265,20 +265,10 @@ public abstract class AbstractRepository {
                     ontology = loadResourceRDF(logger, iri, input);
                     break;
                 }
-                case SYNTAX_FUNCTIONAL_OWL2: {
-                    Loader loader = new FunctionalOWL2Loader();
-                    OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
-                    ontology = loadResourceOWL(logger, iri, input);
-                    break;
-                }
-                case SYNTAX_OWLXML: {
-                    Loader loader = new OWLXMLLoader();
-                    OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
-                    ontology = loadResourceOWL(logger, iri, input);
-                    break;
-                }
+                case SYNTAX_FUNCTIONAL_OWL2:
+                case SYNTAX_OWLXML:
                 case SYNTAX_XOWL: {
-                    Loader loader = new FunctionalXOWLLoader();
+                    Loader loader = newOWLLoader(syntax);
                     OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
                     ontology = loadResourceOWL(logger, iri, input);
                     break;
@@ -346,6 +336,24 @@ public abstract class AbstractRepository {
      * @return The adapted loader
      */
     protected abstract Loader newRDFLoader(String syntax);
+
+    /**
+     * Creates a new OWL loader for the specified syntax
+     *
+     * @param syntax A OWL syntax
+     * @return The adapted loader
+     */
+    protected Loader newOWLLoader(String syntax) {
+        switch (syntax) {
+            case SYNTAX_FUNCTIONAL_OWL2:
+                return new FunctionalOWL2Loader();
+            case SYNTAX_OWLXML:
+                return new OWLXMLLoader();
+            case SYNTAX_XOWL:
+                return new FunctionalXOWLLoader();
+        }
+        return null;
+    }
 
     /**
      * Loads a collection of quads
