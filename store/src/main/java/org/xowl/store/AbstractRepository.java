@@ -57,35 +57,35 @@ public abstract class AbstractRepository {
     /**
      * Supported N-Triples syntax
      */
-    public static final String SYNTAX_NTRIPLES = "NTriples";
+    public static final String SYNTAX_NTRIPLES = "application/n-triples";
     /**
      * Supported N-Quads syntax
      */
-    public static final String SYNTAX_NQUADS = "NQuads";
+    public static final String SYNTAX_NQUADS = "application/n-quads";
     /**
      * Supported Turtle syntax
      */
-    public static final String SYNTAX_TURTLE = "Turtle";
+    public static final String SYNTAX_TURTLE = "text/turtle";
     /**
      * Supported RDF Transform syntax
      */
-    public static final String SYNTAX_RDFT = "RDFTransform";
+    public static final String SYNTAX_RDFT = "application/rdft";
     /**
      * Supported RDF/XML syntax
      */
-    public static final String SYNTAX_RDFXML = "RDF/XML";
+    public static final String SYNTAX_RDFXML = "application/rdf+xml";
     /**
      * Supported Functional OWL2 syntax
      */
-    public static final String SYNTAX_FUNCTIONAL_OWL2 = "FunctionalOWL";
+    public static final String SYNTAX_FUNCTIONAL_OWL2 = "text/owl-functional";
     /**
      * Supported OWL/XML OWL2 syntax
      */
-    public static final String SYNTAX_OWLXML = "OWL/XML";
+    public static final String SYNTAX_OWLXML = "application/owl+xml";
     /**
      * Supported Functional xOWL syntax
      */
-    public static final String SYNTAX_XOWL = "FunctionalXOWL";
+    public static final String SYNTAX_XOWL = "text/xowl-functional";
 
     /**
      * The IRI mapper
@@ -391,9 +391,9 @@ public abstract class AbstractRepository {
             return SYNTAX_RDFT;
         if (resource.endsWith(".rdf"))
             return SYNTAX_RDFXML;
-        if (resource.endsWith(".fs"))
+        if (resource.endsWith(".ofn") || resource.endsWith(".fs"))
             return SYNTAX_FUNCTIONAL_OWL2;
-        if (resource.endsWith(".owl"))
+        if (resource.endsWith(".owx") || resource.endsWith(".owl"))
             return SYNTAX_OWLXML;
         if (resource.endsWith(".xowl"))
             return SYNTAX_XOWL;
