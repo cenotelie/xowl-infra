@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,14 +16,14 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.hime.redist.Context;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
+import org.xowl.hime.redist.TextContext;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.Files;
@@ -100,7 +100,7 @@ public class RDFTLoader implements Loader {
             String content = Files.read(reader);
             RDFTLexer lexer = new RDFTLexer(content);
             RDFTParser parser = new RDFTParser(lexer);
-            parser.setRecover(false);
+            parser.setModeRecoverErrors(false);
             result = parser.parse();
         } catch (IOException ex) {
             logger.error(ex);
@@ -108,7 +108,7 @@ public class RDFTLoader implements Loader {
         }
         for (ParseError error : result.getErrors()) {
             logger.error(error);
-            Context context = result.getInput().getContext(error.getPosition());
+            TextContext context = result.getInput().getContext(error.getPosition(), error.getLength());
             logger.error(context.getContent());
             logger.error(context.getPointer());
         }
@@ -175,8 +175,8 @@ public class RDFTLoader implements Loader {
      * @param node An AST node
      */
     private void loadPrefixID(ASTNode node) {
-        String prefix = node.getChildren().get(0).getSymbol().getValue();
-        String uri = node.getChildren().get(1).getSymbol().getValue();
+        String prefix = node.getChildren().get(0).getValue();
+        String uri = node.getChildren().get(1).getValue();
         prefix = prefix.substring(0, prefix.length() - 1);
         uri = Utils.unescape(uri.substring(1, uri.length() - 1));
         namespaces.put(prefix, uri);
@@ -188,7 +188,7 @@ public class RDFTLoader implements Loader {
      * @param node An AST node
      */
     private void loadBase(ASTNode node) {
-        String value = node.getChildren().get(0).getSymbol().getValue();
+        String value = node.getChildren().get(0).getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
         baseURI = Utils.normalizeIRI(resource, baseURI, value);
     }
@@ -202,18 +202,18 @@ public class RDFTLoader implements Loader {
         String name = null;
         switch (node.getChildren().get(0).getSymbol().getID()) {
             case RDFTLexer.ID.IRIREF: {
-                name = node.getChildren().get(0).getSymbol().getValue();
+                name = node.getChildren().get(0).getValue();
                 name = name.substring(1, name.length() - 1);
                 name = Utils.normalizeIRI(resource, baseURI, name);
                 break;
             }
             case RDFTLexer.ID.PNAME_LN: {
-                name = node.getChildren().get(0).getSymbol().getValue();
+                name = node.getChildren().get(0).getValue();
                 name = getIRIForLocalName(name);
                 break;
             }
             case RDFTLexer.ID.PNAME_NS: {
-                name = node.getChildren().get(0).getSymbol().getValue();
+                name = node.getChildren().get(0).getValue();
                 name = Utils.unescape(name.substring(0, name.length() - 1));
                 name = namespaces.get(name);
                 break;
@@ -330,7 +330,7 @@ public class RDFTLoader implements Loader {
             case RDFTLexer.ID.QVAR:
                 return getNodeVariable(node, variables);
         }
-        throw new IllegalArgumentException("Unexpected node " + node.getSymbol().getValue());
+        throw new IllegalArgumentException("Unexpected node " + node.getValue());
     }
 
     /**
@@ -340,7 +340,7 @@ public class RDFTLoader implements Loader {
      * @return The equivalent RDF IRI node
      */
     private IRINode getNodeIRIRef(ASTNode node) {
-        String value = node.getSymbol().getValue();
+        String value = node.getValue();
         value = value.substring(1, value.length() - 1);
         return store.getNodeIRI(Utils.normalizeIRI(resource, baseURI, value));
     }
@@ -352,7 +352,7 @@ public class RDFTLoader implements Loader {
      * @return The equivalent RDF IRI node
      */
     private IRINode getNodePNameLN(ASTNode node) {
-        String value = node.getSymbol().getValue();
+        String value = node.getValue();
         return store.getNodeIRI(getIRIForLocalName(value));
     }
 
@@ -363,7 +363,7 @@ public class RDFTLoader implements Loader {
      * @return The equivalent RDF IRI node
      */
     private IRINode getNodePNameNS(ASTNode node) {
-        String value = node.getSymbol().getValue();
+        String value = node.getValue();
         value = Utils.unescape(value.substring(0, value.length() - 1));
         value = namespaces.get(value);
         return store.getNodeIRI(value);
@@ -376,7 +376,7 @@ public class RDFTLoader implements Loader {
      * @return The equivalent RDF blank node
      */
     private BlankNode getNodeBlank(ASTNode node) {
-        String value = node.getSymbol().getValue();
+        String value = node.getValue();
         value = Utils.unescape(value.substring(2));
         BlankNode blank = blanks.get(value);
         if (blank != null)
@@ -424,7 +424,7 @@ public class RDFTLoader implements Loader {
      * @return The equivalent RDF Integer Literal node
      */
     private LiteralNode getNodeInteger(ASTNode node) {
-        String value = node.getSymbol().getValue();
+        String value = node.getValue();
         return store.getLiteralNode(value, Vocabulary.xsdInteger, null);
     }
 
@@ -435,7 +435,7 @@ public class RDFTLoader implements Loader {
      * @return The equivalent RDF Decimal Literal node
      */
     private LiteralNode getNodeDecimal(ASTNode node) {
-        String value = node.getSymbol().getValue();
+        String value = node.getValue();
         return store.getLiteralNode(value, Vocabulary.xsdDecimal, null);
     }
 
@@ -446,7 +446,7 @@ public class RDFTLoader implements Loader {
      * @return The equivalent RDF Double Literal node
      */
     private LiteralNode getNodeDouble(ASTNode node) {
-        String value = node.getSymbol().getValue();
+        String value = node.getValue();
         return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
     }
 
@@ -463,13 +463,13 @@ public class RDFTLoader implements Loader {
         switch (childString.getSymbol().getID()) {
             case RDFTLexer.ID.STRING_LITERAL_SINGLE_QUOTE:
             case RDFTLexer.ID.STRING_LITERAL_QUOTE:
-                value = childString.getSymbol().getValue();
+                value = childString.getValue();
                 value = value.substring(1, value.length() - 1);
                 value = Utils.unescape(value);
                 break;
             case RDFTLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
             case RDFTLexer.ID.STRING_LITERAL_LONG_QUOTE:
-                value = childString.getSymbol().getValue();
+                value = childString.getValue();
                 value = value.substring(3, value.length() - 3);
                 value = Utils.unescape(value);
                 break;
@@ -482,25 +482,25 @@ public class RDFTLoader implements Loader {
         ASTNode suffixChild = node.getChildren().get(1);
         if (suffixChild.getSymbol().getID() == RDFTLexer.ID.LANGTAG) {
             // This is a language-tagged string
-            String tag = suffixChild.getSymbol().getValue();
+            String tag = suffixChild.getValue();
             return store.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
         } else if (suffixChild.getSymbol().getID() == RDFTLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
-            String iri = suffixChild.getSymbol().getValue();
+            String iri = suffixChild.getValue();
             iri = iri.substring(1, iri.length() - 1);
             return store.getLiteralNode(value, Utils.normalizeIRI(resource, baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == RDFTLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
-            String local = getIRIForLocalName(suffixChild.getSymbol().getValue());
+            String local = getIRIForLocalName(suffixChild.getValue());
             return store.getLiteralNode(value, local, null);
         } else if (suffixChild.getSymbol().getID() == RDFTLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
-            String ns = suffixChild.getSymbol().getValue();
+            String ns = suffixChild.getValue();
             ns = Utils.unescape(ns.substring(0, ns.length() - 1));
             ns = namespaces.get(ns);
             return store.getLiteralNode(value, ns, null);
         }
-        throw new IllegalArgumentException("Unexpected node " + node.getSymbol().getValue());
+        throw new IllegalArgumentException("Unexpected node " + node.getValue());
     }
 
     /**
@@ -511,7 +511,7 @@ public class RDFTLoader implements Loader {
      * @return The equivalent RDF variable node
      */
     private VariableNode getNodeVariable(ASTNode node, Map<String, VariableNode> variables) {
-        String name = node.getSymbol().getValue();
+        String name = node.getValue();
         name = name.substring(1);
         VariableNode variable = variables.get(name);
         if (variable == null) {

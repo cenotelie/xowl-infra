@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,13 +16,13 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.hime.redist.Context;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
+import org.xowl.hime.redist.TextContext;
 import org.xowl.hime.redist.parsers.InitializationException;
 import org.xowl.lang.owl2.EntityExpression;
 import org.xowl.lang.owl2.LiteralExpression;
@@ -52,7 +52,7 @@ public class FunctionalXOWLLoader extends FunctionalOWL2Loader {
             String content = Files.read(reader);
             FunctionalXOWLLexer lexer = new FunctionalXOWLLexer(content);
             FunctionalXOWLParser parser = new FunctionalXOWLParser(lexer);
-            parser.setRecover(false);
+            parser.setModeRecoverErrors(false);
             result = parser.parse();
         } catch (IOException ex) {
             logger.error(ex);
@@ -63,7 +63,7 @@ public class FunctionalXOWLLoader extends FunctionalOWL2Loader {
         }
         for (ParseError error : result.getErrors()) {
             logger.error(error);
-            Context context = result.getInput().getContext(error.getPosition());
+            TextContext context = result.getInput().getContext(error.getPosition(), error.getLength());
             logger.error(context.getContent());
             logger.error(context.getPointer());
         }
@@ -124,7 +124,7 @@ public class FunctionalXOWLLoader extends FunctionalOWL2Loader {
             case FunctionalXOWLParser.ID.literalInteger:
                 return loadExpIntegerLiteral(node.getChildren().get(0));
             case FunctionalXOWLLexer.ID.QVAR:
-                return context.resolveQVar(node.getSymbol().getValue());
+                return context.resolveQVar(node.getValue());
             default:
                 return super.loadExpLiteral(node);
         }
@@ -134,7 +134,7 @@ public class FunctionalXOWLLoader extends FunctionalOWL2Loader {
     protected EntityExpression loadExpEntity(ASTNode node) {
         switch (node.getSymbol().getID()) {
             case FunctionalXOWLLexer.ID.QVAR:
-                return context.resolveQVar(node.getSymbol().getValue());
+                return context.resolveQVar(node.getValue());
             default:
                 return super.loadExpEntity(node);
         }

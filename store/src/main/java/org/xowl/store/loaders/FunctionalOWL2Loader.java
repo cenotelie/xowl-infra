@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2015 Laurent Wouters and others
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,14 +16,14 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.hime.redist.Context;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
+import org.xowl.hime.redist.TextContext;
 import org.xowl.lang.owl2.*;
 import org.xowl.store.Vocabulary;
 import org.xowl.utils.Files;
@@ -70,7 +70,7 @@ public class FunctionalOWL2Loader implements Loader {
             String content = Files.read(reader);
             FunctionalOWL2Lexer lexer = new FunctionalOWL2Lexer(content);
             FunctionalOWL2Parser parser = new FunctionalOWL2Parser(lexer);
-            parser.setRecover(false);
+            parser.setModeRecoverErrors(false);
             result = parser.parse();
         } catch (IOException ex) {
             logger.error(ex);
@@ -78,7 +78,7 @@ public class FunctionalOWL2Loader implements Loader {
         }
         for (ParseError error : result.getErrors()) {
             logger.error(error);
-            Context context = result.getInput().getContext(error.getPosition());
+            TextContext context = result.getInput().getContext(error.getPosition(), error.getLength());
             logger.error(context.getContent());
             logger.error(context.getPointer());
         }
@@ -156,8 +156,8 @@ public class FunctionalOWL2Loader implements Loader {
      * @param node An AST node
      */
     protected void loadPrefixID(ASTNode node) {
-        String prefix = node.getChildren().get(0).getSymbol().getValue();
-        String uri = node.getChildren().get(1).getSymbol().getValue();
+        String prefix = node.getChildren().get(0).getValue();
+        String uri = node.getChildren().get(1).getValue();
         prefix = prefix.substring(0, prefix.length() - 1);
         uri = Utils.unescape(uri.substring(1, uri.length() - 1));
         namespaces.put(prefix, uri);
@@ -171,12 +171,12 @@ public class FunctionalOWL2Loader implements Loader {
      */
     protected String loadIRI(ASTNode node) {
         if (node.getSymbol().getID() == FunctionalOWL2Lexer.ID.IRIREF) {
-            String value = node.getSymbol().getValue();
+            String value = node.getValue();
             value = Utils.unescape(value.substring(1, value.length() - 1));
             return Utils.normalizeIRI(resource, baseURI, value);
         } else {
             // this is a local name
-            return getIRIForLocalName(node.getSymbol().getValue());
+            return getIRIForLocalName(node.getValue());
         }
     }
 
@@ -329,7 +329,7 @@ public class FunctionalOWL2Loader implements Loader {
     protected Axiom loadAxiomDeclaration(ASTNode node) {
         Declaration axiom = new Declaration();
         loadAxiomBase(node, axiom);
-        axiom.setType(node.getChildren().get(1).getSymbol().getValue());
+        axiom.setType(node.getChildren().get(1).getValue());
         axiom.setEntity(loadEntity(node.getChildren().get(2)));
         return axiom;
     }
@@ -1285,7 +1285,7 @@ public class FunctionalOWL2Loader implements Loader {
      * @return The anonymous individual
      */
     protected AnonymousIndividual loadExpAnonymousIndividual(ASTNode node) {
-        String name = node.getSymbol().getValue().substring(2);
+        String name = node.getValue().substring(2);
         AnonymousIndividual result = blanks.get(name);
         if (result != null)
             return result;
@@ -1477,7 +1477,7 @@ public class FunctionalOWL2Loader implements Loader {
      */
     protected Literal loadExpIntegerLiteral(ASTNode node) {
         Literal result = new Literal();
-        String value = node.getSymbol().getValue();
+        String value = node.getValue();
         result.setLexicalValue(value);
         IRI type = new IRI();
         type.setHasValue(Vocabulary.xsdInt);
@@ -1493,7 +1493,7 @@ public class FunctionalOWL2Loader implements Loader {
      */
     protected Literal loadExpStringLiteral(ASTNode node) {
         Literal result = new Literal();
-        String value = node.getChildren().get(0).getSymbol().getValue();
+        String value = node.getChildren().get(0).getValue();
         value = value.substring(1, value.length() - 1);
         result.setLexicalValue(value);
         IRI type = new IRI();
@@ -1510,7 +1510,7 @@ public class FunctionalOWL2Loader implements Loader {
      */
     protected Literal loadExpTypedLiteral(ASTNode node) {
         Literal result = new Literal();
-        String value = node.getChildren().get(0).getSymbol().getValue();
+        String value = node.getChildren().get(0).getValue();
         value = value.substring(1, value.length() - 1);
         result.setLexicalValue(value);
         IRI type = new IRI();
@@ -1527,10 +1527,10 @@ public class FunctionalOWL2Loader implements Loader {
      */
     protected Literal loadExpLangTaggedLiteral(ASTNode node) {
         Literal result = new Literal();
-        String value = node.getChildren().get(0).getSymbol().getValue();
+        String value = node.getChildren().get(0).getValue();
         value = value.substring(1, value.length() - 1);
         result.setLexicalValue(value);
-        String tag = node.getChildren().get(1).getSymbol().getValue();
+        String tag = node.getChildren().get(1).getValue();
         result.setLangTag(tag.substring(1));
         IRI type = new IRI();
         type.setHasValue(Vocabulary.rdfLangString);

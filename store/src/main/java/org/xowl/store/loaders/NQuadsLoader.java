@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,14 +16,14 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.hime.redist.Context;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
+import org.xowl.hime.redist.TextContext;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.Files;
@@ -70,7 +70,7 @@ public class NQuadsLoader implements Loader {
             String content = Files.read(reader);
             NQuadsLexer lexer = new NQuadsLexer(content);
             NQuadsParser parser = new NQuadsParser(lexer);
-            parser.setRecover(false);
+            parser.setModeRecoverErrors(false);
             result = parser.parse();
         } catch (IOException ex) {
             logger.error(ex);
@@ -78,7 +78,7 @@ public class NQuadsLoader implements Loader {
         }
         for (ParseError error : result.getErrors()) {
             logger.error(error);
-            Context context = result.getInput().getContext(error.getPosition());
+            TextContext context = result.getInput().getContext(error.getPosition(), error.getLength());
             logger.error(context.getContent());
             logger.error(context.getPointer());
         }
@@ -146,7 +146,7 @@ public class NQuadsLoader implements Loader {
      * @return The corresponding RDF node
      */
     private Node translateIRIREF(ASTNode node) {
-        String value = node.getSymbol().getValue();
+        String value = node.getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
         URI uri = URI.create(value);
         if (!uri.isAbsolute())
@@ -161,7 +161,7 @@ public class NQuadsLoader implements Loader {
      * @return The corresponding RDF node
      */
     private Node translateBlankNode(ASTNode node) {
-        String key = node.getSymbol().getValue();
+        String key = node.getValue();
         key = key.substring(2);
         BlankNode blank = blanks.get(key);
         if (blank != null)
@@ -178,21 +178,21 @@ public class NQuadsLoader implements Loader {
      * @return The corresponding RDF node
      */
     private Node translateLiteral(ASTNode node) {
-        String value = node.getSymbol().getValue();
+        String value = node.getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
         if (node.getChildren().size() == 0) {
             return store.getLiteralNode(value, Vocabulary.xsdString, null);
         }
         ASTNode child = node.getChildren().get(0);
         if (child.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
-            String type = child.getSymbol().getValue();
+            String type = child.getValue();
             type = Utils.unescape(type.substring(1, type.length() - 1));
             URI uri = URI.create(type);
             if (!uri.isAbsolute())
                 throw new IllegalArgumentException("IRI must be absolute");
             return store.getLiteralNode(value, type, null);
         } else if (child.getSymbol().getID() == NTriplesLexer.ID.LANGTAG) {
-            String lang = child.getSymbol().getValue();
+            String lang = child.getValue();
             lang = lang.substring(1);
             return store.getLiteralNode(value, Vocabulary.rdfLangString, lang);
         }
@@ -207,14 +207,14 @@ public class NQuadsLoader implements Loader {
      */
     private GraphNode translateGraphLabel(ASTNode node) {
         if (node.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
-            String value = node.getSymbol().getValue();
+            String value = node.getValue();
             value = Utils.unescape(value.substring(1, value.length() - 1));
             URI uri = URI.create(value);
             if (!uri.isAbsolute())
                 throw new IllegalArgumentException("IRI must be absolute");
             return store.getNodeIRI(value);
         } else {
-            String key = node.getSymbol().getValue();
+            String key = node.getValue();
             key = key.substring(2);
             GraphNode graph = graphs.get(key);
             if (graph == null) {
