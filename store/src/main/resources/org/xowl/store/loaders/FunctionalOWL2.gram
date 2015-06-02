@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2014 Laurent Wouters and others
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -243,42 +243,5 @@ grammar FunctionalOWL2
 		axiomSubAnnotationPropertyOf	-> 'SubAnnotationPropertyOf'! '('! annotations annotationProperty annotationProperty ')'! ;
 		axiomAnnotationPropertyDomain	-> 'AnnotationPropertyDomain'! '('! annotations annotationProperty entity ')'! ;
 		axiomAnnotationPropertyRange	-> 'AnnotationPropertyRange'! '('! annotations annotationProperty entity ')'! ;
-	}
-}
-
-grammar FunctionalXOWL : FunctionalOWL2
-{
-	options
-	{
-		Axiom = "document";
-		Separator = "BLANK";
-	}
-	terminals
-	{
-		QVAR				-> '?' [_a-zA-Z] [_a-zA-Z0-9]* ;
-		RULE_ELEMENT_META	-> 'META';
-		RULE_ELEMENT_NOT	-> 'NOT';
-	}
-	rules
-	{
-		// Add support for integer literals
-		literal						-> literalInteger^ ;
-		literalInteger				-> INTEGER ;
-
-		// Add support for the rules
-		element						-> rule^ ;
-		rule						-> 'Rule'! '('! iri ruleAntecedents ruleConsequents ')'! ;
-		ruleAntecedents				-> 'Antecedents'! '('! assertion* ')'!;
-		ruleConsequents				-> 'Consequents'! '('! assertion* ')'!;
-		assertion					-> axiomPattern
-									|  RULE_ELEMENT_META '('! axiomPattern+ ')'!
-									|  RULE_ELEMENT_NOT '('! axiomPattern+ ')'!
-									|  RULE_ELEMENT_META '('! RULE_ELEMENT_NOT '('! axiomPattern+ ')'! ')'!
-									|  RULE_ELEMENT_NOT '('! RULE_ELEMENT_META '('! axiomPattern+ ')'! ')'! ;
-		axiomPattern				-> axiom^ ;
-
-		// Add support for variables in expression of elements
-		literal						-> QVAR^ ;
-		entity						-> QVAR^ ;
 	}
 }

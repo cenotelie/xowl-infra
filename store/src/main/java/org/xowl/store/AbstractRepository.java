@@ -85,7 +85,7 @@ public abstract class AbstractRepository {
     /**
      * Supported Functional xOWL syntax
      */
-    public static final String SYNTAX_XOWL = "text/xowl-functional";
+    public static final String SYNTAX_XOWL = "text/xowl";
 
     /**
      * The IRI mapper
@@ -350,7 +350,7 @@ public abstract class AbstractRepository {
             case SYNTAX_OWLXML:
                 return new OWLXMLLoader();
             case SYNTAX_XOWL:
-                return new FunctionalXOWLLoader();
+                return new XOWLLoader();
         }
         return null;
     }

@@ -1,0 +1,413 @@
+/**********************************************************************
+ * Copyright (c) 2015 Laurent Wouters
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General
+ * Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contributors:
+ *     Laurent Wouters - lwouters@xowl.org
+ **********************************************************************/
+
+grammar XOWL
+{
+	options
+	{
+		Axiom = "document";
+		Separator = "BLANK";
+	}
+	terminals
+	{
+		fragment NEW_LINE		-> U+000D /* CR */
+								|  U+000A /* LF */
+								|  U+000D U+000A /* CR LF */
+								|  U+2028 /* LS */
+								|  U+2029 /* PS */ ;
+		fragment WHITE_SPACE	-> U+0020 | U+0009 | U+000B | U+000C ;
+		fragment COMMENT_OWL	-> '#' (.* - (.* NEW_LINE .*)) NEW_LINE ;
+		fragment COMMENT_CLJ	-> (';' | '#!') (.* - (.* NEW_LINE .*)) NEW_LINE ;
+		BLANK					-> NEW_LINE | WHITE_SPACE | COMMENT_OWL | COMMENT_CLJ ;
+
+
+		fragment PLX			-> '%' [a-fA-F0-9] [a-fA-F0-9]
+								|  '\\' ( [_~.!$&'()*+,;=/?#@%] | '-') ;
+		fragment PN_CHARS_BASE	-> [A-Za-z] | U+00C0 .. U+00D6 | U+00D8 .. U+00F6 | U+00F8 .. U+02FF | U+0370 .. U+037D
+											| U+037F .. U+1FFF | U+200C .. U+200D | U+2070 .. U+218F | U+2C00 .. U+2FEF
+											| U+3001 .. U+D7FF | U+F900 .. U+FDCF | U+FDF0 .. U+FFFD
+											| U+10000 .. U+EFFFF ;
+		fragment PN_CHARS_U		-> PN_CHARS_BASE | '_' | ':' ;
+		fragment PN_CHARS		-> PN_CHARS_U | '-' | [0-9] | U+00B7 | U+0300 .. U+036F | U+203F .. U+2040;
+		fragment PN_PREFIX		-> PN_CHARS_BASE ((PN_CHARS | '.')* PN_CHARS)? ;
+		fragment PN_LOCAL		-> (PN_CHARS_U | ':' | [0-9] | PLX) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX))? ;
+		context owl2
+		{
+			LANGTAG					-> '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ;
+			IRIREF					-> '<' (
+										. - (U+0000 .. U+0020 | [<>"{}|^`\\])
+										| '\\u' [a-fA-F0-9]{4}
+										| '\\U' [a-fA-F0-9]{8}
+									)* '>' ;
+			PNAME_NS				-> PN_PREFIX? ':' ;
+			PNAME_LN				-> PNAME_NS PN_LOCAL ;
+			BLANK_NODE_LABEL		-> '_:' (PN_CHARS_U | [0-9]) ((PN_CHARS | '.')* PN_CHARS)? ;
+			OWL2_INTEGER					-> [0-9]+ ;
+			OWL2_STRING					-> '"' (
+										. - (U+0022 | U+005C | U+000A | U+000D)
+										| '\\' ([tbnrf"'] | '\\')
+										| '\\u' [a-fA-F0-9]{4}
+										| '\\U' [a-fA-F0-9]{8}
+										)* '"' ;
+			OWL2_LP					-> '(' ;
+			OWL2_RP					-> ')' ;
+			OWL2_PREFIX_MAP			-> '=' ;
+			OWL2_LITERAL_TYPE		-> '^^' ;
+		}
+
+		context xowl
+		{
+			XOWL_QVAR				-> '?' [_a-zA-Z] [_a-zA-Z0-9]* ;
+			RULE_BLOCK_RULE			-> 'Rule';
+			RULE_BLOCK_ANTECEDENTS	-> 'Antecedents';
+			RULE_BLOCK_CONSEQUENTS	-> 'Consequents';
+			RULE_BLOCK_GUARD		-> 'Guard';
+			RULE_ELEMENT_META		-> 'Meta';
+			RULE_ELEMENT_NOT		-> 'Not';
+        }
+
+		fragment SYMBOL_CHAR_FIRST	-> . - ([0-9] | '^' | '`' | '\'' | '"' | '#' | '~' | '@' | ':' | '/' | '%' | '(' | ')' | '[' | ']' | '{' | '}'
+											| WHITE_SPACE
+											| NEW_LINE ) ;
+		fragment SYMBOL_CHAR		-> SYMBOL_CHAR_FIRST | [0-9] | '^' | '\'' | '#' | '~' | '@' | '%' ;
+		fragment SYMBOL_ELEM		-> SYMBOL_CHAR_FIRST SYMBOL_CHAR* (':' SYMBOL_CHAR+)* ;
+        context clojure
+        {
+			CLJ_SYMBOL			-> '.' | '/' |  SYMBOL_ELEM ('/' SYMBOL_ELEM)? ;
+			CLJ_KEYWORD			-> ':' ':'? ((SYMBOL_CHAR_FIRST | [0-9]) SYMBOL_CHAR* (':' SYMBOL_CHAR+)*) ('/' ((SYMBOL_CHAR_FIRST | [0-9]) SYMBOL_CHAR* (':' SYMBOL_CHAR+)*))? ':'? ;
+			LITERAL_STRING		-> '"'  ( (. - ('"' | '\\'))
+												| '\\' ('\'' | '"' | '\\' | [btnfr])
+												| '\\' [0-7]
+												| '\\' [0-7] [0-7]
+												| '\\' [0-3] [0-7] [0-7]
+												| '\\' [u] [a-fA-F0-9] [a-fA-F0-9] [a-fA-F0-9] [a-fA-F0-9]
+											)* '"' ;
+			LITERAL_CHAR		-> '\\' ( (. - NEW_LINE)
+											| 'newline'
+											| 'space'
+											| 'tab'
+											| 'formfeed'
+											| 'backspace'
+											| 'return'
+											| 'o' [0-7]
+											| 'o' [0-7] [0-7]
+											| 'o' [0-3] [0-7] [0-7]
+											| [u] [a-fA-F0-9] [a-fA-F0-9] [a-fA-F0-9] [a-fA-F0-9]
+										) ;
+			LITERAL_NIL			-> 'nil' ;
+			LITERAL_TRUE		-> 'true' ;
+			LITERAL_FALSE		-> 'false' ;
+			LITERAL_INTEGER		-> ('+'|'-')?
+									( 	'0'
+										| [1-9] [0-9]*
+										| '0' [xX] [0-9A-Fa-f]+
+										| '0' [0-7]+
+										| [1-9] [0-9]? [rR] [0-9A-Za-z]+
+										| '0' [0-9]+
+									)
+									'N'? ;
+			LITERAL_RATIO		-> ('+'|'-')? [0-9]+ '/' [0-9]+ ;
+			LITERAL_FLOAT		-> ('+'|'-')? [0-9]+
+									( '.' [0-9]* )?
+									( [eE] ('+'|'-')? [0-9]+ )?
+									'M'? ;
+			LITERAL_ARGUMENT	-> '%' ([0-9]+ | '&')? ;
+			CLJ_LP				-> '(' ;
+			CLJ_RP				-> ')' ;
+			CLJ_LB				-> '[' ;
+			CLJ_RB				-> ']' ;
+			CLJ_LC				-> '{' ;
+			CLJ_RC				-> '}' ;
+			CLJ_DISPATCH		-> '#' ;
+			CLJ_SET_SEPARATOR	-> ',' ;
+			CLJ_QUOTE			-> '\'' ;
+			CLJ_DEREF			-> '@' ;
+			CLJ_METADATA		-> '^' ;
+			CLJ_IGNORE			-> '#_' ;
+			CLJ_SYNTAX_QUOTE	-> '`' ;
+			CLJ_UNQUOTE			-> '~' ;
+			CLJ_UNQUOTE_SPLICE	-> '~@' ;
+			CLJ_CONDITIONAL		-> '#?' '@'? ;
+			CLJ_XOWL_QUERY		-> 'xowl-query' ;
+			CLJ_XOWL_INSERT		-> 'xowl-insert' ;
+        }
+	}
+	rules
+	{
+		/*
+			Vanilla functional OWL2 grammar
+		*/
+
+		document        -> #owl2{ prefixes ontology };
+		prefixes		-> prefix* ;
+		prefix			-> 'Prefix'! OWL2_LP! PNAME_NS OWL2_PREFIX_MAP! IRIREF OWL2_RP! ;
+		ontology		-> 'Ontology'! OWL2_LP! ontologyIRI imports annotations elements OWL2_RP! ;
+		ontologyIRI		-> iri? iri? ;
+		iri				-> IRIREF^ | PNAME_LN^ ;
+		imports			-> import* ;
+		import			-> 'Import'! OWL2_LP! iri^ OWL2_RP! ;
+		elements		-> element* ;
+		element			-> axiom^ ;
+
+		annotations			-> annotation* ;
+		annotation			-> 'Annotation'! OWL2_LP! annotations annotationProperty annotationValue OWL2_RP! ;
+		annotationSubject	-> entity^ | anonymousIndividual^ ;
+		annotationProperty	-> entity^ ;
+		annotationValue		-> entity^ | anonymousIndividual^ | literal^ ;
+
+		entity						-> iri^ ;
+		individual					-> anonymousIndividual^ | namedIndividual^ ;
+		namedIndividual				-> entity^ ;
+		anonymousIndividual			-> BLANK_NODE_LABEL^ ;
+		literal						-> literalTyped^ | literalString^ | literalLang^ ;
+		literalTyped				-> OWL2_STRING OWL2_LITERAL_TYPE! iri ;
+		literalString				-> OWL2_STRING ;
+		literalLang					-> OWL2_STRING LANGTAG ;
+
+		expObjectProperty			-> entity^ | expInverseObjectProperty^ ;
+		expObjectPropertyChain		-> 'ObjectPropertyChain'! OWL2_LP! expObjectProperty expObjectProperty+ OWL2_RP! ;
+		expInverseObjectProperty	-> 'ObjectInverseOf'! OWL2_LP! expObjectProperty OWL2_RP! ;
+		expDataProperty				-> entity^ ;
+		expDatarange				-> entity^
+									|  expDataIntersectionOf^
+									|  expDataUnionOf^
+									|  expDataComplementOf^
+									|  expDataOneOf^
+									|  expDatatypeRestriction^ ;
+		expDataIntersectionOf		-> 'DataIntersectionOf'! OWL2_LP! expDatarange expDatarange+ OWL2_RP! ;
+		expDataUnionOf				-> 'DataUnionOf'! OWL2_LP! expDatarange expDatarange+ OWL2_RP! ;
+		expDataComplementOf			-> 'DataComplementOf'! OWL2_LP! expDatarange OWL2_RP! ;
+		expDataOneOf				-> 'DataOneOf'! OWL2_LP! literal+ OWL2_RP! ;
+		expDatatypeRestriction		-> 'DatatypeRestriction'! OWL2_LP! entity expRestriction+ OWL2_RP! ;
+		expRestriction				-> entity literal ;
+		expClass					-> entity^
+									|  expObjectInterfactionOf^
+									|  expObjectUnionOf^
+									|  expObjectComplementOf^
+									|  expObjectOneOf^
+									|  expObjectSomeValuesFrom^
+									|  expObjectAllValuesFrom^
+									|  expObjectHasValue^
+									|  expObjectHasSelf^
+									|  expObjectMinCardinality^
+									|  expObjectMaxCardinality^
+									|  expObjectExactCardinality^
+									|  expDataSomeValuesFrom^
+									|  expDataAllValuesFrom^
+									|  expDataHasValue^
+									|  expDataMinCardinality^
+									|  expDataMaxCardinality^
+									|  expDataExactCardinality^ ;
+		expObjectInterfactionOf		-> 'ObjectIntersectionOf'! OWL2_LP! expClass expClass+ OWL2_RP! ;
+		expObjectUnionOf			-> 'ObjectUnionOf'! OWL2_LP! expClass expClass+ OWL2_RP! ;
+		expObjectComplementOf		-> 'ObjectComplementOf'! OWL2_LP! expClass OWL2_RP! ;
+		expObjectOneOf				-> 'ObjectOneOf'! OWL2_LP! individual+ OWL2_RP! ;
+		expObjectSomeValuesFrom		-> 'ObjectSomeValuesFrom'! OWL2_LP! expObjectProperty expClass OWL2_RP! ;
+		expObjectAllValuesFrom		-> 'ObjectAllValuesFrom'! OWL2_LP! expObjectProperty expClass OWL2_RP! ;
+		expObjectHasValue			-> 'ObjectHasValue'! OWL2_LP! expObjectProperty individual OWL2_RP! ;
+		expObjectHasSelf			-> 'ObjectHasSelf'! OWL2_LP! expObjectProperty OWL2_RP! ;
+		expObjectMinCardinality		-> 'ObjectMinCardinality'! OWL2_LP! OWL2_INTEGER expObjectProperty expClass? OWL2_RP! ;
+		expObjectMaxCardinality		-> 'ObjectMaxCardinality'! OWL2_LP! OWL2_INTEGER expObjectProperty expClass? OWL2_RP! ;
+		expObjectExactCardinality	-> 'ObjectExactCardinality'! OWL2_LP! OWL2_INTEGER expObjectProperty expClass? OWL2_RP! ;
+		expDataSomeValuesFrom		-> 'DataSomeValuesFrom'! OWL2_LP! expDataProperty+ expDatarange OWL2_RP! ;
+		expDataAllValuesFrom		-> 'DataAllValuesFrom'! OWL2_LP! expDataProperty+ expDatarange OWL2_RP! ;
+		expDataHasValue				-> 'DataHasValue'! OWL2_LP! expDataProperty literal OWL2_RP! ;
+		expDataMinCardinality		-> 'DataMinCardinality'! OWL2_LP! OWL2_INTEGER expDataProperty expDatarange? OWL2_RP! ;
+		expDataMaxCardinality		-> 'DataMaxCardinality'! OWL2_LP! OWL2_INTEGER expDataProperty expDatarange? OWL2_RP! ;
+		expDataExactCardinality		-> 'DataExactCardinality'! OWL2_LP! OWL2_INTEGER expDataProperty expDatarange? OWL2_RP! ;
+
+
+		axiom						-> axiomDeclaration^
+									|  axiomClass^
+									|  axiomObjectProperty^
+									|  axiomDataProperty^
+									|  axiomDatatype^
+									|  axiomHasKey^
+									|  axiomAssertion^
+									|  axiomAnnotation^ ;
+
+		axiomDeclaration			-> 'Declaration'! OWL2_LP! annotations 'Class' OWL2_LP! entity OWL2_RP! OWL2_RP!
+									|  'Declaration'! OWL2_LP! annotations 'Datatype' OWL2_LP! entity OWL2_RP! OWL2_RP!
+									|  'Declaration'! OWL2_LP! annotations 'ObjectProperty' OWL2_LP! entity OWL2_RP! OWL2_RP!
+									|  'Declaration'! OWL2_LP! annotations 'DataProperty' OWL2_LP! entity OWL2_RP! OWL2_RP!
+									|  'Declaration'! OWL2_LP! annotations 'AnnotationProperty' OWL2_LP! entity OWL2_RP! OWL2_RP!
+									|  'Declaration'! OWL2_LP! annotations 'NamedIndividual' OWL2_LP! entity OWL2_RP! OWL2_RP! ;
+
+		axiomClass					-> axiomSubClassOf^
+									|  axiomEquivalentClasses^
+									|  axiomDisjointClasses^
+									|  axiomDisjointUnion^ ;
+		axiomSubClassOf				-> 'SubClassOf'! OWL2_LP! annotations expClass expClass OWL2_RP! ;
+		axiomEquivalentClasses		-> 'EquivalentClasses'! OWL2_LP! annotations expClass expClass+ OWL2_RP! ;
+		axiomDisjointClasses		-> 'DisjointClasses'! OWL2_LP! annotations expClass expClass+ OWL2_RP! ;
+		axiomDisjointUnion			-> 'DisjointUnion'! OWL2_LP! annotations entity expClass expClass+ OWL2_RP! ;
+
+		axiomObjectProperty			-> axiomSubOjectPropertyOf^
+									|  axiomEquivalentObjectProperties^
+									|  axiomDisjointObjectProperties^
+									|  axiomInverseObjectProperties^
+									|  axiomObjectPropertyDomain^
+									|  axiomObjectPropertyRange^
+									|  axiomFunctionalObjectProperty^
+									|  axiomInverseFunctionalObjectProperty^
+									|  axiomReflexiveObjectProperty^
+									|  axiomIrreflexiveObjectProperty^
+									|  axiomSymmetricObjectProperty^
+									|  axiomAsymmetricObjectProperty^
+									|  axiomTransitiveObjectProperty^ ;
+		axiomSubOjectPropertyOf		-> 'SubObjectPropertyOf'! OWL2_LP! annotations (expObjectProperty | expObjectPropertyChain) expObjectProperty OWL2_RP! ;
+		axiomEquivalentObjectProperties	-> 'EquivalentObjectProperties'! OWL2_LP! annotations expObjectProperty expObjectProperty+ OWL2_RP! ;
+		axiomDisjointObjectProperties	-> 'DisjointObjectProperties'! OWL2_LP! annotations expObjectProperty expObjectProperty+ OWL2_RP! ;
+		axiomInverseObjectProperties	-> 'InverseObjectProperties'! OWL2_LP! annotations expObjectProperty expObjectProperty OWL2_RP! ;
+		axiomObjectPropertyDomain		-> 'ObjectPropertyDomain'! OWL2_LP! annotations expObjectProperty expClass OWL2_RP! ;
+		axiomObjectPropertyRange		-> 'ObjectPropertyRange'! OWL2_LP! annotations expObjectProperty expClass OWL2_RP! ;
+		axiomFunctionalObjectProperty	-> 'FunctionalObjectProperty'! OWL2_LP! annotations expObjectProperty OWL2_RP! ;
+		axiomInverseFunctionalObjectProperty -> 'InverseFunctionalObjectProperty'! OWL2_LP! annotations expObjectProperty OWL2_RP! ;
+		axiomReflexiveObjectProperty	-> 'ReflexiveObjectProperty'! OWL2_LP! annotations expObjectProperty OWL2_RP! ;
+		axiomIrreflexiveObjectProperty	-> 'IrreflexiveObjectProperty'! OWL2_LP! annotations expObjectProperty OWL2_RP! ;
+		axiomSymmetricObjectProperty	-> 'SymmetricObjectProperty'! OWL2_LP! annotations expObjectProperty OWL2_RP! ;
+		axiomAsymmetricObjectProperty	-> 'AsymmetricObjectProperty'! OWL2_LP! annotations expObjectProperty OWL2_RP! ;
+		axiomTransitiveObjectProperty	-> 'TransitiveObjectProperty'! OWL2_LP! annotations expObjectProperty OWL2_RP! ;
+
+		axiomDataProperty			-> axiomSubDataPropertyOf^
+									|  axiomEquivalentDataProperties^
+									|  axiomDisjointDataProperties^
+									|  axiomDataPropertyDomain^
+									|  axiomDataPropertyRange^
+									|  axiomFunctionalDataProperty^ ;
+		axiomSubDataPropertyOf			-> 'SubDataPropertyOf'! OWL2_LP! annotations expDataProperty expDataProperty OWL2_RP! ;
+		axiomEquivalentDataProperties	-> 'EquivalentDataProperties'! OWL2_LP! annotations expDataProperty expDataProperty+ OWL2_RP! ;
+		axiomDisjointDataProperties		-> 'DisjointDataProperties'! OWL2_LP! annotations expDataProperty expDataProperty+ OWL2_RP! ;
+		axiomDataPropertyDomain			-> 'DataPropertyDomain'! OWL2_LP! annotations expDataProperty expClass OWL2_RP! ;
+		axiomDataPropertyRange			-> 'DataPropertyRange'! OWL2_LP! annotations expDataProperty expDatarange OWL2_RP! ;
+		axiomFunctionalDataProperty		-> 'FunctionalDataProperty'! OWL2_LP! annotations expDataProperty OWL2_RP! ;
+
+		axiomDatatype					-> 'DatatypeDefinition'! OWL2_LP! annotations entity expDatarange OWL2_RP! ;
+
+		axiomHasKey						-> 'HasKey'! OWL2_LP! annotations expClass axiomHasKeyObjectProperties axiomHasKeyDataProperties OWL2_RP! ;
+		axiomHasKeyObjectProperties		-> OWL2_LP! expObjectProperty* OWL2_RP! ;
+		axiomHasKeyDataProperties		-> OWL2_LP! expDataProperty* OWL2_RP! ;
+
+		axiomAssertion					-> axiomSameIndividual^
+										|  axiomDifferentIndividuals^
+										|  axiomClassAssertion^
+										|  axiomObjectPropertyAssertion^
+										|  axiomNegativeObjectPropertyAssertion^
+										|  axiomDataPropertyAssertion^
+										|  axiomNegativeDataPropertyAssertion^ ;
+		axiomSameIndividual					-> 'SameIndividual'! OWL2_LP! annotations individual individual+ OWL2_RP! ;
+		axiomDifferentIndividuals			-> 'DifferentIndividuals'! OWL2_LP! annotations individual individual+ OWL2_RP! ;
+		axiomClassAssertion					-> 'ClassAssertion'! OWL2_LP! annotations expClass individual OWL2_RP! ;
+		axiomObjectPropertyAssertion		-> 'ObjectPropertyAssertion'! OWL2_LP! annotations expObjectProperty individual individual OWL2_RP! ;
+		axiomNegativeObjectPropertyAssertion-> 'NegativeObjectPropertyAssertion'! OWL2_LP! annotations expObjectProperty individual individual OWL2_RP! ;
+		axiomDataPropertyAssertion			-> 'DataPropertyAssertion'! OWL2_LP! annotations expDataProperty individual literal OWL2_RP! ;
+		axiomNegativeDataPropertyAssertion	-> 'NegativeDataPropertyAssertion'! OWL2_LP! annotations expDataProperty individual literal OWL2_RP! ;
+
+		axiomAnnotation					-> axiomAnnotationAssertion
+										|  axiomSubAnnotationPropertyOf
+										|  axiomAnnotationPropertyDomain
+										|  axiomAnnotationPropertyRange ;
+		axiomAnnotationAssertion		-> 'AnnotationAssertion'! OWL2_LP! annotations annotationProperty annotationSubject annotationValue OWL2_RP! ;
+		axiomSubAnnotationPropertyOf	-> 'SubAnnotationPropertyOf'! OWL2_LP! annotations annotationProperty annotationProperty OWL2_RP! ;
+		axiomAnnotationPropertyDomain	-> 'AnnotationPropertyDomain'! OWL2_LP! annotations annotationProperty entity OWL2_RP! ;
+		axiomAnnotationPropertyRange	-> 'AnnotationPropertyRange'! OWL2_LP! annotations annotationProperty entity OWL2_RP! ;
+
+
+		/*
+			Clojure grammar
+		*/
+
+		atom				-> CLJ_SYMBOL^
+							|  CLJ_KEYWORD^
+							|  LITERAL_STRING^
+							|  LITERAL_CHAR^
+							|  LITERAL_NIL^
+							|  LITERAL_TRUE^
+							|  LITERAL_FALSE^
+							|  LITERAL_INTEGER^
+							|  LITERAL_FLOAT^
+							|  LITERAL_RATIO^
+							|  LITERAL_ARGUMENT^ ;
+		list				-> CLJ_LP! form* CLJ_RP! ;
+		vector				-> CLJ_LB! form* CLJ_RB! ;
+		map					-> CLJ_LC! (couple ((CLJ_SET_SEPARATOR!)? couple)*)? CLJ_RC! ;
+		couple				-> form form ;
+		set					-> CLJ_DISPATCH! CLJ_LB! form* CLJ_RB! ;
+		constructor			-> CLJ_DISPATCH! CLJ_SYMBOL (vector | map) ;
+		quote				-> CLJ_QUOTE! form ;
+		deref				-> CLJ_DEREF! form ;
+		metadata			-> CLJ_METADATA! map form
+							|  CLJ_METADATA! CLJ_SYMBOL form
+							|  CLJ_METADATA! CLJ_KEYWORD form
+							|  CLJ_METADATA! LITERAL_STRING form ;
+		regexp				-> CLJ_DISPATCH! LITERAL_STRING ;
+		var_quote			-> CLJ_DISPATCH! CLJ_QUOTE! form ;
+		anon_function		-> CLJ_DISPATCH! list ;
+		ignore				-> CLJ_IGNORE! form ;
+		syntax_quote		-> CLJ_SYNTAX_QUOTE! form ;
+		unquote				-> CLJ_UNQUOTE! form ;
+		unquote_splicing	-> CLJ_UNQUOTE_SPLICE! form ;
+		conditional			-> CLJ_CONDITIONAL! form ;
+
+		form				-> atom^
+							|  list^ | vector^ | map^ | set^
+							|  constructor^
+							|  quote^ | deref^ | metadata^
+							|  regexp^
+							|  var_quote^ | anon_function^ | ignore^
+							|  syntax_quote^ | unquote^ | unquote_splicing^
+							|  conditional^ ;
+
+
+		/*
+			xOWL extensions
+		*/
+
+		// Add support for integer literals
+        literal						-> literalInteger^ ;
+		literalInteger				-> OWL2_INTEGER ;
+		// Add support for the rules
+		element						-> rule^ ;
+		rule						-> #xowl { RULE_BLOCK_RULE! OWL2_LP! iri ruleAntecedents ruleConsequents ruleGuard OWL2_RP! } ;
+		ruleAntecedents				-> RULE_BLOCK_ANTECEDENTS! OWL2_LP! assertion* OWL2_RP!;
+		ruleConsequents				-> RULE_BLOCK_CONSEQUENTS! OWL2_LP! assertion* OWL2_RP!;
+		ruleGuard					-> (RULE_BLOCK_GUARD! OWL2_LP! #clojure{ form } OWL2_RP!)? ;
+		assertion					-> axiomPattern
+									|  RULE_ELEMENT_META OWL2_LP! axiomPattern+ OWL2_RP!
+									|  RULE_ELEMENT_NOT OWL2_LP! axiomPattern+ OWL2_RP!
+									|  RULE_ELEMENT_META OWL2_LP! RULE_ELEMENT_NOT OWL2_LP! axiomPattern+ OWL2_RP! OWL2_RP!
+									|  RULE_ELEMENT_NOT OWL2_LP! RULE_ELEMENT_META OWL2_LP! axiomPattern+ OWL2_RP! OWL2_RP! ;
+		axiomPattern				-> axiom^ ;
+		// Add support for variables in expression of elements in rules
+		literal						-> XOWL_QVAR^ ;
+		entity						-> XOWL_QVAR^ ;
+		// Adds the FunctionDefinition axiom
+		axiom						-> axiomFunctionDefinition^ ;
+		axiomFunctionDefinition		-> 'FunctionDefinition'! OWL2_LP! entity #clojure{ form } OWL2_RP! ;
+		// Adds expression xOWL-specific syntax to clojure
+		form						-> xowl_query^ | xowl_insert^ ;
+		xowl_query					-> CLJ_XOWL_QUERY! CLJ_LP! xowl_query_vars xowl_query_assertions CLJ_RP! ;
+		xowl_query_vars				-> CLJ_LP! #xowl{ XOWL_QVAR* } CLJ_RP! ;
+		xowl_query_assertions		-> #owl2{ #xowl{ xowl_query_assertion+ } };
+		xowl_query_assertion		-> axiomPattern
+									|  RULE_ELEMENT_NOT OWL2_LP! axiomPattern+ OWL2_RP! ;
+		xowl_insert					-> CLJ_XOWL_INSERT! CLJ_LP! xowl_query_assertions CLJ_RP! ;
+	}
+}
