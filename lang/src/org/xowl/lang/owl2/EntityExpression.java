@@ -3,5 +3,5 @@
 */
 package org.xowl.lang.owl2;
 
-public interface EntityExpression extends org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.DataPropertyExpression, org.xowl.lang.owl2.Datarange, org.xowl.lang.owl2.IndividualExpression, org.xowl.lang.owl2.ObjectPropertyExpression, org.xowl.lang.actions.FunctionExpression, org.xowl.lang.owl2.Expression {
+public interface EntityExpression extends org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.DataPropertyExpression, org.xowl.lang.owl2.Datarange, org.xowl.lang.owl2.IndividualExpression, org.xowl.lang.owl2.ObjectPropertyExpression, org.xowl.lang.actions.FunctionExpression {
 }

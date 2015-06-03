@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class Annotation implements org.xowl.lang.owl2.Annotation_OR_AnnotationAssertion, org.xowl.lang.owl2.Annotation_OR_Axiom_OR_Ontology, org.xowl.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno1 {
+public class Annotation implements org.xowl.lang.owl2.Annotation_OR_Axiom_OR_Ontology, org.xowl.lang.owl2.Annotation_OR_AnnotationAssertion, org.xowl.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno4 {
     // <editor-fold defaultstate="collapsed" desc="Property annotValue">
     private static class annotValue_impl implements org.xowl.lang.owl2.Annotation_OR_AnnotationAssertion.annotValue {
         private org.xowl.lang.owl2.Annotation domain;
@@ -112,7 +112,7 @@ public class Annotation implements org.xowl.lang.owl2.Annotation_OR_AnnotationAs
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property annotProperty">
-    private static class annotProperty_impl implements org.xowl.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno1.annotProperty {
+    private static class annotProperty_impl implements org.xowl.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno4.annotProperty {
         private org.xowl.lang.owl2.Annotation domain;
         private org.xowl.lang.owl2.IRI data;
         public org.xowl.lang.owl2.IRI get_raw() { return data; }
@@ -197,7 +197,7 @@ public class Annotation implements org.xowl.lang.owl2.Annotation_OR_AnnotationAs
         }
     }
     private annotProperty_impl dataAnnotProperty;
-    public org.xowl.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno1.annotProperty __getImplOfannotProperty() { return dataAnnotProperty; }
+    public org.xowl.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno4.annotProperty __getImplOfannotProperty() { return dataAnnotProperty; }
     public boolean setAnnotProperty(org.xowl.lang.owl2.IRI elem) {
         if (dataAnnotProperty.get() != null) {
             if (elem == null) {
@@ -323,5 +323,5 @@ public class Annotation implements org.xowl.lang.owl2.Annotation_OR_AnnotationAs
         dataAnnotProperty = new annotProperty_impl(this);
         dataAnnotations = new annotations_impl(this);
     }
-    
+
 }

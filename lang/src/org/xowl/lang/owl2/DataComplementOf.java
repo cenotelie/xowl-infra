@@ -3,9 +3,9 @@
 */
 package org.xowl.lang.owl2;
 
-public class DataComplementOf implements org.xowl.lang.owl2.Datarange, org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype4, org.xowl.lang.owl2.Expression {
+public class DataComplementOf implements org.xowl.lang.owl2.Datarange, org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3 {
     // <editor-fold defaultstate="collapsed" desc="Property datarange">
-    private static class datarange_impl implements org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype4.datarange {
+    private static class datarange_impl implements org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3.datarange {
         private org.xowl.lang.owl2.DataComplementOf domain;
         private org.xowl.lang.owl2.Datarange data;
         public org.xowl.lang.owl2.Datarange get_raw() { return data; }
@@ -90,7 +90,7 @@ public class DataComplementOf implements org.xowl.lang.owl2.Datarange, org.xowl.
         }
     }
     private datarange_impl dataDatarange;
-    public org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype4.datarange __getImplOfdatarange() { return dataDatarange; }
+    public org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3.datarange __getImplOfdatarange() { return dataDatarange; }
     public boolean setDatarange(org.xowl.lang.owl2.Datarange elem) {
         if (dataDatarange.get() != null) {
             if (elem == null) {
@@ -114,5 +114,5 @@ public class DataComplementOf implements org.xowl.lang.owl2.Datarange, org.xowl.
     public DataComplementOf() {
         dataDatarange = new datarange_impl(this);
     }
-    
+
 }

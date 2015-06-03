@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,11 +16,11 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.owl;
 
-import org.xowl.lang.actions.QueryVariable;
+import org.xowl.lang.actions.FunctionExpression;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
@@ -39,14 +39,6 @@ public interface Evaluator {
      * @return <code>true</code> if the specified expression can be evaluated
      */
     boolean can(Expression expression);
-
-    /**
-     * Determines whether the specified query variable can be evaluated by this evaluator
-     *
-     * @param variable A query variable
-     * @return <code>true</code> if the specified query variable can be evaluated
-     */
-    boolean can(QueryVariable variable);
 
     /**
      * Evaluates the specified expression
@@ -99,8 +91,16 @@ public interface Evaluator {
     /**
      * Evaluates the specified literal expression
      *
-     * @param expression An literal expression
+     * @param expression A literal expression
      * @return The evaluated runtime literal
      */
     Literal evalLiteral(LiteralExpression expression);
+
+    /**
+     * Evaluates the specified function expression
+     *
+     * @param expression A function expression
+     * @return The evaluated runtime function
+     */
+    Function evalFunction(FunctionExpression expression);
 }

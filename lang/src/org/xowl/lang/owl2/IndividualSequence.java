@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class IndividualSequence implements org.xowl.lang.owl2.IndividualSequenceExpression, org.xowl.lang.owl2.SequenceExpression {
+public class IndividualSequence implements org.xowl.lang.owl2.IndividualSequenceExpression {
     // <editor-fold defaultstate="collapsed" desc="Property individualElements">
     public static interface individualElements {
         boolean check_contains(org.xowl.lang.owl2.IndividualElement elem);
@@ -120,5 +120,5 @@ public class IndividualSequence implements org.xowl.lang.owl2.IndividualSequence
     public IndividualSequence() {
         dataIndividualElements = new individualElements_impl(this);
     }
-    
+
 }

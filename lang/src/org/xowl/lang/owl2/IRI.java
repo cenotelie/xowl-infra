@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class IRI implements org.xowl.lang.owl2.AnnotationSubject, org.xowl.lang.owl2.AnnotationValue, org.xowl.lang.owl2.EntityExpression, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.DataPropertyExpression, org.xowl.lang.owl2.Datarange, org.xowl.lang.owl2.IndividualExpression, org.xowl.lang.owl2.ObjectPropertyExpression, org.xowl.lang.actions.FunctionExpression, org.xowl.lang.owl2.Expression {
+public class IRI implements org.xowl.lang.owl2.AnnotationSubject, org.xowl.lang.owl2.AnnotationValue, org.xowl.lang.owl2.EntityExpression {
     // <editor-fold defaultstate="collapsed" desc="Property hasValue">
     public static interface hasValue {
         boolean check_contains(java.lang.String elem);
@@ -114,5 +114,5 @@ public class IRI implements org.xowl.lang.owl2.AnnotationSubject, org.xowl.lang.
     public IRI() {
         dataHasValue = new hasValue_impl(this);
     }
-    
+
 }

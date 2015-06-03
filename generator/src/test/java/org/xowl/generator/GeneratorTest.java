@@ -42,7 +42,6 @@ public class GeneratorTest {
         config.addValue(null, "input", "http://xowl.org/lang/rules");
         config.addValue(null, "input", "http://xowl.org/lang/runtime");
         config.addValue(null, "input", "http://xowl.org/lang/instrumentation");
-        config.addValue(null, "input", "http://xowl.org/lang/interop");
         config.addValue(null, "basePackage", "org.xowl.lang");
         config.addValue(null, "output", "target/tests/");
         config.addValue(null, "jarName", "XOWLModel.jar");

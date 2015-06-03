@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class ObjectInverseOf implements org.xowl.lang.owl2.ObjectPropertyExpression, org.xowl.lang.owl2.InverseObjectProperties_OR_ObjectInverseOf, org.xowl.lang.owl2.Expression {
+public class ObjectInverseOf implements org.xowl.lang.owl2.ObjectPropertyExpression, org.xowl.lang.owl2.InverseObjectProperties_OR_ObjectInverseOf {
     // <editor-fold defaultstate="collapsed" desc="Property inverse">
     private static class inverse_impl implements org.xowl.lang.owl2.InverseObjectProperties_OR_ObjectInverseOf.inverse {
         private org.xowl.lang.owl2.ObjectInverseOf domain;
@@ -114,5 +114,5 @@ public class ObjectInverseOf implements org.xowl.lang.owl2.ObjectPropertyExpress
     public ObjectInverseOf() {
         dataInverse = new inverse_impl(this);
     }
-    
+
 }

@@ -4,24 +4,6 @@
 package org.xowl.lang.runtime;
 
 public interface PropertyAssertion {
-    // <editor-fold defaultstate="collapsed" desc="Property property">
-    public static interface property {
-        boolean check_contains(org.xowl.lang.runtime.Property elem);
-        boolean user_check_add(org.xowl.lang.runtime.Property elem);
-        boolean user_check_remove(org.xowl.lang.runtime.Property elem);
-        boolean user_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem);
-        void user_add(org.xowl.lang.runtime.Property elem);
-        void user_remove(org.xowl.lang.runtime.Property elem);
-        boolean inverse_check_add(org.xowl.lang.runtime.Property elem);
-        boolean inverse_check_remove(org.xowl.lang.runtime.Property elem);
-        boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem);
-        void inverse_add(org.xowl.lang.runtime.Property elem);
-        void inverse_remove(org.xowl.lang.runtime.Property elem);
-    }
-    property __getImplOfproperty();
-    boolean setProperty(org.xowl.lang.runtime.Property elem);
-    org.xowl.lang.runtime.Property getPropertyAs(org.xowl.lang.runtime.Property type);
-    // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Property isNegative">
     public static interface isNegative {
         boolean check_contains(java.lang.Boolean elem);
@@ -39,5 +21,23 @@ public interface PropertyAssertion {
     isNegative __getImplOfisNegative();
     boolean setIsNegative(java.lang.Boolean elem);
     java.lang.Boolean getIsNegative();
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Property property">
+    public static interface property {
+        boolean check_contains(org.xowl.lang.runtime.Property elem);
+        boolean user_check_add(org.xowl.lang.runtime.Property elem);
+        boolean user_check_remove(org.xowl.lang.runtime.Property elem);
+        boolean user_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem);
+        void user_add(org.xowl.lang.runtime.Property elem);
+        void user_remove(org.xowl.lang.runtime.Property elem);
+        boolean inverse_check_add(org.xowl.lang.runtime.Property elem);
+        boolean inverse_check_remove(org.xowl.lang.runtime.Property elem);
+        boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem);
+        void inverse_add(org.xowl.lang.runtime.Property elem);
+        void inverse_remove(org.xowl.lang.runtime.Property elem);
+    }
+    property __getImplOfproperty();
+    boolean setProperty(org.xowl.lang.runtime.Property elem);
+    org.xowl.lang.runtime.Property getPropertyAs(org.xowl.lang.runtime.Property type);
     // </editor-fold>
 }

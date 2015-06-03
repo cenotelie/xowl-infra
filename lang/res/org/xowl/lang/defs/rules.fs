@@ -1,7 +1,6 @@
 Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
 Prefix(:=<http://xowl.org/lang/rules#>)
 Prefix(owl2:=<http://xowl.org/lang/owl2#>)
-Prefix(actions:=<http://xowl.org/lang/actions#>)
 
 Ontology(<http://xowl.org/lang/rules>
 FunctionalDataProperty(:isPositive)
@@ -25,6 +24,7 @@ ObjectPropertyRange(:antecedents :Assertion)
 ObjectPropertyDomain(:consequents :Rule)
 ObjectPropertyRange(:consequents :Assertion)
 
-ObjectPropertyDomain(:guards :Rule)
-ObjectPropertyRange(:guards owl2:LiteralExpression)
+FunctionalObjectProperty(:guard)
+ObjectPropertyDomain(:guard :Rule)
+ObjectPropertyRange(:guard owl2:LiteralExpression)
 )

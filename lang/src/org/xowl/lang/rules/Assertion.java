@@ -336,5 +336,5 @@ public class Assertion {
         dataAxioms = new axioms_impl(this);
         dataIsMeta = new isMeta_impl(this);
     }
-    
+
 }

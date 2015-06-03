@@ -235,5 +235,5 @@ public class DatatypeRestriction implements org.xowl.lang.runtime.DataPropertyAs
         dataValueLiteral = new valueLiteral_impl(this);
         dataFacet = new facet_impl(this);
     }
-    
+
 }

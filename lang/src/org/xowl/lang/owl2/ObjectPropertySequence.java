@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class ObjectPropertySequence implements org.xowl.lang.owl2.ObjectPropertySequenceExpression, org.xowl.lang.owl2.SequenceExpression {
+public class ObjectPropertySequence implements org.xowl.lang.owl2.ObjectPropertySequenceExpression {
     // <editor-fold defaultstate="collapsed" desc="Property objectPropertyElements">
     public static interface objectPropertyElements {
         boolean check_contains(org.xowl.lang.owl2.ObjectPropertyElement elem);
@@ -120,5 +120,5 @@ public class ObjectPropertySequence implements org.xowl.lang.owl2.ObjectProperty
     public ObjectPropertySequence() {
         dataObjectPropertyElements = new objectPropertyElements_impl(this);
     }
-    
+
 }

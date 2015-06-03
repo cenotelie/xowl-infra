@@ -3,5 +3,5 @@
 */
 package org.xowl.lang.owl2;
 
-public interface DataPropertyRestriction extends org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.Expression {
+public interface DataPropertyRestriction extends org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5 {
 }

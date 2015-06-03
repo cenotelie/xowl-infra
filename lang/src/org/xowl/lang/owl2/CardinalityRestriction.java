@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public interface CardinalityRestriction extends org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.Expression {
+public interface CardinalityRestriction extends org.xowl.lang.owl2.ClassRestriction {
     // <editor-fold defaultstate="collapsed" desc="Property cardinality">
     public static interface cardinality {
         boolean check_contains(org.xowl.lang.owl2.LiteralExpression elem);

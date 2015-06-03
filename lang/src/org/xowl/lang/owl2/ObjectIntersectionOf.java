@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class ObjectIntersectionOf implements org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.DisjointClasses_OR_DisjointUnion_OR_EquivalentClasses_OR_ObjectIntersectionOf_OR_ObjectUnionOf, org.xowl.lang.owl2.Expression {
+public class ObjectIntersectionOf implements org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.DisjointClasses_OR_DisjointUnion_OR_EquivalentClasses_OR_ObjectIntersectionOf_OR_ObjectUnionOf {
     // <editor-fold defaultstate="collapsed" desc="Property classSeq">
     private static class classSeq_impl implements org.xowl.lang.owl2.DisjointClasses_OR_DisjointUnion_OR_EquivalentClasses_OR_ObjectIntersectionOf_OR_ObjectUnionOf.classSeq {
         private org.xowl.lang.owl2.ObjectIntersectionOf domain;
@@ -114,5 +114,5 @@ public class ObjectIntersectionOf implements org.xowl.lang.owl2.ClassExpression,
     public ObjectIntersectionOf() {
         dataClassSeq = new classSeq_impl(this);
     }
-    
+
 }

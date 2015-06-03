@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class DataPropertySequence implements org.xowl.lang.owl2.DataPropertySequenceExpression, org.xowl.lang.owl2.SequenceExpression {
+public class DataPropertySequence implements org.xowl.lang.owl2.DataPropertySequenceExpression {
     // <editor-fold defaultstate="collapsed" desc="Property dataPropertyElements">
     public static interface dataPropertyElements {
         boolean check_contains(org.xowl.lang.owl2.DataPropertyElement elem);
@@ -120,5 +120,5 @@ public class DataPropertySequence implements org.xowl.lang.owl2.DataPropertySequ
     public DataPropertySequence() {
         dataDataPropertyElements = new dataPropertyElements_impl(this);
     }
-    
+
 }

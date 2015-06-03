@@ -209,5 +209,5 @@ public class LiteralElement implements org.xowl.lang.owl2.SequenceElement, org.x
         dataIndex = new index_impl(this);
         dataLiteral = new literal_impl(this);
     }
-    
+
 }

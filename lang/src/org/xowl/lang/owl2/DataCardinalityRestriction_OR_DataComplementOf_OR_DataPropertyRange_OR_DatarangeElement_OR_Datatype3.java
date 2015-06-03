@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public interface DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype4 {
+public interface DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3 {
     // <editor-fold defaultstate="collapsed" desc="Property datarange">
     public static interface datarange {
         boolean check_contains(org.xowl.lang.owl2.Datarange elem);

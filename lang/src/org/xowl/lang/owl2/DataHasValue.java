@@ -3,9 +3,9 @@
 */
 package org.xowl.lang.owl2;
 
-public class DataHasValue implements org.xowl.lang.owl2.DataPropertyRestriction, org.xowl.lang.owl2.DataHasValue_OR_LiteralElement, org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.Expression {
+public class DataHasValue implements org.xowl.lang.owl2.DataPropertyRestriction, org.xowl.lang.owl2.DataHasValue_OR_LiteralElement {
     // <editor-fold defaultstate="collapsed" desc="Property dataProperty">
-    private static class dataProperty_impl implements org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2.dataProperty {
+    private static class dataProperty_impl implements org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5.dataProperty {
         private org.xowl.lang.owl2.DataHasValue domain;
         private org.xowl.lang.owl2.DataPropertyExpression data;
         public org.xowl.lang.owl2.DataPropertyExpression get_raw() { return data; }
@@ -90,7 +90,7 @@ public class DataHasValue implements org.xowl.lang.owl2.DataPropertyRestriction,
         }
     }
     private dataProperty_impl dataDataProperty;
-    public org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2.dataProperty __getImplOfdataProperty() { return dataDataProperty; }
+    public org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5.dataProperty __getImplOfdataProperty() { return dataDataProperty; }
     public boolean setDataProperty(org.xowl.lang.owl2.DataPropertyExpression elem) {
         if (dataDataProperty.get() != null) {
             if (elem == null) {
@@ -222,5 +222,5 @@ public class DataHasValue implements org.xowl.lang.owl2.DataPropertyRestriction,
         dataDataProperty = new dataProperty_impl(this);
         dataLiteral = new literal_impl(this);
     }
-    
+
 }

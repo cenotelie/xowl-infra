@@ -4,24 +4,24 @@
 package org.xowl.lang.runtime;
 
 public interface Individual {
-    // <editor-fold defaultstate="collapsed" desc="Property classifiedBy">
-    public static interface classifiedBy {
-        boolean check_contains(org.xowl.lang.runtime.Class elem);
-        boolean user_check_add(org.xowl.lang.runtime.Class elem);
-        boolean user_check_remove(org.xowl.lang.runtime.Class elem);
-        boolean user_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem);
-        void user_add(org.xowl.lang.runtime.Class elem);
-        void user_remove(org.xowl.lang.runtime.Class elem);
-        boolean inverse_check_add(org.xowl.lang.runtime.Class elem);
-        boolean inverse_check_remove(org.xowl.lang.runtime.Class elem);
-        boolean inverse_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem);
-        void inverse_add(org.xowl.lang.runtime.Class elem);
-        void inverse_remove(org.xowl.lang.runtime.Class elem);
+    // <editor-fold defaultstate="collapsed" desc="Property differentFrom">
+    public static interface differentFrom {
+        boolean check_contains(org.xowl.lang.runtime.Individual elem);
+        boolean user_check_add(org.xowl.lang.runtime.Individual elem);
+        boolean user_check_remove(org.xowl.lang.runtime.Individual elem);
+        boolean user_check_replace(org.xowl.lang.runtime.Individual oldElem, org.xowl.lang.runtime.Individual  newElem);
+        void user_add(org.xowl.lang.runtime.Individual elem);
+        void user_remove(org.xowl.lang.runtime.Individual elem);
+        boolean inverse_check_add(org.xowl.lang.runtime.Individual elem);
+        boolean inverse_check_remove(org.xowl.lang.runtime.Individual elem);
+        boolean inverse_check_replace(org.xowl.lang.runtime.Individual oldElem, org.xowl.lang.runtime.Individual  newElem);
+        void inverse_add(org.xowl.lang.runtime.Individual elem);
+        void inverse_remove(org.xowl.lang.runtime.Individual elem);
     }
-    classifiedBy __getImplOfclassifiedBy();
-    boolean addClassifiedBy(org.xowl.lang.runtime.Class elem);
-    boolean removeClassifiedBy(org.xowl.lang.runtime.Class elem);
-    java.util.Collection<org.xowl.lang.runtime.Class> getAllClassifiedBy();
+    differentFrom __getImplOfdifferentFrom();
+    boolean addDifferentFrom(org.xowl.lang.runtime.Individual elem);
+    boolean removeDifferentFrom(org.xowl.lang.runtime.Individual elem);
+    java.util.Collection<org.xowl.lang.runtime.Individual> getAllDifferentFrom();
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Property sameAs">
     public static interface sameAs {
@@ -42,25 +42,6 @@ public interface Individual {
     boolean removeSameAs(org.xowl.lang.runtime.Individual elem);
     java.util.Collection<org.xowl.lang.runtime.Individual> getAllSameAs();
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Property differentFrom">
-    public static interface differentFrom {
-        boolean check_contains(org.xowl.lang.runtime.Individual elem);
-        boolean user_check_add(org.xowl.lang.runtime.Individual elem);
-        boolean user_check_remove(org.xowl.lang.runtime.Individual elem);
-        boolean user_check_replace(org.xowl.lang.runtime.Individual oldElem, org.xowl.lang.runtime.Individual  newElem);
-        void user_add(org.xowl.lang.runtime.Individual elem);
-        void user_remove(org.xowl.lang.runtime.Individual elem);
-        boolean inverse_check_add(org.xowl.lang.runtime.Individual elem);
-        boolean inverse_check_remove(org.xowl.lang.runtime.Individual elem);
-        boolean inverse_check_replace(org.xowl.lang.runtime.Individual oldElem, org.xowl.lang.runtime.Individual  newElem);
-        void inverse_add(org.xowl.lang.runtime.Individual elem);
-        void inverse_remove(org.xowl.lang.runtime.Individual elem);
-    }
-    differentFrom __getImplOfdifferentFrom();
-    boolean addDifferentFrom(org.xowl.lang.runtime.Individual elem);
-    boolean removeDifferentFrom(org.xowl.lang.runtime.Individual elem);
-    java.util.Collection<org.xowl.lang.runtime.Individual> getAllDifferentFrom();
-    // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Property asserts">
     public static interface asserts {
         boolean check_contains(org.xowl.lang.runtime.PropertyAssertion elem);
@@ -79,5 +60,24 @@ public interface Individual {
     boolean addAsserts(org.xowl.lang.runtime.PropertyAssertion elem);
     boolean removeAsserts(org.xowl.lang.runtime.PropertyAssertion elem);
     java.util.Collection<org.xowl.lang.runtime.PropertyAssertion> getAllAsserts();
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Property classifiedBy">
+    public static interface classifiedBy {
+        boolean check_contains(org.xowl.lang.runtime.Class elem);
+        boolean user_check_add(org.xowl.lang.runtime.Class elem);
+        boolean user_check_remove(org.xowl.lang.runtime.Class elem);
+        boolean user_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem);
+        void user_add(org.xowl.lang.runtime.Class elem);
+        void user_remove(org.xowl.lang.runtime.Class elem);
+        boolean inverse_check_add(org.xowl.lang.runtime.Class elem);
+        boolean inverse_check_remove(org.xowl.lang.runtime.Class elem);
+        boolean inverse_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem);
+        void inverse_add(org.xowl.lang.runtime.Class elem);
+        void inverse_remove(org.xowl.lang.runtime.Class elem);
+    }
+    classifiedBy __getImplOfclassifiedBy();
+    boolean addClassifiedBy(org.xowl.lang.runtime.Class elem);
+    boolean removeClassifiedBy(org.xowl.lang.runtime.Class elem);
+    java.util.Collection<org.xowl.lang.runtime.Class> getAllClassifiedBy();
     // </editor-fold>
 }

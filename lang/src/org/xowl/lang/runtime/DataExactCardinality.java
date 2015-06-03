@@ -3,101 +3,7 @@
 */
 package org.xowl.lang.runtime;
 
-public class DataExactCardinality implements org.xowl.lang.runtime.DataCardinalityRestriction, org.xowl.lang.runtime.CardinalityRestriction, org.xowl.lang.runtime.DataPropertyRestriction, org.xowl.lang.runtime.DataCardinalityRestriction_OR_NAryDataPropertyRestriction, org.xowl.lang.runtime.ClassRestriction {
-    // <editor-fold defaultstate="collapsed" desc="Property cardinality">
-    private static class cardinality_impl implements org.xowl.lang.runtime.CardinalityRestriction.cardinality {
-        private org.xowl.lang.runtime.DataExactCardinality domain;
-        private java.lang.Integer data;
-        public java.lang.Integer get_raw() { return data; }
-        public java.lang.Integer get() { return data; }
-        private boolean check_card(int modifier) {
-            int card = modifier + 0;
-            if (data != null) card++;
-            return (card >= 0 && card <= 1);
-        }
-        @Override public boolean check_contains(java.lang.Integer elem) { return data.equals(elem); }
-        public boolean simple_check_add(java.lang.Integer elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(java.lang.Integer elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(java.lang.Integer elem) {
-            data = elem;
-        }
-        public void simple_remove(java.lang.Integer elem) {
-            data = null;
-        }
-        private boolean tree_check_add(java.lang.Integer elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(java.lang.Integer elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(java.lang.Integer elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(java.lang.Integer elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(java.lang.Integer elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(java.lang.Integer elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(java.lang.Integer elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(java.lang.Integer elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(java.lang.Integer elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(java.lang.Integer elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(java.lang.Integer elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(java.lang.Integer elem) {
-            tree_remove(elem);
-        }
-        public cardinality_impl(org.xowl.lang.runtime.DataExactCardinality domain) {
-            this.domain = domain;
-        }
-    }
-    private cardinality_impl dataCardinality;
-    public org.xowl.lang.runtime.CardinalityRestriction.cardinality __getImplOfcardinality() { return dataCardinality; }
-    public boolean setCardinality(java.lang.Integer elem) {
-        dataCardinality.simple_add(elem);
-        return true;
-    }
-    public java.lang.Integer getCardinality() { return dataCardinality.get(); }
-    // </editor-fold>
-
+public class DataExactCardinality implements org.xowl.lang.runtime.DataCardinalityRestriction {
     // <editor-fold defaultstate="collapsed" desc="Property datatype">
     private static class datatype_impl implements org.xowl.lang.runtime.DataCardinalityRestriction_OR_NAryDataPropertyRestriction.datatype {
         private org.xowl.lang.runtime.DataExactCardinality domain;
@@ -203,6 +109,100 @@ public class DataExactCardinality implements org.xowl.lang.runtime.DataCardinali
         return true;
     }
     public org.xowl.lang.runtime.Datatype getDatatype() { return dataDatatype.get(); }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Property cardinality">
+    private static class cardinality_impl implements org.xowl.lang.runtime.CardinalityRestriction.cardinality {
+        private org.xowl.lang.runtime.DataExactCardinality domain;
+        private java.lang.Integer data;
+        public java.lang.Integer get_raw() { return data; }
+        public java.lang.Integer get() { return data; }
+        private boolean check_card(int modifier) {
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
+        }
+        @Override public boolean check_contains(java.lang.Integer elem) { return data.equals(elem); }
+        public boolean simple_check_add(java.lang.Integer elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(java.lang.Integer elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(java.lang.Integer elem) {
+            data = elem;
+        }
+        public void simple_remove(java.lang.Integer elem) {
+            data = null;
+        }
+        private boolean tree_check_add(java.lang.Integer elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(java.lang.Integer elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(java.lang.Integer elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(java.lang.Integer elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(java.lang.Integer elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(java.lang.Integer elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(java.lang.Integer elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(java.lang.Integer elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(java.lang.Integer elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(java.lang.Integer elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(java.lang.Integer elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(java.lang.Integer elem) {
+            tree_remove(elem);
+        }
+        public cardinality_impl(org.xowl.lang.runtime.DataExactCardinality domain) {
+            this.domain = domain;
+        }
+    }
+    private cardinality_impl dataCardinality;
+    public org.xowl.lang.runtime.CardinalityRestriction.cardinality __getImplOfcardinality() { return dataCardinality; }
+    public boolean setCardinality(java.lang.Integer elem) {
+        dataCardinality.simple_add(elem);
+        return true;
+    }
+    public java.lang.Integer getCardinality() { return dataCardinality.get(); }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property dataProperty">
@@ -313,9 +313,9 @@ public class DataExactCardinality implements org.xowl.lang.runtime.DataCardinali
     // </editor-fold>
 
     public DataExactCardinality() {
-        dataCardinality = new cardinality_impl(this);
         dataDatatype = new datatype_impl(this);
+        dataCardinality = new cardinality_impl(this);
         dataDataProperty = new dataProperty_impl(this);
     }
-    
+
 }

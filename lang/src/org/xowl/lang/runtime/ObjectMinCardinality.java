@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.runtime;
 
-public class ObjectMinCardinality implements org.xowl.lang.runtime.ObjectCardinalityRestriction, org.xowl.lang.runtime.CardinalityRestriction, org.xowl.lang.runtime.ObjectPropertyRestriction, org.xowl.lang.runtime.ObjectAllValuesFrom_OR_ObjectCardinalityRestriction_OR_ObjectSomeValuesFrom, org.xowl.lang.runtime.ClassRestriction {
+public class ObjectMinCardinality implements org.xowl.lang.runtime.ObjectCardinalityRestriction {
     // <editor-fold defaultstate="collapsed" desc="Property cardinality">
     private static class cardinality_impl implements org.xowl.lang.runtime.CardinalityRestriction.cardinality {
         private org.xowl.lang.runtime.ObjectMinCardinality domain;
@@ -317,5 +317,5 @@ public class ObjectMinCardinality implements org.xowl.lang.runtime.ObjectCardina
         dataObjectProperty = new objectProperty_impl(this);
         dataClasse = new classe_impl(this);
     }
-    
+
 }

@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class DatarangeSequence implements org.xowl.lang.owl2.DatarangeSequenceExpression, org.xowl.lang.owl2.SequenceExpression {
+public class DatarangeSequence implements org.xowl.lang.owl2.DatarangeSequenceExpression {
     // <editor-fold defaultstate="collapsed" desc="Property datarangeElements">
     public static interface datarangeElements {
         boolean check_contains(org.xowl.lang.owl2.DatarangeElement elem);
@@ -120,5 +120,5 @@ public class DatarangeSequence implements org.xowl.lang.owl2.DatarangeSequenceEx
     public DatarangeSequence() {
         dataDatarangeElements = new datarangeElements_impl(this);
     }
-    
+
 }

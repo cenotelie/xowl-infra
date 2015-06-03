@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,15 +16,12 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store;
 
-import org.xowl.lang.actions.*;
-import org.xowl.lang.interop.JavaObjectExpression;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.Entity;
-import org.xowl.lang.runtime.JavaObject;
 import org.xowl.lang.runtime.Value;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
@@ -37,50 +34,6 @@ import java.util.*;
  * @author Laurent Wouters
  */
 public class XOWLUtils {
-
-    /**
-     * Determines whether the given expression is a query variable
-     *
-     * @param expression An expression
-     * @return <code>true</code> if the expression is a query variable
-     */
-    public static boolean isQueryVar(Expression expression) {
-        return (expression instanceof QueryVariable);
-    }
-
-    /**
-     * Determines whether the specified expression is dynamic
-     *
-     * @param expression An expression
-     * @return <code>true</code> if the expression is dynamic
-     */
-    public static boolean isDynamicExpression(Expression expression) {
-        if (isQueryVar(expression)) return false;
-        if (expression instanceof Invoke) return true;
-        if (expression instanceof Execute) return true;
-        if (expression instanceof Query) return true;
-        if (expression instanceof CodeVariable) return true;
-        if (expression instanceof ArrayElement) return true;
-        if (expression instanceof NewEntity) return true;
-        if (expression instanceof EntityForIRI) return true;
-        if (expression instanceof NewIndividual) return true;
-        if ((expression instanceof LiteralExpression) && !(expression instanceof Literal)) return true;
-        if (expression instanceof ExecutableExpression) return true;
-        if (expression instanceof ArrayExpression) return true;
-        if (expression instanceof JavaObjectExpression) return true;
-        return false;
-    }
-
-    /**
-     * Determines whether the specified expression is static (not dynamic)
-     *
-     * @param expression An expression
-     * @return <code>true</code> if the expression is static (not dynamic)
-     */
-    public static boolean isStaticExpression(Expression expression) {
-        return !isQueryVar(expression) && !isDynamicExpression(expression);
-    }
-
     /**
      * Gets an iterator over all the expressions within the specified expression of a sequence
      *
@@ -224,20 +177,6 @@ public class XOWLUtils {
             org.xowl.lang.runtime.Literal lit = (org.xowl.lang.runtime.Literal) value;
             String datatype = lit.getMemberOf().getInterpretationOf().getHasIRI().getHasValue();
             return ("\"" + lit.getLexicalValue() + "\"^^" + datatype);
-        } else if (value instanceof org.xowl.lang.runtime.Array) {
-            org.xowl.lang.runtime.Array array = (org.xowl.lang.runtime.Array) value;
-            StringBuilder builder = new StringBuilder("[");
-            boolean first = true;
-            for (Value elem : toList(array)) {
-                if (!first)
-                    builder.append(", ");
-                builder.append(toString(elem));
-                first = false;
-            }
-            builder.append("]");
-            return builder.toString();
-        } else if (value instanceof JavaObject) {
-            return ((JavaObject) value).getObject().toString();
         }
         return value.toString();
     }
@@ -260,25 +199,5 @@ public class XOWLUtils {
                 return (!"0".equals(lit.getLexicalValue()));
             return false;
         }
-    }
-
-    /**
-     * Translates the specified xOWL array into a list of its elements
-     *
-     * @param expression A xOWL array
-     * @return The list of the array's elements
-     */
-    public static List<Value> toList(org.xowl.lang.runtime.Array expression) {
-        List<Value> results = new ArrayList<>();
-        List<org.xowl.lang.runtime.Element> elements = new ArrayList<>(expression.getAllElements());
-        Collections.sort(elements, new Comparator<org.xowl.lang.runtime.Element>() {
-            @Override
-            public int compare(org.xowl.lang.runtime.Element left, org.xowl.lang.runtime.Element right) {
-                return left.getIndex().compareTo(right.getIndex());
-            }
-        });
-        for (org.xowl.lang.runtime.Element elem : elements)
-            results.add(elem.getValue());
-        return results;
     }
 }

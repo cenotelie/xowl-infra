@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class LiteralSequence implements org.xowl.lang.owl2.LiteralSequenceExpression, org.xowl.lang.owl2.SequenceExpression {
+public class LiteralSequence implements org.xowl.lang.owl2.LiteralSequenceExpression {
     // <editor-fold defaultstate="collapsed" desc="Property literalElements">
     public static interface literalElements {
         boolean check_contains(org.xowl.lang.owl2.LiteralElement elem);
@@ -120,5 +120,5 @@ public class LiteralSequence implements org.xowl.lang.owl2.LiteralSequenceExpres
     public LiteralSequence() {
         dataLiteralElements = new literalElements_impl(this);
     }
-    
+
 }

@@ -3,7 +3,114 @@
 */
 package org.xowl.lang.owl2;
 
-public class DataMaxCardinality implements org.xowl.lang.owl2.DataCardinalityRestriction, org.xowl.lang.owl2.CardinalityRestriction, org.xowl.lang.owl2.DataPropertyRestriction, org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype4, org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.Expression {
+public class DataMaxCardinality implements org.xowl.lang.owl2.DataCardinalityRestriction {
+    // <editor-fold defaultstate="collapsed" desc="Property datarange">
+    private static class datarange_impl implements org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3.datarange {
+        private org.xowl.lang.owl2.DataMaxCardinality domain;
+        private org.xowl.lang.owl2.Datarange data;
+        public org.xowl.lang.owl2.Datarange get_raw() { return data; }
+        public org.xowl.lang.owl2.Datarange get() { return data; }
+        private boolean check_card(int modifier) {
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
+        }
+        @Override public boolean check_contains(org.xowl.lang.owl2.Datarange elem) { return (data == elem); }
+        public boolean simple_check_add(org.xowl.lang.owl2.Datarange elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(org.xowl.lang.owl2.Datarange elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(org.xowl.lang.owl2.Datarange oldElem, org.xowl.lang.owl2.Datarange  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(org.xowl.lang.owl2.Datarange elem) {
+            data = elem;
+        }
+        public void simple_remove(org.xowl.lang.owl2.Datarange elem) {
+            data = null;
+        }
+        private boolean tree_check_add(org.xowl.lang.owl2.Datarange elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(org.xowl.lang.owl2.Datarange elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(org.xowl.lang.owl2.Datarange oldElem, org.xowl.lang.owl2.Datarange  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(org.xowl.lang.owl2.Datarange elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(org.xowl.lang.owl2.Datarange elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(org.xowl.lang.owl2.Datarange elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(org.xowl.lang.owl2.Datarange elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(org.xowl.lang.owl2.Datarange oldElem, org.xowl.lang.owl2.Datarange  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(org.xowl.lang.owl2.Datarange elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(org.xowl.lang.owl2.Datarange elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(org.xowl.lang.owl2.Datarange elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(org.xowl.lang.owl2.Datarange elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(org.xowl.lang.owl2.Datarange oldElem, org.xowl.lang.owl2.Datarange  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(org.xowl.lang.owl2.Datarange elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(org.xowl.lang.owl2.Datarange elem) {
+            tree_remove(elem);
+        }
+        public datarange_impl(org.xowl.lang.owl2.DataMaxCardinality domain) {
+            this.domain = domain;
+        }
+    }
+    private datarange_impl dataDatarange;
+    public org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3.datarange __getImplOfdatarange() { return dataDatarange; }
+    public boolean setDatarange(org.xowl.lang.owl2.Datarange elem) {
+        if (dataDatarange.get() != null) {
+            if (elem == null) {
+                if (!dataDatarange.user_check_remove(dataDatarange.get())) return false;
+                dataDatarange.user_remove(dataDatarange.get());
+            } else {
+                if (!dataDatarange.user_check_replace(dataDatarange.get(), elem)) return false;
+                dataDatarange.user_remove(dataDatarange.get());
+                dataDatarange.user_add(elem);
+            }
+        } else {
+            if (elem == null) return true;
+            if (!dataDatarange.user_check_add(elem)) return false;
+            dataDatarange.user_add(elem);
+        }
+        return true;
+    }
+    public org.xowl.lang.owl2.Datarange getDatarange() { return dataDatarange.get(); }
+    // </editor-fold>
+
     // <editor-fold defaultstate="collapsed" desc="Property cardinality">
     private static class cardinality_impl implements org.xowl.lang.owl2.CardinalityRestriction.cardinality {
         private org.xowl.lang.owl2.DataMaxCardinality domain;
@@ -111,115 +218,8 @@ public class DataMaxCardinality implements org.xowl.lang.owl2.DataCardinalityRes
     public org.xowl.lang.owl2.LiteralExpression getCardinality() { return dataCardinality.get(); }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Property datarange">
-    private static class datarange_impl implements org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype4.datarange {
-        private org.xowl.lang.owl2.DataMaxCardinality domain;
-        private org.xowl.lang.owl2.Datarange data;
-        public org.xowl.lang.owl2.Datarange get_raw() { return data; }
-        public org.xowl.lang.owl2.Datarange get() { return data; }
-        private boolean check_card(int modifier) {
-            int card = modifier + 0;
-            if (data != null) card++;
-            return (card >= 0 && card <= 1);
-        }
-        @Override public boolean check_contains(org.xowl.lang.owl2.Datarange elem) { return (data == elem); }
-        public boolean simple_check_add(org.xowl.lang.owl2.Datarange elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(org.xowl.lang.owl2.Datarange elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(org.xowl.lang.owl2.Datarange oldElem, org.xowl.lang.owl2.Datarange  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(org.xowl.lang.owl2.Datarange elem) {
-            data = elem;
-        }
-        public void simple_remove(org.xowl.lang.owl2.Datarange elem) {
-            data = null;
-        }
-        private boolean tree_check_add(org.xowl.lang.owl2.Datarange elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(org.xowl.lang.owl2.Datarange elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(org.xowl.lang.owl2.Datarange oldElem, org.xowl.lang.owl2.Datarange  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(org.xowl.lang.owl2.Datarange elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(org.xowl.lang.owl2.Datarange elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(org.xowl.lang.owl2.Datarange elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(org.xowl.lang.owl2.Datarange elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(org.xowl.lang.owl2.Datarange oldElem, org.xowl.lang.owl2.Datarange  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(org.xowl.lang.owl2.Datarange elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(org.xowl.lang.owl2.Datarange elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(org.xowl.lang.owl2.Datarange elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(org.xowl.lang.owl2.Datarange elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(org.xowl.lang.owl2.Datarange oldElem, org.xowl.lang.owl2.Datarange  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(org.xowl.lang.owl2.Datarange elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(org.xowl.lang.owl2.Datarange elem) {
-            tree_remove(elem);
-        }
-        public datarange_impl(org.xowl.lang.owl2.DataMaxCardinality domain) {
-            this.domain = domain;
-        }
-    }
-    private datarange_impl dataDatarange;
-    public org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype4.datarange __getImplOfdatarange() { return dataDatarange; }
-    public boolean setDatarange(org.xowl.lang.owl2.Datarange elem) {
-        if (dataDatarange.get() != null) {
-            if (elem == null) {
-                if (!dataDatarange.user_check_remove(dataDatarange.get())) return false;
-                dataDatarange.user_remove(dataDatarange.get());
-            } else {
-                if (!dataDatarange.user_check_replace(dataDatarange.get(), elem)) return false;
-                dataDatarange.user_remove(dataDatarange.get());
-                dataDatarange.user_add(elem);
-            }
-        } else {
-            if (elem == null) return true;
-            if (!dataDatarange.user_check_add(elem)) return false;
-            dataDatarange.user_add(elem);
-        }
-        return true;
-    }
-    public org.xowl.lang.owl2.Datarange getDatarange() { return dataDatarange.get(); }
-    // </editor-fold>
-
     // <editor-fold defaultstate="collapsed" desc="Property dataProperty">
-    private static class dataProperty_impl implements org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2.dataProperty {
+    private static class dataProperty_impl implements org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5.dataProperty {
         private org.xowl.lang.owl2.DataMaxCardinality domain;
         private org.xowl.lang.owl2.DataPropertyExpression data;
         public org.xowl.lang.owl2.DataPropertyExpression get_raw() { return data; }
@@ -304,7 +304,7 @@ public class DataMaxCardinality implements org.xowl.lang.owl2.DataCardinalityRes
         }
     }
     private dataProperty_impl dataDataProperty;
-    public org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2.dataProperty __getImplOfdataProperty() { return dataDataProperty; }
+    public org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5.dataProperty __getImplOfdataProperty() { return dataDataProperty; }
     public boolean setDataProperty(org.xowl.lang.owl2.DataPropertyExpression elem) {
         if (dataDataProperty.get() != null) {
             if (elem == null) {
@@ -326,9 +326,9 @@ public class DataMaxCardinality implements org.xowl.lang.owl2.DataCardinalityRes
     // </editor-fold>
 
     public DataMaxCardinality() {
-        dataCardinality = new cardinality_impl(this);
         dataDatarange = new datarange_impl(this);
+        dataCardinality = new cardinality_impl(this);
         dataDataProperty = new dataProperty_impl(this);
     }
-    
+
 }

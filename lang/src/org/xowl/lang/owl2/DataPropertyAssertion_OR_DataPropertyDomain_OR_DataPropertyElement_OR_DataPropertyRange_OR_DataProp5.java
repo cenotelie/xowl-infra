@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public interface DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2 {
+public interface DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5 {
     // <editor-fold defaultstate="collapsed" desc="Property dataProperty">
     public static interface dataProperty {
         boolean check_contains(org.xowl.lang.owl2.DataPropertyExpression elem);

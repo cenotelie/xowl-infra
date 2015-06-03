@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,11 +16,11 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.owl;
 
-import org.xowl.lang.owl2.Expression;
+import org.xowl.lang.actions.DynamicExpression;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Property;
 import org.xowl.store.rdf.SubjectNode;
@@ -44,7 +44,7 @@ public class DynamicNode implements SubjectNode, Property, GraphNode {
     /**
      * The associated dynamic expression
      */
-    private final Expression dynExpression;
+    private final DynamicExpression dynExpression;
     /**
      * The possible types for the expression
      */
@@ -55,7 +55,7 @@ public class DynamicNode implements SubjectNode, Property, GraphNode {
      *
      * @param exp The dynamic expression represented by this node
      */
-    public DynamicNode(Expression exp) {
+    public DynamicNode(DynamicExpression exp) {
         dynExpression = exp;
         types = new ArrayList<>();
     }
@@ -65,7 +65,7 @@ public class DynamicNode implements SubjectNode, Property, GraphNode {
      *
      * @return The dynamic expression associated to this node
      */
-    public Expression getDynamicExpression() {
+    public DynamicExpression getDynamicExpression() {
         return dynExpression;
     }
 

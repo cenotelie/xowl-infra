@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class DatarangeElement implements org.xowl.lang.owl2.SequenceElement, org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype4 {
+public class DatarangeElement implements org.xowl.lang.owl2.SequenceElement, org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3 {
     // <editor-fold defaultstate="collapsed" desc="Property index">
     private static class index_impl implements org.xowl.lang.owl2.SequenceElement.index {
         private org.xowl.lang.owl2.DatarangeElement domain;
@@ -99,7 +99,7 @@ public class DatarangeElement implements org.xowl.lang.owl2.SequenceElement, org
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property datarange">
-    private static class datarange_impl implements org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype4.datarange {
+    private static class datarange_impl implements org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3.datarange {
         private org.xowl.lang.owl2.DatarangeElement domain;
         private org.xowl.lang.owl2.Datarange data;
         public org.xowl.lang.owl2.Datarange get_raw() { return data; }
@@ -184,7 +184,7 @@ public class DatarangeElement implements org.xowl.lang.owl2.SequenceElement, org
         }
     }
     private datarange_impl dataDatarange;
-    public org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype4.datarange __getImplOfdatarange() { return dataDatarange; }
+    public org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3.datarange __getImplOfdatarange() { return dataDatarange; }
     public boolean setDatarange(org.xowl.lang.owl2.Datarange elem) {
         if (dataDatarange.get() != null) {
             if (elem == null) {
@@ -209,5 +209,5 @@ public class DatarangeElement implements org.xowl.lang.owl2.SequenceElement, org
         dataIndex = new index_impl(this);
         dataDatarange = new datarange_impl(this);
     }
-    
+
 }

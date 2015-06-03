@@ -3,7 +3,365 @@
 */
 package org.xowl.lang.runtime;
 
-public class ObjectProperty implements org.xowl.lang.runtime.Property, org.xowl.lang.runtime.Interpretation {
+public class ObjectProperty implements org.xowl.lang.runtime.Property {
+    // <editor-fold defaultstate="collapsed" desc="Property subPropertyOf">
+    private static class subPropertyOf_impl implements org.xowl.lang.runtime.Property.subPropertyOf {
+        private org.xowl.lang.runtime.ObjectProperty domain;
+        private java.util.List<org.xowl.lang.runtime.ObjectProperty> data;
+        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
+        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
+        private boolean check_card(int modifier) {
+            int card = data.size() + 0 + modifier;
+            return (card >= 0 && card <= 2147483647);
+        }
+        public boolean check_contains(org.xowl.lang.runtime.ObjectProperty elem) { return (data.contains(elem)); }
+        @Override public boolean check_contains(org.xowl.lang.runtime.Property elem) {
+            if (!(elem instanceof org.xowl.lang.runtime.ObjectProperty)) return false;
+            return (data.contains((org.xowl.lang.runtime.ObjectProperty)elem));
+        }
+        public boolean simple_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            data.add(elem);
+        }
+        public void simple_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            data.remove(elem);
+        }
+        private boolean tree_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            simple_remove(elem);
+        }
+        public boolean user_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!elem.__getImplOfsuperPropertyOf().inverse_check_add(domain)) return false;
+            return tree_check_add(elem);
+        }
+        public boolean user_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!elem.__getImplOfsuperPropertyOf().inverse_check_remove(domain)) return false;
+            return tree_check_remove(elem);
+        }
+        public boolean user_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
+            if (!oldElem.__getImplOfsuperPropertyOf().inverse_check_remove(domain)) return false;
+            if (!newElem.__getImplOfsuperPropertyOf().inverse_check_add(domain)) return false;
+            return tree_check_replace(oldElem, newElem);
+        }
+        public void user_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            elem.__getImplOfsuperPropertyOf().inverse_add(domain);
+            tree_add(elem);
+        }
+        public void user_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            elem.__getImplOfsuperPropertyOf().inverse_remove(domain);
+            tree_remove(elem);
+        }
+        @Override public boolean user_check_add(org.xowl.lang.runtime.Property elem) { return user_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean user_check_remove(org.xowl.lang.runtime.Property elem) { return user_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean user_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return user_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
+        @Override public void user_add(org.xowl.lang.runtime.Property elem) { user_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public void user_remove(org.xowl.lang.runtime.Property elem) { user_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        public boolean inverse_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            return tree_check_add(elem);
+        }
+        public boolean inverse_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            return tree_check_remove(elem);
+        }
+        public boolean inverse_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        public void inverse_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            tree_add(elem);
+        }
+        public void inverse_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Property elem) { return inverse_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Property elem) { return inverse_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return inverse_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
+        @Override public void inverse_add(org.xowl.lang.runtime.Property elem) { inverse_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public void inverse_remove(org.xowl.lang.runtime.Property elem) { inverse_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        public subPropertyOf_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+            this.domain = domain;
+            this.data = new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>();
+        }
+    }
+    private subPropertyOf_impl dataSubPropertyOf;
+    public org.xowl.lang.runtime.Property.subPropertyOf __getImplOfsubPropertyOf() { return dataSubPropertyOf; }
+    public boolean addSubPropertyOf(org.xowl.lang.runtime.Property elem) {
+        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
+        if (!dataSubPropertyOf.user_check_add(value)) return false;
+        dataSubPropertyOf.user_add(value);
+        return true;
+    }
+    public boolean removeSubPropertyOf(org.xowl.lang.runtime.Property elem) {
+        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
+        if (!dataSubPropertyOf.user_check_remove(value)) return false;
+        dataSubPropertyOf.user_remove(value);
+        return true;
+    }
+    public java.util.Collection<org.xowl.lang.runtime.Property> getAllSubPropertyOfAs(org.xowl.lang.runtime.Property type) {
+        java.util.List<org.xowl.lang.runtime.Property> result = new java.util.ArrayList<org.xowl.lang.runtime.Property>();
+        for (org.xowl.lang.runtime.ObjectProperty value : dataSubPropertyOf.get())
+            result.add(value);
+        return result;
+    }
+    public boolean addSubPropertyOf(org.xowl.lang.runtime.ObjectProperty elem) {
+        if (!dataSubPropertyOf.user_check_add(elem)) return false;
+        dataSubPropertyOf.user_add(elem);
+        return true;
+    }
+    public boolean removeSubPropertyOf(org.xowl.lang.runtime.ObjectProperty elem) {
+        if (!dataSubPropertyOf.user_check_remove(elem)) return false;
+        dataSubPropertyOf.user_remove(elem);
+        return true;
+    }
+    public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> getAllSubPropertyOfAs(org.xowl.lang.runtime.ObjectProperty type) { return dataSubPropertyOf.get(); }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Property isIrreflexive">
+    public static interface isIrreflexive {
+        boolean check_contains(java.lang.Boolean elem);
+        boolean user_check_add(java.lang.Boolean elem);
+        boolean user_check_remove(java.lang.Boolean elem);
+        boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
+        void user_add(java.lang.Boolean elem);
+        void user_remove(java.lang.Boolean elem);
+        boolean inverse_check_add(java.lang.Boolean elem);
+        boolean inverse_check_remove(java.lang.Boolean elem);
+        boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
+        void inverse_add(java.lang.Boolean elem);
+        void inverse_remove(java.lang.Boolean elem);
+    }
+    private static class isIrreflexive_impl implements org.xowl.lang.runtime.ObjectProperty.isIrreflexive {
+        private org.xowl.lang.runtime.ObjectProperty domain;
+        private java.lang.Boolean data;
+        public java.lang.Boolean get_raw() { return data; }
+        public java.lang.Boolean get() { return data; }
+        private boolean check_card(int modifier) {
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
+        }
+        @Override public boolean check_contains(java.lang.Boolean elem) { return data.equals(elem); }
+        public boolean simple_check_add(java.lang.Boolean elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(java.lang.Boolean elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(java.lang.Boolean elem) {
+            data = elem;
+        }
+        public void simple_remove(java.lang.Boolean elem) {
+            data = null;
+        }
+        private boolean tree_check_add(java.lang.Boolean elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(java.lang.Boolean elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(java.lang.Boolean elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(java.lang.Boolean elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(java.lang.Boolean elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(java.lang.Boolean elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(java.lang.Boolean elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(java.lang.Boolean elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(java.lang.Boolean elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(java.lang.Boolean elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(java.lang.Boolean elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(java.lang.Boolean elem) {
+            tree_remove(elem);
+        }
+        public isIrreflexive_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+            this.domain = domain;
+        }
+    }
+    private isIrreflexive_impl dataIsIrreflexive;
+    public org.xowl.lang.runtime.ObjectProperty.isIrreflexive __getImplOfisIrreflexive() { return dataIsIrreflexive; }
+    public boolean setIsIrreflexive(java.lang.Boolean elem) {
+        dataIsIrreflexive.simple_add(elem);
+        return true;
+    }
+    public java.lang.Boolean getIsIrreflexive() { return dataIsIrreflexive.get(); }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Property interpretationOf">
+    private static class interpretationOf_impl implements org.xowl.lang.runtime.Interpretation.interpretationOf {
+        private org.xowl.lang.runtime.ObjectProperty domain;
+        private org.xowl.lang.runtime.Entity data;
+        public org.xowl.lang.runtime.Entity get_raw() { return data; }
+        public org.xowl.lang.runtime.Entity get() { return data; }
+        private boolean check_card(int modifier) {
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
+        }
+        @Override public boolean check_contains(org.xowl.lang.runtime.Entity elem) { return (data == elem); }
+        public boolean simple_check_add(org.xowl.lang.runtime.Entity elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(org.xowl.lang.runtime.Entity elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(org.xowl.lang.runtime.Entity oldElem, org.xowl.lang.runtime.Entity  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(org.xowl.lang.runtime.Entity elem) {
+            data = elem;
+        }
+        public void simple_remove(org.xowl.lang.runtime.Entity elem) {
+            data = null;
+        }
+        private boolean tree_check_add(org.xowl.lang.runtime.Entity elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(org.xowl.lang.runtime.Entity elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(org.xowl.lang.runtime.Entity oldElem, org.xowl.lang.runtime.Entity  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(org.xowl.lang.runtime.Entity elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(org.xowl.lang.runtime.Entity elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(org.xowl.lang.runtime.Entity elem) {
+            if (!elem.__getImplOfinterpretedAs().inverse_check_add(domain)) return false;
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(org.xowl.lang.runtime.Entity elem) {
+            if (!elem.__getImplOfinterpretedAs().inverse_check_remove(domain)) return false;
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(org.xowl.lang.runtime.Entity oldElem, org.xowl.lang.runtime.Entity  newElem) {
+            if (!oldElem.__getImplOfinterpretedAs().inverse_check_remove(domain)) return false;
+            if (!newElem.__getImplOfinterpretedAs().inverse_check_add(domain)) return false;
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(org.xowl.lang.runtime.Entity elem) {
+            elem.__getImplOfinterpretedAs().inverse_add(domain);
+            tree_add(elem);
+        }
+        @Override public void user_remove(org.xowl.lang.runtime.Entity elem) {
+            elem.__getImplOfinterpretedAs().inverse_remove(domain);
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Entity elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Entity elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Entity oldElem, org.xowl.lang.runtime.Entity  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(org.xowl.lang.runtime.Entity elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(org.xowl.lang.runtime.Entity elem) {
+            tree_remove(elem);
+        }
+        public interpretationOf_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+            this.domain = domain;
+        }
+    }
+    private interpretationOf_impl dataInterpretationOf;
+    public org.xowl.lang.runtime.Interpretation.interpretationOf __getImplOfinterpretationOf() { return dataInterpretationOf; }
+    public boolean setInterpretationOf(org.xowl.lang.runtime.Entity elem) {
+        if (dataInterpretationOf.get() != null) {
+            if (elem == null) {
+                if (!dataInterpretationOf.user_check_remove(dataInterpretationOf.get())) return false;
+                dataInterpretationOf.user_remove(dataInterpretationOf.get());
+            } else {
+                if (!dataInterpretationOf.user_check_replace(dataInterpretationOf.get(), elem)) return false;
+                dataInterpretationOf.user_remove(dataInterpretationOf.get());
+                dataInterpretationOf.user_add(elem);
+            }
+        } else {
+            if (elem == null) return true;
+            if (!dataInterpretationOf.user_check_add(elem)) return false;
+            dataInterpretationOf.user_add(elem);
+        }
+        return true;
+    }
+    public org.xowl.lang.runtime.Entity getInterpretationOf() { return dataInterpretationOf.get(); }
+    // </editor-fold>
+
     // <editor-fold defaultstate="collapsed" desc="Property isAsymmetric">
     public static interface isAsymmetric {
         boolean check_contains(java.lang.Boolean elem);
@@ -111,146 +469,8 @@ public class ObjectProperty implements org.xowl.lang.runtime.Property, org.xowl.
     public java.lang.Boolean getIsAsymmetric() { return dataIsAsymmetric.get(); }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Property propertyDisjointWith">
-    private static class propertyDisjointWith_impl implements org.xowl.lang.runtime.Property.propertyDisjointWith {
-        private org.xowl.lang.runtime.ObjectProperty domain;
-        private java.util.List<org.xowl.lang.runtime.ObjectProperty> data;
-        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
-        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
-        private boolean check_card(int modifier) {
-            int card = data.size() + 0 + modifier;
-            return (card >= 0 && card <= 2147483647);
-        }
-        public boolean check_contains(org.xowl.lang.runtime.ObjectProperty elem) { return (data.contains(elem)); }
-        @Override public boolean check_contains(org.xowl.lang.runtime.Property elem) {
-            if (!(elem instanceof org.xowl.lang.runtime.ObjectProperty)) return false;
-            return (data.contains((org.xowl.lang.runtime.ObjectProperty)elem));
-        }
-        public boolean simple_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            data.add(elem);
-        }
-        public void simple_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            data.remove(elem);
-        }
-        private boolean tree_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            simple_remove(elem);
-        }
-        public boolean user_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!elem.__getImplOfpropertyDisjointWith().inverse_check_add(domain)) return false;
-            return tree_check_add(elem);
-        }
-        public boolean user_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!elem.__getImplOfpropertyDisjointWith().inverse_check_remove(domain)) return false;
-            return tree_check_remove(elem);
-        }
-        public boolean user_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            if (!oldElem.__getImplOfpropertyDisjointWith().inverse_check_remove(domain)) return false;
-            if (!newElem.__getImplOfpropertyDisjointWith().inverse_check_add(domain)) return false;
-            return tree_check_replace(oldElem, newElem);
-        }
-        public void user_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            elem.__getImplOfpropertyDisjointWith().inverse_add(domain);
-            tree_add(elem);
-        }
-        public void user_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            elem.__getImplOfpropertyDisjointWith().inverse_remove(domain);
-            tree_remove(elem);
-        }
-        @Override public boolean user_check_add(org.xowl.lang.runtime.Property elem) { return user_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean user_check_remove(org.xowl.lang.runtime.Property elem) { return user_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean user_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return user_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
-        @Override public void user_add(org.xowl.lang.runtime.Property elem) { user_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public void user_remove(org.xowl.lang.runtime.Property elem) { user_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        public boolean inverse_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            return tree_check_add(elem);
-        }
-        public boolean inverse_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            return tree_check_remove(elem);
-        }
-        public boolean inverse_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        public void inverse_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            tree_add(elem);
-        }
-        public void inverse_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Property elem) { return inverse_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Property elem) { return inverse_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return inverse_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
-        @Override public void inverse_add(org.xowl.lang.runtime.Property elem) { inverse_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public void inverse_remove(org.xowl.lang.runtime.Property elem) { inverse_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        public propertyDisjointWith_impl(org.xowl.lang.runtime.ObjectProperty domain) {
-            this.domain = domain;
-            this.data = new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>();
-        }
-    }
-    private propertyDisjointWith_impl dataPropertyDisjointWith;
-    public org.xowl.lang.runtime.Property.propertyDisjointWith __getImplOfpropertyDisjointWith() { return dataPropertyDisjointWith; }
-    public boolean addPropertyDisjointWith(org.xowl.lang.runtime.Property elem) {
-        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
-        if (!dataPropertyDisjointWith.user_check_add(value)) return false;
-        dataPropertyDisjointWith.user_add(value);
-        return true;
-    }
-    public boolean removePropertyDisjointWith(org.xowl.lang.runtime.Property elem) {
-        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
-        if (!dataPropertyDisjointWith.user_check_remove(value)) return false;
-        dataPropertyDisjointWith.user_remove(value);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.runtime.Property> getAllPropertyDisjointWithAs(org.xowl.lang.runtime.Property type) {
-        java.util.List<org.xowl.lang.runtime.Property> result = new java.util.ArrayList<org.xowl.lang.runtime.Property>();
-        for (org.xowl.lang.runtime.ObjectProperty value : dataPropertyDisjointWith.get())
-            result.add(value);
-        return result;
-    }
-    public boolean addPropertyDisjointWith(org.xowl.lang.runtime.ObjectProperty elem) {
-        if (!dataPropertyDisjointWith.user_check_add(elem)) return false;
-        dataPropertyDisjointWith.user_add(elem);
-        return true;
-    }
-    public boolean removePropertyDisjointWith(org.xowl.lang.runtime.ObjectProperty elem) {
-        if (!dataPropertyDisjointWith.user_check_remove(elem)) return false;
-        dataPropertyDisjointWith.user_remove(elem);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> getAllPropertyDisjointWithAs(org.xowl.lang.runtime.ObjectProperty type) { return dataPropertyDisjointWith.get(); }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Property isInverseFunctional">
-    public static interface isInverseFunctional {
+    // <editor-fold defaultstate="collapsed" desc="Property isTransitive">
+    public static interface isTransitive {
         boolean check_contains(java.lang.Boolean elem);
         boolean user_check_add(java.lang.Boolean elem);
         boolean user_check_remove(java.lang.Boolean elem);
@@ -263,7 +483,7 @@ public class ObjectProperty implements org.xowl.lang.runtime.Property, org.xowl.
         void inverse_add(java.lang.Boolean elem);
         void inverse_remove(java.lang.Boolean elem);
     }
-    private static class isInverseFunctional_impl implements org.xowl.lang.runtime.ObjectProperty.isInverseFunctional {
+    private static class isTransitive_impl implements org.xowl.lang.runtime.ObjectProperty.isTransitive {
         private org.xowl.lang.runtime.ObjectProperty domain;
         private java.lang.Boolean data;
         public java.lang.Boolean get_raw() { return data; }
@@ -343,130 +563,293 @@ public class ObjectProperty implements org.xowl.lang.runtime.Property, org.xowl.
         @Override public void inverse_remove(java.lang.Boolean elem) {
             tree_remove(elem);
         }
-        public isInverseFunctional_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+        public isTransitive_impl(org.xowl.lang.runtime.ObjectProperty domain) {
             this.domain = domain;
         }
     }
-    private isInverseFunctional_impl dataIsInverseFunctional;
-    public org.xowl.lang.runtime.ObjectProperty.isInverseFunctional __getImplOfisInverseFunctional() { return dataIsInverseFunctional; }
-    public boolean setIsInverseFunctional(java.lang.Boolean elem) {
-        dataIsInverseFunctional.simple_add(elem);
+    private isTransitive_impl dataIsTransitive;
+    public org.xowl.lang.runtime.ObjectProperty.isTransitive __getImplOfisTransitive() { return dataIsTransitive; }
+    public boolean setIsTransitive(java.lang.Boolean elem) {
+        dataIsTransitive.simple_add(elem);
         return true;
     }
-    public java.lang.Boolean getIsInverseFunctional() { return dataIsInverseFunctional.get(); }
+    public java.lang.Boolean getIsTransitive() { return dataIsTransitive.get(); }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Property domain">
-    private static class domain_impl implements org.xowl.lang.runtime.Property.domain {
+    // <editor-fold defaultstate="collapsed" desc="Property propertyEquivalentTo">
+    private static class propertyEquivalentTo_impl implements org.xowl.lang.runtime.Property.propertyEquivalentTo {
         private org.xowl.lang.runtime.ObjectProperty domain;
-        private org.xowl.lang.runtime.Class data;
-        public org.xowl.lang.runtime.Class get_raw() { return data; }
-        public org.xowl.lang.runtime.Class get() { return data; }
+        private java.util.List<org.xowl.lang.runtime.ObjectProperty> data;
+        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
+        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
         private boolean check_card(int modifier) {
-            int card = modifier + 0;
-            if (data != null) card++;
-            return (card >= 0 && card <= 1);
+            int card = data.size() + 0 + modifier;
+            return (card >= 0 && card <= 2147483647);
         }
-        @Override public boolean check_contains(org.xowl.lang.runtime.Class elem) { return (data == elem); }
-        public boolean simple_check_add(org.xowl.lang.runtime.Class elem) {
+        public boolean check_contains(org.xowl.lang.runtime.ObjectProperty elem) { return (data.contains(elem)); }
+        @Override public boolean check_contains(org.xowl.lang.runtime.Property elem) {
+            if (!(elem instanceof org.xowl.lang.runtime.ObjectProperty)) return false;
+            return (data.contains((org.xowl.lang.runtime.ObjectProperty)elem));
+        }
+        public boolean simple_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
             if (check_contains(elem)) return false;
             if (!check_card(1)) return false;
             return true;
         }
-        public boolean simple_check_remove(org.xowl.lang.runtime.Class elem) {
+        public boolean simple_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
             if (!check_contains(elem)) return false;
             if (!check_card(-1)) return false;
             return true;
         }
-        public boolean simple_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem) {
+        public boolean simple_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
             if (check_contains(newElem)) return false;
             if (!check_contains(oldElem)) return false;
             return true;
         }
-        public void simple_add(org.xowl.lang.runtime.Class elem) {
-            data = elem;
+        public void simple_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            data.add(elem);
         }
-        public void simple_remove(org.xowl.lang.runtime.Class elem) {
-            data = null;
+        public void simple_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            data.remove(elem);
         }
-        private boolean tree_check_add(org.xowl.lang.runtime.Class elem) {
+        private boolean tree_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
             if (!simple_check_add(elem)) return false;
             return true;
         }
-        private boolean tree_check_remove(org.xowl.lang.runtime.Class elem) {
+        private boolean tree_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
             if (!simple_check_remove(elem)) return false;
             return true;
         }
-        private boolean tree_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem) {
+        private boolean tree_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
             if (!simple_check_replace(oldElem, newElem)) return false;
             return true;
         }
-        private void tree_add(org.xowl.lang.runtime.Class elem) {
+        private void tree_add(org.xowl.lang.runtime.ObjectProperty elem) {
             simple_add(elem);
         }
-        private void tree_remove(org.xowl.lang.runtime.Class elem) {
+        private void tree_remove(org.xowl.lang.runtime.ObjectProperty elem) {
             simple_remove(elem);
         }
-        @Override public boolean user_check_add(org.xowl.lang.runtime.Class elem) {
-            if (!elem.__getImplOfdomainOf().inverse_check_add(domain)) return false;
+        public boolean user_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!elem.__getImplOfpropertyEquivalentTo().inverse_check_add(domain)) return false;
             return tree_check_add(elem);
         }
-        @Override public boolean user_check_remove(org.xowl.lang.runtime.Class elem) {
-            if (!elem.__getImplOfdomainOf().inverse_check_remove(domain)) return false;
+        public boolean user_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!elem.__getImplOfpropertyEquivalentTo().inverse_check_remove(domain)) return false;
             return tree_check_remove(elem);
         }
-        @Override public boolean user_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem) {
-            if (!oldElem.__getImplOfdomainOf().inverse_check_remove(domain)) return false;
-            if (!newElem.__getImplOfdomainOf().inverse_check_add(domain)) return false;
+        public boolean user_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
+            if (!oldElem.__getImplOfpropertyEquivalentTo().inverse_check_remove(domain)) return false;
+            if (!newElem.__getImplOfpropertyEquivalentTo().inverse_check_add(domain)) return false;
             return tree_check_replace(oldElem, newElem);
         }
-        @Override public void user_add(org.xowl.lang.runtime.Class elem) {
-            elem.__getImplOfdomainOf().inverse_add(domain);
+        public void user_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            elem.__getImplOfpropertyEquivalentTo().inverse_add(domain);
             tree_add(elem);
         }
-        @Override public void user_remove(org.xowl.lang.runtime.Class elem) {
-            elem.__getImplOfdomainOf().inverse_remove(domain);
+        public void user_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            elem.__getImplOfpropertyEquivalentTo().inverse_remove(domain);
             tree_remove(elem);
         }
-        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Class elem) {
+        @Override public boolean user_check_add(org.xowl.lang.runtime.Property elem) { return user_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean user_check_remove(org.xowl.lang.runtime.Property elem) { return user_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean user_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return user_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
+        @Override public void user_add(org.xowl.lang.runtime.Property elem) { user_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public void user_remove(org.xowl.lang.runtime.Property elem) { user_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        public boolean inverse_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
             return tree_check_add(elem);
         }
-        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Class elem) {
+        public boolean inverse_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
             return tree_check_remove(elem);
         }
-        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem) {
+        public boolean inverse_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
             return tree_check_replace(oldElem, newElem);
         }
-        @Override public void inverse_add(org.xowl.lang.runtime.Class elem) {
+        public void inverse_add(org.xowl.lang.runtime.ObjectProperty elem) {
             tree_add(elem);
         }
-        @Override public void inverse_remove(org.xowl.lang.runtime.Class elem) {
+        public void inverse_remove(org.xowl.lang.runtime.ObjectProperty elem) {
             tree_remove(elem);
         }
-        public domain_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Property elem) { return inverse_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Property elem) { return inverse_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return inverse_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
+        @Override public void inverse_add(org.xowl.lang.runtime.Property elem) { inverse_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public void inverse_remove(org.xowl.lang.runtime.Property elem) { inverse_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        public propertyEquivalentTo_impl(org.xowl.lang.runtime.ObjectProperty domain) {
             this.domain = domain;
+            this.data = new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>();
         }
     }
-    private domain_impl dataDomain;
-    public org.xowl.lang.runtime.Property.domain __getImplOfdomain() { return dataDomain; }
-    public boolean setDomain(org.xowl.lang.runtime.Class elem) {
-        if (dataDomain.get() != null) {
-            if (elem == null) {
-                if (!dataDomain.user_check_remove(dataDomain.get())) return false;
-                dataDomain.user_remove(dataDomain.get());
-            } else {
-                if (!dataDomain.user_check_replace(dataDomain.get(), elem)) return false;
-                dataDomain.user_remove(dataDomain.get());
-                dataDomain.user_add(elem);
-            }
-        } else {
-            if (elem == null) return true;
-            if (!dataDomain.user_check_add(elem)) return false;
-            dataDomain.user_add(elem);
-        }
+    private propertyEquivalentTo_impl dataPropertyEquivalentTo;
+    public org.xowl.lang.runtime.Property.propertyEquivalentTo __getImplOfpropertyEquivalentTo() { return dataPropertyEquivalentTo; }
+    public boolean addPropertyEquivalentTo(org.xowl.lang.runtime.Property elem) {
+        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
+        if (!dataPropertyEquivalentTo.user_check_add(value)) return false;
+        dataPropertyEquivalentTo.user_add(value);
         return true;
     }
-    public org.xowl.lang.runtime.Class getDomain() { return dataDomain.get(); }
+    public boolean removePropertyEquivalentTo(org.xowl.lang.runtime.Property elem) {
+        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
+        if (!dataPropertyEquivalentTo.user_check_remove(value)) return false;
+        dataPropertyEquivalentTo.user_remove(value);
+        return true;
+    }
+    public java.util.Collection<org.xowl.lang.runtime.Property> getAllPropertyEquivalentToAs(org.xowl.lang.runtime.Property type) {
+        java.util.List<org.xowl.lang.runtime.Property> result = new java.util.ArrayList<org.xowl.lang.runtime.Property>();
+        for (org.xowl.lang.runtime.ObjectProperty value : dataPropertyEquivalentTo.get())
+            result.add(value);
+        return result;
+    }
+    public boolean addPropertyEquivalentTo(org.xowl.lang.runtime.ObjectProperty elem) {
+        if (!dataPropertyEquivalentTo.user_check_add(elem)) return false;
+        dataPropertyEquivalentTo.user_add(elem);
+        return true;
+    }
+    public boolean removePropertyEquivalentTo(org.xowl.lang.runtime.ObjectProperty elem) {
+        if (!dataPropertyEquivalentTo.user_check_remove(elem)) return false;
+        dataPropertyEquivalentTo.user_remove(elem);
+        return true;
+    }
+    public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> getAllPropertyEquivalentToAs(org.xowl.lang.runtime.ObjectProperty type) { return dataPropertyEquivalentTo.get(); }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Property superPropertyOf">
+    private static class superPropertyOf_impl implements org.xowl.lang.runtime.Property.superPropertyOf {
+        private org.xowl.lang.runtime.ObjectProperty domain;
+        private java.util.List<org.xowl.lang.runtime.ObjectProperty> data;
+        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
+        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
+        private boolean check_card(int modifier) {
+            int card = data.size() + 0 + modifier;
+            return (card >= 0 && card <= 2147483647);
+        }
+        public boolean check_contains(org.xowl.lang.runtime.ObjectProperty elem) { return (data.contains(elem)); }
+        @Override public boolean check_contains(org.xowl.lang.runtime.Property elem) {
+            if (!(elem instanceof org.xowl.lang.runtime.ObjectProperty)) return false;
+            return (data.contains((org.xowl.lang.runtime.ObjectProperty)elem));
+        }
+        public boolean simple_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            data.add(elem);
+        }
+        public void simple_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            data.remove(elem);
+        }
+        private boolean tree_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            simple_remove(elem);
+        }
+        public boolean user_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!elem.__getImplOfsubPropertyOf().inverse_check_add(domain)) return false;
+            return tree_check_add(elem);
+        }
+        public boolean user_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            if (!elem.__getImplOfsubPropertyOf().inverse_check_remove(domain)) return false;
+            return tree_check_remove(elem);
+        }
+        public boolean user_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
+            if (!oldElem.__getImplOfsubPropertyOf().inverse_check_remove(domain)) return false;
+            if (!newElem.__getImplOfsubPropertyOf().inverse_check_add(domain)) return false;
+            return tree_check_replace(oldElem, newElem);
+        }
+        public void user_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            elem.__getImplOfsubPropertyOf().inverse_add(domain);
+            tree_add(elem);
+        }
+        public void user_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            elem.__getImplOfsubPropertyOf().inverse_remove(domain);
+            tree_remove(elem);
+        }
+        @Override public boolean user_check_add(org.xowl.lang.runtime.Property elem) { return user_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean user_check_remove(org.xowl.lang.runtime.Property elem) { return user_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean user_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return user_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
+        @Override public void user_add(org.xowl.lang.runtime.Property elem) { user_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public void user_remove(org.xowl.lang.runtime.Property elem) { user_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        public boolean inverse_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            return tree_check_add(elem);
+        }
+        public boolean inverse_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            return tree_check_remove(elem);
+        }
+        public boolean inverse_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        public void inverse_add(org.xowl.lang.runtime.ObjectProperty elem) {
+            tree_add(elem);
+        }
+        public void inverse_remove(org.xowl.lang.runtime.ObjectProperty elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Property elem) { return inverse_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Property elem) { return inverse_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return inverse_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
+        @Override public void inverse_add(org.xowl.lang.runtime.Property elem) { inverse_add((org.xowl.lang.runtime.ObjectProperty)elem); }
+        @Override public void inverse_remove(org.xowl.lang.runtime.Property elem) { inverse_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
+        public superPropertyOf_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+            this.domain = domain;
+            this.data = new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>();
+        }
+    }
+    private superPropertyOf_impl dataSuperPropertyOf;
+    public org.xowl.lang.runtime.Property.superPropertyOf __getImplOfsuperPropertyOf() { return dataSuperPropertyOf; }
+    public boolean addSuperPropertyOf(org.xowl.lang.runtime.Property elem) {
+        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
+        if (!dataSuperPropertyOf.user_check_add(value)) return false;
+        dataSuperPropertyOf.user_add(value);
+        return true;
+    }
+    public boolean removeSuperPropertyOf(org.xowl.lang.runtime.Property elem) {
+        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
+        if (!dataSuperPropertyOf.user_check_remove(value)) return false;
+        dataSuperPropertyOf.user_remove(value);
+        return true;
+    }
+    public java.util.Collection<org.xowl.lang.runtime.Property> getAllSuperPropertyOfAs(org.xowl.lang.runtime.Property type) {
+        java.util.List<org.xowl.lang.runtime.Property> result = new java.util.ArrayList<org.xowl.lang.runtime.Property>();
+        for (org.xowl.lang.runtime.ObjectProperty value : dataSuperPropertyOf.get())
+            result.add(value);
+        return result;
+    }
+    public boolean addSuperPropertyOf(org.xowl.lang.runtime.ObjectProperty elem) {
+        if (!dataSuperPropertyOf.user_check_add(elem)) return false;
+        dataSuperPropertyOf.user_add(elem);
+        return true;
+    }
+    public boolean removeSuperPropertyOf(org.xowl.lang.runtime.ObjectProperty elem) {
+        if (!dataSuperPropertyOf.user_check_remove(elem)) return false;
+        dataSuperPropertyOf.user_remove(elem);
+        return true;
+    }
+    public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> getAllSuperPropertyOfAs(org.xowl.lang.runtime.ObjectProperty type) { return dataSuperPropertyOf.get(); }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property range">
@@ -608,8 +991,8 @@ public class ObjectProperty implements org.xowl.lang.runtime.Property, org.xowl.
     public org.xowl.lang.runtime.Class getRangeAs(org.xowl.lang.runtime.Class type) { return dataRange.get(); }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Property isReflexive">
-    public static interface isReflexive {
+    // <editor-fold defaultstate="collapsed" desc="Property isInverseFunctional">
+    public static interface isInverseFunctional {
         boolean check_contains(java.lang.Boolean elem);
         boolean user_check_add(java.lang.Boolean elem);
         boolean user_check_remove(java.lang.Boolean elem);
@@ -622,7 +1005,7 @@ public class ObjectProperty implements org.xowl.lang.runtime.Property, org.xowl.
         void inverse_add(java.lang.Boolean elem);
         void inverse_remove(java.lang.Boolean elem);
     }
-    private static class isReflexive_impl implements org.xowl.lang.runtime.ObjectProperty.isReflexive {
+    private static class isInverseFunctional_impl implements org.xowl.lang.runtime.ObjectProperty.isInverseFunctional {
         private org.xowl.lang.runtime.ObjectProperty domain;
         private java.lang.Boolean data;
         public java.lang.Boolean get_raw() { return data; }
@@ -702,124 +1085,17 @@ public class ObjectProperty implements org.xowl.lang.runtime.Property, org.xowl.
         @Override public void inverse_remove(java.lang.Boolean elem) {
             tree_remove(elem);
         }
-        public isReflexive_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+        public isInverseFunctional_impl(org.xowl.lang.runtime.ObjectProperty domain) {
             this.domain = domain;
         }
     }
-    private isReflexive_impl dataIsReflexive;
-    public org.xowl.lang.runtime.ObjectProperty.isReflexive __getImplOfisReflexive() { return dataIsReflexive; }
-    public boolean setIsReflexive(java.lang.Boolean elem) {
-        dataIsReflexive.simple_add(elem);
+    private isInverseFunctional_impl dataIsInverseFunctional;
+    public org.xowl.lang.runtime.ObjectProperty.isInverseFunctional __getImplOfisInverseFunctional() { return dataIsInverseFunctional; }
+    public boolean setIsInverseFunctional(java.lang.Boolean elem) {
+        dataIsInverseFunctional.simple_add(elem);
         return true;
     }
-    public java.lang.Boolean getIsReflexive() { return dataIsReflexive.get(); }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Property isIrreflexive">
-    public static interface isIrreflexive {
-        boolean check_contains(java.lang.Boolean elem);
-        boolean user_check_add(java.lang.Boolean elem);
-        boolean user_check_remove(java.lang.Boolean elem);
-        boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
-        void user_add(java.lang.Boolean elem);
-        void user_remove(java.lang.Boolean elem);
-        boolean inverse_check_add(java.lang.Boolean elem);
-        boolean inverse_check_remove(java.lang.Boolean elem);
-        boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
-        void inverse_add(java.lang.Boolean elem);
-        void inverse_remove(java.lang.Boolean elem);
-    }
-    private static class isIrreflexive_impl implements org.xowl.lang.runtime.ObjectProperty.isIrreflexive {
-        private org.xowl.lang.runtime.ObjectProperty domain;
-        private java.lang.Boolean data;
-        public java.lang.Boolean get_raw() { return data; }
-        public java.lang.Boolean get() { return data; }
-        private boolean check_card(int modifier) {
-            int card = modifier + 0;
-            if (data != null) card++;
-            return (card >= 0 && card <= 1);
-        }
-        @Override public boolean check_contains(java.lang.Boolean elem) { return data.equals(elem); }
-        public boolean simple_check_add(java.lang.Boolean elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(java.lang.Boolean elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(java.lang.Boolean elem) {
-            data = elem;
-        }
-        public void simple_remove(java.lang.Boolean elem) {
-            data = null;
-        }
-        private boolean tree_check_add(java.lang.Boolean elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(java.lang.Boolean elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(java.lang.Boolean elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(java.lang.Boolean elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(java.lang.Boolean elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(java.lang.Boolean elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(java.lang.Boolean elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(java.lang.Boolean elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(java.lang.Boolean elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(java.lang.Boolean elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(java.lang.Boolean elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(java.lang.Boolean elem) {
-            tree_remove(elem);
-        }
-        public isIrreflexive_impl(org.xowl.lang.runtime.ObjectProperty domain) {
-            this.domain = domain;
-        }
-    }
-    private isIrreflexive_impl dataIsIrreflexive;
-    public org.xowl.lang.runtime.ObjectProperty.isIrreflexive __getImplOfisIrreflexive() { return dataIsIrreflexive; }
-    public boolean setIsIrreflexive(java.lang.Boolean elem) {
-        dataIsIrreflexive.simple_add(elem);
-        return true;
-    }
-    public java.lang.Boolean getIsIrreflexive() { return dataIsIrreflexive.get(); }
+    public java.lang.Boolean getIsInverseFunctional() { return dataIsInverseFunctional.get(); }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property chains">
@@ -935,8 +1211,8 @@ public class ObjectProperty implements org.xowl.lang.runtime.Property, org.xowl.
     public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> getAllChains() { return dataChains.get(); }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Property propertyEquivalentTo">
-    private static class propertyEquivalentTo_impl implements org.xowl.lang.runtime.Property.propertyEquivalentTo {
+    // <editor-fold defaultstate="collapsed" desc="Property propertyDisjointWith">
+    private static class propertyDisjointWith_impl implements org.xowl.lang.runtime.Property.propertyDisjointWith {
         private org.xowl.lang.runtime.ObjectProperty domain;
         private java.util.List<org.xowl.lang.runtime.ObjectProperty> data;
         public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
@@ -990,24 +1266,24 @@ public class ObjectProperty implements org.xowl.lang.runtime.Property, org.xowl.
             simple_remove(elem);
         }
         public boolean user_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!elem.__getImplOfpropertyEquivalentTo().inverse_check_add(domain)) return false;
+            if (!elem.__getImplOfpropertyDisjointWith().inverse_check_add(domain)) return false;
             return tree_check_add(elem);
         }
         public boolean user_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!elem.__getImplOfpropertyEquivalentTo().inverse_check_remove(domain)) return false;
+            if (!elem.__getImplOfpropertyDisjointWith().inverse_check_remove(domain)) return false;
             return tree_check_remove(elem);
         }
         public boolean user_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            if (!oldElem.__getImplOfpropertyEquivalentTo().inverse_check_remove(domain)) return false;
-            if (!newElem.__getImplOfpropertyEquivalentTo().inverse_check_add(domain)) return false;
+            if (!oldElem.__getImplOfpropertyDisjointWith().inverse_check_remove(domain)) return false;
+            if (!newElem.__getImplOfpropertyDisjointWith().inverse_check_add(domain)) return false;
             return tree_check_replace(oldElem, newElem);
         }
         public void user_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            elem.__getImplOfpropertyEquivalentTo().inverse_add(domain);
+            elem.__getImplOfpropertyDisjointWith().inverse_add(domain);
             tree_add(elem);
         }
         public void user_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            elem.__getImplOfpropertyEquivalentTo().inverse_remove(domain);
+            elem.__getImplOfpropertyDisjointWith().inverse_remove(domain);
             tree_remove(elem);
         }
         @Override public boolean user_check_add(org.xowl.lang.runtime.Property elem) { return user_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
@@ -1035,739 +1311,42 @@ public class ObjectProperty implements org.xowl.lang.runtime.Property, org.xowl.
         @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return inverse_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
         @Override public void inverse_add(org.xowl.lang.runtime.Property elem) { inverse_add((org.xowl.lang.runtime.ObjectProperty)elem); }
         @Override public void inverse_remove(org.xowl.lang.runtime.Property elem) { inverse_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        public propertyEquivalentTo_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+        public propertyDisjointWith_impl(org.xowl.lang.runtime.ObjectProperty domain) {
             this.domain = domain;
             this.data = new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>();
         }
     }
-    private propertyEquivalentTo_impl dataPropertyEquivalentTo;
-    public org.xowl.lang.runtime.Property.propertyEquivalentTo __getImplOfpropertyEquivalentTo() { return dataPropertyEquivalentTo; }
-    public boolean addPropertyEquivalentTo(org.xowl.lang.runtime.Property elem) {
+    private propertyDisjointWith_impl dataPropertyDisjointWith;
+    public org.xowl.lang.runtime.Property.propertyDisjointWith __getImplOfpropertyDisjointWith() { return dataPropertyDisjointWith; }
+    public boolean addPropertyDisjointWith(org.xowl.lang.runtime.Property elem) {
         org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
-        if (!dataPropertyEquivalentTo.user_check_add(value)) return false;
-        dataPropertyEquivalentTo.user_add(value);
+        if (!dataPropertyDisjointWith.user_check_add(value)) return false;
+        dataPropertyDisjointWith.user_add(value);
         return true;
     }
-    public boolean removePropertyEquivalentTo(org.xowl.lang.runtime.Property elem) {
+    public boolean removePropertyDisjointWith(org.xowl.lang.runtime.Property elem) {
         org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
-        if (!dataPropertyEquivalentTo.user_check_remove(value)) return false;
-        dataPropertyEquivalentTo.user_remove(value);
+        if (!dataPropertyDisjointWith.user_check_remove(value)) return false;
+        dataPropertyDisjointWith.user_remove(value);
         return true;
     }
-    public java.util.Collection<org.xowl.lang.runtime.Property> getAllPropertyEquivalentToAs(org.xowl.lang.runtime.Property type) {
+    public java.util.Collection<org.xowl.lang.runtime.Property> getAllPropertyDisjointWithAs(org.xowl.lang.runtime.Property type) {
         java.util.List<org.xowl.lang.runtime.Property> result = new java.util.ArrayList<org.xowl.lang.runtime.Property>();
-        for (org.xowl.lang.runtime.ObjectProperty value : dataPropertyEquivalentTo.get())
+        for (org.xowl.lang.runtime.ObjectProperty value : dataPropertyDisjointWith.get())
             result.add(value);
         return result;
     }
-    public boolean addPropertyEquivalentTo(org.xowl.lang.runtime.ObjectProperty elem) {
-        if (!dataPropertyEquivalentTo.user_check_add(elem)) return false;
-        dataPropertyEquivalentTo.user_add(elem);
+    public boolean addPropertyDisjointWith(org.xowl.lang.runtime.ObjectProperty elem) {
+        if (!dataPropertyDisjointWith.user_check_add(elem)) return false;
+        dataPropertyDisjointWith.user_add(elem);
         return true;
     }
-    public boolean removePropertyEquivalentTo(org.xowl.lang.runtime.ObjectProperty elem) {
-        if (!dataPropertyEquivalentTo.user_check_remove(elem)) return false;
-        dataPropertyEquivalentTo.user_remove(elem);
+    public boolean removePropertyDisjointWith(org.xowl.lang.runtime.ObjectProperty elem) {
+        if (!dataPropertyDisjointWith.user_check_remove(elem)) return false;
+        dataPropertyDisjointWith.user_remove(elem);
         return true;
     }
-    public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> getAllPropertyEquivalentToAs(org.xowl.lang.runtime.ObjectProperty type) { return dataPropertyEquivalentTo.get(); }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Property interpretationOf">
-    private static class interpretationOf_impl implements org.xowl.lang.runtime.Interpretation.interpretationOf {
-        private org.xowl.lang.runtime.ObjectProperty domain;
-        private org.xowl.lang.runtime.Entity data;
-        public org.xowl.lang.runtime.Entity get_raw() { return data; }
-        public org.xowl.lang.runtime.Entity get() { return data; }
-        private boolean check_card(int modifier) {
-            int card = modifier + 0;
-            if (data != null) card++;
-            return (card >= 0 && card <= 1);
-        }
-        @Override public boolean check_contains(org.xowl.lang.runtime.Entity elem) { return (data == elem); }
-        public boolean simple_check_add(org.xowl.lang.runtime.Entity elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(org.xowl.lang.runtime.Entity elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(org.xowl.lang.runtime.Entity oldElem, org.xowl.lang.runtime.Entity  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(org.xowl.lang.runtime.Entity elem) {
-            data = elem;
-        }
-        public void simple_remove(org.xowl.lang.runtime.Entity elem) {
-            data = null;
-        }
-        private boolean tree_check_add(org.xowl.lang.runtime.Entity elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(org.xowl.lang.runtime.Entity elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(org.xowl.lang.runtime.Entity oldElem, org.xowl.lang.runtime.Entity  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(org.xowl.lang.runtime.Entity elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(org.xowl.lang.runtime.Entity elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(org.xowl.lang.runtime.Entity elem) {
-            if (!elem.__getImplOfinterpretedAs().inverse_check_add(domain)) return false;
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(org.xowl.lang.runtime.Entity elem) {
-            if (!elem.__getImplOfinterpretedAs().inverse_check_remove(domain)) return false;
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(org.xowl.lang.runtime.Entity oldElem, org.xowl.lang.runtime.Entity  newElem) {
-            if (!oldElem.__getImplOfinterpretedAs().inverse_check_remove(domain)) return false;
-            if (!newElem.__getImplOfinterpretedAs().inverse_check_add(domain)) return false;
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(org.xowl.lang.runtime.Entity elem) {
-            elem.__getImplOfinterpretedAs().inverse_add(domain);
-            tree_add(elem);
-        }
-        @Override public void user_remove(org.xowl.lang.runtime.Entity elem) {
-            elem.__getImplOfinterpretedAs().inverse_remove(domain);
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Entity elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Entity elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Entity oldElem, org.xowl.lang.runtime.Entity  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(org.xowl.lang.runtime.Entity elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(org.xowl.lang.runtime.Entity elem) {
-            tree_remove(elem);
-        }
-        public interpretationOf_impl(org.xowl.lang.runtime.ObjectProperty domain) {
-            this.domain = domain;
-        }
-    }
-    private interpretationOf_impl dataInterpretationOf;
-    public org.xowl.lang.runtime.Interpretation.interpretationOf __getImplOfinterpretationOf() { return dataInterpretationOf; }
-    public boolean setInterpretationOf(org.xowl.lang.runtime.Entity elem) {
-        if (dataInterpretationOf.get() != null) {
-            if (elem == null) {
-                if (!dataInterpretationOf.user_check_remove(dataInterpretationOf.get())) return false;
-                dataInterpretationOf.user_remove(dataInterpretationOf.get());
-            } else {
-                if (!dataInterpretationOf.user_check_replace(dataInterpretationOf.get(), elem)) return false;
-                dataInterpretationOf.user_remove(dataInterpretationOf.get());
-                dataInterpretationOf.user_add(elem);
-            }
-        } else {
-            if (elem == null) return true;
-            if (!dataInterpretationOf.user_check_add(elem)) return false;
-            dataInterpretationOf.user_add(elem);
-        }
-        return true;
-    }
-    public org.xowl.lang.runtime.Entity getInterpretationOf() { return dataInterpretationOf.get(); }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Property subPropertyOf">
-    private static class subPropertyOf_impl implements org.xowl.lang.runtime.Property.subPropertyOf {
-        private org.xowl.lang.runtime.ObjectProperty domain;
-        private java.util.List<org.xowl.lang.runtime.ObjectProperty> data;
-        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
-        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
-        private boolean check_card(int modifier) {
-            int card = data.size() + 0 + modifier;
-            return (card >= 0 && card <= 2147483647);
-        }
-        public boolean check_contains(org.xowl.lang.runtime.ObjectProperty elem) { return (data.contains(elem)); }
-        @Override public boolean check_contains(org.xowl.lang.runtime.Property elem) {
-            if (!(elem instanceof org.xowl.lang.runtime.ObjectProperty)) return false;
-            return (data.contains((org.xowl.lang.runtime.ObjectProperty)elem));
-        }
-        public boolean simple_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            data.add(elem);
-        }
-        public void simple_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            data.remove(elem);
-        }
-        private boolean tree_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            simple_remove(elem);
-        }
-        public boolean user_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!elem.__getImplOfsuperPropertyOf().inverse_check_add(domain)) return false;
-            return tree_check_add(elem);
-        }
-        public boolean user_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!elem.__getImplOfsuperPropertyOf().inverse_check_remove(domain)) return false;
-            return tree_check_remove(elem);
-        }
-        public boolean user_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            if (!oldElem.__getImplOfsuperPropertyOf().inverse_check_remove(domain)) return false;
-            if (!newElem.__getImplOfsuperPropertyOf().inverse_check_add(domain)) return false;
-            return tree_check_replace(oldElem, newElem);
-        }
-        public void user_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            elem.__getImplOfsuperPropertyOf().inverse_add(domain);
-            tree_add(elem);
-        }
-        public void user_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            elem.__getImplOfsuperPropertyOf().inverse_remove(domain);
-            tree_remove(elem);
-        }
-        @Override public boolean user_check_add(org.xowl.lang.runtime.Property elem) { return user_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean user_check_remove(org.xowl.lang.runtime.Property elem) { return user_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean user_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return user_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
-        @Override public void user_add(org.xowl.lang.runtime.Property elem) { user_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public void user_remove(org.xowl.lang.runtime.Property elem) { user_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        public boolean inverse_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            return tree_check_add(elem);
-        }
-        public boolean inverse_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            return tree_check_remove(elem);
-        }
-        public boolean inverse_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        public void inverse_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            tree_add(elem);
-        }
-        public void inverse_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Property elem) { return inverse_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Property elem) { return inverse_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return inverse_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
-        @Override public void inverse_add(org.xowl.lang.runtime.Property elem) { inverse_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public void inverse_remove(org.xowl.lang.runtime.Property elem) { inverse_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        public subPropertyOf_impl(org.xowl.lang.runtime.ObjectProperty domain) {
-            this.domain = domain;
-            this.data = new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>();
-        }
-    }
-    private subPropertyOf_impl dataSubPropertyOf;
-    public org.xowl.lang.runtime.Property.subPropertyOf __getImplOfsubPropertyOf() { return dataSubPropertyOf; }
-    public boolean addSubPropertyOf(org.xowl.lang.runtime.Property elem) {
-        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
-        if (!dataSubPropertyOf.user_check_add(value)) return false;
-        dataSubPropertyOf.user_add(value);
-        return true;
-    }
-    public boolean removeSubPropertyOf(org.xowl.lang.runtime.Property elem) {
-        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
-        if (!dataSubPropertyOf.user_check_remove(value)) return false;
-        dataSubPropertyOf.user_remove(value);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.runtime.Property> getAllSubPropertyOfAs(org.xowl.lang.runtime.Property type) {
-        java.util.List<org.xowl.lang.runtime.Property> result = new java.util.ArrayList<org.xowl.lang.runtime.Property>();
-        for (org.xowl.lang.runtime.ObjectProperty value : dataSubPropertyOf.get())
-            result.add(value);
-        return result;
-    }
-    public boolean addSubPropertyOf(org.xowl.lang.runtime.ObjectProperty elem) {
-        if (!dataSubPropertyOf.user_check_add(elem)) return false;
-        dataSubPropertyOf.user_add(elem);
-        return true;
-    }
-    public boolean removeSubPropertyOf(org.xowl.lang.runtime.ObjectProperty elem) {
-        if (!dataSubPropertyOf.user_check_remove(elem)) return false;
-        dataSubPropertyOf.user_remove(elem);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> getAllSubPropertyOfAs(org.xowl.lang.runtime.ObjectProperty type) { return dataSubPropertyOf.get(); }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Property isSymmetric">
-    public static interface isSymmetric {
-        boolean check_contains(java.lang.Boolean elem);
-        boolean user_check_add(java.lang.Boolean elem);
-        boolean user_check_remove(java.lang.Boolean elem);
-        boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
-        void user_add(java.lang.Boolean elem);
-        void user_remove(java.lang.Boolean elem);
-        boolean inverse_check_add(java.lang.Boolean elem);
-        boolean inverse_check_remove(java.lang.Boolean elem);
-        boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
-        void inverse_add(java.lang.Boolean elem);
-        void inverse_remove(java.lang.Boolean elem);
-    }
-    private static class isSymmetric_impl implements org.xowl.lang.runtime.ObjectProperty.isSymmetric {
-        private org.xowl.lang.runtime.ObjectProperty domain;
-        private java.lang.Boolean data;
-        public java.lang.Boolean get_raw() { return data; }
-        public java.lang.Boolean get() { return data; }
-        private boolean check_card(int modifier) {
-            int card = modifier + 0;
-            if (data != null) card++;
-            return (card >= 0 && card <= 1);
-        }
-        @Override public boolean check_contains(java.lang.Boolean elem) { return data.equals(elem); }
-        public boolean simple_check_add(java.lang.Boolean elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(java.lang.Boolean elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(java.lang.Boolean elem) {
-            data = elem;
-        }
-        public void simple_remove(java.lang.Boolean elem) {
-            data = null;
-        }
-        private boolean tree_check_add(java.lang.Boolean elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(java.lang.Boolean elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(java.lang.Boolean elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(java.lang.Boolean elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(java.lang.Boolean elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(java.lang.Boolean elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(java.lang.Boolean elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(java.lang.Boolean elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(java.lang.Boolean elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(java.lang.Boolean elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(java.lang.Boolean elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(java.lang.Boolean elem) {
-            tree_remove(elem);
-        }
-        public isSymmetric_impl(org.xowl.lang.runtime.ObjectProperty domain) {
-            this.domain = domain;
-        }
-    }
-    private isSymmetric_impl dataIsSymmetric;
-    public org.xowl.lang.runtime.ObjectProperty.isSymmetric __getImplOfisSymmetric() { return dataIsSymmetric; }
-    public boolean setIsSymmetric(java.lang.Boolean elem) {
-        dataIsSymmetric.simple_add(elem);
-        return true;
-    }
-    public java.lang.Boolean getIsSymmetric() { return dataIsSymmetric.get(); }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Property isTransitive">
-    public static interface isTransitive {
-        boolean check_contains(java.lang.Boolean elem);
-        boolean user_check_add(java.lang.Boolean elem);
-        boolean user_check_remove(java.lang.Boolean elem);
-        boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
-        void user_add(java.lang.Boolean elem);
-        void user_remove(java.lang.Boolean elem);
-        boolean inverse_check_add(java.lang.Boolean elem);
-        boolean inverse_check_remove(java.lang.Boolean elem);
-        boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
-        void inverse_add(java.lang.Boolean elem);
-        void inverse_remove(java.lang.Boolean elem);
-    }
-    private static class isTransitive_impl implements org.xowl.lang.runtime.ObjectProperty.isTransitive {
-        private org.xowl.lang.runtime.ObjectProperty domain;
-        private java.lang.Boolean data;
-        public java.lang.Boolean get_raw() { return data; }
-        public java.lang.Boolean get() { return data; }
-        private boolean check_card(int modifier) {
-            int card = modifier + 0;
-            if (data != null) card++;
-            return (card >= 0 && card <= 1);
-        }
-        @Override public boolean check_contains(java.lang.Boolean elem) { return data.equals(elem); }
-        public boolean simple_check_add(java.lang.Boolean elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(java.lang.Boolean elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(java.lang.Boolean elem) {
-            data = elem;
-        }
-        public void simple_remove(java.lang.Boolean elem) {
-            data = null;
-        }
-        private boolean tree_check_add(java.lang.Boolean elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(java.lang.Boolean elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(java.lang.Boolean elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(java.lang.Boolean elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(java.lang.Boolean elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(java.lang.Boolean elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(java.lang.Boolean elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(java.lang.Boolean elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(java.lang.Boolean elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(java.lang.Boolean elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(java.lang.Boolean elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(java.lang.Boolean elem) {
-            tree_remove(elem);
-        }
-        public isTransitive_impl(org.xowl.lang.runtime.ObjectProperty domain) {
-            this.domain = domain;
-        }
-    }
-    private isTransitive_impl dataIsTransitive;
-    public org.xowl.lang.runtime.ObjectProperty.isTransitive __getImplOfisTransitive() { return dataIsTransitive; }
-    public boolean setIsTransitive(java.lang.Boolean elem) {
-        dataIsTransitive.simple_add(elem);
-        return true;
-    }
-    public java.lang.Boolean getIsTransitive() { return dataIsTransitive.get(); }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Property superPropertyOf">
-    private static class superPropertyOf_impl implements org.xowl.lang.runtime.Property.superPropertyOf {
-        private org.xowl.lang.runtime.ObjectProperty domain;
-        private java.util.List<org.xowl.lang.runtime.ObjectProperty> data;
-        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
-        public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> get() { return new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>(data); }
-        private boolean check_card(int modifier) {
-            int card = data.size() + 0 + modifier;
-            return (card >= 0 && card <= 2147483647);
-        }
-        public boolean check_contains(org.xowl.lang.runtime.ObjectProperty elem) { return (data.contains(elem)); }
-        @Override public boolean check_contains(org.xowl.lang.runtime.Property elem) {
-            if (!(elem instanceof org.xowl.lang.runtime.ObjectProperty)) return false;
-            return (data.contains((org.xowl.lang.runtime.ObjectProperty)elem));
-        }
-        public boolean simple_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            data.add(elem);
-        }
-        public void simple_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            data.remove(elem);
-        }
-        private boolean tree_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            simple_remove(elem);
-        }
-        public boolean user_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!elem.__getImplOfsubPropertyOf().inverse_check_add(domain)) return false;
-            return tree_check_add(elem);
-        }
-        public boolean user_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            if (!elem.__getImplOfsubPropertyOf().inverse_check_remove(domain)) return false;
-            return tree_check_remove(elem);
-        }
-        public boolean user_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            if (!oldElem.__getImplOfsubPropertyOf().inverse_check_remove(domain)) return false;
-            if (!newElem.__getImplOfsubPropertyOf().inverse_check_add(domain)) return false;
-            return tree_check_replace(oldElem, newElem);
-        }
-        public void user_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            elem.__getImplOfsubPropertyOf().inverse_add(domain);
-            tree_add(elem);
-        }
-        public void user_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            elem.__getImplOfsubPropertyOf().inverse_remove(domain);
-            tree_remove(elem);
-        }
-        @Override public boolean user_check_add(org.xowl.lang.runtime.Property elem) { return user_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean user_check_remove(org.xowl.lang.runtime.Property elem) { return user_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean user_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return user_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
-        @Override public void user_add(org.xowl.lang.runtime.Property elem) { user_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public void user_remove(org.xowl.lang.runtime.Property elem) { user_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        public boolean inverse_check_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            return tree_check_add(elem);
-        }
-        public boolean inverse_check_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            return tree_check_remove(elem);
-        }
-        public boolean inverse_check_replace(org.xowl.lang.runtime.ObjectProperty oldElem, org.xowl.lang.runtime.ObjectProperty  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        public void inverse_add(org.xowl.lang.runtime.ObjectProperty elem) {
-            tree_add(elem);
-        }
-        public void inverse_remove(org.xowl.lang.runtime.ObjectProperty elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Property elem) { return inverse_check_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Property elem) { return inverse_check_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return inverse_check_replace((org.xowl.lang.runtime.ObjectProperty)oldElem, (org.xowl.lang.runtime.ObjectProperty)newElem); }
-        @Override public void inverse_add(org.xowl.lang.runtime.Property elem) { inverse_add((org.xowl.lang.runtime.ObjectProperty)elem); }
-        @Override public void inverse_remove(org.xowl.lang.runtime.Property elem) { inverse_remove((org.xowl.lang.runtime.ObjectProperty)elem); }
-        public superPropertyOf_impl(org.xowl.lang.runtime.ObjectProperty domain) {
-            this.domain = domain;
-            this.data = new java.util.ArrayList<org.xowl.lang.runtime.ObjectProperty>();
-        }
-    }
-    private superPropertyOf_impl dataSuperPropertyOf;
-    public org.xowl.lang.runtime.Property.superPropertyOf __getImplOfsuperPropertyOf() { return dataSuperPropertyOf; }
-    public boolean addSuperPropertyOf(org.xowl.lang.runtime.Property elem) {
-        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
-        if (!dataSuperPropertyOf.user_check_add(value)) return false;
-        dataSuperPropertyOf.user_add(value);
-        return true;
-    }
-    public boolean removeSuperPropertyOf(org.xowl.lang.runtime.Property elem) {
-        org.xowl.lang.runtime.ObjectProperty value = (org.xowl.lang.runtime.ObjectProperty)elem;
-        if (!dataSuperPropertyOf.user_check_remove(value)) return false;
-        dataSuperPropertyOf.user_remove(value);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.runtime.Property> getAllSuperPropertyOfAs(org.xowl.lang.runtime.Property type) {
-        java.util.List<org.xowl.lang.runtime.Property> result = new java.util.ArrayList<org.xowl.lang.runtime.Property>();
-        for (org.xowl.lang.runtime.ObjectProperty value : dataSuperPropertyOf.get())
-            result.add(value);
-        return result;
-    }
-    public boolean addSuperPropertyOf(org.xowl.lang.runtime.ObjectProperty elem) {
-        if (!dataSuperPropertyOf.user_check_add(elem)) return false;
-        dataSuperPropertyOf.user_add(elem);
-        return true;
-    }
-    public boolean removeSuperPropertyOf(org.xowl.lang.runtime.ObjectProperty elem) {
-        if (!dataSuperPropertyOf.user_check_remove(elem)) return false;
-        dataSuperPropertyOf.user_remove(elem);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> getAllSuperPropertyOfAs(org.xowl.lang.runtime.ObjectProperty type) { return dataSuperPropertyOf.get(); }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Property isFunctional">
-    private static class isFunctional_impl implements org.xowl.lang.runtime.Property.isFunctional {
-        private org.xowl.lang.runtime.ObjectProperty domain;
-        private java.lang.Boolean data;
-        public java.lang.Boolean get_raw() { return data; }
-        public java.lang.Boolean get() { return data; }
-        private boolean check_card(int modifier) {
-            int card = modifier + 0;
-            if (data != null) card++;
-            return (card >= 0 && card <= 1);
-        }
-        @Override public boolean check_contains(java.lang.Boolean elem) { return data.equals(elem); }
-        public boolean simple_check_add(java.lang.Boolean elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(java.lang.Boolean elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(java.lang.Boolean elem) {
-            data = elem;
-        }
-        public void simple_remove(java.lang.Boolean elem) {
-            data = null;
-        }
-        private boolean tree_check_add(java.lang.Boolean elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(java.lang.Boolean elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(java.lang.Boolean elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(java.lang.Boolean elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(java.lang.Boolean elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(java.lang.Boolean elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(java.lang.Boolean elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(java.lang.Boolean elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(java.lang.Boolean elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(java.lang.Boolean elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(java.lang.Boolean elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(java.lang.Boolean elem) {
-            tree_remove(elem);
-        }
-        public isFunctional_impl(org.xowl.lang.runtime.ObjectProperty domain) {
-            this.domain = domain;
-        }
-    }
-    private isFunctional_impl dataIsFunctional;
-    public org.xowl.lang.runtime.Property.isFunctional __getImplOfisFunctional() { return dataIsFunctional; }
-    public boolean setIsFunctional(java.lang.Boolean elem) {
-        dataIsFunctional.simple_add(elem);
-        return true;
-    }
-    public java.lang.Boolean getIsFunctional() { return dataIsFunctional.get(); }
+    public java.util.Collection<org.xowl.lang.runtime.ObjectProperty> getAllPropertyDisjointWithAs(org.xowl.lang.runtime.ObjectProperty type) { return dataPropertyDisjointWith.get(); }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property inverseOf">
@@ -1896,23 +1475,444 @@ public class ObjectProperty implements org.xowl.lang.runtime.Property, org.xowl.
     public org.xowl.lang.runtime.ObjectProperty getInverseOf() { return dataInverseOf.get(); }
     // </editor-fold>
 
-    public ObjectProperty() {
-        dataIsAsymmetric = new isAsymmetric_impl(this);
-        dataPropertyDisjointWith = new propertyDisjointWith_impl(this);
-        dataIsInverseFunctional = new isInverseFunctional_impl(this);
-        dataDomain = new domain_impl(this);
-        dataRange = new range_impl(this);
-        dataIsReflexive = new isReflexive_impl(this);
-        dataIsIrreflexive = new isIrreflexive_impl(this);
-        dataChains = new chains_impl(this);
-        dataPropertyEquivalentTo = new propertyEquivalentTo_impl(this);
-        dataInterpretationOf = new interpretationOf_impl(this);
-        dataSubPropertyOf = new subPropertyOf_impl(this);
-        dataIsSymmetric = new isSymmetric_impl(this);
-        dataIsTransitive = new isTransitive_impl(this);
-        dataSuperPropertyOf = new superPropertyOf_impl(this);
-        dataIsFunctional = new isFunctional_impl(this);
-        dataInverseOf = new inverseOf_impl(this);
+    // <editor-fold defaultstate="collapsed" desc="Property domain">
+    private static class domain_impl implements org.xowl.lang.runtime.Property.domain {
+        private org.xowl.lang.runtime.ObjectProperty domain;
+        private org.xowl.lang.runtime.Class data;
+        public org.xowl.lang.runtime.Class get_raw() { return data; }
+        public org.xowl.lang.runtime.Class get() { return data; }
+        private boolean check_card(int modifier) {
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
+        }
+        @Override public boolean check_contains(org.xowl.lang.runtime.Class elem) { return (data == elem); }
+        public boolean simple_check_add(org.xowl.lang.runtime.Class elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(org.xowl.lang.runtime.Class elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(org.xowl.lang.runtime.Class elem) {
+            data = elem;
+        }
+        public void simple_remove(org.xowl.lang.runtime.Class elem) {
+            data = null;
+        }
+        private boolean tree_check_add(org.xowl.lang.runtime.Class elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(org.xowl.lang.runtime.Class elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(org.xowl.lang.runtime.Class elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(org.xowl.lang.runtime.Class elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(org.xowl.lang.runtime.Class elem) {
+            if (!elem.__getImplOfdomainOf().inverse_check_add(domain)) return false;
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(org.xowl.lang.runtime.Class elem) {
+            if (!elem.__getImplOfdomainOf().inverse_check_remove(domain)) return false;
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem) {
+            if (!oldElem.__getImplOfdomainOf().inverse_check_remove(domain)) return false;
+            if (!newElem.__getImplOfdomainOf().inverse_check_add(domain)) return false;
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(org.xowl.lang.runtime.Class elem) {
+            elem.__getImplOfdomainOf().inverse_add(domain);
+            tree_add(elem);
+        }
+        @Override public void user_remove(org.xowl.lang.runtime.Class elem) {
+            elem.__getImplOfdomainOf().inverse_remove(domain);
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Class elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Class elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Class oldElem, org.xowl.lang.runtime.Class  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(org.xowl.lang.runtime.Class elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(org.xowl.lang.runtime.Class elem) {
+            tree_remove(elem);
+        }
+        public domain_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+            this.domain = domain;
+        }
     }
-    
+    private domain_impl dataDomain;
+    public org.xowl.lang.runtime.Property.domain __getImplOfdomain() { return dataDomain; }
+    public boolean setDomain(org.xowl.lang.runtime.Class elem) {
+        if (dataDomain.get() != null) {
+            if (elem == null) {
+                if (!dataDomain.user_check_remove(dataDomain.get())) return false;
+                dataDomain.user_remove(dataDomain.get());
+            } else {
+                if (!dataDomain.user_check_replace(dataDomain.get(), elem)) return false;
+                dataDomain.user_remove(dataDomain.get());
+                dataDomain.user_add(elem);
+            }
+        } else {
+            if (elem == null) return true;
+            if (!dataDomain.user_check_add(elem)) return false;
+            dataDomain.user_add(elem);
+        }
+        return true;
+    }
+    public org.xowl.lang.runtime.Class getDomain() { return dataDomain.get(); }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Property isSymmetric">
+    public static interface isSymmetric {
+        boolean check_contains(java.lang.Boolean elem);
+        boolean user_check_add(java.lang.Boolean elem);
+        boolean user_check_remove(java.lang.Boolean elem);
+        boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
+        void user_add(java.lang.Boolean elem);
+        void user_remove(java.lang.Boolean elem);
+        boolean inverse_check_add(java.lang.Boolean elem);
+        boolean inverse_check_remove(java.lang.Boolean elem);
+        boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
+        void inverse_add(java.lang.Boolean elem);
+        void inverse_remove(java.lang.Boolean elem);
+    }
+    private static class isSymmetric_impl implements org.xowl.lang.runtime.ObjectProperty.isSymmetric {
+        private org.xowl.lang.runtime.ObjectProperty domain;
+        private java.lang.Boolean data;
+        public java.lang.Boolean get_raw() { return data; }
+        public java.lang.Boolean get() { return data; }
+        private boolean check_card(int modifier) {
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
+        }
+        @Override public boolean check_contains(java.lang.Boolean elem) { return data.equals(elem); }
+        public boolean simple_check_add(java.lang.Boolean elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(java.lang.Boolean elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(java.lang.Boolean elem) {
+            data = elem;
+        }
+        public void simple_remove(java.lang.Boolean elem) {
+            data = null;
+        }
+        private boolean tree_check_add(java.lang.Boolean elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(java.lang.Boolean elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(java.lang.Boolean elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(java.lang.Boolean elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(java.lang.Boolean elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(java.lang.Boolean elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(java.lang.Boolean elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(java.lang.Boolean elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(java.lang.Boolean elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(java.lang.Boolean elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(java.lang.Boolean elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(java.lang.Boolean elem) {
+            tree_remove(elem);
+        }
+        public isSymmetric_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+            this.domain = domain;
+        }
+    }
+    private isSymmetric_impl dataIsSymmetric;
+    public org.xowl.lang.runtime.ObjectProperty.isSymmetric __getImplOfisSymmetric() { return dataIsSymmetric; }
+    public boolean setIsSymmetric(java.lang.Boolean elem) {
+        dataIsSymmetric.simple_add(elem);
+        return true;
+    }
+    public java.lang.Boolean getIsSymmetric() { return dataIsSymmetric.get(); }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Property isReflexive">
+    public static interface isReflexive {
+        boolean check_contains(java.lang.Boolean elem);
+        boolean user_check_add(java.lang.Boolean elem);
+        boolean user_check_remove(java.lang.Boolean elem);
+        boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
+        void user_add(java.lang.Boolean elem);
+        void user_remove(java.lang.Boolean elem);
+        boolean inverse_check_add(java.lang.Boolean elem);
+        boolean inverse_check_remove(java.lang.Boolean elem);
+        boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
+        void inverse_add(java.lang.Boolean elem);
+        void inverse_remove(java.lang.Boolean elem);
+    }
+    private static class isReflexive_impl implements org.xowl.lang.runtime.ObjectProperty.isReflexive {
+        private org.xowl.lang.runtime.ObjectProperty domain;
+        private java.lang.Boolean data;
+        public java.lang.Boolean get_raw() { return data; }
+        public java.lang.Boolean get() { return data; }
+        private boolean check_card(int modifier) {
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
+        }
+        @Override public boolean check_contains(java.lang.Boolean elem) { return data.equals(elem); }
+        public boolean simple_check_add(java.lang.Boolean elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(java.lang.Boolean elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(java.lang.Boolean elem) {
+            data = elem;
+        }
+        public void simple_remove(java.lang.Boolean elem) {
+            data = null;
+        }
+        private boolean tree_check_add(java.lang.Boolean elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(java.lang.Boolean elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(java.lang.Boolean elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(java.lang.Boolean elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(java.lang.Boolean elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(java.lang.Boolean elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(java.lang.Boolean elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(java.lang.Boolean elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(java.lang.Boolean elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(java.lang.Boolean elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(java.lang.Boolean elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(java.lang.Boolean elem) {
+            tree_remove(elem);
+        }
+        public isReflexive_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+            this.domain = domain;
+        }
+    }
+    private isReflexive_impl dataIsReflexive;
+    public org.xowl.lang.runtime.ObjectProperty.isReflexive __getImplOfisReflexive() { return dataIsReflexive; }
+    public boolean setIsReflexive(java.lang.Boolean elem) {
+        dataIsReflexive.simple_add(elem);
+        return true;
+    }
+    public java.lang.Boolean getIsReflexive() { return dataIsReflexive.get(); }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Property isFunctional">
+    private static class isFunctional_impl implements org.xowl.lang.runtime.Property.isFunctional {
+        private org.xowl.lang.runtime.ObjectProperty domain;
+        private java.lang.Boolean data;
+        public java.lang.Boolean get_raw() { return data; }
+        public java.lang.Boolean get() { return data; }
+        private boolean check_card(int modifier) {
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
+        }
+        @Override public boolean check_contains(java.lang.Boolean elem) { return data.equals(elem); }
+        public boolean simple_check_add(java.lang.Boolean elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(java.lang.Boolean elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(java.lang.Boolean elem) {
+            data = elem;
+        }
+        public void simple_remove(java.lang.Boolean elem) {
+            data = null;
+        }
+        private boolean tree_check_add(java.lang.Boolean elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(java.lang.Boolean elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(java.lang.Boolean elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(java.lang.Boolean elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(java.lang.Boolean elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(java.lang.Boolean elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(java.lang.Boolean elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(java.lang.Boolean elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(java.lang.Boolean elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(java.lang.Boolean elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(java.lang.Boolean elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(java.lang.Boolean elem) {
+            tree_remove(elem);
+        }
+        public isFunctional_impl(org.xowl.lang.runtime.ObjectProperty domain) {
+            this.domain = domain;
+        }
+    }
+    private isFunctional_impl dataIsFunctional;
+    public org.xowl.lang.runtime.Property.isFunctional __getImplOfisFunctional() { return dataIsFunctional; }
+    public boolean setIsFunctional(java.lang.Boolean elem) {
+        dataIsFunctional.simple_add(elem);
+        return true;
+    }
+    public java.lang.Boolean getIsFunctional() { return dataIsFunctional.get(); }
+    // </editor-fold>
+
+    public ObjectProperty() {
+        dataSubPropertyOf = new subPropertyOf_impl(this);
+        dataIsIrreflexive = new isIrreflexive_impl(this);
+        dataInterpretationOf = new interpretationOf_impl(this);
+        dataIsAsymmetric = new isAsymmetric_impl(this);
+        dataIsTransitive = new isTransitive_impl(this);
+        dataPropertyEquivalentTo = new propertyEquivalentTo_impl(this);
+        dataSuperPropertyOf = new superPropertyOf_impl(this);
+        dataRange = new range_impl(this);
+        dataIsInverseFunctional = new isInverseFunctional_impl(this);
+        dataChains = new chains_impl(this);
+        dataPropertyDisjointWith = new propertyDisjointWith_impl(this);
+        dataInverseOf = new inverseOf_impl(this);
+        dataDomain = new domain_impl(this);
+        dataIsSymmetric = new isSymmetric_impl(this);
+        dataIsReflexive = new isReflexive_impl(this);
+        dataIsFunctional = new isFunctional_impl(this);
+    }
+
 }

@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store;
 
@@ -232,4 +232,7 @@ public class Vocabulary {
     public static final String owlAnnotatedTarget = owl + "annotatedTarget";
     public static final String owlThing = owl + "Thing";
     public static final String owlNothing = owl + "Nothing";
+
+    public static final String xowl = "http://xowl.org/lang/";
+    public static final String xowlFunctionDefinition = xowl + "actions#FunctionDefinition";
 }

@@ -3,5 +3,5 @@
 */
 package org.xowl.lang.owl2;
 
-public interface ClassRestriction extends org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.Expression {
+public interface ClassRestriction extends org.xowl.lang.owl2.ClassExpression {
 }

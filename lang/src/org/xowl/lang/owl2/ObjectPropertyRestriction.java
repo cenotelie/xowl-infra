@@ -3,5 +3,5 @@
 */
 package org.xowl.lang.owl2;
 
-public interface ObjectPropertyRestriction extends org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO0, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.Expression {
+public interface ObjectPropertyRestriction extends org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO0 {
 }

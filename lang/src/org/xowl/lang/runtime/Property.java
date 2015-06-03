@@ -4,26 +4,8 @@
 package org.xowl.lang.runtime;
 
 public interface Property extends org.xowl.lang.runtime.Interpretation {
-    // <editor-fold defaultstate="collapsed" desc="Property isFunctional">
-    public static interface isFunctional {
-        boolean check_contains(java.lang.Boolean elem);
-        boolean user_check_add(java.lang.Boolean elem);
-        boolean user_check_remove(java.lang.Boolean elem);
-        boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
-        void user_add(java.lang.Boolean elem);
-        void user_remove(java.lang.Boolean elem);
-        boolean inverse_check_add(java.lang.Boolean elem);
-        boolean inverse_check_remove(java.lang.Boolean elem);
-        boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
-        void inverse_add(java.lang.Boolean elem);
-        void inverse_remove(java.lang.Boolean elem);
-    }
-    isFunctional __getImplOfisFunctional();
-    boolean setIsFunctional(java.lang.Boolean elem);
-    java.lang.Boolean getIsFunctional();
-    // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Property subPropertyOf">
-    public static interface subPropertyOf {
+    // <editor-fold defaultstate="collapsed" desc="Property propertyEquivalentTo">
+    public static interface propertyEquivalentTo {
         boolean check_contains(org.xowl.lang.runtime.Property elem);
         boolean user_check_add(org.xowl.lang.runtime.Property elem);
         boolean user_check_remove(org.xowl.lang.runtime.Property elem);
@@ -36,29 +18,10 @@ public interface Property extends org.xowl.lang.runtime.Interpretation {
         void inverse_add(org.xowl.lang.runtime.Property elem);
         void inverse_remove(org.xowl.lang.runtime.Property elem);
     }
-    subPropertyOf __getImplOfsubPropertyOf();
-    boolean addSubPropertyOf(org.xowl.lang.runtime.Property elem);
-    boolean removeSubPropertyOf(org.xowl.lang.runtime.Property elem);
-    java.util.Collection<org.xowl.lang.runtime.Property> getAllSubPropertyOfAs(org.xowl.lang.runtime.Property type);
-    // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Property propertyDisjointWith">
-    public static interface propertyDisjointWith {
-        boolean check_contains(org.xowl.lang.runtime.Property elem);
-        boolean user_check_add(org.xowl.lang.runtime.Property elem);
-        boolean user_check_remove(org.xowl.lang.runtime.Property elem);
-        boolean user_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem);
-        void user_add(org.xowl.lang.runtime.Property elem);
-        void user_remove(org.xowl.lang.runtime.Property elem);
-        boolean inverse_check_add(org.xowl.lang.runtime.Property elem);
-        boolean inverse_check_remove(org.xowl.lang.runtime.Property elem);
-        boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem);
-        void inverse_add(org.xowl.lang.runtime.Property elem);
-        void inverse_remove(org.xowl.lang.runtime.Property elem);
-    }
-    propertyDisjointWith __getImplOfpropertyDisjointWith();
-    boolean addPropertyDisjointWith(org.xowl.lang.runtime.Property elem);
-    boolean removePropertyDisjointWith(org.xowl.lang.runtime.Property elem);
-    java.util.Collection<org.xowl.lang.runtime.Property> getAllPropertyDisjointWithAs(org.xowl.lang.runtime.Property type);
+    propertyEquivalentTo __getImplOfpropertyEquivalentTo();
+    boolean addPropertyEquivalentTo(org.xowl.lang.runtime.Property elem);
+    boolean removePropertyEquivalentTo(org.xowl.lang.runtime.Property elem);
+    java.util.Collection<org.xowl.lang.runtime.Property> getAllPropertyEquivalentToAs(org.xowl.lang.runtime.Property type);
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Property superPropertyOf">
     public static interface superPropertyOf {
@@ -97,8 +60,8 @@ public interface Property extends org.xowl.lang.runtime.Interpretation {
     boolean setDomain(org.xowl.lang.runtime.Class elem);
     org.xowl.lang.runtime.Class getDomain();
     // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Property propertyEquivalentTo">
-    public static interface propertyEquivalentTo {
+    // <editor-fold defaultstate="collapsed" desc="Property subPropertyOf">
+    public static interface subPropertyOf {
         boolean check_contains(org.xowl.lang.runtime.Property elem);
         boolean user_check_add(org.xowl.lang.runtime.Property elem);
         boolean user_check_remove(org.xowl.lang.runtime.Property elem);
@@ -111,10 +74,10 @@ public interface Property extends org.xowl.lang.runtime.Interpretation {
         void inverse_add(org.xowl.lang.runtime.Property elem);
         void inverse_remove(org.xowl.lang.runtime.Property elem);
     }
-    propertyEquivalentTo __getImplOfpropertyEquivalentTo();
-    boolean addPropertyEquivalentTo(org.xowl.lang.runtime.Property elem);
-    boolean removePropertyEquivalentTo(org.xowl.lang.runtime.Property elem);
-    java.util.Collection<org.xowl.lang.runtime.Property> getAllPropertyEquivalentToAs(org.xowl.lang.runtime.Property type);
+    subPropertyOf __getImplOfsubPropertyOf();
+    boolean addSubPropertyOf(org.xowl.lang.runtime.Property elem);
+    boolean removeSubPropertyOf(org.xowl.lang.runtime.Property elem);
+    java.util.Collection<org.xowl.lang.runtime.Property> getAllSubPropertyOfAs(org.xowl.lang.runtime.Property type);
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Property range">
     public static interface range {
@@ -133,5 +96,42 @@ public interface Property extends org.xowl.lang.runtime.Interpretation {
     range __getImplOfrange();
     boolean setRange(org.xowl.lang.runtime.Class_OR_Datatype elem);
     org.xowl.lang.runtime.Class_OR_Datatype getRangeAs(org.xowl.lang.runtime.Class_OR_Datatype type);
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Property propertyDisjointWith">
+    public static interface propertyDisjointWith {
+        boolean check_contains(org.xowl.lang.runtime.Property elem);
+        boolean user_check_add(org.xowl.lang.runtime.Property elem);
+        boolean user_check_remove(org.xowl.lang.runtime.Property elem);
+        boolean user_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem);
+        void user_add(org.xowl.lang.runtime.Property elem);
+        void user_remove(org.xowl.lang.runtime.Property elem);
+        boolean inverse_check_add(org.xowl.lang.runtime.Property elem);
+        boolean inverse_check_remove(org.xowl.lang.runtime.Property elem);
+        boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem);
+        void inverse_add(org.xowl.lang.runtime.Property elem);
+        void inverse_remove(org.xowl.lang.runtime.Property elem);
+    }
+    propertyDisjointWith __getImplOfpropertyDisjointWith();
+    boolean addPropertyDisjointWith(org.xowl.lang.runtime.Property elem);
+    boolean removePropertyDisjointWith(org.xowl.lang.runtime.Property elem);
+    java.util.Collection<org.xowl.lang.runtime.Property> getAllPropertyDisjointWithAs(org.xowl.lang.runtime.Property type);
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Property isFunctional">
+    public static interface isFunctional {
+        boolean check_contains(java.lang.Boolean elem);
+        boolean user_check_add(java.lang.Boolean elem);
+        boolean user_check_remove(java.lang.Boolean elem);
+        boolean user_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
+        void user_add(java.lang.Boolean elem);
+        void user_remove(java.lang.Boolean elem);
+        boolean inverse_check_add(java.lang.Boolean elem);
+        boolean inverse_check_remove(java.lang.Boolean elem);
+        boolean inverse_check_replace(java.lang.Boolean oldElem, java.lang.Boolean  newElem);
+        void inverse_add(java.lang.Boolean elem);
+        void inverse_remove(java.lang.Boolean elem);
+    }
+    isFunctional __getImplOfisFunctional();
+    boolean setIsFunctional(java.lang.Boolean elem);
+    java.lang.Boolean getIsFunctional();
     // </editor-fold>
 }

@@ -3,9 +3,22 @@
 */
 package org.xowl.lang.actions;
 
-public class QueryVariable implements org.xowl.lang.actions.Variable, org.xowl.lang.actions.ArrayExpression, org.xowl.lang.actions.ExecutableExpression, org.xowl.lang.actions.FunctionExpression, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.DataPropertyExpression, org.xowl.lang.owl2.Datarange, org.xowl.lang.owl2.EntityExpression, org.xowl.lang.owl2.IndividualExpression, org.xowl.lang.owl2.LiteralExpression, org.xowl.lang.owl2.ObjectPropertyExpression, org.xowl.lang.owl2.Expression {
+public class QueryVariable implements org.xowl.lang.actions.DynamicExpression {
     // <editor-fold defaultstate="collapsed" desc="Property name">
-    private static class name_impl implements org.xowl.lang.actions.Variable.name {
+    public static interface name {
+        boolean check_contains(java.lang.String elem);
+        boolean user_check_add(java.lang.String elem);
+        boolean user_check_remove(java.lang.String elem);
+        boolean user_check_replace(java.lang.String oldElem, java.lang.String  newElem);
+        void user_add(java.lang.String elem);
+        void user_remove(java.lang.String elem);
+        boolean inverse_check_add(java.lang.String elem);
+        boolean inverse_check_remove(java.lang.String elem);
+        boolean inverse_check_replace(java.lang.String oldElem, java.lang.String  newElem);
+        void inverse_add(java.lang.String elem);
+        void inverse_remove(java.lang.String elem);
+    }
+    private static class name_impl implements org.xowl.lang.actions.QueryVariable.name {
         private org.xowl.lang.actions.QueryVariable domain;
         private java.lang.String data;
         public java.lang.String get_raw() { return data; }
@@ -90,7 +103,7 @@ public class QueryVariable implements org.xowl.lang.actions.Variable, org.xowl.l
         }
     }
     private name_impl dataName;
-    public org.xowl.lang.actions.Variable.name __getImplOfname() { return dataName; }
+    public org.xowl.lang.actions.QueryVariable.name __getImplOfname() { return dataName; }
     public boolean setName(java.lang.String elem) {
         dataName.simple_add(elem);
         return true;
@@ -101,5 +114,5 @@ public class QueryVariable implements org.xowl.lang.actions.Variable, org.xowl.l
     public QueryVariable() {
         dataName = new name_impl(this);
     }
-    
+
 }

@@ -3,9 +3,9 @@
 */
 package org.xowl.lang.runtime;
 
-public class DataProperty implements org.xowl.lang.runtime.Property, org.xowl.lang.runtime.Interpretation {
-    // <editor-fold defaultstate="collapsed" desc="Property propertyEquivalentTo">
-    private static class propertyEquivalentTo_impl implements org.xowl.lang.runtime.Property.propertyEquivalentTo {
+public class DataProperty implements org.xowl.lang.runtime.Property {
+    // <editor-fold defaultstate="collapsed" desc="Property subPropertyOf">
+    private static class subPropertyOf_impl implements org.xowl.lang.runtime.Property.subPropertyOf {
         private org.xowl.lang.runtime.DataProperty domain;
         private java.util.List<org.xowl.lang.runtime.DataProperty> data;
         public java.util.Collection<org.xowl.lang.runtime.DataProperty> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.DataProperty>(data); }
@@ -59,24 +59,24 @@ public class DataProperty implements org.xowl.lang.runtime.Property, org.xowl.la
             simple_remove(elem);
         }
         public boolean user_check_add(org.xowl.lang.runtime.DataProperty elem) {
-            if (!elem.__getImplOfpropertyEquivalentTo().inverse_check_add(domain)) return false;
+            if (!elem.__getImplOfsuperPropertyOf().inverse_check_add(domain)) return false;
             return tree_check_add(elem);
         }
         public boolean user_check_remove(org.xowl.lang.runtime.DataProperty elem) {
-            if (!elem.__getImplOfpropertyEquivalentTo().inverse_check_remove(domain)) return false;
+            if (!elem.__getImplOfsuperPropertyOf().inverse_check_remove(domain)) return false;
             return tree_check_remove(elem);
         }
         public boolean user_check_replace(org.xowl.lang.runtime.DataProperty oldElem, org.xowl.lang.runtime.DataProperty  newElem) {
-            if (!oldElem.__getImplOfpropertyEquivalentTo().inverse_check_remove(domain)) return false;
-            if (!newElem.__getImplOfpropertyEquivalentTo().inverse_check_add(domain)) return false;
+            if (!oldElem.__getImplOfsuperPropertyOf().inverse_check_remove(domain)) return false;
+            if (!newElem.__getImplOfsuperPropertyOf().inverse_check_add(domain)) return false;
             return tree_check_replace(oldElem, newElem);
         }
         public void user_add(org.xowl.lang.runtime.DataProperty elem) {
-            elem.__getImplOfpropertyEquivalentTo().inverse_add(domain);
+            elem.__getImplOfsuperPropertyOf().inverse_add(domain);
             tree_add(elem);
         }
         public void user_remove(org.xowl.lang.runtime.DataProperty elem) {
-            elem.__getImplOfpropertyEquivalentTo().inverse_remove(domain);
+            elem.__getImplOfsuperPropertyOf().inverse_remove(domain);
             tree_remove(elem);
         }
         @Override public boolean user_check_add(org.xowl.lang.runtime.Property elem) { return user_check_add((org.xowl.lang.runtime.DataProperty)elem); }
@@ -104,42 +104,42 @@ public class DataProperty implements org.xowl.lang.runtime.Property, org.xowl.la
         @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return inverse_check_replace((org.xowl.lang.runtime.DataProperty)oldElem, (org.xowl.lang.runtime.DataProperty)newElem); }
         @Override public void inverse_add(org.xowl.lang.runtime.Property elem) { inverse_add((org.xowl.lang.runtime.DataProperty)elem); }
         @Override public void inverse_remove(org.xowl.lang.runtime.Property elem) { inverse_remove((org.xowl.lang.runtime.DataProperty)elem); }
-        public propertyEquivalentTo_impl(org.xowl.lang.runtime.DataProperty domain) {
+        public subPropertyOf_impl(org.xowl.lang.runtime.DataProperty domain) {
             this.domain = domain;
             this.data = new java.util.ArrayList<org.xowl.lang.runtime.DataProperty>();
         }
     }
-    private propertyEquivalentTo_impl dataPropertyEquivalentTo;
-    public org.xowl.lang.runtime.Property.propertyEquivalentTo __getImplOfpropertyEquivalentTo() { return dataPropertyEquivalentTo; }
-    public boolean addPropertyEquivalentTo(org.xowl.lang.runtime.Property elem) {
+    private subPropertyOf_impl dataSubPropertyOf;
+    public org.xowl.lang.runtime.Property.subPropertyOf __getImplOfsubPropertyOf() { return dataSubPropertyOf; }
+    public boolean addSubPropertyOf(org.xowl.lang.runtime.Property elem) {
         org.xowl.lang.runtime.DataProperty value = (org.xowl.lang.runtime.DataProperty)elem;
-        if (!dataPropertyEquivalentTo.user_check_add(value)) return false;
-        dataPropertyEquivalentTo.user_add(value);
+        if (!dataSubPropertyOf.user_check_add(value)) return false;
+        dataSubPropertyOf.user_add(value);
         return true;
     }
-    public boolean removePropertyEquivalentTo(org.xowl.lang.runtime.Property elem) {
+    public boolean removeSubPropertyOf(org.xowl.lang.runtime.Property elem) {
         org.xowl.lang.runtime.DataProperty value = (org.xowl.lang.runtime.DataProperty)elem;
-        if (!dataPropertyEquivalentTo.user_check_remove(value)) return false;
-        dataPropertyEquivalentTo.user_remove(value);
+        if (!dataSubPropertyOf.user_check_remove(value)) return false;
+        dataSubPropertyOf.user_remove(value);
         return true;
     }
-    public java.util.Collection<org.xowl.lang.runtime.Property> getAllPropertyEquivalentToAs(org.xowl.lang.runtime.Property type) {
+    public java.util.Collection<org.xowl.lang.runtime.Property> getAllSubPropertyOfAs(org.xowl.lang.runtime.Property type) {
         java.util.List<org.xowl.lang.runtime.Property> result = new java.util.ArrayList<org.xowl.lang.runtime.Property>();
-        for (org.xowl.lang.runtime.DataProperty value : dataPropertyEquivalentTo.get())
+        for (org.xowl.lang.runtime.DataProperty value : dataSubPropertyOf.get())
             result.add(value);
         return result;
     }
-    public boolean addPropertyEquivalentTo(org.xowl.lang.runtime.DataProperty elem) {
-        if (!dataPropertyEquivalentTo.user_check_add(elem)) return false;
-        dataPropertyEquivalentTo.user_add(elem);
+    public boolean addSubPropertyOf(org.xowl.lang.runtime.DataProperty elem) {
+        if (!dataSubPropertyOf.user_check_add(elem)) return false;
+        dataSubPropertyOf.user_add(elem);
         return true;
     }
-    public boolean removePropertyEquivalentTo(org.xowl.lang.runtime.DataProperty elem) {
-        if (!dataPropertyEquivalentTo.user_check_remove(elem)) return false;
-        dataPropertyEquivalentTo.user_remove(elem);
+    public boolean removeSubPropertyOf(org.xowl.lang.runtime.DataProperty elem) {
+        if (!dataSubPropertyOf.user_check_remove(elem)) return false;
+        dataSubPropertyOf.user_remove(elem);
         return true;
     }
-    public java.util.Collection<org.xowl.lang.runtime.DataProperty> getAllPropertyEquivalentToAs(org.xowl.lang.runtime.DataProperty type) { return dataPropertyEquivalentTo.get(); }
+    public java.util.Collection<org.xowl.lang.runtime.DataProperty> getAllSubPropertyOfAs(org.xowl.lang.runtime.DataProperty type) { return dataSubPropertyOf.get(); }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property interpretationOf">
@@ -393,8 +393,8 @@ public class DataProperty implements org.xowl.lang.runtime.Property, org.xowl.la
     public java.util.Collection<org.xowl.lang.runtime.DataProperty> getAllPropertyDisjointWithAs(org.xowl.lang.runtime.DataProperty type) { return dataPropertyDisjointWith.get(); }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Property subPropertyOf">
-    private static class subPropertyOf_impl implements org.xowl.lang.runtime.Property.subPropertyOf {
+    // <editor-fold defaultstate="collapsed" desc="Property propertyEquivalentTo">
+    private static class propertyEquivalentTo_impl implements org.xowl.lang.runtime.Property.propertyEquivalentTo {
         private org.xowl.lang.runtime.DataProperty domain;
         private java.util.List<org.xowl.lang.runtime.DataProperty> data;
         public java.util.Collection<org.xowl.lang.runtime.DataProperty> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.DataProperty>(data); }
@@ -448,24 +448,24 @@ public class DataProperty implements org.xowl.lang.runtime.Property, org.xowl.la
             simple_remove(elem);
         }
         public boolean user_check_add(org.xowl.lang.runtime.DataProperty elem) {
-            if (!elem.__getImplOfsuperPropertyOf().inverse_check_add(domain)) return false;
+            if (!elem.__getImplOfpropertyEquivalentTo().inverse_check_add(domain)) return false;
             return tree_check_add(elem);
         }
         public boolean user_check_remove(org.xowl.lang.runtime.DataProperty elem) {
-            if (!elem.__getImplOfsuperPropertyOf().inverse_check_remove(domain)) return false;
+            if (!elem.__getImplOfpropertyEquivalentTo().inverse_check_remove(domain)) return false;
             return tree_check_remove(elem);
         }
         public boolean user_check_replace(org.xowl.lang.runtime.DataProperty oldElem, org.xowl.lang.runtime.DataProperty  newElem) {
-            if (!oldElem.__getImplOfsuperPropertyOf().inverse_check_remove(domain)) return false;
-            if (!newElem.__getImplOfsuperPropertyOf().inverse_check_add(domain)) return false;
+            if (!oldElem.__getImplOfpropertyEquivalentTo().inverse_check_remove(domain)) return false;
+            if (!newElem.__getImplOfpropertyEquivalentTo().inverse_check_add(domain)) return false;
             return tree_check_replace(oldElem, newElem);
         }
         public void user_add(org.xowl.lang.runtime.DataProperty elem) {
-            elem.__getImplOfsuperPropertyOf().inverse_add(domain);
+            elem.__getImplOfpropertyEquivalentTo().inverse_add(domain);
             tree_add(elem);
         }
         public void user_remove(org.xowl.lang.runtime.DataProperty elem) {
-            elem.__getImplOfsuperPropertyOf().inverse_remove(domain);
+            elem.__getImplOfpropertyEquivalentTo().inverse_remove(domain);
             tree_remove(elem);
         }
         @Override public boolean user_check_add(org.xowl.lang.runtime.Property elem) { return user_check_add((org.xowl.lang.runtime.DataProperty)elem); }
@@ -493,42 +493,42 @@ public class DataProperty implements org.xowl.lang.runtime.Property, org.xowl.la
         @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Property oldElem, org.xowl.lang.runtime.Property  newElem) { return inverse_check_replace((org.xowl.lang.runtime.DataProperty)oldElem, (org.xowl.lang.runtime.DataProperty)newElem); }
         @Override public void inverse_add(org.xowl.lang.runtime.Property elem) { inverse_add((org.xowl.lang.runtime.DataProperty)elem); }
         @Override public void inverse_remove(org.xowl.lang.runtime.Property elem) { inverse_remove((org.xowl.lang.runtime.DataProperty)elem); }
-        public subPropertyOf_impl(org.xowl.lang.runtime.DataProperty domain) {
+        public propertyEquivalentTo_impl(org.xowl.lang.runtime.DataProperty domain) {
             this.domain = domain;
             this.data = new java.util.ArrayList<org.xowl.lang.runtime.DataProperty>();
         }
     }
-    private subPropertyOf_impl dataSubPropertyOf;
-    public org.xowl.lang.runtime.Property.subPropertyOf __getImplOfsubPropertyOf() { return dataSubPropertyOf; }
-    public boolean addSubPropertyOf(org.xowl.lang.runtime.Property elem) {
+    private propertyEquivalentTo_impl dataPropertyEquivalentTo;
+    public org.xowl.lang.runtime.Property.propertyEquivalentTo __getImplOfpropertyEquivalentTo() { return dataPropertyEquivalentTo; }
+    public boolean addPropertyEquivalentTo(org.xowl.lang.runtime.Property elem) {
         org.xowl.lang.runtime.DataProperty value = (org.xowl.lang.runtime.DataProperty)elem;
-        if (!dataSubPropertyOf.user_check_add(value)) return false;
-        dataSubPropertyOf.user_add(value);
+        if (!dataPropertyEquivalentTo.user_check_add(value)) return false;
+        dataPropertyEquivalentTo.user_add(value);
         return true;
     }
-    public boolean removeSubPropertyOf(org.xowl.lang.runtime.Property elem) {
+    public boolean removePropertyEquivalentTo(org.xowl.lang.runtime.Property elem) {
         org.xowl.lang.runtime.DataProperty value = (org.xowl.lang.runtime.DataProperty)elem;
-        if (!dataSubPropertyOf.user_check_remove(value)) return false;
-        dataSubPropertyOf.user_remove(value);
+        if (!dataPropertyEquivalentTo.user_check_remove(value)) return false;
+        dataPropertyEquivalentTo.user_remove(value);
         return true;
     }
-    public java.util.Collection<org.xowl.lang.runtime.Property> getAllSubPropertyOfAs(org.xowl.lang.runtime.Property type) {
+    public java.util.Collection<org.xowl.lang.runtime.Property> getAllPropertyEquivalentToAs(org.xowl.lang.runtime.Property type) {
         java.util.List<org.xowl.lang.runtime.Property> result = new java.util.ArrayList<org.xowl.lang.runtime.Property>();
-        for (org.xowl.lang.runtime.DataProperty value : dataSubPropertyOf.get())
+        for (org.xowl.lang.runtime.DataProperty value : dataPropertyEquivalentTo.get())
             result.add(value);
         return result;
     }
-    public boolean addSubPropertyOf(org.xowl.lang.runtime.DataProperty elem) {
-        if (!dataSubPropertyOf.user_check_add(elem)) return false;
-        dataSubPropertyOf.user_add(elem);
+    public boolean addPropertyEquivalentTo(org.xowl.lang.runtime.DataProperty elem) {
+        if (!dataPropertyEquivalentTo.user_check_add(elem)) return false;
+        dataPropertyEquivalentTo.user_add(elem);
         return true;
     }
-    public boolean removeSubPropertyOf(org.xowl.lang.runtime.DataProperty elem) {
-        if (!dataSubPropertyOf.user_check_remove(elem)) return false;
-        dataSubPropertyOf.user_remove(elem);
+    public boolean removePropertyEquivalentTo(org.xowl.lang.runtime.DataProperty elem) {
+        if (!dataPropertyEquivalentTo.user_check_remove(elem)) return false;
+        dataPropertyEquivalentTo.user_remove(elem);
         return true;
     }
-    public java.util.Collection<org.xowl.lang.runtime.DataProperty> getAllSubPropertyOfAs(org.xowl.lang.runtime.DataProperty type) { return dataSubPropertyOf.get(); }
+    public java.util.Collection<org.xowl.lang.runtime.DataProperty> getAllPropertyEquivalentToAs(org.xowl.lang.runtime.DataProperty type) { return dataPropertyEquivalentTo.get(); }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property superPropertyOf">
@@ -1016,14 +1016,14 @@ public class DataProperty implements org.xowl.lang.runtime.Property, org.xowl.la
     // </editor-fold>
 
     public DataProperty() {
-        dataPropertyEquivalentTo = new propertyEquivalentTo_impl(this);
+        dataSubPropertyOf = new subPropertyOf_impl(this);
         dataInterpretationOf = new interpretationOf_impl(this);
         dataPropertyDisjointWith = new propertyDisjointWith_impl(this);
-        dataSubPropertyOf = new subPropertyOf_impl(this);
+        dataPropertyEquivalentTo = new propertyEquivalentTo_impl(this);
         dataSuperPropertyOf = new superPropertyOf_impl(this);
         dataDomain = new domain_impl(this);
         dataRange = new range_impl(this);
         dataIsFunctional = new isFunctional_impl(this);
     }
-    
+
 }

@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class ClassSequence implements org.xowl.lang.owl2.ClassSequenceExpression, org.xowl.lang.owl2.SequenceExpression {
+public class ClassSequence implements org.xowl.lang.owl2.ClassSequenceExpression {
     // <editor-fold defaultstate="collapsed" desc="Property classElements">
     public static interface classElements {
         boolean check_contains(org.xowl.lang.owl2.ClassElement elem);
@@ -120,5 +120,5 @@ public class ClassSequence implements org.xowl.lang.owl2.ClassSequenceExpression
     public ClassSequence() {
         dataClassElements = new classElements_impl(this);
     }
-    
+
 }

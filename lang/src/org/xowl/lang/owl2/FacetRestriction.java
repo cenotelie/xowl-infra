@@ -248,5 +248,5 @@ public class FacetRestriction {
         dataConstrainingValue = new constrainingValue_impl(this);
         dataConstrainingFacet = new constrainingFacet_impl(this);
     }
-    
+
 }

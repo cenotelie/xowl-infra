@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.runtime;
 
-public class ObjectHasSelf implements org.xowl.lang.runtime.ObjectPropertyRestriction, org.xowl.lang.runtime.ClassRestriction {
+public class ObjectHasSelf implements org.xowl.lang.runtime.ObjectPropertyRestriction {
     // <editor-fold defaultstate="collapsed" desc="Property objectProperty">
     private static class objectProperty_impl implements org.xowl.lang.runtime.ObjectPropertyRestriction.objectProperty {
         private org.xowl.lang.runtime.ObjectHasSelf domain;
@@ -114,5 +114,5 @@ public class ObjectHasSelf implements org.xowl.lang.runtime.ObjectPropertyRestri
     public ObjectHasSelf() {
         dataObjectProperty = new objectProperty_impl(this);
     }
-    
+
 }

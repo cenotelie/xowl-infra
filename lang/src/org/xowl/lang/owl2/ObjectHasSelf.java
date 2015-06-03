@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class ObjectHasSelf implements org.xowl.lang.owl2.ObjectPropertyRestriction, org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO0, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.Expression {
+public class ObjectHasSelf implements org.xowl.lang.owl2.ObjectPropertyRestriction {
     // <editor-fold defaultstate="collapsed" desc="Property objectProperty">
     private static class objectProperty_impl implements org.xowl.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO0.objectProperty {
         private org.xowl.lang.owl2.ObjectHasSelf domain;
@@ -114,5 +114,5 @@ public class ObjectHasSelf implements org.xowl.lang.owl2.ObjectPropertyRestricti
     public ObjectHasSelf() {
         dataObjectProperty = new objectProperty_impl(this);
     }
-    
+
 }

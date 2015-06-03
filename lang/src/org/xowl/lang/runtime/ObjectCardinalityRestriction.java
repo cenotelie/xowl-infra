@@ -3,5 +3,5 @@
 */
 package org.xowl.lang.runtime;
 
-public interface ObjectCardinalityRestriction extends org.xowl.lang.runtime.CardinalityRestriction, org.xowl.lang.runtime.ObjectPropertyRestriction, org.xowl.lang.runtime.ObjectAllValuesFrom_OR_ObjectCardinalityRestriction_OR_ObjectSomeValuesFrom, org.xowl.lang.runtime.ClassRestriction {
+public interface ObjectCardinalityRestriction extends org.xowl.lang.runtime.CardinalityRestriction, org.xowl.lang.runtime.ObjectPropertyRestriction, org.xowl.lang.runtime.ObjectAllValuesFrom_OR_ObjectCardinalityRestriction_OR_ObjectSomeValuesFrom {
 }

@@ -4,119 +4,6 @@
 package org.xowl.lang.rules;
 
 public class Rule {
-    // <editor-fold defaultstate="collapsed" desc="Property antecedents">
-    public static interface antecedents {
-        boolean check_contains(org.xowl.lang.rules.Assertion elem);
-        boolean user_check_add(org.xowl.lang.rules.Assertion elem);
-        boolean user_check_remove(org.xowl.lang.rules.Assertion elem);
-        boolean user_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem);
-        void user_add(org.xowl.lang.rules.Assertion elem);
-        void user_remove(org.xowl.lang.rules.Assertion elem);
-        boolean inverse_check_add(org.xowl.lang.rules.Assertion elem);
-        boolean inverse_check_remove(org.xowl.lang.rules.Assertion elem);
-        boolean inverse_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem);
-        void inverse_add(org.xowl.lang.rules.Assertion elem);
-        void inverse_remove(org.xowl.lang.rules.Assertion elem);
-    }
-    private static class antecedents_impl implements org.xowl.lang.rules.Rule.antecedents {
-        private org.xowl.lang.rules.Rule domain;
-        private java.util.List<org.xowl.lang.rules.Assertion> data;
-        public java.util.Collection<org.xowl.lang.rules.Assertion> get_raw() { return new java.util.ArrayList<org.xowl.lang.rules.Assertion>(data); }
-        public java.util.Collection<org.xowl.lang.rules.Assertion> get() { return new java.util.ArrayList<org.xowl.lang.rules.Assertion>(data); }
-        private boolean check_card(int modifier) {
-            int card = data.size() + 0 + modifier;
-            return (card >= 0 && card <= 2147483647);
-        }
-        @Override public boolean check_contains(org.xowl.lang.rules.Assertion elem) { return (data.contains(elem)); }
-        public boolean simple_check_add(org.xowl.lang.rules.Assertion elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(org.xowl.lang.rules.Assertion elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(org.xowl.lang.rules.Assertion elem) {
-            data.add(elem);
-        }
-        public void simple_remove(org.xowl.lang.rules.Assertion elem) {
-            data.remove(elem);
-        }
-        private boolean tree_check_add(org.xowl.lang.rules.Assertion elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(org.xowl.lang.rules.Assertion elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(org.xowl.lang.rules.Assertion elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(org.xowl.lang.rules.Assertion elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(org.xowl.lang.rules.Assertion elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(org.xowl.lang.rules.Assertion elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(org.xowl.lang.rules.Assertion elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(org.xowl.lang.rules.Assertion elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(org.xowl.lang.rules.Assertion elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(org.xowl.lang.rules.Assertion elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(org.xowl.lang.rules.Assertion elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(org.xowl.lang.rules.Assertion elem) {
-            tree_remove(elem);
-        }
-        public antecedents_impl(org.xowl.lang.rules.Rule domain) {
-            this.domain = domain;
-            this.data = new java.util.ArrayList<org.xowl.lang.rules.Assertion>();
-        }
-    }
-    private antecedents_impl dataAntecedents;
-    public org.xowl.lang.rules.Rule.antecedents __getImplOfantecedents() { return dataAntecedents; }
-    public boolean addAntecedents(org.xowl.lang.rules.Assertion elem) {
-        if (!dataAntecedents.user_check_add(elem)) return false;
-        dataAntecedents.user_add(elem);
-        return true;
-    }
-    public boolean removeAntecedents(org.xowl.lang.rules.Assertion elem) {
-        if (!dataAntecedents.user_check_remove(elem)) return false;
-        dataAntecedents.user_remove(elem);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.rules.Assertion> getAllAntecedents() { return dataAntecedents.get(); }
-    // </editor-fold>
-
     // <editor-fold defaultstate="collapsed" desc="Property hasIRI">
     public static interface hasIRI {
         boolean check_contains(org.xowl.lang.owl2.IRI elem);
@@ -237,8 +124,8 @@ public class Rule {
     public org.xowl.lang.owl2.IRI getHasIRI() { return dataHasIRI.get(); }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Property guards">
-    public static interface guards {
+    // <editor-fold defaultstate="collapsed" desc="Property guard">
+    public static interface guard {
         boolean check_contains(org.xowl.lang.owl2.LiteralExpression elem);
         boolean user_check_add(org.xowl.lang.owl2.LiteralExpression elem);
         boolean user_check_remove(org.xowl.lang.owl2.LiteralExpression elem);
@@ -251,16 +138,17 @@ public class Rule {
         void inverse_add(org.xowl.lang.owl2.LiteralExpression elem);
         void inverse_remove(org.xowl.lang.owl2.LiteralExpression elem);
     }
-    private static class guards_impl implements org.xowl.lang.rules.Rule.guards {
+    private static class guard_impl implements org.xowl.lang.rules.Rule.guard {
         private org.xowl.lang.rules.Rule domain;
-        private java.util.List<org.xowl.lang.owl2.LiteralExpression> data;
-        public java.util.Collection<org.xowl.lang.owl2.LiteralExpression> get_raw() { return new java.util.ArrayList<org.xowl.lang.owl2.LiteralExpression>(data); }
-        public java.util.Collection<org.xowl.lang.owl2.LiteralExpression> get() { return new java.util.ArrayList<org.xowl.lang.owl2.LiteralExpression>(data); }
+        private org.xowl.lang.owl2.LiteralExpression data;
+        public org.xowl.lang.owl2.LiteralExpression get_raw() { return data; }
+        public org.xowl.lang.owl2.LiteralExpression get() { return data; }
         private boolean check_card(int modifier) {
-            int card = data.size() + 0 + modifier;
-            return (card >= 0 && card <= 2147483647);
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
         }
-        @Override public boolean check_contains(org.xowl.lang.owl2.LiteralExpression elem) { return (data.contains(elem)); }
+        @Override public boolean check_contains(org.xowl.lang.owl2.LiteralExpression elem) { return (data == elem); }
         public boolean simple_check_add(org.xowl.lang.owl2.LiteralExpression elem) {
             if (check_contains(elem)) return false;
             if (!check_card(1)) return false;
@@ -277,10 +165,10 @@ public class Rule {
             return true;
         }
         public void simple_add(org.xowl.lang.owl2.LiteralExpression elem) {
-            data.add(elem);
+            data = elem;
         }
         public void simple_remove(org.xowl.lang.owl2.LiteralExpression elem) {
-            data.remove(elem);
+            data = null;
         }
         private boolean tree_check_add(org.xowl.lang.owl2.LiteralExpression elem) {
             if (!simple_check_add(elem)) return false;
@@ -330,24 +218,143 @@ public class Rule {
         @Override public void inverse_remove(org.xowl.lang.owl2.LiteralExpression elem) {
             tree_remove(elem);
         }
-        public guards_impl(org.xowl.lang.rules.Rule domain) {
+        public guard_impl(org.xowl.lang.rules.Rule domain) {
             this.domain = domain;
-            this.data = new java.util.ArrayList<org.xowl.lang.owl2.LiteralExpression>();
         }
     }
-    private guards_impl dataGuards;
-    public org.xowl.lang.rules.Rule.guards __getImplOfguards() { return dataGuards; }
-    public boolean addGuards(org.xowl.lang.owl2.LiteralExpression elem) {
-        if (!dataGuards.user_check_add(elem)) return false;
-        dataGuards.user_add(elem);
+    private guard_impl dataGuard;
+    public org.xowl.lang.rules.Rule.guard __getImplOfguard() { return dataGuard; }
+    public boolean setGuard(org.xowl.lang.owl2.LiteralExpression elem) {
+        if (dataGuard.get() != null) {
+            if (elem == null) {
+                if (!dataGuard.user_check_remove(dataGuard.get())) return false;
+                dataGuard.user_remove(dataGuard.get());
+            } else {
+                if (!dataGuard.user_check_replace(dataGuard.get(), elem)) return false;
+                dataGuard.user_remove(dataGuard.get());
+                dataGuard.user_add(elem);
+            }
+        } else {
+            if (elem == null) return true;
+            if (!dataGuard.user_check_add(elem)) return false;
+            dataGuard.user_add(elem);
+        }
         return true;
     }
-    public boolean removeGuards(org.xowl.lang.owl2.LiteralExpression elem) {
-        if (!dataGuards.user_check_remove(elem)) return false;
-        dataGuards.user_remove(elem);
+    public org.xowl.lang.owl2.LiteralExpression getGuard() { return dataGuard.get(); }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Property antecedents">
+    public static interface antecedents {
+        boolean check_contains(org.xowl.lang.rules.Assertion elem);
+        boolean user_check_add(org.xowl.lang.rules.Assertion elem);
+        boolean user_check_remove(org.xowl.lang.rules.Assertion elem);
+        boolean user_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem);
+        void user_add(org.xowl.lang.rules.Assertion elem);
+        void user_remove(org.xowl.lang.rules.Assertion elem);
+        boolean inverse_check_add(org.xowl.lang.rules.Assertion elem);
+        boolean inverse_check_remove(org.xowl.lang.rules.Assertion elem);
+        boolean inverse_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem);
+        void inverse_add(org.xowl.lang.rules.Assertion elem);
+        void inverse_remove(org.xowl.lang.rules.Assertion elem);
+    }
+    private static class antecedents_impl implements org.xowl.lang.rules.Rule.antecedents {
+        private org.xowl.lang.rules.Rule domain;
+        private java.util.List<org.xowl.lang.rules.Assertion> data;
+        public java.util.Collection<org.xowl.lang.rules.Assertion> get_raw() { return new java.util.ArrayList<org.xowl.lang.rules.Assertion>(data); }
+        public java.util.Collection<org.xowl.lang.rules.Assertion> get() { return new java.util.ArrayList<org.xowl.lang.rules.Assertion>(data); }
+        private boolean check_card(int modifier) {
+            int card = data.size() + 0 + modifier;
+            return (card >= 0 && card <= 2147483647);
+        }
+        @Override public boolean check_contains(org.xowl.lang.rules.Assertion elem) { return (data.contains(elem)); }
+        public boolean simple_check_add(org.xowl.lang.rules.Assertion elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(org.xowl.lang.rules.Assertion elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(org.xowl.lang.rules.Assertion elem) {
+            data.add(elem);
+        }
+        public void simple_remove(org.xowl.lang.rules.Assertion elem) {
+            data.remove(elem);
+        }
+        private boolean tree_check_add(org.xowl.lang.rules.Assertion elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(org.xowl.lang.rules.Assertion elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(org.xowl.lang.rules.Assertion elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(org.xowl.lang.rules.Assertion elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(org.xowl.lang.rules.Assertion elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(org.xowl.lang.rules.Assertion elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(org.xowl.lang.rules.Assertion elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(org.xowl.lang.rules.Assertion elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(org.xowl.lang.rules.Assertion elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(org.xowl.lang.rules.Assertion elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(org.xowl.lang.rules.Assertion oldElem, org.xowl.lang.rules.Assertion  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(org.xowl.lang.rules.Assertion elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(org.xowl.lang.rules.Assertion elem) {
+            tree_remove(elem);
+        }
+        public antecedents_impl(org.xowl.lang.rules.Rule domain) {
+            this.domain = domain;
+            this.data = new java.util.ArrayList<org.xowl.lang.rules.Assertion>();
+        }
+    }
+    private antecedents_impl dataAntecedents;
+    public org.xowl.lang.rules.Rule.antecedents __getImplOfantecedents() { return dataAntecedents; }
+    public boolean addAntecedents(org.xowl.lang.rules.Assertion elem) {
+        if (!dataAntecedents.user_check_add(elem)) return false;
+        dataAntecedents.user_add(elem);
         return true;
     }
-    public java.util.Collection<org.xowl.lang.owl2.LiteralExpression> getAllGuards() { return dataGuards.get(); }
+    public boolean removeAntecedents(org.xowl.lang.rules.Assertion elem) {
+        if (!dataAntecedents.user_check_remove(elem)) return false;
+        dataAntecedents.user_remove(elem);
+        return true;
+    }
+    public java.util.Collection<org.xowl.lang.rules.Assertion> getAllAntecedents() { return dataAntecedents.get(); }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property consequents">
@@ -464,10 +471,10 @@ public class Rule {
     // </editor-fold>
 
     public Rule() {
-        dataAntecedents = new antecedents_impl(this);
         dataHasIRI = new hasIRI_impl(this);
-        dataGuards = new guards_impl(this);
+        dataGuard = new guard_impl(this);
+        dataAntecedents = new antecedents_impl(this);
         dataConsequents = new consequents_impl(this);
     }
-    
+
 }

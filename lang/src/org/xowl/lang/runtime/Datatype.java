@@ -117,6 +117,345 @@ public class Datatype implements org.xowl.lang.runtime.Interpretation, org.xowl.
     public org.xowl.lang.runtime.Entity getInterpretationOf() { return dataInterpretationOf.get(); }
     // </editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="Property dataUnionOf">
+    public static interface dataUnionOf {
+        boolean check_contains(org.xowl.lang.runtime.Datatype elem);
+        boolean user_check_add(org.xowl.lang.runtime.Datatype elem);
+        boolean user_check_remove(org.xowl.lang.runtime.Datatype elem);
+        boolean user_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem);
+        void user_add(org.xowl.lang.runtime.Datatype elem);
+        void user_remove(org.xowl.lang.runtime.Datatype elem);
+        boolean inverse_check_add(org.xowl.lang.runtime.Datatype elem);
+        boolean inverse_check_remove(org.xowl.lang.runtime.Datatype elem);
+        boolean inverse_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem);
+        void inverse_add(org.xowl.lang.runtime.Datatype elem);
+        void inverse_remove(org.xowl.lang.runtime.Datatype elem);
+    }
+    private static class dataUnionOf_impl implements org.xowl.lang.runtime.Datatype.dataUnionOf {
+        private org.xowl.lang.runtime.Datatype domain;
+        private java.util.List<org.xowl.lang.runtime.Datatype> data;
+        public java.util.Collection<org.xowl.lang.runtime.Datatype> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.Datatype>(data); }
+        public java.util.Collection<org.xowl.lang.runtime.Datatype> get() { return new java.util.ArrayList<org.xowl.lang.runtime.Datatype>(data); }
+        private boolean check_card(int modifier) {
+            int card = data.size() + 0 + modifier;
+            return (card >= 0 && card <= 2147483647);
+        }
+        @Override public boolean check_contains(org.xowl.lang.runtime.Datatype elem) { return (data.contains(elem)); }
+        public boolean simple_check_add(org.xowl.lang.runtime.Datatype elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(org.xowl.lang.runtime.Datatype elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(org.xowl.lang.runtime.Datatype elem) {
+            data.add(elem);
+        }
+        public void simple_remove(org.xowl.lang.runtime.Datatype elem) {
+            data.remove(elem);
+        }
+        private boolean tree_check_add(org.xowl.lang.runtime.Datatype elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(org.xowl.lang.runtime.Datatype elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(org.xowl.lang.runtime.Datatype elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(org.xowl.lang.runtime.Datatype elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(org.xowl.lang.runtime.Datatype elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(org.xowl.lang.runtime.Datatype elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(org.xowl.lang.runtime.Datatype elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(org.xowl.lang.runtime.Datatype elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Datatype elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Datatype elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(org.xowl.lang.runtime.Datatype elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(org.xowl.lang.runtime.Datatype elem) {
+            tree_remove(elem);
+        }
+        public dataUnionOf_impl(org.xowl.lang.runtime.Datatype domain) {
+            this.domain = domain;
+            this.data = new java.util.ArrayList<org.xowl.lang.runtime.Datatype>();
+        }
+    }
+    private dataUnionOf_impl dataDataUnionOf;
+    public org.xowl.lang.runtime.Datatype.dataUnionOf __getImplOfdataUnionOf() { return dataDataUnionOf; }
+    public boolean addDataUnionOf(org.xowl.lang.runtime.Datatype elem) {
+        if (!dataDataUnionOf.user_check_add(elem)) return false;
+        dataDataUnionOf.user_add(elem);
+        return true;
+    }
+    public boolean removeDataUnionOf(org.xowl.lang.runtime.Datatype elem) {
+        if (!dataDataUnionOf.user_check_remove(elem)) return false;
+        dataDataUnionOf.user_remove(elem);
+        return true;
+    }
+    public java.util.Collection<org.xowl.lang.runtime.Datatype> getAllDataUnionOf() { return dataDataUnionOf.get(); }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Property dataIntersectionOf">
+    public static interface dataIntersectionOf {
+        boolean check_contains(org.xowl.lang.runtime.Datatype elem);
+        boolean user_check_add(org.xowl.lang.runtime.Datatype elem);
+        boolean user_check_remove(org.xowl.lang.runtime.Datatype elem);
+        boolean user_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem);
+        void user_add(org.xowl.lang.runtime.Datatype elem);
+        void user_remove(org.xowl.lang.runtime.Datatype elem);
+        boolean inverse_check_add(org.xowl.lang.runtime.Datatype elem);
+        boolean inverse_check_remove(org.xowl.lang.runtime.Datatype elem);
+        boolean inverse_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem);
+        void inverse_add(org.xowl.lang.runtime.Datatype elem);
+        void inverse_remove(org.xowl.lang.runtime.Datatype elem);
+    }
+    private static class dataIntersectionOf_impl implements org.xowl.lang.runtime.Datatype.dataIntersectionOf {
+        private org.xowl.lang.runtime.Datatype domain;
+        private java.util.List<org.xowl.lang.runtime.Datatype> data;
+        public java.util.Collection<org.xowl.lang.runtime.Datatype> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.Datatype>(data); }
+        public java.util.Collection<org.xowl.lang.runtime.Datatype> get() { return new java.util.ArrayList<org.xowl.lang.runtime.Datatype>(data); }
+        private boolean check_card(int modifier) {
+            int card = data.size() + 0 + modifier;
+            return (card >= 0 && card <= 2147483647);
+        }
+        @Override public boolean check_contains(org.xowl.lang.runtime.Datatype elem) { return (data.contains(elem)); }
+        public boolean simple_check_add(org.xowl.lang.runtime.Datatype elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(org.xowl.lang.runtime.Datatype elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(org.xowl.lang.runtime.Datatype elem) {
+            data.add(elem);
+        }
+        public void simple_remove(org.xowl.lang.runtime.Datatype elem) {
+            data.remove(elem);
+        }
+        private boolean tree_check_add(org.xowl.lang.runtime.Datatype elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(org.xowl.lang.runtime.Datatype elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(org.xowl.lang.runtime.Datatype elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(org.xowl.lang.runtime.Datatype elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(org.xowl.lang.runtime.Datatype elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(org.xowl.lang.runtime.Datatype elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(org.xowl.lang.runtime.Datatype elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(org.xowl.lang.runtime.Datatype elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Datatype elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Datatype elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(org.xowl.lang.runtime.Datatype elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(org.xowl.lang.runtime.Datatype elem) {
+            tree_remove(elem);
+        }
+        public dataIntersectionOf_impl(org.xowl.lang.runtime.Datatype domain) {
+            this.domain = domain;
+            this.data = new java.util.ArrayList<org.xowl.lang.runtime.Datatype>();
+        }
+    }
+    private dataIntersectionOf_impl dataDataIntersectionOf;
+    public org.xowl.lang.runtime.Datatype.dataIntersectionOf __getImplOfdataIntersectionOf() { return dataDataIntersectionOf; }
+    public boolean addDataIntersectionOf(org.xowl.lang.runtime.Datatype elem) {
+        if (!dataDataIntersectionOf.user_check_add(elem)) return false;
+        dataDataIntersectionOf.user_add(elem);
+        return true;
+    }
+    public boolean removeDataIntersectionOf(org.xowl.lang.runtime.Datatype elem) {
+        if (!dataDataIntersectionOf.user_check_remove(elem)) return false;
+        dataDataIntersectionOf.user_remove(elem);
+        return true;
+    }
+    public java.util.Collection<org.xowl.lang.runtime.Datatype> getAllDataIntersectionOf() { return dataDataIntersectionOf.get(); }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Property dataRestrictions">
+    public static interface dataRestrictions {
+        boolean check_contains(org.xowl.lang.runtime.DatatypeRestriction elem);
+        boolean user_check_add(org.xowl.lang.runtime.DatatypeRestriction elem);
+        boolean user_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem);
+        boolean user_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem);
+        void user_add(org.xowl.lang.runtime.DatatypeRestriction elem);
+        void user_remove(org.xowl.lang.runtime.DatatypeRestriction elem);
+        boolean inverse_check_add(org.xowl.lang.runtime.DatatypeRestriction elem);
+        boolean inverse_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem);
+        boolean inverse_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem);
+        void inverse_add(org.xowl.lang.runtime.DatatypeRestriction elem);
+        void inverse_remove(org.xowl.lang.runtime.DatatypeRestriction elem);
+    }
+    private static class dataRestrictions_impl implements org.xowl.lang.runtime.Datatype.dataRestrictions {
+        private org.xowl.lang.runtime.Datatype domain;
+        private java.util.List<org.xowl.lang.runtime.DatatypeRestriction> data;
+        public java.util.Collection<org.xowl.lang.runtime.DatatypeRestriction> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.DatatypeRestriction>(data); }
+        public java.util.Collection<org.xowl.lang.runtime.DatatypeRestriction> get() { return new java.util.ArrayList<org.xowl.lang.runtime.DatatypeRestriction>(data); }
+        private boolean check_card(int modifier) {
+            int card = data.size() + 0 + modifier;
+            return (card >= 0 && card <= 2147483647);
+        }
+        @Override public boolean check_contains(org.xowl.lang.runtime.DatatypeRestriction elem) { return (data.contains(elem)); }
+        public boolean simple_check_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            data.add(elem);
+        }
+        public void simple_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            data.remove(elem);
+        }
+        private boolean tree_check_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
+            tree_remove(elem);
+        }
+        public dataRestrictions_impl(org.xowl.lang.runtime.Datatype domain) {
+            this.domain = domain;
+            this.data = new java.util.ArrayList<org.xowl.lang.runtime.DatatypeRestriction>();
+        }
+    }
+    private dataRestrictions_impl dataDataRestrictions;
+    public org.xowl.lang.runtime.Datatype.dataRestrictions __getImplOfdataRestrictions() { return dataDataRestrictions; }
+    public boolean addDataRestrictions(org.xowl.lang.runtime.DatatypeRestriction elem) {
+        if (!dataDataRestrictions.user_check_add(elem)) return false;
+        dataDataRestrictions.user_add(elem);
+        return true;
+    }
+    public boolean removeDataRestrictions(org.xowl.lang.runtime.DatatypeRestriction elem) {
+        if (!dataDataRestrictions.user_check_remove(elem)) return false;
+        dataDataRestrictions.user_remove(elem);
+        return true;
+    }
+    public java.util.Collection<org.xowl.lang.runtime.DatatypeRestriction> getAllDataRestrictions() { return dataDataRestrictions.get(); }
+    // </editor-fold>
+
     // <editor-fold defaultstate="collapsed" desc="Property dataComplementOf">
     public static interface dataComplementOf {
         boolean check_contains(org.xowl.lang.runtime.Datatype elem);
@@ -241,345 +580,6 @@ public class Datatype implements org.xowl.lang.runtime.Interpretation, org.xowl.
         return true;
     }
     public org.xowl.lang.runtime.Datatype getDataComplementOf() { return dataDataComplementOf.get(); }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Property dataIntersectionOf">
-    public static interface dataIntersectionOf {
-        boolean check_contains(org.xowl.lang.runtime.Datatype elem);
-        boolean user_check_add(org.xowl.lang.runtime.Datatype elem);
-        boolean user_check_remove(org.xowl.lang.runtime.Datatype elem);
-        boolean user_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem);
-        void user_add(org.xowl.lang.runtime.Datatype elem);
-        void user_remove(org.xowl.lang.runtime.Datatype elem);
-        boolean inverse_check_add(org.xowl.lang.runtime.Datatype elem);
-        boolean inverse_check_remove(org.xowl.lang.runtime.Datatype elem);
-        boolean inverse_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem);
-        void inverse_add(org.xowl.lang.runtime.Datatype elem);
-        void inverse_remove(org.xowl.lang.runtime.Datatype elem);
-    }
-    private static class dataIntersectionOf_impl implements org.xowl.lang.runtime.Datatype.dataIntersectionOf {
-        private org.xowl.lang.runtime.Datatype domain;
-        private java.util.List<org.xowl.lang.runtime.Datatype> data;
-        public java.util.Collection<org.xowl.lang.runtime.Datatype> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.Datatype>(data); }
-        public java.util.Collection<org.xowl.lang.runtime.Datatype> get() { return new java.util.ArrayList<org.xowl.lang.runtime.Datatype>(data); }
-        private boolean check_card(int modifier) {
-            int card = data.size() + 0 + modifier;
-            return (card >= 0 && card <= 2147483647);
-        }
-        @Override public boolean check_contains(org.xowl.lang.runtime.Datatype elem) { return (data.contains(elem)); }
-        public boolean simple_check_add(org.xowl.lang.runtime.Datatype elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(org.xowl.lang.runtime.Datatype elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(org.xowl.lang.runtime.Datatype elem) {
-            data.add(elem);
-        }
-        public void simple_remove(org.xowl.lang.runtime.Datatype elem) {
-            data.remove(elem);
-        }
-        private boolean tree_check_add(org.xowl.lang.runtime.Datatype elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(org.xowl.lang.runtime.Datatype elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(org.xowl.lang.runtime.Datatype elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(org.xowl.lang.runtime.Datatype elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(org.xowl.lang.runtime.Datatype elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(org.xowl.lang.runtime.Datatype elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(org.xowl.lang.runtime.Datatype elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(org.xowl.lang.runtime.Datatype elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Datatype elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Datatype elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(org.xowl.lang.runtime.Datatype elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(org.xowl.lang.runtime.Datatype elem) {
-            tree_remove(elem);
-        }
-        public dataIntersectionOf_impl(org.xowl.lang.runtime.Datatype domain) {
-            this.domain = domain;
-            this.data = new java.util.ArrayList<org.xowl.lang.runtime.Datatype>();
-        }
-    }
-    private dataIntersectionOf_impl dataDataIntersectionOf;
-    public org.xowl.lang.runtime.Datatype.dataIntersectionOf __getImplOfdataIntersectionOf() { return dataDataIntersectionOf; }
-    public boolean addDataIntersectionOf(org.xowl.lang.runtime.Datatype elem) {
-        if (!dataDataIntersectionOf.user_check_add(elem)) return false;
-        dataDataIntersectionOf.user_add(elem);
-        return true;
-    }
-    public boolean removeDataIntersectionOf(org.xowl.lang.runtime.Datatype elem) {
-        if (!dataDataIntersectionOf.user_check_remove(elem)) return false;
-        dataDataIntersectionOf.user_remove(elem);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.runtime.Datatype> getAllDataIntersectionOf() { return dataDataIntersectionOf.get(); }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Property dataUnionOf">
-    public static interface dataUnionOf {
-        boolean check_contains(org.xowl.lang.runtime.Datatype elem);
-        boolean user_check_add(org.xowl.lang.runtime.Datatype elem);
-        boolean user_check_remove(org.xowl.lang.runtime.Datatype elem);
-        boolean user_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem);
-        void user_add(org.xowl.lang.runtime.Datatype elem);
-        void user_remove(org.xowl.lang.runtime.Datatype elem);
-        boolean inverse_check_add(org.xowl.lang.runtime.Datatype elem);
-        boolean inverse_check_remove(org.xowl.lang.runtime.Datatype elem);
-        boolean inverse_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem);
-        void inverse_add(org.xowl.lang.runtime.Datatype elem);
-        void inverse_remove(org.xowl.lang.runtime.Datatype elem);
-    }
-    private static class dataUnionOf_impl implements org.xowl.lang.runtime.Datatype.dataUnionOf {
-        private org.xowl.lang.runtime.Datatype domain;
-        private java.util.List<org.xowl.lang.runtime.Datatype> data;
-        public java.util.Collection<org.xowl.lang.runtime.Datatype> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.Datatype>(data); }
-        public java.util.Collection<org.xowl.lang.runtime.Datatype> get() { return new java.util.ArrayList<org.xowl.lang.runtime.Datatype>(data); }
-        private boolean check_card(int modifier) {
-            int card = data.size() + 0 + modifier;
-            return (card >= 0 && card <= 2147483647);
-        }
-        @Override public boolean check_contains(org.xowl.lang.runtime.Datatype elem) { return (data.contains(elem)); }
-        public boolean simple_check_add(org.xowl.lang.runtime.Datatype elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(org.xowl.lang.runtime.Datatype elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(org.xowl.lang.runtime.Datatype elem) {
-            data.add(elem);
-        }
-        public void simple_remove(org.xowl.lang.runtime.Datatype elem) {
-            data.remove(elem);
-        }
-        private boolean tree_check_add(org.xowl.lang.runtime.Datatype elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(org.xowl.lang.runtime.Datatype elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(org.xowl.lang.runtime.Datatype elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(org.xowl.lang.runtime.Datatype elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(org.xowl.lang.runtime.Datatype elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(org.xowl.lang.runtime.Datatype elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(org.xowl.lang.runtime.Datatype elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(org.xowl.lang.runtime.Datatype elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Datatype elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Datatype elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Datatype oldElem, org.xowl.lang.runtime.Datatype  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(org.xowl.lang.runtime.Datatype elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(org.xowl.lang.runtime.Datatype elem) {
-            tree_remove(elem);
-        }
-        public dataUnionOf_impl(org.xowl.lang.runtime.Datatype domain) {
-            this.domain = domain;
-            this.data = new java.util.ArrayList<org.xowl.lang.runtime.Datatype>();
-        }
-    }
-    private dataUnionOf_impl dataDataUnionOf;
-    public org.xowl.lang.runtime.Datatype.dataUnionOf __getImplOfdataUnionOf() { return dataDataUnionOf; }
-    public boolean addDataUnionOf(org.xowl.lang.runtime.Datatype elem) {
-        if (!dataDataUnionOf.user_check_add(elem)) return false;
-        dataDataUnionOf.user_add(elem);
-        return true;
-    }
-    public boolean removeDataUnionOf(org.xowl.lang.runtime.Datatype elem) {
-        if (!dataDataUnionOf.user_check_remove(elem)) return false;
-        dataDataUnionOf.user_remove(elem);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.runtime.Datatype> getAllDataUnionOf() { return dataDataUnionOf.get(); }
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc="Property dataRestrictions">
-    public static interface dataRestrictions {
-        boolean check_contains(org.xowl.lang.runtime.DatatypeRestriction elem);
-        boolean user_check_add(org.xowl.lang.runtime.DatatypeRestriction elem);
-        boolean user_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem);
-        boolean user_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem);
-        void user_add(org.xowl.lang.runtime.DatatypeRestriction elem);
-        void user_remove(org.xowl.lang.runtime.DatatypeRestriction elem);
-        boolean inverse_check_add(org.xowl.lang.runtime.DatatypeRestriction elem);
-        boolean inverse_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem);
-        boolean inverse_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem);
-        void inverse_add(org.xowl.lang.runtime.DatatypeRestriction elem);
-        void inverse_remove(org.xowl.lang.runtime.DatatypeRestriction elem);
-    }
-    private static class dataRestrictions_impl implements org.xowl.lang.runtime.Datatype.dataRestrictions {
-        private org.xowl.lang.runtime.Datatype domain;
-        private java.util.List<org.xowl.lang.runtime.DatatypeRestriction> data;
-        public java.util.Collection<org.xowl.lang.runtime.DatatypeRestriction> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.DatatypeRestriction>(data); }
-        public java.util.Collection<org.xowl.lang.runtime.DatatypeRestriction> get() { return new java.util.ArrayList<org.xowl.lang.runtime.DatatypeRestriction>(data); }
-        private boolean check_card(int modifier) {
-            int card = data.size() + 0 + modifier;
-            return (card >= 0 && card <= 2147483647);
-        }
-        @Override public boolean check_contains(org.xowl.lang.runtime.DatatypeRestriction elem) { return (data.contains(elem)); }
-        public boolean simple_check_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            data.add(elem);
-        }
-        public void simple_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            data.remove(elem);
-        }
-        private boolean tree_check_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.DatatypeRestriction oldElem, org.xowl.lang.runtime.DatatypeRestriction  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(org.xowl.lang.runtime.DatatypeRestriction elem) {
-            tree_remove(elem);
-        }
-        public dataRestrictions_impl(org.xowl.lang.runtime.Datatype domain) {
-            this.domain = domain;
-            this.data = new java.util.ArrayList<org.xowl.lang.runtime.DatatypeRestriction>();
-        }
-    }
-    private dataRestrictions_impl dataDataRestrictions;
-    public org.xowl.lang.runtime.Datatype.dataRestrictions __getImplOfdataRestrictions() { return dataDataRestrictions; }
-    public boolean addDataRestrictions(org.xowl.lang.runtime.DatatypeRestriction elem) {
-        if (!dataDataRestrictions.user_check_add(elem)) return false;
-        dataDataRestrictions.user_add(elem);
-        return true;
-    }
-    public boolean removeDataRestrictions(org.xowl.lang.runtime.DatatypeRestriction elem) {
-        if (!dataDataRestrictions.user_check_remove(elem)) return false;
-        dataDataRestrictions.user_remove(elem);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.runtime.DatatypeRestriction> getAllDataRestrictions() { return dataDataRestrictions.get(); }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property dataOneOf">
@@ -817,12 +817,12 @@ public class Datatype implements org.xowl.lang.runtime.Interpretation, org.xowl.
 
     public Datatype() {
         dataInterpretationOf = new interpretationOf_impl(this);
-        dataDataComplementOf = new dataComplementOf_impl(this);
-        dataDataIntersectionOf = new dataIntersectionOf_impl(this);
         dataDataUnionOf = new dataUnionOf_impl(this);
+        dataDataIntersectionOf = new dataIntersectionOf_impl(this);
         dataDataRestrictions = new dataRestrictions_impl(this);
+        dataDataComplementOf = new dataComplementOf_impl(this);
         dataDataOneOf = new dataOneOf_impl(this);
         dataDataBase = new dataBase_impl(this);
     }
-    
+
 }

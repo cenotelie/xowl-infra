@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.runtime;
 
-public class DataHasValue implements org.xowl.lang.runtime.DataPropertyRestriction, org.xowl.lang.runtime.ClassRestriction {
+public class DataHasValue implements org.xowl.lang.runtime.DataPropertyRestriction {
     // <editor-fold defaultstate="collapsed" desc="Property dataProperty">
     private static class dataProperty_impl implements org.xowl.lang.runtime.DataPropertyRestriction.dataProperty {
         private org.xowl.lang.runtime.DataHasValue domain;
@@ -235,5 +235,5 @@ public class DataHasValue implements org.xowl.lang.runtime.DataPropertyRestricti
         dataDataProperty = new dataProperty_impl(this);
         dataLiteral = new literal_impl(this);
     }
-    
+
 }

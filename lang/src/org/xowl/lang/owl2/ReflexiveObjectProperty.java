@@ -3,101 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class ReflexiveObjectProperty implements org.xowl.lang.owl2.ObjectPropertyAxiom, org.xowl.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO0, org.xowl.lang.owl2.Axiom, org.xowl.lang.owl2.Annotation_OR_Axiom_OR_Ontology, org.xowl.lang.owl2.Axiom_OR_Statement {
-    // <editor-fold defaultstate="collapsed" desc="Property line">
-    private static class line_impl implements org.xowl.lang.owl2.Axiom_OR_Statement.line {
-        private org.xowl.lang.owl2.ReflexiveObjectProperty domain;
-        private java.lang.Integer data;
-        public java.lang.Integer get_raw() { return data; }
-        public java.lang.Integer get() { return data; }
-        private boolean check_card(int modifier) {
-            int card = modifier + 0;
-            if (data != null) card++;
-            return (card >= 0 && card <= 1);
-        }
-        @Override public boolean check_contains(java.lang.Integer elem) { return data.equals(elem); }
-        public boolean simple_check_add(java.lang.Integer elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(java.lang.Integer elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(java.lang.Integer elem) {
-            data = elem;
-        }
-        public void simple_remove(java.lang.Integer elem) {
-            data = null;
-        }
-        private boolean tree_check_add(java.lang.Integer elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(java.lang.Integer elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(java.lang.Integer elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(java.lang.Integer elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(java.lang.Integer elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(java.lang.Integer elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(java.lang.Integer elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(java.lang.Integer elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(java.lang.Integer elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(java.lang.Integer elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(java.lang.Integer elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(java.lang.Integer elem) {
-            tree_remove(elem);
-        }
-        public line_impl(org.xowl.lang.owl2.ReflexiveObjectProperty domain) {
-            this.domain = domain;
-        }
-    }
-    private line_impl dataLine;
-    public org.xowl.lang.owl2.Axiom_OR_Statement.line __getImplOfline() { return dataLine; }
-    public boolean setLine(java.lang.Integer elem) {
-        dataLine.simple_add(elem);
-        return true;
-    }
-    public java.lang.Integer getLine() { return dataLine.get(); }
-    // </editor-fold>
-
+public class ReflexiveObjectProperty implements org.xowl.lang.owl2.ObjectPropertyAxiom, org.xowl.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO0 {
     // <editor-fold defaultstate="collapsed" desc="Property objectProperty">
     private static class objectProperty_impl implements org.xowl.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO0.objectProperty {
         private org.xowl.lang.owl2.ReflexiveObjectProperty domain;
@@ -205,6 +111,194 @@ public class ReflexiveObjectProperty implements org.xowl.lang.owl2.ObjectPropert
     public org.xowl.lang.owl2.ObjectPropertyExpression getObjectProperty() { return dataObjectProperty.get(); }
     // </editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="Property file">
+    private static class file_impl implements org.xowl.lang.owl2.Axiom.file {
+        private org.xowl.lang.owl2.ReflexiveObjectProperty domain;
+        private java.lang.String data;
+        public java.lang.String get_raw() { return data; }
+        public java.lang.String get() { return data; }
+        private boolean check_card(int modifier) {
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
+        }
+        @Override public boolean check_contains(java.lang.String elem) { return data.equals(elem); }
+        public boolean simple_check_add(java.lang.String elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(java.lang.String elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(java.lang.String oldElem, java.lang.String  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(java.lang.String elem) {
+            data = elem;
+        }
+        public void simple_remove(java.lang.String elem) {
+            data = null;
+        }
+        private boolean tree_check_add(java.lang.String elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(java.lang.String elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(java.lang.String oldElem, java.lang.String  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(java.lang.String elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(java.lang.String elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(java.lang.String elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(java.lang.String elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(java.lang.String oldElem, java.lang.String  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(java.lang.String elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(java.lang.String elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(java.lang.String elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(java.lang.String elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(java.lang.String oldElem, java.lang.String  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(java.lang.String elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(java.lang.String elem) {
+            tree_remove(elem);
+        }
+        public file_impl(org.xowl.lang.owl2.ReflexiveObjectProperty domain) {
+            this.domain = domain;
+        }
+    }
+    private file_impl dataFile;
+    public org.xowl.lang.owl2.Axiom.file __getImplOffile() { return dataFile; }
+    public boolean setFile(java.lang.String elem) {
+        dataFile.simple_add(elem);
+        return true;
+    }
+    public java.lang.String getFile() { return dataFile.get(); }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="Property line">
+    private static class line_impl implements org.xowl.lang.owl2.Axiom.line {
+        private org.xowl.lang.owl2.ReflexiveObjectProperty domain;
+        private java.lang.Integer data;
+        public java.lang.Integer get_raw() { return data; }
+        public java.lang.Integer get() { return data; }
+        private boolean check_card(int modifier) {
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
+        }
+        @Override public boolean check_contains(java.lang.Integer elem) { return data.equals(elem); }
+        public boolean simple_check_add(java.lang.Integer elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(java.lang.Integer elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(java.lang.Integer elem) {
+            data = elem;
+        }
+        public void simple_remove(java.lang.Integer elem) {
+            data = null;
+        }
+        private boolean tree_check_add(java.lang.Integer elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(java.lang.Integer elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(java.lang.Integer elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(java.lang.Integer elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(java.lang.Integer elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(java.lang.Integer elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(java.lang.Integer elem) {
+            tree_add(elem);
+        }
+        @Override public void user_remove(java.lang.Integer elem) {
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(java.lang.Integer elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(java.lang.Integer elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(java.lang.Integer oldElem, java.lang.Integer  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(java.lang.Integer elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(java.lang.Integer elem) {
+            tree_remove(elem);
+        }
+        public line_impl(org.xowl.lang.owl2.ReflexiveObjectProperty domain) {
+            this.domain = domain;
+        }
+    }
+    private line_impl dataLine;
+    public org.xowl.lang.owl2.Axiom.line __getImplOfline() { return dataLine; }
+    public boolean setLine(java.lang.Integer elem) {
+        dataLine.simple_add(elem);
+        return true;
+    }
+    public java.lang.Integer getLine() { return dataLine.get(); }
+    // </editor-fold>
+
     // <editor-fold defaultstate="collapsed" desc="Property annotations">
     private static class annotations_impl implements org.xowl.lang.owl2.Annotation_OR_Axiom_OR_Ontology.annotations {
         private org.xowl.lang.owl2.ReflexiveObjectProperty domain;
@@ -305,105 +399,11 @@ public class ReflexiveObjectProperty implements org.xowl.lang.owl2.ObjectPropert
     public java.util.Collection<org.xowl.lang.owl2.Annotation> getAllAnnotations() { return dataAnnotations.get(); }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Property file">
-    private static class file_impl implements org.xowl.lang.owl2.Axiom_OR_Statement.file {
-        private org.xowl.lang.owl2.ReflexiveObjectProperty domain;
-        private java.lang.String data;
-        public java.lang.String get_raw() { return data; }
-        public java.lang.String get() { return data; }
-        private boolean check_card(int modifier) {
-            int card = modifier + 0;
-            if (data != null) card++;
-            return (card >= 0 && card <= 1);
-        }
-        @Override public boolean check_contains(java.lang.String elem) { return data.equals(elem); }
-        public boolean simple_check_add(java.lang.String elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(java.lang.String elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(java.lang.String oldElem, java.lang.String  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(java.lang.String elem) {
-            data = elem;
-        }
-        public void simple_remove(java.lang.String elem) {
-            data = null;
-        }
-        private boolean tree_check_add(java.lang.String elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(java.lang.String elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(java.lang.String oldElem, java.lang.String  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(java.lang.String elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(java.lang.String elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(java.lang.String elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(java.lang.String elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(java.lang.String oldElem, java.lang.String  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(java.lang.String elem) {
-            tree_add(elem);
-        }
-        @Override public void user_remove(java.lang.String elem) {
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(java.lang.String elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(java.lang.String elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(java.lang.String oldElem, java.lang.String  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(java.lang.String elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(java.lang.String elem) {
-            tree_remove(elem);
-        }
-        public file_impl(org.xowl.lang.owl2.ReflexiveObjectProperty domain) {
-            this.domain = domain;
-        }
-    }
-    private file_impl dataFile;
-    public org.xowl.lang.owl2.Axiom_OR_Statement.file __getImplOffile() { return dataFile; }
-    public boolean setFile(java.lang.String elem) {
-        dataFile.simple_add(elem);
-        return true;
-    }
-    public java.lang.String getFile() { return dataFile.get(); }
-    // </editor-fold>
-
     public ReflexiveObjectProperty() {
-        dataLine = new line_impl(this);
         dataObjectProperty = new objectProperty_impl(this);
-        dataAnnotations = new annotations_impl(this);
         dataFile = new file_impl(this);
+        dataLine = new line_impl(this);
+        dataAnnotations = new annotations_impl(this);
     }
-    
+
 }

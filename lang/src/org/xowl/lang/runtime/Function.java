@@ -119,120 +119,127 @@ public class Function implements org.xowl.lang.runtime.Interpretation {
 
     // <editor-fold defaultstate="collapsed" desc="Property definedAs">
     public static interface definedAs {
-        boolean check_contains(org.xowl.lang.runtime.Closure elem);
-        boolean user_check_add(org.xowl.lang.runtime.Closure elem);
-        boolean user_check_remove(org.xowl.lang.runtime.Closure elem);
-        boolean user_check_replace(org.xowl.lang.runtime.Closure oldElem, org.xowl.lang.runtime.Closure  newElem);
-        void user_add(org.xowl.lang.runtime.Closure elem);
-        void user_remove(org.xowl.lang.runtime.Closure elem);
-        boolean inverse_check_add(org.xowl.lang.runtime.Closure elem);
-        boolean inverse_check_remove(org.xowl.lang.runtime.Closure elem);
-        boolean inverse_check_replace(org.xowl.lang.runtime.Closure oldElem, org.xowl.lang.runtime.Closure  newElem);
-        void inverse_add(org.xowl.lang.runtime.Closure elem);
-        void inverse_remove(org.xowl.lang.runtime.Closure elem);
+        boolean check_contains(java.lang.Object elem);
+        boolean user_check_add(java.lang.Object elem);
+        boolean user_check_remove(java.lang.Object elem);
+        boolean user_check_replace(java.lang.Object oldElem, java.lang.Object  newElem);
+        void user_add(java.lang.Object elem);
+        void user_remove(java.lang.Object elem);
+        boolean inverse_check_add(java.lang.Object elem);
+        boolean inverse_check_remove(java.lang.Object elem);
+        boolean inverse_check_replace(java.lang.Object oldElem, java.lang.Object  newElem);
+        void inverse_add(java.lang.Object elem);
+        void inverse_remove(java.lang.Object elem);
     }
     private static class definedAs_impl implements org.xowl.lang.runtime.Function.definedAs {
         private org.xowl.lang.runtime.Function domain;
-        private java.util.List<org.xowl.lang.runtime.Closure> data;
-        public java.util.Collection<org.xowl.lang.runtime.Closure> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.Closure>(data); }
-        public java.util.Collection<org.xowl.lang.runtime.Closure> get() { return new java.util.ArrayList<org.xowl.lang.runtime.Closure>(data); }
+        private java.lang.Object data;
+        public java.lang.Object get_raw() { return data; }
+        public java.lang.Object get() { return data; }
         private boolean check_card(int modifier) {
-            int card = data.size() + 0 + modifier;
-            return (card >= 0 && card <= 2147483647);
+            int card = modifier + 0;
+            if (data != null) card++;
+            return (card >= 0 && card <= 1);
         }
-        @Override public boolean check_contains(org.xowl.lang.runtime.Closure elem) { return (data.contains(elem)); }
-        public boolean simple_check_add(org.xowl.lang.runtime.Closure elem) {
+        @Override public boolean check_contains(java.lang.Object elem) { return (data == elem); }
+        public boolean simple_check_add(java.lang.Object elem) {
             if (check_contains(elem)) return false;
             if (!check_card(1)) return false;
             return true;
         }
-        public boolean simple_check_remove(org.xowl.lang.runtime.Closure elem) {
+        public boolean simple_check_remove(java.lang.Object elem) {
             if (!check_contains(elem)) return false;
             if (!check_card(-1)) return false;
             return true;
         }
-        public boolean simple_check_replace(org.xowl.lang.runtime.Closure oldElem, org.xowl.lang.runtime.Closure  newElem) {
+        public boolean simple_check_replace(java.lang.Object oldElem, java.lang.Object  newElem) {
             if (check_contains(newElem)) return false;
             if (!check_contains(oldElem)) return false;
             return true;
         }
-        public void simple_add(org.xowl.lang.runtime.Closure elem) {
-            data.add(elem);
+        public void simple_add(java.lang.Object elem) {
+            data = elem;
         }
-        public void simple_remove(org.xowl.lang.runtime.Closure elem) {
-            data.remove(elem);
+        public void simple_remove(java.lang.Object elem) {
+            data = null;
         }
-        private boolean tree_check_add(org.xowl.lang.runtime.Closure elem) {
+        private boolean tree_check_add(java.lang.Object elem) {
             if (!simple_check_add(elem)) return false;
             return true;
         }
-        private boolean tree_check_remove(org.xowl.lang.runtime.Closure elem) {
+        private boolean tree_check_remove(java.lang.Object elem) {
             if (!simple_check_remove(elem)) return false;
             return true;
         }
-        private boolean tree_check_replace(org.xowl.lang.runtime.Closure oldElem, org.xowl.lang.runtime.Closure  newElem) {
+        private boolean tree_check_replace(java.lang.Object oldElem, java.lang.Object  newElem) {
             if (!simple_check_replace(oldElem, newElem)) return false;
             return true;
         }
-        private void tree_add(org.xowl.lang.runtime.Closure elem) {
+        private void tree_add(java.lang.Object elem) {
             simple_add(elem);
         }
-        private void tree_remove(org.xowl.lang.runtime.Closure elem) {
+        private void tree_remove(java.lang.Object elem) {
             simple_remove(elem);
         }
-        @Override public boolean user_check_add(org.xowl.lang.runtime.Closure elem) {
+        @Override public boolean user_check_add(java.lang.Object elem) {
             return tree_check_add(elem);
         }
-        @Override public boolean user_check_remove(org.xowl.lang.runtime.Closure elem) {
+        @Override public boolean user_check_remove(java.lang.Object elem) {
             return tree_check_remove(elem);
         }
-        @Override public boolean user_check_replace(org.xowl.lang.runtime.Closure oldElem, org.xowl.lang.runtime.Closure  newElem) {
+        @Override public boolean user_check_replace(java.lang.Object oldElem, java.lang.Object  newElem) {
             return tree_check_replace(oldElem, newElem);
         }
-        @Override public void user_add(org.xowl.lang.runtime.Closure elem) {
+        @Override public void user_add(java.lang.Object elem) {
             tree_add(elem);
         }
-        @Override public void user_remove(org.xowl.lang.runtime.Closure elem) {
+        @Override public void user_remove(java.lang.Object elem) {
             tree_remove(elem);
         }
-        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Closure elem) {
+        @Override public boolean inverse_check_add(java.lang.Object elem) {
             return tree_check_add(elem);
         }
-        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Closure elem) {
+        @Override public boolean inverse_check_remove(java.lang.Object elem) {
             return tree_check_remove(elem);
         }
-        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Closure oldElem, org.xowl.lang.runtime.Closure  newElem) {
+        @Override public boolean inverse_check_replace(java.lang.Object oldElem, java.lang.Object  newElem) {
             return tree_check_replace(oldElem, newElem);
         }
-        @Override public void inverse_add(org.xowl.lang.runtime.Closure elem) {
+        @Override public void inverse_add(java.lang.Object elem) {
             tree_add(elem);
         }
-        @Override public void inverse_remove(org.xowl.lang.runtime.Closure elem) {
+        @Override public void inverse_remove(java.lang.Object elem) {
             tree_remove(elem);
         }
         public definedAs_impl(org.xowl.lang.runtime.Function domain) {
             this.domain = domain;
-            this.data = new java.util.ArrayList<org.xowl.lang.runtime.Closure>();
         }
     }
     private definedAs_impl dataDefinedAs;
     public org.xowl.lang.runtime.Function.definedAs __getImplOfdefinedAs() { return dataDefinedAs; }
-    public boolean addDefinedAs(org.xowl.lang.runtime.Closure elem) {
-        if (!dataDefinedAs.user_check_add(elem)) return false;
-        dataDefinedAs.user_add(elem);
+    public boolean setDefinedAs(java.lang.Object elem) {
+        if (dataDefinedAs.get() != null) {
+            if (elem == null) {
+                if (!dataDefinedAs.user_check_remove(dataDefinedAs.get())) return false;
+                dataDefinedAs.user_remove(dataDefinedAs.get());
+            } else {
+                if (!dataDefinedAs.user_check_replace(dataDefinedAs.get(), elem)) return false;
+                dataDefinedAs.user_remove(dataDefinedAs.get());
+                dataDefinedAs.user_add(elem);
+            }
+        } else {
+            if (elem == null) return true;
+            if (!dataDefinedAs.user_check_add(elem)) return false;
+            dataDefinedAs.user_add(elem);
+        }
         return true;
     }
-    public boolean removeDefinedAs(org.xowl.lang.runtime.Closure elem) {
-        if (!dataDefinedAs.user_check_remove(elem)) return false;
-        dataDefinedAs.user_remove(elem);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.runtime.Closure> getAllDefinedAs() { return dataDefinedAs.get(); }
+    public java.lang.Object getDefinedAs() { return dataDefinedAs.get(); }
     // </editor-fold>
 
     public Function() {
         dataInterpretationOf = new interpretationOf_impl(this);
         dataDefinedAs = new definedAs_impl(this);
     }
-    
+
 }

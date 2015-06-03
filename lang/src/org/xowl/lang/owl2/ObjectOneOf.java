@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class ObjectOneOf implements org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.DifferentIndividuals_OR_ObjectOneOf_OR_SameIndividual, org.xowl.lang.owl2.Expression {
+public class ObjectOneOf implements org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.DifferentIndividuals_OR_ObjectOneOf_OR_SameIndividual {
     // <editor-fold defaultstate="collapsed" desc="Property individualSeq">
     private static class individualSeq_impl implements org.xowl.lang.owl2.DifferentIndividuals_OR_ObjectOneOf_OR_SameIndividual.individualSeq {
         private org.xowl.lang.owl2.ObjectOneOf domain;
@@ -114,5 +114,5 @@ public class ObjectOneOf implements org.xowl.lang.owl2.ClassExpression, org.xowl
     public ObjectOneOf() {
         dataIndividualSeq = new individualSeq_impl(this);
     }
-    
+
 }

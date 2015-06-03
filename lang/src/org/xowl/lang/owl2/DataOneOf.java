@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class DataOneOf implements org.xowl.lang.owl2.Datarange, org.xowl.lang.owl2.Expression {
+public class DataOneOf implements org.xowl.lang.owl2.Datarange {
     // <editor-fold defaultstate="collapsed" desc="Property literalSeq">
     public static interface literalSeq {
         boolean check_contains(org.xowl.lang.owl2.LiteralSequenceExpression elem);
@@ -127,5 +127,5 @@ public class DataOneOf implements org.xowl.lang.owl2.Datarange, org.xowl.lang.ow
     public DataOneOf() {
         dataLiteralSeq = new literalSeq_impl(this);
     }
-    
+
 }

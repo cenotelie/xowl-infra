@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.runtime;
 
-public class ObjectSomeValuesFrom implements org.xowl.lang.runtime.ObjectPropertyRestriction, org.xowl.lang.runtime.ObjectAllValuesFrom_OR_ObjectCardinalityRestriction_OR_ObjectSomeValuesFrom, org.xowl.lang.runtime.ClassRestriction {
+public class ObjectSomeValuesFrom implements org.xowl.lang.runtime.ObjectPropertyRestriction, org.xowl.lang.runtime.ObjectAllValuesFrom_OR_ObjectCardinalityRestriction_OR_ObjectSomeValuesFrom {
     // <editor-fold defaultstate="collapsed" desc="Property objectProperty">
     private static class objectProperty_impl implements org.xowl.lang.runtime.ObjectPropertyRestriction.objectProperty {
         private org.xowl.lang.runtime.ObjectSomeValuesFrom domain;
@@ -222,5 +222,5 @@ public class ObjectSomeValuesFrom implements org.xowl.lang.runtime.ObjectPropert
         dataObjectProperty = new objectProperty_impl(this);
         dataClasse = new classe_impl(this);
     }
-    
+
 }

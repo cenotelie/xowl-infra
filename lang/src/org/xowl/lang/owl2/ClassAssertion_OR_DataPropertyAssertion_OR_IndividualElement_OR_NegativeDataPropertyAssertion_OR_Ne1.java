@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public interface ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne3 {
+public interface ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne1 {
     // <editor-fold defaultstate="collapsed" desc="Property individual">
     public static interface individual {
         boolean check_contains(org.xowl.lang.owl2.IndividualExpression elem);

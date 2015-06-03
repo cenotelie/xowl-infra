@@ -586,7 +586,7 @@ public class ClassModel {
 
         // writes parency
         boolean first = true;
-        for (ClassModel parent : getSuperClasses()) {
+        for (ClassModel parent : superClasses) {
             if (first) {
                 if (!isAbstract())
                     writer.append(" implements ");

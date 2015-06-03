@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class ObjectHasValue implements org.xowl.lang.owl2.ObjectPropertyRestriction, org.xowl.lang.owl2.ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne3, org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO0, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.Expression {
+public class ObjectHasValue implements org.xowl.lang.owl2.ObjectPropertyRestriction, org.xowl.lang.owl2.ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne1 {
     // <editor-fold defaultstate="collapsed" desc="Property objectProperty">
     private static class objectProperty_impl implements org.xowl.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO0.objectProperty {
         private org.xowl.lang.owl2.ObjectHasValue domain;
@@ -112,7 +112,7 @@ public class ObjectHasValue implements org.xowl.lang.owl2.ObjectPropertyRestrict
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property individual">
-    private static class individual_impl implements org.xowl.lang.owl2.ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne3.individual {
+    private static class individual_impl implements org.xowl.lang.owl2.ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne1.individual {
         private org.xowl.lang.owl2.ObjectHasValue domain;
         private org.xowl.lang.owl2.IndividualExpression data;
         public org.xowl.lang.owl2.IndividualExpression get_raw() { return data; }
@@ -197,7 +197,7 @@ public class ObjectHasValue implements org.xowl.lang.owl2.ObjectPropertyRestrict
         }
     }
     private individual_impl dataIndividual;
-    public org.xowl.lang.owl2.ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne3.individual __getImplOfindividual() { return dataIndividual; }
+    public org.xowl.lang.owl2.ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne1.individual __getImplOfindividual() { return dataIndividual; }
     public boolean setIndividual(org.xowl.lang.owl2.IndividualExpression elem) {
         if (dataIndividual.get() != null) {
             if (elem == null) {
@@ -222,5 +222,5 @@ public class ObjectHasValue implements org.xowl.lang.owl2.ObjectPropertyRestrict
         dataObjectProperty = new objectProperty_impl(this);
         dataIndividual = new individual_impl(this);
     }
-    
+
 }

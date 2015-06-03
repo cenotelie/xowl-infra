@@ -4,6 +4,125 @@
 package org.xowl.lang.runtime;
 
 public class Entity implements org.xowl.lang.runtime.Value {
+    // <editor-fold defaultstate="collapsed" desc="Property interpretedAs">
+    public static interface interpretedAs {
+        boolean check_contains(org.xowl.lang.runtime.Interpretation elem);
+        boolean user_check_add(org.xowl.lang.runtime.Interpretation elem);
+        boolean user_check_remove(org.xowl.lang.runtime.Interpretation elem);
+        boolean user_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem);
+        void user_add(org.xowl.lang.runtime.Interpretation elem);
+        void user_remove(org.xowl.lang.runtime.Interpretation elem);
+        boolean inverse_check_add(org.xowl.lang.runtime.Interpretation elem);
+        boolean inverse_check_remove(org.xowl.lang.runtime.Interpretation elem);
+        boolean inverse_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem);
+        void inverse_add(org.xowl.lang.runtime.Interpretation elem);
+        void inverse_remove(org.xowl.lang.runtime.Interpretation elem);
+    }
+    private static class interpretedAs_impl implements org.xowl.lang.runtime.Entity.interpretedAs {
+        private org.xowl.lang.runtime.Entity domain;
+        private java.util.List<org.xowl.lang.runtime.Interpretation> data;
+        public java.util.Collection<org.xowl.lang.runtime.Interpretation> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.Interpretation>(data); }
+        public java.util.Collection<org.xowl.lang.runtime.Interpretation> get() { return new java.util.ArrayList<org.xowl.lang.runtime.Interpretation>(data); }
+        private boolean check_card(int modifier) {
+            int card = data.size() + 0 + modifier;
+            return (card >= 0 && card <= 2147483647);
+        }
+        @Override public boolean check_contains(org.xowl.lang.runtime.Interpretation elem) { return (data.contains(elem)); }
+        public boolean simple_check_add(org.xowl.lang.runtime.Interpretation elem) {
+            if (check_contains(elem)) return false;
+            if (!check_card(1)) return false;
+            return true;
+        }
+        public boolean simple_check_remove(org.xowl.lang.runtime.Interpretation elem) {
+            if (!check_contains(elem)) return false;
+            if (!check_card(-1)) return false;
+            return true;
+        }
+        public boolean simple_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem) {
+            if (check_contains(newElem)) return false;
+            if (!check_contains(oldElem)) return false;
+            return true;
+        }
+        public void simple_add(org.xowl.lang.runtime.Interpretation elem) {
+            data.add(elem);
+        }
+        public void simple_remove(org.xowl.lang.runtime.Interpretation elem) {
+            data.remove(elem);
+        }
+        private boolean tree_check_add(org.xowl.lang.runtime.Interpretation elem) {
+            if (!simple_check_add(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_remove(org.xowl.lang.runtime.Interpretation elem) {
+            if (!simple_check_remove(elem)) return false;
+            return true;
+        }
+        private boolean tree_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem) {
+            if (!simple_check_replace(oldElem, newElem)) return false;
+            return true;
+        }
+        private void tree_add(org.xowl.lang.runtime.Interpretation elem) {
+            simple_add(elem);
+        }
+        private void tree_remove(org.xowl.lang.runtime.Interpretation elem) {
+            simple_remove(elem);
+        }
+        @Override public boolean user_check_add(org.xowl.lang.runtime.Interpretation elem) {
+            if (!elem.__getImplOfinterpretationOf().inverse_check_add(domain)) return false;
+            return tree_check_add(elem);
+        }
+        @Override public boolean user_check_remove(org.xowl.lang.runtime.Interpretation elem) {
+            if (!elem.__getImplOfinterpretationOf().inverse_check_remove(domain)) return false;
+            return tree_check_remove(elem);
+        }
+        @Override public boolean user_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem) {
+            if (!oldElem.__getImplOfinterpretationOf().inverse_check_remove(domain)) return false;
+            if (!newElem.__getImplOfinterpretationOf().inverse_check_add(domain)) return false;
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void user_add(org.xowl.lang.runtime.Interpretation elem) {
+            elem.__getImplOfinterpretationOf().inverse_add(domain);
+            tree_add(elem);
+        }
+        @Override public void user_remove(org.xowl.lang.runtime.Interpretation elem) {
+            elem.__getImplOfinterpretationOf().inverse_remove(domain);
+            tree_remove(elem);
+        }
+        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Interpretation elem) {
+            return tree_check_add(elem);
+        }
+        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Interpretation elem) {
+            return tree_check_remove(elem);
+        }
+        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem) {
+            return tree_check_replace(oldElem, newElem);
+        }
+        @Override public void inverse_add(org.xowl.lang.runtime.Interpretation elem) {
+            tree_add(elem);
+        }
+        @Override public void inverse_remove(org.xowl.lang.runtime.Interpretation elem) {
+            tree_remove(elem);
+        }
+        public interpretedAs_impl(org.xowl.lang.runtime.Entity domain) {
+            this.domain = domain;
+            this.data = new java.util.ArrayList<org.xowl.lang.runtime.Interpretation>();
+        }
+    }
+    private interpretedAs_impl dataInterpretedAs;
+    public org.xowl.lang.runtime.Entity.interpretedAs __getImplOfinterpretedAs() { return dataInterpretedAs; }
+    public boolean addInterpretedAs(org.xowl.lang.runtime.Interpretation elem) {
+        if (!dataInterpretedAs.user_check_add(elem)) return false;
+        dataInterpretedAs.user_add(elem);
+        return true;
+    }
+    public boolean removeInterpretedAs(org.xowl.lang.runtime.Interpretation elem) {
+        if (!dataInterpretedAs.user_check_remove(elem)) return false;
+        dataInterpretedAs.user_remove(elem);
+        return true;
+    }
+    public java.util.Collection<org.xowl.lang.runtime.Interpretation> getAllInterpretedAs() { return dataInterpretedAs.get(); }
+    // </editor-fold>
+
     // <editor-fold defaultstate="collapsed" desc="Property containedBy">
     public static interface containedBy {
         boolean check_contains(org.xowl.lang.owl2.Ontology elem);
@@ -130,125 +249,6 @@ public class Entity implements org.xowl.lang.runtime.Value {
     public org.xowl.lang.owl2.Ontology getContainedBy() { return dataContainedBy.get(); }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc="Property interpretedAs">
-    public static interface interpretedAs {
-        boolean check_contains(org.xowl.lang.runtime.Interpretation elem);
-        boolean user_check_add(org.xowl.lang.runtime.Interpretation elem);
-        boolean user_check_remove(org.xowl.lang.runtime.Interpretation elem);
-        boolean user_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem);
-        void user_add(org.xowl.lang.runtime.Interpretation elem);
-        void user_remove(org.xowl.lang.runtime.Interpretation elem);
-        boolean inverse_check_add(org.xowl.lang.runtime.Interpretation elem);
-        boolean inverse_check_remove(org.xowl.lang.runtime.Interpretation elem);
-        boolean inverse_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem);
-        void inverse_add(org.xowl.lang.runtime.Interpretation elem);
-        void inverse_remove(org.xowl.lang.runtime.Interpretation elem);
-    }
-    private static class interpretedAs_impl implements org.xowl.lang.runtime.Entity.interpretedAs {
-        private org.xowl.lang.runtime.Entity domain;
-        private java.util.List<org.xowl.lang.runtime.Interpretation> data;
-        public java.util.Collection<org.xowl.lang.runtime.Interpretation> get_raw() { return new java.util.ArrayList<org.xowl.lang.runtime.Interpretation>(data); }
-        public java.util.Collection<org.xowl.lang.runtime.Interpretation> get() { return new java.util.ArrayList<org.xowl.lang.runtime.Interpretation>(data); }
-        private boolean check_card(int modifier) {
-            int card = data.size() + 0 + modifier;
-            return (card >= 0 && card <= 2147483647);
-        }
-        @Override public boolean check_contains(org.xowl.lang.runtime.Interpretation elem) { return (data.contains(elem)); }
-        public boolean simple_check_add(org.xowl.lang.runtime.Interpretation elem) {
-            if (check_contains(elem)) return false;
-            if (!check_card(1)) return false;
-            return true;
-        }
-        public boolean simple_check_remove(org.xowl.lang.runtime.Interpretation elem) {
-            if (!check_contains(elem)) return false;
-            if (!check_card(-1)) return false;
-            return true;
-        }
-        public boolean simple_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem) {
-            if (check_contains(newElem)) return false;
-            if (!check_contains(oldElem)) return false;
-            return true;
-        }
-        public void simple_add(org.xowl.lang.runtime.Interpretation elem) {
-            data.add(elem);
-        }
-        public void simple_remove(org.xowl.lang.runtime.Interpretation elem) {
-            data.remove(elem);
-        }
-        private boolean tree_check_add(org.xowl.lang.runtime.Interpretation elem) {
-            if (!simple_check_add(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_remove(org.xowl.lang.runtime.Interpretation elem) {
-            if (!simple_check_remove(elem)) return false;
-            return true;
-        }
-        private boolean tree_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem) {
-            if (!simple_check_replace(oldElem, newElem)) return false;
-            return true;
-        }
-        private void tree_add(org.xowl.lang.runtime.Interpretation elem) {
-            simple_add(elem);
-        }
-        private void tree_remove(org.xowl.lang.runtime.Interpretation elem) {
-            simple_remove(elem);
-        }
-        @Override public boolean user_check_add(org.xowl.lang.runtime.Interpretation elem) {
-            if (!elem.__getImplOfinterpretationOf().inverse_check_add(domain)) return false;
-            return tree_check_add(elem);
-        }
-        @Override public boolean user_check_remove(org.xowl.lang.runtime.Interpretation elem) {
-            if (!elem.__getImplOfinterpretationOf().inverse_check_remove(domain)) return false;
-            return tree_check_remove(elem);
-        }
-        @Override public boolean user_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem) {
-            if (!oldElem.__getImplOfinterpretationOf().inverse_check_remove(domain)) return false;
-            if (!newElem.__getImplOfinterpretationOf().inverse_check_add(domain)) return false;
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void user_add(org.xowl.lang.runtime.Interpretation elem) {
-            elem.__getImplOfinterpretationOf().inverse_add(domain);
-            tree_add(elem);
-        }
-        @Override public void user_remove(org.xowl.lang.runtime.Interpretation elem) {
-            elem.__getImplOfinterpretationOf().inverse_remove(domain);
-            tree_remove(elem);
-        }
-        @Override public boolean inverse_check_add(org.xowl.lang.runtime.Interpretation elem) {
-            return tree_check_add(elem);
-        }
-        @Override public boolean inverse_check_remove(org.xowl.lang.runtime.Interpretation elem) {
-            return tree_check_remove(elem);
-        }
-        @Override public boolean inverse_check_replace(org.xowl.lang.runtime.Interpretation oldElem, org.xowl.lang.runtime.Interpretation  newElem) {
-            return tree_check_replace(oldElem, newElem);
-        }
-        @Override public void inverse_add(org.xowl.lang.runtime.Interpretation elem) {
-            tree_add(elem);
-        }
-        @Override public void inverse_remove(org.xowl.lang.runtime.Interpretation elem) {
-            tree_remove(elem);
-        }
-        public interpretedAs_impl(org.xowl.lang.runtime.Entity domain) {
-            this.domain = domain;
-            this.data = new java.util.ArrayList<org.xowl.lang.runtime.Interpretation>();
-        }
-    }
-    private interpretedAs_impl dataInterpretedAs;
-    public org.xowl.lang.runtime.Entity.interpretedAs __getImplOfinterpretedAs() { return dataInterpretedAs; }
-    public boolean addInterpretedAs(org.xowl.lang.runtime.Interpretation elem) {
-        if (!dataInterpretedAs.user_check_add(elem)) return false;
-        dataInterpretedAs.user_add(elem);
-        return true;
-    }
-    public boolean removeInterpretedAs(org.xowl.lang.runtime.Interpretation elem) {
-        if (!dataInterpretedAs.user_check_remove(elem)) return false;
-        dataInterpretedAs.user_remove(elem);
-        return true;
-    }
-    public java.util.Collection<org.xowl.lang.runtime.Interpretation> getAllInterpretedAs() { return dataInterpretedAs.get(); }
-    // </editor-fold>
-
     // <editor-fold defaultstate="collapsed" desc="Property hasIRI">
     public static interface hasIRI {
         boolean check_contains(org.xowl.lang.owl2.IRI elem);
@@ -370,9 +370,9 @@ public class Entity implements org.xowl.lang.runtime.Value {
     // </editor-fold>
 
     public Entity() {
-        dataContainedBy = new containedBy_impl(this);
         dataInterpretedAs = new interpretedAs_impl(this);
+        dataContainedBy = new containedBy_impl(this);
         dataHasIRI = new hasIRI_impl(this);
     }
-    
+
 }

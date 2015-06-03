@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public interface ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF5 {
+public interface ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF2 {
     // <editor-fold defaultstate="collapsed" desc="Property classe">
     public static interface classe {
         boolean check_contains(org.xowl.lang.owl2.ClassExpression elem);

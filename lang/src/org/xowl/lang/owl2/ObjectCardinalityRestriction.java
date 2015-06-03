@@ -3,5 +3,5 @@
 */
 package org.xowl.lang.owl2;
 
-public interface ObjectCardinalityRestriction extends org.xowl.lang.owl2.CardinalityRestriction, org.xowl.lang.owl2.ObjectPropertyRestriction, org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF5, org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO0, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.Expression {
+public interface ObjectCardinalityRestriction extends org.xowl.lang.owl2.CardinalityRestriction, org.xowl.lang.owl2.ObjectPropertyRestriction, org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF2 {
 }

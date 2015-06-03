@@ -3,5 +3,5 @@
 */
 package org.xowl.lang.owl2;
 
-public interface DataCardinalityRestriction extends org.xowl.lang.owl2.CardinalityRestriction, org.xowl.lang.owl2.DataPropertyRestriction, org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype4, org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.Expression {
+public interface DataCardinalityRestriction extends org.xowl.lang.owl2.CardinalityRestriction, org.xowl.lang.owl2.DataPropertyRestriction, org.xowl.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3 {
 }

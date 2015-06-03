@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class DataUnionOf implements org.xowl.lang.owl2.Datarange, org.xowl.lang.owl2.DataIntersectionOf_OR_DataUnionOf, org.xowl.lang.owl2.Expression {
+public class DataUnionOf implements org.xowl.lang.owl2.Datarange, org.xowl.lang.owl2.DataIntersectionOf_OR_DataUnionOf {
     // <editor-fold defaultstate="collapsed" desc="Property datarangeSeq">
     private static class datarangeSeq_impl implements org.xowl.lang.owl2.DataIntersectionOf_OR_DataUnionOf.datarangeSeq {
         private org.xowl.lang.owl2.DataUnionOf domain;
@@ -114,5 +114,5 @@ public class DataUnionOf implements org.xowl.lang.owl2.Datarange, org.xowl.lang.
     public DataUnionOf() {
         dataDatarangeSeq = new datarangeSeq_impl(this);
     }
-    
+
 }

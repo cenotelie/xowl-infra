@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,11 +16,15 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.owl;
 
-import org.xowl.lang.owl2.*;
+import org.xowl.lang.actions.DynamicExpression;
+import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.lang.owl2.IRI;
+import org.xowl.lang.owl2.Literal;
+import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.runtime.Entity;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.*;
@@ -137,8 +141,8 @@ public class XOWLStore extends RDFStore {
         } else if (element instanceof org.xowl.lang.runtime.Literal) {
             org.xowl.lang.runtime.Literal literal = (org.xowl.lang.runtime.Literal) element;
             return getLiteralNode(literal.getLexicalValue(), literal.getMemberOf().getInterpretationOf().getHasIRI().getHasValue(), literal.getLangTag());
-        } else if (element instanceof Expression) {
-            return new DynamicNode((Expression) element);
+        } else if (element instanceof DynamicExpression) {
+            return new DynamicNode((DynamicExpression) element);
         } else {
             // TODO: throw an error here
             return null;

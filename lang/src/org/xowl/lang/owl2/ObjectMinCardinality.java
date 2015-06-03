@@ -3,9 +3,9 @@
 */
 package org.xowl.lang.owl2;
 
-public class ObjectMinCardinality implements org.xowl.lang.owl2.ObjectCardinalityRestriction, org.xowl.lang.owl2.CardinalityRestriction, org.xowl.lang.owl2.ObjectPropertyRestriction, org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF5, org.xowl.lang.owl2.ClassRestriction, org.xowl.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO0, org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.Expression {
+public class ObjectMinCardinality implements org.xowl.lang.owl2.ObjectCardinalityRestriction {
     // <editor-fold defaultstate="collapsed" desc="Property classe">
-    private static class classe_impl implements org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF5.classe {
+    private static class classe_impl implements org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF2.classe {
         private org.xowl.lang.owl2.ObjectMinCardinality domain;
         private org.xowl.lang.owl2.ClassExpression data;
         public org.xowl.lang.owl2.ClassExpression get_raw() { return data; }
@@ -90,7 +90,7 @@ public class ObjectMinCardinality implements org.xowl.lang.owl2.ObjectCardinalit
         }
     }
     private classe_impl dataClasse;
-    public org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF5.classe __getImplOfclasse() { return dataClasse; }
+    public org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF2.classe __getImplOfclasse() { return dataClasse; }
     public boolean setClasse(org.xowl.lang.owl2.ClassExpression elem) {
         if (dataClasse.get() != null) {
             if (elem == null) {
@@ -330,5 +330,5 @@ public class ObjectMinCardinality implements org.xowl.lang.owl2.ObjectCardinalit
         dataObjectProperty = new objectProperty_impl(this);
         dataCardinality = new cardinality_impl(this);
     }
-    
+
 }

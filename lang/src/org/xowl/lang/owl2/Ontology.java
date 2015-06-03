@@ -348,5 +348,5 @@ public class Ontology implements org.xowl.lang.owl2.Annotation_OR_Axiom_OR_Ontol
         dataContains = new contains_impl(this);
         dataAnnotations = new annotations_impl(this);
     }
-    
+
 }

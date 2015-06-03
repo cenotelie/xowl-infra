@@ -3,7 +3,7 @@
 */
 package org.xowl.lang.owl2;
 
-public class DataPropertyElement implements org.xowl.lang.owl2.SequenceElement, org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2 {
+public class DataPropertyElement implements org.xowl.lang.owl2.SequenceElement, org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5 {
     // <editor-fold defaultstate="collapsed" desc="Property index">
     private static class index_impl implements org.xowl.lang.owl2.SequenceElement.index {
         private org.xowl.lang.owl2.DataPropertyElement domain;
@@ -99,7 +99,7 @@ public class DataPropertyElement implements org.xowl.lang.owl2.SequenceElement, 
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc="Property dataProperty">
-    private static class dataProperty_impl implements org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2.dataProperty {
+    private static class dataProperty_impl implements org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5.dataProperty {
         private org.xowl.lang.owl2.DataPropertyElement domain;
         private org.xowl.lang.owl2.DataPropertyExpression data;
         public org.xowl.lang.owl2.DataPropertyExpression get_raw() { return data; }
@@ -184,7 +184,7 @@ public class DataPropertyElement implements org.xowl.lang.owl2.SequenceElement, 
         }
     }
     private dataProperty_impl dataDataProperty;
-    public org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp2.dataProperty __getImplOfdataProperty() { return dataDataProperty; }
+    public org.xowl.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5.dataProperty __getImplOfdataProperty() { return dataDataProperty; }
     public boolean setDataProperty(org.xowl.lang.owl2.DataPropertyExpression elem) {
         if (dataDataProperty.get() != null) {
             if (elem == null) {
@@ -209,5 +209,5 @@ public class DataPropertyElement implements org.xowl.lang.owl2.SequenceElement, 
         dataIndex = new index_impl(this);
         dataDataProperty = new dataProperty_impl(this);
     }
-    
+
 }

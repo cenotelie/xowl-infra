@@ -3,9 +3,9 @@
 */
 package org.xowl.lang.owl2;
 
-public class ObjectComplementOf implements org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF5, org.xowl.lang.owl2.Expression {
+public class ObjectComplementOf implements org.xowl.lang.owl2.ClassExpression, org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF2 {
     // <editor-fold defaultstate="collapsed" desc="Property classe">
-    private static class classe_impl implements org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF5.classe {
+    private static class classe_impl implements org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF2.classe {
         private org.xowl.lang.owl2.ObjectComplementOf domain;
         private org.xowl.lang.owl2.ClassExpression data;
         public org.xowl.lang.owl2.ClassExpression get_raw() { return data; }
@@ -90,7 +90,7 @@ public class ObjectComplementOf implements org.xowl.lang.owl2.ClassExpression, o
         }
     }
     private classe_impl dataClasse;
-    public org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF5.classe __getImplOfclasse() { return dataClasse; }
+    public org.xowl.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF2.classe __getImplOfclasse() { return dataClasse; }
     public boolean setClasse(org.xowl.lang.owl2.ClassExpression elem) {
         if (dataClasse.get() != null) {
             if (elem == null) {
@@ -114,5 +114,5 @@ public class ObjectComplementOf implements org.xowl.lang.owl2.ClassExpression, o
     public ObjectComplementOf() {
         dataClasse = new classe_impl(this);
     }
-    
+
 }
