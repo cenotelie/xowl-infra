@@ -894,7 +894,7 @@ public class Translator {
         SubjectNode function = translateFunctionExpression(axiom.getFunction());
         OpaqueExpression value = new OpaqueExpression();
         value.setValue(axiom.getDefinition());
-        Quad quad = getTriple(function, Vocabulary.xowlFunctionDefinition, new DynamicNode(value));
+        Quad quad = getTriple(function, Vocabulary.xowlDefinedAs, new DynamicNode(value));
         quads.add(quad);
         translateAxiomAnnotations(axiom, quad);
     }

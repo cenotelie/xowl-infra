@@ -400,7 +400,7 @@ grammar XOWL
 		entity						-> XOWL_QVAR^ ;
 		// Adds the FunctionDefinition axiom
 		axiom						-> axiomFunctionDefinition^ ;
-		axiomFunctionDefinition		-> 'FunctionDefinition'! OWL2_LP! entity #clojure{ form } OWL2_RP! ;
+		axiomFunctionDefinition		-> 'FunctionDefinition'! OWL2_LP! annotations entity #clojure{ form } OWL2_RP! ;
 		// Adds expression xOWL-specific syntax to clojure
 		form						-> xowl_query^ | xowl_insert^ ;
 		xowl_query					-> CLJ_XOWL_QUERY! CLJ_LP! xowl_query_vars xowl_query_assertions CLJ_RP! ;

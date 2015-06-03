@@ -28,17 +28,18 @@ import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ServiceLoader;
 
 /**
- * Loader of xOWL ontologies serialized in the Functional syntax
+ * Loader of xOWL ontologies serialized
  *
  * @author Laurent Wouters
  */
 public class XOWLLoader implements Loader {
     /**
-     * The current lexical context
+     * The loader of XOWL deserialization services
      */
-    protected LexicalContext context;
+    private static ServiceLoader<XOWLDeserializer> SERIVCE_DESERIALIZER = ServiceLoader.load(XOWLDeserializer.class);
 
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
@@ -72,6 +73,12 @@ public class XOWLLoader implements Loader {
 
     @Override
     public OWLLoaderResult loadOWL(Logger logger, Reader reader, String uri) {
-        throw new UnsupportedOperationException();
+        ParseResult result = parse(logger, reader);
+        if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
+            return null;
+        XOWLDeserializer deserializer = SERIVCE_DESERIALIZER.iterator().next();
+        if (deserializer == null)
+            deserializer = new DefaultXOWLDeserializer();
+        return deserializer.deserialize(uri, result.getRoot());
     }
 }
