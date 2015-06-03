@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,9 +16,11 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.owl;
 
+import org.xowl.lang.actions.FunctionDefinitionAxiom;
+import org.xowl.lang.actions.FunctionExpression;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.Entity;
 import org.xowl.store.AbstractRepository;
@@ -250,6 +252,22 @@ public class DirectSemantics extends AbstractRepository {
         return interpretation;
     }
 
+    /**
+     * Interprets an entity as a Function
+     *
+     * @param entity An entity
+     * @return The interpretation
+     */
+    public org.xowl.lang.runtime.Function interpretAsFunction(Entity entity) {
+        for (org.xowl.lang.runtime.Interpretation interpretation : entity.getAllInterpretedAs()) {
+            if (interpretation instanceof org.xowl.lang.runtime.Function)
+                return (org.xowl.lang.runtime.Function) interpretation;
+        }
+        org.xowl.lang.runtime.Function interpretation = new org.xowl.lang.runtime.Function();
+        entity.addInterpretedAs(interpretation);
+        return interpretation;
+    }
+
     @Override
     protected Loader newRDFLoader(String syntax) {
         throw new UnsupportedOperationException();
@@ -348,6 +366,8 @@ public class DirectSemantics extends AbstractRepository {
             applyAxiomAnnotationPropertyRange((org.xowl.lang.owl2.AnnotationPropertyRange) axiom, negative);
         else if (c == org.xowl.lang.owl2.AnnotationAssertion.class)
             applyAxiomAnnotationAssertion((org.xowl.lang.owl2.AnnotationAssertion) axiom, negative);
+        else if (c == FunctionDefinitionAxiom.class)
+            applyAxiomFunctionDefinition((FunctionDefinitionAxiom) axiom, negative);
     }
 
     /**
@@ -911,6 +931,22 @@ public class DirectSemantics extends AbstractRepository {
      */
     private void applyAxiomAnnotationAssertion(org.xowl.lang.owl2.AnnotationAssertion axiom, boolean negative) {
         //TODO: complete
+    }
+
+    /**
+     * Applies the specified axiom
+     *
+     * @param axiom    An axiom
+     * @param negative Whether to add or remove the axiom
+     */
+    private void applyAxiomFunctionDefinition(FunctionDefinitionAxiom axiom, boolean negative) {
+        org.xowl.lang.runtime.Function function = evalFunction(axiom.getFunction());
+        if (negative) {
+            if (function.getDefinedAs() == axiom.getDefinition())
+                function.setDefinedAs(null);
+        } else {
+            function.setDefinedAs(axiom.getDefinition());
+        }
     }
 
     /**
@@ -1581,6 +1617,30 @@ public class DirectSemantics extends AbstractRepository {
         literal.setLexicalValue(expression.getLexicalValue());
         literal.setMemberOf(interpretAsDatatype(resolveEntity(expression.getMemberOf())));
         return literal;
+    }
+
+    /**
+     * Evaluates the specified expression
+     *
+     * @param expression An expression
+     * @return The evaluated value
+     */
+    private org.xowl.lang.runtime.Function evalFunction(FunctionExpression expression) {
+        if (expression == null)
+            return null;
+        if (expression instanceof IRI)
+            return evalExpFunction((IRI) expression);
+        return null;
+    }
+
+    /**
+     * Evaluates the specified expression
+     *
+     * @param expression An expression
+     * @return The evaluated value
+     */
+    private org.xowl.lang.runtime.Function evalExpFunction(IRI expression) {
+        return interpretAsFunction(resolveEntity(expression));
     }
 
     /**
