@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters and others
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,12 +16,12 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.rete;
 
+import org.xowl.store.rdf.AbstractStore;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.RDFStore;
 import org.xowl.store.rdf.VariableNode;
 
 import java.util.Arrays;
@@ -92,7 +92,7 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
     }
 
     @Override
-    public AlphaMemory resolveMemory(Quad pattern, RDFStore store) {
+    public AlphaMemory resolveMemory(Quad pattern, AbstractStore store) {
         Node node = getNode(pattern);
         if (node == null || node.getNodeType() == VariableNode.TYPE) {
             if (catchAll == null)

@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.rete;
 
@@ -33,7 +33,7 @@ public class RETENetwork {
     /**
      * Cache of inputs for this network
      */
-    private final RDFStore input;
+    private final AbstractStore input;
     /**
      * The alpha graph, i.e. the input layer of the network
      */
@@ -48,7 +48,7 @@ public class RETENetwork {
      *
      * @param input The RDF store to use as input
      */
-    public RETENetwork(RDFStore input) {
+    public RETENetwork(AbstractStore input) {
         this.input = input;
         this.alpha = new AlphaGraph();
         this.rules = new HashMap<>();

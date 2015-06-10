@@ -31,11 +31,11 @@ public interface Node {
     /**
      * The identifier key for the serialization of this element
      */
-    public static final String SERIALIZATION_NAME = "Node";
+    String SERIALIZATION_NAME = "Node";
     /**
      * The identifier key for the serialization of the type attribute
      */
-    public static final String SERIALIZATION_TYPE = "type";
+    String SERIALIZATION_TYPE = "type";
 
     /**
      * Gets the node's type

@@ -99,7 +99,7 @@ public class Repository extends AbstractRepository {
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
         this.queryEngine = new QueryEngine(backend, null);
-        this.ruleEngine = new RuleEngine(backend, null);
+        this.ruleEngine = new RuleEngine(backend, backend, null);
     }
 
     /**
@@ -114,7 +114,7 @@ public class Repository extends AbstractRepository {
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
         this.queryEngine = new QueryEngine(backend, null);
-        this.ruleEngine = new RuleEngine(backend, null);
+        this.ruleEngine = new RuleEngine(backend, backend, null);
     }
 
     /**

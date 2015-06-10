@@ -18,31 +18,25 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.rete;
-
-import org.xowl.store.rdf.AbstractStore;
-import org.xowl.store.rdf.Quad;
+package org.xowl.store.rdf;
 
 /**
- * Represents a element in a bucket of alpha memories
+ * Represents an observer of a query
  *
  * @author Laurent Wouters
  */
-interface AlphaMemoryBucketElement {
+public interface QueryObserver {
     /**
-     * Retrieve the matching memories associated to the specified data
+     * When a new solution has been found
      *
-     * @param buffer The buffer to fill
-     * @param quad   The data to match
+     * @param solution The new solution
      */
-    void matchMemories(AlphaMemoryBuffer buffer, Quad quad);
+    void onNewSolution(QuerySolution solution);
 
     /**
-     * Resolves the alpha memory associated to the specified data
+     * When a previous solution is revoked (probably due to changes in the input)
      *
-     * @param pattern The data to match
-     * @param store   The RDF data
-     * @return The associated memory
+     * @param solution The revoked solution
      */
-    AlphaMemory resolveMemory(Quad pattern, AbstractStore store);
+    void onSolutionRevoked(QuerySolution solution);
 }

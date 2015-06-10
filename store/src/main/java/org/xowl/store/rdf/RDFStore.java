@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.rdf;
 
@@ -35,7 +35,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class RDFStore implements ChangeListener {
+public class RDFStore extends AbstractStore implements ChangeListener {
     /**
      * When adding a quad, something weird happened
      */
@@ -105,32 +105,15 @@ public class RDFStore implements ChangeListener {
 
 
     /**
-     * Default URIs for the anonymous RDF graphs
-     */
-    private static final String DEFAULT_GRAPH_URIS = "http://xowl.org/store/rdfgraphs/";
-    /**
      * URI of the default graph
      */
     private static final String DEFAULT_GRAPH = "http://xowl.org/store/rdfgraphs/default";
-
-    /**
-     * Creates the URI of a new anonymous RDF graph
-     *
-     * @return The URI of a new anonymous RDF graph
-     */
-    public static String createAnonymousGraph() {
-        return DEFAULT_GRAPH_URIS + UUID.randomUUID().toString();
-    }
 
 
     /**
      * The embedded string store
      */
     protected StringStore sStore;
-    /**
-     * The current listeners on this store
-     */
-    protected Collection<ChangeListener> listeners;
     /**
      * The store of existing IRI Reference nodes
      */
@@ -153,13 +136,13 @@ public class RDFStore implements ChangeListener {
     protected int nextBlank;
 
     /**
-     * Initializes this graph
+     * Initializes this store
      *
      * @throws java.io.IOException when the store cannot allocate a temporary file
      */
     public RDFStore() throws IOException {
+        super();
         sStore = new StringStore();
-        listeners = new ArrayList<>();
         mapNodeIRIs = new HashMap<>();
         mapNodeLiterals = new HashMap<>();
         edgesIRI = new HashMap<>();
@@ -168,58 +151,18 @@ public class RDFStore implements ChangeListener {
     }
 
     /**
-     * Initializes this graph from a serialized data source
+     * Initializes this store from a serialized data source
      *
      * @param path The common path for the store resources
      * @throws java.io.IOException when the store cannot allocate a temporary file
      */
     public RDFStore(String path) throws IOException {
-        listeners = new ArrayList<>();
+        super();
         mapNodeIRIs = new HashMap<>();
         mapNodeLiterals = new HashMap<>();
         edgesIRI = new HashMap<>();
         edgesBlank = new EdgeBucket[INIT_BLANK_SIZE];
         load(path);
-    }
-
-    /**
-     * Adds the specified listener to this store
-     *
-     * @param listener A listener
-     */
-    public void addListener(ChangeListener listener) {
-        listeners.add(listener);
-    }
-
-    /**
-     * Removes the specified listener from this store
-     *
-     * @param listener A listener
-     */
-    public void removeListener(ChangeListener listener) {
-        listeners.remove(listener);
-    }
-
-    /**
-     * Broadcasts the information that a new quad was added
-     *
-     * @param quad The quad
-     */
-    protected void onQuadAdded(Quad quad) {
-        Change change = new Change(quad, true);
-        for (ChangeListener listener : listeners)
-            listener.onChange(change);
-    }
-
-    /**
-     * Broadcasts the information that a quad was removed
-     *
-     * @param quad The quad
-     */
-    protected void onQuadRemoved(Quad quad) {
-        Change change = new Change(quad, false);
-        for (ChangeListener listener : listeners)
-            listener.onChange(change);
     }
 
     /**
@@ -565,37 +508,6 @@ public class RDFStore implements ChangeListener {
     }
 
     /**
-     * Gets an iterator over all the quads in this store
-     *
-     * @return An iterator over the results
-     */
-    public Iterator<Quad> getAll() {
-        return getAll(null, null, null, null);
-    }
-
-    /**
-     * Gets an iterator over all the quads in this store that are in the specified graph
-     *
-     * @param graph A containing graph to match, or null
-     * @return An iterator over the results
-     */
-    public Iterator<Quad> getAll(GraphNode graph) {
-        return getAll(graph, null, null, null);
-    }
-
-    /**
-     * Gets an iterator over all the quads in this store that matches the given values
-     *
-     * @param subject  A subject node to match, or null
-     * @param property A property to match, or null
-     * @param object   An object node to match, or null
-     * @return An iterator over the results
-     */
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
-        return getAll(null, subject, property, object);
-    }
-
-    /**
      * Gets an iterator over all the quads in this store that matches the given values
      *
      * @param graph    A containing graph to match, or null
@@ -604,6 +516,7 @@ public class RDFStore implements ChangeListener {
      * @param object   An object node to match, or null
      * @return An iterator over the results
      */
+    @Override
     public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) {
         if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
             return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<Quad>>() {
@@ -636,37 +549,6 @@ public class RDFStore implements ChangeListener {
     }
 
     /**
-     * Gets the number of different quads in this store
-     *
-     * @return The number of different quads
-     */
-    public int count() {
-        return count(null, null, null, null);
-    }
-
-    /**
-     * Gets the number of different quads in this store that matches the given values
-     *
-     * @param graph A containing graph to match, or null
-     * @return The number of different quads
-     */
-    public int count(GraphNode graph) {
-        return count(graph, null, null, null);
-    }
-
-    /**
-     * Gets the number of different quads in this store that matches the given values
-     *
-     * @param subject  A subject node to match, or null
-     * @param property A property to match, or null
-     * @param object   An object node to match, or null
-     * @return The number of different quads
-     */
-    public int count(SubjectNode subject, Property property, Node object) {
-        return count(null, subject, property, object);
-    }
-
-    /**
      * Gets the number of different quads in this store that matches the given values
      *
      * @param graph    A containing graph to match, or null
@@ -675,6 +557,7 @@ public class RDFStore implements ChangeListener {
      * @param object   An object node to match, or null
      * @return The number of different quads
      */
+    @Override
     public int count(GraphNode graph, SubjectNode subject, Property property, Node object) {
         if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
             int count = 0;
@@ -1055,7 +938,7 @@ public class RDFStore implements ChangeListener {
                 int tag = (int) data.attribute(LiteralNodeImpl.SERIALIZATION_TAG).getValue();
                 return mapNodeLiterals.get(lexical).get(datatype, tag);
             default:
-                return getOherNodeFor(data);
+                return getOtherNodeFor(data);
         }
     }
 
@@ -1065,7 +948,7 @@ public class RDFStore implements ChangeListener {
      * @param data A serialized data node
      * @return the corresponding RDF node
      */
-    protected Node getOherNodeFor(org.xowl.utils.data.Node data) {
+    protected Node getOtherNodeFor(org.xowl.utils.data.Node data) {
         // do nothing here
         return null;
     }

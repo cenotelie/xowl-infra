@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,11 +16,11 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.rete;
 
+import org.xowl.store.rdf.AbstractStore;
 import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.RDFStore;
 import org.xowl.store.rdf.VariableNode;
 
 import java.util.Collection;
@@ -35,7 +35,7 @@ class FactCollection implements Collection<Quad> {
     /**
      * The parent RDF store
      */
-    private final RDFStore store;
+    private final AbstractStore store;
     /**
      * The matched pattern
      */
@@ -51,7 +51,7 @@ class FactCollection implements Collection<Quad> {
      * @param store   The parent RDF store
      * @param pattern The matched pattern
      */
-    public FactCollection(RDFStore store, Quad pattern) {
+    public FactCollection(AbstractStore store, Quad pattern) {
         this.store = store;
         this.pattern = pattern;
         this.size = -1;

@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.rdf;
 
 import org.xowl.store.rete.*;
@@ -61,9 +61,9 @@ public class RuleEngine implements ChangeListener {
     }
 
     /**
-     * The RDF store to operate over
+     * The RDF store for the output
      */
-    private final RDFStore store;
+    private final RDFStore outputStore;
     /**
      * The corpus of active rules
      */
@@ -108,12 +108,13 @@ public class RuleEngine implements ChangeListener {
     /**
      * Initializes this engine
      *
-     * @param store The RDF store to operate over
+     * @param inputStore  The RDF store serving as input
+     * @param outputStore The RDF store for the output
      */
-    public RuleEngine(RDFStore store) {
-        this.store = store;
+    public RuleEngine(AbstractStore inputStore, RDFStore outputStore) {
+        this.outputStore = outputStore;
         this.rules = new HashMap<>();
-        this.rete = new RETENetwork(store);
+        this.rete = new RETENetwork(inputStore);
         this.newChanges = new ArrayList<>();
         this.newChangesets = new ArrayList<>();
         this.bufferPositives = new ArrayList<>();
@@ -121,7 +122,7 @@ public class RuleEngine implements ChangeListener {
         this.requestsToFire = new HashMap<>();
         this.requestsToUnfire = new ArrayList<>();
         this.executed = new HashMap<>();
-        store.addListener(this);
+        inputStore.addListener(this);
     }
 
     /**
@@ -216,7 +217,7 @@ public class RuleEngine implements ChangeListener {
             // inject the changes if necessary
             if (!bufferPositives.isEmpty() || !bufferNegatives.isEmpty()) {
                 try {
-                    store.insert(new Changeset(bufferPositives, bufferNegatives));
+                    outputStore.insert(new Changeset(bufferPositives, bufferNegatives));
                 } catch (UnsupportedNodeType ex) {
                     // TODO: report this
                 }
@@ -382,9 +383,9 @@ public class RuleEngine implements ChangeListener {
         if (result != null)
             return result;
         if (createIRI)
-            result = store.newNodeIRI(null);
+            result = outputStore.newNodeIRI(null);
         else
-            result = store.newNodeBlank();
+            result = outputStore.newNodeBlank();
         creations.put(variable, (SubjectNode) result);
         return result;
     }
@@ -411,16 +412,5 @@ public class RuleEngine implements ChangeListener {
             // not a rule in this engine
             return null;
         return rete.getStatus(reteRule);
-    }
-
-    /**
-     * Gets an explanation for the specified quad
-     *
-     * @param quad A quad
-     * @return an explanation, or null if the quad does not come from this engine
-     */
-    public RuleEngineExplanation explain(Quad quad) {
-        // TODO: implement
-        return null;
     }
 }

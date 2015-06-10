@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.rdf;
 
@@ -138,6 +138,115 @@ public class QueryEngine implements ChangeListener {
         }
     }
 
+    /**
+     * Represents a observed query that continues being executed
+     */
+    private static class ObservedElem implements TokenActivable {
+        /**
+         * The original query
+         */
+        private final Query query;
+        /**
+         * The associated RETE rule
+         */
+        private final RETERule rule;
+        /**
+         * The solution
+         */
+        private final Map<Token, QuerySolution> solutions;
+        /**
+         * The observers for this query
+         */
+        private final List<QueryObserver> observers;
+
+        /**
+         * Initializes this observed query
+         *
+         * @param query    The original query
+         * @param observer The first observer
+         */
+        public ObservedElem(Query query, QueryObserver observer) {
+            this.query = query;
+            this.rule = new RETERule(this);
+            this.rule.getPositives().addAll(query.getPositives());
+            this.rule.getNegatives().addAll(query.getNegatives());
+            this.solutions = new HashMap<>();
+            this.observers = new ArrayList<>();
+            this.observers.add(observer);
+        }
+
+        /**
+         * Gets the RETE rule associated to this query
+         *
+         * @return The associated RETE rule
+         */
+        public RETERule getRule() {
+            return rule;
+        }
+
+        /**
+         * Adds a new observer
+         *
+         * @param observer The new observer
+         */
+        public void addObserver(QueryObserver observer) {
+            observers.add(observer);
+            for (QuerySolution solution : solutions.values()) {
+                observer.onNewSolution(solution);
+            }
+        }
+
+        /**
+         * Removes an observer
+         *
+         * @param observer The observer to remove
+         * @return Whether this was the last observer
+         */
+        public boolean removeObserver(QueryObserver observer) {
+            observers.remove(observer);
+            return observers.isEmpty();
+        }
+
+        @Override
+        public void activateToken(Token token) {
+            QuerySolution solution = new QuerySolution(token.getBindings());
+            solutions.put(token, solution);
+            for (QueryObserver observer : observers)
+                observer.onNewSolution(solution);
+        }
+
+        @Override
+        public void deactivateToken(Token token) {
+            QuerySolution solution = solutions.remove(token);
+            if (solution == null)
+                return;
+            for (QueryObserver observer : observers)
+                observer.onSolutionRevoked(solution);
+        }
+
+        @Override
+        public void activateTokens(Collection<Token> tokens) {
+            for (Token token : tokens)
+                activateToken(token);
+        }
+
+        @Override
+        public void deactivateTokens(Collection<Token> tokens) {
+            for (Token token : tokens)
+                deactivateToken(token);
+        }
+
+        /**
+         * Determines whether this cache element matches the specified query
+         *
+         * @param candidate A query candidate
+         * @return true if the candidate matches the query represented by this cache element
+         */
+        public boolean matches(Query candidate) {
+            return query.equals(candidate);
+        }
+    }
+
 
     /**
      * A RETE network for the pattern matching of queries
@@ -167,19 +276,24 @@ public class QueryEngine implements ChangeListener {
      * The cache of queries
      */
     private final List<CacheElem> cache;
+    /**
+     * The observed queries
+     */
+    private final List<ObservedElem> observedQueries;
 
     /**
      * Initializes this engine
      *
      * @param store The RDF store to query
      */
-    public QueryEngine(RDFStore store) {
+    public QueryEngine(AbstractStore store) {
         this.rete = new RETENetwork(store);
         this.newChanges = new ArrayList<>();
         this.newChangesets = new ArrayList<>();
         this.bufferPositives = new ArrayList<>();
         this.bufferNegatives = new ArrayList<>();
         this.cache = new ArrayList<>();
+        this.observedQueries = new ArrayList<>();
         store.addListener(this);
     }
 
@@ -224,6 +338,42 @@ public class QueryEngine implements ChangeListener {
         cache.add(element);
         rete.addRule(element.getRule());
         return element.getSolutions();
+    }
+
+    /**
+     * Observes the specified query
+     *
+     * @param query    The query to observe
+     * @param observer The observer
+     */
+    public void observe(Query query, QueryObserver observer) {
+        for (ObservedElem elem : observedQueries) {
+            if (elem.matches(query)) {
+                elem.addObserver(observer);
+                return;
+            }
+        }
+        ObservedElem element = new ObservedElem(query, observer);
+        observedQueries.add(element);
+        rete.addRule(element.getRule());
+    }
+
+    /**
+     * Stops the observation of a query
+     *
+     * @param query    The query to stop observing
+     * @param observer The observer that stops its observation
+     */
+    public void unobserve(Query query, QueryObserver observer) {
+        for (ObservedElem elem : observedQueries) {
+            if (elem.matches(query)) {
+                if (elem.removeObserver(observer)) {
+                    rete.removeRule(elem.getRule());
+                    observedQueries.remove(elem);
+                }
+                return;
+            }
+        }
     }
 
     /**

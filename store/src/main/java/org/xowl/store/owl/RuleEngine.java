@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,17 +16,14 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.owl;
 
 import org.xowl.lang.owl2.Axiom;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.rules.Assertion;
 import org.xowl.lang.rules.Rule;
-import org.xowl.store.rdf.GraphNode;
-import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.RDFStore;
-import org.xowl.store.rdf.VariableNode;
+import org.xowl.store.rdf.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,9 +37,9 @@ import java.util.Map;
  */
 public class RuleEngine {
     /**
-     * The XOWL store to operate over
+     * The XOWL store for the output
      */
-    private final XOWLStore store;
+    private final XOWLStore outputStore;
     /**
      * The current evaluator
      */
@@ -68,19 +65,19 @@ public class RuleEngine {
     /**
      * Initializes this engine
      *
-     * @param store     The store to operate over
-     * @param evaluator The evaluator
+     * @param inputStore The store to operate over
+     * @param evaluator  The evaluator
      */
-    public RuleEngine(XOWLStore store, final Evaluator evaluator) {
-        this.store = store;
+    public RuleEngine(AbstractStore inputStore, XOWLStore outputStore, final Evaluator evaluator) {
+        this.outputStore = outputStore;
         this.evaluator = evaluator;
-        this.backend = new org.xowl.store.rdf.RuleEngine(store) {
+        this.backend = new org.xowl.store.rdf.RuleEngine(inputStore, outputStore) {
             protected Node processOtherNode(Node node) {
                 if (node.getNodeType() == DynamicNode.TYPE) {
                     DynamicNode dynamicNode = (DynamicNode) node;
                     if (RuleEngine.this.evaluator == null)
                         return dynamicNode;
-                    return RuleEngine.this.store.getRDF(RuleEngine.this.evaluator.eval(dynamicNode.getDynamicExpression()));
+                    return RuleEngine.this.outputStore.getRDF(RuleEngine.this.evaluator.eval(dynamicNode.getDynamicExpression()));
                 }
                 return node;
             }
@@ -98,7 +95,7 @@ public class RuleEngine {
         GraphNode graphTarget = getGraph(target, false);
         GraphNode graphMeta = getGraph(meta, false);
         org.xowl.store.rdf.Rule rdfRule = new org.xowl.store.rdf.Rule(rule.getHasIRI().getHasValue());
-        Translator translator = new Translator(new TranslationContext(), store, evaluator);
+        Translator translator = new Translator(new TranslationContext(), outputStore, evaluator);
         List<Axiom> positiveNormal = new ArrayList<>();
         List<Axiom> positiveMeta = new ArrayList<>();
         try {
@@ -182,8 +179,8 @@ public class RuleEngine {
             if (allowsPattern)
                 return new VariableNode("__graph__");
             else
-                return store.getNodeIRI(RDFStore.createAnonymousGraph());
+                return outputStore.getNodeIRI(RDFStore.createAnonymousGraph());
         }
-        return store.getNodeIRI(ontology.getHasIRI().getHasValue());
+        return outputStore.getNodeIRI(ontology.getHasIRI().getHasValue());
     }
 }

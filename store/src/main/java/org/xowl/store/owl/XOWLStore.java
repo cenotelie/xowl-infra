@@ -336,7 +336,7 @@ public class XOWLStore extends RDFStore {
     }
 
     @Override
-    protected Node getOherNodeFor(org.xowl.utils.data.Node data) {
+    protected Node getOtherNodeFor(org.xowl.utils.data.Node data) {
         return mapNodeAnons.get(data.attribute(AnonymousNode.SERIALIZATION_ID).getValue());
     }
 }
