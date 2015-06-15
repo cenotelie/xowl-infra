@@ -28,6 +28,7 @@ import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Iterator;
 import java.util.ServiceLoader;
 
 /**
@@ -40,6 +41,10 @@ public class XOWLLoader implements Loader {
      * The loader of XOWL deserialization services
      */
     private static ServiceLoader<XOWLDeserializer> SERIVCE_DESERIALIZER = ServiceLoader.load(XOWLDeserializer.class);
+
+    {
+        SERIVCE_DESERIALIZER.reload();
+    }
 
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
@@ -76,9 +81,8 @@ public class XOWLLoader implements Loader {
         ParseResult result = parse(logger, reader);
         if (result == null || !result.isSuccess() || result.getErrors().size() > 0)
             return null;
-        XOWLDeserializer deserializer = SERIVCE_DESERIALIZER.iterator().next();
-        if (deserializer == null)
-            deserializer = new DefaultXOWLDeserializer();
+        Iterator<XOWLDeserializer> services = SERIVCE_DESERIALIZER.iterator();
+        XOWLDeserializer deserializer = services.hasNext() ? services.next() : new DefaultXOWLDeserializer();
         return deserializer.deserialize(uri, result.getRoot());
     }
 }

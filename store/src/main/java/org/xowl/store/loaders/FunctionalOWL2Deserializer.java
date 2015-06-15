@@ -140,7 +140,7 @@ public class FunctionalOWL2Deserializer {
      * @return The loaded IRI
      */
     protected String loadIRI(ASTNode node) {
-        if (node.getSymbol().getID() == FunctionalOWL2Lexer.ID.IRIREF) {
+        if (node.getSymbol().getName().equals("IRIREF")) {
             String value = node.getValue();
             value = Utils.unescape(value.substring(1, value.length() - 1));
             return Utils.normalizeIRI(resource, baseURI, value);
@@ -197,80 +197,80 @@ public class FunctionalOWL2Deserializer {
      * @return The annotation
      */
     protected Axiom loadAxiom(ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case FunctionalOWL2Parser.ID.axiomDeclaration:
+        switch (node.getSymbol().getName()) {
+            case "axiomDeclaration":
                 return loadAxiomDeclaration(node);
-            case FunctionalOWL2Parser.ID.axiomSubClassOf:
+            case "axiomSubClassOf":
                 return loadAxiomSubClassOf(node);
-            case FunctionalOWL2Parser.ID.axiomEquivalentClasses:
+            case "axiomEquivalentClasses":
                 return loadAxiomEquivalentClasses(node);
-            case FunctionalOWL2Parser.ID.axiomDisjointClasses:
+            case "axiomDisjointClasses":
                 return loadAxiomDisjointClasses(node);
-            case FunctionalOWL2Parser.ID.axiomDisjointUnion:
+            case "axiomDisjointUnion":
                 return loadAxiomDisjointUnion(node);
-            case FunctionalOWL2Parser.ID.axiomSubOjectPropertyOf:
+            case "axiomSubOjectPropertyOf":
                 return loadAxiomSubObjectPropertyOf(node);
-            case FunctionalOWL2Parser.ID.axiomEquivalentObjectProperties:
+            case "axiomEquivalentObjectProperties":
                 return loadAxiomEquivalentObjectProperties(node);
-            case FunctionalOWL2Parser.ID.axiomDisjointObjectProperties:
+            case "axiomDisjointObjectProperties":
                 return loadAxiomDisjointObjectProperties(node);
-            case FunctionalOWL2Parser.ID.axiomInverseObjectProperties:
+            case "axiomInverseObjectProperties":
                 return loadAxiomInverseObjectProperties(node);
-            case FunctionalOWL2Parser.ID.axiomObjectPropertyDomain:
+            case "axiomObjectPropertyDomain":
                 return loadAxiomObjectPropertyDomain(node);
-            case FunctionalOWL2Parser.ID.axiomObjectPropertyRange:
+            case "axiomObjectPropertyRange":
                 return loadAxiomObjectPropertyRange(node);
-            case FunctionalOWL2Parser.ID.axiomFunctionalObjectProperty:
+            case "axiomFunctionalObjectProperty":
                 return loadAxiomFunctionalObjectProperty(node);
-            case FunctionalOWL2Parser.ID.axiomInverseFunctionalObjectProperty:
+            case "axiomInverseFunctionalObjectProperty":
                 return loadAxiomInverseFunctionalObjectProperty(node);
-            case FunctionalOWL2Parser.ID.axiomReflexiveObjectProperty:
+            case "axiomReflexiveObjectProperty":
                 return loadAxiomReflexiveObjectProperty(node);
-            case FunctionalOWL2Parser.ID.axiomIrreflexiveObjectProperty:
+            case "axiomIrreflexiveObjectProperty":
                 return loadAxiomIrreflexiveObjectProperty(node);
-            case FunctionalOWL2Parser.ID.axiomSymmetricObjectProperty:
+            case "axiomSymmetricObjectProperty":
                 return loadAxiomSymmetricObjectProperty(node);
-            case FunctionalOWL2Parser.ID.axiomAsymmetricObjectProperty:
+            case "axiomAsymmetricObjectProperty":
                 return loadAxiomAsymmetricObjectProperty(node);
-            case FunctionalOWL2Parser.ID.axiomTransitiveObjectProperty:
+            case "axiomTransitiveObjectProperty":
                 return loadAxiomTransitiveObjectProperty(node);
-            case FunctionalOWL2Parser.ID.axiomSubDataPropertyOf:
+            case "axiomSubDataPropertyOf":
                 return loadAxiomSubDataPropertyOf(node);
-            case FunctionalOWL2Parser.ID.axiomEquivalentDataProperties:
+            case "axiomEquivalentDataProperties":
                 return loadAxiomEquivalentDataProperties(node);
-            case FunctionalOWL2Parser.ID.axiomDisjointDataProperties:
+            case "axiomDisjointDataProperties":
                 return loadAxiomDisjointDataProperties(node);
-            case FunctionalOWL2Parser.ID.axiomDataPropertyDomain:
+            case "axiomDataPropertyDomain":
                 return loadAxiomDataPropertyDomain(node);
-            case FunctionalOWL2Parser.ID.axiomDataPropertyRange:
+            case "axiomDataPropertyRange":
                 return loadAxiomDataPropertyRange(node);
-            case FunctionalOWL2Parser.ID.axiomFunctionalDataProperty:
+            case "axiomFunctionalDataProperty":
                 return loadAxiomFunctionalDataProperty(node);
-            case FunctionalOWL2Parser.ID.axiomDatatype:
+            case "axiomDatatype":
                 return loadAxiomDatatypeDefinition(node);
-            case FunctionalOWL2Parser.ID.axiomHasKey:
+            case "axiomHasKey":
                 return loadAxiomHasKey(node);
-            case FunctionalOWL2Parser.ID.axiomSameIndividual:
+            case "axiomSameIndividual":
                 return loadAxiomSameIndividual(node);
-            case FunctionalOWL2Parser.ID.axiomDifferentIndividuals:
+            case "axiomDifferentIndividuals":
                 return loadAxiomDifferentIndividuals(node);
-            case FunctionalOWL2Parser.ID.axiomClassAssertion:
+            case "axiomClassAssertion":
                 return loadAxiomClassAssertion(node);
-            case FunctionalOWL2Parser.ID.axiomObjectPropertyAssertion:
+            case "axiomObjectPropertyAssertion":
                 return loadAxiomObjectPropertyAssertion(node);
-            case FunctionalOWL2Parser.ID.axiomNegativeObjectPropertyAssertion:
+            case "axiomNegativeObjectPropertyAssertion":
                 return loadAxiomNegativeObjectPropertyAssertion(node);
-            case FunctionalOWL2Parser.ID.axiomDataPropertyAssertion:
+            case "axiomDataPropertyAssertion":
                 return loadAxiomDataPropertyAssertion(node);
-            case FunctionalOWL2Parser.ID.axiomNegativeDataPropertyAssertion:
+            case "axiomNegativeDataPropertyAssertion":
                 return loadAxiomNegativeDataPropertyAssertion(node);
-            case FunctionalOWL2Parser.ID.axiomAnnotationAssertion:
+            case "axiomAnnotationAssertion":
                 return loadAxiomAnnotationAssertion(node);
-            case FunctionalOWL2Parser.ID.axiomSubAnnotationPropertyOf:
+            case "axiomSubAnnotationPropertyOf":
                 return loadAxiomSubAnnotationPropertyOf(node);
-            case FunctionalOWL2Parser.ID.axiomAnnotationPropertyDomain:
+            case "axiomAnnotationPropertyDomain":
                 return loadAxiomAnnotationPropertyDomain(node);
-            case FunctionalOWL2Parser.ID.axiomAnnotationPropertyRange:
+            case "axiomAnnotationPropertyRange":
                 return loadAxiomAnnotationPropertyRange(node);
         }
         return null;
@@ -388,7 +388,7 @@ public class FunctionalOWL2Deserializer {
     protected Axiom loadAxiomSubObjectPropertyOf(ASTNode node) {
         SubObjectPropertyOf axiom = new SubObjectPropertyOf();
         loadAxiomBase(node, axiom);
-        if (node.getChildren().get(1).getSymbol().getID() == FunctionalOWL2Parser.ID.expObjectPropertyChain) {
+        if (node.getChildren().get(1).getSymbol().getName().equals("expObjectPropertyChain")) {
             ObjectPropertySequence seq = new ObjectPropertySequence();
             int index = 0;
             for (ASTNode child : node.getChildren().get(1).getChildren()) {
@@ -899,9 +899,9 @@ public class FunctionalOWL2Deserializer {
      * @return The entity expression
      */
     protected EntityExpression loadExpEntity(ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case FunctionalOWL2Lexer.ID.IRIREF:
-            case FunctionalOWL2Lexer.ID.PNAME_LN:
+        switch (node.getSymbol().getName()) {
+            case "IRIREF":
+            case "PNAME_LN":
                 return loadEntity(node);
         }
         return null;
@@ -914,9 +914,9 @@ public class FunctionalOWL2Deserializer {
      * @return The entity
      */
     protected IRI loadEntity(ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case FunctionalOWL2Lexer.ID.IRIREF:
-            case FunctionalOWL2Lexer.ID.PNAME_LN:
+        switch (node.getSymbol().getName()) {
+            case "IRIREF":
+            case "PNAME_LN":
                 // named individual
                 IRI entity = new IRI();
                 entity.setHasValue(loadIRI(node));
@@ -932,40 +932,40 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpClass(ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case FunctionalOWL2Parser.ID.expObjectInterfactionOf:
+        switch (node.getSymbol().getName()) {
+            case "expObjectInterfactionOf":
                 return loadExpObjectIntersectionOf(node);
-            case FunctionalOWL2Parser.ID.expObjectUnionOf:
+            case "expObjectUnionOf":
                 return loadExpObjectUnionOf(node);
-            case FunctionalOWL2Parser.ID.expObjectComplementOf:
+            case "expObjectComplementOf":
                 return loadExpObjectComplementOf(node);
-            case FunctionalOWL2Parser.ID.expObjectOneOf:
+            case "expObjectOneOf":
                 return loadExpObjectOneOf(node);
-            case FunctionalOWL2Parser.ID.expObjectSomeValuesFrom:
+            case "expObjectSomeValuesFrom":
                 return loadExpObjectSomeValuesFrom(node);
-            case FunctionalOWL2Parser.ID.expObjectAllValuesFrom:
+            case "expObjectAllValuesFrom":
                 return loadExpObjectAllValuesFrom(node);
-            case FunctionalOWL2Parser.ID.expObjectHasValue:
+            case "expObjectHasValue":
                 return loadExpObjectHasValue(node);
-            case FunctionalOWL2Parser.ID.expObjectHasSelf:
+            case "expObjectHasSelf":
                 return loadExpObjectHasSelf(node);
-            case FunctionalOWL2Parser.ID.expObjectMinCardinality:
+            case "expObjectMinCardinality":
                 return loadExpObjectMinCardinality(node);
-            case FunctionalOWL2Parser.ID.expObjectMaxCardinality:
+            case "expObjectMaxCardinality":
                 return loadExpObjectMaxCardinality(node);
-            case FunctionalOWL2Parser.ID.expObjectExactCardinality:
+            case "expObjectExactCardinality":
                 return loadExpObjectExactCardinality(node);
-            case FunctionalOWL2Parser.ID.expDataSomeValuesFrom:
+            case "expDataSomeValuesFrom":
                 return loadExpDataSomeValuesFrom(node);
-            case FunctionalOWL2Parser.ID.expDataAllValuesFrom:
+            case "expDataAllValuesFrom":
                 return loadExpDataAllValuesFrom(node);
-            case FunctionalOWL2Parser.ID.expDataHasValue:
+            case "expDataHasValue":
                 return loadExpDataHasValue(node);
-            case FunctionalOWL2Parser.ID.expDataMinCardinality:
+            case "expDataMinCardinality":
                 return loadExpDataMinCardinality(node);
-            case FunctionalOWL2Parser.ID.expDataMaxCardinality:
+            case "expDataMaxCardinality":
                 return loadExpDataMaxCardinality(node);
-            case FunctionalOWL2Parser.ID.expDataExactCardinality:
+            case "expDataExactCardinality":
                 return loadExpDataExactCardinality(node);
         }
         return loadExpEntity(node);
@@ -1241,8 +1241,8 @@ public class FunctionalOWL2Deserializer {
      * @return The individual expression
      */
     protected IndividualExpression loadExpIndividual(ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case FunctionalOWL2Lexer.ID.BLANK_NODE_LABEL:
+        switch (node.getSymbol().getName()) {
+            case "BLANK_NODE_LABEL":
                 return loadExpAnonymousIndividual(node);
         }
         return loadExpEntity(node);
@@ -1272,16 +1272,16 @@ public class FunctionalOWL2Deserializer {
      * @return The datarange expression
      */
     protected Datarange loadExpDatarange(ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case FunctionalOWL2Parser.ID.expDataIntersectionOf:
+        switch (node.getSymbol().getName()) {
+            case "expDataIntersectionOf":
                 return loadExpDataIntersectionOf(node);
-            case FunctionalOWL2Parser.ID.expDataUnionOf:
+            case "expDataUnionOf":
                 return loadExpDataUnionOf(node);
-            case FunctionalOWL2Parser.ID.expDataComplementOf:
+            case "expDataComplementOf":
                 return loadExpDataComplementOf(node);
-            case FunctionalOWL2Parser.ID.expDataOneOf:
+            case "expDataOneOf":
                 return loadExpDataOneOf(node);
-            case FunctionalOWL2Parser.ID.expDatatypeRestriction:
+            case "expDatatypeRestriction":
                 return loadExpDatatypeRestriction(node);
         }
         return loadExpEntity(node);
@@ -1391,8 +1391,8 @@ public class FunctionalOWL2Deserializer {
      * @return The object property expression
      */
     protected ObjectPropertyExpression loadExpObjectProperty(ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case FunctionalOWL2Parser.ID.expInverseObjectProperty:
+        switch (node.getSymbol().getName()) {
+            case "expInverseObjectProperty":
                 return loaExpInverseObjectProperty(node);
         }
         return loadExpEntity(node);
@@ -1427,12 +1427,12 @@ public class FunctionalOWL2Deserializer {
      * @return The literal expression
      */
     protected LiteralExpression loadExpLiteral(ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case FunctionalOWL2Lexer.ID.INTEGER:
+        switch (node.getSymbol().getName()) {
+            case "INTEGER":
                 return loadExpIntegerLiteral(node);
-            case FunctionalOWL2Parser.ID.literalTyped:
+            case "literalTyped":
                 return loadExpTypedLiteral(node);
-            case FunctionalOWL2Parser.ID.literalLang:
+            case "literalLang":
                 return loadExpLangTaggedLiteral(node);
             default:
                 return loadExpStringLiteral(node);
@@ -1525,8 +1525,8 @@ public class FunctionalOWL2Deserializer {
      * @return The annotation value
      */
     protected AnnotationSubject loadExpAnnotationSubject(ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case FunctionalOWL2Lexer.ID.BLANK_NODE_LABEL:
+        switch (node.getSymbol().getName()) {
+            case "BLANK_NODE_LABEL":
                 return loadExpAnonymousIndividual(node);
             default:
                 return loadEntity(node);
@@ -1540,11 +1540,11 @@ public class FunctionalOWL2Deserializer {
      * @return The annotation value
      */
     protected AnnotationValue loadExpAnnotationValue(ASTNode node) {
-        switch (node.getSymbol().getID()) {
-            case FunctionalOWL2Lexer.ID.IRIREF:
-            case FunctionalOWL2Lexer.ID.PNAME_LN:
+        switch (node.getSymbol().getName()) {
+            case "IRIREF":
+            case "PNAME_LN":
                 return loadEntity(node);
-            case FunctionalOWL2Lexer.ID.BLANK_NODE_LABEL:
+            case "BLANK_NODE_LABEL":
                 return loadExpAnonymousIndividual(node);
             default:
                 return (AnnotationValue) loadExpLiteral(node);

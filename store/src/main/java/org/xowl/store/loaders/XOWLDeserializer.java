@@ -68,7 +68,7 @@ public abstract class XOWLDeserializer extends FunctionalOWL2Deserializer {
     protected Axiom loadAxiomFunctionDefinition(ASTNode node) {
         FunctionDefinitionAxiom axiom = new FunctionDefinitionAxiom();
         loadAxiomBase(node, axiom);
-        axiom.setDefinition(loadExpFunction(node.getChildren().get(1)));
+        axiom.setFunction(loadExpFunction(node.getChildren().get(1)));
         axiom.setDefinition(loadForm(node.getChildren().get(2)));
         return axiom;
     }
