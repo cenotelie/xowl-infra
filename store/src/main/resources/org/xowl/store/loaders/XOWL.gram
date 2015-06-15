@@ -396,8 +396,8 @@ grammar XOWL
 									|  RULE_ELEMENT_NOT OWL2_LP! RULE_ELEMENT_META OWL2_LP! axiomPattern+ OWL2_RP! OWL2_RP! ;
 		axiomPattern				-> axiom^ ;
 		// Add support for variables in expression of elements in rules
-		literal						-> XOWL_QVAR^ ;
-		entity						-> XOWL_QVAR^ ;
+		literal						-> #xowl { XOWL_QVAR^ };
+		entity						-> #xowl { XOWL_QVAR^ };
 		// Adds the FunctionDefinition axiom
 		axiom						-> axiomFunctionDefinition^ ;
 		axiomFunctionDefinition		-> 'FunctionDefinition'! OWL2_LP! annotations entity #clojure{ form } OWL2_RP! ;

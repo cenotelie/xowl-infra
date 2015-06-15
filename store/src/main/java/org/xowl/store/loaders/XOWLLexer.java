@@ -331,7 +331,7 @@ class XOWLLexer extends ContextSensitiveLexer {
         new Symbol(0x00E9, "DataMinCardinality"),
         new Symbol(0x00EA, "DataMaxCardinality"),
         new Symbol(0x010E, "DataPropertyDomain"),
-        new Symbol(0x012E, "FunctionDefinition"),
+        new Symbol(0x0130, "FunctionDefinition"),
         new Symbol(0x011E, "AnnotationAssertion"),
         new Symbol(0x00CA, "ObjectPropertyChain"),
         new Symbol(0x0101, "ObjectPropertyRange"),
