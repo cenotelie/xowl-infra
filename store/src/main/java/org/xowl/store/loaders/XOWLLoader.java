@@ -42,10 +42,6 @@ public class XOWLLoader implements Loader {
      */
     private static ServiceLoader<XOWLDeserializer> SERIVCE_DESERIALIZER = ServiceLoader.load(XOWLDeserializer.class);
 
-    {
-        SERIVCE_DESERIALIZER.reload();
-    }
-
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
         ParseResult result;
