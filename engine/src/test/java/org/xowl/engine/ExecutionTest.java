@@ -41,7 +41,7 @@ public class ExecutionTest {
             repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
             repository.load(logger, "http://xowl.org/engine/tests/Sample");
             Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-            Engine engine = new Engine(logger, repository);
+            Engine engine = new Engine(repository);
             Object result = engine.execute("http://xowl.org/engine/tests/Sample#hello");
             Assert.assertFalse("Failed to execute the function", logger.isOnError());
             Assert.assertEquals("Hello World", result);
@@ -58,7 +58,7 @@ public class ExecutionTest {
             repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
             repository.load(logger, "http://xowl.org/engine/tests/Sample");
             Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-            Engine engine = new Engine(logger, repository);
+            Engine engine = new Engine(repository);
             Object result = engine.execute("http://xowl.org/engine/tests/Sample#total", 2);
             Assert.assertFalse("Failed to execute the function", logger.isOnError());
             Assert.assertEquals(6l, result);

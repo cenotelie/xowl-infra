@@ -74,6 +74,7 @@ public class Engine implements Evaluator {
     protected static void compileOutstandings() {
         if (OUTSTANDING_DEFINITIONS.isEmpty())
             return;
+        Var ns = RT.CURRENT_NS; // forces the initialization of the runtime before any call to the compiler
         StringBuilder builder = new StringBuilder();
         builder.append("(ns ");
         builder.append(CLJ_NAMESPACE_ROOT);
