@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * Represents a parser
  */
-class XOWLParser extends RNGLRParser {
+public class XOWLParser extends RNGLRParser {
     /**
      * The automaton for this parser
      */

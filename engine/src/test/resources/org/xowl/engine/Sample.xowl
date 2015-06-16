@@ -3,4 +3,7 @@ Prefix( : = <http://xowl.org/engine/tests/Sample#>)
 
 Ontology( <http://xowl.org/engine/tests/Sample>
     FunctionDefinition(:hello (fn [] "Hello World"))
+
+    FunctionDefinition(:total (fn [x] (+ (sub1 x) 2)))
+    FunctionDefinition(:sub1 (fn [x] (+ x 2)))
 )
