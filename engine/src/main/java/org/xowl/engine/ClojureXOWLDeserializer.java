@@ -20,6 +20,7 @@
 
 package org.xowl.engine;
 
+import clojure.java.api.Clojure;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.store.loaders.XOWLDeserializer;
 
@@ -31,6 +32,8 @@ import org.xowl.store.loaders.XOWLDeserializer;
 public class ClojureXOWLDeserializer extends XOWLDeserializer {
     @Override
     protected Object loadForm(ASTNode node) {
-        return null;
+        StringBuilder builder = new StringBuilder();
+        serializeClojure(builder, node);
+        return Clojure.read(builder.toString());
     }
 }

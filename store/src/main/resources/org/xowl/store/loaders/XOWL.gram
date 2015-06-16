@@ -349,7 +349,7 @@ grammar XOWL
 		vector				-> CLJ_LB! form* CLJ_RB! ;
 		map					-> CLJ_LC! (couple ((CLJ_SET_SEPARATOR!)? couple)*)? CLJ_RC! ;
 		couple				-> form form ;
-		set					-> CLJ_DISPATCH! CLJ_LB! form* CLJ_RB! ;
+		set					-> CLJ_DISPATCH! CLJ_LC! form* CLJ_RC! ;
 		constructor			-> CLJ_DISPATCH! CLJ_SYMBOL (vector | map) ;
 		quote				-> CLJ_QUOTE! form ;
 		deref				-> CLJ_DEREF! form ;

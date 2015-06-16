@@ -21,6 +21,7 @@ package org.xowl.store;
 
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
+import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
@@ -408,8 +409,13 @@ public class ProxyObject {
         Iterator<Quad> iterator = repository.getBackend().getAll(entity, property, null);
         while (iterator.hasNext()) {
             Node node = iterator.next().getObject();
-            if (node.getNodeType() == LiteralNode.TYPE) {
-                result.add(decode((LiteralNode) node));
+            switch (node.getNodeType()) {
+                case LiteralNode.TYPE:
+                    result.add(decode((LiteralNode) node));
+                    break;
+                case DynamicNode.TYPE:
+                    result.add(((DynamicNode) node).getDynamicExpression());
+                    break;
             }
         }
         return result;
