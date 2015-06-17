@@ -29,7 +29,7 @@ import java.util.Map;
  *
  * @author Laurent Wouters
  */
-class LexicalContext {
+public class LexicalContext {
     /**
      * The parent context
      */

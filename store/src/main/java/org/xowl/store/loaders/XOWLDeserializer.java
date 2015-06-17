@@ -123,6 +123,10 @@ public abstract class XOWLDeserializer extends FunctionalOWL2Deserializer {
                 return loadExpIntegerLiteral(node.getChildren().get(0));
             case XOWLLexer.ID.XOWL_QVAR:
                 return context.resolveQVar(node.getValue());
+            case XOWLLexer.ID.XOWL_OPAQUE_EXP:
+                OpaqueExpression expression = new OpaqueExpression();
+                expression.setValue(loadForm(node.getChildren().get(0)));
+                return expression;
             default:
                 return super.loadExpLiteral(node);
         }
@@ -133,6 +137,10 @@ public abstract class XOWLDeserializer extends FunctionalOWL2Deserializer {
         switch (node.getSymbol().getID()) {
             case XOWLLexer.ID.XOWL_QVAR:
                 return context.resolveQVar(node.getValue());
+            case XOWLLexer.ID.XOWL_OPAQUE_EXP:
+                OpaqueExpression expression = new OpaqueExpression();
+                expression.setValue(loadForm(node.getChildren().get(0)));
+                return expression;
             default:
                 return super.loadExpEntity(node);
         }

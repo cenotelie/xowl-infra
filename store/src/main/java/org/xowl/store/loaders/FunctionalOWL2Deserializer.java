@@ -1428,8 +1428,6 @@ public class FunctionalOWL2Deserializer {
      */
     protected LiteralExpression loadExpLiteral(ASTNode node) {
         switch (node.getSymbol().getName()) {
-            case "INTEGER":
-                return loadExpIntegerLiteral(node);
             case "literalTyped":
                 return loadExpTypedLiteral(node);
             case "literalLang":

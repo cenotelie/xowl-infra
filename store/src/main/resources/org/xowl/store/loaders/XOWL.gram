@@ -59,8 +59,8 @@ grammar XOWL
 			PNAME_NS				-> PN_PREFIX? ':' ;
 			PNAME_LN				-> PNAME_NS PN_LOCAL ;
 			BLANK_NODE_LABEL		-> '_:' (PN_CHARS_U | [0-9]) ((PN_CHARS | '.')* PN_CHARS)? ;
-			OWL2_INTEGER					-> [0-9]+ ;
-			OWL2_STRING					-> '"' (
+			OWL2_INTEGER			-> [0-9]+ ;
+			OWL2_STRING				-> '"' (
 										. - (U+0022 | U+005C | U+000A | U+000D)
 										| '\\' ([tbnrf"'] | '\\')
 										| '\\u' [a-fA-F0-9]{4}
@@ -74,6 +74,7 @@ grammar XOWL
 
 		context xowl
 		{
+			XOWL_OPAQUE_EXP			-> '$';
 			XOWL_QVAR				-> '?' [_a-zA-Z] [_a-zA-Z0-9]* ;
 			RULE_BLOCK_RULE			-> 'Rule';
 			RULE_BLOCK_ANTECEDENTS	-> 'Antecedents';
@@ -81,15 +82,15 @@ grammar XOWL
 			RULE_BLOCK_GUARD		-> 'Guard';
 			RULE_ELEMENT_META		-> 'Meta';
 			RULE_ELEMENT_NOT		-> 'Not';
-        }
+		}
 
 		fragment SYMBOL_CHAR_FIRST	-> . - ([0-9] | '^' | '`' | '\'' | '"' | '#' | '~' | '@' | ':' | '/' | '%' | '(' | ')' | '[' | ']' | '{' | '}'
 											| WHITE_SPACE
 											| NEW_LINE ) ;
 		fragment SYMBOL_CHAR		-> SYMBOL_CHAR_FIRST | [0-9] | '^' | '\'' | '#' | '~' | '@' | '%' ;
 		fragment SYMBOL_ELEM		-> SYMBOL_CHAR_FIRST SYMBOL_CHAR* (':' SYMBOL_CHAR+)* ;
-        context clojure
-        {
+		context clojure
+		{
 			CLJ_SYMBOL			-> '.' | '/' |  SYMBOL_ELEM ('/' SYMBOL_ELEM)? ;
 			CLJ_KEYWORD			-> ':' ':'? ((SYMBOL_CHAR_FIRST | [0-9]) SYMBOL_CHAR* (':' SYMBOL_CHAR+)*) ('/' ((SYMBOL_CHAR_FIRST | [0-9]) SYMBOL_CHAR* (':' SYMBOL_CHAR+)*))? ':'? ;
 			LITERAL_STRING		-> '"'  ( (. - ('"' | '\\'))
@@ -147,7 +148,7 @@ grammar XOWL
 			CLJ_CONDITIONAL		-> '#?' '@'? ;
 			CLJ_XOWL_QUERY		-> 'xowl-query' ;
 			CLJ_XOWL_INSERT		-> 'xowl-insert' ;
-        }
+		}
 	}
 	rules
 	{
@@ -155,7 +156,7 @@ grammar XOWL
 			Vanilla functional OWL2 grammar
 		*/
 
-		document        -> #owl2{ prefixes ontology };
+		document		-> #owl2{ prefixes ontology };
 		prefixes		-> prefix* ;
 		prefix			-> 'Prefix'! OWL2_LP! PNAME_NS OWL2_PREFIX_MAP! IRIREF OWL2_RP! ;
 		ontology		-> 'Ontology'! OWL2_LP! ontologyIRI imports annotations elements OWL2_RP! ;
@@ -381,8 +382,9 @@ grammar XOWL
 		*/
 
 		// Add support for integer literals
-        literal						-> literalInteger^ ;
+		literal						-> literalInteger^ ;
 		literalInteger				-> OWL2_INTEGER ;
+
 		// Add support for the rules
 		element						-> rule^ ;
 		rule						-> #xowl { RULE_BLOCK_RULE! OWL2_LP! iri ruleAntecedents ruleConsequents ruleGuard OWL2_RP! } ;
@@ -395,12 +397,17 @@ grammar XOWL
 									|  RULE_ELEMENT_META OWL2_LP! RULE_ELEMENT_NOT OWL2_LP! axiomPattern+ OWL2_RP! OWL2_RP!
 									|  RULE_ELEMENT_NOT OWL2_LP! RULE_ELEMENT_META OWL2_LP! axiomPattern+ OWL2_RP! OWL2_RP! ;
 		axiomPattern				-> axiom^ ;
-		// Add support for variables in expression of elements in rules
-		literal						-> #xowl { XOWL_QVAR^ };
-		entity						-> #xowl { XOWL_QVAR^ };
+
+		// Add support for dynamic expressions
+		literal						-> expDynamic^;
+		entity						-> expDynamic^;
+		expDynamic					-> #xowl { XOWL_QVAR^ }
+									|  #xowl { XOWL_OPAQUE_EXP^ } #clojure{ form };
+
 		// Adds the FunctionDefinition axiom
 		axiom						-> axiomFunctionDefinition^ ;
 		axiomFunctionDefinition		-> 'FunctionDefinition'! OWL2_LP! annotations entity #clojure{ form } OWL2_RP! ;
+
 		// Adds expression xOWL-specific syntax to clojure
 		form						-> xowl_query^ | xowl_insert^ ;
 		xowl_query					-> CLJ_XOWL_QUERY! CLJ_LP! xowl_query_vars xowl_query_assertions CLJ_RP! ;
