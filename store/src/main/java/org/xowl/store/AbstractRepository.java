@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store;
 
 import org.xowl.lang.owl2.IRI;
@@ -111,14 +111,6 @@ public abstract class AbstractRepository {
      */
     public IRIMapper getIRIMapper() {
         return mapper;
-    }
-
-
-    /**
-     * Initializes this repository
-     */
-    protected AbstractRepository() {
-        this(IRIMapper.getDefault());
     }
 
     /**

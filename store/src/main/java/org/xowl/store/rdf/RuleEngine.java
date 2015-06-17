@@ -42,21 +42,21 @@ public class RuleEngine implements ChangeListener {
          */
         public final Token token;
         /**
-         * The mapping of unbound consequent variables to created nodes
+         * The mapping of special nodes in the consequents
          */
-        public final Map<VariableNode, SubjectNode> creations;
+        public final Map<Node, Node> specials;
 
         /**
          * Initializes this data
          *
-         * @param rule      The fired rule
-         * @param token     The token that triggered the rule
-         * @param creations The mapping of unbound consequent variables to created nodes
+         * @param rule     The fired rule
+         * @param token    The token that triggered the rule
+         * @param specials The mapping of special nodes in the consequents
          */
-        public ExecutedRule(Rule rule, Token token, Map<VariableNode, SubjectNode> creations) {
+        public ExecutedRule(Rule rule, Token token, Map<Node, Node> specials) {
             this.rule = rule;
             this.token = token;
-            this.creations = creations;
+            this.specials = specials;
         }
     }
 
@@ -262,7 +262,7 @@ public class RuleEngine implements ChangeListener {
             ExecutedRule data = executed.remove(token);
             if (data != null) {
                 // recreate the changeset
-                Changeset changeset = process(data.rule, data.token, data.creations);
+                Changeset changeset = process(data.rule, data.token, data.specials);
                 bufferPositives.addAll(changeset.getNegatives());
                 bufferNegatives.addAll(changeset.getPositives());
             }
@@ -276,11 +276,11 @@ public class RuleEngine implements ChangeListener {
         Map<Token, Rule> requests = new HashMap<>(requestsToFire);
         requestsToFire.clear();
         for (Map.Entry<Token, Rule> entry : requests.entrySet()) {
-            Map<VariableNode, SubjectNode> creations = new HashMap<>();
-            Changeset changeset = process(entry.getValue(), entry.getKey(), creations);
+            Map<Node, Node> specials = new HashMap<>();
+            Changeset changeset = process(entry.getValue(), entry.getKey(), specials);
             if (changeset == null)
                 continue;
-            ExecutedRule data = new ExecutedRule(entry.getValue(), entry.getKey(), creations.isEmpty() ? null : creations);
+            ExecutedRule data = new ExecutedRule(entry.getValue(), entry.getKey(), specials.isEmpty() ? null : specials);
             executed.put(data.token, data);
             bufferPositives.addAll(changeset.getPositives());
             bufferNegatives.addAll(changeset.getNegatives());
@@ -290,34 +290,34 @@ public class RuleEngine implements ChangeListener {
     /**
      * Processes the specified rule with the specified token fot the generation of the changeset
      *
-     * @param rule      The rule to generate a changeset from
-     * @param token     The token providing the bindings
-     * @param creations The created nodes for unbound variables in consequents
+     * @param rule     The rule to generate a changeset from
+     * @param token    The token providing the bindings
+     * @param specials The mapping of special nodes in the consequents
      * @return The corresponding production
      */
-    private Changeset process(Rule rule, Token token, Map<VariableNode, SubjectNode> creations) {
+    private Changeset process(Rule rule, Token token, Map<Node, Node> specials) {
         List<Quad> positives = new ArrayList<>();
         List<Quad> negatives = new ArrayList<>();
         for (Quad quad : rule.getConsequentTargetPositives()) {
-            Quad result = process(quad, token, creations);
+            Quad result = process(rule, quad, token, specials);
             if (result == null)
                 return null;
             positives.add(result);
         }
         for (Quad quad : rule.getConsequentMetaPositives()) {
-            Quad result = process(quad, token, creations);
+            Quad result = process(rule, quad, token, specials);
             if (result == null)
                 return null;
             positives.add(result);
         }
         for (Quad quad : rule.getConsequentTargetNegatives()) {
-            Quad result = process(quad, token, creations);
+            Quad result = process(rule, quad, token, specials);
             if (result == null)
                 return null;
             negatives.add(result);
         }
         for (Quad quad : rule.getConsequentMetaNegatives()) {
-            Quad result = process(quad, token, creations);
+            Quad result = process(rule, quad, token, specials);
             if (result == null)
                 return null;
             negatives.add(result);
@@ -328,16 +328,17 @@ public class RuleEngine implements ChangeListener {
     /**
      * Processes the specified quad
      *
-     * @param quad      The quad to process
-     * @param token     The token providing the bindings
-     * @param creations The created nodes for unbound variables in consequents
+     * @param rule     The rule to generate a changeset from
+     * @param quad     The quad to process
+     * @param token    The token providing the bindings
+     * @param specials The mapping of special nodes in the consequents
      * @return The processed node
      */
-    private Quad process(Quad quad, Token token, Map<VariableNode, SubjectNode> creations) {
-        Node nodeGraph = process(quad.getGraph(), token, creations, true);
-        Node nodeSubject = process(quad.getSubject(), token, creations, false);
-        Node nodeProperty = process(quad.getProperty(), token, creations, false);
-        Node nodeObject = process(quad.getObject(), token, creations, false);
+    private Quad process(Rule rule, Quad quad, Token token, Map<Node, Node> specials) {
+        Node nodeGraph = process(rule, quad.getGraph(), token, specials, true);
+        Node nodeSubject = process(rule, quad.getSubject(), token, specials, false);
+        Node nodeProperty = process(rule, quad.getProperty(), token, specials, false);
+        Node nodeObject = process(rule, quad.getObject(), token, specials, false);
         if ((!(nodeGraph instanceof GraphNode)) || (!(nodeSubject instanceof SubjectNode)) || (!(nodeProperty instanceof Property)))
             return null;
         return new Quad((GraphNode) nodeGraph, (SubjectNode) nodeSubject, (Property) nodeProperty, nodeObject);
@@ -346,15 +347,16 @@ public class RuleEngine implements ChangeListener {
     /**
      * Processes the specified node
      *
+     * @param rule     The rule to generate a changeset from
      * @param node      The node to process
      * @param token     The token providing the bindings
-     * @param creations The created nodes for unbound variables in consequents
+     * @param specials  The mapping of special nodes in the consequents
      * @param createIRI Whether to create an IRI node or a blank node in the case of an unbound variable
      * @return The processed node
      */
-    private Node process(Node node, Token token, Map<VariableNode, SubjectNode> creations, boolean createIRI) {
+    private Node process(Rule rule, Node node, Token token, Map<Node, Node> specials, boolean createIRI) {
         if (node.getNodeType() == VariableNode.TYPE) {
-            return processResolve((VariableNode) node, token, creations, createIRI);
+            return processResolve((VariableNode) node, token, specials, createIRI);
         } else if (node.getNodeType() == IRINode.TYPE) {
             return node;
         } else if (node.getNodeType() == BlankNode.TYPE) {
@@ -362,7 +364,7 @@ public class RuleEngine implements ChangeListener {
         } else if (node.getNodeType() == LiteralNode.TYPE) {
             return node;
         } else {
-            return processOtherNode(node);
+            return processOtherNode(rule, node, token, specials);
         }
     }
 
@@ -371,32 +373,35 @@ public class RuleEngine implements ChangeListener {
      *
      * @param variable  A variable node
      * @param token     The token providing the bindings
-     * @param creations The created nodes for unbound variables in consequents
+     * @param specials  The mapping of special nodes in the consequents
      * @param createIRI Whether to create an IRI node or a blank node in the case of an unbound variable
      * @return The variable value
      */
-    private Node processResolve(VariableNode variable, Token token, Map<VariableNode, SubjectNode> creations, boolean createIRI) {
+    private Node processResolve(VariableNode variable, Token token, Map<Node, Node> specials, boolean createIRI) {
         Node result = token.getBinding(variable);
         if (result != null)
             return result;
-        result = creations.get(variable);
+        result = specials.get(variable);
         if (result != null)
             return result;
         if (createIRI)
             result = outputStore.newNodeIRI(null);
         else
             result = outputStore.newNodeBlank();
-        creations.put(variable, (SubjectNode) result);
+        specials.put(variable, result);
         return result;
     }
 
     /**
      * Processes the specified node that is not supported by this engine
      *
-     * @param node The node to process
+     * @param rule     The rule to generate a changeset from
+     * @param node     The node to process
+     * @param token    The token providing the bindings
+     * @param specials The mapping of special nodes in the consequents
      * @return The processed node
      */
-    protected Node processOtherNode(Node node) {
+    protected Node processOtherNode(Rule rule, Node node, Token token, Map<Node, Node> specials) {
         return node;
     }
 

@@ -24,6 +24,7 @@ import org.xowl.lang.actions.FunctionExpression;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.Entity;
 import org.xowl.store.AbstractRepository;
+import org.xowl.store.IRIMapper;
 import org.xowl.store.loaders.Loader;
 import org.xowl.store.loaders.OWLLoaderResult;
 import org.xowl.store.loaders.RDFLoaderResult;
@@ -86,6 +87,7 @@ public class DirectSemantics extends AbstractRepository {
      * Initializes this interpreter
      */
     public DirectSemantics() {
+        super(IRIMapper.getDefault());
         this.mapEntities = new HashMap<>();
         this.classUnions = new ArrayList<>();
         this.classIntersections = new ArrayList<>();

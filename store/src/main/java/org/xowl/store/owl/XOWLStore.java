@@ -116,6 +116,9 @@ public class XOWLStore extends RDFStore {
             case AnonymousNode.TYPE: {
                 return ((AnonymousNode) node).getAnonymous();
             }
+            case DynamicNode.TYPE: {
+                return ((DynamicNode) node).getDynamicExpression();
+            }
         }
         return null;
     }

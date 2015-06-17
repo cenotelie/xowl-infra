@@ -19,11 +19,14 @@
  ******************************************************************************/
 package org.xowl.store.owl;
 
+import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.Axiom;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.rules.Assertion;
 import org.xowl.lang.rules.Rule;
 import org.xowl.store.rdf.*;
+import org.xowl.store.rete.Token;
+import org.xowl.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +40,60 @@ import java.util.Map;
  */
 public class RuleEngine {
     /**
+     * The specialized RDF rule engine backend
+     */
+    private class Backend extends org.xowl.store.rdf.RuleEngine {
+        /**
+         * Initializes this engine
+         *
+         * @param inputStore  The RDF store serving as input
+         * @param outputStore The RDF store for the output
+         */
+        public Backend(AbstractStore inputStore, RDFStore outputStore) {
+            super(inputStore, outputStore);
+        }
+
+        @Override
+        protected Node processOtherNode(org.xowl.store.rdf.Rule rule, Node node, Token token, Map<Node, Node> specials) {
+            if (node.getNodeType() != DynamicNode.TYPE || evaluator == null)
+                return node;
+            Node result = specials.get(node);
+            if (result != null)
+                return result;
+            evaluator.push(buildBindings(owlRules.get(rule).x, token, specials));
+            result = outputStore.getRDF(evaluator.eval(((DynamicNode) node).getDynamicExpression()));
+            specials.put(node, result);
+            evaluator.pop();
+            return result;
+        }
+
+        /**
+         * Builds the bindings data for the evaluator from the specified information
+         *
+         * @param context  The translation context
+         * @param token    The matching token in the rule engine
+         * @param specials The existing special bindings
+         * @return The bindings for the evaluator
+         */
+        private Bindings buildBindings(TranslationContext context, Token token, Map<Node, Node> specials) {
+            Bindings bindings = new Bindings();
+            for (Map.Entry<VariableNode, Node> entry : token.getBindings().entrySet()) {
+                QueryVariable qvar = context.get(entry.getKey());
+                Object value = outputStore.getOWL(entry.getValue());
+                bindings.bind(qvar, value);
+            }
+            for (Map.Entry<Node, Node> entry : specials.entrySet()) {
+                if (entry.getKey().getNodeType() == VariableNode.TYPE) {
+                    QueryVariable qvar = context.get((VariableNode) entry.getKey());
+                    Object value = outputStore.getOWL(entry.getValue());
+                    bindings.bind(qvar, value);
+                }
+            }
+            return bindings;
+        }
+    }
+
+    /**
      * The XOWL store for the output
      */
     private final XOWLStore outputStore;
@@ -47,11 +104,15 @@ public class RuleEngine {
     /**
      * The RDF backend
      */
-    private final org.xowl.store.rdf.RuleEngine backend;
+    private final Backend backend;
     /**
-     * The current rules
+     * The mapping of OWL to RDF rules
      */
-    private final Map<Rule, org.xowl.store.rdf.Rule> rules;
+    private final Map<Rule, org.xowl.store.rdf.Rule> rdfRules;
+    /**
+     * The mapping of RDF to OWL rules
+     */
+    private final Map<org.xowl.store.rdf.Rule, Couple<TranslationContext, Rule>> owlRules;
 
     /**
      * Gets the RDF backend
@@ -68,21 +129,12 @@ public class RuleEngine {
      * @param inputStore The store to operate over
      * @param evaluator  The evaluator
      */
-    public RuleEngine(AbstractStore inputStore, XOWLStore outputStore, final Evaluator evaluator) {
+    public RuleEngine(AbstractStore inputStore, XOWLStore outputStore, Evaluator evaluator) {
         this.outputStore = outputStore;
         this.evaluator = evaluator;
-        this.backend = new org.xowl.store.rdf.RuleEngine(inputStore, outputStore) {
-            protected Node processOtherNode(Node node) {
-                if (node.getNodeType() == DynamicNode.TYPE) {
-                    DynamicNode dynamicNode = (DynamicNode) node;
-                    if (RuleEngine.this.evaluator == null)
-                        return dynamicNode;
-                    return RuleEngine.this.outputStore.getRDF(RuleEngine.this.evaluator.eval(dynamicNode.getDynamicExpression()));
-                }
-                return node;
-            }
-        };
-        this.rules = new HashMap<>();
+        this.backend = new Backend(inputStore, outputStore);
+        this.rdfRules = new HashMap<>();
+        this.owlRules = new HashMap<>();
     }
 
     /**
@@ -95,7 +147,8 @@ public class RuleEngine {
         GraphNode graphTarget = getGraph(target, false);
         GraphNode graphMeta = getGraph(meta, false);
         org.xowl.store.rdf.Rule rdfRule = new org.xowl.store.rdf.Rule(rule.getHasIRI().getHasValue());
-        Translator translator = new Translator(new TranslationContext(), outputStore, evaluator);
+        TranslationContext translationContext = new TranslationContext();
+        Translator translator = new Translator(translationContext, outputStore, evaluator);
         List<Axiom> positiveNormal = new ArrayList<>();
         List<Axiom> positiveMeta = new ArrayList<>();
         try {
@@ -140,7 +193,8 @@ public class RuleEngine {
         } catch (TranslationException ex) {
             // TODO: report this
         }
-        rules.put(rule, rdfRule);
+        rdfRules.put(rule, rdfRule);
+        owlRules.put(rdfRule, new Couple<>(translationContext, rule));
         backend.add(rdfRule);
     }
 
@@ -150,7 +204,7 @@ public class RuleEngine {
      * @param rule The rule to remove
      */
     public void remove(Rule rule) {
-        backend.remove(rules.get(rule));
+        backend.remove(rdfRules.get(rule));
     }
 
     /**
@@ -159,7 +213,7 @@ public class RuleEngine {
      * @param iri The IRI of the rule to remove
      */
     public void remove(String iri) {
-        for (Rule rule : rules.keySet()) {
+        for (Rule rule : rdfRules.keySet()) {
             if (rule.getHasIRI().getHasValue().equals(iri)) {
                 remove(rule);
                 return;

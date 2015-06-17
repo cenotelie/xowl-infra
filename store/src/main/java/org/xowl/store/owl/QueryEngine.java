@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,10 +16,9 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.owl;
 
-import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.Axiom;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.VariableNode;
@@ -77,12 +76,12 @@ public class QueryEngine {
      * @param query A query
      * @return The solutions
      */
-    public Collection<QuerySolution> execute(Query query) {
+    public Collection<Bindings> execute(Query query) {
         TranslationContext context = new TranslationContext();
         try {
             org.xowl.store.rdf.Query rdfQuery = translate(query, context);
             Collection<org.xowl.store.rdf.QuerySolution> rdfSolutions = rdfEngine.execute(rdfQuery);
-            List<QuerySolution> owlSolutions = new ArrayList<>();
+            List<Bindings> owlSolutions = new ArrayList<>();
             for (org.xowl.store.rdf.QuerySolution rdfSolution : rdfSolutions)
                 owlSolutions.add(translate(rdfSolution, context));
             return owlSolutions;
@@ -118,13 +117,12 @@ public class QueryEngine {
      * @param context  The translation context
      * @return The corresponding OWL solution
      */
-    private QuerySolution translate(org.xowl.store.rdf.QuerySolution solution, TranslationContext context) {
-        Map<QueryVariable, Object> map = new HashMap<>();
+    private Bindings translate(org.xowl.store.rdf.QuerySolution solution, TranslationContext context) {
+        Bindings bindings = new Bindings();
         for (VariableNode var : solution.getVariables()) {
             Object value = store.getOWL(solution.get(var));
-            if (value != null)
-                map.put(context.get(var), value);
+            bindings.bind(context.get(var), value);
         }
-        return new QuerySolution(map);
+        return bindings;
     }
 }

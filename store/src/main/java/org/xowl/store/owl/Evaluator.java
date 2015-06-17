@@ -20,6 +20,7 @@
 
 package org.xowl.store.owl;
 
+import org.xowl.lang.actions.DynamicExpression;
 import org.xowl.lang.actions.FunctionExpression;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.Class;
@@ -33,12 +34,16 @@ import org.xowl.lang.runtime.Literal;
  */
 public interface Evaluator {
     /**
-     * Determines whether the specified expression can be evaluated by this evaluator
+     * Pushes a new context onto the stack of this evaluator
      *
-     * @param expression An expression
-     * @return <code>true</code> if the specified expression can be evaluated
+     * @param context The context to push
      */
-    boolean can(Expression expression);
+    void push(Bindings context);
+
+    /**
+     * Pops the head context from the stack of this evaluator
+     */
+    void pop();
 
     /**
      * Evaluates the specified expression
@@ -46,7 +51,7 @@ public interface Evaluator {
      * @param expression An expression
      * @return The evaluated value
      */
-    Object eval(Expression expression);
+    Object eval(DynamicExpression expression);
 
     /**
      * Evaluates the specified class expression

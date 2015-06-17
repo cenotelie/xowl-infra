@@ -908,7 +908,7 @@ public class Translator {
      */
     protected SubjectNode translateClassExpression(ClassExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable) {
-            if (evaluator != null && evaluator.can(expression))
+            if (evaluator != null)
                 return translateClassRuntime(evaluator.evalClass(expression));
             else
                 return context.resolve((QueryVariable) expression, Class.class);
@@ -1331,7 +1331,7 @@ public class Translator {
      */
     protected SubjectNode translateObjectPropertyExpression(ObjectPropertyExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable) {
-            if (evaluator != null && evaluator.can(expression))
+            if (evaluator != null)
                 return translateObjectPropertyRuntime(evaluator.evalObjectProperty(expression));
             else
                 return context.resolve((QueryVariable) expression, ObjectProperty.class);
@@ -1394,7 +1394,7 @@ public class Translator {
      */
     protected SubjectNode translateDataPropertyExpression(DataPropertyExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable) {
-            if (evaluator != null && evaluator.can(expression))
+            if (evaluator != null)
                 return translateDataPropertyRuntime(evaluator.evalDataProperty(expression));
             else
                 return context.resolve((QueryVariable) expression, org.xowl.lang.runtime.DataProperty.class);
@@ -1440,7 +1440,7 @@ public class Translator {
      */
     protected SubjectNode translateDatarange(Datarange expression) throws TranslationException {
         if (expression instanceof QueryVariable) {
-            if (evaluator != null && evaluator.can(expression))
+            if (evaluator != null)
                 return translateDatatype(evaluator.evalDatatype(expression));
             else
                 return context.resolve((QueryVariable) expression, org.xowl.lang.runtime.Datatype.class);
@@ -1602,7 +1602,7 @@ public class Translator {
      */
     protected SubjectNode translateIndividualExpression(IndividualExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable) {
-            if (evaluator != null && evaluator.can(expression)) {
+            if (evaluator != null) {
                 Individual ind = evaluator.evalIndividual(expression);
                 if (ind instanceof AnonymousIndividual)
                     return translateAnonymousIndividual((AnonymousIndividual) ind);
@@ -1669,7 +1669,7 @@ public class Translator {
      */
     protected Node translateLiteralExpression(LiteralExpression expression) {
         if (expression instanceof QueryVariable) {
-            if (evaluator != null && evaluator.can(expression))
+            if (evaluator != null)
                 return translateLiteralRuntime(evaluator.evalLiteral(expression));
             else
                 return context.resolve((QueryVariable) expression, org.xowl.lang.runtime.Literal.class);
@@ -1713,7 +1713,7 @@ public class Translator {
      */
     protected SubjectNode translateFunctionExpression(FunctionExpression expression) throws TranslationException {
         if (expression instanceof QueryVariable) {
-            if (evaluator != null && evaluator.can(expression))
+            if (evaluator != null)
                 return translateFunctionRuntime(evaluator.evalFunction(expression));
             else
                 return context.resolve((QueryVariable) expression, Function.class);

@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,15 +16,15 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store;
 
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.rules.Rule;
 import org.xowl.store.loaders.*;
+import org.xowl.store.owl.*;
 import org.xowl.store.owl.QueryEngine;
 import org.xowl.store.owl.RuleEngine;
-import org.xowl.store.owl.*;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.Logger;
 import org.xowl.utils.collections.Adapter;
@@ -94,12 +94,17 @@ public class Repository extends AbstractRepository {
      * @throws IOException When the backend cannot allocate a temporary file
      */
     public Repository() throws IOException {
-        super();
-        this.backend = new XOWLStore();
-        this.graphs = new HashMap<>();
-        this.proxies = new HashMap<>();
-        this.queryEngine = new QueryEngine(backend, null);
-        this.ruleEngine = new RuleEngine(backend, backend, null);
+        this(IRIMapper.getDefault(), null);
+    }
+
+    /**
+     * Initializes this repository
+     *
+     * @param evaluator The evaluator to use
+     * @throws IOException When the backend cannot allocate a temporary file
+     */
+    public Repository(Evaluator evaluator) throws IOException {
+        this(IRIMapper.getDefault(), evaluator);
     }
 
     /**
@@ -109,12 +114,23 @@ public class Repository extends AbstractRepository {
      * @throws IOException When the backend cannot allocate a temporary file
      */
     public Repository(IRIMapper mapper) throws IOException {
+        this(mapper, null);
+    }
+
+    /**
+     * Initializes this repository
+     *
+     * @param mapper    The IRI mapper to use
+     * @param evaluator The evaluator to use
+     * @throws IOException When the backend cannot allocate a temporary file
+     */
+    public Repository(IRIMapper mapper, Evaluator evaluator) throws IOException {
         super(mapper);
         this.backend = new XOWLStore();
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
-        this.queryEngine = new QueryEngine(backend, null);
-        this.ruleEngine = new RuleEngine(backend, backend, null);
+        this.queryEngine = new QueryEngine(backend, evaluator);
+        this.ruleEngine = new RuleEngine(backend, backend, evaluator);
     }
 
     /**
