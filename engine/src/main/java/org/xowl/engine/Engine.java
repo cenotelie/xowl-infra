@@ -22,14 +22,18 @@ package org.xowl.engine;
 
 import clojure.lang.Compiler;
 import clojure.lang.*;
+import org.xowl.lang.actions.DynamicExpression;
 import org.xowl.lang.actions.FunctionExpression;
 import org.xowl.lang.actions.OpaqueExpression;
+import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.*;
 import org.xowl.lang.runtime.Literal;
+import org.xowl.store.IRIMapper;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;
 import org.xowl.store.Vocabulary;
+import org.xowl.store.owl.Bindings;
 import org.xowl.store.owl.Evaluator;
 
 import java.io.IOException;
@@ -38,6 +42,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * Represents an execution engine for xOWL ontologies
@@ -46,10 +51,13 @@ import java.util.List;
  */
 public class Engine implements Evaluator {
     /**
-     * The root namespace for the Clojure functions
+     * The root namespace for the Clojure symbols
      */
-    protected static final String CLJ_NAMESPACE_ROOT = "org.xowl.engine.clojure";
-
+    private static final String CLJ_NAMESPACE_ROOT_NAME = "org.xowl.engine.clojure";
+    /**
+     * The root namespace for the Clojure symbols
+     */
+    private static final Namespace CLJ_NAMESPACE_ROOT = Namespace.findOrCreate(Symbol.intern(CLJ_NAMESPACE_ROOT_NAME));
     /**
      * The Clojure function definitions that are not yet compiled
      */
@@ -74,7 +82,7 @@ public class Engine implements Evaluator {
     protected static void compileOutstandings() {
         if (OUTSTANDING_DEFINITIONS.isEmpty())
             return;
-        Var ns = RT.CURRENT_NS; // forces the initialization of the runtime before any call to the compiler
+        //Var ns = RT.CURRENT_NS; // forces the initialization of the runtime before any call to the compiler
         StringBuilder builder = new StringBuilder();
         builder.append("(ns ");
         builder.append(CLJ_NAMESPACE_ROOT);
@@ -103,7 +111,7 @@ public class Engine implements Evaluator {
         Iterator iterator = vector.iterator();
         for (ClojureFunction function : OUTSTANDING_DEFINITIONS) {
             IFn definition = (IFn) iterator.next();
-            Var.intern(Namespace.findOrCreate(Symbol.intern(CLJ_NAMESPACE_ROOT)), Symbol.intern(function.getName()), definition);
+            Var.intern(CLJ_NAMESPACE_ROOT, Symbol.intern(function.getName()), definition);
             function.setClojure(definition);
         }
         OUTSTANDING_DEFINITIONS.clear();
@@ -113,14 +121,45 @@ public class Engine implements Evaluator {
      * The backend repository
      */
     private final Repository repository;
+    /**
+     * The stack of OWL lexical bindings
+     */
+    private final Stack<Bindings> stackOWL;
+    /**
+     * The stack of Clojure lexical bindings
+     */
+    private final Stack<List<Var>> stackCLJ;
+
+    /**
+     * Gets the backend repository
+     *
+     * @return The backend repository
+     */
+    public Repository getRepository() {
+        return repository;
+    }
 
     /**
      * Initializes this engine
      *
-     * @param repository The backend repository
+     * @throws IOException When the backend cannot allocate a temporary file
      */
-    public Engine(Repository repository) {
-        this.repository = repository;
+    public Engine() throws IOException {
+        this.repository = new Repository(this);
+        this.stackOWL = new Stack<>();
+        this.stackCLJ = new Stack<>();
+    }
+
+    /**
+     * Initializes this engine
+     *
+     * @param mapper The IRI mapper to use
+     * @throws IOException When the backend cannot allocate a temporary file
+     */
+    public Engine(IRIMapper mapper) throws IOException {
+        this.repository = new Repository(mapper, this);
+        this.stackOWL = new Stack<>();
+        this.stackCLJ = new Stack<>();
     }
 
     /**
@@ -174,13 +213,34 @@ public class Engine implements Evaluator {
     }
 
     @Override
-    public boolean can(Expression expression) {
-        return false;
+    public void push(Bindings context) {
+        List<Var> vars = new ArrayList<>();
+        for (QueryVariable qvar : context.getVariables()) {
+            Object value = getValueNative(context.get(qvar));
+            vars.add(Var.intern(CLJ_NAMESPACE_ROOT, Symbol.intern(qvar.getName()), value));
+        }
+        stackOWL.push(context);
+        stackCLJ.push(vars);
     }
 
     @Override
-    public Object eval(Expression expression) {
-        return null;
+    public void pop() {
+        List<Var> vars = stackCLJ.pop();
+        for(Var var : vars) {
+            CLJ_NAMESPACE_ROOT.unmap(var.sym);
+        }
+        stackOWL.pop();
+    }
+
+    @Override
+    public Object eval(DynamicExpression expression) {
+        compileOutstandings();
+        Namespace old = (Namespace) RT.CURRENT_NS.deref();
+        RT.CURRENT_NS.bindRoot(CLJ_NAMESPACE_ROOT);
+        Object cljExp = ((OpaqueExpression) expression).getValue();
+        Object result =  getValueOWL2(Compiler.eval(cljExp));
+        RT.CURRENT_NS.bindRoot(old);
+        return result;
     }
 
     @Override
@@ -216,5 +276,23 @@ public class Engine implements Evaluator {
     @Override
     public Function evalFunction(FunctionExpression expression) {
         return null;
+    }
+
+    /**
+     * Gets the native value for the specified OWL2 value
+     * @param owlValue An OWL2 value
+     * @return The corresponding native value
+     */
+    protected Object getValueNative(Object owlValue) {
+
+    }
+
+    /**
+     * Gets the OWL2 value for the specified OWL2 value
+     * @param nativeValue A native value
+     * @return The corresponding OWL2 value
+     */
+    protected Object getValueOWL2(Object nativeValue) {
+
     }
 }

@@ -94,6 +94,15 @@ public class RuleEngine {
     }
 
     /**
+     * The query variable for an unknown graph
+     */
+    private static final QueryVariable GRAPH_VAR = new QueryVariable();
+
+    {
+        GRAPH_VAR.setName("__graph__");
+    }
+
+    /**
      * The XOWL store for the output
      */
     private final XOWLStore outputStore;
@@ -143,11 +152,11 @@ public class RuleEngine {
      * @param rule The rule to add
      */
     public void add(Rule rule, Ontology source, Ontology target, Ontology meta) {
-        GraphNode graphSource = getGraph(source, true);
-        GraphNode graphTarget = getGraph(target, false);
-        GraphNode graphMeta = getGraph(meta, false);
-        org.xowl.store.rdf.Rule rdfRule = new org.xowl.store.rdf.Rule(rule.getHasIRI().getHasValue());
         TranslationContext translationContext = new TranslationContext();
+        GraphNode graphSource = getGraph(translationContext, source, true);
+        GraphNode graphTarget = getGraph(translationContext, target, false);
+        GraphNode graphMeta = getGraph(translationContext, meta, false);
+        org.xowl.store.rdf.Rule rdfRule = new org.xowl.store.rdf.Rule(rule.getHasIRI().getHasValue());
         Translator translator = new Translator(translationContext, outputStore, null);
         List<Axiom> positiveNormal = new ArrayList<>();
         List<Axiom> positiveMeta = new ArrayList<>();
@@ -222,16 +231,24 @@ public class RuleEngine {
     }
 
     /**
+     * Flushes any outstanding changes in the input or the output
+     */
+    public void flush() {
+        backend.flush();
+    }
+
+    /**
      * Gets the graph node for the specified ontology
      *
+     * @param context       The current translation context
      * @param ontology      An ontology
      * @param allowsPattern Whether to allow the graph to be part of the pattern
      * @return The associated graph node
      */
-    private GraphNode getGraph(Ontology ontology, boolean allowsPattern) {
+    private GraphNode getGraph(TranslationContext context, Ontology ontology, boolean allowsPattern) {
         if (ontology == null) {
             if (allowsPattern)
-                return new VariableNode("__graph__");
+                return context.resolve(GRAPH_VAR, Ontology.class);
             else
                 return outputStore.getNodeIRI(RDFStore.createAnonymousGraph());
         }

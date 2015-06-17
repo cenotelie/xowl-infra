@@ -83,7 +83,7 @@ public class RuleEngine implements ChangeListener {
     /**
      * Flag whether outstanding changes are currently being applied
      */
-    private boolean isApplying;
+    private boolean isFlushing;
     /**
      * Buffer of positive quads
      */
@@ -194,23 +194,23 @@ public class RuleEngine implements ChangeListener {
     @Override
     public void onChange(Change change) {
         newChanges.add(change);
-        apply();
+        flush();
     }
 
     @Override
     public void onChange(Changeset changeset) {
         newChangesets.add(changeset);
-        apply();
+        flush();
     }
 
     /**
-     * Applies all outstanding changes
+     * Flushes any outstanding changes in the input or the output
      */
-    protected void apply() {
-        if (isApplying)
+    public void flush() {
+        if (isFlushing)
             return;
-        isApplying = true;
-        while (newChanges.size() > 0 || newChangesets.size() > 0) {
+        isFlushing = true;
+        while (!newChanges.isEmpty() || !newChangesets.isEmpty() || !requestsToFire.isEmpty() || !requestsToUnfire.isEmpty()) {
             injectChanges();
             performUnfire();
             performFire();
@@ -225,7 +225,7 @@ public class RuleEngine implements ChangeListener {
                 bufferNegatives.clear();
             }
         }
-        isApplying = false;
+        isFlushing = false;
     }
 
     /**
@@ -347,7 +347,7 @@ public class RuleEngine implements ChangeListener {
     /**
      * Processes the specified node
      *
-     * @param rule     The rule to generate a changeset from
+     * @param rule      The rule to generate a changeset from
      * @param node      The node to process
      * @param token     The token providing the bindings
      * @param specials  The mapping of special nodes in the consequents

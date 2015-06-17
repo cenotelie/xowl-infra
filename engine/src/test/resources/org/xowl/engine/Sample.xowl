@@ -6,4 +6,15 @@ Ontology( <http://xowl.org/engine/tests/Sample>
 
     FunctionDefinition(:total (fn [x] (+ (sub1 x) 2)))
     FunctionDefinition(:sub1 (fn [x] (+ x 2)))
+
+    ClassAssertion(:Person :peter)
+    DataPropertyAssertion(:age :peter 25)
+    Rule(:myRule
+        Antecedents(
+            DataPropertyAssertion(:age ?x ?v)
+        )
+        Consequents(
+            DataPropertyAssertion(:result ?x $ (+ v 2))
+        )
+    )
 )
