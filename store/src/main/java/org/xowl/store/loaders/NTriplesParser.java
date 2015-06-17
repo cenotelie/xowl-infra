@@ -5,9 +5,14 @@
 
 package org.xowl.store.loaders;
 
+import org.xowl.hime.redist.SemanticAction;
+import org.xowl.hime.redist.SemanticBody;
 import org.xowl.hime.redist.Symbol;
+import org.xowl.hime.redist.parsers.InitializationException;
 import org.xowl.hime.redist.parsers.LRkAutomaton;
 import org.xowl.hime.redist.parsers.LRkParser;
+
+import java.util.Map;
 
 /**
  * Represents a parser
@@ -17,7 +22,6 @@ class NTriplesParser extends LRkParser {
      * The automaton for this parser
      */
     private static final LRkAutomaton commonAutomaton = LRkAutomaton.find(NTriplesParser.class, "NTriplesParser.bin");
-
     /**
      * Contains the constant IDs for the variables and virtuals in this parser
      */
@@ -47,35 +51,33 @@ class NTriplesParser extends LRkParser {
          */
         public static final int literal = 0x0013;
         /**
-         * The unique identifier for variable _Axiom_
+         * The unique identifier for variable __axiom
          */
-        public static final int _Axiom_ = 0x0017;
+        public static final int __axiom = 0x0017;
     }
-
     /**
      * The collection of variables matched by this parser
-     * <p/>
+     *
      * The variables are in an order consistent with the automaton,
      * so that variable indices in the automaton can be used to retrieve the variables in this table
      */
     private static final Symbol[] variables = {
-            new Symbol(0x000E, "ntriplesDoc"),
-            new Symbol(0x000F, "triple"),
-            new Symbol(0x0010, "subject"),
-            new Symbol(0x0011, "predicate"),
-            new Symbol(0x0012, "object"),
-            new Symbol(0x0013, "literal"),
-            new Symbol(0x0014, "_gen_V20"),
-            new Symbol(0x0017, "_Axiom_")};
+        new Symbol(0x000E, "ntriplesDoc"), 
+        new Symbol(0x000F, "triple"), 
+        new Symbol(0x0010, "subject"), 
+        new Symbol(0x0011, "predicate"), 
+        new Symbol(0x0012, "object"), 
+        new Symbol(0x0013, "literal"), 
+        new Symbol(0x0014, "__V20"), 
+        new Symbol(0x0017, "__axiom") };
     /**
      * The collection of virtuals matched by this parser
-     * <p/>
+     *
      * The virtuals are in an order consistent with the automaton,
      * so that virtual indices in the automaton can be used to retrieve the virtuals in this table
      */
     private static final Symbol[] virtuals = {
-    };
-
+ };
     /**
      * Initializes a new instance of the parser
      *

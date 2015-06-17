@@ -19,7 +19,6 @@ class RDFTLexer extends ContextFreeLexer {
      * The automaton for this lexer
      */
     private static final Automaton commonAutomaton = Automaton.find(RDFTLexer.class, "RDFTLexer.bin");
-
     /**
      * Contains the constant IDs for the terminals for this lexer
      */
@@ -137,7 +136,6 @@ class RDFTLexer extends ContextFreeLexer {
          */
         public static final int PREFIX = 0x001A;
     }
-
     /**
      * Contains the constant IDs for the contexts for this lexer
      */
@@ -147,57 +145,55 @@ class RDFTLexer extends ContextFreeLexer {
          */
         public static final int DEFAULT = 0;
     }
-
     /**
      * The collection of terminals matched by this lexer
-     * <p/>
+     *
      * The terminals are in an order consistent with the automaton,
      * so that terminal indices in the automaton can be used to retrieve the terminals in this table
      */
     private static final Symbol[] terminals = {
-            new Symbol(0x0001, "ε"),
-            new Symbol(0x0002, "$"),
-            new Symbol(0x000E, "PN_LOCAL"),
-            new Symbol(0x000C, "PN_CHARS"),
-            new Symbol(0x000B, "PN_CHARS_U"),
-            new Symbol(0x000D, "PN_PREFIX"),
-            new Symbol(0x000A, "PN_CHARS_BASE"),
-            new Symbol(0x0039, "."),
-            new Symbol(0x003E, "{"),
-            new Symbol(0x0040, "}"),
-            new Symbol(0x0041, "("),
-            new Symbol(0x0043, ")"),
-            new Symbol(0x0006, "BLANK"),
-            new Symbol(0x0003, "NEW_LINE"),
-            new Symbol(0x0004, "WHITE_SPACE"),
-            new Symbol(0x000F, "PNAME_NS"),
-            new Symbol(0x0013, "INTEGER"),
-            new Symbol(0x0005, "COMMENT"),
-            new Symbol(0x0007, "LANGTAG"),
-            new Symbol(0x0008, "IRIREF"),
-            new Symbol(0x0012, "ANON"),
-            new Symbol(0x0016, "STRING_LITERAL_QUOTE"),
-            new Symbol(0x0017, "STRING_LITERAL_SINGLE_QUOTE"),
-            new Symbol(0x001C, "QVAR"),
-            new Symbol(0x0014, "DECIMAL"),
-            new Symbol(0x003D, "=>"),
-            new Symbol(0x0047, "^^"),
-            new Symbol(0x0009, "PLX"),
-            new Symbol(0x0010, "PNAME_LN"),
-            new Symbol(0x0011, "BLANK_NODE_LABEL"),
-            new Symbol(0x001E, "MARKER_NOT"),
-            new Symbol(0x0015, "DOUBLE"),
-            new Symbol(0x001B, "BASE"),
-            new Symbol(0x001D, "MARKER_META"),
-            new Symbol(0x003C, "rule"),
-            new Symbol(0x0045, "true"),
-            new Symbol(0x003A, "@base"),
-            new Symbol(0x0046, "false"),
-            new Symbol(0x0019, "STRING_LITERAL_LONG_QUOTE"),
-            new Symbol(0x0018, "STRING_LITERAL_LONG_SINGLE_QUOTE"),
-            new Symbol(0x001A, "PREFIX"),
-            new Symbol(0x0038, "@prefix")};
-
+        new Symbol(0x0001, "ε"),
+        new Symbol(0x0002, "$"),
+        new Symbol(0x000E, "PN_LOCAL"),
+        new Symbol(0x000C, "PN_CHARS"),
+        new Symbol(0x000B, "PN_CHARS_U"),
+        new Symbol(0x000D, "PN_PREFIX"),
+        new Symbol(0x000A, "PN_CHARS_BASE"),
+        new Symbol(0x0039, "."),
+        new Symbol(0x003E, "{"),
+        new Symbol(0x0040, "}"),
+        new Symbol(0x0041, "("),
+        new Symbol(0x0043, ")"),
+        new Symbol(0x0006, "BLANK"),
+        new Symbol(0x0003, "NEW_LINE"),
+        new Symbol(0x0004, "WHITE_SPACE"),
+        new Symbol(0x000F, "PNAME_NS"),
+        new Symbol(0x0013, "INTEGER"),
+        new Symbol(0x0005, "COMMENT"),
+        new Symbol(0x0007, "LANGTAG"),
+        new Symbol(0x0008, "IRIREF"),
+        new Symbol(0x0012, "ANON"),
+        new Symbol(0x0016, "STRING_LITERAL_QUOTE"),
+        new Symbol(0x0017, "STRING_LITERAL_SINGLE_QUOTE"),
+        new Symbol(0x001C, "QVAR"),
+        new Symbol(0x0014, "DECIMAL"),
+        new Symbol(0x003D, "=>"),
+        new Symbol(0x0047, "^^"),
+        new Symbol(0x0009, "PLX"),
+        new Symbol(0x0010, "PNAME_LN"),
+        new Symbol(0x0011, "BLANK_NODE_LABEL"),
+        new Symbol(0x001E, "MARKER_NOT"),
+        new Symbol(0x0015, "DOUBLE"),
+        new Symbol(0x001B, "BASE"),
+        new Symbol(0x001D, "MARKER_META"),
+        new Symbol(0x003C, "rule"),
+        new Symbol(0x0045, "true"),
+        new Symbol(0x003A, "@base"),
+        new Symbol(0x0046, "false"),
+        new Symbol(0x0019, "STRING_LITERAL_LONG_QUOTE"),
+        new Symbol(0x0018, "STRING_LITERAL_LONG_SINGLE_QUOTE"),
+        new Symbol(0x001A, "PREFIX"),
+        new Symbol(0x0038, "@prefix") };
     /**
      * Initializes a new instance of the lexer
      *
@@ -206,7 +202,6 @@ class RDFTLexer extends ContextFreeLexer {
     public RDFTLexer(String input) {
         super(commonAutomaton, terminals, 0x0006, input);
     }
-
     /**
      * Initializes a new instance of the lexer
      *
