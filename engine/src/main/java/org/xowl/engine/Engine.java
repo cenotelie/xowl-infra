@@ -226,7 +226,7 @@ public class Engine implements Evaluator {
     @Override
     public void pop() {
         List<Var> vars = stackCLJ.pop();
-        for(Var var : vars) {
+        for (Var var : vars) {
             CLJ_NAMESPACE_ROOT.unmap(var.sym);
         }
         stackOWL.pop();
@@ -238,7 +238,7 @@ public class Engine implements Evaluator {
         Namespace old = (Namespace) RT.CURRENT_NS.deref();
         RT.CURRENT_NS.bindRoot(CLJ_NAMESPACE_ROOT);
         Object cljExp = ((OpaqueExpression) expression).getValue();
-        Object result =  getValueOWL2(Compiler.eval(cljExp));
+        Object result = getValueOWL2(Compiler.eval(cljExp));
         RT.CURRENT_NS.bindRoot(old);
         return result;
     }
@@ -280,19 +280,25 @@ public class Engine implements Evaluator {
 
     /**
      * Gets the native value for the specified OWL2 value
+     *
      * @param owlValue An OWL2 value
      * @return The corresponding native value
      */
     protected Object getValueNative(Object owlValue) {
-
+        if (owlValue instanceof org.xowl.lang.owl2.Literal)
+            return DatatypeImpl.get((org.xowl.lang.owl2.Literal) owlValue);
+        return owlValue;
     }
 
     /**
      * Gets the OWL2 value for the specified OWL2 value
+     *
      * @param nativeValue A native value
      * @return The corresponding OWL2 value
      */
     protected Object getValueOWL2(Object nativeValue) {
-
+        if (DatatypeImpl.handles(nativeValue))
+            return DatatypeImpl.get(nativeValue);
+        return nativeValue;
     }
 }

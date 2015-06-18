@@ -99,9 +99,9 @@ public class XOWLStore extends RDFStore {
             case LiteralNode.TYPE: {
                 LiteralNode literalNode = (LiteralNode) node;
                 Literal result = new Literal();
-                String value = result.getLexicalValue();
+                String value = literalNode.getLexicalValue();
                 if (value != null)
-                    result.setLexicalValue(literalNode.getLexicalValue());
+                    result.setLexicalValue(value);
                 value = literalNode.getDatatype();
                 if (value != null) {
                     IRI iri = new IRI();
