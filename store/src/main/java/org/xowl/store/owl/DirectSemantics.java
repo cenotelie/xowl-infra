@@ -28,6 +28,8 @@ import org.xowl.store.IRIMapper;
 import org.xowl.store.loaders.Loader;
 import org.xowl.store.loaders.OWLLoaderResult;
 import org.xowl.store.loaders.RDFLoaderResult;
+import org.xowl.store.writers.OWLSerializer;
+import org.xowl.store.writers.RDFSerializer;
 import org.xowl.utils.Logger;
 
 import java.util.*;
@@ -284,6 +286,14 @@ public class DirectSemantics extends AbstractRepository {
     protected void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input) {
         for (Axiom axiom : input.getAxioms())
             apply(axiom, false);
+    }
+
+    protected void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output) {
+        throw new UnsupportedOperationException();
+    }
+
+    protected void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output) {
+        throw new UnsupportedOperationException();
     }
 
     /**

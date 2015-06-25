@@ -26,6 +26,8 @@ import org.xowl.store.owl.*;
 import org.xowl.store.owl.QueryEngine;
 import org.xowl.store.owl.RuleEngine;
 import org.xowl.store.rdf.*;
+import org.xowl.store.writers.OWLSerializer;
+import org.xowl.store.writers.RDFSerializer;
 import org.xowl.utils.Logger;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
@@ -330,5 +332,13 @@ public class Repository extends AbstractRepository {
         for (Rule rule : input.getRules()) {
             ruleEngine.add(rule, null, null, null);
         }
+    }
+
+    protected void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output) {
+        output.serialize(logger, backend.getAll(getGraph(ontology)));
+    }
+
+    protected void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output) {
+        throw new UnsupportedOperationException();
     }
 }

@@ -22,6 +22,10 @@ package org.xowl.store;
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.*;
+import org.xowl.store.writers.NQuadsSerializer;
+import org.xowl.store.writers.NTripleSerializer;
+import org.xowl.store.writers.OWLSerializer;
+import org.xowl.store.writers.RDFSerializer;
 import org.xowl.utils.Logger;
 
 import java.io.*;
@@ -182,6 +186,28 @@ public abstract class AbstractRepository {
     }
 
     /**
+     * Exports a resource
+     *
+     * @param logger   The current logger
+     * @param ontology The content to export
+     * @param iri      The resource's IRI
+     */
+    public void export(Logger logger, Ontology ontology, String iri) {
+        String resource = mapper.get(iri);
+        if (resource == null) {
+            logger.error("Cannot identify the location of " + iri);
+            return;
+        }
+        Writer writer = getWriterFor(logger, resource);
+        if (writer == null)
+            return;
+        String syntax = getSyntax(logger, resource);
+        if (syntax == null)
+            return;
+        exportResource(logger, writer, ontology, iri, syntax);
+    }
+
+    /**
      * Gets a reader for a resource
      *
      * @param logger   The current logger
@@ -191,6 +217,22 @@ public abstract class AbstractRepository {
     private Reader getReaderFor(Logger logger, String resource) {
         try {
             return getReaderFor(resource);
+        } catch (IOException ex) {
+            logger.error(ex);
+            return null;
+        }
+    }
+
+    /**
+     * Gets a writer for a resource
+     *
+     * @param logger   The current logger
+     * @param resource The resource to read
+     * @return The appropriate writer
+     */
+    private Writer getWriterFor(Logger logger, String resource) {
+        try {
+            return getWriterFor(resource);
         } catch (IOException ex) {
             logger.error(ex);
             return null;
@@ -279,6 +321,44 @@ public abstract class AbstractRepository {
     }
 
     /**
+     * Exports a resource
+     *
+     * @param logger      The current logger
+     * @param writer      The output writer
+     * @param ontology    The ontology to export
+     * @param resourceIRI The resource's IRI
+     * @param syntax      The resource's syntax
+     */
+    private void exportResource(Logger logger, Writer writer, Ontology ontology, String resourceIRI, String syntax) {
+        switch (syntax) {
+            case SYNTAX_NTRIPLES:
+            case SYNTAX_NQUADS:
+            case SYNTAX_TURTLE:
+            case SYNTAX_RDFXML:
+            case SYNTAX_RDFT: {
+                RDFSerializer serializer = newRDFSerializer(syntax, writer);
+                exportResourceRDF(logger, ontology, serializer);
+                break;
+            }
+            case SYNTAX_FUNCTIONAL_OWL2:
+            case SYNTAX_OWLXML:
+            case SYNTAX_XOWL: {
+                OWLSerializer serializer = newOWLSerializer(syntax, writer);
+                exportResourceOWL(logger, ontology, serializer);
+                break;
+            }
+            default:
+                logger.error("Unsupported syntax: " + syntax);
+                break;
+        }
+        try {
+            writer.close();
+        } catch (IOException ex) {
+            logger.error(ex);
+        }
+    }
+
+    /**
      * Loads an RDF resource
      *
      * @param logger The current logger
@@ -348,6 +428,44 @@ public abstract class AbstractRepository {
     }
 
     /**
+     * Creates a new RDF serializer for the specified syntax
+     *
+     * @param syntax A RDF syntax
+     * @param writer The backend writer
+     * @return The adapted serializer
+     */
+    protected RDFSerializer newRDFSerializer(String syntax, Writer writer) {
+        switch (syntax) {
+            case SYNTAX_NTRIPLES:
+                return new NTripleSerializer(writer);
+            case SYNTAX_NQUADS:
+                return new NQuadsSerializer(writer);
+            case SYNTAX_TURTLE:
+            case SYNTAX_RDFT:
+            case SYNTAX_RDFXML:
+                return null;
+        }
+        return null;
+    }
+
+    /**
+     * Creates a new OWL serializer for the specified syntax
+     *
+     * @param syntax A OWL syntax
+     * @param writer The backend writer
+     * @return The adapted serializer
+     */
+    protected OWLSerializer newOWLSerializer(String syntax, Writer writer) {
+        switch (syntax) {
+            case SYNTAX_FUNCTIONAL_OWL2:
+            case SYNTAX_OWLXML:
+            case SYNTAX_XOWL:
+                return null;
+        }
+        return null;
+    }
+
+    /**
      * Loads a collection of quads
      *
      * @param logger   The current logger
@@ -365,6 +483,23 @@ public abstract class AbstractRepository {
      */
     protected abstract void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input);
 
+    /**
+     * Exports a collection of quads
+     *
+     * @param logger   The current logger
+     * @param ontology The containing ontology
+     * @param output   The output
+     */
+    protected abstract void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output);
+
+    /**
+     * Exports a collection of quads
+     *
+     * @param logger   The current logger
+     * @param ontology The containing ontology
+     * @param output   The output
+     */
+    protected abstract void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output);
 
     /**
      * Determines the syntax for the specified resource
@@ -420,6 +555,34 @@ public abstract class AbstractRepository {
             // assume a local path
             FileInputStream stream = new FileInputStream(resource);
             return new InputStreamReader(stream);
+        }
+    }
+
+    /**
+     * Gets a writer for a resource
+     *
+     * @param resource The resource to read
+     * @return The appropriate writer
+     * @throws java.io.IOException When the writer cannot be created
+     */
+    public static Writer getWriterFor(String resource) throws IOException {
+        if (resource.startsWith(SCHEME_HTTP)) {
+            URL url = new URL(resource);
+            URLConnection connection = url.openConnection();
+            return new OutputStreamWriter(connection.getOutputStream());
+        } else if (resource.startsWith(SCHEME_RESOURCE)) {
+            // cannot write to resources
+            return null;
+        } else if (resource.startsWith(SCHEME_JAR)) {
+            // cannot write to jar
+            return null;
+        } else if (resource.startsWith(SCHEME_FILE)) {
+            FileOutputStream stream = new FileOutputStream(resource.substring(SCHEME_FILE.length()));
+            return new OutputStreamWriter(stream);
+        } else {
+            // assume a local path
+            FileOutputStream stream = new FileOutputStream(resource);
+            return new OutputStreamWriter(stream);
         }
     }
 }

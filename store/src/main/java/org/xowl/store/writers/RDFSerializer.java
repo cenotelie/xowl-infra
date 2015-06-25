@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,17 +16,16 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.writers;
 
 import org.xowl.store.rdf.Quad;
 import org.xowl.utils.Logger;
 
-import java.io.Writer;
 import java.util.Iterator;
 
 /**
- * Represents a writer of serialized data
+ * Represents a writer of RDF data
  *
  * @author Laurent Wouters
  */
@@ -35,8 +34,7 @@ public interface RDFSerializer {
      * Serializes the specified quads
      *
      * @param logger The logger to use
-     * @param writer The writer to write to
      * @param quads  The quads to serialize
      */
-    void serialize(Logger logger, Writer writer, Iterator<Quad> quads);
+    void serialize(Logger logger, Iterator<Quad> quads);
 }

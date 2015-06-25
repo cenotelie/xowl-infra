@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.writers;
 
 import org.xowl.store.rdf.*;
@@ -33,16 +33,29 @@ import java.util.Iterator;
  */
 public class NQuadsSerializer implements RDFSerializer {
     /**
+     * The writer to use
+     */
+    private final Writer writer;
+
+    /**
+     * Initializes this serializer
+     *
+     * @param writer The writer to use
+     */
+    public NQuadsSerializer(Writer writer) {
+        this.writer = writer;
+    }
+
+    /**
      * Serializes the specified quads
      *
      * @param logger The logger to use
-     * @param writer The writer to write to
      * @param quads  The quads to serialize
      */
-    public void serialize(Logger logger, Writer writer, Iterator<Quad> quads) {
+    public void serialize(Logger logger, Iterator<Quad> quads) {
         try {
             while (quads.hasNext()) {
-                serialize(writer, quads.next());
+                serialize(quads.next());
             }
         } catch (IOException | UnsupportedNodeType ex) {
             logger.error(ex);
@@ -52,19 +65,18 @@ public class NQuadsSerializer implements RDFSerializer {
     /**
      * Serialized the specified quad
      *
-     * @param writer The writer to use
-     * @param quad   The quad to serialize
+     * @param quad The quad to serialize
      * @throws IOException         When an IO error occurs
      * @throws UnsupportedNodeType When a node is not supported
      */
-    private void serialize(Writer writer, Quad quad) throws IOException, UnsupportedNodeType {
-        serialize(writer, quad.getSubject());
+    private void serialize(Quad quad) throws IOException, UnsupportedNodeType {
+        serialize(quad.getSubject());
         writer.write(" ");
-        serialize(writer, quad.getProperty());
+        serialize(quad.getProperty());
         writer.write(" ");
-        serialize(writer, quad.getObject());
+        serialize(quad.getObject());
         writer.write(" ");
-        serialize(writer, quad.getGraph());
+        serialize(quad.getGraph());
         writer.write(" .");
         writer.write(System.lineSeparator());
     }
@@ -72,12 +84,11 @@ public class NQuadsSerializer implements RDFSerializer {
     /**
      * Serialized the specified node
      *
-     * @param writer The writer to use
-     * @param node   The node to serialize
+     * @param node The node to serialize
      * @throws IOException         When an IO error occurs
      * @throws UnsupportedNodeType When the specified node is not supported
      */
-    private void serialize(Writer writer, Node node) throws IOException, UnsupportedNodeType {
+    private void serialize(Node node) throws IOException, UnsupportedNodeType {
         switch (node.getNodeType()) {
             case IRINode.TYPE: {
                 writer.write("<");
