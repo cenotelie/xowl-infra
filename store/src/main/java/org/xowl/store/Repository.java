@@ -187,12 +187,16 @@ public class Repository extends AbstractRepository {
      */
     public Iterator<ProxyObject> getProxiesIn(final Ontology ontology) {
         Iterator<Quad> quads = backend.getAll(getGraph(ontology));
+        final HashSet<Node> known = new HashSet<>();
         return new SkippableIterator<>(new AdaptingIterator<>(quads, new Adapter<ProxyObject>() {
             @Override
             public <X> ProxyObject adapt(X element) {
                 Node subject = ((Quad) element).getSubject();
                 if (subject.getNodeType() != IRINode.TYPE)
                     return null;
+                if (known.contains(subject))
+                    return null;
+                known.add(subject);
                 return resolveProxy(ontology, (IRINode) subject);
             }
         }));
