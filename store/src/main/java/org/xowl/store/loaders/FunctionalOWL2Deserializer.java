@@ -1432,6 +1432,8 @@ public class FunctionalOWL2Deserializer {
                 return loadExpTypedLiteral(node);
             case "literalLang":
                 return loadExpLangTaggedLiteral(node);
+            case "INTEGER":
+                return loadExpIntegerLiteral(node);
             default:
                 return loadExpStringLiteral(node);
         }
