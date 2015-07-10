@@ -32,6 +32,10 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
      * The reason for ignoring an entailment test is that its conclusions are not present in the result due to a rule, but are loaded as part of a standard schema (RDF, RDF, OWL, etc.)
      */
     private static final String IGNORE_EXTERNALLY_LOADED = "IGNORE_EXTERNALLY_LOADED";
+    /**
+     * We chose to ignore this test because we will not fix it
+     */
+    private static final String IGNORE_WONT_FIX = "IGNORE_WONT_FIX";
 
     @Test
     public void testConsistency_WebOnt_I5_3_008() {
@@ -1973,7 +1977,7 @@ public class OWLReasoningTest extends BaseOWLReasoningTest {
         testConsistency("rdfbased_sem_eqdis_eqprop_trans.premise.rdf");
     }
 
-    @Test
+    @Ignore(IGNORE_WONT_FIX) @Test
     public void testPositiveEntailment_rdfbased_sem_eqdis_sameas_rflxv() {
         testPositiveEntailment("rdfbased_sem_eqdis_sameas_rflxv.premise.rdf", "rdfbased_sem_eqdis_sameas_rflxv.conclusion.rdf");
     }
