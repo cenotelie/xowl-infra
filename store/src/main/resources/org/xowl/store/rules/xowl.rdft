@@ -292,6 +292,20 @@ rule xowl:min-max-to-card {
 
 
 
+# Infer sub-classes from allValuesFrom information
+
+rule xowl:all-values-from-subclass {
+    ?x1 owl:allValuesFrom ?c
+    ?x1 owl:onProperty ?p1
+    ?p1 rdfs:subPropertyOf ?p2
+    ?x2 owl:allValuesFrom ?c
+    ?x2 owl:onProperty ?p2
+} => {
+    ?x2 rdfs:subClassOf ?x1
+}
+
+
+
 # A class is a sub-class of an intersection if it is a sub-class of all the intersected classes
 
 rule xowl:subclass-of-intersection-init {
