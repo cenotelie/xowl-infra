@@ -478,7 +478,7 @@ rule owl:cls-maxqc4 {
 }
 
 rule owl:cls-oo {
-    ?c rdf:type owl:Class
+    # ?c rdf:type owl:Class
     ?c owl:oneOf ?x
     ?x xowl:contains ?y
 } => {
