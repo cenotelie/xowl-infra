@@ -141,11 +141,11 @@ public class Repository extends AbstractRepository {
      * @param logger The logger to use
      */
     public void activateEntailmentRules(Logger logger) {
-        load(logger, "http://www.w3.org/2002/07/owl");
-        load(logger, "http://www.w3.org/1999/02/22-rdf-syntax-ns");
-        load(logger, "http://www.w3.org/2000/01/rdf-schema");
-        load(logger, "http://xowl.org/store/rules/owl2");
-        load(logger, "http://xowl.org/store/rules/xowl");
+        load(logger, IRIMapper.IRI_RDF);
+        load(logger, IRIMapper.IRI_RDFS);
+        load(logger, IRIMapper.IRI_OWL2);
+        load(logger, IRIMapper.IRI_XOWL_RULES + "owl2");
+        load(logger, IRIMapper.IRI_XOWL_RULES + "xowl");
     }
 
     /**

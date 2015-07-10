@@ -267,6 +267,10 @@ public abstract class AbstractRepository {
             logger.error("Cannot identify the location of " + iri);
             return null;
         }
+        Ontology ontology = resources.get(iri);
+        if (ontology != null)
+            // the resource is already loaded
+            return ontology;
         Reader reader = getReaderFor(logger, resource);
         if (reader == null)
             return null;
@@ -286,31 +290,29 @@ public abstract class AbstractRepository {
      * @return The loaded ontology
      */
     private Ontology loadResource(Logger logger, Reader reader, String iri, String syntax) {
-        Ontology ontology = resources.get(iri);
-        if (ontology == null) {
-            switch (syntax) {
-                case SYNTAX_NTRIPLES:
-                case SYNTAX_NQUADS:
-                case SYNTAX_TURTLE:
-                case SYNTAX_RDFXML:
-                case SYNTAX_RDFT: {
-                    Loader loader = newRDFLoader(syntax);
-                    RDFLoaderResult input = loader.loadRDF(logger, reader, iri);
-                    ontology = loadResourceRDF(logger, iri, input);
-                    break;
-                }
-                case SYNTAX_FUNCTIONAL_OWL2:
-                case SYNTAX_OWLXML:
-                case SYNTAX_XOWL: {
-                    Loader loader = newOWLLoader(syntax);
-                    OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
-                    ontology = loadResourceOWL(logger, iri, input);
-                    break;
-                }
-                default:
-                    logger.error("Unsupported syntax: " + syntax);
-                    break;
+        Ontology ontology = null;
+        switch (syntax) {
+            case SYNTAX_NTRIPLES:
+            case SYNTAX_NQUADS:
+            case SYNTAX_TURTLE:
+            case SYNTAX_RDFXML:
+            case SYNTAX_RDFT: {
+                Loader loader = newRDFLoader(syntax);
+                RDFLoaderResult input = loader.loadRDF(logger, reader, iri);
+                ontology = loadResourceRDF(logger, iri, input);
+                break;
             }
+            case SYNTAX_FUNCTIONAL_OWL2:
+            case SYNTAX_OWLXML:
+            case SYNTAX_XOWL: {
+                Loader loader = newOWLLoader(syntax);
+                OWLLoaderResult input = loader.loadOWL(logger, reader, iri);
+                ontology = loadResourceOWL(logger, iri, input);
+                break;
+            }
+            default:
+                logger.error("Unsupported syntax: " + syntax);
+                break;
         }
         try {
             reader.close();

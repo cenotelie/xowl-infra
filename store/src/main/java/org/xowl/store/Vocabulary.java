@@ -26,7 +26,7 @@ package org.xowl.store;
  * @author Laurent Wouters
  */
 public class Vocabulary {
-    public static final String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+    public static final String rdf = IRIMapper.IRI_RDF + "#";
     public static final String rdfLangString = rdf + "langString";
     public static final String rdfPlainLiteral = rdf + "PlainLiteral";
     public static final String rdfRDF = rdf + "RDF";
@@ -48,14 +48,14 @@ public class Vocabulary {
     public static final String rdfLI = rdf + "li";
     public static final String rdfXMLLiteral = rdf + "XMLLiteral";
 
-    public static final String rdfs = "http://www.w3.org/2000/01/rdf-schema#";
+    public static final String rdfs = IRIMapper.IRI_RDFS + "#";
     public static final String rdfsDatatype = rdfs + "Datatype";
     public static final String rdfsSubClassOf = rdfs + "subClassOf";
     public static final String rdfsSubPropertyOf = rdfs + "subPropertyOf";
     public static final String rdfsDomain = rdfs + "domain";
     public static final String rdfsRange = rdfs + "range";
 
-    public static final String xsd = "http://www.w3.org/2001/XMLSchema#";
+    public static final String xsd = IRIMapper.IRI_XSD + "#";
     public static final String xsdTime = xsd + "time";
     public static final String xsdDuration = xsd + "duration";
     public static final String xsdDateTime = xsd + "dateTime";
@@ -170,7 +170,7 @@ public class Vocabulary {
         public static final String expObjectPropertyChain = "ObjectPropertyChain";
     }
 
-    public static final String owl = "http://www.w3.org/2002/07/owl#";
+    public static final String owl = IRIMapper.IRI_OWL2 + "#";
     public static final String owlOntology = owl + OWL2.ontoOntology;
     public static final String owlClass = owl + OWL2.entityClass;
     public static final String owlNamedIndividual = owl + OWL2.entityNamedIndividual;
@@ -234,6 +234,6 @@ public class Vocabulary {
     public static final String owlNothing = owl + "Nothing";
     public static final String owlImports = owl + "imports";
 
-    public static final String xowl = "http://xowl.org/lang/";
+    public static final String xowl = IRIMapper.IRI_XOWL_LANG;
     public static final String xowlDefinedAs = xowl + "actions#definedAs";
 }

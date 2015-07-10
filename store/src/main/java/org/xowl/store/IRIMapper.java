@@ -50,6 +50,31 @@ public class IRIMapper {
     public static final int PRIORITY_HTTP_MATCH = 0;
 
     /**
+     * The IRI of the RDF schema
+     */
+    public static final String IRI_RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns";
+    /**
+     * The IRI of the RDFS schema
+     */
+    public static final String IRI_RDFS = "http://www.w3.org/2000/01/rdf-schema";
+    /**
+     * The IRI of the XSD schema
+     */
+    public static final String IRI_XSD = "http://www.w3.org/2001/XMLSchema";
+    /**
+     * The IRI of the OWL2 schema
+     */
+    public static final String IRI_OWL2 = "http://www.w3.org/2002/07/owl";
+    /**
+     * The base IRI of the XOWL schema
+     */
+    public static final String IRI_XOWL_LANG = "http://xowl.org/lang/";
+    /**
+     * The base IRI of the XOWL entailment rules
+     */
+    public static final String IRI_XOWL_RULES = "http://xowl.org/store/rules/";
+
+    /**
      * Represents an entry in this mapper
      */
     private static abstract class BaseEntry {
@@ -401,13 +426,13 @@ public class IRIMapper {
     public static IRIMapper getDefault() {
         IRIMapper mapper = new IRIMapper();
         // map the owl2, rdf and rdfs ontologies to the embarked one
-        mapper.addSimpleMap("http://www.w3.org/2002/07/owl", "resource:///org/xowl/store/base/owl2.ttl");
-        mapper.addSimpleMap("http://www.w3.org/1999/02/22-rdf-syntax-ns", "resource:///org/xowl/store/base/rdf.ttl");
-        mapper.addSimpleMap("http://www.w3.org/2000/01/rdf-schema", "resource:///org/xowl/store/base/rdfs.ttl");
+        mapper.addSimpleMap(IRI_OWL2, "resource:///org/xowl/store/base/owl2.ttl");
+        mapper.addSimpleMap(IRI_RDF, "resource:///org/xowl/store/base/rdf.ttl");
+        mapper.addSimpleMap(IRI_RDFS, "resource:///org/xowl/store/base/rdfs.ttl");
         // map the xOWL abstract syntax
-        mapper.addRegexpMap("http://xowl.org/lang/(.*)", "resource:///org/xowl/lang/defs/\\1.fs");
+        mapper.addRegexpMap(IRI_XOWL_LANG + "(.*)", "resource:///org/xowl/lang/defs/\\1.fs");
         // map the OWL2 RL reasoning rules
-        mapper.addRegexpMap("http://xowl.org/store/rules/(.*)", "resource:///org/xowl/store/rules/\\1.rdft");
+        mapper.addRegexpMap(IRI_XOWL_RULES + "(.*)", "resource:///org/xowl/store/rules/\\1.rdft");
         return mapper;
     }
 }
