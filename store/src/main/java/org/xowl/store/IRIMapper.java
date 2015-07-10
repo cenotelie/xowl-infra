@@ -408,8 +408,6 @@ public class IRIMapper {
         mapper.addRegexpMap("http://xowl.org/lang/(.*)", "resource:///org/xowl/lang/defs/\\1.fs");
         // map the OWL2 RL reasoning rules
         mapper.addRegexpMap("http://xowl.org/store/rules/(.*)", "resource:///org/xowl/store/rules/\\1.rdft");
-        // map HTTP protocol to itself
-        mapper.addHTTPMap();
         return mapper;
     }
 }
