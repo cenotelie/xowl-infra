@@ -62,7 +62,7 @@ public class RDFXMLLoader implements Loader {
     /**
      * The imported ontologies
      */
-    private List<String> imports;
+    private Collection<String> imports;
 
     /**
      * Initializes this loader
@@ -162,7 +162,7 @@ public class RDFXMLLoader implements Loader {
         graph = store.getNodeIRI(uri);
         blanks = new HashMap<>();
         knownIDs = new ArrayList<>();
-        imports = new ArrayList<>();
+        imports = result.getImports();
 
         try {
             DOMParser parser = new DOMParser();
@@ -173,7 +173,6 @@ public class RDFXMLLoader implements Loader {
                 loadDocument(root);
             else
                 loadElement(root);
-            result.getImports().addAll(imports);
         } catch (Exception ex) {
             logger.error(ex);
             return null;
