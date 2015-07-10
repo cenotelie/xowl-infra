@@ -174,6 +174,46 @@ rule xowl:list-equivalence-transitive-same {
 
 
 
+# Simple typing deductions for object properties
+
+rule xowl:prop-inverse-functional {
+    ?x rdf:type owl:InverseFunctionalProperty
+} => {
+    ?x rdf:type owl:ObjectProperty
+}
+
+rule xowl:prop-symmetric {
+    ?x rdf:type owl:SymmetricProperty
+} => {
+    ?x rdf:type owl:ObjectProperty
+}
+
+rule xowl:prop-asymmetric {
+    ?x rdf:type owl:AsymmetricProperty
+} => {
+    ?x rdf:type owl:ObjectProperty
+}
+
+rule xowl:prop-transitive {
+    ?x rdf:type owl:TransitiveProperty
+} => {
+    ?x rdf:type owl:ObjectProperty
+}
+
+rule xowl:prop-reflexive {
+    ?x rdf:type owl:ReflexiveProperty
+} => {
+    ?x rdf:type owl:ObjectProperty
+}
+
+rule xowl:prop-irreflexive {
+    ?x rdf:type owl:IrreflexiveProperty
+} => {
+    ?x rdf:type owl:ObjectProperty
+}
+
+
+
 # Equivalence of intersection and union classes
 
 rule xowl:equivalent-class-intersection {
