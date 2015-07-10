@@ -34,6 +34,7 @@ import org.xowl.utils.data.Dataset;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -220,6 +221,45 @@ public class XOWLStore extends RDFStore {
     }
 
     /**
+     * Removes all the matching quads
+     *
+     * @param graph    The graph to match, or null
+     * @param subject  The quad subject node to match, or null
+     * @param property The quad property to match, or null
+     * @param value    The quad value to match, or null
+     * @param buffer   The buffer for the removed quads
+     * @return The operation result
+     */
+    protected int doRemoveEdges(GraphNode graph, SubjectNode subject, Property property, Node value, List<Quad> buffer) throws UnsupportedNodeType {
+        switch (subject.getNodeType()) {
+            case AnonymousNode.TYPE:
+                return doRemoveEdgesFromAnon(graph, (AnonymousNode) subject, property, value, buffer);
+            case IRINode.TYPE:
+                return doRemoveEdgesFromIRI(graph, (IRINode) subject, property, value, buffer);
+            case BlankNode.TYPE:
+                return doRemoveEdgesFromBlank(graph, (BlankNode) subject, property, value, buffer);
+            default:
+                throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
+        }
+    }
+
+    /**
+     * Removes all the matching quads
+     *
+     * @param graph    The graph to match, or null
+     * @param property The quad property to match, or null
+     * @param value    The quad value to match, or null
+     * @param buffer   The buffer for the removed quads
+     * @return The operation result
+     */
+    protected int doRemoveEdgesFromAll(GraphNode graph, Property property, Node value, List<Quad> buffer) {
+        doRemoveEdgesFromIRIs(graph, property, value, buffer);
+        doRemoveEdgesFromBlanks(graph, property, value, buffer);
+        doRemoveEdgesFromAnons(graph, property, value, buffer);
+        return REMOVE_RESULT_REMOVED;
+    }
+
+    /**
      * Removes the specified quad from this store
      *
      * @param graph    The store containing the quad
@@ -239,6 +279,56 @@ public class XOWLStore extends RDFStore {
             return REMOVE_RESULT_REMOVED;
         }
         return result;
+    }
+
+    /**
+     * Removes all the matching quads for an anonymous subject
+     *
+     * @param graph    The graph to match, or null
+     * @param subject  The quad subject node to match, or null
+     * @param property The quad property to match, or null
+     * @param value    The quad value to match, or null
+     * @param buffer   The buffer for the removed quads
+     * @return The operation result
+     */
+    protected int doRemoveEdgesFromAnon(GraphNode graph, AnonymousNode subject, Property property, Node value, List<Quad> buffer) {
+        String key = subject.getAnonymous().getNodeID();
+        EdgeBucket bucket = edgesAnon.get(key);
+        if (bucket == null)
+            return REMOVE_RESULT_NOT_FOUND;
+        int originalSize = buffer.size();
+        int result = bucket.remove(graph, property, value);
+        if (result == REMOVE_RESULT_EMPTIED)
+            edgesAnon.remove(key);
+        for (int j = originalSize; j != buffer.size(); j++)
+            setSubjectOf(buffer.get(j), subject);
+        return result;
+    }
+
+    /**
+     * Removes all the matching quads for anonymous subjects
+     *
+     * @param graph    The graph to match, or null
+     * @param property The quad property to match, or null
+     * @param value    The quad value to match, or null
+     * @param buffer   The buffer for the removed quads
+     * @return The operation result
+     */
+    protected int doRemoveEdgesFromAnons(GraphNode graph, Property property, Node value, List<Quad> buffer) {
+        Iterator<Map.Entry<String, EdgeBucket>> iterator = edgesAnon.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, EdgeBucket> entry = iterator.next();
+            int originalSize = buffer.size();
+            int result = entry.getValue().removeAll(graph, property, value, buffer);
+            if (result == REMOVE_RESULT_EMPTIED)
+                iterator.remove();
+            if (buffer.size() > originalSize) {
+                AnonymousNode subject = mapNodeAnons.get(entry.getKey());
+                for (int j = originalSize; j != buffer.size(); j++)
+                    setSubjectOf(buffer.get(j), subject);
+            }
+        }
+        return REMOVE_RESULT_REMOVED;
     }
 
     /**

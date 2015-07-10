@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.rdf;
 
 import org.xowl.utils.collections.Adapter;
@@ -28,6 +28,7 @@ import org.xowl.utils.data.Dataset;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Represents a collection of targets for edges
@@ -175,6 +176,27 @@ class EdgeTarget implements Iterable<GraphNode> {
             }
         }
         return RDFStore.REMOVE_RESULT_NOT_FOUND;
+    }
+
+    /**
+     * Removes all the matching graphs (or decrement their counter)
+     *
+     * @param graph  The graph to match, or null
+     * @param buffer The buffer for the removed quads
+     * @return The operation result
+     */
+    public int removeAll(GraphNode graph, List<Quad> buffer) {
+        for (int i = 0; i != graphs.length; i++) {
+            if (graphs[i] != null && (graph == null || graphs[i] == graph)) {
+                multiplicities[i]--;
+                if (multiplicities[i] == 0) {
+                    buffer.add(new Quad(graphs[i], null, null, null));
+                    graphs[i] = null;
+                    size--;
+                }
+            }
+        }
+        return (size == 0) ? RDFStore.REMOVE_RESULT_EMPTIED : RDFStore.REMOVE_RESULT_REMOVED;
     }
 
     @Override

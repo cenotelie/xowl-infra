@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.rdf;
 
 import org.xowl.utils.collections.*;
@@ -24,6 +24,7 @@ import org.xowl.utils.data.Dataset;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Represents a bucket of edges starting from the same node
@@ -125,6 +126,31 @@ public class EdgeBucket implements Iterable<Edge> {
             }
         }
         return RDFStore.REMOVE_RESULT_NOT_FOUND;
+    }
+
+    /**
+     * Removes all the matching edges from this bucket(or decrement their counter)
+     *
+     * @param graph    The containing graph to match, or null
+     * @param property The property on this edge to match, or null
+     * @param value    The target value to match, or null
+     * @param buffer   The buffer for the removed quads
+     * @return The operation result
+     */
+    public int removeAll(GraphNode graph, Property property, Node value, List<Quad> buffer) {
+        for (int i = 0; i != edges.length; i++) {
+            if (edges[i] != null && (property == null || edges[i].getProperty() == property)) {
+                int originalSize = buffer.size();
+                int result = edges[i].removeAll(graph, value, buffer);
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setProperty(edges[i].getProperty());
+                if (result == RDFStore.REMOVE_RESULT_EMPTIED) {
+                    edges[i] = null;
+                    size--;
+                }
+            }
+        }
+        return (size == 0) ? RDFStore.REMOVE_RESULT_EMPTIED : RDFStore.REMOVE_RESULT_REMOVED;
     }
 
     @Override

@@ -429,9 +429,24 @@ public class RDFStore extends AbstractStore implements ChangeListener {
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     public void remove(Quad quad) throws UnsupportedNodeType {
-        int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-        if (result == REMOVE_RESULT_REMOVED)
-            onQuadRemoved(quad);
+        if (quad.getGraph() != null && quad.getSubject() != null && quad.getProperty() != null && quad.getObject() != null) {
+            // remove a single quad
+            int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            if (result == REMOVE_RESULT_REMOVED)
+                onQuadRemoved(quad);
+        } else {
+            List<Quad> buffer = new ArrayList<>();
+            if (quad.getSubject() == null)
+                doRemoveEdgesFromAll(quad.getGraph(), quad.getProperty(), quad.getObject(), buffer);
+            else
+                doRemoveEdges(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject(), buffer);
+            if (!buffer.isEmpty()) {
+                Changeset changeset = new Changeset(new ArrayList<Quad>(), buffer);
+                for (ChangeListener listener : listeners) {
+                    listener.onChange(changeset);
+                }
+            }
+        }
     }
 
     /**
@@ -444,9 +459,24 @@ public class RDFStore extends AbstractStore implements ChangeListener {
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
      */
     public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        int result = doRemoveEdge(graph, subject, property, value);
-        if (result == REMOVE_RESULT_REMOVED)
-            onQuadRemoved(new Quad(graph, subject, property, value));
+        if (graph != null && subject != null && property != null && value != null) {
+            // remove a single quad
+            int result = doRemoveEdge(graph, subject, property, value);
+            if (result == REMOVE_RESULT_REMOVED)
+                onQuadRemoved(new Quad(graph, subject, property, value));
+        } else {
+            List<Quad> buffer = new ArrayList<>();
+            if (subject == null)
+                doRemoveEdgesFromAll(graph, property, value, buffer);
+            else
+                doRemoveEdges(graph, subject, property, value, buffer);
+            if (!buffer.isEmpty()) {
+                Changeset changeset = new Changeset(new ArrayList<Quad>(), buffer);
+                for (ChangeListener listener : listeners) {
+                    listener.onChange(changeset);
+                }
+            }
+        }
     }
 
     /**
@@ -468,6 +498,42 @@ public class RDFStore extends AbstractStore implements ChangeListener {
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
         }
+    }
+
+    /**
+     * Removes all the matching quads
+     *
+     * @param graph    The graph to match, or null
+     * @param subject  The quad subject node to match, or null
+     * @param property The quad property to match, or null
+     * @param value    The quad value to match, or null
+     * @param buffer   The buffer for the removed quads
+     * @return The operation result
+     */
+    protected int doRemoveEdges(GraphNode graph, SubjectNode subject, Property property, Node value, List<Quad> buffer) throws UnsupportedNodeType {
+        switch (subject.getNodeType()) {
+            case IRINode.TYPE:
+                return doRemoveEdgesFromIRI(graph, (IRINode) subject, property, value, buffer);
+            case BlankNode.TYPE:
+                return doRemoveEdgesFromBlank(graph, (BlankNode) subject, property, value, buffer);
+            default:
+                throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
+        }
+    }
+
+    /**
+     * Removes all the matching quads
+     *
+     * @param graph    The graph to match, or null
+     * @param property The quad property to match, or null
+     * @param value    The quad value to match, or null
+     * @param buffer   The buffer for the removed quads
+     * @return The operation result
+     */
+    protected int doRemoveEdgesFromAll(GraphNode graph, Property property, Node value, List<Quad> buffer) {
+        doRemoveEdgesFromIRIs(graph, property, value, buffer);
+        doRemoveEdgesFromBlanks(graph, property, value, buffer);
+        return REMOVE_RESULT_REMOVED;
     }
 
     /**
@@ -493,6 +559,56 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
+     * Removes all the matching quads for an IRI subject
+     *
+     * @param graph    The graph to match, or null
+     * @param subject  The quad subject node to match, or null
+     * @param property The quad property to match, or null
+     * @param value    The quad value to match, or null
+     * @param buffer   The buffer for the removed quads
+     * @return The operation result
+     */
+    protected int doRemoveEdgesFromIRI(GraphNode graph, IRINode subject, Property property, Node value, List<Quad> buffer) {
+        int key = ((IRINodeImpl) subject).getKey();
+        EdgeBucket bucket = edgesIRI.get(key);
+        if (bucket == null)
+            return REMOVE_RESULT_NOT_FOUND;
+        int originalSize = buffer.size();
+        int result = bucket.removeAll(graph, property, value, buffer);
+        if (result == REMOVE_RESULT_EMPTIED)
+            edgesIRI.remove(key);
+        for (int j = originalSize; j != buffer.size(); j++)
+            buffer.get(j).setSubject(subject);
+        return result;
+    }
+
+    /**
+     * Removes all the matching quads for the IRI subjects
+     *
+     * @param graph    The graph to match, or null
+     * @param property The quad property to match, or null
+     * @param value    The quad value to match, or null
+     * @param buffer   The buffer for the removed quads
+     * @return The operation result
+     */
+    protected int doRemoveEdgesFromIRIs(GraphNode graph, Property property, Node value, List<Quad> buffer) {
+        Iterator<Map.Entry<Integer, EdgeBucket>> iterator = edgesIRI.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, EdgeBucket> entry = iterator.next();
+            int originalSize = buffer.size();
+            int result = entry.getValue().removeAll(graph, property, value, buffer);
+            if (result == REMOVE_RESULT_EMPTIED)
+                iterator.remove();
+            if (buffer.size() > originalSize) {
+                IRINode subject = new IRINodeImpl(sStore, entry.getKey());
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setSubject(subject);
+            }
+        }
+        return REMOVE_RESULT_REMOVED;
+    }
+
+    /**
      * Removes the specified quad from this graph
      *
      * @param graph    The graph containing the quad
@@ -514,6 +630,59 @@ public class RDFStore extends AbstractStore implements ChangeListener {
             return REMOVE_RESULT_REMOVED;
         }
         return result;
+    }
+
+    /**
+     * Removes all the matching quads for a blank subject
+     *
+     * @param graph    The graph to match, or null
+     * @param subject  The quad subject node to match, or null
+     * @param property The quad property to match, or null
+     * @param value    The quad value to match, or null
+     * @param buffer   The buffer for the removed quads
+     * @return The operation result
+     */
+    protected int doRemoveEdgesFromBlank(GraphNode graph, BlankNode subject, Property property, Node value, List<Quad> buffer) {
+        int key = subject.getBlankID();
+        if (key >= edgesBlank.length)
+            return REMOVE_RESULT_NOT_FOUND;
+        EdgeBucket bucket = edgesBlank[key];
+        if (bucket == null)
+            return REMOVE_RESULT_NOT_FOUND;
+        int originalSize = buffer.size();
+        int result = bucket.removeAll(graph, property, value, buffer);
+        if (result == REMOVE_RESULT_EMPTIED)
+            edgesBlank[key] = null;
+        for (int j = originalSize; j != buffer.size(); j++)
+            buffer.get(j).setSubject(subject);
+        return result;
+    }
+
+    /**
+     * Removes all the matching quads from the blank subjects
+     *
+     * @param graph    The graph to match, or null
+     * @param property The quad property to match, or null
+     * @param value    The quad value to match, or null
+     * @param buffer   The buffer for the removed quads
+     * @return The operation result
+     */
+    protected int doRemoveEdgesFromBlanks(GraphNode graph, Property property, Node value, List<Quad> buffer) {
+        for (int i = 0; i != nextBlank; i++) {
+            EdgeBucket bucket = edgesBlank[i];
+            if (bucket == null)
+                continue;
+            int originalSize = buffer.size();
+            int result = bucket.removeAll(graph, property, value, buffer);
+            if (result == REMOVE_RESULT_EMPTIED)
+                edgesBlank[i] = null;
+            if (buffer.size() > originalSize) {
+                BlankNode subject = new BlankNode(i);
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setSubject(subject);
+            }
+        }
+        return REMOVE_RESULT_REMOVED;
     }
 
     /**
@@ -960,5 +1129,15 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     protected Node getOtherNodeFor(org.xowl.utils.data.Node data) {
         // do nothing here
         return null;
+    }
+
+    /**
+     * Sets the subject of a quad
+     *
+     * @param quad    A quad
+     * @param subject the subject
+     */
+    protected void setSubjectOf(Quad quad, SubjectNode subject) {
+        quad.setSubject(subject);
     }
 }

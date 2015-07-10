@@ -57,17 +57,21 @@ public class BaseOWLReasoningTest {
         while (iterator.hasNext()) {
             conclusion.add(iterator.next());
         }
+        try {
+            repository.getBackend().remove(repository.getGraph(ontologyConclusion), null, null, null);
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
+        }
 
         // load the premise ontology and the default ontologies
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
         repository.activateEntailmentRules(logger);
-        Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
+        repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
         Assert.assertFalse("Some error occurred", logger.isOnError());
 
         // query the premise for a matching conclusion, modulo the blank nodes
         Query query = new Query();
         Map<BlankNode, VariableNode> variables = new HashMap<>();
-        GraphNode nodeGraph = repository.getGraph(ontologyPremise);
         for (Quad quad : conclusion) {
             SubjectNode nodeSubject = quad.getSubject();
             Property nodeProperty = quad.getProperty();
@@ -88,7 +92,7 @@ public class BaseOWLReasoningTest {
                 }
                 nodeObject = variableNode;
             }
-            query.getPositives().add(new Quad(nodeGraph, nodeSubject, nodeProperty, nodeObject));
+            query.getPositives().add(new Quad(null, nodeSubject, nodeProperty, nodeObject));
         }
 
         Collection<QuerySolution> solutions = repository.getQueryEngine().getBackend().execute(query);
@@ -120,17 +124,21 @@ public class BaseOWLReasoningTest {
         while (iterator.hasNext()) {
             conclusion.add(iterator.next());
         }
+        try {
+            repository.getBackend().remove(repository.getGraph(ontologyConclusion), null, null, null);
+        } catch (UnsupportedNodeType ex) {
+            // cannot happen
+        }
 
         // load the premise ontology and the default ontologies
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
         repository.activateEntailmentRules(logger);
-        Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
+        repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
         Assert.assertFalse("Some error occurred", logger.isOnError());
 
         // query the premise for a matching conclusion, modulo the blank nodes
         Query query = new Query();
         Map<BlankNode, VariableNode> variables = new HashMap<>();
-        GraphNode nodeGraph = repository.getGraph(ontologyPremise);
         for (Quad quad : conclusion) {
             SubjectNode nodeSubject = quad.getSubject();
             Property nodeProperty = quad.getProperty();
@@ -151,7 +159,7 @@ public class BaseOWLReasoningTest {
                 }
                 nodeObject = variableNode;
             }
-            query.getPositives().add(new Quad(nodeGraph, nodeSubject, nodeProperty, nodeObject));
+            query.getPositives().add(new Quad(null, nodeSubject, nodeProperty, nodeObject));
         }
 
         Collection<QuerySolution> solutions = repository.getQueryEngine().getBackend().execute(query);
