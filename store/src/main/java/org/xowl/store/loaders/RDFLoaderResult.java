@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,13 +16,14 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.loaders;
 
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.Rule;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,6 +40,10 @@ public class RDFLoaderResult {
      * The loaded rules
      */
     private final List<Rule> rules;
+    /**
+     * The imported IRIs
+     */
+    private final List<String> imports;
 
     /**
      * Gets the loaded quads
@@ -59,10 +64,20 @@ public class RDFLoaderResult {
     }
 
     /**
+     * Gets the imported documents from the loaded ontology
+     *
+     * @return The imported documents
+     */
+    public Collection<String> getImports() {
+        return imports;
+    }
+
+    /**
      * Initializes an empty result
      */
     public RDFLoaderResult() {
         quads = new ArrayList<>();
         rules = new ArrayList<>();
+        imports = new ArrayList<>();
     }
 }

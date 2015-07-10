@@ -368,6 +368,8 @@ public abstract class AbstractRepository {
      */
     private Ontology loadResourceRDF(Logger logger, String iri, RDFLoaderResult input) {
         Ontology ontology = registerResource(iri, iri);
+        for (String importedIRI : input.getImports())
+            dependencies.add(importedIRI);
         loadResourceRDF(logger, ontology, input);
         return ontology;
     }

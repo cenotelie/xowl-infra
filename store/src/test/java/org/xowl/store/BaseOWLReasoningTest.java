@@ -48,6 +48,8 @@ public class BaseOWLReasoningTest {
         } catch (IOException e) {
             Assert.fail("Failed to initialize the repository");
         }
+        // add mapping for imported remote ontologies
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/conclusion", "resource:///entailment/" + conclusionResource);
         Ontology ontologyConclusion = repository.load(logger, "http://xowl.org/store/tests/entailment/conclusion");
         List<Quad> conclusion = new ArrayList<>();
@@ -109,6 +111,8 @@ public class BaseOWLReasoningTest {
         } catch (IOException e) {
             Assert.fail("Failed to initialize the repository");
         }
+        // add mapping for imported remote ontologies
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/conclusion", "resource:///entailment/" + conclusionResource);
         Ontology ontologyConclusion = repository.load(logger, "http://xowl.org/store/tests/entailment/conclusion");
         List<Quad> conclusion = new ArrayList<>();
@@ -167,6 +171,8 @@ public class BaseOWLReasoningTest {
         } catch (IOException e) {
             Assert.fail("Failed to initialize the repository");
         }
+        // add mapping for imported remote ontologies
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
 
         // activate the default reasoning rules

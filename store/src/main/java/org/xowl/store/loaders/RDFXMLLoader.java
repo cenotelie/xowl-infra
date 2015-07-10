@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.loaders;
 
@@ -59,6 +59,10 @@ public class RDFXMLLoader implements Loader {
      * List of all the known IDs so far
      */
     private List<String> knownIDs;
+    /**
+     * The imported ontologies
+     */
+    private List<String> imports;
 
     /**
      * Initializes this loader
@@ -158,6 +162,7 @@ public class RDFXMLLoader implements Loader {
         graph = store.getNodeIRI(uri);
         blanks = new HashMap<>();
         knownIDs = new ArrayList<>();
+        imports = new ArrayList<>();
 
         try {
             DOMParser parser = new DOMParser();
@@ -168,6 +173,7 @@ public class RDFXMLLoader implements Loader {
                 loadDocument(root);
             else
                 loadElement(root);
+            result.getImports().addAll(imports);
         } catch (Exception ex) {
             logger.error(ex);
             return null;
@@ -592,6 +598,10 @@ public class RDFXMLLoader implements Loader {
      * @param value    The triples's value
      */
     private void register(SubjectNode subject, String property, Node value) {
+        if (property.equals(Vocabulary.owlImports) && value.getNodeType() == IRINode.TYPE) {
+            // this is an import statement
+            imports.add(((IRINode) value).getIRIValue());
+        }
         quads.add(new Quad(graph, subject, store.getNodeIRI(property), value));
     }
 
@@ -603,6 +613,10 @@ public class RDFXMLLoader implements Loader {
      * @param value    The triples's value
      */
     private void register(SubjectNode subject, Property property, Node value) {
+        if (property.getNodeType() == IRINode.TYPE && ((IRINode) property).getIRIValue().equals(Vocabulary.owlImports) && value.getNodeType() == IRINode.TYPE) {
+            // this is an import statement
+            imports.add(((IRINode) value).getIRIValue());
+        }
         quads.add(new Quad(graph, subject, property, value));
     }
 }
