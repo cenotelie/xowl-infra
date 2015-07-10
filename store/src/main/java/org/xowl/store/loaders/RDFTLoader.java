@@ -93,6 +93,19 @@ public class RDFTLoader implements Loader {
         this.store = store;
     }
 
+    /**
+     * Setups this loader regarding the source, meta and target graphs for the rules
+     *
+     * @param source The graph node for the source
+     * @param meta   The graph node for the meta
+     * @param target The graph node for the target
+     */
+    public void setup(GraphNode source, GraphNode meta, GraphNode target) {
+        graphSource = source;
+        graphMeta = meta;
+        graphTarget = target;
+    }
+
     @Override
     public ParseResult parse(Logger logger, Reader reader) {
         ParseResult result;
@@ -119,9 +132,10 @@ public class RDFTLoader implements Loader {
     public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
         RDFLoaderResult result = new RDFLoaderResult();
         rules = result.getRules();
-        graphSource = new VariableNode("__source");
-        graphMeta = new VariableNode("__meta");
-        graphTarget = graphSource;
+        if (graphMeta == null)
+            graphMeta = store.getDefaultGraph();
+        if (graphTarget == null)
+            graphTarget = store.getDefaultGraph();
         resource = uri;
         baseURI = null;
         namespaces = new HashMap<>();

@@ -94,15 +94,6 @@ public class RuleEngine {
     }
 
     /**
-     * The query variable for an unknown graph
-     */
-    private static final QueryVariable GRAPH_VAR = new QueryVariable();
-
-    {
-        GRAPH_VAR.setName("__graph__");
-    }
-
-    /**
      * The XOWL store for the output
      */
     private final XOWLStore outputStore;
@@ -153,9 +144,9 @@ public class RuleEngine {
      */
     public void add(Rule rule, Ontology source, Ontology target, Ontology meta) {
         TranslationContext translationContext = new TranslationContext();
-        GraphNode graphSource = getGraph(translationContext, source, true);
-        GraphNode graphTarget = getGraph(translationContext, target, false);
-        GraphNode graphMeta = getGraph(translationContext, meta, false);
+        GraphNode graphSource = getGraph(source, true);
+        GraphNode graphTarget = getGraph(target, false);
+        GraphNode graphMeta = getGraph(meta, false);
         org.xowl.store.rdf.Rule rdfRule = new org.xowl.store.rdf.Rule(rule.getHasIRI().getHasValue());
         Translator translator = new Translator(translationContext, outputStore, null);
         List<Axiom> positiveNormal = new ArrayList<>();
@@ -240,15 +231,14 @@ public class RuleEngine {
     /**
      * Gets the graph node for the specified ontology
      *
-     * @param context       The current translation context
      * @param ontology      An ontology
      * @param allowsPattern Whether to allow the graph to be part of the pattern
      * @return The associated graph node
      */
-    private GraphNode getGraph(TranslationContext context, Ontology ontology, boolean allowsPattern) {
+    private GraphNode getGraph(Ontology ontology, boolean allowsPattern) {
         if (ontology == null) {
             if (allowsPattern)
-                return context.resolve(GRAPH_VAR, Ontology.class);
+                return null;
             else
                 return outputStore.getNodeIRI(RDFStore.createAnonymousGraph());
         }

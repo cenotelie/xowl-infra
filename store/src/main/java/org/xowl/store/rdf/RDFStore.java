@@ -136,6 +136,15 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     protected int nextBlank;
 
     /**
+     * Gets the default graph
+     *
+     * @return The default graph
+     */
+    public GraphNode getDefaultGraph() {
+        return getNodeIRI(DEFAULT_GRAPH);
+    }
+
+    /**
      * Initializes this store
      *
      * @throws java.io.IOException when the store cannot allocate a temporary file

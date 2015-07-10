@@ -355,7 +355,7 @@ public class RuleEngine implements ChangeListener {
      * @return The processed node
      */
     private Node process(Rule rule, Node node, Token token, Map<Node, Node> specials, boolean createIRI) {
-        if (node.getNodeType() == VariableNode.TYPE) {
+        if (node == null || node.getNodeType() == VariableNode.TYPE) {
             return processResolve((VariableNode) node, token, specials, createIRI);
         } else if (node.getNodeType() == IRINode.TYPE) {
             return node;
