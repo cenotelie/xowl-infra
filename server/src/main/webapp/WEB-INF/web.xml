@@ -1,0 +1,11 @@
+<web-app>
+    <display-name>xOWL Server</display-name>
+    <servlet>
+        <servlet-name>XOWLServer</servlet-name>
+        <servlet-class>org.xowl.server.XOWLServer</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>XOWLServer</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+</web-app>

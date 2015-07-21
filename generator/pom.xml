@@ -20,18 +20,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.xowl.infra</groupId>
-			<artifactId>commons</artifactId>
-			<version>1.0.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.xowl.infra</groupId>
-			<artifactId>lang</artifactId>
-			<version>1.0.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.xowl.infra</groupId>
 			<artifactId>store</artifactId>
 			<version>1.0.0</version>
 			<scope>compile</scope>

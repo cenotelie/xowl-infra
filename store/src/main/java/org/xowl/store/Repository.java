@@ -68,7 +68,7 @@ public class Repository extends AbstractRepository {
      *
      * @return the backend store
      */
-    protected XOWLStore getBackend() {
+    public XOWLStore getStore() {
         return backend;
     }
 

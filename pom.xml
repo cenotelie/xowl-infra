@@ -37,6 +37,7 @@
 		<module>lang</module>
 		<module>store</module>
 		<module>engine</module>
+		<module>server</module>
 		<module>generator</module>
 	</modules>
 	<build>
