@@ -134,6 +134,16 @@ public abstract class AbstractRepository {
     }
 
     /**
+     * Gets the ontology with the specified IRI, or null if it is not present
+     *
+     * @param iri An IRI
+     * @return The corresponding ontology, or null if it is not present
+     */
+    public Ontology getOntology(String iri) {
+        return ontologies.get(iri);
+    }
+
+    /**
      * Gets the known ontologies
      *
      * @return The known ontologies

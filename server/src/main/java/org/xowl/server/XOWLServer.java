@@ -20,9 +20,8 @@
 
 package org.xowl.server;
 
-import org.xowl.store.ProxyObject;
+import org.xowl.store.IRIMapper;
 import org.xowl.store.Repository;
-import org.xowl.store.Vocabulary;
 import org.xowl.utils.ConsoleLogger;
 import org.xowl.utils.Logger;
 
@@ -39,10 +38,6 @@ import java.io.IOException;
  */
 public class XOWLServer extends HttpServlet {
     /**
-     * The logger
-     */
-    private final Logger logger;
-    /**
      * The service available on this server
      */
     private final Service service;
@@ -51,20 +46,34 @@ public class XOWLServer extends HttpServlet {
      * Initializes this server
      */
     public XOWLServer() {
-        logger = new ConsoleLogger();
+        Logger logger = new ConsoleLogger();
         Service temp = null;
         try {
             Repository repository = new Repository();
-            ProxyObject test = repository.resolveProxy(repository.resolveOntology("http://xowl.org/server/"), "http://xowl.org/server/test");
-            test.setValue(Vocabulary.rdfType, repository.resolveProxy(Vocabulary.owlClass));
-            temp = new RDFEndpoint("http://xowl.org", logger, repository.getStore());
+            repository.activateEntailmentRules(logger);
+            temp = newSimpleRDFService(logger, repository, "http://xowl.org");
         } catch (IOException exception) {
-            // do nothing
+            logger.error(exception);
         }
         service = temp;
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         service.onGet(request, response);
+    }
+
+    /**
+     * Creates a new simple RDF service serving the data in the specified repository
+     *
+     * @param logger     The logger
+     * @param repository The repository to serve
+     * @param baseURI    The base URI for this service
+     * @return The service
+     */
+    public static Service newSimpleRDFService(Logger logger, Repository repository, String baseURI) {
+        IRIMapper mapper = new IRIMapper();
+        mapper.addRegexpMap(75, "(.*)\\?res=(.*)", "\\2");
+        mapper.addRegexpMap(50, "(.*)", baseURI + "\\1");
+        return new SimpleRDFService(logger, repository, mapper);
     }
 }
