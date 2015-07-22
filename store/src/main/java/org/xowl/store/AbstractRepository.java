@@ -90,6 +90,10 @@ public abstract class AbstractRepository {
      * Supported Functional xOWL syntax
      */
     public static final String SYNTAX_XOWL = "text/xowl";
+    /**
+     * Supported JSON-LD syntax
+     */
+    public static final String SYNTAX_JSON_LD = "application/ld+json";
 
     /**
      * The IRI mapper
