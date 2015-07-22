@@ -45,15 +45,19 @@ public class Repository extends AbstractRepository {
     /**
      * The backend store
      */
-    private XOWLStore backend;
+    private final XOWLStore backend;
     /**
      * The ontologies in this repository
      */
-    private Map<Ontology, GraphNode> graphs;
+    private final Map<Ontology, GraphNode> graphs;
     /**
      * The proxies onto this repository
      */
-    private Map<Ontology, Map<IRINode, ProxyObject>> proxies;
+    private final Map<Ontology, Map<IRINode, ProxyObject>> proxies;
+    /**
+     * The evaluator to use
+     */
+    private final Evaluator evaluator;
     /**
      * The query engine for this repository
      */
@@ -78,6 +82,8 @@ public class Repository extends AbstractRepository {
      * @return The associated query engine
      */
     public QueryEngine getQueryEngine() {
+        if (queryEngine == null)
+            queryEngine = new QueryEngine(backend, evaluator);
         return queryEngine;
     }
 
@@ -87,6 +93,8 @@ public class Repository extends AbstractRepository {
      * @return The associated rule engine
      */
     public RuleEngine getRuleEngine() {
+        if (ruleEngine == null)
+            ruleEngine = new RuleEngine(backend, backend, evaluator);
         return ruleEngine;
     }
 
@@ -131,8 +139,7 @@ public class Repository extends AbstractRepository {
         this.backend = new XOWLStore();
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
-        this.queryEngine = new QueryEngine(backend, evaluator);
-        this.ruleEngine = new RuleEngine(backend, backend, evaluator);
+        this.evaluator = evaluator;
     }
 
     /**
@@ -322,7 +329,7 @@ public class Repository extends AbstractRepository {
         }
 
         for (org.xowl.store.rdf.Rule rule : input.getRules()) {
-            ruleEngine.getBackend().add(rule);
+            getRuleEngine().getBackend().add(rule);
         }
     }
 
@@ -337,7 +344,7 @@ public class Repository extends AbstractRepository {
         }
 
         for (Rule rule : input.getRules()) {
-            ruleEngine.add(rule, null, null, null);
+            getRuleEngine().add(rule, null, null, null);
         }
     }
 
