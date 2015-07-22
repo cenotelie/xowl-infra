@@ -70,17 +70,17 @@ public class SimpleRDFService extends Service {
     @Override
     public void onGet(HttpServletRequest request, HttpServletResponse response) {
         String uri = request.getRequestURI() + (request.getQueryString() != null ? "?" + request.getQueryString() : "");
-        response.setHeader("X-Requested-URI", uri);
         uri = mapper.get(uri);
-        response.setHeader("X-Requested-Resource", uri);
+        response.setCharacterEncoding("UTF-8");
 
         // is this an ontology?
         Ontology ontology = repository.getOntology(uri);
         if (ontology != null) {
             try (PrintWriter out = response.getWriter()) {
-                RDFSerializer serializer = getSerializer(getSyntaxes(request), out);
+                String contentType = negotiateType(getContentTypes(request));
+                response.setHeader("Content-Type", contentType);
+                RDFSerializer serializer = getSerializer(contentType, out);
                 Iterator<Quad> quads = repository.getStore().getAll(repository.getStore().getNodeIRI(ontology.getHasIRI().getHasValue()));
-                quads = new ClosingQuadIterator(repository.getStore(), quads);
                 serializer.serialize(logger, quads);
                 out.flush();
             } catch (IOException exception) {
@@ -93,7 +93,9 @@ public class SimpleRDFService extends Service {
         IRINode node = repository.getStore().getNodeExistingIRI(uri);
         if (node != null) {
             try (PrintWriter out = response.getWriter()) {
-                RDFSerializer serializer = getSerializer(getSyntaxes(request), out);
+                String contentType = negotiateType(getContentTypes(request));
+                response.setHeader("Content-Type", contentType);
+                RDFSerializer serializer = getSerializer(contentType, out);
                 Iterator<Quad> quads = repository.getStore().getAll(null, node, null, null);
                 quads = new ClosingQuadIterator(repository.getStore(), quads);
                 serializer.serialize(logger, quads);

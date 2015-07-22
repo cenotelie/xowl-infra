@@ -29,7 +29,10 @@ import org.xowl.utils.collections.Couple;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.Writer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Represents a service for the server
@@ -39,57 +42,73 @@ import java.util.*;
 public abstract class Service {
 
     /**
-     * Retrieves the requested syntaxes by order of preference
+     * Retrieves the requested content types by order of preference
      *
      * @param request The request
-     * @return The syntaxes by order of preference
+     * @return The content types by order of preference
      */
-    protected List<String> getSyntaxes(HttpServletRequest request) {
+    protected List<String> getContentTypes(HttpServletRequest request) {
         String header = request.getHeader("Accept");
         if (header == null || header.isEmpty())
-            return Collections.singletonList(AbstractRepository.SYNTAX_NTRIPLES);
-        List<Couple<String, Float>> syntaxes = new ArrayList<>();
+            return Collections.emptyList();
+        List<Couple<String, Float>> contentTypes = new ArrayList<>();
         String[] parts = header.split(",");
         for (String part : parts) {
             String value = part.trim();
             if (value.contains(";")) {
                 String[] subs = value.split(";");
-                syntaxes.add(new Couple<>(subs[0], Float.parseFloat(subs[1].substring(2))));
+                contentTypes.add(new Couple<>(subs[0], Float.parseFloat(subs[1].substring(2))));
             } else {
-                syntaxes.add(new Couple<>(value, 1.0f));
+                contentTypes.add(new Couple<>(value, 1.0f));
             }
         }
-        if (syntaxes.isEmpty())
-            return Collections.singletonList(AbstractRepository.SYNTAX_NTRIPLES);
-        Collections.sort(syntaxes, new Comparator<Couple<String, Float>>() {
+        if (contentTypes.isEmpty())
+            return Collections.emptyList();
+        Collections.sort(contentTypes, new Comparator<Couple<String, Float>>() {
             @Override
             public int compare(Couple<String, Float> c1, Couple<String, Float> c2) {
                 return Float.compare(c2.y, c1.y);
             }
         });
-        List<String> result = new ArrayList<>(syntaxes.size());
-        for (Couple<String, Float> couple : syntaxes)
+        List<String> result = new ArrayList<>(contentTypes.size());
+        for (Couple<String, Float> couple : contentTypes)
             result.add(couple.x);
         return result;
     }
 
     /**
-     * Gets the appropriate serializer
+     * Negotiates the content type from the specified requested ones
      *
-     * @param syntaxes The requested syntax
-     * @param writer   The target writer
-     * @return The corresponding serializer
+     * @param contentTypes The requested content types by order of preference
+     * @return The accepted content type
      */
-    protected RDFSerializer getSerializer(List<String> syntaxes, Writer writer) {
-        for (String syntax : syntaxes) {
-            switch (syntax) {
+    protected String negotiateType(List<String> contentTypes) {
+        for (String contentType : contentTypes) {
+            switch (contentType) {
                 case AbstractRepository.SYNTAX_NTRIPLES:
-                    return new NTripleSerializer(writer);
                 case AbstractRepository.SYNTAX_NQUADS:
-                    return new NQuadsSerializer(writer);
+                    return contentType;
             }
         }
-        return new NTripleSerializer(writer);
+        return AbstractRepository.SYNTAX_NTRIPLES;
+    }
+
+    /**
+     * Gets the appropriate serializer
+     *
+     * @param contentType The accepted content type
+     * @param writer      The target writer
+     * @return The corresponding serializer
+     */
+    protected RDFSerializer getSerializer(String contentType, Writer writer) {
+        switch (contentType) {
+            case AbstractRepository.SYNTAX_NTRIPLES:
+                return new NTripleSerializer(writer);
+            case AbstractRepository.SYNTAX_NQUADS:
+                return new NQuadsSerializer(writer);
+            default:
+                return new NTripleSerializer(writer);
+        }
     }
 
     /**
