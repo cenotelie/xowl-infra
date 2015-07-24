@@ -315,6 +315,8 @@ public class Repository extends AbstractRepository {
                 return new RDFTLoader(backend);
             case SYNTAX_RDFXML:
                 return new RDFXMLLoader(backend);
+            case SYNTAX_JSON_LD:
+                return new JSONLDLoader(backend);
         }
         return null;
     }

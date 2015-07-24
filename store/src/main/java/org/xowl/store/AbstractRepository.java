@@ -461,6 +461,7 @@ public abstract class AbstractRepository {
             case SYNTAX_TURTLE:
             case SYNTAX_RDFT:
             case SYNTAX_RDFXML:
+            case SYNTAX_JSON_LD:
                 return null;
         }
         return null;
@@ -536,6 +537,8 @@ public abstract class AbstractRepository {
             return SYNTAX_RDFT;
         if (resource.endsWith(".rdf"))
             return SYNTAX_RDFXML;
+        if (resource.endsWith(".jsonld"))
+            return SYNTAX_JSON_LD;
         if (resource.endsWith(".ofn") || resource.endsWith(".fs"))
             return SYNTAX_FUNCTIONAL_OWL2;
         if (resource.endsWith(".owx") || resource.endsWith(".owl"))
