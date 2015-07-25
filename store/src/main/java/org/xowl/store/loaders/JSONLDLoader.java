@@ -158,6 +158,10 @@ public abstract class JSONLDLoader implements Loader {
          * The language associated to this property (implies the value type is xsd:string)
          */
         public final String language;
+        /**
+         * The property that is reversed by this one
+         */
+        public final String reversed;
 
         /**
          * Initializes the content of this object
@@ -166,12 +170,14 @@ public abstract class JSONLDLoader implements Loader {
          * @param fullIRI       The full IRI of the name
          * @param valueType     The full IRI of the type for values of this property
          * @param language      The language associated to this property (implies the value type is xsd:string)
+         * @param reversed      The property that is reversed by this one
          */
-        public NameInfo(ContainerType containerType, String fullIRI, String valueType, String language) {
+        public NameInfo(ContainerType containerType, String fullIRI, String valueType, String language, String reversed) {
             this.containerType = containerType;
             this.fullIRI = fullIRI;
             this.valueType = valueType;
             this.language = language;
+            this.reversed = reversed;
         }
 
         /**
@@ -189,6 +195,7 @@ public abstract class JSONLDLoader implements Loader {
                     fullIRI = parent.expandIRI(getValue(definition));
                     valueType = null;
                     language = null;
+                    reversed = null;
                     break;
                 case JSONLDParser.ID.object:
                     // this is an object
@@ -196,6 +203,7 @@ public abstract class JSONLDLoader implements Loader {
                     String id = null;
                     String type = null;
                     String lang = null;
+                    String rev = null;
                     for (ASTNode member : definition.getChildren()) {
                         String key = getValue(member.getChildren().get(0));
                         if (KEYWORD_ID.equals(key)) {
@@ -207,11 +215,14 @@ public abstract class JSONLDLoader implements Loader {
                         } else if (KEYWORD_LANGUAGE.equals(key)) {
                             lang = getValue(member.getChildren().get(1));
                             lang = lang == null ? "null" : lang;
+                        } else if (KEYWORD_REVERSE.equals(key)) {
+                            rev = parent.expandIRI(getValue(member.getChildren().get(1)));
                         }
                     }
                     fullIRI = id != null ? id : iri;
                     valueType = KEYWORD_ID.equals(type) ? KEYWORD_ID : parent.expandIRI(type);
                     language = lang;
+                    reversed = rev;
                     if (KEYWORD_LIST.equals(container))
                         containerType = ContainerType.List;
                     else if (KEYWORD_SET.equals(container))
@@ -226,9 +237,15 @@ public abstract class JSONLDLoader implements Loader {
                     fullIRI = iri;
                     valueType = null;
                     language = null;
+                    reversed = null;
             }
         }
     }
+
+    /**
+     * The property info for the rdf:type property
+     */
+    private static final NameInfo PROPERTY_TYPE_INFO = new NameInfo(ContainerType.Undefined, Vocabulary.rdfType, KEYWORD_ID, null, null);
 
     /**
      * Represents a fragment of context
@@ -410,6 +427,7 @@ public abstract class JSONLDLoader implements Loader {
             String valueType = null;
             String language = null;
             Context current = this;
+            String reversed = null;
             while (current != null) {
                 for (int i = current.fragments.size(); i != -1; i--) {
                     for (NameInfo info : current.fragments.get(i).names.values()) {
@@ -420,12 +438,14 @@ public abstract class JSONLDLoader implements Loader {
                                 valueType = info.valueType;
                             if (language == null)
                                 language = info.language;
+                            if (reversed == null)
+                                reversed = info.reversed;
                         }
                     }
                 }
                 current = current.parent;
             }
-            return new NameInfo(containerType, fullIRI, valueType, language);
+            return new NameInfo(containerType, fullIRI, valueType, language, reversed);
         }
 
         /**
@@ -644,7 +664,7 @@ public abstract class JSONLDLoader implements Loader {
         // setup the type
         ASTNode typeNode = members.get(KEYWORD_TYPE);
         if (typeNode != null) {
-            Couple<Node, List<Node>> couple = loadValue(typeNode, graph, current, new NameInfo(ContainerType.Undefined, Vocabulary.rdfType, KEYWORD_ID, null));
+            Couple<Node, List<Node>> couple = loadValue(typeNode, graph, current, PROPERTY_TYPE_INFO);
             if (couple != null) {
                 if (couple.x != null)
                     quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), couple.x));
@@ -658,29 +678,62 @@ public abstract class JSONLDLoader implements Loader {
         }
 
         // load the rest of the values
+        for (Map.Entry<String, ASTNode> entry : members.entrySet())
+            loadMember(entry.getKey(), entry.getValue(), subject, graph, context, false);
+
+        // inline reversed properties
         for (Map.Entry<String, ASTNode> entry : members.entrySet()) {
-            if (KEYWORDS.contains(entry.getKey()))
-                // this is a keyword, drop it
+            if (!KEYWORD_REVERSE.equals(entry.getKey()))
                 continue;
-            NameInfo propertyInfo = current.getInfoFor(entry.getKey());
-            if (propertyInfo == null)
-                // drop this undefined property
-                continue;
-            IRINode property = store.getNodeIRI(propertyInfo.fullIRI);
-            ASTNode definition = entry.getValue();
-            Couple<Node, List<Node>> result = loadValue(definition, graph, current, propertyInfo);
-            if (result == null)
-                // weird result
-                continue;
-            if (result.x != null)
+            for (ASTNode member : entry.getValue().getChildren()) {
+                String key = getValue(member.getChildren().get(0));
+                loadMember(key, member.getChildren().get(1), subject, graph, context, true);
+            }
+        }
+
+        return subject;
+    }
+
+    /**
+     * Loads the member of an object
+     *
+     * @param key        The property key
+     * @param definition The AST definition to load from
+     * @param subject    The subject node
+     * @param graph      The current graph
+     * @param context    The current context
+     * @param reversed   Whether the property is reversed
+     */
+    private void loadMember(String key, ASTNode definition, SubjectNode subject, GraphNode graph, Context context, boolean reversed) {
+        if (KEYWORDS.contains(key))
+            // this is a keyword, drop it
+            return;
+        NameInfo propertyInfo = context.getInfoFor(key);
+        if (propertyInfo == null)
+            // drop this undefined property
+            return;
+        IRINode property = store.getNodeIRI(propertyInfo.fullIRI);
+        Couple<Node, List<Node>> result = loadValue(definition, graph, context, propertyInfo);
+        if (result == null)
+            // weird result
+            return;
+        if (result.x != null) {
+            if (propertyInfo.reversed != null)
+                quads.add(new Quad(graph, (SubjectNode) result.x, store.getNodeIRI(propertyInfo.reversed), subject));
+            else if (reversed)
+                quads.add(new Quad(graph, (SubjectNode) result.x, property, subject));
+            else
                 quads.add(new Quad(graph, subject, property, result.x));
-            else if (result.y != null) {
-                // this was a multilingual property
-                for (Node value : result.y)
+        } else if (result.y != null) {
+            for (Node value : result.y) {
+                if (propertyInfo.reversed != null)
+                    quads.add(new Quad(graph, (SubjectNode) value, store.getNodeIRI(propertyInfo.reversed), subject));
+                else if (reversed)
+                    quads.add(new Quad(graph, (SubjectNode) value, property, subject));
+                else
                     quads.add(new Quad(graph, subject, property, value));
             }
         }
-        return subject;
     }
 
     /**
