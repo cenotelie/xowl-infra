@@ -41,6 +41,10 @@ import java.util.*;
  */
 public abstract class JSONLDLoader implements Loader {
     /**
+     * Markers that forbids the further expansion
+     */
+    private static final String MARKER_NULL = "@null";
+    /**
      * Property which value describes a context
      */
     private static final String KEYWORD_CONTEXT = "@context";
@@ -222,7 +226,7 @@ public abstract class JSONLDLoader implements Loader {
                 case JSONLDLexer.ID.LITERAL_STRING:
                     // this is an IRI
                     containerType = ContainerType.Undefined;
-                    fullIRI = parent.expandIRI(getValue(definition));
+                    fullIRI = parent.expandIRI(getValue(definition), true);
                     valueType = null;
                     language = null;
                     reversed = null;
@@ -237,20 +241,21 @@ public abstract class JSONLDLoader implements Loader {
                     for (ASTNode member : definition.getChildren()) {
                         String key = getValue(member.getChildren().get(0));
                         if (KEYWORD_ID.equals(key)) {
-                            id = parent.expandIRI(getValue(member.getChildren().get(1)));
+                            id = getValue(member.getChildren().get(1));
+                            id = id == null ? MARKER_NULL : parent.expandIRI(id, true);
                         } else if (KEYWORD_TYPE.equals(key)) {
                             type = getValue(member.getChildren().get(1));
                         } else if (KEYWORD_CONTAINER.equals(key)) {
                             container = getValue(member.getChildren().get(1));
                         } else if (KEYWORD_LANGUAGE.equals(key)) {
                             lang = getValue(member.getChildren().get(1));
-                            lang = lang == null ? "null" : lang;
+                            lang = lang == null ? MARKER_NULL : lang;
                         } else if (KEYWORD_REVERSE.equals(key)) {
-                            rev = parent.expandIRI(getValue(member.getChildren().get(1)));
+                            rev = parent.expandIRI(getValue(member.getChildren().get(1)), true);
                         }
                     }
                     fullIRI = id != null ? id : iri;
-                    valueType = KEYWORD_ID.equals(type) ? KEYWORD_ID : parent.expandIRI(type);
+                    valueType = KEYWORD_ID.equals(type) ? KEYWORD_ID : (type != null ? parent.expandIRI(type, true) : null);
                     language = lang;
                     reversed = rev;
                     if (KEYWORD_LIST.equals(container))
@@ -314,12 +319,13 @@ public abstract class JSONLDLoader implements Loader {
                 String key = getValue(member.getChildren().get(0));
                 if (KEYWORD_LANGUAGE.equals(key)) {
                     tLanguage = getValue(member.getChildren().get(1));
-                    // sets special language value for resetting the default language
-                    tLanguage = tLanguage == null ? "null" : tLanguage;
+                    tLanguage = tLanguage == null ? MARKER_NULL : tLanguage;
                 } else if (KEYWORD_BASE.equals(key)) {
                     tBase = getValue(member.getChildren().get(1));
+                    tBase = tBase == null ? MARKER_NULL : tBase;
                 } else if (KEYWORD_VOCAB.equals(key)) {
                     tVocab = getValue(member.getChildren().get(1));
+                    tVocab = tVocab == null ? MARKER_NULL : tVocab;
                 }
             }
             this.language = tLanguage;
@@ -338,11 +344,11 @@ public abstract class JSONLDLoader implements Loader {
                 String key = getValue(member.getChildren().get(0));
                 if (key == null)
                     throw new LoadingException("Expected valid key", definition);
-                if (KEYWORDS.contains(key)) {
+                if (!KEYWORDS.contains(key)) {
                     if (key.contains(":")) {
                         String[] parts = key.split(":");
                         // assume only two parts
-                        names.put(parts[1], new NameInfo(member.getChildren().get(1), parent, parent.expandIRI(key)));
+                        names.put(parts[1], new NameInfo(member.getChildren().get(1), parent, parent.expandIRI(key, true)));
                     } else {
                         names.put(key, new NameInfo(member.getChildren().get(1), parent, null));
                     }
@@ -406,10 +412,11 @@ public abstract class JSONLDLoader implements Loader {
         /**
          * Expands an IRI from the specified term, or null if it fails to
          *
-         * @param term A term
+         * @param term     A term
+         * @param useVocab Whether the vocabulary definition can be used in the exansion of the URI
          * @return The corresponding IRI, or null if it cannot be expanded
          */
-        public String expandIRI(String term) {
+        public String expandIRI(String term, boolean useVocab) {
             if (term.startsWith("_:"))
                 return null;
             if (term.contains(":")) {
@@ -425,25 +432,45 @@ public abstract class JSONLDLoader implements Loader {
                 }
                 return null;
             } else {
+                // try to match a term
                 Context current = this;
                 while (current != null) {
                     for (int i = current.fragments.size() - 1; i != -1; i--) {
                         ContextFragment fragment = current.fragments.get(i);
                         NameInfo info = fragment.names.get(term);
-                        if (info.fullIRI == null)
-                            // explicitly forbids the expansion
-                            return term;
-                        if (fragment.vocab != null)
-                            // expand using the vocabulary radical
-                            return fragment.vocab + term;
-                        if (fragment.base != null)
-                            // found a base IRI
-                            return Utils.normalizeIRI(resource, fragment.base, term);
+                        if (info != null && info.fullIRI != null) {
+                            if (MARKER_NULL.equals(info.fullIRI))
+                                // explicitly forbids the expansion
+                                return term;
+                            return info.fullIRI;
+                        }
                     }
                     current = current.parent;
                 }
-                // could not either forbid the expansion or find a vocabulary or a base URI
-                return term;
+                // find a base URI definition
+                current = this;
+                while (current != null) {
+                    for (int i = current.fragments.size() - 1; i != -1; i--) {
+                        ContextFragment fragment = current.fragments.get(i);
+                        if (fragment.base != null) {
+                            // found a base IRI
+                            if (MARKER_NULL.equals(fragment.base))
+                                // explicitly forbids the expansion
+                                return term;
+                            return Utils.normalizeIRI(resource, fragment.base, term);
+                        }
+                        if (useVocab && fragment.vocab != null) {
+                            // found a vocabulary
+                            if (MARKER_NULL.equals(fragment.vocab))
+                                // explicitly forbids the expansion
+                                return term;
+                            return Utils.normalizeIRI(resource, fragment.vocab, term);
+                        }
+                    }
+                    current = current.parent;
+                }
+                // expand from the resource
+                return Utils.normalizeIRI(resource, null, term);
             }
         }
 
@@ -454,7 +481,7 @@ public abstract class JSONLDLoader implements Loader {
          * @return The associated information
          */
         public NameInfo getInfoFor(String term) {
-            String fullIRI = expandIRI(term);
+            String fullIRI = expandIRI(term, true);
             if (fullIRI == null)
                 return null;
             ContainerType containerType = ContainerType.Undefined;
@@ -493,7 +520,7 @@ public abstract class JSONLDLoader implements Loader {
                 for (int i = current.fragments.size() - 1; i != -1; i--) {
                     String language = current.fragments.get(i).language;
                     if (language != null) {
-                        if ("null".equals(language)) {
+                        if (MARKER_NULL.equals(language)) {
                             // explicit reset
                             return null;
                         } else {
@@ -538,9 +565,13 @@ public abstract class JSONLDLoader implements Loader {
             while (current != null) {
                 for (int i = current.fragments.size() - 1; i != -1; i--) {
                     ContextFragment fragment = current.fragments.get(i);
-                    NameInfo result = fragment.names.get(name);
-                    if (result != null)
-                        return result.fullIRI;
+                    NameInfo info = fragment.names.get(name);
+                    if (info != null && info.fullIRI != null) {
+                        if (MARKER_NULL.equals(info.fullIRI))
+                            // explicitly forbids the expansion
+                            return name;
+                        return info.fullIRI;
+                    }
                 }
                 current = current.parent;
             }
@@ -725,14 +756,14 @@ public abstract class JSONLDLoader implements Loader {
             else if (couple.y != null) {
                 for (Node value : couple.y) {
                     if (value != null)
-                        quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), couple.x));
+                        quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), value));
                 }
             }
         }
 
         // load the rest of the values
         for (Map.Entry<String, ASTNode> entry : members.entrySet()) {
-            loadMember(entry.getKey(), entry.getValue(), subject, graph, context, false);
+            loadMember(entry.getKey(), entry.getValue(), subject, graph, current, false);
         }
 
         // inline reversed properties
@@ -741,7 +772,7 @@ public abstract class JSONLDLoader implements Loader {
                 continue;
             for (ASTNode member : entry.getValue().getChildren()) {
                 String key = getValue(member.getChildren().get(0));
-                loadMember(key, member.getChildren().get(1), subject, graph, context, true);
+                loadMember(key, member.getChildren().get(1), subject, graph, current, true);
             }
         }
 
@@ -875,7 +906,7 @@ public abstract class JSONLDLoader implements Loader {
             return resolveBlank(value.substring(2));
         } else {
             // this is an IRI
-            return store.getNodeIRI(context.expandIRI(value));
+            return store.getNodeIRI(context.expandIRI(value, false));
         }
     }
 
@@ -974,7 +1005,7 @@ public abstract class JSONLDLoader implements Loader {
             return store.getLiteralNode(value, info.valueType, null);
         }
         String language = info.language != null ? info.language : context.getLanguage();
-        if (language != null && "null".equals(language))
+        if (language != null && MARKER_NULL.equals(language))
             // explicit reset
             language = null;
         return store.getLiteralNode(value, Vocabulary.xsdString, language);
@@ -991,7 +1022,7 @@ public abstract class JSONLDLoader implements Loader {
     private Node loadValueNode(ASTNode node, Context context, NameInfo info) throws LoadingException {
         String value = null;
         String type = null;
-        String language = "null";
+        String language = MARKER_NULL;
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             if (KEYWORD_VALUE.equals(key))
@@ -1010,7 +1041,7 @@ public abstract class JSONLDLoader implements Loader {
         } else {
             if (language == null)
                 language = info.language != null ? info.language : context.getLanguage();
-            if (language != null && "null".equals(language))
+            if (language != null && MARKER_NULL.equals(language))
                 // explicit reset
                 language = null;
             return store.getLiteralNode(value, Vocabulary.xsdString, language);
