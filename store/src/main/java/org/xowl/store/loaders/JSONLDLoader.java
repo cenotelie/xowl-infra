@@ -653,16 +653,28 @@ public abstract class JSONLDLoader implements Loader {
 
         // load the new context
         Context current = context;
-        ASTNode contextNode = members.get(KEYWORD_CONTEXT);
+        ASTNode contextNode = members.remove(KEYWORD_CONTEXT);
         if (contextNode != null)
             current = new Context(context, contextNode);
 
         // setup the subject from an id
-        ASTNode idNode = members.get(KEYWORD_ID);
-        SubjectNode subject = idNode != null ? getSubjectFor(idNode, current) : store.newNodeBlank();
+        ASTNode idNode = members.remove(KEYWORD_ID);
+        SubjectNode subject = idNode != null ? getSubjectFor(idNode, current) : null;
+
+        ASTNode graphNode = members.remove(KEYWORD_GRAPH);
+        if (graphNode != null) {
+            // this is a graph
+            loadValue(graphNode, subject != null ? (GraphNode) subject : store.getNodeIRI(resource), current, null);
+        }
+
+        if (members.isEmpty())
+            return subject;
+
+        if (subject == null)
+            subject = store.newNodeBlank();
 
         // setup the type
-        ASTNode typeNode = members.get(KEYWORD_TYPE);
+        ASTNode typeNode = members.remove(KEYWORD_TYPE);
         if (typeNode != null) {
             Couple<Node, List<Node>> couple = loadValue(typeNode, graph, current, PROPERTY_TYPE_INFO);
             if (couple != null) {
@@ -678,8 +690,9 @@ public abstract class JSONLDLoader implements Loader {
         }
 
         // load the rest of the values
-        for (Map.Entry<String, ASTNode> entry : members.entrySet())
+        for (Map.Entry<String, ASTNode> entry : members.entrySet()) {
             loadMember(entry.getKey(), entry.getValue(), subject, graph, context, false);
+        }
 
         // inline reversed properties
         for (Map.Entry<String, ASTNode> entry : members.entrySet()) {
@@ -779,12 +792,12 @@ public abstract class JSONLDLoader implements Loader {
                     return new Couple<>(loadValueNode(node, context, info), null);
                 else if (isListNode(node))
                     return new Couple<>(loadListNode(node, graph, context, info), null);
-                else if (info.containerType == ContainerType.Language)
+                else if (info != null && info.containerType == ContainerType.Language)
                     return new Couple<>(null, loadMultilingualValues(node));
                 return new Couple<Node, List<Node>>(loadObject(node, graph, context), null);
             }
             case JSONLDParser.ID.array:
-                if (info.containerType == ContainerType.List)
+                if (info != null && info.containerType == ContainerType.List)
                     return new Couple<>(createRDFList(graph, loadArray(node, graph, context, info)), null);
                 else
                     return new Couple<>(null, loadArray(node, graph, context, info));
