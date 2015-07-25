@@ -514,18 +514,6 @@ public abstract class JSONLDLoader implements Loader {
      * Maps of blanks nodes
      */
     private Map<String, BlankNode> blanks;
-    /**
-     * The cached node for the RDF#type property
-     */
-    private IRINode cacheIsA;
-    /**
-     * The cached node for the literal true node
-     */
-    private LiteralNode cacheTrue;
-    /**
-     * The cached node for the literal false node
-     */
-    private LiteralNode cacheFalse;
 
     /**
      * Initializes this loader
@@ -659,11 +647,11 @@ public abstract class JSONLDLoader implements Loader {
             Couple<Node, List<Node>> couple = loadValue(typeNode, graph, current, new NameInfo(ContainerType.Undefined, Vocabulary.rdfType, KEYWORD_ID, null));
             if (couple != null) {
                 if (couple.x != null)
-                    quads.add(new Quad(graph, subject, getNodeRDFType(), couple.x));
+                    quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), couple.x));
                 else if (couple.y != null) {
                     for (Node value : couple.y) {
                         if (value != null)
-                            quads.add(new Quad(graph, subject, getNodeRDFType(), couple.x));
+                            quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), couple.x));
                     }
                 }
             }
@@ -736,12 +724,17 @@ public abstract class JSONLDLoader implements Loader {
             case JSONLDParser.ID.object: {
                 if (isValueNode(node))
                     return new Couple<>(loadValueNode(node, context, info), null);
+                else if (isListNode(node))
+                    return new Couple<>(loadListNode(node, graph, context, info), null);
                 else if (info.containerType == ContainerType.Language)
                     return new Couple<>(null, loadMultilingualValues(node));
                 return new Couple<Node, List<Node>>(loadObject(node, graph, context), null);
             }
             case JSONLDParser.ID.array:
-                return new Couple<>(null, loadArray(node, graph, context, info));
+                if (info.containerType == ContainerType.List)
+                    return new Couple<>(createRDFList(graph, loadArray(node, graph, context, info)), null);
+                else
+                    return new Couple<>(null, loadArray(node, graph, context, info));
             case JSONLDLexer.ID.LITERAL_INTEGER:
                 return new Couple<Node, List<Node>>(loadLiteralInteger(node), null);
             case JSONLDLexer.ID.LITERAL_DECIMAL:
@@ -753,9 +746,9 @@ public abstract class JSONLDLoader implements Loader {
             case JSONLDLexer.ID.LITERAL_NULL:
                 return new Couple<>(null, null);
             case JSONLDLexer.ID.LITERAL_TRUE:
-                return new Couple<Node, List<Node>>(getNodeTrue(), null);
+                return new Couple<Node, List<Node>>(store.getLiteralNode("true", Vocabulary.xsdBoolean, null), null);
             case JSONLDLexer.ID.LITERAL_FALSE:
-                return new Couple<Node, List<Node>>(getNodeFalse(), null);
+                return new Couple<Node, List<Node>>(store.getLiteralNode("false", Vocabulary.xsdBoolean, null), null);
         }
         return null;
     }
@@ -797,36 +790,31 @@ public abstract class JSONLDLoader implements Loader {
     }
 
     /**
-     * Gets the RDF IRI node for the RDF type element
+     * Creates a RDF list for the specified elements
      *
-     * @return The RDF IRI node
+     * @param graph    The current graph
+     * @param elements The elements of the list
+     * @return The list's head
      */
-    private IRINode getNodeRDFType() {
-        if (cacheIsA == null)
-            cacheIsA = store.getNodeIRI(Vocabulary.rdfType);
-        return cacheIsA;
-    }
-
-    /**
-     * Gets the RDF Literal node for the boolean true value
-     *
-     * @return The RDF Literal node
-     */
-    private LiteralNode getNodeTrue() {
-        if (cacheTrue == null)
-            cacheTrue = store.getLiteralNode("true", Vocabulary.xsdBoolean, null);
-        return cacheTrue;
-    }
-
-    /**
-     * Gets the RDF Literal node for the boolean false value
-     *
-     * @return The RDF Literal node
-     */
-    private LiteralNode getNodeFalse() {
-        if (cacheFalse == null)
-            cacheFalse = store.getLiteralNode("false", Vocabulary.xsdBoolean, null);
-        return cacheFalse;
+    private Node createRDFList(GraphNode graph, List<Node> elements) {
+        List<Node> filtered = new ArrayList<>(elements);
+        for (Node node : elements)
+            if (node != null)
+                filtered.add(node);
+        if (filtered.isEmpty())
+            return store.getNodeIRI(Vocabulary.rdfNil);
+        SubjectNode head = store.newNodeBlank();
+        SubjectNode current = head;
+        quads.add(new Quad(graph, current, store.getNodeIRI(Vocabulary.rdfFirst), filtered.get(0)));
+        for (int i = 1; i != filtered.size(); i++) {
+            Node element = filtered.get(i);
+            SubjectNode proxy = store.newNodeBlank();
+            quads.add(new Quad(graph, current, store.getNodeIRI(Vocabulary.rdfRest), proxy));
+            current = proxy;
+            quads.add(new Quad(graph, current, store.getNodeIRI(Vocabulary.rdfFirst), element));
+        }
+        quads.add(new Quad(graph, current, store.getNodeIRI(Vocabulary.rdfRest), store.getNodeExistingIRI(Vocabulary.rdfNil)));
+        return head;
     }
 
     /**
@@ -925,6 +913,24 @@ public abstract class JSONLDLoader implements Loader {
     }
 
     /**
+     * Gets the RDF node equivalent to the specified AST node
+     *
+     * @param node    An AST node
+     * @param context The parent context
+     * @param info    The information on the current name (property)
+     * @return The equivalent RDF node
+     */
+    private Node loadListNode(ASTNode node, GraphNode graph, Context context, NameInfo info) {
+        for (ASTNode member : node.getChildren()) {
+            String key = getValue(member.getChildren().get(0));
+            if (KEYWORD_LIST.equals(key)) {
+                return createRDFList(graph, loadArray(member.getChildren().get(1), graph, context, info));
+            }
+        }
+        return null;
+    }
+
+    /**
      * Gets the RDF nodes equivalent to the specified AST node that represents the values of a multilingual property
      *
      * @param node An AST node
@@ -966,6 +972,23 @@ public abstract class JSONLDLoader implements Loader {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             if (KEYWORD_VALUE.equals(key))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determines whether the specified AST node defines a list
+     *
+     * @param node An AST node
+     * @return true if this is a list node
+     */
+    private static boolean isListNode(ASTNode node) {
+        if (node.getSymbol().getID() != JSONLDParser.ID.object)
+            return false;
+        for (ASTNode member : node.getChildren()) {
+            String key = getValue(member.getChildren().get(0));
+            if (KEYWORD_LIST.equals(key))
                 return true;
         }
         return false;
