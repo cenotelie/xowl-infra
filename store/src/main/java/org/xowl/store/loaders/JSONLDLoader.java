@@ -939,7 +939,7 @@ public abstract class JSONLDLoader implements Loader {
      * @return The list's head
      */
     private Node createRDFList(GraphNode graph, List<Node> elements) {
-        List<Node> filtered = new ArrayList<>(elements);
+        List<Node> filtered = new ArrayList<>(elements.size());
         for (Node node : elements)
             if (node != null)
                 filtered.add(node);
