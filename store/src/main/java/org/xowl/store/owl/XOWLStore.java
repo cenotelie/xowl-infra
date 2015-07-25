@@ -153,16 +153,6 @@ public class XOWLStore extends RDFStore {
         }
     }
 
-    /**
-     * Adds the specified quad to this store
-     *
-     * @param graph    The store containing the quad
-     * @param subject  The quad subject node
-     * @param property The quad property
-     * @param value    The quad value
-     * @return The operation result
-     * @throws org.xowl.store.rdf.UnsupportedNodeType When the subject node type is unsupported
-     */
     @Override
     protected int doAddEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
@@ -196,16 +186,6 @@ public class XOWLStore extends RDFStore {
         return bucket.add(graph, property, value);
     }
 
-    /**
-     * Removes the specified quad from this store
-     *
-     * @param graph    The store containing the quad
-     * @param subject  The quad subject node
-     * @param property The quad property
-     * @param value    The quad value
-     * @return The operation result
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
-     */
     @Override
     protected int doRemoveEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
@@ -220,16 +200,7 @@ public class XOWLStore extends RDFStore {
         }
     }
 
-    /**
-     * Removes all the matching quads
-     *
-     * @param graph    The graph to match, or null
-     * @param subject  The quad subject node to match, or null
-     * @param property The quad property to match, or null
-     * @param value    The quad value to match, or null
-     * @param buffer   The buffer for the removed quads
-     * @return The operation result
-     */
+    @Override
     protected int doRemoveEdges(GraphNode graph, SubjectNode subject, Property property, Node value, List<Quad> buffer) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case AnonymousNode.TYPE:
@@ -243,15 +214,7 @@ public class XOWLStore extends RDFStore {
         }
     }
 
-    /**
-     * Removes all the matching quads
-     *
-     * @param graph    The graph to match, or null
-     * @param property The quad property to match, or null
-     * @param value    The quad value to match, or null
-     * @param buffer   The buffer for the removed quads
-     * @return The operation result
-     */
+    @Override
     protected int doRemoveEdgesFromAll(GraphNode graph, Property property, Node value, List<Quad> buffer) {
         doRemoveEdgesFromIRIs(graph, property, value, buffer);
         doRemoveEdgesFromBlanks(graph, property, value, buffer);
@@ -331,11 +294,6 @@ public class XOWLStore extends RDFStore {
         return REMOVE_RESULT_REMOVED;
     }
 
-    /**
-     * Gets an iterator over all the subjects starting edges in the store
-     *
-     * @return An iterator over all the subjects starting edges in the store
-     */
     @Override
     protected Iterator<Couple<SubjectNode, EdgeBucket>> getAllSubjects() {
         return new ConcatenatedIterator<Couple<SubjectNode, EdgeBucket>>(new Iterator[]{
@@ -370,12 +328,6 @@ public class XOWLStore extends RDFStore {
         });
     }
 
-    /**
-     * Gets the edge bucket for the specified node
-     *
-     * @param node A node
-     * @return The associated edge bucket, or null if there is none
-     */
     @Override
     protected EdgeBucket getBucketFor(Node node) {
         if (node != null && node.getNodeType() == AnonymousNode.TYPE)

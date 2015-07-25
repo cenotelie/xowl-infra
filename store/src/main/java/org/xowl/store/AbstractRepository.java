@@ -310,6 +310,7 @@ public abstract class AbstractRepository {
             case SYNTAX_NQUADS:
             case SYNTAX_TURTLE:
             case SYNTAX_RDFXML:
+            case SYNTAX_JSON_LD:
             case SYNTAX_RDFT: {
                 Loader loader = newRDFLoader(syntax);
                 RDFLoaderResult input = loader.loadRDF(logger, reader, iri);

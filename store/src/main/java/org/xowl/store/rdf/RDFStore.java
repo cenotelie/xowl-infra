@@ -282,7 +282,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Inserts the specified change in this store
+     * Applies the specified change to this store
      *
      * @param change A change
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
@@ -307,7 +307,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Inserts the specified changeset in this store
+     * Applies the specified changeset to this store
      *
      * @param changeset A changeset
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
@@ -335,7 +335,8 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Adds the specified quad to this graph
+     * Adds a single instance of the specified quad to this store.
+     * If the quad is already in the store, its multiplicity is increased; listeners will not be notified.
      *
      * @param quad A quad
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
@@ -347,7 +348,8 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Adds the specified quad to this graph
+     * Adds a single instance of the specified quad to this store.
+     * If the quad is already in the store, its multiplicity is increased; listeners will not be notified.
      *
      * @param graph    The graph containing the quad
      * @param subject  The quad subject node
@@ -362,7 +364,8 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Adds the specified quad to this graph
+     * Executes the insertion of a single instance of a quad into this store.
+     * If the quad is already in the store, its multiplicity is increased.
      *
      * @param graph    The graph containing the quad
      * @param subject  The quad subject node
@@ -383,7 +386,8 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Adds the specified quad to this graph
+     * Executes the insertion of a single instance of a quad with an IRI subject into this store.
+     * If the quad is already in the store, its multiplicity is increased.
      *
      * @param graph    The graph containing the quad
      * @param subject  The quad subject node
@@ -402,7 +406,8 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Adds the specified quad to this graph
+     * Executes the insertion of a single instance of a quad with an blank node subject into this store.
+     * If the quad is already in the store, its multiplicity is increased.
      *
      * @param graph    The graph containing the quad
      * @param subject  The quad subject node
@@ -423,7 +428,24 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes the specified quad from this graph
+     * Removes a single instance of all the quads in this store.
+     * This essentially decreases the multiplicity of each quad in this store.
+     * Quads are only removed when their multiplicity reached 0.
+     * Listeners are notified of the completely removed quads only.
+     */
+    public void removeAll() {
+        try {
+            remove(null, null, null, null);
+        } catch (UnsupportedNodeType exception) {
+            // cannot happen
+        }
+    }
+
+    /**
+     * Removes a single instance of the matching quads from this store
+     * This essentially decreases the multiplicity of the quad.
+     * Quads are only removed when their multiplicity reached 0.
+     * Listeners are notified of the completely removed quads only.
      *
      * @param quad A quad
      * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
@@ -450,7 +472,10 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes the specified quad from this graph
+     * Removes a single instance of the matching quads from this store
+     * This essentially decreases the multiplicity of the quad.
+     * Quads are only removed when their multiplicity reached 0.
+     * Listeners are notified of the completely removed quads only.
      *
      * @param graph    The graph containing the quad
      * @param subject  The quad subject node
@@ -480,7 +505,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes the specified quad from this graph
+     * Executes the removal operation of a single instance of a quad from this store
      *
      * @param graph    The graph containing the quad
      * @param subject  The quad subject node
@@ -501,7 +526,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes all the matching quads
+     * Executes the removal operation of a single instance of quads from this store
      *
      * @param graph    The graph to match, or null
      * @param subject  The quad subject node to match, or null
@@ -522,7 +547,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes all the matching quads
+     * Executes the removal operation of a single instance of quads from this store
      *
      * @param graph    The graph to match, or null
      * @param property The quad property to match, or null
@@ -537,7 +562,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes the specified quad from this graph
+     * Executes the removal operation of a single instance of a quad with an IRI subject from this store
      *
      * @param graph    The graph containing the quad
      * @param subject  The quad subject node
@@ -559,7 +584,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes all the matching quads for an IRI subject
+     * Executes the removal operation of a single instance of a quad with an IRI subject from this store
      *
      * @param graph    The graph to match, or null
      * @param subject  The quad subject node to match, or null
@@ -583,7 +608,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes all the matching quads for the IRI subjects
+     * Executes the removal operation of a single instance of matching quads with an IRI subject from this store
      *
      * @param graph    The graph to match, or null
      * @param property The quad property to match, or null
@@ -609,7 +634,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes the specified quad from this graph
+     * Executes the removal operation of a single instance of a quad with a blank node subject from this store
      *
      * @param graph    The graph containing the quad
      * @param subject  The quad subject node
@@ -633,7 +658,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes all the matching quads for a blank subject
+     * Executes the removal operation of a single instance of matching quads with a blank node subject from this store
      *
      * @param graph    The graph to match, or null
      * @param subject  The quad subject node to match, or null
@@ -659,7 +684,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes all the matching quads from the blank subjects
+     * Executes the removal operation of a single instance of matching quads with a blank node subject from this store
      *
      * @param graph    The graph to match, or null
      * @param property The quad property to match, or null
