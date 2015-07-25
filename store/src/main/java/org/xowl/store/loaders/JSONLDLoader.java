@@ -418,9 +418,12 @@ public abstract class JSONLDLoader implements Loader {
          */
         public String expandIRI(String term, boolean useVocab) {
             if (term.startsWith("_:"))
-                return null;
+                // blank node identifier, return as is
+                return term;
+
             if (term.contains(":")) {
-                String[] parts = term.split(":");
+                // term contains a colon, try to find a prefix that can be expanded
+                String[] parts = term.split(":", -1);
                 for (int i = 1; i != parts.length; i++) {
                     String prefix = rebuild(parts, 0, i - 1);
                     String suffix = rebuild(parts, i, parts.length - 1);
@@ -430,48 +433,51 @@ public abstract class JSONLDLoader implements Loader {
                     if (expandedPrefix != null)
                         return expandedPrefix + suffix;
                 }
-                return null;
-            } else {
-                // try to match a term
-                Context current = this;
-                while (current != null) {
-                    for (int i = current.fragments.size() - 1; i != -1; i--) {
-                        ContextFragment fragment = current.fragments.get(i);
-                        NameInfo info = fragment.names.get(term);
-                        if (info != null && info.fullIRI != null) {
-                            if (MARKER_NULL.equals(info.fullIRI))
-                                // explicitly forbids the expansion
-                                return term;
-                            return info.fullIRI;
-                        }
-                    }
-                    current = current.parent;
-                }
-                // find a base URI definition
-                current = this;
-                while (current != null) {
-                    for (int i = current.fragments.size() - 1; i != -1; i--) {
-                        ContextFragment fragment = current.fragments.get(i);
-                        if (fragment.base != null) {
-                            // found a base IRI
-                            if (MARKER_NULL.equals(fragment.base))
-                                // explicitly forbids the expansion
-                                return term;
-                            return Utils.normalizeIRI(resource, fragment.base, term);
-                        }
-                        if (useVocab && fragment.vocab != null) {
-                            // found a vocabulary
-                            if (MARKER_NULL.equals(fragment.vocab))
-                                // explicitly forbids the expansion
-                                return term;
-                            return Utils.normalizeIRI(resource, fragment.vocab, term);
-                        }
-                    }
-                    current = current.parent;
-                }
-                // expand from the resource
-                return Utils.normalizeIRI(resource, null, term);
             }
+
+            // try to match the complete term
+            Context current = this;
+            while (current != null) {
+                for (int i = current.fragments.size() - 1; i != -1; i--) {
+                    ContextFragment fragment = current.fragments.get(i);
+                    NameInfo info = fragment.names.get(term);
+                    if (info != null && info.fullIRI != null) {
+                        if (MARKER_NULL.equals(info.fullIRI))
+                            // explicitly forbids the expansion
+                            return term;
+                        return info.fullIRI;
+                    }
+                }
+                current = current.parent;
+            }
+
+            // find a base URI, or vocab definition
+            current = this;
+            while (current != null) {
+                for (int i = current.fragments.size() - 1; i != -1; i--) {
+                    ContextFragment fragment = current.fragments.get(i);
+                    if (fragment.base != null) {
+                        // found a base IRI
+                        if (MARKER_NULL.equals(fragment.base))
+                            // explicitly forbids the expansion
+                            return term;
+                        return Utils.normalizeIRI(resource, fragment.base, term);
+                    }
+                    if (useVocab && fragment.vocab != null) {
+                        // found a vocabulary
+                        if (MARKER_NULL.equals(fragment.vocab))
+                            // explicitly forbids the expansion
+                            return term;
+                        return Utils.normalizeIRI(resource, fragment.vocab, term);
+                    }
+                }
+                current = current.parent;
+            }
+
+            // expand from the resource
+
+            return term;
+            //return Utils.normalizeIRI(resource, null, term);
         }
 
         /**
@@ -996,7 +1002,7 @@ public abstract class JSONLDLoader implements Loader {
      */
     private Node loadLiteralString(ASTNode node, Context context, NameInfo info) throws LoadingException {
         String value = getValue(node);
-        if (info.valueType != null) {
+        if (info != null && info.valueType != null) {
             // coerced type
             if (KEYWORD_ID.equals(info.valueType))
                 // this is an identification property
@@ -1004,11 +1010,11 @@ public abstract class JSONLDLoader implements Loader {
             // this is a typed literal
             return store.getLiteralNode(value, info.valueType, null);
         }
-        String language = info.language != null ? info.language : context.getLanguage();
+        String language = (info != null && info.language != null) ? info.language : context.getLanguage();
         if (language != null && MARKER_NULL.equals(language))
             // explicit reset
             language = null;
-        return store.getLiteralNode(value, Vocabulary.xsdString, language);
+        return store.getLiteralNode(value, language == null ? Vocabulary.xsdString : Vocabulary.rdfLangString, language);
     }
 
     /**
@@ -1035,16 +1041,16 @@ public abstract class JSONLDLoader implements Loader {
         if (type != null) {
             // coerced type
             return store.getLiteralNode(value, type, null);
-        } else if (info.valueType != null) {
+        } else if (info != null && info.valueType != null) {
             // coerced type
             return store.getLiteralNode(value, info.valueType, null);
         } else {
             if (language == null)
-                language = info.language != null ? info.language : context.getLanguage();
+                language = (info != null && info.language != null) ? info.language : context.getLanguage();
             if (language != null && MARKER_NULL.equals(language))
                 // explicit reset
                 language = null;
-            return store.getLiteralNode(value, Vocabulary.xsdString, language);
+            return store.getLiteralNode(value, language == null ? Vocabulary.xsdString : Vocabulary.rdfLangString, language);
         }
     }
 
@@ -1077,7 +1083,7 @@ public abstract class JSONLDLoader implements Loader {
         for (ASTNode member : node.getChildren()) {
             String language = getValue(member.getChildren().get(0));
             String value = getValue(member.getChildren().get(1));
-            result.add(store.getLiteralNode(value, Vocabulary.xsdString, language));
+            result.add(store.getLiteralNode(value, Vocabulary.rdfLangString, language));
         }
         return result;
     }

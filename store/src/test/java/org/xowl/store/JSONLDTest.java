@@ -20,6 +20,7 @@
 
 package org.xowl.store;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -194,7 +195,7 @@ public class JSONLDTest extends BaseJSONLDTest {
         toRdfTest("http://json-ld.org/test-suite/tests/toRdf-0010-out.nq", "http://json-ld.org/test-suite/tests/toRdf-0010-in.jsonld");
     }
 
-    @Test
+    @Ignore("Uses generalized RDF graphs") @Test
     public void test_toRdf_t0118() {
         toRdfTest("http://json-ld.org/test-suite/tests/toRdf-0118-out.nq", "http://json-ld.org/test-suite/tests/toRdf-0118-in.jsonld");
     }

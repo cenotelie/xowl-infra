@@ -69,6 +69,10 @@ public class BaseJSONLDTest {
 
         // load the premise ontology and the default ontologies
         Ontology testedOntology = repository.load(logger, testedURI);
+        List<Quad> testedQuads = new ArrayList<>();
+        iterator = repository.getStore().getAll();
+        while (iterator.hasNext())
+            testedQuads.add(iterator.next());
         Assert.assertFalse("Some error occurred", logger.isOnError());
 
         // query the premise for a matching conclusion, modulo the blank nodes
@@ -102,5 +106,7 @@ public class BaseJSONLDTest {
 
         Collection<QuerySolution> solutions = repository.getQueryEngine().getBackend().execute(query);
         Assert.assertFalse("Mismatch between the expected and tested content", solutions.isEmpty());
+        Assert.assertEquals("Expected and tested content have different sizes", expectedQuads.size(), testedQuads.size());
+
     }
 }
