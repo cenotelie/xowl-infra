@@ -417,6 +417,24 @@ public abstract class JSONLDLoader implements Loader {
          * @return The corresponding IRI, or null if it cannot be expanded
          */
         public String expandIRI(String term, boolean useVocab) {
+            // look for a fix point in expansion
+            String current = term;
+            String result = doExpandIRI(term, useVocab);
+            while (!current.equals(result)) {
+                current = result;
+                result = doExpandIRI(result, useVocab);
+            }
+            return result;
+        }
+
+        /**
+         * Expands an IRI from the specified term, or null if it fails to
+         *
+         * @param term     A term
+         * @param useVocab Whether the vocabulary definition can be used in the exansion of the URI
+         * @return The corresponding IRI, or null if it cannot be expanded
+         */
+        public String doExpandIRI(String term, boolean useVocab) {
             if (term.startsWith("_:"))
                 // blank node identifier, return as is
                 return term;
@@ -461,23 +479,21 @@ public abstract class JSONLDLoader implements Loader {
                         if (MARKER_NULL.equals(fragment.base))
                             // explicitly forbids the expansion
                             return term;
-                        return Utils.normalizeIRI(resource, fragment.base, term);
+                        return Utils.normalizeIRI(resource, fragment.base, Utils.quote(term));
                     }
                     if (useVocab && fragment.vocab != null) {
                         // found a vocabulary
                         if (MARKER_NULL.equals(fragment.vocab))
                             // explicitly forbids the expansion
                             return term;
-                        return Utils.normalizeIRI(resource, fragment.vocab, term);
+                        return Utils.normalizeIRI(resource, fragment.vocab, Utils.quote(term));
                     }
                 }
                 current = current.parent;
             }
 
             // expand from the resource
-
-            return term;
-            //return Utils.normalizeIRI(resource, null, term);
+            return Utils.normalizeIRI(resource, null, Utils.quote(term));
         }
 
         /**
@@ -802,6 +818,9 @@ public abstract class JSONLDLoader implements Loader {
         NameInfo propertyInfo = context.getInfoFor(key);
         if (propertyInfo == null)
             // drop this undefined property
+            return;
+        if (propertyInfo.fullIRI.startsWith("_:"))
+            // this is a blank node identifier, do not handle generalized RDF graphs
             return;
         IRINode property = store.getNodeIRI(propertyInfo.fullIRI);
         Couple<Node, List<Node>> result = loadValue(definition, graph, context, propertyInfo);

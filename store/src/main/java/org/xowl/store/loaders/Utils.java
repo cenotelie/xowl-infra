@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.loaders;
 
@@ -100,5 +100,23 @@ public class Utils {
         URI uri = uriBase.resolve(iri);
         uri = uri.normalize();
         return uri.toString();
+    }
+
+    /**
+     * Quotes illegal URI characters in the specified term
+     *
+     * @param term A term
+     * @return The term with the illegal characters quoted
+     */
+    public static String quote(String term) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i != term.length(); i++) {
+            char c = term.charAt(i);
+            if (Character.isWhitespace(c))
+                builder.append("+");
+            else
+                builder.append(c);
+        }
+        return builder.toString();
     }
 }
