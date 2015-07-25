@@ -113,6 +113,36 @@ public abstract class JSONLDLoader implements Loader {
     );
 
     /**
+     * Represents an exception that occurs while loading some JSON-LD data due to some error in the input data
+     */
+    private static final class LoadingException extends Exception {
+        /**
+         * The AST node from which the error originated
+         */
+        private final ASTNode origin;
+
+        /**
+         * Gets the AST node from which the error originated
+         *
+         * @return The AST node from which the error originated
+         */
+        public ASTNode getOrigin() {
+            return origin;
+        }
+
+        /**
+         * Initializes this exception
+         *
+         * @param description The description for this exception
+         * @param origin      The AST node that from which the error originated
+         */
+        public LoadingException(String description, ASTNode origin) {
+            super(description);
+            this.origin = origin;
+        }
+    }
+
+    /**
      * The type of a container for a multi-valued property
      */
     private enum ContainerType {
@@ -187,7 +217,7 @@ public abstract class JSONLDLoader implements Loader {
          * @param parent     The parent context
          * @param iri        The assumed full IRI, if any
          */
-        public NameInfo(ASTNode definition, Context parent, String iri) {
+        public NameInfo(ASTNode definition, Context parent, String iri) throws LoadingException {
             switch (definition.getSymbol().getID()) {
                 case JSONLDLexer.ID.LITERAL_STRING:
                     // this is an IRI
@@ -273,7 +303,7 @@ public abstract class JSONLDLoader implements Loader {
          *
          * @param definition The AST node to load from
          */
-        public ContextFragment(ASTNode definition) {
+        public ContextFragment(ASTNode definition) throws LoadingException {
             this.names = new HashMap<>();
             String tLanguage = null;
             String tBase = null;
@@ -301,10 +331,12 @@ public abstract class JSONLDLoader implements Loader {
          * @param parent     The parent context
          * @param definition The AST node to load from
          */
-        public void loadNames(Context parent, ASTNode definition) {
+        public void loadNames(Context parent, ASTNode definition) throws LoadingException {
             for (ASTNode member : definition.getChildren()) {
                 String key = getValue(member.getChildren().get(0));
-                if (key != null && KEYWORDS.contains(key)) {
+                if (key == null)
+                    throw new LoadingException("Expected valid key", definition);
+                if (KEYWORDS.contains(key)) {
                     if (key.contains(":")) {
                         String[] parts = key.split(":");
                         // assume only two parts
@@ -345,7 +377,7 @@ public abstract class JSONLDLoader implements Loader {
          * @param parent     The parent context
          * @param definition The AST node to load from
          */
-        public Context(Context parent, ASTNode definition) {
+        public Context(Context parent, ASTNode definition) throws LoadingException {
             this.parent = definition.getSymbol().getID() == JSONLDLexer.ID.LITERAL_NULL ? null : parent;
             this.fragments = new ArrayList<>();
             List<ASTNode> definitions = new ArrayList<>();
@@ -576,7 +608,14 @@ public abstract class JSONLDLoader implements Loader {
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
-        loadDocument(parseResult.getRoot(), store.getNodeIRI(uri), new Context());
+        try {
+            loadDocument(parseResult.getRoot(), store.getNodeIRI(uri), new Context());
+        } catch (LoadingException exception) {
+            logger.error("@" + exception.getOrigin().getPosition() + " " + exception.getMessage());
+            TextContext context = exception.getOrigin().getContext();
+            logger.error(context.getContent());
+            logger.error(context.getPointer());
+        }
         return result;
     }
 
@@ -591,7 +630,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param iri The IRI of an auxiliary document
      * @return The parsed external document, or null if an error occured
      */
-    private ASTNode getExternalContextDefinition(String iri) {
+    private ASTNode getExternalContextDefinition(String iri) throws LoadingException {
         Reader reader = getReaderFor(logger, iri);
         if (reader == null)
             return null;
@@ -625,7 +664,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param graph   The default graph for this document
      * @param context The root context
      */
-    private void loadDocument(ASTNode node, GraphNode graph, Context context) {
+    private void loadDocument(ASTNode node, GraphNode graph, Context context) throws LoadingException {
         switch (node.getSymbol().getID()) {
             case JSONLDParser.ID.object:
                 loadObject(node, graph, context);
@@ -633,6 +672,8 @@ public abstract class JSONLDLoader implements Loader {
             case JSONLDParser.ID.array:
                 loadArray(node, graph, context, null);
                 break;
+            default:
+                throw new LoadingException("Unrecognized input " + node.getSymbol().getName(), node);
         }
     }
 
@@ -644,7 +685,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param context The parent context
      * @return The corresponding RDF node
      */
-    private SubjectNode loadObject(ASTNode node, GraphNode graph, Context context) {
+    private SubjectNode loadObject(ASTNode node, GraphNode graph, Context context) throws LoadingException {
         Map<String, ASTNode> members = new HashMap<>();
         for (ASTNode child : node.getChildren()) {
             String key = getValue(child.getChildren().get(0));
@@ -677,14 +718,12 @@ public abstract class JSONLDLoader implements Loader {
         ASTNode typeNode = members.remove(KEYWORD_TYPE);
         if (typeNode != null) {
             Couple<Node, List<Node>> couple = loadValue(typeNode, graph, current, PROPERTY_TYPE_INFO);
-            if (couple != null) {
-                if (couple.x != null)
-                    quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), couple.x));
-                else if (couple.y != null) {
-                    for (Node value : couple.y) {
-                        if (value != null)
-                            quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), couple.x));
-                    }
+            if (couple.x != null)
+                quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), couple.x));
+            else if (couple.y != null) {
+                for (Node value : couple.y) {
+                    if (value != null)
+                        quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), couple.x));
                 }
             }
         }
@@ -717,7 +756,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param context    The current context
      * @param reversed   Whether the property is reversed
      */
-    private void loadMember(String key, ASTNode definition, SubjectNode subject, GraphNode graph, Context context, boolean reversed) {
+    private void loadMember(String key, ASTNode definition, SubjectNode subject, GraphNode graph, Context context, boolean reversed) throws LoadingException {
         if (KEYWORDS.contains(key))
             // this is a keyword, drop it
             return;
@@ -727,9 +766,6 @@ public abstract class JSONLDLoader implements Loader {
             return;
         IRINode property = store.getNodeIRI(propertyInfo.fullIRI);
         Couple<Node, List<Node>> result = loadValue(definition, graph, context, propertyInfo);
-        if (result == null)
-            // weird result
-            return;
         if (result.x != null) {
             if (propertyInfo.reversed != null)
                 quads.add(new Quad(graph, (SubjectNode) result.x, store.getNodeIRI(propertyInfo.reversed), subject));
@@ -758,12 +794,10 @@ public abstract class JSONLDLoader implements Loader {
      * @param info    The information on the current name (property)
      * @return The corresponding RDF nodes
      */
-    private List<Node> loadArray(ASTNode node, GraphNode graph, Context context, NameInfo info) {
+    private List<Node> loadArray(ASTNode node, GraphNode graph, Context context, NameInfo info) throws LoadingException {
         List<Node> result = new ArrayList<>();
         for (ASTNode child : node.getChildren()) {
             Couple<Node, List<Node>> couple = loadValue(child, graph, context, info);
-            if (couple == null)
-                continue;
             if (couple.x != null)
                 result.add(couple.x);
             else if (couple.y != null) {
@@ -785,7 +819,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param info    The information on the current name (property)
      * @return The corresponding RDF node, or a collection od nodes in the case of some properties
      */
-    private Couple<Node, List<Node>> loadValue(ASTNode node, GraphNode graph, Context context, NameInfo info) {
+    private Couple<Node, List<Node>> loadValue(ASTNode node, GraphNode graph, Context context, NameInfo info) throws LoadingException {
         switch (node.getSymbol().getID()) {
             case JSONLDParser.ID.object: {
                 if (isValueNode(node))
@@ -815,8 +849,9 @@ public abstract class JSONLDLoader implements Loader {
                 return new Couple<Node, List<Node>>(store.getLiteralNode("true", Vocabulary.xsdBoolean, null), null);
             case JSONLDLexer.ID.LITERAL_FALSE:
                 return new Couple<Node, List<Node>>(store.getLiteralNode("false", Vocabulary.xsdBoolean, null), null);
+            default:
+                throw new LoadingException("Unrecognized input " + node.getSymbol().getName(), node);
         }
-        return null;
     }
 
     /**
@@ -826,11 +861,11 @@ public abstract class JSONLDLoader implements Loader {
      * @param context    The current context
      * @return The subject node, or null if it cannot be loaded
      */
-    private SubjectNode getSubjectFor(ASTNode definition, Context context) {
+    private SubjectNode getSubjectFor(ASTNode definition, Context context) throws LoadingException {
         String value = getValue(definition);
         if (value == null)
             // subject is invalid
-            return null;
+            throw new LoadingException("Expected a valid node id", definition);
         if (value.startsWith("_:")) {
             // this is blank node
             return resolveBlank(value.substring(2));
@@ -924,7 +959,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param info    The information on the current name (property)
      * @return The equivalent RDF node
      */
-    private Node loadLiteralString(ASTNode node, Context context, NameInfo info) {
+    private Node loadLiteralString(ASTNode node, Context context, NameInfo info) throws LoadingException {
         String value = getValue(node);
         if (info.valueType != null) {
             // coerced type
@@ -949,7 +984,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param info    The information on the current name (property)
      * @return The equivalent RDF node
      */
-    private Node loadValueNode(ASTNode node, Context context, NameInfo info) {
+    private Node loadValueNode(ASTNode node, Context context, NameInfo info) throws LoadingException {
         String value = null;
         String type = null;
         String language = "null";
@@ -986,7 +1021,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param info    The information on the current name (property)
      * @return The equivalent RDF node
      */
-    private Node loadListNode(ASTNode node, GraphNode graph, Context context, NameInfo info) {
+    private Node loadListNode(ASTNode node, GraphNode graph, Context context, NameInfo info) throws LoadingException {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             if (KEYWORD_LIST.equals(key)) {
@@ -1002,7 +1037,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF nodes
      */
-    private List<Node> loadMultilingualValues(ASTNode node) {
+    private List<Node> loadMultilingualValues(ASTNode node) throws LoadingException {
         List<Node> result = new ArrayList<>();
         for (ASTNode member : node.getChildren()) {
             String language = getValue(member.getChildren().get(0));
@@ -1018,9 +1053,11 @@ public abstract class JSONLDLoader implements Loader {
      * @param node An AST node that holds a literal string
      * @return The decoded value of the string
      */
-    private static String getValue(ASTNode node) {
-        if (node.getSymbol().getID() != JSONLDLexer.ID.LITERAL_STRING)
+    private static String getValue(ASTNode node) throws LoadingException {
+        if (node.getSymbol().getID() == JSONLDLexer.ID.LITERAL_NULL)
             return null;
+        if (node.getSymbol().getID() != JSONLDLexer.ID.LITERAL_STRING)
+            throw new LoadingException("Expected a string value", node);
         String value = node.getValue();
         value = value.substring(1, value.length() - 1);
         return Utils.unescape(value);
@@ -1032,7 +1069,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param node An AST node
      * @return true if this is a value node
      */
-    private static boolean isValueNode(ASTNode node) {
+    private static boolean isValueNode(ASTNode node) throws LoadingException {
         if (node.getSymbol().getID() != JSONLDParser.ID.object)
             return false;
         for (ASTNode member : node.getChildren()) {
@@ -1049,7 +1086,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param node An AST node
      * @return true if this is a list node
      */
-    private static boolean isListNode(ASTNode node) {
+    private static boolean isListNode(ASTNode node) throws LoadingException {
         if (node.getSymbol().getID() != JSONLDParser.ID.object)
             return false;
         for (ASTNode member : node.getChildren()) {
