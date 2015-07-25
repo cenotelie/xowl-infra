@@ -28,6 +28,7 @@ import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.Files;
 import org.xowl.utils.Logger;
+import org.xowl.utils.collections.Couple;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -130,7 +131,11 @@ public abstract class JSONLDLoader implements Loader {
         /**
          * Use an index
          */
-        Index
+        Index,
+        /**
+         * Multilingual property
+         */
+        Language
     }
 
     /**
@@ -149,6 +154,10 @@ public abstract class JSONLDLoader implements Loader {
          * The full IRI of the type for values of this property
          */
         public final String valueType;
+        /**
+         * The language associated to this property (implies the value type is xsd:string)
+         */
+        public final String language;
 
         /**
          * Initializes the content of this object
@@ -156,11 +165,13 @@ public abstract class JSONLDLoader implements Loader {
          * @param containerType The type of container for a multi-valued property
          * @param fullIRI       The full IRI of the name
          * @param valueType     The full IRI of the type for values of this property
+         * @param language      The language associated to this property (implies the value type is xsd:string)
          */
-        public NameInfo(ContainerType containerType, String fullIRI, String valueType) {
+        public NameInfo(ContainerType containerType, String fullIRI, String valueType, String language) {
             this.containerType = containerType;
             this.fullIRI = fullIRI;
             this.valueType = valueType;
+            this.language = language;
         }
 
         /**
@@ -177,12 +188,14 @@ public abstract class JSONLDLoader implements Loader {
                     containerType = ContainerType.Undefined;
                     fullIRI = parent.expandIRI(getValue(definition));
                     valueType = null;
+                    language = null;
                     break;
                 case JSONLDParser.ID.object:
                     // this is an object
                     String container = null;
                     String id = null;
                     String type = null;
+                    String lang = null;
                     for (ASTNode member : definition.getChildren()) {
                         String key = getValue(member.getChildren().get(0));
                         if (KEYWORD_ID.equals(key)) {
@@ -191,10 +204,14 @@ public abstract class JSONLDLoader implements Loader {
                             type = getValue(member.getChildren().get(1));
                         } else if (KEYWORD_CONTAINER.equals(key)) {
                             container = getValue(member.getChildren().get(1));
+                        } else if (KEYWORD_LANGUAGE.equals(key)) {
+                            lang = getValue(member.getChildren().get(1));
+                            lang = lang == null ? "null" : lang;
                         }
                     }
                     fullIRI = id != null ? id : iri;
                     valueType = KEYWORD_ID.equals(type) ? KEYWORD_ID : parent.expandIRI(type);
+                    language = lang;
                     if (KEYWORD_LIST.equals(container))
                         containerType = ContainerType.List;
                     else if (KEYWORD_SET.equals(container))
@@ -208,6 +225,7 @@ public abstract class JSONLDLoader implements Loader {
                     containerType = ContainerType.Undefined;
                     fullIRI = iri;
                     valueType = null;
+                    language = null;
             }
         }
     }
@@ -247,6 +265,8 @@ public abstract class JSONLDLoader implements Loader {
                 String key = getValue(member.getChildren().get(0));
                 if (KEYWORD_LANGUAGE.equals(key)) {
                     tLanguage = getValue(member.getChildren().get(1));
+                    // sets special language value for resetting the default language
+                    tLanguage = tLanguage == null ? "null" : tLanguage;
                 } else if (KEYWORD_BASE.equals(key)) {
                     tBase = getValue(member.getChildren().get(1));
                 } else if (KEYWORD_VOCAB.equals(key)) {
@@ -388,6 +408,7 @@ public abstract class JSONLDLoader implements Loader {
                 return null;
             ContainerType containerType = ContainerType.Undefined;
             String valueType = null;
+            String language = null;
             Context current = this;
             while (current != null) {
                 for (int i = current.fragments.size(); i != -1; i--) {
@@ -397,12 +418,39 @@ public abstract class JSONLDLoader implements Loader {
                                 containerType = info.containerType;
                             if (valueType == null)
                                 valueType = info.valueType;
+                            if (language == null)
+                                language = info.language;
                         }
                     }
                 }
                 current = current.parent;
             }
-            return new NameInfo(containerType, fullIRI, valueType);
+            return new NameInfo(containerType, fullIRI, valueType, language);
+        }
+
+        /**
+         * Gets the current language
+         *
+         * @return The current language, if any
+         */
+        public String getLanguage() {
+            Context current = this;
+            while (current != null) {
+                for (int i = current.fragments.size(); i != -1; i--) {
+                    String language = current.fragments.get(i).language;
+                    if (language != null) {
+                        if ("null".equals(language)) {
+                            // explicit reset
+                            return null;
+                        } else {
+                            // found  a defined language
+                            return language;
+                        }
+                    }
+                }
+                current = current.parent;
+            }
+            return null;
         }
 
         /**
@@ -642,9 +690,17 @@ public abstract class JSONLDLoader implements Loader {
                 }
             } else {
                 // a single-valued property
-                Node value = loadValue(definition, graph, current, propertyInfo);
-                if (value != null)
-                    quads.add(new Quad(graph, subject, property, value));
+                Couple<Node, List<Node>> result = loadValue(definition, graph, current, propertyInfo);
+                if (result == null)
+                    // weird result
+                    continue;
+                if (result.x != null)
+                    quads.add(new Quad(graph, subject, property, result.x));
+                else if (result.y != null) {
+                    // this was a multilingual property
+                    for (Node value : result.y)
+                        quads.add(new Quad(graph, subject, property, value));
+                }
             }
         }
         return subject;
@@ -661,8 +717,19 @@ public abstract class JSONLDLoader implements Loader {
      */
     private List<Node> loadArray(ASTNode node, GraphNode graph, Context context, NameInfo info) {
         List<Node> result = new ArrayList<>();
-        for (ASTNode child : node.getChildren())
-            result.add(loadValue(child, graph, context, info));
+        for (ASTNode child : node.getChildren()) {
+            Couple<Node, List<Node>> couple = loadValue(child, graph, context, info);
+            if (couple == null)
+                continue;
+            if (couple.x != null)
+                result.add(couple.x);
+            else if (couple.y != null) {
+                for (Node value : couple.y) {
+                    if (value != null)
+                        result.add(value);
+                }
+            }
+        }
         return result;
     }
 
@@ -673,14 +740,16 @@ public abstract class JSONLDLoader implements Loader {
      * @param graph   The parent graph
      * @param context The parent context
      * @param info    The information on the current name (property)
-     * @return The corresponding RDF node
+     * @return The corresponding RDF node, or a collection od nodes in the case of some properties
      */
-    private Node loadValue(ASTNode node, GraphNode graph, Context context, NameInfo info) {
+    private Couple<Node, List<Node>> loadValue(ASTNode node, GraphNode graph, Context context, NameInfo info) {
         switch (node.getSymbol().getID()) {
             case JSONLDParser.ID.object: {
                 if (isValueNode(node))
-                    return getNodeValue(node, context, info);
-                return loadObject(node, graph, context);
+                    return new Couple<>(getNodeValue(node, context, info), null);
+                else if (info.containerType == ContainerType.Language)
+                    return new Couple<>(null, getNodeValues(node, context, info));
+                return new Couple<Node, List<Node>>(loadObject(node, graph, context), null);
             }
             case JSONLDParser.ID.array: {
                 List<Node> elements = loadArray(node, graph, context, null);
@@ -688,19 +757,19 @@ public abstract class JSONLDLoader implements Loader {
                 break;
             }
             case JSONLDLexer.ID.LITERAL_INTEGER:
-                return getNodeInteger(node);
+                return new Couple<Node, List<Node>>(getNodeInteger(node), null);
             case JSONLDLexer.ID.LITERAL_DECIMAL:
-                return getNodeDecimal(node);
+                return new Couple<Node, List<Node>>(getNodeDecimal(node), null);
             case JSONLDLexer.ID.LITERAL_DOUBLE:
-                return getNodeDouble(node);
+                return new Couple<Node, List<Node>>(getNodeDouble(node), null);
             case JSONLDLexer.ID.LITERAL_STRING:
-                return getNodeString(node, context, info);
+                return new Couple<>(getNodeString(node, context, info), null);
             case JSONLDLexer.ID.LITERAL_NULL:
-                return null;
+                return new Couple<>(null, null);
             case JSONLDLexer.ID.LITERAL_TRUE:
-                return getNodeTrue();
+                return new Couple<Node, List<Node>>(getNodeTrue(), null);
             case JSONLDLexer.ID.LITERAL_FALSE:
-                return getNodeFalse();
+                return new Couple<Node, List<Node>>(getNodeFalse(), null);
         }
         return null;
     }
@@ -822,10 +891,14 @@ public abstract class JSONLDLoader implements Loader {
             if (KEYWORD_ID.equals(info.valueType))
                 // this is an IRI
                 return store.getNodeIRI(context.expandIRI(value));
-            // this is literal string
+            // this is a typed literal
             return store.getLiteralNode(value, info.valueType, null);
         }
-        return store.getLiteralNode(value, Vocabulary.xsdString, null);
+        String language = info.language != null ? info.language : context.getLanguage();
+        if (language != null && "null".equals(language))
+            // explicit reset
+            language = null;
+        return store.getLiteralNode(value, Vocabulary.xsdString, language);
     }
 
     /**
@@ -839,22 +912,51 @@ public abstract class JSONLDLoader implements Loader {
     private Node getNodeValue(ASTNode node, Context context, NameInfo info) {
         String value = null;
         String type = null;
+        String language = "null";
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             if (KEYWORD_VALUE.equals(key))
                 value = getValue(member.getChildren().get(1));
             else if (KEYWORD_TYPE.equals(key))
                 type = getValue(member.getChildren().get(1));
+            else if (KEYWORD_LANGUAGE.equals(key))
+                language = getValue(member.getChildren().get(1));
         }
         if (KEYWORD_ID.equals(type))
             // this is an IRI
             return store.getNodeIRI(context.expandIRI(value));
-        // this is a literal, compute the type by order of preference:
-        // - the type specified in this node
-        // - the expected type of the property
-        // - xsd:String
-        type = type != null ? context.expandIRI(type) : (info.valueType != null ? info.valueType : Vocabulary.xsdString);
-        return store.getLiteralNode(value, type, null);
+        if (type != null) {
+            // coerced type
+            return store.getLiteralNode(value, type, null);
+        } else if (info.valueType != null) {
+            // coerced type
+            return store.getLiteralNode(value, info.valueType, null);
+        } else {
+            if (language == null)
+                language = info.language != null ? info.language : context.getLanguage();
+            if (language != null && "null".equals(language))
+                // explicit reset
+                language = null;
+            return store.getLiteralNode(value, Vocabulary.xsdString, language);
+        }
+    }
+
+    /**
+     * Gets the RDF nodes equivalent to the specified AST node that represents the values of a multilingual property
+     *
+     * @param node    An AST node
+     * @param context The parent context
+     * @param info    The information on the current name (property)
+     * @return The equivalent RDF nodes
+     */
+    private List<Node> getNodeValues(ASTNode node, Context context, NameInfo info) {
+        List<Node> result = new ArrayList<>();
+        for (ASTNode member : node.getChildren()) {
+            String language = getValue(member.getChildren().get(0));
+            String value = getValue(member.getChildren().get(1));
+            result.add(store.getLiteralNode(value, Vocabulary.xsdString, language));
+        }
+        return result;
     }
 
     /**
