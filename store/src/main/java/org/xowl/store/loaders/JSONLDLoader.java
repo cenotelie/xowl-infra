@@ -77,7 +77,7 @@ public abstract class JSONLDLoader implements Loader {
      */
     private static final String KEYWORD_REVERSE = "@reverse";
     /**
-     * Property that specifies the index of an object in a container
+     * Property that specifies the indexing of a propert values
      */
     private static final String KEYWORD_INDEX = "@index";
     /**
@@ -143,7 +143,7 @@ public abstract class JSONLDLoader implements Loader {
     }
 
     /**
-     * The type of a container for a multi-valued property
+     * The type of a container a property
      */
     private enum ContainerType {
         /**
@@ -151,19 +151,19 @@ public abstract class JSONLDLoader implements Loader {
          */
         Undefined,
         /**
-         * Use a list
+         * An ordered list
          */
         List,
         /**
-         * Use a set
+         * An unordered list
          */
         Set,
         /**
-         * Use an index
+         * An indexed object
          */
         Index,
         /**
-         * Multilingual property
+         * A multilingual object
          */
         Language
     }
@@ -259,6 +259,8 @@ public abstract class JSONLDLoader implements Loader {
                         containerType = ContainerType.Set;
                     else if (KEYWORD_INDEX.equals(container))
                         containerType = ContainerType.Index;
+                    else if (KEYWORD_LANGUAGE.equals(container))
+                        containerType = ContainerType.Language;
                     else
                         containerType = ContainerType.Undefined;
                     break;
@@ -828,6 +830,8 @@ public abstract class JSONLDLoader implements Loader {
                     return new Couple<>(loadListNode(node, graph, context, info), null);
                 else if (info != null && info.containerType == ContainerType.Language)
                     return new Couple<>(null, loadMultilingualValues(node));
+                else if (info != null && info.containerType == ContainerType.Index)
+                    return new Couple<>(null, loadIndexedValues(node, graph, context, info));
                 return new Couple<Node, List<Node>>(loadObject(node, graph, context), null);
             }
             case JSONLDParser.ID.array:
@@ -1043,6 +1047,32 @@ public abstract class JSONLDLoader implements Loader {
             String language = getValue(member.getChildren().get(0));
             String value = getValue(member.getChildren().get(1));
             result.add(store.getLiteralNode(value, Vocabulary.xsdString, language));
+        }
+        return result;
+    }
+
+    /**
+     * Gets the RDF node equivalent to the specified AST node that represents an indexed collection
+     *
+     * @param node    An AST node
+     * @param graph   The current graph
+     * @param context The current context
+     * @param info    The information on the current name (property)
+     * @return The values
+     */
+    private List<Node> loadIndexedValues(ASTNode node, GraphNode graph, Context context, NameInfo info) throws LoadingException {
+        List<Node> result = new ArrayList<>();
+        for (ASTNode member : node.getChildren()) {
+            // the index does not translate to RDF
+            Couple<Node, List<Node>> couple = loadValue(member.getChildren().get(1), graph, context, info);
+            if (couple.x != null)
+                result.add(couple.x);
+            else if (couple.y != null) {
+                for (Node value : couple.y) {
+                    if (value != null)
+                        result.add(value);
+                }
+            }
         }
         return result;
     }
