@@ -427,7 +427,7 @@ public abstract class JSONLDLoader implements Loader {
             } else {
                 Context current = this;
                 while (current != null) {
-                    for (int i = current.fragments.size(); i != -1; i--) {
+                    for (int i = current.fragments.size() - 1; i != -1; i--) {
                         ContextFragment fragment = current.fragments.get(i);
                         NameInfo info = fragment.names.get(term);
                         if (info.fullIRI == null)
@@ -463,7 +463,7 @@ public abstract class JSONLDLoader implements Loader {
             Context current = this;
             String reversed = null;
             while (current != null) {
-                for (int i = current.fragments.size(); i != -1; i--) {
+                for (int i = current.fragments.size() - 1; i != -1; i--) {
                     for (NameInfo info : current.fragments.get(i).names.values()) {
                         if (fullIRI.equals(info.fullIRI)) {
                             if (containerType == ContainerType.Undefined)
@@ -490,7 +490,7 @@ public abstract class JSONLDLoader implements Loader {
         public String getLanguage() {
             Context current = this;
             while (current != null) {
-                for (int i = current.fragments.size(); i != -1; i--) {
+                for (int i = current.fragments.size() - 1; i != -1; i--) {
                     String language = current.fragments.get(i).language;
                     if (language != null) {
                         if ("null".equals(language)) {
@@ -536,7 +536,7 @@ public abstract class JSONLDLoader implements Loader {
         private String expandNamespace(String name) {
             Context current = this;
             while (current != null) {
-                for (int i = current.fragments.size(); i != -1; i--) {
+                for (int i = current.fragments.size() - 1; i != -1; i--) {
                     ContextFragment fragment = current.fragments.get(i);
                     NameInfo result = fragment.names.get(name);
                     if (result != null)
