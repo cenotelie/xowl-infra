@@ -503,30 +503,52 @@ public abstract class JSONLDLoader implements Loader {
          * @return The associated information
          */
         public NameInfo getInfoFor(String term) {
-            String fullIRI = expandIRI(term, true);
-            if (fullIRI == null)
-                return null;
             ContainerType containerType = ContainerType.Undefined;
+            String fullIRI = null;
             String valueType = null;
             String language = null;
-            Context current = this;
             String reversed = null;
+            boolean found = false;
+            Context current = this;
             while (current != null) {
                 for (int i = current.fragments.size() - 1; i != -1; i--) {
-                    for (NameInfo info : current.fragments.get(i).names.values()) {
-                        if (fullIRI.equals(info.fullIRI)) {
-                            if (containerType == ContainerType.Undefined)
-                                containerType = info.containerType;
-                            if (valueType == null)
-                                valueType = info.valueType;
-                            if (language == null)
-                                language = info.language;
-                            if (reversed == null)
-                                reversed = info.reversed;
-                        }
+                    NameInfo info = current.fragments.get(i).names.get(term);
+                    if (info != null) {
+                        found = true;
+                        if (fullIRI == null)
+                            fullIRI = info.fullIRI;
+                        if (containerType == ContainerType.Undefined)
+                            containerType = info.containerType;
+                        if (valueType == null)
+                            valueType = info.valueType;
+                        if (language == null)
+                            language = info.language;
+                        if (reversed == null)
+                            reversed = info.reversed;
                     }
                 }
                 current = current.parent;
+            }
+            if (!found) {
+                fullIRI = expandIRI(term, true);
+                current = this;
+                while (current != null) {
+                    for (int i = current.fragments.size() - 1; i != -1; i--) {
+                        for (NameInfo info : current.fragments.get(i).names.values()) {
+                            if (info.fullIRI != null && info.fullIRI.equals(fullIRI)) {
+                                if (containerType == ContainerType.Undefined)
+                                    containerType = info.containerType;
+                                if (valueType == null)
+                                    valueType = info.valueType;
+                                if (language == null)
+                                    language = info.language;
+                                if (reversed == null)
+                                    reversed = info.reversed;
+                            }
+                        }
+                    }
+                    current = current.parent;
+                }
             }
             return new NameInfo(containerType, fullIRI, valueType, language, reversed);
         }
@@ -816,17 +838,16 @@ public abstract class JSONLDLoader implements Loader {
             // this is a keyword, drop it
             return;
         NameInfo propertyInfo = context.getInfoFor(key);
-        if (propertyInfo == null)
-            // drop this undefined property
-            return;
-        if (propertyInfo.fullIRI.startsWith("_:"))
+        String propertyIRI = propertyInfo.reversed != null ? propertyInfo.reversed : propertyInfo.fullIRI;
+        if (propertyIRI == null || propertyIRI.startsWith("_:"))
+            // property is undefined or
             // this is a blank node identifier, do not handle generalized RDF graphs
             return;
-        IRINode property = store.getNodeIRI(propertyInfo.fullIRI);
+        IRINode property = store.getNodeIRI(propertyIRI);
         Couple<Node, List<Node>> result = loadValue(definition, graph, context, propertyInfo);
         if (result.x != null) {
             if (propertyInfo.reversed != null)
-                quads.add(new Quad(graph, (SubjectNode) result.x, store.getNodeIRI(propertyInfo.reversed), subject));
+                quads.add(new Quad(graph, (SubjectNode) result.x, property, subject));
             else if (reversed)
                 quads.add(new Quad(graph, (SubjectNode) result.x, property, subject));
             else
@@ -834,7 +855,7 @@ public abstract class JSONLDLoader implements Loader {
         } else if (result.y != null) {
             for (Node value : result.y) {
                 if (propertyInfo.reversed != null)
-                    quads.add(new Quad(graph, (SubjectNode) value, store.getNodeIRI(propertyInfo.reversed), subject));
+                    quads.add(new Quad(graph, (SubjectNode) value, property, subject));
                 else if (reversed)
                     quads.add(new Quad(graph, (SubjectNode) value, property, subject));
                 else
@@ -887,7 +908,7 @@ public abstract class JSONLDLoader implements Loader {
                 else if (info != null && info.containerType == ContainerType.Language)
                     return new Couple<>(null, loadMultilingualValues(node));
                 else if (info != null && info.containerType == ContainerType.Index)
-                    return new Couple<>(null, loadIndexedValues(node, graph, context, info));
+                    return new Couple<>(null, loadIndexedValues(node, graph, context));
                 return new Couple<Node, List<Node>>(loadObject(node, graph, context), null);
             }
             case JSONLDParser.ID.array:
@@ -997,7 +1018,7 @@ public abstract class JSONLDLoader implements Loader {
      */
     private LiteralNode loadLiteralDecimal(ASTNode node) {
         String value = node.getValue();
-        return store.getLiteralNode(value, Vocabulary.xsdDecimal, null);
+        return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
     }
 
     /**
@@ -1027,7 +1048,7 @@ public abstract class JSONLDLoader implements Loader {
                 // this is an identification property
                 return getSubjectFor(node, context);
             // this is a typed literal
-            return store.getLiteralNode(value, info.valueType, null);
+            return store.getLiteralNode(value, context.expandIRI(info.valueType, true), null);
         }
         String language = (info != null && info.language != null) ? info.language : context.getLanguage();
         if (language != null && MARKER_NULL.equals(language))
@@ -1059,10 +1080,10 @@ public abstract class JSONLDLoader implements Loader {
         }
         if (type != null) {
             // coerced type
-            return store.getLiteralNode(value, type, null);
+            return store.getLiteralNode(value, context.expandIRI(type, true), null);
         } else if (info != null && info.valueType != null) {
             // coerced type
-            return store.getLiteralNode(value, info.valueType, null);
+            return store.getLiteralNode(value, context.expandIRI(info.valueType, true), null);
         } else {
             if (language == null)
                 language = (info != null && info.language != null) ? info.language : context.getLanguage();
@@ -1113,14 +1134,13 @@ public abstract class JSONLDLoader implements Loader {
      * @param node    An AST node
      * @param graph   The current graph
      * @param context The current context
-     * @param info    The information on the current name (property)
      * @return The values
      */
-    private List<Node> loadIndexedValues(ASTNode node, GraphNode graph, Context context, NameInfo info) throws LoadingException {
+    private List<Node> loadIndexedValues(ASTNode node, GraphNode graph, Context context) throws LoadingException {
         List<Node> result = new ArrayList<>();
         for (ASTNode member : node.getChildren()) {
             // the index does not translate to RDF
-            Couple<Node, List<Node>> couple = loadValue(member.getChildren().get(1), graph, context, info);
+            Couple<Node, List<Node>> couple = loadValue(member.getChildren().get(1), graph, context, null);
             if (couple.x != null)
                 result.add(couple.x);
             else if (couple.y != null) {
