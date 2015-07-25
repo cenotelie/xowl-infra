@@ -38,7 +38,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class JSONLDLoader implements Loader {
+public abstract class JSONLDLoader implements Loader {
     /**
      * Property which value describes a context
      */
@@ -134,15 +134,15 @@ public class JSONLDLoader implements Loader {
     }
 
     /**
-     * Represents the information about a property
+     * Represents the information about a name
      */
-    private static class PropertyInfo {
+    private static class NameInfo {
         /**
          * The type of container for a multi-valued property
          */
         public final ContainerType containerType;
         /**
-         * The full IRI of the property
+         * The full IRI of the name
          */
         public final String fullIRI;
         /**
@@ -151,16 +151,31 @@ public class JSONLDLoader implements Loader {
         public final String valueType;
 
         /**
-         * Initializes this property information
-         * @param definition The definition to load from
-         * @param context The current context
+         * Initializes the content of this object
+         *
+         * @param containerType The type of container for a multi-valued property
+         * @param fullIRI       The full IRI of the name
+         * @param valueType     The full IRI of the type for values of this property
          */
-        public PropertyInfo(ASTNode definition, Context context) {
+        public NameInfo(ContainerType containerType, String fullIRI, String valueType) {
+            this.containerType = containerType;
+            this.fullIRI = fullIRI;
+            this.valueType = valueType;
+        }
+
+        /**
+         * Initializes this name information
+         *
+         * @param definition The definition to load from
+         * @param parent     The parent context
+         * @param iri        The assumed full IRI, if any
+         */
+        public NameInfo(ASTNode definition, Context parent, String iri) {
             switch (definition.getSymbol().getID()) {
                 case JSONLDLexer.ID.LITERAL_STRING:
                     // this is an IRI
                     containerType = ContainerType.Undefined;
-                    fullIRI = context.expandIRI(getValue(definition));
+                    fullIRI = parent.expandIRI(getValue(definition));
                     valueType = null;
                     break;
                 case JSONLDParser.ID.object:
@@ -171,20 +186,15 @@ public class JSONLDLoader implements Loader {
                     for (ASTNode member : definition.getChildren()) {
                         String key = getValue(member.getChildren().get(0));
                         if (KEYWORD_ID.equals(key)) {
-                            id = context.expandIRI(getValue(member.getChildren().get(1)));
+                            id = parent.expandIRI(getValue(member.getChildren().get(1)));
                         } else if (KEYWORD_TYPE.equals(key)) {
                             type = getValue(member.getChildren().get(1));
-                            if (!KEYWORD_ID.equals(type))
-                                type = context.expandIRI(type);
                         } else if (KEYWORD_CONTAINER.equals(key)) {
                             container = getValue(member.getChildren().get(1));
                         }
                     }
-                    fullIRI = id;
-                    if (KEYWORD_ID.equals(type))
-                        valueType = fullIRI;
-                    else
-                        valueType = type;
+                    fullIRI = id != null ? id : iri;
+                    valueType = KEYWORD_ID.equals(type) ? KEYWORD_ID : parent.expandIRI(type);
                     if (KEYWORD_LIST.equals(container))
                         containerType = ContainerType.List;
                     else if (KEYWORD_SET.equals(container))
@@ -196,11 +206,80 @@ public class JSONLDLoader implements Loader {
                     break;
                 default:
                     containerType = ContainerType.Undefined;
-                    fullIRI = null;
+                    fullIRI = iri;
                     valueType = null;
             }
         }
     }
+
+    /**
+     * Represents a fragment of context
+     */
+    private static final class ContextFragment {
+        /**
+         * The current names
+         */
+        public final Map<String, NameInfo> names;
+        /**
+         * The current language
+         */
+        public final String language;
+        /**
+         * The current base URI
+         */
+        public final String base;
+        /**
+         * The current vocabulary radical
+         */
+        public final String vocab;
+
+        /**
+         * Initializes this fragment
+         *
+         * @param definition The AST node to load from
+         */
+        public ContextFragment(ASTNode definition) {
+            this.names = new HashMap<>();
+            String tLanguage = null;
+            String tBase = null;
+            String tVocab = null;
+            for (ASTNode member : definition.getChildren()) {
+                String key = getValue(member.getChildren().get(0));
+                if (KEYWORD_LANGUAGE.equals(key)) {
+                    tLanguage = getValue(member.getChildren().get(1));
+                } else if (KEYWORD_BASE.equals(key)) {
+                    tBase = getValue(member.getChildren().get(1));
+                } else if (KEYWORD_VOCAB.equals(key)) {
+                    tVocab = getValue(member.getChildren().get(1));
+                }
+            }
+            this.language = tLanguage;
+            this.base = tBase;
+            this.vocab = tVocab;
+        }
+
+        /**
+         * Loads the name definitions for this fragment
+         *
+         * @param parent     The parent context
+         * @param definition The AST node to load from
+         */
+        public void loadNames(Context parent, ASTNode definition) {
+            for (ASTNode member : definition.getChildren()) {
+                String key = getValue(member.getChildren().get(0));
+                if (key != null && KEYWORDS.contains(key)) {
+                    if (key.contains(":")) {
+                        String[] parts = key.split(":");
+                        // assume only two parts
+                        names.put(parts[1], new NameInfo(member.getChildren().get(1), parent, parent.expandIRI(key)));
+                    } else {
+                        names.put(key, new NameInfo(member.getChildren().get(1), parent, null));
+                    }
+                }
+            }
+        }
+    }
+
 
     /**
      * Represents a context for the loader
@@ -211,121 +290,127 @@ public class JSONLDLoader implements Loader {
          */
         private final Context parent;
         /**
-         * The current namespaces
+         * The fragments in this context
          */
-        private final Map<String, PropertyInfo> properties;
-        /**
-         * The current language
-         */
-        private final String language;
-        /**
-         * The current base URI
-         */
-        private final String base;
-        /**
-         * The current vocabulary radical
-         */
-        private final String vocab;
+        private final List<ContextFragment> fragments;
 
         /**
          * Initializes an empty context
          */
         public Context() {
-            this(null, null);
+            this.parent = null;
+            this.fragments = Collections.emptyList();
         }
 
         /**
          * Initializes this context with the specified parent
-         * @param parent The parent context
+         *
+         * @param parent     The parent context
          * @param definition The AST node to load from
          */
         public Context(Context parent, ASTNode definition) {
             this.parent = parent;
-            this.properties = new HashMap<>();
-            if (definition != null) {
-                if (definition.getSymbol().getID() == JSONLDLexer.ID.LITERAL_STRING)
-                    definition = loadExternalDocument(getValue(definition));
-                if (definition != null) {
-                    String tLanguage = null;
-                    String tBase = null;
-                    String tVocab = null;
-                    for (ASTNode member : definition.getChildren()) {
-                        String key = getValue(member.getChildren().get(0));
-
-
-                    }
-                    this.language = tLanguage;
-                    this.base = tBase;
-                    this.vocab = tVocab;
-                    return;
+            this.fragments = new ArrayList<>();
+            List<ASTNode> definitions = new ArrayList<>();
+            definitions.add(definition);
+            for (int i = 0; i != definitions.size(); i++) {
+                definition = definitions.get(i);
+                if (definition.getSymbol().getID() == JSONLDLexer.ID.LITERAL_STRING) {
+                    // external document
+                    definition = getExternalContextDefinition(getValue(definition));
+                    if (definition != null)
+                        definitions.add(definition);
+                } else if (definition.getSymbol().getID() == JSONLDParser.ID.array) {
+                    // combined definitions
+                    definitions.addAll(definition.getChildren());
+                } else if (definition.getSymbol().getID() == JSONLDParser.ID.object) {
+                    // inline definition
+                    ContextFragment fragment = new ContextFragment(definition);
+                    fragments.add(fragment);
+                    fragment.loadNames(this, definition);
                 }
             }
-            this.language = null;
-            this.base = null;
-            this.vocab = null;
         }
 
         /**
-         * Expands the specified term to get the corresponding RDF node
+         * Expands an IRI from the specified term, or null if it fails to
+         *
          * @param term A term
-         * @return The corresponding RDF node
+         * @return The corresponding IRI, or null if it cannot be expanded
          */
-        public Node expand(String term) {
-            if (term.contains(":")) {
-                String[] parts = term.split(":");
-                for (int i = 1; i != parts.length; i++) {
-                    String prefix = rebuild(parts, 0, i - 1);
-                    String suffix = rebuild(parts, i, parts.length - 1);
-                    if (prefix.equals("_")) {
-                        // this is a blank node
-                        BlankNode result = blanks.get(suffix);
-                        if (result == null) {
-                            result = store.newNodeBlank();
-                            blanks.put(suffix, result);
-                        }
-                        return result;
-                    }
-                    if (suffix.startsWith("//"))
-                        return store.getNodeIRI(prefix + ":" + suffix);
-                    String expandedPrefix = expandNamespace(prefix);
-                    if (!expandedPrefix.equals(prefix))
-                        // expanded
-                        return store.getNodeIRI(expandedPrefix + suffix);
-                }
-                return null;
-            } else {
-                String expanded = expandNamespace(term);
-                return expanded.equals(term) ? null : store.getNodeIRI(expanded);
-            }
-        }
-
-
         public String expandIRI(String term) {
+            if (term.startsWith("_:"))
+                return null;
             if (term.contains(":")) {
                 String[] parts = term.split(":");
                 for (int i = 1; i != parts.length; i++) {
                     String prefix = rebuild(parts, 0, i - 1);
                     String suffix = rebuild(parts, i, parts.length - 1);
                     if (suffix.startsWith("//"))
-                        return store.getNodeIRI(prefix + ":" + suffix);
+                        return prefix + ":" + suffix;
                     String expandedPrefix = expandNamespace(prefix);
-                    if (!expandedPrefix.equals(prefix))
-                        // expanded
-                        return store.getNodeIRI(expandedPrefix + suffix);
+                    if (expandedPrefix != null)
+                        return expandedPrefix + suffix;
                 }
                 return null;
             } else {
-                String expanded = expandNamespace(term);
-                return expanded.equals(term) ? null : store.getNodeIRI(expanded);
+                Context current = this;
+                while (current != null) {
+                    for (int i = current.fragments.size(); i != -1; i--) {
+                        ContextFragment fragment = current.fragments.get(i);
+                        NameInfo info = fragment.names.get(term);
+                        if (info.fullIRI == null)
+                            // explicitly forbids the expansion
+                            return term;
+                        if (fragment.vocab != null)
+                            // expand using the vocabulary radical
+                            return fragment.vocab + term;
+                        if (fragment.base != null)
+                            // found a base IRI
+                            return Utils.normalizeIRI(resource, fragment.base, term);
+                    }
+                    current = current.parent;
+                }
+                // could not either forbid the expansion or find a vocabulary or a base URI
+                return term;
             }
         }
 
+        /**
+         * Gets the information about the specified name
+         *
+         * @param term A name
+         * @return The associated information
+         */
+        public NameInfo getInfoFor(String term) {
+            String fullIRI = expandIRI(term);
+            if (fullIRI == null)
+                return null;
+            ContainerType containerType = ContainerType.Undefined;
+            String valueType = null;
+            Context current = this;
+            while (current != null) {
+                for (int i = current.fragments.size(); i != -1; i--) {
+                    for (NameInfo info : current.fragments.get(i).names.values()) {
+                        if (fullIRI.equals(info.fullIRI)) {
+                            if (containerType == ContainerType.Undefined)
+                                containerType = info.containerType;
+                            if (valueType == null)
+                                valueType = info.valueType;
+                        }
+                    }
+                }
+                current = current.parent;
+            }
+            return new NameInfo(containerType, fullIRI, valueType);
+        }
 
         /**
          * Rebuilds a split string
+         *
          * @param parts The parts
          * @param start The index of the first part
-         * @param end The index of the last part
+         * @param end   The index of the last part
          * @return The rebuilt string
          */
         private String rebuild(String[] parts, int start, int end) {
@@ -342,18 +427,22 @@ public class JSONLDLoader implements Loader {
 
         /**
          * Expands a name with the available namespaces
+         *
          * @param name A name
-         * @return The full name
+         * @return The full name, or null if it cannot be expanded
          */
         private String expandNamespace(String name) {
             Context current = this;
             while (current != null) {
-                String result = current.namespaces.get(name);
-                if (result != null)
-                    return result;
+                for (int i = current.fragments.size(); i != -1; i--) {
+                    ContextFragment fragment = current.fragments.get(i);
+                    NameInfo result = fragment.names.get(name);
+                    if (result != null)
+                        return result.fullIRI;
+                }
                 current = current.parent;
             }
-            return name;
+            return null;
         }
     }
 
@@ -361,6 +450,18 @@ public class JSONLDLoader implements Loader {
      * The RDF store to create nodes from
      */
     private final RDFStore store;
+    /**
+     * The current logger
+     */
+    private Logger logger;
+    /**
+     * The loaded triples
+     */
+    private List<Quad> quads;
+    /**
+     * The URI of the resource currently being loaded
+     */
+    private String resource;
     /**
      * Maps of blanks nodes
      */
@@ -411,26 +512,15 @@ public class JSONLDLoader implements Loader {
 
     @Override
     public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
-        blanks = new HashMap<>();
         RDFLoaderResult result = new RDFLoaderResult();
-        GraphNode graph = store.getNodeIRI(uri);
-
+        this.logger = logger;
+        quads = result.getQuads();
+        resource = uri;
+        blanks = new HashMap<>();
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
-
-        try {
-            for (ASTNode triple : parseResult.getRoot().getChildren()) {
-                Node n1 = getRDFNode(triple.getChildren().get(0));
-                Node n2 = getRDFNode(triple.getChildren().get(1));
-                Node n3 = getRDFNode(triple.getChildren().get(2));
-                result.getQuads().add(new Quad(graph, (SubjectNode) n1, (Property) n2, n3));
-            }
-        } catch (IllegalArgumentException ex) {
-            // IRI must be absolute
-            return null;
-        }
-
+        loadDocument(parseResult.getRoot(), store.getNodeIRI(uri), new Context());
         return result;
     }
 
@@ -439,162 +529,228 @@ public class JSONLDLoader implements Loader {
         throw new UnsupportedOperationException();
     }
 
-
     /**
-     * Loads an external document at the specified IRI
+     * Loads a context definition in an external document at the specified IRI
+     *
      * @param iri The IRI of an auxiliary document
      * @return The parsed external document, or null if an error occured
      */
-    private ASTNode loadExternalDocument(String iri) {
+    private ASTNode getExternalContextDefinition(String iri) {
+        Reader reader = getReaderFor(logger, iri);
+        if (reader == null)
+            return null;
+        ParseResult result = parse(logger, reader);
+        if (result == null)
+            return null;
+        ASTNode root = result.getRoot();
+        if (root.getSymbol().getID() != JSONLDParser.ID.object)
+            return null;
+        for (ASTNode member : root.getChildren()) {
+            String key = getValue(member.getChildren().get(0));
+            if (KEYWORD_CONTEXT.equals(key))
+                return member.getChildren().get(1);
+        }
         return null;
     }
 
-
-
+    /**
+     * Gets a reader for the external document at the specified IRI
+     *
+     * @param logger The logger to use
+     * @param iri    The IRI of an auxiliary document
+     * @return The corresponding reader, or null if it cannot be resolved
+     */
+    protected abstract Reader getReaderFor(Logger logger, String iri);
 
     /**
      * Loads a JSON-LD document from the specified AST node
-     * @param node The AST node
+     *
+     * @param node    The AST node
+     * @param graph   The default graph for this document
+     * @param context The root context
      */
-    private void loadDocument(ASTNode node) {
-        GraphNode graph = store.getDefaultGraph();
+    private void loadDocument(ASTNode node, GraphNode graph, Context context) {
         switch (node.getSymbol().getID()) {
             case JSONLDParser.ID.object:
-                loadObject(node, graph);
+                loadObject(node, graph, context);
                 break;
             case JSONLDParser.ID.array:
-                loadArray(node, graph);
+                loadArray(node, graph, context, null);
                 break;
         }
     }
 
     /**
      * Loads a JSON-LD object from the specified AST node
-     * @param node The AST node
-     * @param graph The parent graph
+     *
+     * @param node    The AST node
+     * @param graph   The parent graph
      * @param context The parent context
      * @return The corresponding RDF node
      */
     private SubjectNode loadObject(ASTNode node, GraphNode graph, Context context) {
         Map<String, ASTNode> members = new HashMap<>();
         for (ASTNode child : node.getChildren()) {
-            String key = child.getChildren().get(0).getValue();
-            key = key.substring(1, key.length() - 1);
-            key = Utils.unescape(key);
-            members.put(key, child);
+            String key = getValue(child.getChildren().get(0));
+            members.put(key, child.getChildren().get(1));
         }
 
-        Context current = new Context(context);
-        ASTNode contextNode = members.get("@context");
-        if (contextNode != null) {
+        // load the new context
+        Context current = context;
+        ASTNode contextNode = members.get(KEYWORD_CONTEXT);
+        if (contextNode != null)
+            current = new Context(context, contextNode);
 
+        // setup the subject from an id
+        ASTNode idNode = members.get(KEYWORD_ID);
+        SubjectNode subject = idNode != null ? getSubjectFor(idNode, current) : store.newNodeBlank();
+
+        // setup the type
+        ASTNode typeNode = members.get(KEYWORD_TYPE);
+        if (typeNode != null) {
+            if (typeNode.getSymbol().getID() == JSONLDParser.ID.array) {
+                List<Node> values = loadArray(typeNode, graph, current, null);
+                for (Node value : values) {
+                    if (value != null)
+                        quads.add(new Quad(graph, subject, getNodeIsA(), value));
+                }
+            } else {
+                Node value = getSubjectFor(typeNode, current);
+                if (value != null)
+                    quads.add(new Quad(graph, subject, getNodeIsA(), value));
+            }
         }
 
-        SubjectNode subject = null;
-        if (members.containsKey("@id")) {
-            ASTNode valueNode = members.get("@id");
-
+        // load the rest of the values
+        for (Map.Entry<String, ASTNode> entry : members.entrySet()) {
+            if (KEYWORDS.contains(entry.getKey()))
+                // this is a keyword, drop it
+                continue;
+            NameInfo propertyInfo = current.getInfoFor(entry.getKey());
+            if (propertyInfo == null)
+                // drop this undefined property
+                continue;
+            IRINode property = store.getNodeIRI(propertyInfo.fullIRI);
+            ASTNode definition = entry.getValue();
+            if (definition.getSymbol().getID() == JSONLDParser.ID.array) {
+                // a multi-valued property
+                List<Node> values = loadArray(definition, graph, current, propertyInfo);
+                // is this a list or a set?
+                for (Node value : values) {
+                    if (value != null)
+                        quads.add(new Quad(graph, subject, property, value));
+                }
+            } else {
+                // a single-valued property
+                Node value = loadValue(definition, graph, current, propertyInfo);
+                if (value != null)
+                    quads.add(new Quad(graph, subject, property, value));
+            }
         }
-
-        return null;
+        return subject;
     }
 
     /**
      * Loads a JSON-LD array from the specified AST node
-     * @param node The AST node
-     * @param graph The parent graph
+     *
+     * @param node    The AST node
+     * @param graph   The parent graph
      * @param context The parent context
+     * @param info    The information on the current name (property)
      * @return The corresponding RDF nodes
      */
-    private List<Node> loadArray(ASTNode node, GraphNode graph, Context context) {
+    private List<Node> loadArray(ASTNode node, GraphNode graph, Context context, NameInfo info) {
         List<Node> result = new ArrayList<>();
         for (ASTNode child : node.getChildren())
-            result.add(loadValue(child, graph, context));
+            result.add(loadValue(child, graph, context, info));
         return result;
     }
 
     /**
      * Loads a JSON-LD value from the specified AST node
-     * @param node The AST node
-     * @param graph The parent graph
+     *
+     * @param node    The AST node
+     * @param graph   The parent graph
      * @param context The parent context
+     * @param info    The information on the current name (property)
      * @return The corresponding RDF node
      */
-    private Node loadValue(ASTNode node, GraphNode graph, Context context) {
+    private Node loadValue(ASTNode node, GraphNode graph, Context context, NameInfo info) {
         switch (node.getSymbol().getID()) {
-            case JSONLDParser.ID.object:
+            case JSONLDParser.ID.object: {
+                if (isValueNode(node))
+                    return getNodeValue(node, context, info);
                 return loadObject(node, graph, context);
+            }
             case JSONLDParser.ID.array: {
+                List<Node> elements = loadArray(node, graph, context, null);
                 // construct the RDF list
                 break;
             }
             case JSONLDLexer.ID.LITERAL_INTEGER:
+                return getNodeInteger(node);
             case JSONLDLexer.ID.LITERAL_DECIMAL:
+                return getNodeDecimal(node);
             case JSONLDLexer.ID.LITERAL_DOUBLE:
+                return getNodeDouble(node);
             case JSONLDLexer.ID.LITERAL_STRING:
+                return getNodeString(node, context, info);
             case JSONLDLexer.ID.LITERAL_NULL:
+                return null;
             case JSONLDLexer.ID.LITERAL_TRUE:
+                return getNodeTrue();
             case JSONLDLexer.ID.LITERAL_FALSE:
-                break;
+                return getNodeFalse();
         }
         return null;
     }
 
-
-
-
-    private Context loadContext(ASTNode node, Context parentContext) {
-        Context context = new Context(parentContext);
-
-        for (ASTNode child : node.getChildren()) {
-            String key = getStringValue(child.getChildren().get(0));
-            if (key.equals("@language")) {
-                String value = getStringValue(child.getChildren().get(1));
-                context.setLanguage(value);
-            } else if (key.equals("@base")) {
-                String value = getStringValue(child.getChildren().get(1));
-                context.setLanguage(value);
-            } else if (key.equals("@vocab")) {
-
-            } else if (key.startsWith("@")) {
-
-            } else {
-
-            }
+    /**
+     * Gets the subject node defined by the specified AST node
+     *
+     * @param definition The AST node definition
+     * @param context    The current context
+     * @return The subject node, or null if it cannot be loaded
+     */
+    private SubjectNode getSubjectFor(ASTNode definition, Context context) {
+        String value = getValue(definition);
+        if (value == null)
+            // subject is invalid
+            return null;
+        if (value.startsWith("_:")) {
+            // this is blank node
+            return resolveBlank(value.substring(2));
+        } else {
+            // this is an IRI
+            return store.getNodeIRI(context.expandIRI(value));
         }
-
-
-        return context;
     }
-
-
-
-
 
     /**
-     * Loads the specified node as a value expected to be an IRI
-     * @param node The AST node
-     * @param context The current context
-     * @return The IRI, or null if the value is ill-formed
+     * Resolves the blank node with the specified identifier
+     *
+     * @param identifier The identifier of a blank node
+     * @return The associated blank node
      */
-    private String loadValueAsIRI(ASTNode node, Context context) {
-
+    private BlankNode resolveBlank(String identifier) {
+        BlankNode result = blanks.get(identifier);
+        if (result == null) {
+            result = store.newNodeBlank();
+            blanks.put(identifier, result);
+        }
+        return result;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     * Gets the RDF IRI node for the RDF type element
+     *
+     * @return The RDF IRI node
+     */
+    private IRINode getNodeIsA() {
+        if (cacheIsA == null)
+            cacheIsA = store.getNodeIRI(Vocabulary.rdfType);
+        return cacheIsA;
+    }
 
     /**
      * Gets the RDF Literal node for the boolean true value
@@ -651,17 +807,84 @@ public class JSONLDLoader implements Loader {
         return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
     }
 
+    /**
+     * Gets the RDF node equivalent to the specified AST node
+     *
+     * @param node    An AST node
+     * @param context The parent context
+     * @param info    The information on the current name (property)
+     * @return The equivalent RDF node
+     */
+    private Node getNodeString(ASTNode node, Context context, NameInfo info) {
+        String value = getValue(node);
+        if (info.valueType != null) {
+            // coerced type
+            if (KEYWORD_ID.equals(info.valueType))
+                // this is an IRI
+                return store.getNodeIRI(context.expandIRI(value));
+            // this is literal string
+            return store.getLiteralNode(value, info.valueType, null);
+        }
+        return store.getLiteralNode(value, Vocabulary.xsdString, null);
+    }
+
+    /**
+     * Gets the RDF node equivalent to the specified AST node
+     *
+     * @param node    An AST node
+     * @param context The parent context
+     * @param info    The information on the current name (property)
+     * @return The equivalent RDF node
+     */
+    private Node getNodeValue(ASTNode node, Context context, NameInfo info) {
+        String value = null;
+        String type = null;
+        for (ASTNode member : node.getChildren()) {
+            String key = getValue(member.getChildren().get(0));
+            if (KEYWORD_VALUE.equals(key))
+                value = getValue(member.getChildren().get(1));
+            else if (KEYWORD_TYPE.equals(key))
+                type = getValue(member.getChildren().get(1));
+        }
+        if (KEYWORD_ID.equals(type))
+            // this is an IRI
+            return store.getNodeIRI(context.expandIRI(value));
+        // this is a literal, compute the type by order of preference:
+        // - the type specified in this node
+        // - the expected type of the property
+        // - xsd:String
+        type = type != null ? context.expandIRI(type) : (info.valueType != null ? info.valueType : Vocabulary.xsdString);
+        return store.getLiteralNode(value, type, null);
+    }
 
     /**
      * Gets the decoded value of the specified AST node that holds a literal string
+     *
      * @param node An AST node that holds a literal string
      * @return The decoded value of the string
      */
     private static String getValue(ASTNode node) {
-        if (node.getSymbol().getID() == JSONLDLexer.ID.LITERAL_NULL)
+        if (node.getSymbol().getID() != JSONLDLexer.ID.LITERAL_STRING)
             return null;
         String value = node.getValue();
         value = value.substring(1, value.length() - 1);
         return Utils.unescape(value);
+    }
+
+    /**
+     * Determines whether the specified AST node defines a value node (as opposed to an object node)
+     *
+     * @param node An AST node
+     * @return true if this is a value node
+     */
+    private static boolean isValueNode(ASTNode node) {
+        if (node.getSymbol().getID() != JSONLDParser.ID.object)
+            return false;
+        for (ASTNode member : node.getChildren()) {
+            String key = getValue(member.getChildren().get(0));
+            if (KEYWORD_VALUE.equals(key))
+                return true;
+        }
+        return false;
     }
 }

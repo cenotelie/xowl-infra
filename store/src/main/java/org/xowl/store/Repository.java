@@ -34,6 +34,7 @@ import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.SkippableIterator;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.*;
 
 /**
@@ -316,7 +317,22 @@ public class Repository extends AbstractRepository {
             case SYNTAX_RDFXML:
                 return new RDFXMLLoader(backend);
             case SYNTAX_JSON_LD:
-                return new JSONLDLoader(backend);
+                return new JSONLDLoader(backend) {
+                    @Override
+                    protected Reader getReaderFor(Logger logger, String iri) {
+                        String resource = mapper.get(iri);
+                        if (resource == null) {
+                            logger.error("Cannot identify the location of " + iri);
+                            return null;
+                        }
+                        try {
+                            return AbstractRepository.getReaderFor(resource);
+                        } catch (IOException ex) {
+                            logger.error(ex);
+                            return null;
+                        }
+                    }
+                };
         }
         return null;
     }
