@@ -656,16 +656,16 @@ public abstract class JSONLDLoader implements Loader {
         // setup the type
         ASTNode typeNode = members.get(KEYWORD_TYPE);
         if (typeNode != null) {
-            if (typeNode.getSymbol().getID() == JSONLDParser.ID.array) {
-                List<Node> values = loadArray(typeNode, graph, current, null);
-                for (Node value : values) {
-                    if (value != null)
-                        quads.add(new Quad(graph, subject, getNodeIsA(), value));
+            Couple<Node, List<Node>> couple = loadValue(typeNode, graph, current, new NameInfo(ContainerType.Undefined, Vocabulary.rdfType, KEYWORD_ID, null));
+            if (couple != null) {
+                if (couple.x != null)
+                    quads.add(new Quad(graph, subject, getNodeRDFType(), couple.x));
+                else if (couple.y != null) {
+                    for (Node value : couple.y) {
+                        if (value != null)
+                            quads.add(new Quad(graph, subject, getNodeRDFType(), couple.x));
+                    }
                 }
-            } else {
-                Node value = getSubjectFor(typeNode, current);
-                if (value != null)
-                    quads.add(new Quad(graph, subject, getNodeIsA(), value));
             }
         }
 
@@ -680,27 +680,16 @@ public abstract class JSONLDLoader implements Loader {
                 continue;
             IRINode property = store.getNodeIRI(propertyInfo.fullIRI);
             ASTNode definition = entry.getValue();
-            if (definition.getSymbol().getID() == JSONLDParser.ID.array) {
-                // a multi-valued property
-                List<Node> values = loadArray(definition, graph, current, propertyInfo);
-                // is this a list or a set?
-                for (Node value : values) {
-                    if (value != null)
-                        quads.add(new Quad(graph, subject, property, value));
-                }
-            } else {
-                // a single-valued property
-                Couple<Node, List<Node>> result = loadValue(definition, graph, current, propertyInfo);
-                if (result == null)
-                    // weird result
-                    continue;
-                if (result.x != null)
-                    quads.add(new Quad(graph, subject, property, result.x));
-                else if (result.y != null) {
-                    // this was a multilingual property
-                    for (Node value : result.y)
-                        quads.add(new Quad(graph, subject, property, value));
-                }
+            Couple<Node, List<Node>> result = loadValue(definition, graph, current, propertyInfo);
+            if (result == null)
+                // weird result
+                continue;
+            if (result.x != null)
+                quads.add(new Quad(graph, subject, property, result.x));
+            else if (result.y != null) {
+                // this was a multilingual property
+                for (Node value : result.y)
+                    quads.add(new Quad(graph, subject, property, value));
             }
         }
         return subject;
@@ -746,24 +735,21 @@ public abstract class JSONLDLoader implements Loader {
         switch (node.getSymbol().getID()) {
             case JSONLDParser.ID.object: {
                 if (isValueNode(node))
-                    return new Couple<>(getNodeValue(node, context, info), null);
+                    return new Couple<>(loadValueNode(node, context, info), null);
                 else if (info.containerType == ContainerType.Language)
-                    return new Couple<>(null, getNodeValues(node, context, info));
+                    return new Couple<>(null, loadMultilingualValues(node));
                 return new Couple<Node, List<Node>>(loadObject(node, graph, context), null);
             }
-            case JSONLDParser.ID.array: {
-                List<Node> elements = loadArray(node, graph, context, null);
-                // construct the RDF list
-                break;
-            }
+            case JSONLDParser.ID.array:
+                return new Couple<>(null, loadArray(node, graph, context, info));
             case JSONLDLexer.ID.LITERAL_INTEGER:
-                return new Couple<Node, List<Node>>(getNodeInteger(node), null);
+                return new Couple<Node, List<Node>>(loadLiteralInteger(node), null);
             case JSONLDLexer.ID.LITERAL_DECIMAL:
-                return new Couple<Node, List<Node>>(getNodeDecimal(node), null);
+                return new Couple<Node, List<Node>>(loadLiteralDecimal(node), null);
             case JSONLDLexer.ID.LITERAL_DOUBLE:
-                return new Couple<Node, List<Node>>(getNodeDouble(node), null);
+                return new Couple<Node, List<Node>>(loadLiteralDouble(node), null);
             case JSONLDLexer.ID.LITERAL_STRING:
-                return new Couple<>(getNodeString(node, context, info), null);
+                return new Couple<>(loadLiteralString(node, context, info), null);
             case JSONLDLexer.ID.LITERAL_NULL:
                 return new Couple<>(null, null);
             case JSONLDLexer.ID.LITERAL_TRUE:
@@ -815,7 +801,7 @@ public abstract class JSONLDLoader implements Loader {
      *
      * @return The RDF IRI node
      */
-    private IRINode getNodeIsA() {
+    private IRINode getNodeRDFType() {
         if (cacheIsA == null)
             cacheIsA = store.getNodeIRI(Vocabulary.rdfType);
         return cacheIsA;
@@ -849,7 +835,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF Integer Literal node
      */
-    private LiteralNode getNodeInteger(ASTNode node) {
+    private LiteralNode loadLiteralInteger(ASTNode node) {
         String value = node.getValue();
         return store.getLiteralNode(value, Vocabulary.xsdInteger, null);
     }
@@ -860,7 +846,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF Decimal Literal node
      */
-    private LiteralNode getNodeDecimal(ASTNode node) {
+    private LiteralNode loadLiteralDecimal(ASTNode node) {
         String value = node.getValue();
         return store.getLiteralNode(value, Vocabulary.xsdDecimal, null);
     }
@@ -871,7 +857,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF Double Literal node
      */
-    private LiteralNode getNodeDouble(ASTNode node) {
+    private LiteralNode loadLiteralDouble(ASTNode node) {
         String value = node.getValue();
         return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
     }
@@ -884,13 +870,13 @@ public abstract class JSONLDLoader implements Loader {
      * @param info    The information on the current name (property)
      * @return The equivalent RDF node
      */
-    private Node getNodeString(ASTNode node, Context context, NameInfo info) {
+    private Node loadLiteralString(ASTNode node, Context context, NameInfo info) {
         String value = getValue(node);
         if (info.valueType != null) {
             // coerced type
             if (KEYWORD_ID.equals(info.valueType))
-                // this is an IRI
-                return store.getNodeIRI(context.expandIRI(value));
+                // this is an identification property
+                return getSubjectFor(node, context);
             // this is a typed literal
             return store.getLiteralNode(value, info.valueType, null);
         }
@@ -909,7 +895,7 @@ public abstract class JSONLDLoader implements Loader {
      * @param info    The information on the current name (property)
      * @return The equivalent RDF node
      */
-    private Node getNodeValue(ASTNode node, Context context, NameInfo info) {
+    private Node loadValueNode(ASTNode node, Context context, NameInfo info) {
         String value = null;
         String type = null;
         String language = "null";
@@ -922,9 +908,6 @@ public abstract class JSONLDLoader implements Loader {
             else if (KEYWORD_LANGUAGE.equals(key))
                 language = getValue(member.getChildren().get(1));
         }
-        if (KEYWORD_ID.equals(type))
-            // this is an IRI
-            return store.getNodeIRI(context.expandIRI(value));
         if (type != null) {
             // coerced type
             return store.getLiteralNode(value, type, null);
@@ -944,12 +927,10 @@ public abstract class JSONLDLoader implements Loader {
     /**
      * Gets the RDF nodes equivalent to the specified AST node that represents the values of a multilingual property
      *
-     * @param node    An AST node
-     * @param context The parent context
-     * @param info    The information on the current name (property)
+     * @param node An AST node
      * @return The equivalent RDF nodes
      */
-    private List<Node> getNodeValues(ASTNode node, Context context, NameInfo info) {
+    private List<Node> loadMultilingualValues(ASTNode node) {
         List<Node> result = new ArrayList<>();
         for (ASTNode member : node.getChildren()) {
             String language = getValue(member.getChildren().get(0));
