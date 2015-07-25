@@ -309,7 +309,7 @@ public abstract class JSONLDLoader implements Loader {
          * @param definition The AST node to load from
          */
         public Context(Context parent, ASTNode definition) {
-            this.parent = parent;
+            this.parent = definition.getSymbol().getID() == JSONLDLexer.ID.LITERAL_NULL ? null : parent;
             this.fragments = new ArrayList<>();
             List<ASTNode> definitions = new ArrayList<>();
             definitions.add(definition);
