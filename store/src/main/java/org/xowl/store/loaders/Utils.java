@@ -20,6 +20,9 @@
 
 package org.xowl.store.loaders;
 
+import org.apache.xerces.impl.dv.InvalidDatatypeValueException;
+import org.apache.xerces.impl.dv.xs.DoubleDV;
+
 import java.net.URI;
 
 /**
@@ -32,6 +35,10 @@ public class Utils {
      * Strings containing the escaped glyphs
      */
     private static final String ESCAPED_GLYHPS = "\\'\"_~.!$&()*+,;=/?#@%-";
+    /**
+     * Utility for the validation of double values
+     */
+    private static final DoubleDV CANONICAL_DOUBLE = new DoubleDV();
 
     /**
      * Translates the specified string into a new one by replacing the escape sequences by their value
@@ -118,5 +125,21 @@ public class Utils {
                 builder.append(c);
         }
         return builder.toString();
+    }
+
+    /**
+     * Gets the canonical lexical form of a double value
+     *
+     * @param value A serialized double value
+     * @return The canonical lexical form
+     */
+    public static String canonicalDouble(String value) {
+        try {
+            Object x = CANONICAL_DOUBLE.getActualValue(value, null);
+            return x.toString();
+        } catch (InvalidDatatypeValueException exception) {
+            // do nothing
+            return value;
+        }
     }
 }

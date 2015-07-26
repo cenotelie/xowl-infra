@@ -242,7 +242,7 @@ public abstract class JSONLDLoader implements Loader {
                         String key = getValue(member.getChildren().get(0));
                         if (KEYWORD_ID.equals(key)) {
                             id = getValue(member.getChildren().get(1));
-                            id = id == null ? MARKER_NULL : parent.expandIRI(id, true);
+                            id = id == null ? MARKER_NULL : id;
                         } else if (KEYWORD_TYPE.equals(key)) {
                             type = getValue(member.getChildren().get(1));
                         } else if (KEYWORD_CONTAINER.equals(key)) {
@@ -515,15 +515,15 @@ public abstract class JSONLDLoader implements Loader {
                     NameInfo info = current.fragments.get(i).names.get(term);
                     if (info != null) {
                         found = true;
-                        if (fullIRI == null)
-                            fullIRI = info.fullIRI;
+                        if (fullIRI == null && info.fullIRI != null)
+                            fullIRI = MARKER_NULL.equals(info.fullIRI) ? info.fullIRI : expandIRI(info.fullIRI, true);
                         if (containerType == ContainerType.Undefined)
                             containerType = info.containerType;
-                        if (valueType == null)
+                        if (valueType == null && info.valueType != null)
                             valueType = info.valueType;
-                        if (language == null)
-                            language = info.language;
-                        if (reversed == null)
+                        if (language == null && info.language != null)
+                            language = MARKER_NULL.equals(info.language) ? MARKER_NULL : info.language;
+                        if (reversed == null && info.reversed != null)
                             reversed = info.reversed;
                     }
                 }
@@ -535,14 +535,14 @@ public abstract class JSONLDLoader implements Loader {
                 while (current != null) {
                     for (int i = current.fragments.size() - 1; i != -1; i--) {
                         for (NameInfo info : current.fragments.get(i).names.values()) {
-                            if (info.fullIRI != null && info.fullIRI.equals(fullIRI)) {
+                            if (info.fullIRI != null && fullIRI.equals(expandIRI(info.fullIRI, true))) {
                                 if (containerType == ContainerType.Undefined)
                                     containerType = info.containerType;
-                                if (valueType == null)
+                                if (valueType == null && info.valueType != null)
                                     valueType = info.valueType;
-                                if (language == null)
-                                    language = info.language;
-                                if (reversed == null)
+                                if (language == null && info.language != null)
+                                    language = MARKER_NULL.equals(info.language) ? MARKER_NULL : info.language;
+                                if (reversed == null && info.reversed != null)
                                     reversed = info.reversed;
                             }
                         }
@@ -550,6 +550,8 @@ public abstract class JSONLDLoader implements Loader {
                     current = current.parent;
                 }
             }
+            if (MARKER_NULL.equals(language))
+                language = null;
             return new NameInfo(containerType, fullIRI, valueType, language, reversed);
         }
 
@@ -614,7 +616,7 @@ public abstract class JSONLDLoader implements Loader {
                         if (MARKER_NULL.equals(info.fullIRI))
                             // explicitly forbids the expansion
                             return name;
-                        return info.fullIRI;
+                        return expandIRI(info.fullIRI, true);
                     }
                 }
                 current = current.parent;
@@ -917,11 +919,9 @@ public abstract class JSONLDLoader implements Loader {
                 else
                     return new Couple<>(null, loadArray(node, graph, context, info));
             case JSONLDLexer.ID.LITERAL_INTEGER:
-                return new Couple<Node, List<Node>>(loadLiteralInteger(node), null);
             case JSONLDLexer.ID.LITERAL_DECIMAL:
-                return new Couple<Node, List<Node>>(loadLiteralDecimal(node), null);
             case JSONLDLexer.ID.LITERAL_DOUBLE:
-                return new Couple<Node, List<Node>>(loadLiteralDouble(node), null);
+                return new Couple<Node, List<Node>>(loadLiteralNumeric(node, context, info), null);
             case JSONLDLexer.ID.LITERAL_STRING:
                 return new Couple<>(loadLiteralString(node, context, info), null);
             case JSONLDLexer.ID.LITERAL_NULL:
@@ -1000,36 +1000,41 @@ public abstract class JSONLDLoader implements Loader {
     }
 
     /**
-     * Gets the RDF Integer Literal equivalent to the specified AST node
+     * Gets the RDF numeric Literal equivalent to the specified AST node
      *
-     * @param node An AST node
-     * @return The equivalent RDF Integer Literal node
+     * @param node    An AST node
+     * @param context The parent context
+     * @param info    The information on the current name (property)
+     * @return The equivalent RDF numeric Literal node
      */
-    private LiteralNode loadLiteralInteger(ASTNode node) {
-        String value = node.getValue();
-        return store.getLiteralNode(value, Vocabulary.xsdInteger, null);
-    }
-
-    /**
-     * Gets the RDF Decimal Literal equivalent to the specified AST node
-     *
-     * @param node An AST node
-     * @return The equivalent RDF Decimal Literal node
-     */
-    private LiteralNode loadLiteralDecimal(ASTNode node) {
-        String value = node.getValue();
-        return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
-    }
-
-    /**
-     * Gets the RDF Double Literal equivalent to the specified AST node
-     *
-     * @param node An AST node
-     * @return The equivalent RDF Double Literal node
-     */
-    private LiteralNode loadLiteralDouble(ASTNode node) {
-        String value = node.getValue();
-        return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
+    private LiteralNode loadLiteralNumeric(ASTNode node, Context context, NameInfo info) throws LoadingException {
+        switch (node.getSymbol().getID()) {
+            case JSONLDLexer.ID.LITERAL_INTEGER: {
+                String value = node.getValue();
+                if (info != null && info.valueType != null) {
+                    // coerced type
+                    switch (info.valueType) {
+                        case Vocabulary.xsdFloat:
+                        case Vocabulary.xsdDouble:
+                        case Vocabulary.xsdDecimal:
+                            return store.getLiteralNode(Utils.canonicalDouble(value), context.expandIRI(info.valueType, true), null);
+                        default:
+                            return store.getLiteralNode(value, context.expandIRI(info.valueType, true), null);
+                    }
+                }
+                return store.getLiteralNode(value, Vocabulary.xsdInteger, null);
+            }
+            case JSONLDLexer.ID.LITERAL_DECIMAL:
+            case JSONLDLexer.ID.LITERAL_DOUBLE: {
+                String value = Utils.canonicalDouble(node.getValue());
+                if (info != null && info.valueType != null) {
+                    // coerced type
+                    return store.getLiteralNode(Utils.canonicalDouble(value), context.expandIRI(info.valueType, true), null);
+                }
+                return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
+            }
+        }
+        throw new LoadingException("Unexpected literal numeric", node);
     }
 
     /**
