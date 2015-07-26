@@ -75,6 +75,9 @@ public class BaseJSONLDTest {
             testedQuads.add(iterator.next());
         Assert.assertFalse("Some error occurred", logger.isOnError());
 
+        if (expectedQuads.isEmpty() && testedQuads.isEmpty())
+            // assert success here
+            return;
         // query the premise for a matching conclusion, modulo the blank nodes
         Query query = new Query();
         Map<BlankNode, VariableNode> variables = new HashMap<>();
