@@ -249,8 +249,6 @@ class JSONLDContext {
             }
             current = current.parent;
         }
-        if (JSONLDLoader.MARKER_NULL.equals(result.language))
-            result.language = null;
         if (result.valueType != null && !JSONLDLoader.KEYWORD_ID.equals(result.valueType))
             result.valueType = expandSubject(result.valueType);
         if (result.reversed != null)
