@@ -88,33 +88,60 @@ class JSONLDContext {
     }
 
     /**
-     * Expands an IRI from the specified term, or null if it fails to
+     * Expands a property name into an IRI
      *
-     * @param term     A term
-     * @param useVocab Whether the vocabulary definition can be used in the expansion of the URI
+     * @param term A term
      * @return The corresponding IRI, or null if it cannot be expanded
      */
-    public String expandIRI(String term, boolean useVocab) {
+    public String expandProperty(String term) {
+        return doExpandIRI(term, false, true, false);
+    }
+
+    /**
+     * Expands a subject into an IRI
+     *
+     * @param term A term
+     * @return The corresponding IRI, or null if it cannot be expanded
+     */
+    public String expandSubject(String term) {
+        return doExpandIRI(term, true, false, true);
+    }
+
+    /**
+     * Expands the specified term into an IRI
+     *
+     * @param term          A term
+     * @param useBaseURI    Whether the base URI definition can be used in the expansion of the IRI
+     * @param useVocabulary Whether the vocabulary definition can be used in the expansion of the IRI
+     * @param useResource   Whether the resource URI can be used in the expansion of the IRI
+     * @return The corresponding IRI, or null if it cannot be expanded
+     */
+    private String doExpandIRI(final String term, final boolean useBaseURI, final boolean useVocabulary, final boolean useResource) {
+        if (term == null)
+            return null;
+        if (JSONLDLoader.KEYWORDS.contains(term))
+            // do not map keywords
+            return null;
         // look for a fix point in expansion
         String current = term;
-        String result = doExpandIRI(term, useVocab);
+        String result = doExpandIRIOneTime(term, useBaseURI, useVocabulary, useResource);
         while (!current.equals(result)) {
             current = result;
-            result = doExpandIRI(result, useVocab);
-            if (result == null)
-                return null;
+            result = doExpandIRIOneTime(current, useBaseURI, useVocabulary, useResource);
         }
         return result;
     }
 
     /**
-     * Expands an IRI from the specified term
+     * Expands a single time the specified term
      *
-     * @param term     A term
-     * @param useVocab Whether the vocabulary definition can be used in the expansion of the URI
+     * @param term          A term
+     * @param useBaseURI    Whether the base URI definition can be used in the expansion of the IRI
+     * @param useVocabulary Whether the vocabulary definition can be used in the expansion of the IRI
+     * @param useResource   Whether the resource URI can be used in the expansion of the IRI
      * @return The corresponding IRI
      */
-    private String doExpandIRI(String term, boolean useVocab) {
+    private String doExpandIRIOneTime(final String term, final boolean useBaseURI, final boolean useVocabulary, final boolean useResource) {
         if (term.startsWith("_:"))
             // blank node identifier, return as is
             return term;
@@ -153,30 +180,32 @@ class JSONLDContext {
         }
 
         // find a base URI, or vocabulary definition
-        current = this;
-        while (current != null) {
-            for (int i = current.fragments.size() - 1; i != -1; i--) {
-                JSONLDContextFragment fragment = current.fragments.get(i);
-                if (fragment.getBaseURI() != null) {
-                    // found a base IRI
-                    if (JSONLDLoader.MARKER_NULL.equals(fragment.getBaseURI()))
-                        // explicitly forbids the expansion
-                        return term;
-                    return Utils.normalizeIRI(loader.getCurrentResource(), fragment.getBaseURI(), Utils.quote(term));
+        if (useBaseURI || useResource) {
+            current = this;
+            while (current != null) {
+                for (int i = current.fragments.size() - 1; i != -1; i--) {
+                    JSONLDContextFragment fragment = current.fragments.get(i);
+                    if (useBaseURI && fragment.getBaseURI() != null) {
+                        // found a base IRI
+                        if (JSONLDLoader.MARKER_NULL.equals(fragment.getBaseURI()))
+                            // explicitly forbids the expansion
+                            return term;
+                        return Utils.normalizeIRI(loader.getCurrentResource(), fragment.getBaseURI(), Utils.quote(term));
+                    }
+                    if (useVocabulary && fragment.getVocabulary() != null) {
+                        // found a vocabulary
+                        if (JSONLDLoader.MARKER_NULL.equals(fragment.getVocabulary()))
+                            // explicitly forbids the expansion
+                            return term;
+                        return Utils.normalizeIRI(loader.getCurrentResource(), fragment.getVocabulary(), Utils.quote(term));
+                    }
                 }
-                if (useVocab && fragment.getVocabulary() != null) {
-                    // found a vocabulary
-                    if (JSONLDLoader.MARKER_NULL.equals(fragment.getVocabulary()))
-                        // explicitly forbids the expansion
-                        return term;
-                    return Utils.normalizeIRI(loader.getCurrentResource(), fragment.getVocabulary(), Utils.quote(term));
-                }
+                current = current.parent;
             }
-            current = current.parent;
         }
 
         // expand from the resource
-        return Utils.normalizeIRI(loader.getCurrentResource(), null, Utils.quote(term));
+        return useResource ? Utils.normalizeIRI(loader.getCurrentResource(), null, Utils.quote(term)) : term;
     }
 
     /**
@@ -211,7 +240,7 @@ class JSONLDContext {
      */
     public JSONLDNameInfo getInfoFor(String term) {
         JSONLDNameInfo result = new JSONLDNameInfo();
-        result.fullIRI = expandIRI(term, true);
+        result.fullIRI = expandProperty(term);
         JSONLDContext current = this;
         while (current != null) {
             for (int i = current.fragments.size() - 1; i != -1; i--) {
@@ -223,9 +252,9 @@ class JSONLDContext {
         if (JSONLDLoader.MARKER_NULL.equals(result.language))
             result.language = null;
         if (result.valueType != null && !JSONLDLoader.KEYWORD_ID.equals(result.valueType))
-            result.valueType = expandIRI(result.valueType, true);
+            result.valueType = expandSubject(result.valueType);
         if (result.reversed != null)
-            result.reversed = expandIRI(result.reversed, true);
+            result.reversed = expandProperty(result.reversed);
         return result;
     }
 

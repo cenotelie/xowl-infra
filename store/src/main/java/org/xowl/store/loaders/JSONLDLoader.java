@@ -120,6 +120,7 @@ public abstract class JSONLDLoader implements Loader {
      * The property info for the rdf:type property
      */
     private static final JSONLDNameInfo PROPERTY_TYPE_INFO = new JSONLDNameInfo();
+
     static {
         PROPERTY_TYPE_INFO.fullIRI = Vocabulary.rdfType;
         PROPERTY_TYPE_INFO.valueType = KEYWORD_ID;
@@ -367,7 +368,7 @@ public abstract class JSONLDLoader implements Loader {
             return;
         JSONLDNameInfo propertyInfo = context.getInfoFor(key);
         String propertyIRI = propertyInfo.reversed != null ? propertyInfo.reversed : propertyInfo.fullIRI;
-        if (propertyIRI == null || propertyIRI.startsWith("_:"))
+        if (propertyIRI == null || propertyIRI.startsWith("_:") || !isFullyExpanded(propertyIRI))
             // property is undefined or
             // this is a blank node identifier, do not handle generalized RDF graphs
             return;
@@ -478,7 +479,7 @@ public abstract class JSONLDLoader implements Loader {
             return resolveBlank(value.substring(2));
         } else {
             // this is an IRI
-            return store.getNodeIRI(context.expandIRI(value, false));
+            return store.getNodeIRI(context.expandSubject(value));
         }
     }
 
@@ -543,9 +544,9 @@ public abstract class JSONLDLoader implements Loader {
                         case Vocabulary.xsdFloat:
                         case Vocabulary.xsdDouble:
                         case Vocabulary.xsdDecimal:
-                            return store.getLiteralNode(Utils.canonicalDouble(value), context.expandIRI(info.valueType, true), null);
+                            return store.getLiteralNode(Utils.canonicalDouble(value), context.expandSubject(info.valueType), null);
                         default:
-                            return store.getLiteralNode(value, context.expandIRI(info.valueType, true), null);
+                            return store.getLiteralNode(value, context.expandSubject(info.valueType), null);
                     }
                 }
                 return store.getLiteralNode(value, Vocabulary.xsdInteger, null);
@@ -555,7 +556,7 @@ public abstract class JSONLDLoader implements Loader {
                 String value = Utils.canonicalDouble(node.getValue());
                 if (info != null && info.valueType != null) {
                     // coerced type
-                    return store.getLiteralNode(Utils.canonicalDouble(value), context.expandIRI(info.valueType, true), null);
+                    return store.getLiteralNode(Utils.canonicalDouble(value), context.expandSubject(info.valueType), null);
                 }
                 return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
             }
@@ -579,7 +580,7 @@ public abstract class JSONLDLoader implements Loader {
                 // this is an identification property
                 return getSubjectFor(node, context);
             // this is a typed literal
-            return store.getLiteralNode(value, context.expandIRI(info.valueType, true), null);
+            return store.getLiteralNode(value, context.expandSubject(info.valueType), null);
         }
         String language = (info != null && info.language != null) ? info.language : context.getLanguage();
         if (language != null && MARKER_NULL.equals(language))
@@ -611,10 +612,10 @@ public abstract class JSONLDLoader implements Loader {
         }
         if (type != null) {
             // coerced type
-            return store.getLiteralNode(value, context.expandIRI(type, true), null);
+            return store.getLiteralNode(value, context.expandSubject(type), null);
         } else if (info != null && info.valueType != null) {
             // coerced type
-            return store.getLiteralNode(value, context.expandIRI(info.valueType, true), null);
+            return store.getLiteralNode(value, context.expandSubject(info.valueType), null);
         } else {
             if (language == null)
                 language = (info != null && info.language != null) ? info.language : context.getLanguage();
@@ -684,6 +685,15 @@ public abstract class JSONLDLoader implements Loader {
         return result;
     }
 
+    /**
+     * Determines whether the specified name is a fully expanded URI
+     *
+     * @param name A name
+     * @return true if this is a fully expanded URI
+     */
+    private static boolean isFullyExpanded(String name) {
+        return name.contains("://");
+    }
 
     /**
      * Determines whether the specified AST node defines a value node (as opposed to an object node)
