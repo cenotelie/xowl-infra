@@ -292,36 +292,46 @@ public abstract class JSONLDLoader implements Loader {
      * @return The corresponding RDF node
      */
     private SubjectNode loadObject(ASTNode node, GraphNode graph, JSONLDContext context) throws JSONLDLoadingException {
-        Map<String, ASTNode> members = new HashMap<>();
+        List<Couple<String, ASTNode>> members = new ArrayList<>();
+        ASTNode contextNode = null;
+        ASTNode idNode = null;
+        ASTNode graphNode = null;
+        ASTNode typeNode = null;
+        ASTNode reverseNode = null;
         for (ASTNode child : node.getChildren()) {
             String key = getValue(child.getChildren().get(0));
-            members.put(key, child.getChildren().get(1));
+            if (KEYWORD_CONTEXT.equals(key)) {
+                contextNode = child.getChildren().get(1);
+            } else if (KEYWORD_ID.equals(key)) {
+                idNode = child.getChildren().get(1);
+            } else if (KEYWORD_GRAPH.equals(key)) {
+                graphNode = child.getChildren().get(1);
+            } else if (KEYWORD_TYPE.equals(key)) {
+                typeNode = child.getChildren().get(1);
+            } else if (KEYWORD_REVERSE.equals(key)) {
+                reverseNode = child.getChildren().get(1);
+            } else if (!KEYWORDS.contains(key)) {
+                members.add(new Couple<>(key, child.getChildren().get(1)));
+            }
         }
 
         // load the new context
         JSONLDContext current = context;
-        ASTNode contextNode = members.remove(KEYWORD_CONTEXT);
         if (contextNode != null)
             current = new JSONLDContext(context, contextNode);
 
         // setup the subject from an id
-        ASTNode idNode = members.remove(KEYWORD_ID);
         SubjectNode subject = idNode != null ? getSubjectFor(idNode, current) : null;
 
-        ASTNode graphNode = members.remove(KEYWORD_GRAPH);
         if (graphNode != null) {
             // this is a graph
             loadValue(graphNode, subject != null ? (GraphNode) subject : store.getNodeIRI(resource), current, null);
         }
 
-        if (members.isEmpty())
-            return subject;
-
         if (subject == null)
             subject = store.newNodeBlank();
 
         // setup the type
-        ASTNode typeNode = members.remove(KEYWORD_TYPE);
         if (typeNode != null) {
             Couple<Node, List<Node>> couple = loadValue(typeNode, graph, current, PROPERTY_TYPE_INFO);
             if (couple.x != null)
@@ -335,15 +345,13 @@ public abstract class JSONLDLoader implements Loader {
         }
 
         // load the rest of the values
-        for (Map.Entry<String, ASTNode> entry : members.entrySet()) {
-            loadMember(entry.getKey(), entry.getValue(), subject, graph, current, false);
+        for (Couple<String, ASTNode> entry : members) {
+            loadMember(entry.x, entry.y, subject, graph, current, false);
         }
 
         // inline reversed properties
-        for (Map.Entry<String, ASTNode> entry : members.entrySet()) {
-            if (!KEYWORD_REVERSE.equals(entry.getKey()))
-                continue;
-            for (ASTNode member : entry.getValue().getChildren()) {
+        if (reverseNode != null) {
+            for (ASTNode member : reverseNode.getChildren()) {
                 String key = getValue(member.getChildren().get(0));
                 loadMember(key, member.getChildren().get(1), subject, graph, current, true);
             }
@@ -375,17 +383,22 @@ public abstract class JSONLDLoader implements Loader {
         IRINode property = store.getNodeIRI(propertyIRI);
         Couple<Node, List<Node>> result = loadValue(definition, graph, context, propertyInfo);
         if (result.x != null) {
-            if (propertyInfo.reversed != null)
-                quads.add(new Quad(graph, (SubjectNode) result.x, property, subject));
-            else if (reversed)
+            if (propertyInfo.containerType == JSONLDContainerType.List)
+                // coerce to list
+                result.x = createRDFList(graph, Collections.singletonList(result.x));
+            if (reversed || propertyInfo.reversed != null)
                 quads.add(new Quad(graph, (SubjectNode) result.x, property, subject));
             else
                 quads.add(new Quad(graph, subject, property, result.x));
         } else if (result.y != null) {
+            if (propertyInfo.containerType == JSONLDContainerType.List) {
+                // coerce to list
+                Node list = createRDFList(graph, result.y);
+                result.y.clear();
+                result.y.add(list);
+            }
             for (Node value : result.y) {
-                if (propertyInfo.reversed != null)
-                    quads.add(new Quad(graph, (SubjectNode) value, property, subject));
-                else if (reversed)
+                if (reversed || propertyInfo.reversed != null)
                     quads.add(new Quad(graph, (SubjectNode) value, property, subject));
                 else
                     quads.add(new Quad(graph, subject, property, value));
@@ -433,18 +446,16 @@ public abstract class JSONLDLoader implements Loader {
                 if (isValueNode(node))
                     return new Couple<>(loadValueNode(node, context, info), null);
                 else if (isListNode(node))
-                    return new Couple<>(loadListNode(node, graph, context, info), null);
+                    return new Couple<>(null, loadListNode(node, graph, context, info));
                 else if (info != null && info.containerType == JSONLDContainerType.Language)
                     return new Couple<>(null, loadMultilingualValues(node));
                 else if (info != null && info.containerType == JSONLDContainerType.Index)
                     return new Couple<>(null, loadIndexedValues(node, graph, context));
-                return new Couple<Node, List<Node>>(loadObject(node, graph, context), null);
+                else
+                    return new Couple<Node, List<Node>>(loadObject(node, graph, context), null);
             }
             case JSONLDParser.ID.array:
-                if (info != null && info.containerType == JSONLDContainerType.List)
-                    return new Couple<>(createRDFList(graph, loadArray(node, graph, context, info)), null);
-                else
-                    return new Couple<>(null, loadArray(node, graph, context, info));
+                return new Couple<>(null, loadArray(node, graph, context, info));
             case JSONLDLexer.ID.LITERAL_INTEGER:
             case JSONLDLexer.ID.LITERAL_DECIMAL:
             case JSONLDLexer.ID.LITERAL_DOUBLE:
@@ -600,7 +611,7 @@ public abstract class JSONLDLoader implements Loader {
     private Node loadValueNode(ASTNode node, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
         String value = null;
         String type = null;
-        String language = MARKER_NULL;
+        String language = null;
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             if (KEYWORD_VALUE.equals(key))
@@ -610,6 +621,8 @@ public abstract class JSONLDLoader implements Loader {
             else if (KEYWORD_LANGUAGE.equals(key))
                 language = getValue(member.getChildren().get(1));
         }
+        if (value == null)
+            return null;
         if (type != null) {
             // coerced type
             return store.getLiteralNode(value, context.expandSubject(type), null);
@@ -634,11 +647,15 @@ public abstract class JSONLDLoader implements Loader {
      * @param info    The information on the current name (property)
      * @return The equivalent RDF node
      */
-    private Node loadListNode(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
+    private List<Node> loadListNode(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             if (KEYWORD_LIST.equals(key)) {
-                return createRDFList(graph, loadArray(member.getChildren().get(1), graph, context, info));
+                ASTNode valueNode = member.getChildren().get(1);
+                Couple<Node, List<Node>> value = loadValue(valueNode, graph, context, info);
+                if (value.x != null)
+                    return Collections.singletonList(value.x);
+                return value.y;
             }
         }
         return null;
