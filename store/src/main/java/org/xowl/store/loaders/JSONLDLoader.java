@@ -453,11 +453,11 @@ public abstract class JSONLDLoader implements Loader {
     private Object loadValue(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
         switch (node.getSymbol().getID()) {
             case JSONLDParser.ID.object: {
-                if (isValueNode(node))
+                if (isValueNode(node, context))
                     return loadValueNode(node, context, info);
-                else if (isListNode(node))
+                else if (isListNode(node, context))
                     return loadListNode(node, graph, context, info);
-                else if (isSetNode(node))
+                else if (isSetNode(node, context))
                     return loadSetNode(node, graph, context, info);
                 else if (info != null && info.containerType == JSONLDContainerType.Language)
                     return loadMultilingualValues(node);
@@ -626,11 +626,12 @@ public abstract class JSONLDLoader implements Loader {
         String language = null;
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            if (KEYWORD_VALUE.equals(key))
+            String expandedKey = context.expandProperty(key);
+            if (KEYWORD_VALUE.equals(key) || KEYWORD_VALUE.equals(expandedKey))
                 value = getValue(member.getChildren().get(1));
-            else if (KEYWORD_TYPE.equals(key))
+            else if (KEYWORD_TYPE.equals(key) || KEYWORD_TYPE.equals(expandedKey))
                 type = getValue(member.getChildren().get(1));
-            else if (KEYWORD_LANGUAGE.equals(key))
+            else if (KEYWORD_LANGUAGE.equals(key) || KEYWORD_LANGUAGE.equals(expandedKey))
                 language = getValue(member.getChildren().get(1));
         }
         if (value == null)
@@ -662,7 +663,8 @@ public abstract class JSONLDLoader implements Loader {
     private JSONLDExplicitList loadListNode(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            if (KEYWORD_LIST.equals(key)) {
+            String expandedKey = context.expandProperty(key);
+            if (KEYWORD_LIST.equals(key) || KEYWORD_LIST.equals(expandedKey)) {
                 ASTNode valueNode = member.getChildren().get(1);
                 Object value = loadValue(valueNode, graph, context, info);
                 JSONLDExplicitList result = new JSONLDExplicitList();
@@ -689,7 +691,8 @@ public abstract class JSONLDLoader implements Loader {
     private List<Node> loadSetNode(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            if (KEYWORD_LIST.equals(key)) {
+            String expandedKey = context.expandProperty(key);
+            if (KEYWORD_SET.equals(key) || KEYWORD_SET.equals(expandedKey)) {
                 ASTNode valueNode = member.getChildren().get(1);
                 Object value = loadValue(valueNode, graph, context, info);
                 List<Node> result = new ArrayList<>();
@@ -757,15 +760,19 @@ public abstract class JSONLDLoader implements Loader {
     /**
      * Determines whether the specified AST node defines a value node (as opposed to an object node)
      *
-     * @param node An AST node
+     * @param node    An AST node
+     * @param context The current context
      * @return true if this is a value node
      */
-    private static boolean isValueNode(ASTNode node) throws JSONLDLoadingException {
+    private static boolean isValueNode(ASTNode node, JSONLDContext context) throws JSONLDLoadingException {
         if (node.getSymbol().getID() != JSONLDParser.ID.object)
             return false;
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            if (KEYWORD_VALUE.equals(key))
+            String expandedKey = context.expandProperty(key);
+            if (KEYWORD_VALUE.equals(key) || KEYWORD_VALUE.equals(expandedKey))
+                return true;
+            if (KEYWORD_LANGUAGE.equals(key) || KEYWORD_LANGUAGE.equals(expandedKey))
                 return true;
         }
         return false;
@@ -777,12 +784,13 @@ public abstract class JSONLDLoader implements Loader {
      * @param node An AST node
      * @return true if this is a list node
      */
-    private static boolean isListNode(ASTNode node) throws JSONLDLoadingException {
+    private static boolean isListNode(ASTNode node, JSONLDContext context) throws JSONLDLoadingException {
         if (node.getSymbol().getID() != JSONLDParser.ID.object)
             return false;
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            if (KEYWORD_LIST.equals(key))
+            String expandedKey = context.expandProperty(key);
+            if (KEYWORD_LIST.equals(key) || KEYWORD_LIST.equals(expandedKey))
                 return true;
         }
         return false;
@@ -794,12 +802,13 @@ public abstract class JSONLDLoader implements Loader {
      * @param node An AST node
      * @return true if this is a set node
      */
-    private static boolean isSetNode(ASTNode node) throws JSONLDLoadingException {
+    private static boolean isSetNode(ASTNode node, JSONLDContext context) throws JSONLDLoadingException {
         if (node.getSymbol().getID() != JSONLDParser.ID.object)
             return false;
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            if (KEYWORD_SET.equals(key))
+            String expandedKey = context.expandProperty(key);
+            if (KEYWORD_SET.equals(key) || KEYWORD_SET.equals(expandedKey))
                 return true;
         }
         return false;
