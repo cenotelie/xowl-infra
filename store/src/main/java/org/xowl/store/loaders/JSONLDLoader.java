@@ -163,6 +163,10 @@ public abstract class JSONLDLoader implements Loader {
      * Maps of blanks nodes
      */
     private Map<String, BlankNode> blanks;
+    /**
+     * Marker for the top-level object
+     */
+    private boolean markerTopLevel;
 
     /**
      * Gets the URI of the resource currently being loaded
@@ -211,6 +215,7 @@ public abstract class JSONLDLoader implements Loader {
         quads = result.getQuads();
         resource = uri;
         blanks = new HashMap<>();
+        markerTopLevel = true;
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
@@ -331,7 +336,17 @@ public abstract class JSONLDLoader implements Loader {
         SubjectNode subject = idNode != null ? getSubjectFor(idNode, current) : null;
 
         if (graphNode != null) {
-            loadValue(graphNode, subject != null ? (GraphNode) subject : graph, current, null);
+            GraphNode targetGraph = (GraphNode) subject;
+            if (targetGraph == null) {
+                if (markerTopLevel) {
+                    markerTopLevel = false;
+                    targetGraph = graph;
+                } else {
+                    subject = store.newNodeBlank();
+                    targetGraph = (GraphNode) subject;
+                }
+            }
+            loadValue(graphNode, targetGraph, current, null);
         }
 
         if (subject == null)
