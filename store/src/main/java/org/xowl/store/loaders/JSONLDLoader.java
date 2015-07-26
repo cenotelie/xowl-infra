@@ -333,13 +333,13 @@ public abstract class JSONLDLoader implements Loader {
 
         // setup the type
         if (typeNode != null) {
-            Couple<Node, List<Node>> couple = loadValue(typeNode, graph, current, PROPERTY_TYPE_INFO);
-            if (couple.x != null)
-                quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), couple.x));
-            else if (couple.y != null) {
-                for (Node value : couple.y) {
-                    if (value != null)
-                        quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), value));
+            Object value = loadValue(typeNode, graph, current, PROPERTY_TYPE_INFO);
+            if (value != null) {
+                if (value instanceof List) {
+                    for (Node type : ((List<Node>) value))
+                        quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), type));
+                } else {
+                    quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), (Node) value));
                 }
             }
         }
@@ -381,28 +381,33 @@ public abstract class JSONLDLoader implements Loader {
             // this is a blank node identifier, do not handle generalized RDF graphs
             return;
         IRINode property = store.getNodeIRI(propertyIRI);
-        Couple<Node, List<Node>> result = loadValue(definition, graph, context, propertyInfo);
-        if (result.x != null) {
+        Object value = loadValue(definition, graph, context, propertyInfo);
+        if (value == null)
+            return;
+        if (value instanceof JSONLDExplicitList || (value instanceof List && propertyInfo.containerType == JSONLDContainerType.List)) {
+            // explicit, or coerced to
+            Node target = createRDFList(graph, (List<Node>) value);
+            if (reversed || propertyInfo.reversed != null)
+                quads.add(new Quad(graph, (SubjectNode) target, property, subject));
+            else
+                quads.add(new Quad(graph, subject, property, target));
+        } else if (value instanceof List) {
+            List<Node> targets = (List<Node>) value;
+            for (Node target : targets) {
+                if (reversed || propertyInfo.reversed != null)
+                    quads.add(new Quad(graph, (SubjectNode) target, property, subject));
+                else
+                    quads.add(new Quad(graph, subject, property, target));
+            }
+        } else {
+            Node target = (Node) value;
             if (propertyInfo.containerType == JSONLDContainerType.List)
                 // coerce to list
-                result.x = createRDFList(graph, Collections.singletonList(result.x));
+                target = createRDFList(graph, Collections.singletonList(target));
             if (reversed || propertyInfo.reversed != null)
-                quads.add(new Quad(graph, (SubjectNode) result.x, property, subject));
+                quads.add(new Quad(graph, (SubjectNode) target, property, subject));
             else
-                quads.add(new Quad(graph, subject, property, result.x));
-        } else if (result.y != null) {
-            if (propertyInfo.containerType == JSONLDContainerType.List) {
-                // coerce to list
-                Node list = createRDFList(graph, result.y);
-                result.y.clear();
-                result.y.add(list);
-            }
-            for (Node value : result.y) {
-                if (reversed || propertyInfo.reversed != null)
-                    quads.add(new Quad(graph, (SubjectNode) value, property, subject));
-                else
-                    quads.add(new Quad(graph, subject, property, value));
-            }
+                quads.add(new Quad(graph, subject, property, target));
         }
     }
 
@@ -418,14 +423,12 @@ public abstract class JSONLDLoader implements Loader {
     private List<Node> loadArray(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
         List<Node> result = new ArrayList<>();
         for (ASTNode child : node.getChildren()) {
-            Couple<Node, List<Node>> couple = loadValue(child, graph, context, info);
-            if (couple.x != null)
-                result.add(couple.x);
-            else if (couple.y != null) {
-                for (Node value : couple.y) {
-                    if (value != null)
-                        result.add(value);
-                }
+            Object value = loadValue(child, graph, context, info);
+            if (value != null) {
+                if (value instanceof List)
+                    result.addAll((List<Node>) value);
+                else
+                    result.add((Node) value);
             }
         }
         return result;
@@ -440,34 +443,34 @@ public abstract class JSONLDLoader implements Loader {
      * @param info    The information on the current name (property)
      * @return The corresponding RDF node, or a collection od nodes in the case of some properties
      */
-    private Couple<Node, List<Node>> loadValue(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
+    private Object loadValue(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
         switch (node.getSymbol().getID()) {
             case JSONLDParser.ID.object: {
                 if (isValueNode(node))
-                    return new Couple<>(loadValueNode(node, context, info), null);
+                    return loadValueNode(node, context, info);
                 else if (isListNode(node))
-                    return new Couple<>(null, loadListNode(node, graph, context, info));
+                    return loadListNode(node, graph, context, info);
                 else if (info != null && info.containerType == JSONLDContainerType.Language)
-                    return new Couple<>(null, loadMultilingualValues(node));
+                    return loadMultilingualValues(node);
                 else if (info != null && info.containerType == JSONLDContainerType.Index)
-                    return new Couple<>(null, loadIndexedValues(node, graph, context));
+                    return loadIndexedValues(node, graph, context);
                 else
-                    return new Couple<Node, List<Node>>(loadObject(node, graph, context), null);
+                    return loadObject(node, graph, context);
             }
             case JSONLDParser.ID.array:
-                return new Couple<>(null, loadArray(node, graph, context, info));
+                return loadArray(node, graph, context, info);
             case JSONLDLexer.ID.LITERAL_INTEGER:
             case JSONLDLexer.ID.LITERAL_DECIMAL:
             case JSONLDLexer.ID.LITERAL_DOUBLE:
-                return new Couple<Node, List<Node>>(loadLiteralNumeric(node, context, info), null);
+                return loadLiteralNumeric(node, context, info);
             case JSONLDLexer.ID.LITERAL_STRING:
-                return new Couple<>(loadLiteralString(node, context, info), null);
+                return loadLiteralString(node, context, info);
             case JSONLDLexer.ID.LITERAL_NULL:
-                return new Couple<>(null, null);
+                return null;
             case JSONLDLexer.ID.LITERAL_TRUE:
-                return new Couple<Node, List<Node>>(store.getLiteralNode("true", Vocabulary.xsdBoolean, null), null);
+                return store.getLiteralNode("true", Vocabulary.xsdBoolean, null);
             case JSONLDLexer.ID.LITERAL_FALSE:
-                return new Couple<Node, List<Node>>(store.getLiteralNode("false", Vocabulary.xsdBoolean, null), null);
+                return store.getLiteralNode("false", Vocabulary.xsdBoolean, null);
             default:
                 throw new JSONLDLoadingException("Unrecognized input " + node.getSymbol().getName(), node);
         }
@@ -647,15 +650,20 @@ public abstract class JSONLDLoader implements Loader {
      * @param info    The information on the current name (property)
      * @return The equivalent RDF node
      */
-    private List<Node> loadListNode(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
+    private JSONLDExplicitList loadListNode(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             if (KEYWORD_LIST.equals(key)) {
                 ASTNode valueNode = member.getChildren().get(1);
-                Couple<Node, List<Node>> value = loadValue(valueNode, graph, context, info);
-                if (value.x != null)
-                    return Collections.singletonList(value.x);
-                return value.y;
+                Object value = loadValue(valueNode, graph, context, info);
+                JSONLDExplicitList result = new JSONLDExplicitList();
+                if (value != null) {
+                    if (value instanceof List)
+                        result.addAll((List<Node>) value);
+                    else
+                        result.add((Node) value);
+                }
+                return result;
             }
         }
         return null;
@@ -689,14 +697,12 @@ public abstract class JSONLDLoader implements Loader {
         List<Node> result = new ArrayList<>();
         for (ASTNode member : node.getChildren()) {
             // the index does not translate to RDF
-            Couple<Node, List<Node>> couple = loadValue(member.getChildren().get(1), graph, context, null);
-            if (couple.x != null)
-                result.add(couple.x);
-            else if (couple.y != null) {
-                for (Node value : couple.y) {
-                    if (value != null)
-                        result.add(value);
-                }
+            Object value = loadValue(member.getChildren().get(1), graph, context, null);
+            if (value != null) {
+                if (value instanceof List)
+                    result.addAll((List<Node>) value);
+                else
+                    result.add((Node) value);
             }
         }
         return result;
