@@ -450,6 +450,8 @@ public abstract class JSONLDLoader implements Loader {
                     return loadValueNode(node, context, info);
                 else if (isListNode(node))
                     return loadListNode(node, graph, context, info);
+                else if (isSetNode(node))
+                    return loadSetNode(node, graph, context, info);
                 else if (info != null && info.containerType == JSONLDContainerType.Language)
                     return loadMultilingualValues(node);
                 else if (info != null && info.containerType == JSONLDContainerType.Index)
@@ -643,12 +645,12 @@ public abstract class JSONLDLoader implements Loader {
     }
 
     /**
-     * Gets the RDF node equivalent to the specified AST node
+     * Gets the RDF nodes equivalent to the specified AST node
      *
      * @param node    An AST node
      * @param context The parent context
      * @param info    The information on the current name (property)
-     * @return The equivalent RDF node
+     * @return The equivalent RDF nodes
      */
     private JSONLDExplicitList loadListNode(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
         for (ASTNode member : node.getChildren()) {
@@ -657,6 +659,33 @@ public abstract class JSONLDLoader implements Loader {
                 ASTNode valueNode = member.getChildren().get(1);
                 Object value = loadValue(valueNode, graph, context, info);
                 JSONLDExplicitList result = new JSONLDExplicitList();
+                if (value != null) {
+                    if (value instanceof List)
+                        result.addAll((List<Node>) value);
+                    else
+                        result.add((Node) value);
+                }
+                return result;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the RDF nodes equivalent to the specified AST node
+     *
+     * @param node    An AST node
+     * @param context The parent context
+     * @param info    The information on the current name (property)
+     * @return The equivalent RDF nodes
+     */
+    private List<Node> loadSetNode(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
+        for (ASTNode member : node.getChildren()) {
+            String key = getValue(member.getChildren().get(0));
+            if (KEYWORD_LIST.equals(key)) {
+                ASTNode valueNode = member.getChildren().get(1);
+                Object value = loadValue(valueNode, graph, context, info);
+                List<Node> result = new ArrayList<>();
                 if (value != null) {
                     if (value instanceof List)
                         result.addAll((List<Node>) value);
@@ -747,6 +776,23 @@ public abstract class JSONLDLoader implements Loader {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             if (KEYWORD_LIST.equals(key))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Determines whether the specified AST node defines a set
+     *
+     * @param node An AST node
+     * @return true if this is a set node
+     */
+    private static boolean isSetNode(ASTNode node) throws JSONLDLoadingException {
+        if (node.getSymbol().getID() != JSONLDParser.ID.object)
+            return false;
+        for (ASTNode member : node.getChildren()) {
+            String key = getValue(member.getChildren().get(0));
+            if (KEYWORD_SET.equals(key))
                 return true;
         }
         return false;
