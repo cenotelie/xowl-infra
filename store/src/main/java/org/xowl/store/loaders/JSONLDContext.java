@@ -88,22 +88,22 @@ class JSONLDContext {
     }
 
     /**
-     * Expands a property name into an IRI
+     * Expands a name into an IRI
      *
      * @param term A term
      * @return The corresponding IRI, or null if it cannot be expanded
      */
-    public String expandProperty(String term) {
+    public String expandName(String term) {
         return doExpandIRI(term, false, true, false);
     }
 
     /**
-     * Expands a subject into an IRI
+     * Expands a JSON-LD ID into an IRI
      *
      * @param term A term
      * @return The corresponding IRI, or null if it cannot be expanded
      */
-    public String expandSubject(String term) {
+    public String expandID(String term) {
         return doExpandIRI(term, true, false, true);
     }
 
@@ -146,6 +146,22 @@ class JSONLDContext {
             // blank node identifier, return as is
             return term;
 
+        // try to match the complete term
+        JSONLDContext current = this;
+        while (current != null) {
+            for (int i = current.fragments.size() - 1; i != -1; i--) {
+                JSONLDContextFragment fragment = current.fragments.get(i);
+                String result = fragment.expand(term);
+                if (result != null) {
+                    if (JSONLDLoader.MARKER_NULL.equals(result))
+                        // explicitly forbids the expansion
+                        return term;
+                    return result;
+                }
+            }
+            current = current.parent;
+        }
+
         int colonIndex = term.indexOf(':');
         while (colonIndex != -1) {
             String prefix = term.substring(0, colonIndex);
@@ -163,24 +179,8 @@ class JSONLDContext {
             colonIndex = term.indexOf(':', colonIndex + 1);
         }
 
-        // try to match the complete term
-        JSONLDContext current = this;
-        while (current != null) {
-            for (int i = current.fragments.size() - 1; i != -1; i--) {
-                JSONLDContextFragment fragment = current.fragments.get(i);
-                String result = fragment.expand(term);
-                if (result != null) {
-                    if (JSONLDLoader.MARKER_NULL.equals(result))
-                        // explicitly forbids the expansion
-                        return term;
-                    return result;
-                }
-            }
-            current = current.parent;
-        }
-
         // find a base URI, or vocabulary definition
-        if (useBaseURI || useResource) {
+        if (useBaseURI || useVocabulary) {
             current = this;
             while (current != null) {
                 for (int i = current.fragments.size() - 1; i != -1; i--) {
@@ -197,7 +197,7 @@ class JSONLDContext {
                         if (JSONLDLoader.MARKER_NULL.equals(fragment.getVocabulary()))
                             // explicitly forbids the expansion
                             return term;
-                        return Utils.normalizeIRI(loader.getCurrentResource(), fragment.getVocabulary(), Utils.quote(term));
+                        return fragment.getVocabulary() + term;
                     }
                 }
                 current = current.parent;
@@ -240,7 +240,7 @@ class JSONLDContext {
      */
     public JSONLDNameInfo getInfoFor(String term) {
         JSONLDNameInfo result = new JSONLDNameInfo();
-        result.fullIRI = expandProperty(term);
+        result.fullIRI = expandName(term);
         JSONLDContext current = this;
         while (current != null) {
             for (int i = current.fragments.size() - 1; i != -1; i--) {
@@ -250,9 +250,9 @@ class JSONLDContext {
             current = current.parent;
         }
         if (result.valueType != null && !JSONLDLoader.KEYWORD_ID.equals(result.valueType))
-            result.valueType = expandSubject(result.valueType);
+            result.valueType = expandName(result.valueType);
         if (result.reversed != null)
-            result.reversed = expandProperty(result.reversed);
+            result.reversed = expandName(result.reversed);
         return result;
     }
 

@@ -318,7 +318,7 @@ public abstract class JSONLDLoader implements Loader {
         List<Couple<String, ASTNode>> members = new ArrayList<>();
         for (ASTNode child : node.getChildren()) {
             String key = getValue(child.getChildren().get(0));
-            String expanded = current.expandProperty(key);
+            String expanded = current.expandName(key);
             if (KEYWORD_ID.equals(key) || KEYWORD_ID.equals(expanded)) {
                 idNode = child.getChildren().get(1);
             } else if (KEYWORD_GRAPH.equals(key) || KEYWORD_GRAPH.equals(expanded)) {
@@ -333,7 +333,20 @@ public abstract class JSONLDLoader implements Loader {
         }
 
         // setup the subject from an id
-        SubjectNode subject = idNode != null ? getSubjectFor(idNode, current) : null;
+        SubjectNode subject = null;
+        if (idNode != null) {
+            String value = getValue(idNode);
+            if (value == null)
+                // subject is invalid
+                throw new JSONLDLoadingException("Expected a valid node id", idNode);
+            if (value.startsWith("_:")) {
+                // this is blank node
+                subject = resolveBlank(value.substring(2));
+            } else {
+                // this is an IRI
+                subject = store.getNodeIRI(current.expandID(value));
+            }
+        }
 
         if (graphNode != null) {
             GraphNode targetGraph;
@@ -501,27 +514,6 @@ public abstract class JSONLDLoader implements Loader {
     }
 
     /**
-     * Gets the subject node defined by the specified AST node
-     *
-     * @param definition The AST node definition
-     * @param context    The current context
-     * @return The subject node, or null if it cannot be loaded
-     */
-    private SubjectNode getSubjectFor(ASTNode definition, JSONLDContext context) throws JSONLDLoadingException {
-        String value = getValue(definition);
-        if (value == null)
-            // subject is invalid
-            throw new JSONLDLoadingException("Expected a valid node id", definition);
-        if (value.startsWith("_:")) {
-            // this is blank node
-            return resolveBlank(value.substring(2));
-        } else {
-            // this is an IRI
-            return store.getNodeIRI(context.expandSubject(value));
-        }
-    }
-
-    /**
      * Resolves the blank node with the specified identifier
      *
      * @param identifier The identifier of a blank node
@@ -582,9 +574,9 @@ public abstract class JSONLDLoader implements Loader {
                         case Vocabulary.xsdFloat:
                         case Vocabulary.xsdDouble:
                         case Vocabulary.xsdDecimal:
-                            return store.getLiteralNode(Utils.canonicalDouble(value), context.expandSubject(info.valueType), null);
+                            return store.getLiteralNode(Utils.canonicalDouble(value), context.expandName(info.valueType), null);
                         default:
-                            return store.getLiteralNode(value, context.expandSubject(info.valueType), null);
+                            return store.getLiteralNode(value, context.expandName(info.valueType), null);
                     }
                 }
                 return store.getLiteralNode(value, Vocabulary.xsdInteger, null);
@@ -594,7 +586,7 @@ public abstract class JSONLDLoader implements Loader {
                 String value = Utils.canonicalDouble(node.getValue());
                 if (info != null && info.valueType != null) {
                     // coerced type
-                    return store.getLiteralNode(Utils.canonicalDouble(value), context.expandSubject(info.valueType), null);
+                    return store.getLiteralNode(Utils.canonicalDouble(value), context.expandName(info.valueType), null);
                 }
                 return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
             }
@@ -614,11 +606,20 @@ public abstract class JSONLDLoader implements Loader {
         String value = getValue(node);
         if (info != null && info.valueType != null) {
             // coerced type
-            if (KEYWORD_ID.equals(info.valueType))
-                // this is an identification property
-                return getSubjectFor(node, context);
+            if (KEYWORD_ID.equals(info.valueType)) {
+                if (value == null)
+                    // subject is invalid
+                    throw new JSONLDLoadingException("Expected a valid node id", node);
+                if (value.startsWith("_:")) {
+                    // this is blank node
+                    return resolveBlank(value.substring(2));
+                } else {
+                    // this is an IRI
+                    return store.getNodeIRI(context.expandName(value));
+                }
+            }
             // this is a typed literal
-            return store.getLiteralNode(value, context.expandSubject(info.valueType), null);
+            return store.getLiteralNode(value, context.expandName(info.valueType), null);
         }
         String language = (info != null && info.language != null) ? info.language : context.getLanguage();
         if (language != null && MARKER_NULL.equals(language))
@@ -641,7 +642,7 @@ public abstract class JSONLDLoader implements Loader {
         String language = null;
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            String expandedKey = context.expandProperty(key);
+            String expandedKey = context.expandName(key);
             if (KEYWORD_VALUE.equals(key) || KEYWORD_VALUE.equals(expandedKey))
                 value = getValue(member.getChildren().get(1));
             else if (KEYWORD_TYPE.equals(key) || KEYWORD_TYPE.equals(expandedKey))
@@ -653,10 +654,10 @@ public abstract class JSONLDLoader implements Loader {
             return null;
         if (type != null) {
             // coerced type
-            return store.getLiteralNode(value, context.expandSubject(type), null);
+            return store.getLiteralNode(value, context.expandName(type), null);
         } else if (info != null && info.valueType != null) {
             // coerced type
-            return store.getLiteralNode(value, context.expandSubject(info.valueType), null);
+            return store.getLiteralNode(value, context.expandName(info.valueType), null);
         } else {
             if (language == null)
                 language = (info != null && info.language != null) ? info.language : context.getLanguage();
@@ -678,7 +679,7 @@ public abstract class JSONLDLoader implements Loader {
     private JSONLDExplicitList loadListNode(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            String expandedKey = context.expandProperty(key);
+            String expandedKey = context.expandName(key);
             if (KEYWORD_LIST.equals(key) || KEYWORD_LIST.equals(expandedKey)) {
                 ASTNode valueNode = member.getChildren().get(1);
                 Object value = loadValue(valueNode, graph, context, info);
@@ -706,7 +707,7 @@ public abstract class JSONLDLoader implements Loader {
     private List<Node> loadSetNode(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            String expandedKey = context.expandProperty(key);
+            String expandedKey = context.expandName(key);
             if (KEYWORD_SET.equals(key) || KEYWORD_SET.equals(expandedKey)) {
                 ASTNode valueNode = member.getChildren().get(1);
                 Object value = loadValue(valueNode, graph, context, info);
@@ -769,7 +770,7 @@ public abstract class JSONLDLoader implements Loader {
      * @return true if this is a fully expanded URI
      */
     private static boolean isFullyExpanded(String name) {
-        return name.contains("://");
+        return name.contains(":");
     }
 
     /**
@@ -784,7 +785,7 @@ public abstract class JSONLDLoader implements Loader {
             return false;
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            String expandedKey = context.expandProperty(key);
+            String expandedKey = context.expandName(key);
             if (KEYWORD_VALUE.equals(key) || KEYWORD_VALUE.equals(expandedKey))
                 return true;
             if (KEYWORD_LANGUAGE.equals(key) || KEYWORD_LANGUAGE.equals(expandedKey))
@@ -804,7 +805,7 @@ public abstract class JSONLDLoader implements Loader {
             return false;
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            String expandedKey = context.expandProperty(key);
+            String expandedKey = context.expandName(key);
             if (KEYWORD_LIST.equals(key) || KEYWORD_LIST.equals(expandedKey))
                 return true;
         }
@@ -822,7 +823,7 @@ public abstract class JSONLDLoader implements Loader {
             return false;
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            String expandedKey = context.expandProperty(key);
+            String expandedKey = context.expandName(key);
             if (KEYWORD_SET.equals(key) || KEYWORD_SET.equals(expandedKey))
                 return true;
         }

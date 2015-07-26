@@ -27,7 +27,7 @@ import org.xowl.hime.redist.ASTNode;
  *
  * @author Laurent Wouters
  */
-final class JSONLDLoadingException extends Exception {
+class JSONLDLoadingException extends Exception {
     /**
      * The AST node from which the error originated
      */
