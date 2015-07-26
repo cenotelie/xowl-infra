@@ -127,7 +127,7 @@ class JSONLDContext {
                 // per JSON-LD spec, do not expand when suffix starts with //
                 // this will match already expanded URIs of the form http://...
                 return prefix + ":" + suffix;
-            String expandedPrefix = expandIRI(prefix, useVocab);
+            String expandedPrefix = resolveNamespace(prefix);
             if (!prefix.equals(expandedPrefix))
                 // prefix was expanded
                 return expandedPrefix + suffix;
@@ -177,6 +177,30 @@ class JSONLDContext {
 
         // expand from the resource
         return Utils.normalizeIRI(loader.getCurrentResource(), null, Utils.quote(term));
+    }
+
+    /**
+     * Resolves the specified namespace
+     *
+     * @param name A name
+     * @return The associated namespace
+     */
+    private String resolveNamespace(String name) {
+        JSONLDContext current = this;
+        while (current != null) {
+            for (int i = current.fragments.size() - 1; i != -1; i--) {
+                JSONLDContextFragment fragment = current.fragments.get(i);
+                String result = fragment.expand(name);
+                if (result != null) {
+                    if (JSONLDLoader.MARKER_NULL.equals(result))
+                        // explicitly forbids the expansion
+                        return name;
+                    return result;
+                }
+            }
+            current = current.parent;
+        }
+        return name;
     }
 
     /**
