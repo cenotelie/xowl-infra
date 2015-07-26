@@ -331,11 +331,11 @@ public abstract class JSONLDLoader implements Loader {
         SubjectNode subject = idNode != null ? getSubjectFor(idNode, current) : null;
 
         if (graphNode != null) {
-            // this is a graph
-            loadValue(graphNode, subject != null ? (GraphNode) subject : store.getNodeIRI(resource), current, null);
+            loadValue(graphNode, subject != null ? (GraphNode) subject : graph, current, null);
         }
 
         if (subject == null)
+            // TODO: only create a blank node if this is required by the addition of a quad
             subject = store.newNodeBlank();
 
         // setup the type

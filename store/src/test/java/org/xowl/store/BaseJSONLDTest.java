@@ -88,6 +88,14 @@ public class BaseJSONLDTest {
             Node nodeObject = quad.getObject();
             if (nodeGraph.getNodeType() == IRINode.TYPE && nodeGraph == repository.getGraph(expectedOntology))
                 nodeGraph = repository.getGraph(testedOntology);
+            else if (nodeGraph.getNodeType() == BlankNode.TYPE) {
+                VariableNode variableNode = variables.get(nodeGraph);
+                if (variableNode == null) {
+                    variableNode = new VariableNode(UUID.randomUUID().toString());
+                    variables.put((BlankNode) nodeGraph, variableNode);
+                }
+                nodeGraph = variableNode;
+            }
             if (nodeSubject.getNodeType() == BlankNode.TYPE) {
                 VariableNode variableNode = variables.get(nodeSubject);
                 if (variableNode == null) {

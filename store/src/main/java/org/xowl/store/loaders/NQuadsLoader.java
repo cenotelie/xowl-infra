@@ -49,10 +49,6 @@ public class NQuadsLoader implements Loader {
      * Maps of blanks nodes
      */
     private Map<String, BlankNode> blanks;
-    /**
-     * Map of the current graphs
-     */
-    private Map<String, GraphNode> graphs;
 
     /**
      * Initializes this loader
@@ -88,7 +84,6 @@ public class NQuadsLoader implements Loader {
     @Override
     public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
-        graphs = new HashMap<>();
         RDFLoaderResult result = new RDFLoaderResult();
         GraphNode current = store.getNodeIRI(uri);
 
@@ -214,14 +209,7 @@ public class NQuadsLoader implements Loader {
                 throw new IllegalArgumentException("IRI must be absolute");
             return store.getNodeIRI(value);
         } else {
-            String key = node.getValue();
-            key = key.substring(2);
-            GraphNode graph = graphs.get(key);
-            if (graph == null) {
-                graph = store.newNodeBlank();
-                graphs.put(key, graph);
-            }
-            return graph;
+            return (GraphNode) translateBlankNode(node);
         }
     }
 }
