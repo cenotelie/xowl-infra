@@ -292,33 +292,40 @@ public abstract class JSONLDLoader implements Loader {
      * @return The corresponding RDF node
      */
     private SubjectNode loadObject(ASTNode node, GraphNode graph, JSONLDContext context) throws JSONLDLoadingException {
-        List<Couple<String, ASTNode>> members = new ArrayList<>();
+        // load the new context
         ASTNode contextNode = null;
-        ASTNode idNode = null;
-        ASTNode graphNode = null;
-        ASTNode typeNode = null;
-        ASTNode reverseNode = null;
         for (ASTNode child : node.getChildren()) {
             String key = getValue(child.getChildren().get(0));
             if (KEYWORD_CONTEXT.equals(key)) {
                 contextNode = child.getChildren().get(1);
-            } else if (KEYWORD_ID.equals(key)) {
-                idNode = child.getChildren().get(1);
-            } else if (KEYWORD_GRAPH.equals(key)) {
-                graphNode = child.getChildren().get(1);
-            } else if (KEYWORD_TYPE.equals(key)) {
-                typeNode = child.getChildren().get(1);
-            } else if (KEYWORD_REVERSE.equals(key)) {
-                reverseNode = child.getChildren().get(1);
-            } else if (!KEYWORDS.contains(key)) {
-                members.add(new Couple<>(key, child.getChildren().get(1)));
+                break;
             }
         }
-
-        // load the new context
         JSONLDContext current = context;
         if (contextNode != null)
             current = new JSONLDContext(context, contextNode);
+
+        // build the members
+        ASTNode idNode = null;
+        ASTNode graphNode = null;
+        ASTNode typeNode = null;
+        ASTNode reverseNode = null;
+        List<Couple<String, ASTNode>> members = new ArrayList<>();
+        for (ASTNode child : node.getChildren()) {
+            String key = getValue(child.getChildren().get(0));
+            String expanded = current.expandProperty(key);
+            if (KEYWORD_ID.equals(key) || KEYWORD_ID.equals(expanded)) {
+                idNode = child.getChildren().get(1);
+            } else if (KEYWORD_GRAPH.equals(key) || KEYWORD_GRAPH.equals(expanded)) {
+                graphNode = child.getChildren().get(1);
+            } else if (KEYWORD_TYPE.equals(key) || KEYWORD_TYPE.equals(expanded)) {
+                typeNode = child.getChildren().get(1);
+            } else if (KEYWORD_REVERSE.equals(key) || KEYWORD_REVERSE.equals(expanded)) {
+                reverseNode = child.getChildren().get(1);
+            } else if (!KEYWORDS.contains(key) && !KEYWORDS.contains(expanded)) {
+                members.add(new Couple<>(key, child.getChildren().get(1)));
+            }
+        }
 
         // setup the subject from an id
         SubjectNode subject = idNode != null ? getSubjectFor(idNode, current) : null;
