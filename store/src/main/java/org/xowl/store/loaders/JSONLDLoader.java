@@ -626,7 +626,7 @@ public abstract class JSONLDLoader implements Loader {
         String value = getValue(node);
         if (info != null && info.valueType != null) {
             // coerced type
-            if (KEYWORD_ID.equals(info.valueType)) {
+            if (KEYWORD_ID.equals(info.valueType) || KEYWORD_VOCAB.equals(info.valueType)) {
                 if (value == null)
                     // subject is invalid
                     throw new JSONLDLoadingException("Expected a valid node id", node);
