@@ -29,5 +29,5 @@ import java.util.ArrayList;
  *
  * @author Laurent Wouters
  */
-public class JSONLDExplicitList extends ArrayList<Node> {
+class JSONLDExplicitList extends ArrayList<Node> {
 }
