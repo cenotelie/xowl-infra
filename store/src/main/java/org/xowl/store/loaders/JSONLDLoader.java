@@ -525,9 +525,8 @@ public abstract class JSONLDLoader implements Loader {
             case JSONLDLexer.ID.LITERAL_NULL:
                 return null;
             case JSONLDLexer.ID.LITERAL_TRUE:
-                return store.getLiteralNode("true", Vocabulary.xsdBoolean, null);
             case JSONLDLexer.ID.LITERAL_FALSE:
-                return store.getLiteralNode("false", Vocabulary.xsdBoolean, null);
+                return loadLiteralBoolean(node, context, info);
             default:
                 throw new JSONLDLoadingException("Unrecognized input " + node.getSymbol().getName(), node);
         }
@@ -574,6 +573,23 @@ public abstract class JSONLDLoader implements Loader {
         }
         quads.add(new Quad(graph, current, store.getNodeIRI(Vocabulary.rdfRest), store.getNodeExistingIRI(Vocabulary.rdfNil)));
         return head;
+    }
+
+    /**
+     * Gets the RDF boolean Literal equivalent to the specified AST node
+     *
+     * @param node    An AST node
+     * @param context The parent context
+     * @param info    The information on the current name (property)
+     * @return The equivalent RDF boolean Literal node
+     */
+    private LiteralNode loadLiteralBoolean(ASTNode node, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
+        String value = node.getValue();
+        if (info != null && info.valueType != null) {
+            // coerced type
+            return store.getLiteralNode(Utils.canonicalDouble(value), context.expandName(info.valueType), null);
+        }
+        return store.getLiteralNode(value, Vocabulary.xsdBoolean, null);
     }
 
     /**
