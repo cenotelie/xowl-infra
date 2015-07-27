@@ -734,10 +734,28 @@ public abstract class JSONLDLoader implements Loader {
         List<Node> result = new ArrayList<>();
         for (ASTNode member : node.getChildren()) {
             String language = getValue(member.getChildren().get(0));
-            String value = getValue(member.getChildren().get(1));
-            result.add(store.getLiteralNode(value, Vocabulary.rdfLangString, language));
+            ASTNode definition = member.getChildren().get(1);
+            if (definition.getSymbol().getID() == JSONLDParser.ID.array) {
+                for (ASTNode element : definition.getChildren()) {
+                    result.add(loadMultilingualValue(element, language));
+                }
+            } else {
+                result.add(loadMultilingualValue(definition, language));
+            }
         }
         return result;
+    }
+
+    /**
+     * Gets the RDF node equivalent to the specified AST node that represents the value of a multilingual property
+     *
+     * @param definition The AST node defining the value
+     * @param language   The current language
+     * @return The equivalent RDF node
+     */
+    private Node loadMultilingualValue(ASTNode definition, String language) throws JSONLDLoadingException {
+        String value = getValue(definition);
+        return store.getLiteralNode(value, Vocabulary.rdfLangString, language);
     }
 
     /**
