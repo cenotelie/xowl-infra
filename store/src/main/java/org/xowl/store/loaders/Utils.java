@@ -270,14 +270,14 @@ public class Utils {
                 start = min;
             } else if (uri.charAt(start) != '/') {
                 // error, must start with /
-                return null;
+                throw new IllegalArgumentException("Path in URI with authority must start by / or be empty");
             } else {
                 components[URI_COMPONENT_PATH] = uri.substring(start, min);
                 start = min;
             }
         } else if (uri.startsWith("//", start)) {
             // error, with no authority, the path cannot start with //
-            return null;
+            throw new IllegalArgumentException("Path in URI with authority cannot start by //");
         } else {
             components[URI_COMPONENT_PATH] = uri.substring(start, min);
             start = min;
