@@ -94,6 +94,37 @@ public class Utils {
     }
 
     /**
+     * Determines whether the specified URI is absolute.
+     * An URI is considered absolute if it has a scheme component, as well as either an authority or path component
+     * (See <a href="http://tools.ietf.org/html/rfc3986#section-4.3>RFC 3986 - 4.3</a>)
+     *
+     * @param uri An URI
+     * @return true
+     */
+    public static boolean uriIsAbsolute(String uri) {
+        // look for a scheme
+        int start = uri.indexOf(":");
+        if (start == -1) {
+            // no scheme
+            return false;
+        } else {
+            start++;
+        }
+        // look for the authority
+        if (uri.startsWith("//", start)) {
+            // found an authority
+            return true;
+        }
+        // no authority
+        if (start == uri.length())
+            // at the end
+            return false;
+        char c = uri.charAt(start);
+        // we expect a path, if a query or fragment is found instead the path is missing (no authority)
+        return (c != '?' && c != '#');
+    }
+
+    /**
      * Resolves a relative URI against a base
      * Implements the RFC 3986 relative resolution algorithm
      * (See <a href="http://tools.ietf.org/html/rfc3986#section-5.2">RFC 3986 - 5.2</a>)

@@ -31,7 +31,6 @@ import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -143,8 +142,7 @@ public class NQuadsLoader implements Loader {
     private Node translateIRIREF(ASTNode node) {
         String value = node.getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
-        URI uri = URI.create(value);
-        if (!uri.isAbsolute())
+        if (!Utils.uriIsAbsolute(value))
             throw new IllegalArgumentException("IRI must be absolute");
         return store.getNodeIRI(value);
     }
@@ -182,8 +180,7 @@ public class NQuadsLoader implements Loader {
         if (child.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
             String type = child.getValue();
             type = Utils.unescape(type.substring(1, type.length() - 1));
-            URI uri = URI.create(type);
-            if (!uri.isAbsolute())
+            if (!Utils.uriIsAbsolute(type))
                 throw new IllegalArgumentException("IRI must be absolute");
             return store.getLiteralNode(value, type, null);
         } else if (child.getSymbol().getID() == NTriplesLexer.ID.LANGTAG) {
@@ -204,8 +201,7 @@ public class NQuadsLoader implements Loader {
         if (node.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
             String value = node.getValue();
             value = Utils.unescape(value.substring(1, value.length() - 1));
-            URI uri = URI.create(value);
-            if (!uri.isAbsolute())
+            if (!Utils.uriIsAbsolute(value))
                 throw new IllegalArgumentException("IRI must be absolute");
             return store.getNodeIRI(value);
         } else {
