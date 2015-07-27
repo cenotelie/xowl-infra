@@ -505,13 +505,13 @@ public abstract class JSONLDLoader implements Loader {
                 else if (info != null && info.containerType == JSONLDContainerType.Language)
                     return loadMultilingualValues(node);
                 else if (info != null && info.containerType == JSONLDContainerType.Index)
-                    return loadIndexedValues(node, graph, context);
+                    return loadIndexedValues(node, graph, context, info);
                 else
                     return loadObject(node, graph, context);
             }
             case JSONLDParser.ID.array:
                 if (info != null && info.containerType == JSONLDContainerType.Index)
-                    return loadIndexedValues(node, graph, context);
+                    return loadIndexedValues(node, graph, context, info);
                 return loadArray(node, graph, context, info);
             case JSONLDLexer.ID.LITERAL_INTEGER:
             case JSONLDLexer.ID.LITERAL_DECIMAL:
@@ -779,9 +779,20 @@ public abstract class JSONLDLoader implements Loader {
      * @param node    An AST node
      * @param graph   The current graph
      * @param context The current context
+     * @param info    The information on the current name (property)
      * @return The values
      */
-    private List<Node> loadIndexedValues(ASTNode node, GraphNode graph, JSONLDContext context) throws JSONLDLoadingException {
+    private List<Node> loadIndexedValues(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
+        // make a copy of the property info
+        JSONLDNameInfo current = new JSONLDNameInfo();
+        if (info != null) {
+            current.fullIRI = info.fullIRI;
+            current.containerType = info.containerType;
+            current.valueType = info.valueType;
+            current.language = info.language;
+            current.reversed = info.reversed;
+        }
+        current.containerType = JSONLDContainerType.Undefined;
         List<ASTNode> definitions = new ArrayList<>();
         if (node.getSymbol().getID() == JSONLDParser.ID.object) {
             for (ASTNode member : node.getChildren()) {
@@ -794,7 +805,7 @@ public abstract class JSONLDLoader implements Loader {
         }
         List<Node> result = new ArrayList<>();
         for (ASTNode definition : definitions) {
-            Object value = loadValue(definition, graph, context, null);
+            Object value = loadValue(definition, graph, context, current);
             if (value != null) {
                 if (value instanceof List)
                     result.addAll((List<Node>) value);
