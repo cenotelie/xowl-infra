@@ -149,6 +149,9 @@ class JSONLDContextFragment {
                 // this is an IRI
                 mappings.put(name, JSONLDLoader.getValue(definition));
                 break;
+            case JSONLDLexer.ID.LITERAL_NULL:
+                // explicitly forbids the expansion
+                mappings.put(name, JSONLDLoader.MARKER_NULL);
             case JSONLDParser.ID.object:
                 loadNameFromObject(name, definition);
                 break;
