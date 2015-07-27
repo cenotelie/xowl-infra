@@ -329,57 +329,27 @@ public class Utils {
             return null;
         if (path.isEmpty())
             return path;
+        boolean isAbsolute = path.startsWith("/");
         List<String> input = uriSplitSegments(path);
         Stack<String> output = new Stack<>();
-        int index = 0;
-        while (index != input.size()) {
-            String head = input.get(index);
-            if ((index < input.size() - 1) && ("..".equals(head) || ".".equals(head))) {
-                // Case A: prefix is ../ or ./
-                // there is at least one other segment after the head and the head matches the condition
-                // drop this segment
-                if ("..".equals(head) && !output.isEmpty())
-                    output.pop();
-                index++;
-            } else if (head.isEmpty() && (index < input.size() - 1) && ".".equals(input.get(index + 1))) {
-                // Case B: prefix is /., or /./
-                if (index < input.size() - 2) {
-                    // case /./
-                    index += 2;
-                } else {
-                    index++;
-                }
-                // replace the prefix by / (empty segment)
-                input.set(index, "");
-            } else if (head.isEmpty() && (index < input.size() - 1) && "..".equals(input.get(index + 1))) {
-                // Case C: prefix is /.., or /../
-                if (index < input.size() - 2) {
-                    // case /../
-                    index += 2;
-                } else {
-                    index++;
-                }
-                // replace the prefix by / (empty segment)
-                input.set(index, "");
-                // drop last segment in output if any
-                if (!output.isEmpty())
-                    output.pop();
-            } else if ((index == input.size() - 1) && ("..".equals(head) || ".".equals(head))) {
-                // Case D: the rest of the input is . or ..
-                // drop it
-                if ("..".equals(head) && !output.isEmpty())
-                    output.pop();
-                output.push("");
-                index++;
+        for (int i = 0; i != input.size(); i++) {
+            String head = input.get(i);
+            if ("..".equals(head)) {
+                if (output.isEmpty())
+                    continue;
+                if (isAbsolute && output.size() == 1 && output.get(0).isEmpty())
+                    // cannot remove the first empty segment for absolute paths
+                    continue;
+                output.pop();
+                if (i == input.size() - 1)
+                    // the last one, to not lose the trailing / push an empty segment
+                    output.push("");
+            } else if (".".equals(head)) {
+                if (i == input.size() - 1)
+                    // the last one, to not lose the trailing / push an empty segment
+                    output.push("");
             } else {
-                // Case E:
                 output.push(head);
-                index++;
-                if (head.isEmpty() && index < input.size()) {
-                    // the prefix was /
-                    output.push(input.get(index));
-                    index++;
-                }
             }
         }
         StringBuilder result = new StringBuilder();
