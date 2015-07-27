@@ -90,93 +90,97 @@ class JSONLDContext {
     /**
      * Expands a name into an IRI
      *
-     * @param term A term
+     * @param name The name to resolve
      * @return The corresponding IRI, or null if it cannot be expanded
      */
-    public String expandName(String term) {
-        return doExpandIRI(term, false, true, false);
+    public String expandName(String name) {
+        return doExpandIRI(name, true, false, true, false);
     }
 
     /**
      * Expands a JSON-LD ID into an IRI
      *
-     * @param term A term
+     * @param name The name to resolve
      * @return The corresponding IRI, or null if it cannot be expanded
      */
-    public String expandID(String term) {
-        return doExpandIRI(term, true, false, true);
+    public String expandID(String name) {
+        return doExpandIRI(name, false, true, false, true);
     }
 
     /**
      * Expands a resource identifier into an IRI
      *
-     * @param term A term
+     * @param name The name to resolve
      * @return The corresponding IRI, or null if it cannot be expanded
      */
-    public String expandResource(String term) {
-        return doExpandIRI(term, true, true, true);
+    public String expandResource(String name) {
+        return doExpandIRI(name, true, true, true, true);
     }
 
     /**
-     * Expands the specified term into an IRI
+     * Expands the specified name into an IRI
      *
-     * @param term          A term
+     * @param name          The name to resolve
+     * @param useTerm       Whether terms can be used in the expansion of the IRI
      * @param useBaseURI    Whether the base URI definition can be used in the expansion of the IRI
      * @param useVocabulary Whether the vocabulary definition can be used in the expansion of the IRI
      * @param useResource   Whether the resource URI can be used in the expansion of the IRI
      * @return The corresponding IRI, or null if it cannot be expanded
      */
-    private String doExpandIRI(final String term, final boolean useBaseURI, final boolean useVocabulary, final boolean useResource) {
-        if (term == null)
+    private String doExpandIRI(final String name, final boolean useTerm, final boolean useBaseURI, final boolean useVocabulary, final boolean useResource) {
+        if (name == null)
             return null;
-        if (JSONLDLoader.KEYWORDS.contains(term))
+        if (JSONLDLoader.KEYWORDS.contains(name))
             // do not map keywords
-            return term;
+            return name;
         // look for a fix point in expansion
-        String current = term;
-        String result = doExpandIRIOneTime(term, useBaseURI, useVocabulary, useResource);
+        String current = name;
+        String result = doExpandIRIOneTime(name, useTerm, useBaseURI, useVocabulary, useResource);
         while (!current.equals(result)) {
             current = result;
-            result = doExpandIRIOneTime(current, useBaseURI, useVocabulary, useResource);
+            result = doExpandIRIOneTime(current, useTerm, useBaseURI, useVocabulary, useResource);
         }
         return result;
     }
 
     /**
-     * Expands a single time the specified term
+     * Expands a single time the specified name
      *
-     * @param term          A term
+     * @param name          The name to resolve
+     * @param useTerm       Whether terms can be used in the expansion of the IRI
      * @param useBaseURI    Whether the base URI definition can be used in the expansion of the IRI
      * @param useVocabulary Whether the vocabulary definition can be used in the expansion of the IRI
      * @param useResource   Whether the resource URI can be used in the expansion of the IRI
      * @return The corresponding IRI
      */
-    private String doExpandIRIOneTime(final String term, final boolean useBaseURI, final boolean useVocabulary, final boolean useResource) {
-        if (term.startsWith("_:"))
+    private String doExpandIRIOneTime(final String name, final boolean useTerm, final boolean useBaseURI, final boolean useVocabulary, final boolean useResource) {
+        if (name.startsWith("_:"))
             // blank node identifier, return as is
-            return term;
+            return name;
 
-        // try to match the complete term
+        // if we can use terms, try to match the complete term
         JSONLDContext current = this;
-        while (current != null) {
-            for (int i = current.fragments.size() - 1; i != -1; i--) {
-                JSONLDContextFragment fragment = current.fragments.get(i);
-                String result = fragment.expand(term);
-                if (result != null) {
-                    if (JSONLDLoader.MARKER_NULL.equals(result))
-                        // explicitly forbids the expansion
-                        return term;
-                    return result;
+        if (useTerm) {
+            while (current != null) {
+                for (int i = current.fragments.size() - 1; i != -1; i--) {
+                    JSONLDContextFragment fragment = current.fragments.get(i);
+                    String result = fragment.expand(name);
+                    if (result != null) {
+                        if (JSONLDLoader.MARKER_NULL.equals(result))
+                            // explicitly forbids the expansion
+                            return name;
+                        return result;
+                    }
                 }
+                current = current.parent;
             }
-            current = current.parent;
         }
 
         // if the term contains a colon, try to resolve it as a absolute URI, or a compact URI
-        int colonIndex = term.indexOf(':');
+        int colonIndex = name.indexOf(':');
         while (colonIndex != -1) {
-            String prefix = term.substring(0, colonIndex);
-            String suffix = (colonIndex == term.length() - 1) ? "" : term.substring(colonIndex + 1, term.length());
+            String prefix = name.substring(0, colonIndex);
+            String suffix = (colonIndex == name.length() - 1) ? "" : name.substring(colonIndex + 1, name.length());
             if (suffix.startsWith("//"))
                 // this matches absolute URIs as per JSON-LD spec
                 return prefix + ":" + suffix;
@@ -184,9 +188,9 @@ class JSONLDContext {
             if (!prefix.equals(expandedPrefix))
                 // prefix was expanded
                 return expandedPrefix + suffix;
-            if (colonIndex >= term.length() + 1)
+            if (colonIndex >= name.length() + 1)
                 break;
-            colonIndex = term.indexOf(':', colonIndex + 1);
+            colonIndex = name.indexOf(':', colonIndex + 1);
         }
 
         // if we can use the vocabulary, try to look for one
@@ -199,8 +203,8 @@ class JSONLDContext {
                         // found a vocabulary
                         if (JSONLDLoader.MARKER_NULL.equals(fragment.getVocabulary()))
                             // explicitly forbids the expansion
-                            return term;
-                        return fragment.getVocabulary() + term;
+                            return name;
+                        return fragment.getVocabulary() + name;
                     }
                 }
                 current = current.parent;
@@ -218,8 +222,8 @@ class JSONLDContext {
                         // found a base IRI
                         if (JSONLDLoader.MARKER_NULL.equals(fragment.getBaseURI()))
                             // explicitly forbids the expansion
-                            return term;
-                        return Utils.uriResolveRelative(fragment.getBaseURI(), Utils.quote(term));
+                            return name;
+                        return Utils.uriResolveRelative(fragment.getBaseURI(), Utils.quote(name));
                     }
                 }
                 current = current.parent;
@@ -228,10 +232,10 @@ class JSONLDContext {
 
         // if we can use the resource URI, resolve against it
         if (useResource)
-            return Utils.uriResolveRelative(loader.getCurrentResource(), Utils.quote(term));
+            return Utils.uriResolveRelative(loader.getCurrentResource(), Utils.quote(name));
 
         // all failed :( return as is
-        return term;
+        return name;
     }
 
     /**
