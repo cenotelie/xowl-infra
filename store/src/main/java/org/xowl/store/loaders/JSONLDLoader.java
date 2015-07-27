@@ -366,6 +366,8 @@ public abstract class JSONLDLoader implements Loader {
                 if (subject == null)
                     subject = store.newNodeBlank();
                 targetGraph = (GraphNode) subject;
+            } else if (subject != null) {
+                targetGraph = (GraphNode) subject;
             } else {
                 targetGraph = graph;
             }
