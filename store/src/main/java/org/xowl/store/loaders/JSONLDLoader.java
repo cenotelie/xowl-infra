@@ -615,7 +615,7 @@ public abstract class JSONLDLoader implements Loader {
                     return resolveBlank(value.substring(2));
                 } else {
                     // this is an IRI
-                    return store.getNodeIRI(context.expandName(value));
+                    return store.getNodeIRI(context.expandResource(value));
                 }
             }
             // this is a typed literal

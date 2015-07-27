@@ -108,6 +108,16 @@ class JSONLDContext {
     }
 
     /**
+     * Expands a resource identifier into an IRI
+     *
+     * @param term A term
+     * @return The corresponding IRI, or null if it cannot be expanded
+     */
+    public String expandResource(String term) {
+        return doExpandIRI(term, true, true, true);
+    }
+
+    /**
      * Expands the specified term into an IRI
      *
      * @param term          A term
