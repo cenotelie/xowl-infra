@@ -123,7 +123,7 @@ public abstract class JSONLDLoader implements Loader {
 
     static {
         PROPERTY_TYPE_INFO.fullIRI = Vocabulary.rdfType;
-        PROPERTY_TYPE_INFO.valueType = KEYWORD_ID;
+        PROPERTY_TYPE_INFO.valueType = KEYWORD_VOCAB;
     }
 
     /**
@@ -633,8 +633,11 @@ public abstract class JSONLDLoader implements Loader {
                 if (value.startsWith("_:")) {
                     // this is blank node
                     return resolveBlank(value.substring(2));
+                } else if (KEYWORD_ID.equals(info.valueType)) {
+                    // this is an id
+                    return store.getNodeIRI(context.expandID(value));
                 } else {
-                    // this is an IRI
+                    // this is a resource
                     return store.getNodeIRI(context.expandResource(value));
                 }
             }
