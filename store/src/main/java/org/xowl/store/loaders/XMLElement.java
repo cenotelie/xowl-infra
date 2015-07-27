@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.loaders;
 
@@ -320,7 +320,7 @@ class XMLElement implements Iterable<XMLElement> {
                     String uri = current.namespaces.get(prefix);
                     if (uri != null) {
                         String name = localName.substring(index + 1);
-                        return Utils.normalizeIRI(resource, baseURI, uri + name);
+                        return Utils.uriResolveRelative(baseURI, Utils.unescape(uri + name));
                     }
                 }
                 index++;
@@ -337,7 +337,7 @@ class XMLElement implements Iterable<XMLElement> {
      * @return The resolved and normalized IRI
      */
     public String resolve(String iri) {
-        return Utils.normalizeIRI(resource, baseURI, iri);
+        return Utils.uriResolveRelative(baseURI != null ? baseURI : resource, Utils.unescape(iri));
     }
 
     /**

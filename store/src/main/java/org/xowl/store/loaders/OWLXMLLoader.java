@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.loaders;
 
@@ -93,6 +93,8 @@ public class OWLXMLLoader implements Loader {
      */
     private void loadOntology(XMLElement node) {
         baseURI = node.getAttribute("ontologyIRI");
+        if (baseURI == null)
+            baseURI = resource;
         String version = node.getAttribute("versionIRI");
         cache = new OWLLoaderResult(baseURI, version);
         for (XMLElement child : node) {
@@ -101,7 +103,7 @@ public class OWLXMLLoader implements Loader {
                     loadPrefixID(child);
                     break;
                 case Vocabulary.OWL2.ontoImport:
-                    cache.addImport(Utils.normalizeIRI(resource, baseURI, child.getContent()));
+                    cache.addImport(Utils.uriResolveRelative(baseURI, Utils.unescape(child.getContent())));
                     break;
                 case Vocabulary.OWL2.ontoAnnotation:
                     cache.addAnnotation(loadAnnotation(child));
@@ -139,7 +141,7 @@ public class OWLXMLLoader implements Loader {
                 String uri = namespaces.get(prefix);
                 if (uri != null) {
                     String name = value.substring(index + 1);
-                    return Utils.normalizeIRI(resource, baseURI, uri + name);
+                    return Utils.uriResolveRelative(baseURI, Utils.unescape(uri + name));
                 }
             }
             index++;
@@ -895,7 +897,7 @@ public class OWLXMLLoader implements Loader {
         IRI iri = new IRI();
         switch (node.getNodeName()) {
             case "IRI":
-                iri.setHasValue(Utils.normalizeIRI(resource, baseURI, node.getContent()));
+                iri.setHasValue(Utils.uriResolveRelative(baseURI, Utils.unescape(node.getContent())));
                 break;
             case "AbbreviatedIRI":
                 iri.setHasValue(getIRIForLocalName(node.getContent()));
@@ -903,7 +905,7 @@ public class OWLXMLLoader implements Loader {
             default:
                 String value = node.getAttribute("IRI");
                 if (value != null)
-                    iri.setHasValue(Utils.normalizeIRI(resource, baseURI, value));
+                    iri.setHasValue(Utils.uriResolveRelative(baseURI, Utils.unescape(value)));
                 else
                     iri.setHasValue(getIRIForLocalName(node.getAttribute("abbreviatedIRI")));
                 break;
@@ -1500,7 +1502,7 @@ public class OWLXMLLoader implements Loader {
         switch (node.getNodeName()) {
             case "IRI": {
                 IRI iri = new IRI();
-                iri.setHasValue(Utils.normalizeIRI(resource, baseURI, node.getContent()));
+                iri.setHasValue(Utils.uriResolveRelative(baseURI, Utils.unescape(node.getContent())));
                 return iri;
             }
             case "AbbreviatedIRI": {

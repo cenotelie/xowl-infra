@@ -58,13 +58,14 @@ public class FunctionalOWL2Deserializer {
 
     /**
      * De-serailizes the specified document identified by the specified resource URI
+     *
      * @param resourceURI The URI of the resource to deserialize
-     * @param document The AST of the document to deserialize
+     * @param document    The AST of the document to deserialize
      * @return The deserailized data
      */
     public OWLLoaderResult deserialize(String resourceURI, ASTNode document) {
         this.resource = resourceURI;
-        this.baseURI = null;
+        this.baseURI = resourceURI;
         this.namespaces = new HashMap<>();
         this.blanks = new HashMap<>();
         this.cache = null;
@@ -143,7 +144,7 @@ public class FunctionalOWL2Deserializer {
         if (node.getSymbol().getName().equals("IRIREF")) {
             String value = node.getValue();
             value = Utils.unescape(value.substring(1, value.length() - 1));
-            return Utils.normalizeIRI(resource, baseURI, value);
+            return Utils.uriResolveRelative(baseURI, value);
         } else {
             // this is a local name
             return getIRIForLocalName(node.getValue());
@@ -165,7 +166,7 @@ public class FunctionalOWL2Deserializer {
                 String uri = namespaces.get(prefix);
                 if (uri != null) {
                     String name = value.substring(index + 1);
-                    return Utils.normalizeIRI(resource, baseURI, uri + name);
+                    return Utils.uriResolveRelative(baseURI, Utils.unescape(uri + name));
                 }
             }
             index++;

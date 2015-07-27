@@ -23,7 +23,6 @@ package org.xowl.store.loaders;
 import org.apache.xerces.impl.dv.InvalidDatatypeValueException;
 import org.apache.xerces.impl.dv.xs.DoubleDV;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -95,35 +94,19 @@ public class Utils {
     }
 
     /**
-     * Resolves and normalizes the specified IRI
-     *
-     * @param resource The URI of the parent enclosing document
-     * @param base     The current base URI, or <code>null</code> if none is defined
-     * @param iri      The IRI to  resolve and normalize
-     * @return The resolved and normalized IRI
-     */
-    public static String normalizeIRI(String resource, String base, String iri) {
-        if (iri == null || iri.isEmpty())
-            return (base != null ? base : resource);
-        iri = unescape(iri);
-        URI uriBase = URI.create(base != null ? base : resource);
-        URI uri = uriBase.resolve(iri);
-        uri = uri.normalize();
-        return uri.toString();
-    }
-
-    /**
-     * Resolves a relative iri against a base
+     * Resolves a relative URI against a base
      * Implements the RFC 3986 relative resolution algorithm
      * (See <a href="http://tools.ietf.org/html/rfc3986#section-5.2">RFC 3986 - 5.2</a>)
      *
-     * @param base      The base IRI to resolve against
-     * @param reference The IRI to resolve
-     * @return The resolved IRI
+     * @param base      The base URI to resolve against
+     * @param reference The URI to resolve
+     * @return The resolved URI
      */
     public static String uriResolveRelative(String base, String reference) {
         if (reference == null || reference.isEmpty())
             return base;
+        if (base == null || base.isEmpty())
+            return reference;
         // RFC 3986: 5.2.1 - Pre-parse the Base URI
         String[] uriBase = uriParse(base);
         if (uriBase == null)

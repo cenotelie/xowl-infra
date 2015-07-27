@@ -137,7 +137,7 @@ public class RDFTLoader implements Loader {
         if (graphTarget == null)
             graphTarget = store.getDefaultGraph();
         resource = uri;
-        baseURI = null;
+        baseURI = resource;
         namespaces = new HashMap<>();
         blanks = new HashMap<>();
 
@@ -204,7 +204,7 @@ public class RDFTLoader implements Loader {
     private void loadBase(ASTNode node) {
         String value = node.getChildren().get(0).getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
-        baseURI = Utils.normalizeIRI(resource, baseURI, value);
+        baseURI = Utils.uriResolveRelative(baseURI, value);
     }
 
     /**
@@ -217,8 +217,8 @@ public class RDFTLoader implements Loader {
         switch (node.getChildren().get(0).getSymbol().getID()) {
             case RDFTLexer.ID.IRIREF: {
                 name = node.getChildren().get(0).getValue();
-                name = name.substring(1, name.length() - 1);
-                name = Utils.normalizeIRI(resource, baseURI, name);
+                name = Utils.unescape(name.substring(1, name.length() - 1));
+                name = Utils.uriResolveRelative(baseURI, name);
                 break;
             }
             case RDFTLexer.ID.PNAME_LN: {
@@ -355,8 +355,8 @@ public class RDFTLoader implements Loader {
      */
     private IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getValue();
-        value = value.substring(1, value.length() - 1);
-        return store.getNodeIRI(Utils.normalizeIRI(resource, baseURI, value));
+        value = Utils.unescape(value.substring(1, value.length() - 1));
+        return store.getNodeIRI(Utils.uriResolveRelative(baseURI, value));
     }
 
     /**
@@ -501,8 +501,8 @@ public class RDFTLoader implements Loader {
         } else if (suffixChild.getSymbol().getID() == RDFTLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getValue();
-            iri = iri.substring(1, iri.length() - 1);
-            return store.getLiteralNode(value, Utils.normalizeIRI(resource, baseURI, iri), null);
+            iri = Utils.unescape(iri.substring(1, iri.length() - 1));
+            return store.getLiteralNode(value, Utils.uriResolveRelative(baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == RDFTLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(suffixChild.getValue());
@@ -550,7 +550,7 @@ public class RDFTLoader implements Loader {
                 String uri = namespaces.get(prefix);
                 if (uri != null) {
                     String name = value.substring(index + 1);
-                    return Utils.normalizeIRI(resource, baseURI, uri + name);
+                    return Utils.uriResolveRelative(baseURI, Utils.unescape(uri + name));
                 }
             }
             index++;
