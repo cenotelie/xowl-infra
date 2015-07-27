@@ -217,6 +217,8 @@ public class Utils {
      * @return The 5 URI components in order in an array, or null if the syntax is incorrect
      */
     public static String[] uriParse(String uri) {
+        if (!uriAllLegalCharacters(uri))
+            throw new IllegalArgumentException("URI contains illegal characters");
         String[] components = new String[5];
 
         // retrieve the scheme
@@ -431,6 +433,30 @@ public class Utils {
                 return refPath;
             return basePath.substring(0, index + 1) + refPath;
         }
+    }
+
+    /**
+     * Determines whether the specified URI only contains valid characters.
+     * This method does the check whether the URI is well-formed
+     *
+     * @param uri An URI
+     * @return true if the URI only contains valid characters
+     */
+    private static boolean uriAllLegalCharacters(String uri) {
+        for (int i = 0; i != uri.length(); i++)
+            if (!uriIsLegalCharacter(uri.charAt(i)))
+                return false;
+        return true;
+    }
+
+    /**
+     * Determines whether the specified character is a valid character in an URI
+     *
+     * @param c A character
+     * @return true if the character is valid
+     */
+    private static boolean uriIsLegalCharacter(char c) {
+        return (!Character.isWhitespace(c) && !Character.isISOControl(c) && c != '<' && c != '>');
     }
 
     /**
