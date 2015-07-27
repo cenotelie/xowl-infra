@@ -157,26 +157,63 @@ class JSONLDContext {
         if (name.startsWith("_:"))
             // blank node identifier, return as is
             return name;
-
         // if we can use terms, try to match the complete term
-        JSONLDContext current = this;
-        if (useTerm) {
-            while (current != null) {
-                for (int i = current.fragments.size() - 1; i != -1; i--) {
-                    JSONLDContextFragment fragment = current.fragments.get(i);
-                    String result = fragment.expand(name);
-                    if (result != null) {
-                        if (JSONLDLoader.MARKER_NULL.equals(result))
-                            // explicitly forbids the expansion
-                            return name;
-                        return result;
-                    }
-                }
-                current = current.parent;
-            }
+        String result = useTerm ? doExpandUsingTerms(name) : null;
+        if (result != null) {
+            if (JSONLDLoader.MARKER_NULL.equals(result))
+                return name;
+            return result;
         }
+        result = doExpandCompactIRI(name);
+        if (result != null)
+            return result;
+        // if we can use the vocabulary, try to look for one
+        result = useVocabulary ? doExpandUsingVocabulary(name) : null;
+        if (result != null && !JSONLDLoader.MARKER_NULL.equals(result))
+            return result;
+        // now term is supposed to be a relative IRI
+        // if we can use the base URI, try to look for one
+        result = useBaseURI ? doExpandUsingBaseURI(name) : null;
+        if (result != null && !JSONLDLoader.MARKER_NULL.equals(result))
+            return result;
+        // if we can use the resource URI, resolve against it
+        if (useResource)
+            return Utils.uriResolveRelative(loader.getCurrentResource(), Utils.quote(name));
+        // all failed :( return as is
+        return name;
+    }
 
-        // if the term contains a colon, try to resolve it as a absolute URI, or a compact URI
+    /**
+     * Expand a name using term definitions
+     *
+     * @param name The name to resolve
+     * @return The expanded name, or null if the expansion failed
+     */
+    private String doExpandUsingTerms(final String name) {
+        JSONLDContext current = this;
+        while (current != null) {
+            for (int i = current.fragments.size() - 1; i != -1; i--) {
+                JSONLDContextFragment fragment = current.fragments.get(i);
+                String result = fragment.expand(name);
+                if (result != null) {
+                    if (JSONLDLoader.MARKER_NULL.equals(result))
+                        // explicitly forbids the expansion
+                        return JSONLDLoader.MARKER_NULL;
+                    return result;
+                }
+            }
+            current = current.parent;
+        }
+        return null;
+    }
+
+    /**
+     * Expand a name as a compact IRI
+     *
+     * @param name The name to resolve
+     * @return The expanded name, or null if the expansion failed
+     */
+    private String doExpandCompactIRI(final String name) {
         int colonIndex = name.indexOf(':');
         while (colonIndex != -1) {
             String prefix = name.substring(0, colonIndex);
@@ -192,50 +229,55 @@ class JSONLDContext {
                 break;
             colonIndex = name.indexOf(':', colonIndex + 1);
         }
+        return null;
+    }
 
-        // if we can use the vocabulary, try to look for one
-        if (useVocabulary) {
-            current = this;
-            while (current != null) {
-                for (int i = current.fragments.size() - 1; i != -1; i--) {
-                    JSONLDContextFragment fragment = current.fragments.get(i);
-                    if (fragment.getVocabulary() != null) {
-                        // found a vocabulary
-                        if (JSONLDLoader.MARKER_NULL.equals(fragment.getVocabulary()))
-                            // explicitly forbids the expansion
-                            return name;
-                        return fragment.getVocabulary() + name;
-                    }
+    /**
+     * Expand a name using a vocabulary
+     *
+     * @param name The name to resolve
+     * @return The expanded name, or null if the expansion failed
+     */
+    private String doExpandUsingVocabulary(final String name) {
+        JSONLDContext current = this;
+        while (current != null) {
+            for (int i = current.fragments.size() - 1; i != -1; i--) {
+                JSONLDContextFragment fragment = current.fragments.get(i);
+                if (fragment.getVocabulary() != null) {
+                    // found a vocabulary
+                    if (JSONLDLoader.MARKER_NULL.equals(fragment.getVocabulary()))
+                        // explicitly forbids the expansion
+                        return JSONLDLoader.MARKER_NULL;
+                    return fragment.getVocabulary() + name;
                 }
-                current = current.parent;
             }
+            current = current.parent;
         }
+        return null;
+    }
 
-        // now term is supposed to be a relative IRI
-        // if we can use the base URI, try to look for one
-        if (useBaseURI) {
-            current = this;
-            while (current != null) {
-                for (int i = current.fragments.size() - 1; i != -1; i--) {
-                    JSONLDContextFragment fragment = current.fragments.get(i);
-                    if (fragment.getBaseURI() != null) {
-                        // found a base IRI
-                        if (JSONLDLoader.MARKER_NULL.equals(fragment.getBaseURI()))
-                            // explicitly forbids the expansion
-                            return name;
-                        return Utils.uriResolveRelative(fragment.getBaseURI(), Utils.quote(name));
-                    }
+    /**
+     * Expand a name using a base URI
+     *
+     * @param name The name to resolve
+     * @return The expanded name, or null if the expansion failed
+     */
+    private String doExpandUsingBaseURI(final String name) {
+        JSONLDContext current = this;
+        while (current != null) {
+            for (int i = current.fragments.size() - 1; i != -1; i--) {
+                JSONLDContextFragment fragment = current.fragments.get(i);
+                if (fragment.getBaseURI() != null) {
+                    // found a base IRI
+                    if (JSONLDLoader.MARKER_NULL.equals(fragment.getBaseURI()))
+                        // explicitly forbids the expansion
+                        return JSONLDLoader.MARKER_NULL;
+                    return Utils.uriResolveRelative(fragment.getBaseURI(), Utils.quote(name));
                 }
-                current = current.parent;
             }
+            current = current.parent;
         }
-
-        // if we can use the resource URI, resolve against it
-        if (useResource)
-            return Utils.uriResolveRelative(loader.getCurrentResource(), Utils.quote(name));
-
-        // all failed :( return as is
-        return name;
+        return null;
     }
 
     /**
