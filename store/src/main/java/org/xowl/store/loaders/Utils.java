@@ -125,6 +125,27 @@ public class Utils {
     }
 
     /**
+     * Identifier of the scheme component of an URI
+     */
+    public static final int URI_COMPONENT_SCHEME = 0;
+    /**
+     * Identifier of the scheme component of an URI
+     */
+    public static final int URI_COMPONENT_AUTHORITY = 1;
+    /**
+     * Identifier of the scheme component of an URI
+     */
+    public static final int URI_COMPONENT_PATH = 2;
+    /**
+     * Identifier of the scheme component of an URI
+     */
+    public static final int URI_COMPONENT_QUERY = 3;
+    /**
+     * Identifier of the scheme component of an URI
+     */
+    public static final int URI_COMPONENT_FRAGMENT = 4;
+
+    /**
      * Resolves a relative URI against a base
      * Implements the RFC 3986 relative resolution algorithm
      * (See <a href="http://tools.ietf.org/html/rfc3986#section-5.2">RFC 3986 - 5.2</a>)
@@ -142,59 +163,45 @@ public class Utils {
         String[] uriBase = uriParse(base);
         if (uriBase == null)
             return null;
-        String baseScheme = uriBase[0];
-        String baseAuthority = uriBase[1];
-        String basePath = uriBase[2];
-        String baseQuery = uriBase[3];
-        // base fragment is ignored, no need to get it
-
         // RFC 3986: 5.2.2 - Transform References
         // (R.scheme, R.authority, R.path, R.query, R.fragment) = parse(R);
         String[] uriReference = uriParse(reference);
         if (uriReference == null)
             return null;
-        String refScheme = uriReference[0];
-        String refAuthority = uriReference[1];
-        String refPath = uriReference[2];
-        String refQuery = uriReference[3];
-        String refFragment = uriReference[4];
-        // if ((not strict) and (R.scheme == Base.scheme)) then
-        //    undefine(R.scheme);
-        // endif;
 
         String targetScheme;
         String targetAuthority;
         String targetPath;
         String targetQuery;
         String targetFragment;
-        if (refScheme != null) {
-            targetScheme = refScheme;
-            targetAuthority = refAuthority;
-            targetPath = uriRemoveDotSegments(refPath);
-            targetQuery = refQuery;
+        if (uriReference[URI_COMPONENT_SCHEME] != null) {
+            targetScheme = uriReference[URI_COMPONENT_SCHEME];
+            targetAuthority = uriReference[URI_COMPONENT_AUTHORITY];
+            targetPath = uriRemoveDotSegments(uriReference[URI_COMPONENT_PATH]);
+            targetQuery = uriReference[URI_COMPONENT_QUERY];
         } else {
-            if (refAuthority != null) {
-                targetAuthority = refAuthority;
-                targetPath = uriRemoveDotSegments(refPath);
-                targetQuery = refQuery;
+            if (uriReference[URI_COMPONENT_AUTHORITY] != null) {
+                targetAuthority = uriReference[URI_COMPONENT_AUTHORITY];
+                targetPath = uriRemoveDotSegments(uriReference[URI_COMPONENT_PATH]);
+                targetQuery = uriReference[URI_COMPONENT_QUERY];
             } else {
-                if (refPath == null || refPath.isEmpty()) {
-                    targetPath = basePath;
-                    targetQuery = refQuery != null ? refQuery : baseQuery;
+                if (uriReference[URI_COMPONENT_PATH] == null || uriReference[URI_COMPONENT_PATH].isEmpty()) {
+                    targetPath = uriBase[URI_COMPONENT_PATH];
+                    targetQuery = uriReference[URI_COMPONENT_QUERY] != null ? uriReference[URI_COMPONENT_QUERY] : uriBase[URI_COMPONENT_QUERY];
                 } else {
-                    if (refPath.startsWith("/")) {
-                        targetPath = uriRemoveDotSegments(refPath);
+                    if (uriReference[URI_COMPONENT_PATH].startsWith("/")) {
+                        targetPath = uriRemoveDotSegments(uriReference[URI_COMPONENT_PATH]);
                     } else {
-                        targetPath = uriMergePaths(baseAuthority, basePath, refPath);
+                        targetPath = uriMergePaths(uriBase[URI_COMPONENT_AUTHORITY], uriBase[URI_COMPONENT_PATH], uriReference[URI_COMPONENT_PATH]);
                         targetPath = uriRemoveDotSegments(targetPath);
                     }
-                    targetQuery = refQuery;
+                    targetQuery = uriReference[URI_COMPONENT_QUERY];
                 }
-                targetAuthority = baseAuthority;
+                targetAuthority = uriBase[URI_COMPONENT_AUTHORITY];
             }
-            targetScheme = baseScheme;
+            targetScheme = uriBase[URI_COMPONENT_SCHEME];
         }
-        targetFragment = refFragment;
+        targetFragment = uriReference[URI_COMPONENT_FRAGMENT];
 
         // RFC 3986: 5.3 - Transform References
         return uriRecompose(targetScheme, targetAuthority, targetPath, targetQuery, targetFragment);
@@ -209,7 +216,7 @@ public class Utils {
      * @param uri The URI to compose
      * @return The 5 URI components in order in an array, or null if the syntax is incorrect
      */
-    private static String[] uriParse(String uri) {
+    public static String[] uriParse(String uri) {
         String[] components = new String[5];
 
         // retrieve the scheme
@@ -218,7 +225,7 @@ public class Utils {
             // no scheme
             start = 0;
         } else {
-            components[0] = uri.substring(0, start);
+            components[URI_COMPONENT_SCHEME] = uri.substring(0, start);
             start++;
         }
 
@@ -238,7 +245,7 @@ public class Utils {
                 min = nextNumber;
             if (nextQMark >= 0 && nextQMark < min)
                 min = nextQMark;
-            components[1] = uri.substring(start, min);
+            components[URI_COMPONENT_AUTHORITY] = uri.substring(start, min);
             start = min;
         }
         if (start == uri.length())
@@ -252,25 +259,25 @@ public class Utils {
             min = nextNumber;
         if (nextQMark >= 0 && nextQMark < min)
             min = nextQMark;
-        if (components[1] != null) {
+        if (components[URI_COMPONENT_AUTHORITY] != null) {
             // uri has authority component
             // path must be empty, or start with /
             if (min == start) {
                 // path is empty
-                components[2] = "";
+                components[URI_COMPONENT_PATH] = "";
                 start = min;
             } else if (uri.charAt(start) != '/') {
                 // error, must start with /
                 return null;
             } else {
-                components[2] = uri.substring(start, min);
+                components[URI_COMPONENT_PATH] = uri.substring(start, min);
                 start = min;
             }
         } else if (uri.startsWith("//", start)) {
             // error, with no authority, the path cannot start with //
             return null;
         } else {
-            components[2] = uri.substring(start, min);
+            components[URI_COMPONENT_PATH] = uri.substring(start, min);
             start = min;
         }
         if (start == uri.length())
@@ -283,7 +290,7 @@ public class Utils {
             min = uri.length();
             if (nextNumber >= 0 && nextNumber < min)
                 min = nextNumber;
-            components[3] = uri.substring(start, min);
+            components[URI_COMPONENT_QUERY] = uri.substring(start, min);
             start = min;
             if (start == uri.length())
                 return components;
@@ -291,7 +298,7 @@ public class Utils {
 
         // at this point we are facing a fragment
         start++;
-        components[4] = start == uri.length() ? "" : uri.substring(start);
+        components[URI_COMPONENT_FRAGMENT] = start == uri.length() ? "" : uri.substring(start);
         return components;
     }
 
@@ -307,7 +314,7 @@ public class Utils {
      * @param fragment  The fragment component
      * @return The recomposed URI
      */
-    private static String uriRecompose(String scheme, String authority, String path, String query, String fragment) {
+    public static String uriRecompose(String scheme, String authority, String path, String query, String fragment) {
         StringBuilder builder = new StringBuilder();
         if (scheme != null) {
             builder.append(scheme);

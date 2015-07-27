@@ -28,8 +28,6 @@ import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.Couple;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 
 /**
@@ -239,24 +237,14 @@ class XMLElement implements Iterable<XMLElement> {
     }
 
     /**
-     * Sanitizes the specified base URI
+     * Sanitizes the specified base URI by removing the fragment component, if any
      *
      * @param value A base URI
      * @return The equivalent sanitized base URI
      */
     private String sanitizeBaseURI(String value) {
-        try {
-            URI uri = new URI(value);
-            String scheme = uri.getScheme();
-            String authority = uri.getRawAuthority();
-            String path = uri.getRawPath();
-            String query = uri.getRawQuery();
-            if (path == null || path.isEmpty())
-                path = "/";
-            return (new URI(scheme, authority, path, query, null)).toString();
-        } catch (URISyntaxException ex) {
-            throw new IllegalArgumentException("Malformed base URI", ex);
-        }
+        String[] components = Utils.uriParse(value);
+        return Utils.uriRecompose(components[Utils.URI_COMPONENT_SCHEME], components[Utils.URI_COMPONENT_AUTHORITY], components[Utils.URI_COMPONENT_PATH], components[Utils.URI_COMPONENT_QUERY], null);
     }
 
     /**
