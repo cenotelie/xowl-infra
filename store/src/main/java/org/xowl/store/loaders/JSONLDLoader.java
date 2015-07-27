@@ -421,7 +421,11 @@ public abstract class JSONLDLoader implements Loader {
             // this is a keyword, drop it
             return;
         JSONLDNameInfo propertyInfo = context.getInfoFor(key);
-        String propertyIRI = propertyInfo.reversed != null ? propertyInfo.reversed : propertyInfo.fullIRI;
+        String propertyIRI = propertyInfo.fullIRI;
+        if (propertyInfo.reversed != null) {
+            propertyIRI = propertyInfo.reversed;
+            reversed = !reversed;
+        }
         if (propertyIRI == null || propertyIRI.startsWith("_:") || !isFullyExpanded(propertyIRI))
             // property is undefined or
             // this is a blank node identifier, do not handle generalized RDF graphs
@@ -433,14 +437,14 @@ public abstract class JSONLDLoader implements Loader {
         if (value instanceof JSONLDExplicitList || (value instanceof List && propertyInfo.containerType == JSONLDContainerType.List)) {
             // explicit, or coerced to
             Node target = createRDFList(graph, (List<Node>) value);
-            if (reversed || propertyInfo.reversed != null)
+            if (reversed)
                 quads.add(new Quad(graph, (SubjectNode) target, property, subject));
             else
                 quads.add(new Quad(graph, subject, property, target));
         } else if (value instanceof List) {
             List<Node> targets = (List<Node>) value;
             for (Node target : targets) {
-                if (reversed || propertyInfo.reversed != null)
+                if (reversed)
                     quads.add(new Quad(graph, (SubjectNode) target, property, subject));
                 else
                     quads.add(new Quad(graph, subject, property, target));
@@ -450,7 +454,7 @@ public abstract class JSONLDLoader implements Loader {
             if (propertyInfo.containerType == JSONLDContainerType.List)
                 // coerce to list
                 target = createRDFList(graph, Collections.singletonList(target));
-            if (reversed || propertyInfo.reversed != null)
+            if (reversed)
                 quads.add(new Quad(graph, (SubjectNode) target, property, subject));
             else
                 quads.add(new Quad(graph, subject, property, target));
