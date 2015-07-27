@@ -506,6 +506,8 @@ public abstract class JSONLDLoader implements Loader {
                     return loadObject(node, graph, context);
             }
             case JSONLDParser.ID.array:
+                if (info != null && info.containerType == JSONLDContainerType.Index)
+                    return loadIndexedValues(node, graph, context);
                 return loadArray(node, graph, context, info);
             case JSONLDLexer.ID.LITERAL_INTEGER:
             case JSONLDLexer.ID.LITERAL_DECIMAL:
@@ -776,10 +778,19 @@ public abstract class JSONLDLoader implements Loader {
      * @return The values
      */
     private List<Node> loadIndexedValues(ASTNode node, GraphNode graph, JSONLDContext context) throws JSONLDLoadingException {
+        List<ASTNode> definitions = new ArrayList<>();
+        if (node.getSymbol().getID() == JSONLDParser.ID.object) {
+            for (ASTNode member : node.getChildren()) {
+                // the index does not translate to RDF
+                definitions.add(member.getChildren().get(1));
+            }
+        } else {
+            // this is an array
+            definitions.addAll(node.getChildren());
+        }
         List<Node> result = new ArrayList<>();
-        for (ASTNode member : node.getChildren()) {
-            // the index does not translate to RDF
-            Object value = loadValue(member.getChildren().get(1), graph, context, null);
+        for (ASTNode definition : definitions) {
+            Object value = loadValue(definition, graph, context, null);
             if (value != null) {
                 if (value instanceof List)
                     result.addAll((List<Node>) value);
