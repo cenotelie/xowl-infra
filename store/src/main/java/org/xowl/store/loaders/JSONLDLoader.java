@@ -81,7 +81,7 @@ public abstract class JSONLDLoader implements Loader {
      */
     public static final String KEYWORD_REVERSE = "@reverse";
     /**
-     * Property that specifies the indexing of a propert values
+     * Property that specifies the indexing of a property values
      */
     public static final String KEYWORD_INDEX = "@index";
     /**
@@ -498,9 +498,12 @@ public abstract class JSONLDLoader implements Loader {
             case JSONLDParser.ID.object: {
                 if (isValueNode(node, context))
                     return loadValueNode(node, graph, context, info);
-                else if (isListNode(node, context))
-                    return loadListNode(node, graph, context, info);
-                else if (isSetNode(node, context))
+                else if (isListNode(node, context)) {
+                    if (info != null)
+                        // only load the list if it is the value of a property
+                        return loadListNode(node, graph, context, info);
+                    return null;
+                } else if (isSetNode(node, context))
                     return loadSetNode(node, graph, context, info);
                 else if (info != null && info.containerType == JSONLDContainerType.Language)
                     return loadMultilingualValues(node);
