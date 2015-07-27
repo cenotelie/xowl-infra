@@ -159,7 +159,7 @@ class JSONLDContext {
             return name;
         // if we can use terms, try to match the complete term
         String result = useTerm ? doExpandUsingTerms(name) : null;
-        if (result != null) {
+        if (result != null && !name.equals(result)) {
             if (JSONLDLoader.MARKER_NULL.equals(result))
                 return name;
             return result;
