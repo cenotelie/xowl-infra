@@ -65,7 +65,7 @@ public class BaseJSONLDTest {
         Iterator<Quad> iterator = repository.getStore().getAll();
         while (iterator.hasNext())
             expectedQuads.add(iterator.next());
-        repository.getStore().removeAll();
+        repository.getStore().clear();
 
         // load the premise ontology and the default ontologies
         Ontology testedOntology = repository.load(logger, testedURI);
@@ -118,6 +118,5 @@ public class BaseJSONLDTest {
         Collection<QuerySolution> solutions = repository.getQueryEngine().getBackend().execute(query);
         Assert.assertFalse("Mismatch between the expected and tested content", solutions.isEmpty());
         Assert.assertEquals("Expected and tested content have different sizes", expectedQuads.size(), testedQuads.size());
-
     }
 }

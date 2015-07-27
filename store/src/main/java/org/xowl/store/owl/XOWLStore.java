@@ -187,6 +187,31 @@ public class XOWLStore extends RDFStore {
     }
 
     @Override
+    protected void doClearFromAll(List<Quad> buffer) {
+        doClearFromIRIs(buffer);
+        doClearFromBlanks(buffer);
+        doClearFromAnons(buffer);
+    }
+
+    /**
+     * Executes the clear operation removing all quads with anonymous nodes as subject
+     *
+     * @param buffer The buffer for the removed quads
+     */
+    protected void doClearFromAnons(List<Quad> buffer) {
+        for (Map.Entry<String, EdgeBucket> entry : edgesAnon.entrySet()) {
+            int originalSize = buffer.size();
+            entry.getValue().clear(buffer);
+            if (buffer.size() > originalSize) {
+                AnonymousNode subject = mapNodeAnons.get(entry.getKey());
+                for (int j = originalSize; j != buffer.size(); j++)
+                    setSubjectOf(buffer.get(j), subject);
+            }
+        }
+        edgesAnon.clear();
+    }
+
+    @Override
     protected int doRemoveEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case AnonymousNode.TYPE:

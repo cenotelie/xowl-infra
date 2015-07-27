@@ -199,6 +199,19 @@ class EdgeTarget implements Iterable<GraphNode> {
         return (size == 0) ? RDFStore.REMOVE_RESULT_EMPTIED : RDFStore.REMOVE_RESULT_REMOVED;
     }
 
+    /**
+     * Clears this object
+     *
+     * @param buffer The buffer for the removed quads
+     */
+    public void clear(List<Quad> buffer) {
+        for (int i = 0; i != graphs.length; i++) {
+            if (graphs[i] != null) {
+                buffer.add(new Quad(graphs[i], null, null, null));
+            }
+        }
+    }
+
     @Override
     public Iterator<GraphNode> iterator() {
         return new SparseIterator<>(graphs);

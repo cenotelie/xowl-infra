@@ -153,6 +153,22 @@ public class EdgeBucket implements Iterable<Edge> {
         return (size == 0) ? RDFStore.REMOVE_RESULT_EMPTIED : RDFStore.REMOVE_RESULT_REMOVED;
     }
 
+    /**
+     * Clears this object
+     *
+     * @param buffer The buffer for the removed quads
+     */
+    public void clear(List<Quad> buffer) {
+        for (int i = 0; i != edges.length; i++) {
+            if (edges[i] != null) {
+                int originalSize = buffer.size();
+                edges[i].clear(buffer);
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setProperty(edges[i].getProperty());
+            }
+        }
+    }
+
     @Override
     public Iterator<Edge> iterator() {
         return new SparseIterator<>(edges);

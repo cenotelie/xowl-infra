@@ -133,13 +133,24 @@ public abstract class JSONLDLoader implements Loader {
      * @return The decoded value of the string
      */
     public static String getValue(ASTNode node) throws JSONLDLoadingException {
-        if (node.getSymbol().getID() == JSONLDLexer.ID.LITERAL_NULL)
-            return null;
-        if (node.getSymbol().getID() != JSONLDLexer.ID.LITERAL_STRING)
-            throw new JSONLDLoadingException("Expected a string value", node);
-        String value = node.getValue();
-        value = value.substring(1, value.length() - 1);
-        return Utils.unescape(value);
+        switch (node.getSymbol().getID()) {
+            case JSONLDLexer.ID.LITERAL_INTEGER:
+            case JSONLDLexer.ID.LITERAL_DECIMAL:
+            case JSONLDLexer.ID.LITERAL_DOUBLE:
+                return node.getValue();
+            case JSONLDLexer.ID.LITERAL_STRING:
+                String value = node.getValue();
+                value = value.substring(1, value.length() - 1);
+                return Utils.unescape(value);
+            case JSONLDLexer.ID.LITERAL_NULL:
+                return null;
+            case JSONLDLexer.ID.LITERAL_TRUE:
+                return "true";
+            case JSONLDLexer.ID.LITERAL_FALSE:
+                return "false";
+            default:
+                throw new JSONLDLoadingException("Unrecognized input " + node.getSymbol().getName(), node);
+        }
     }
 
 
@@ -482,7 +493,7 @@ public abstract class JSONLDLoader implements Loader {
         switch (node.getSymbol().getID()) {
             case JSONLDParser.ID.object: {
                 if (isValueNode(node, context))
-                    return loadValueNode(node, context, info);
+                    return loadValueNode(node, graph, context, info);
                 else if (isListNode(node, context))
                     return loadListNode(node, graph, context, info);
                 else if (isSetNode(node, context))
@@ -632,40 +643,38 @@ public abstract class JSONLDLoader implements Loader {
      * Gets the RDF node equivalent to the specified AST node
      *
      * @param node    An AST node
+     * @param graph   The parent graph
      * @param context The parent context
      * @param info    The information on the current name (property)
      * @return The equivalent RDF node
      */
-    private Node loadValueNode(ASTNode node, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
-        String value = null;
-        String type = null;
-        String language = null;
+    private Node loadValueNode(ASTNode node, GraphNode graph, JSONLDContext context, JSONLDNameInfo info) throws JSONLDLoadingException {
+        // make a copy of the property info
+        JSONLDNameInfo current = new JSONLDNameInfo();
+        if (info != null) {
+            current.fullIRI = info.fullIRI;
+            current.containerType = info.containerType;
+            current.valueType = info.valueType;
+            current.language = info.language;
+            current.reversed = info.reversed;
+        }
+        // update it with the overriding info for this node
+        for (ASTNode member : node.getChildren()) {
+            String key = getValue(member.getChildren().get(0));
+            String expandedKey = context.expandName(key);
+            if (KEYWORD_TYPE.equals(key) || KEYWORD_TYPE.equals(expandedKey))
+                current.valueType = getValue(member.getChildren().get(1));
+            else if (KEYWORD_LANGUAGE.equals(key) || KEYWORD_LANGUAGE.equals(expandedKey))
+                current.language = getValue(member.getChildren().get(1));
+        }
+        // load the value
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             String expandedKey = context.expandName(key);
             if (KEYWORD_VALUE.equals(key) || KEYWORD_VALUE.equals(expandedKey))
-                value = getValue(member.getChildren().get(1));
-            else if (KEYWORD_TYPE.equals(key) || KEYWORD_TYPE.equals(expandedKey))
-                type = getValue(member.getChildren().get(1));
-            else if (KEYWORD_LANGUAGE.equals(key) || KEYWORD_LANGUAGE.equals(expandedKey))
-                language = getValue(member.getChildren().get(1));
+                return (Node) loadValue(member.getChildren().get(1), graph, context, current);
         }
-        if (value == null)
-            return null;
-        if (type != null) {
-            // coerced type
-            return store.getLiteralNode(value, context.expandName(type), null);
-        } else if (info != null && info.valueType != null) {
-            // coerced type
-            return store.getLiteralNode(value, context.expandName(info.valueType), null);
-        } else {
-            if (language == null)
-                language = (info != null && info.language != null) ? info.language : context.getLanguage();
-            if (language != null && MARKER_NULL.equals(language))
-                // explicit reset
-                language = null;
-            return store.getLiteralNode(value, language == null ? Vocabulary.xsdString : Vocabulary.rdfLangString, language);
-        }
+        return null;
     }
 
     /**

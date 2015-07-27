@@ -179,6 +179,22 @@ class Edge implements Iterable<EdgeTarget> {
         return (size == 0) ? RDFStore.REMOVE_RESULT_EMPTIED : RDFStore.REMOVE_RESULT_REMOVED;
     }
 
+    /**
+     * Clears this object
+     *
+     * @param buffer The buffer for the removed quads
+     */
+    public void clear(List<Quad> buffer) {
+        for (int i = 0; i != targets.length; i++) {
+            if (targets[i] != null) {
+                int originalSize = buffer.size();
+                targets[i].clear(buffer);
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setObject(targets[i].getTarget());
+            }
+        }
+    }
+
     @Override
     public Iterator<EdgeTarget> iterator() {
         return new SparseIterator<>(targets);

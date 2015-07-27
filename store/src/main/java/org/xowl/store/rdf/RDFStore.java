@@ -428,16 +428,65 @@ public class RDFStore extends AbstractStore implements ChangeListener {
     }
 
     /**
-     * Removes a single instance of all the quads in this store.
-     * This essentially decreases the multiplicity of each quad in this store.
-     * Quads are only removed when their multiplicity reached 0.
-     * Listeners are notified of the completely removed quads only.
+     * Clears this store by removing all quads
      */
-    public void removeAll() {
-        try {
-            remove(null, null, null, null);
-        } catch (UnsupportedNodeType exception) {
-            // cannot happen
+    public void clear() {
+        List<Quad> buffer = new ArrayList<>();
+        doClearFromAll(buffer);
+        if (!buffer.isEmpty()) {
+            Changeset changeset = new Changeset(new ArrayList<Quad>(), buffer);
+            for (ChangeListener listener : listeners) {
+                listener.onChange(changeset);
+            }
+        }
+    }
+
+    /**
+     * Executes the clear operation removing all quads from this store
+     *
+     * @param buffer The buffer for the removed quads
+     */
+    protected void doClearFromAll(List<Quad> buffer) {
+        doClearFromIRIs(buffer);
+        doClearFromBlanks(buffer);
+    }
+
+    /**
+     * Executes the clear operation removing all quads with IRI nodes as subject
+     *
+     * @param buffer The buffer for the removed quads
+     */
+    protected void doClearFromIRIs(List<Quad> buffer) {
+        for (Map.Entry<Integer, EdgeBucket> entry : edgesIRI.entrySet()) {
+            int originalSize = buffer.size();
+            entry.getValue().clear(buffer);
+            if (buffer.size() > originalSize) {
+                IRINode subject = new IRINodeImpl(sStore, entry.getKey());
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setSubject(subject);
+            }
+        }
+        edgesIRI.clear();
+    }
+
+    /**
+     * Executes the clear operation removing all quads with blank nodes as subject
+     *
+     * @param buffer The buffer for the removed quads
+     */
+    protected void doClearFromBlanks(List<Quad> buffer) {
+        for (int i = 0; i != nextBlank; i++) {
+            EdgeBucket bucket = edgesBlank[i];
+            if (bucket == null)
+                continue;
+            int originalSize = buffer.size();
+            bucket.clear(buffer);
+            edgesBlank[i] = null;
+            if (buffer.size() > originalSize) {
+                BlankNode subject = new BlankNode(i);
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setSubject(subject);
+            }
         }
     }
 
