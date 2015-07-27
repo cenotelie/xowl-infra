@@ -121,7 +121,7 @@ class JSONLDContext {
             return null;
         if (JSONLDLoader.KEYWORDS.contains(term))
             // do not map keywords
-            return null;
+            return term;
         // look for a fix point in expansion
         String current = term;
         String result = doExpandIRIOneTime(term, useBaseURI, useVocabulary, useResource);
@@ -162,13 +162,13 @@ class JSONLDContext {
             current = current.parent;
         }
 
+        // if the term contains a colon, try to resolve it as a absolute URI, or a compact URI
         int colonIndex = term.indexOf(':');
         while (colonIndex != -1) {
             String prefix = term.substring(0, colonIndex);
             String suffix = (colonIndex == term.length() - 1) ? "" : term.substring(colonIndex + 1, term.length());
             if (suffix.startsWith("//"))
-                // per JSON-LD spec, do not expand when suffix starts with //
-                // this will match already expanded URIs of the form http://...
+                // this matches absolute URIs as per JSON-LD spec
                 return prefix + ":" + suffix;
             String expandedPrefix = resolveNamespace(prefix);
             if (!prefix.equals(expandedPrefix))
@@ -179,20 +179,13 @@ class JSONLDContext {
             colonIndex = term.indexOf(':', colonIndex + 1);
         }
 
-        // find a base URI, or vocabulary definition
-        if (useBaseURI || useVocabulary) {
+        // if we can use the vocabulary, try to look for one
+        if (useVocabulary) {
             current = this;
             while (current != null) {
                 for (int i = current.fragments.size() - 1; i != -1; i--) {
                     JSONLDContextFragment fragment = current.fragments.get(i);
-                    if (useBaseURI && fragment.getBaseURI() != null) {
-                        // found a base IRI
-                        if (JSONLDLoader.MARKER_NULL.equals(fragment.getBaseURI()))
-                            // explicitly forbids the expansion
-                            return term;
-                        return Utils.normalizeIRI(loader.getCurrentResource(), fragment.getBaseURI(), Utils.quote(term));
-                    }
-                    if (useVocabulary && fragment.getVocabulary() != null) {
+                    if (fragment.getVocabulary() != null) {
                         // found a vocabulary
                         if (JSONLDLoader.MARKER_NULL.equals(fragment.getVocabulary()))
                             // explicitly forbids the expansion
@@ -204,8 +197,31 @@ class JSONLDContext {
             }
         }
 
-        // expand from the resource
-        return useResource ? Utils.normalizeIRI(loader.getCurrentResource(), null, Utils.quote(term)) : term;
+        // now term is supposed to be a relative IRI
+        // if we can use the base URI, try to look for one
+        if (useBaseURI) {
+            current = this;
+            while (current != null) {
+                for (int i = current.fragments.size() - 1; i != -1; i--) {
+                    JSONLDContextFragment fragment = current.fragments.get(i);
+                    if (fragment.getBaseURI() != null) {
+                        // found a base IRI
+                        if (JSONLDLoader.MARKER_NULL.equals(fragment.getBaseURI()))
+                            // explicitly forbids the expansion
+                            return term;
+                        return Utils.uriResolveRelative(fragment.getBaseURI(), Utils.quote(term));
+                    }
+                }
+                current = current.parent;
+            }
+        }
+
+        // if we can use the resource URI, resolve against it
+        if (useResource)
+            return Utils.uriResolveRelative(loader.getCurrentResource(), Utils.quote(term));
+
+        // all failed :( return as is
+        return term;
     }
 
     /**

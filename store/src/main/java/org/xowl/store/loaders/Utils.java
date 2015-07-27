@@ -24,6 +24,9 @@ import org.apache.xerces.impl.dv.InvalidDatatypeValueException;
 import org.apache.xerces.impl.dv.xs.DoubleDV;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
 
 /**
  * Utilities for the loaders
@@ -107,6 +110,336 @@ public class Utils {
         URI uri = uriBase.resolve(iri);
         uri = uri.normalize();
         return uri.toString();
+    }
+
+    /**
+     * Resolves a relative iri against a base
+     * Implements the RFC 3986 relative resolution algorithm
+     * (See <a href="http://tools.ietf.org/html/rfc3986#section-5.2">RFC 3986 - 5.2</a>)
+     *
+     * @param base      The base IRI to resolve against
+     * @param reference The IRI to resolve
+     * @return The resolved IRI
+     */
+    public static String uriResolveRelative(String base, String reference) {
+        if (reference == null || reference.isEmpty())
+            return base;
+        // RFC 3986: 5.2.1 - Pre-parse the Base URI
+        String[] uriBase = uriParse(base);
+        if (uriBase == null)
+            return null;
+        String baseScheme = uriBase[0];
+        String baseAuthority = uriBase[1];
+        String basePath = uriBase[2];
+        String baseQuery = uriBase[3];
+        // base fragment is ignored, no need to get it
+
+        // RFC 3986: 5.2.2 - Transform References
+        // (R.scheme, R.authority, R.path, R.query, R.fragment) = parse(R);
+        String[] uriReference = uriParse(reference);
+        if (uriReference == null)
+            return null;
+        String refScheme = uriReference[0];
+        String refAuthority = uriReference[1];
+        String refPath = uriReference[2];
+        String refQuery = uriReference[3];
+        String refFragment = uriReference[4];
+        // if ((not strict) and (R.scheme == Base.scheme)) then
+        //    undefine(R.scheme);
+        // endif;
+
+        String targetScheme;
+        String targetAuthority;
+        String targetPath;
+        String targetQuery;
+        String targetFragment;
+        if (refScheme != null) {
+            targetScheme = refScheme;
+            targetAuthority = refAuthority;
+            targetPath = uriRemoveDotSegments(refPath);
+            targetQuery = refQuery;
+        } else {
+            if (refAuthority != null) {
+                targetAuthority = refAuthority;
+                targetPath = uriRemoveDotSegments(refPath);
+                targetQuery = refQuery;
+            } else {
+                if (refPath == null || refPath.isEmpty()) {
+                    targetPath = basePath;
+                    targetQuery = refQuery != null ? refQuery : baseQuery;
+                } else {
+                    if (refPath.startsWith("/")) {
+                        targetPath = uriRemoveDotSegments(refPath);
+                    } else {
+                        targetPath = uriMergePaths(baseAuthority, basePath, refPath);
+                        targetPath = uriRemoveDotSegments(targetPath);
+                    }
+                    targetQuery = refQuery;
+                }
+                targetAuthority = baseAuthority;
+            }
+            targetScheme = baseScheme;
+        }
+        targetFragment = refFragment;
+
+        // RFC 3986: 5.3 - Transform References
+        return uriRecompose(targetScheme, targetAuthority, targetPath, targetQuery, targetFragment);
+    }
+
+    /**
+     * Parses an URI to decomposes it into the 5 components (scheme, authority, path, query and fragment)
+     * An undefined component is represented by the null value.
+     * An empty component is represented by the empty string
+     * (See <a href="http://tools.ietf.org/html/rfc3986#section-3">RFC 3986 - 3</a>)
+     *
+     * @param uri The URI to compose
+     * @return The 5 URI components in order in an array, or null if the syntax is incorrect
+     */
+    private static String[] uriParse(String uri) {
+        String[] components = new String[5];
+
+        // retrieve the scheme
+        int start = uri.indexOf(":");
+        if (start == -1) {
+            // no scheme
+            start = 0;
+        } else {
+            components[0] = uri.substring(0, start);
+            start++;
+        }
+
+        // retrieve the authority
+        int nextNumber;
+        int nextQMark;
+        int min;
+        if (uri.startsWith("//", start)) {
+            start += 2;
+            int nextSlash = uri.indexOf("/", start);
+            nextNumber = uri.indexOf("#", start);
+            nextQMark = uri.indexOf("?", start);
+            min = uri.length();
+            if (nextSlash >= 0 && nextSlash < min)
+                min = nextSlash;
+            if (nextNumber >= 0 && nextNumber < min)
+                min = nextNumber;
+            if (nextQMark >= 0 && nextQMark < min)
+                min = nextQMark;
+            components[1] = uri.substring(start, min);
+            start = min;
+        }
+        if (start == uri.length())
+            return components;
+
+        // retrieve the path
+        nextNumber = uri.indexOf("#", start);
+        nextQMark = uri.indexOf("?", start);
+        min = uri.length();
+        if (nextNumber >= 0 && nextNumber < min)
+            min = nextNumber;
+        if (nextQMark >= 0 && nextQMark < min)
+            min = nextQMark;
+        if (components[1] != null) {
+            // uri has authority component
+            // path must be empty, or start with /
+            if (min == start) {
+                // path is empty
+                components[2] = "";
+                start = min;
+            } else if (uri.charAt(start) != '/') {
+                // error, must start with /
+                return null;
+            } else {
+                components[2] = uri.substring(start, min);
+                start = min;
+            }
+        } else if (uri.startsWith("//", start)) {
+            // error, with no authority, the path cannot start with //
+            return null;
+        } else {
+            components[2] = uri.substring(start, min);
+            start = min;
+        }
+        if (start == uri.length())
+            return components;
+
+        if (uri.startsWith("?", start)) {
+            start++;
+            // this is a query component
+            nextNumber = uri.indexOf("#", start);
+            min = uri.length();
+            if (nextNumber >= 0 && nextNumber < min)
+                min = nextNumber;
+            components[3] = uri.substring(start, min);
+            start = min;
+            if (start == uri.length())
+                return components;
+        }
+
+        // at this point we are facing a fragment
+        start++;
+        components[4] = start == uri.length() ? "" : uri.substring(start);
+        return components;
+    }
+
+    /**
+     * Recomposes the components of a URI to form the full one
+     * Implements the RFC 3986 component re-composition algorithm
+     * (See <a href="http://tools.ietf.org/html/rfc3986#section-5.3">RFC 3986 - 5.3</a>)
+     *
+     * @param scheme    The scheme component
+     * @param authority The authority component
+     * @param path      The path component
+     * @param query     The query component
+     * @param fragment  The fragment component
+     * @return The recomposed URI
+     */
+    private static String uriRecompose(String scheme, String authority, String path, String query, String fragment) {
+        StringBuilder builder = new StringBuilder();
+        if (scheme != null) {
+            builder.append(scheme);
+            builder.append(":");
+        }
+        if (authority != null) {
+            builder.append("//");
+            builder.append(authority);
+        }
+        if (path != null)
+            builder.append(path);
+        if (query != null) {
+            builder.append("?");
+            builder.append(query);
+        }
+        if (fragment != null) {
+            builder.append("#");
+            builder.append(fragment);
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Removes the dot segments from the path component of an URI
+     * Implements the RFC 3986 remove dot segments algorithm
+     * (See <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4">RFC 3986 - 5.2.4</a>)
+     *
+     * @param path The original path component
+     * @return The resulting path component
+     */
+    private static String uriRemoveDotSegments(String path) {
+        if (path == null)
+            return null;
+        if (path.isEmpty())
+            return path;
+        List<String> input = uriSplitSegments(path);
+        Stack<String> output = new Stack<>();
+        int index = 0;
+        while (index != input.size()) {
+            String head = input.get(index);
+            if ((index < input.size() - 1) && ("..".equals(head) || ".".equals(head))) {
+                // Case A: prefix is ../ or ./
+                // there is at least one other segment after the head and the head matches the condition
+                // drop this segment
+                if ("..".equals(head) && !output.isEmpty())
+                    output.pop();
+                index++;
+            } else if (head.isEmpty() && (index < input.size() - 1) && ".".equals(input.get(index + 1))) {
+                // Case B: prefix is /., or /./
+                if (index < input.size() - 2) {
+                    // case /./
+                    index += 2;
+                } else {
+                    index++;
+                }
+                // replace the prefix by / (empty segment)
+                input.set(index, "");
+            } else if (head.isEmpty() && (index < input.size() - 1) && "..".equals(input.get(index + 1))) {
+                // Case C: prefix is /.., or /../
+                if (index < input.size() - 2) {
+                    // case /../
+                    index += 2;
+                } else {
+                    index++;
+                }
+                // replace the prefix by / (empty segment)
+                input.set(index, "");
+                // drop last segment in output if any
+                if (!output.isEmpty())
+                    output.pop();
+            } else if ((index == input.size() - 1) && ("..".equals(head) || ".".equals(head))) {
+                // Case D: the rest of the input is . or ..
+                // drop it
+                if ("..".equals(head) && !output.isEmpty())
+                    output.pop();
+                output.push("");
+                index++;
+            } else {
+                // Case E:
+                output.push(head);
+                index++;
+                if (head.isEmpty() && index < input.size()) {
+                    // the prefix was /
+                    output.push(input.get(index));
+                    index++;
+                }
+            }
+        }
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i != output.size(); i++) {
+            if (i != 0)
+                result.append("/");
+            result.append(output.get(i));
+        }
+        return result.toString();
+    }
+
+    /**
+     * Splits the path component of an URI into segments
+     * This method leaves empty segments at the beginning (resp. end) when the path begins (resp. ends) with a /, as well as in the middle
+     *
+     * @param path The path component of an URI
+     * @return The list of segments
+     */
+    private static List<String> uriSplitSegments(String path) {
+        List<String> result = new ArrayList<>();
+        int start = 0;
+        int index = path.indexOf("/");
+        while (index != -1) {
+            if (start == index)
+                result.add("");
+            else
+                result.add(path.substring(start, index));
+            start = index + 1;
+            if (start == path.length()) {
+                result.add("");
+                return result;
+            }
+            index = path.indexOf("/", start);
+        }
+        if (start < path.length())
+            result.add(path.substring(start));
+        return result;
+    }
+
+    /**
+     * Merges the paths components of two URIs
+     * Implements the RFC 3986 merge paths algorithm
+     * (See <a href="http://tools.ietf.org/html/rfc3986#section-5.2.3">RFC 3986 - 5.2.3</a>)
+     *
+     * @param baseAuthority The authority component of the base URI
+     * @param basePath      The path component of the base URI
+     * @param refPath       The path component of the reference URI
+     * @return The merged target path
+     */
+    private static String uriMergePaths(String baseAuthority, String basePath, String refPath) {
+        if (baseAuthority != null && (basePath == null || basePath.isEmpty())) {
+            return "/" + refPath;
+        } else if (basePath == null || basePath.isEmpty()) {
+            return refPath;
+        } else {
+            int index = basePath.lastIndexOf("/");
+            if (index == -1)
+                return refPath;
+            return basePath.substring(0, index + 1) + refPath;
+        }
     }
 
     /**
