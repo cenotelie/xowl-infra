@@ -151,7 +151,18 @@ public abstract class W3CTestSuite {
             Assert.fail("Error while accessing resource " + testedResource);
         }
 
-        matchesTriples(expectedQuads, testedQuads);
+        // rewrite the graph in the expected quads
+        List<Quad> temp = new ArrayList<>();
+        GraphNode target = store.getNodeIRI(testedURI);
+        for (Quad quad : expectedQuads) {
+            if (quad.getGraph().getNodeType() == IRINode.TYPE && ((IRINode) quad.getGraph()).getIRIValue().equals(expectedURI)) {
+                temp.add(new Quad(target, quad.getSubject(), quad.getProperty(), quad.getObject()));
+            } else {
+                temp.add(quad);
+            }
+        }
+        expectedQuads = temp;
+        matchesQuads(expectedQuads, testedQuads);
     }
 
     /**
@@ -194,12 +205,35 @@ public abstract class W3CTestSuite {
     }
 
     /**
-     * Tests whether two sets of quads describe the same graph
+     * Eliminates the duplicate quads from a list
      *
-     * @param expected The expected set of triples
-     * @param tested   The tested set of triples
+     * @param quads A list of quads
      */
-    public static void matchesTriples(List<Quad> expected, List<Quad> tested) {
+    private static void removeDuplicates(List<Quad> quads) {
+        if (quads.isEmpty())
+            return;
+        for (int i = 0; i != quads.size() - 1; i++) {
+            for (int j = i + 1; j != quads.size(); j++) {
+                if (sameQuad(quads.get(i), quads.get(j))) {
+                    quads.remove(i);
+                    i--;
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Tests whether two sets of quads describe the same dataset
+     *
+     * @param expected The expected set of quads
+     * @param tested   The tested set of quads
+     */
+    public static void matchesQuads(List<Quad> expected, List<Quad> tested) {
+        // eliminate duplicate quads
+        removeDuplicates(expected);
+        removeDuplicates(tested);
+
         Map<BlankNode, BlankNode> blanks = new HashMap<>();
         for (int i = 0; i != expected.size(); i++) {
             Quad quad = expected.get(i);
@@ -207,7 +241,7 @@ public abstract class W3CTestSuite {
                 // ignore blank nodes at this time
                 boolean found = false;
                 for (Quad potential : tested) {
-                    if (sameTriple(quad, potential, blanks)) {
+                    if (sameQuad(quad, potential, blanks)) {
                         found = true;
                         tested.remove(potential);
                         break;
@@ -230,7 +264,7 @@ public abstract class W3CTestSuite {
                 Quad quad = expected.get(i);
                 boolean found = false;
                 for (Quad potential : tested) {
-                    if (sameTriple(quad, potential, blanks)) {
+                    if (sameQuad(quad, potential, blanks)) {
                         found = true;
                         tested.remove(potential);
                         break;
@@ -256,37 +290,58 @@ public abstract class W3CTestSuite {
     }
 
     /**
-     * Determines whether the specified triples are equivalent, using the given blank node mapping
+     * Determines whether the specified quads are equivalent, using the given blank node mapping
      *
-     * @param quad1  A triple
-     * @param quad2  Another triple
+     * @param quad1  A quad
+     * @param quad2  Another quad
      * @param blanks A map of blank nodes
-     * @return <code>true</code> if the two triples are equivalent
+     * @return <code>true</code> if the two quads are equivalent
      */
-    public static boolean sameTriple(Quad quad1, Quad quad2, Map<BlankNode, BlankNode> blanks) {
+    public static boolean sameQuad(Quad quad1, Quad quad2, Map<BlankNode, BlankNode> blanks) {
+        GraphNode graph = quad1.getGraph();
         SubjectNode subject = quad1.getSubject();
         Property property = quad1.getProperty();
         Node object = quad1.getObject();
-        if (subject.getNodeType() == BlankNode.TYPE) {
+        if (graph.getNodeType() == BlankNode.TYPE)
+            graph = blanks.get(graph);
+        if (subject.getNodeType() == BlankNode.TYPE)
             subject = blanks.get(subject);
-        }
-        if (object.getNodeType() == BlankNode.TYPE) {
+        if (object.getNodeType() == BlankNode.TYPE)
             object = blanks.get(object);
-        }
         if (!property.equals(quad2.getProperty()))
+            return false;
+        if (graph != null && !graph.equals(quad2.getGraph()))
             return false;
         if (subject != null && !subject.equals(quad2.getSubject()))
             return false;
         if (object != null && !object.equals(quad2.getObject()))
             return false;
+        if (graph == null && quad2.getGraph().getNodeType() != BlankNode.TYPE)
+            return false;
         if (subject == null && quad2.getSubject().getNodeType() != BlankNode.TYPE)
             return false;
         if (object == null && quad2.getObject().getNodeType() != BlankNode.TYPE)
             return false;
+        if (graph == null)
+            blanks.put((BlankNode) quad1.getGraph(), (BlankNode) quad2.getGraph());
         if (subject == null)
             blanks.put((BlankNode) quad1.getSubject(), (BlankNode) quad2.getSubject());
         if (object == null)
             blanks.put((BlankNode) quad1.getObject(), (BlankNode) quad2.getObject());
         return true;
+    }
+
+    /**
+     * Determines whether the specified quads are exactly the same
+     *
+     * @param quad1 A quad
+     * @param quad2 Another quad
+     * @return <code>true</code> if the two quads are exactly the same
+     */
+    public static boolean sameQuad(Quad quad1, Quad quad2) {
+        return (quad1.getGraph().equals(quad2.getGraph())
+                && quad1.getSubject().equals(quad2.getSubject())
+                && quad1.getProperty().equals(quad2.getProperty())
+                && quad1.getObject().equals(quad2.getObject()));
     }
 }

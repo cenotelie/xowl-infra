@@ -135,6 +135,6 @@ public class SerializationTest {
 
         RDFStore store2 = load("target/test-classes/serialization");
         List<Quad> reloaded = getAll(store2);
-        W3CTestSuite.matchesTriples(originals, reloaded);
+        W3CTestSuite.matchesQuads(originals, reloaded);
     }
 }
