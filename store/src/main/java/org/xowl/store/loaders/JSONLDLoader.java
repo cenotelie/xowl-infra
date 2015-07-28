@@ -355,7 +355,10 @@ public abstract class JSONLDLoader implements Loader {
                 subject = resolveBlank(value.substring(2));
             } else {
                 // this is an IRI
-                subject = store.getNodeIRI(current.expandID(value));
+                value = current.expandID(value);
+                if (!Utils.uriIsAbsolute(value))
+                    return null;
+                subject = store.getNodeIRI(value);
             }
         }
 
@@ -428,7 +431,7 @@ public abstract class JSONLDLoader implements Loader {
             propertyIRI = propertyInfo.reversed;
             reversed = !reversed;
         }
-        if (propertyIRI == null || propertyIRI.startsWith("_:") || !isFullyExpanded(propertyIRI))
+        if (propertyIRI == null || propertyIRI.startsWith("_:") || !Utils.uriIsAbsolute(propertyIRI))
             // property is undefined or
             // this is a blank node identifier, do not handle generalized RDF graphs
             return;
@@ -838,16 +841,6 @@ public abstract class JSONLDLoader implements Loader {
             }
         }
         return result;
-    }
-
-    /**
-     * Determines whether the specified name is a fully expanded URI
-     *
-     * @param name A name
-     * @return true if this is a fully expanded URI
-     */
-    private static boolean isFullyExpanded(String name) {
-        return name.contains(":");
     }
 
     /**

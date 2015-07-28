@@ -174,8 +174,11 @@ class JSONLDContext {
         // now term is supposed to be a relative IRI
         // if we can use the base URI, try to look for one
         result = useBaseURI ? doExpandUsingBaseURI(name) : null;
-        if (result != null && !JSONLDLoader.MARKER_NULL.equals(result))
+        if (result != null) {
+            if (JSONLDLoader.MARKER_NULL.equals(result))
+                return name;
             return result;
+        }
         // if we can use the resource URI, resolve against it
         if (useResource)
             return Utils.uriResolveRelative(loader.getCurrentResource(), Utils.quote(name));
