@@ -62,7 +62,7 @@ class JSONLDContext {
      * @param parent     The parent context
      * @param definition The AST node to load from
      */
-    public JSONLDContext(JSONLDContext parent, ASTNode definition) throws JSONLDLoadingException {
+    public JSONLDContext(JSONLDContext parent, ASTNode definition) throws LoaderException {
         this.loader = parent.loader;
         this.parent = definition.getSymbol().getID() == JSONLDLexer.ID.LITERAL_NULL ? null : parent;
         this.fragments = new ArrayList<>();

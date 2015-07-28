@@ -20,19 +20,12 @@
 
 package org.xowl.store;
 
-import org.junit.Assert;
-import org.xowl.lang.owl2.Ontology;
-import org.xowl.store.rdf.*;
-
-import java.io.IOException;
-import java.util.*;
-
 /**
  * Base class for the JSON-LD loader tests
  *
  * @author Laurent Wouters
  */
-public class BaseJSONLDTest {
+public abstract class BaseJSONLDTest extends W3CTestSuite {
     /**
      * Path to the phsyical resources of the tests
      */
@@ -49,74 +42,17 @@ public class BaseJSONLDTest {
      * @param testedURI   The URI of the tested JSON-LD document
      */
     protected void toRdfTest(String expectedURI, String testedURI) {
-        TestLogger logger = new TestLogger();
+        mapper.addRegexpMap(NAMESPACE + "(.*)", PHYSICAL + "\\1");
+        testEval(mapper.get(expectedURI), expectedURI, mapper.get(testedURI), testedURI);
+    }
 
-        // load the conclusion ontology at get all the quads in it
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
-        // add mapping for imported remote ontologies
-        repository.getIRIMapper().addRegexpMap(NAMESPACE + "(.*)", "resource://" + PHYSICAL + "\\1");
-        Ontology expectedOntology = repository.load(logger, expectedURI);
-        List<Quad> expectedQuads = new ArrayList<>();
-        Iterator<Quad> iterator = repository.getStore().getAll();
-        while (iterator.hasNext())
-            expectedQuads.add(iterator.next());
-        repository.getStore().clear();
-
-        // load the premise ontology and the default ontologies
-        Ontology testedOntology = repository.load(logger, testedURI);
-        List<Quad> testedQuads = new ArrayList<>();
-        iterator = repository.getStore().getAll();
-        while (iterator.hasNext())
-            testedQuads.add(iterator.next());
-        Assert.assertFalse("Some error occurred", logger.isOnError());
-
-        if (expectedQuads.isEmpty() && testedQuads.isEmpty())
-            // assert success here
-            return;
-        // query the premise for a matching conclusion, modulo the blank nodes
-        Query query = new Query();
-        Map<BlankNode, VariableNode> variables = new HashMap<>();
-        for (Quad quad : expectedQuads) {
-            GraphNode nodeGraph = quad.getGraph();
-            SubjectNode nodeSubject = quad.getSubject();
-            Property nodeProperty = quad.getProperty();
-            Node nodeObject = quad.getObject();
-            if (nodeGraph.getNodeType() == IRINode.TYPE && nodeGraph == repository.getGraph(expectedOntology))
-                nodeGraph = repository.getGraph(testedOntology);
-            else if (nodeGraph.getNodeType() == BlankNode.TYPE) {
-                VariableNode variableNode = variables.get(nodeGraph);
-                if (variableNode == null) {
-                    variableNode = new VariableNode(UUID.randomUUID().toString());
-                    variables.put((BlankNode) nodeGraph, variableNode);
-                }
-                nodeGraph = variableNode;
-            }
-            if (nodeSubject.getNodeType() == BlankNode.TYPE) {
-                VariableNode variableNode = variables.get(nodeSubject);
-                if (variableNode == null) {
-                    variableNode = new VariableNode(UUID.randomUUID().toString());
-                    variables.put((BlankNode) nodeSubject, variableNode);
-                }
-                nodeSubject = variableNode;
-            }
-            if (nodeObject.getNodeType() == BlankNode.TYPE) {
-                VariableNode variableNode = variables.get(nodeObject);
-                if (variableNode == null) {
-                    variableNode = new VariableNode(UUID.randomUUID().toString());
-                    variables.put((BlankNode) nodeObject, variableNode);
-                }
-                nodeObject = variableNode;
-            }
-            query.getPositives().add(new Quad(nodeGraph, nodeSubject, nodeProperty, nodeObject));
-        }
-
-        Collection<QuerySolution> solutions = repository.getQueryEngine().getBackend().execute(query);
-        Assert.assertFalse("Mismatch between the expected and tested content", solutions.isEmpty());
-        Assert.assertEquals("Expected and tested content have different sizes", expectedQuads.size(), testedQuads.size());
+    /**
+     * Performs a normalize JSON-LD to RDF test
+     *
+     * @param expectedURI The URI of the expected NQuads result
+     * @param testedURI   The URI of the tested JSON-LD document
+     */
+    protected void normalizeTest(String expectedURI, String testedURI) {
+        toRdfTest(expectedURI, testedURI);
     }
 }

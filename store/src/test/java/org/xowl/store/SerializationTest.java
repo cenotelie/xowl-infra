@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store;
 
 import org.junit.Assert;
@@ -135,6 +135,6 @@ public class SerializationTest {
 
         RDFStore store2 = load("target/test-classes/serialization");
         List<Quad> reloaded = getAll(store2);
-        W3CTestSuite.matches(originals, reloaded);
+        W3CTestSuite.matchesTriples(originals, reloaded);
     }
 }

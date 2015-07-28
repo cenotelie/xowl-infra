@@ -97,7 +97,7 @@ class JSONLDContextFragment {
      *
      * @param definition The AST node to load from
      */
-    public JSONLDContextFragment(ASTNode definition) throws JSONLDLoadingException {
+    public JSONLDContextFragment(ASTNode definition) throws LoaderException {
         mappings = new HashMap<>();
         attributes = new HashMap<>();
         String tLanguage = null;
@@ -126,11 +126,11 @@ class JSONLDContextFragment {
      *
      * @param definition The AST node to load from
      */
-    public void loadNames(ASTNode definition) throws JSONLDLoadingException {
+    public void loadNames(ASTNode definition) throws LoaderException {
         for (ASTNode member : definition.getChildren()) {
             String key = JSONLDLoader.getValue(member.getChildren().get(0));
             if (key == null)
-                throw new JSONLDLoadingException("Expected valid key", definition);
+                throw new LoaderException("Expected valid key", definition);
             if (!JSONLDLoader.KEYWORDS.contains(key)) {
                 loadName(key, member.getChildren().get(1));
             }
@@ -143,7 +143,7 @@ class JSONLDContextFragment {
      * @param name       The name key
      * @param definition The AST node to load from
      */
-    private void loadName(String name, ASTNode definition) throws JSONLDLoadingException {
+    private void loadName(String name, ASTNode definition) throws LoaderException {
         switch (definition.getSymbol().getID()) {
             case JSONLDLexer.ID.LITERAL_STRING:
                 // this is an IRI
@@ -156,7 +156,7 @@ class JSONLDContextFragment {
                 loadNameFromObject(name, definition);
                 break;
             default:
-                throw new JSONLDLoadingException("Unexpected name definition", definition);
+                throw new LoaderException("Unexpected name definition", definition);
         }
     }
 
@@ -166,7 +166,7 @@ class JSONLDContextFragment {
      * @param name       The name key
      * @param definition The AST node to load from
      */
-    private void loadNameFromObject(String name, ASTNode definition) throws JSONLDLoadingException {
+    private void loadNameFromObject(String name, ASTNode definition) throws LoaderException {
         List<Couple<String, Object>> list = new ArrayList<>();
         attributes.put(name, list);
         for (ASTNode member : definition.getChildren()) {

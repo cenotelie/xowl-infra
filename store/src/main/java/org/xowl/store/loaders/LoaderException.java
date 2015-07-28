@@ -23,11 +23,11 @@ package org.xowl.store.loaders;
 import org.xowl.hime.redist.ASTNode;
 
 /**
- * Represents an exception that occurs while loading some JSON-LD data due to some error in the input data
+ * Represents an exception that occurs while loading some data due to some error in the input data
  *
  * @author Laurent Wouters
  */
-class JSONLDLoadingException extends Exception {
+class LoaderException extends Exception {
     /**
      * The AST node from which the error originated
      */
@@ -48,7 +48,7 @@ class JSONLDLoadingException extends Exception {
      * @param description The description for this exception
      * @param origin      The AST node that from which the error originated
      */
-    public JSONLDLoadingException(String description, ASTNode origin) {
+    public LoaderException(String description, ASTNode origin) {
         super(description);
         this.origin = origin;
     }

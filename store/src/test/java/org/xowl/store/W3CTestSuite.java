@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters and others
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,14 +16,21 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.xowl.store.loaders.*;
 import org.xowl.store.rdf.*;
+import org.xowl.utils.Logger;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +41,79 @@ import java.util.Map;
  * @author Laurent Wouters
  */
 public abstract class W3CTestSuite {
+    /**
+     * The logger
+     */
+    protected TestLogger logger;
+    /**
+     * The store to use
+     */
+    protected RDFStore store;
+    /**
+     * The IRI mapper
+     */
+    protected IRIMapper mapper;
+
+    @Before
+    public void setup() throws IOException {
+        logger = new TestLogger();
+        store = new RDFStore();
+        mapper = IRIMapper.getDefault();
+    }
+
+    @After
+    public void cleanup() {
+        store.clear();
+        logger.reset();
+    }
+
+    /**
+     * Gets the loader for the specified resource
+     *
+     * @param resource A resource
+     * @return The appropriate loader
+     */
+    protected Loader getLoader(String resource) {
+        String syntax = AbstractRepository.getSyntax(resource);
+        if (syntax == null)
+            return null;
+        switch (syntax) {
+            case AbstractRepository.SYNTAX_NTRIPLES:
+                return new NTriplesLoader(store);
+            case AbstractRepository.SYNTAX_NQUADS:
+                return new NQuadsLoader(store);
+            case AbstractRepository.SYNTAX_TURTLE:
+                return new TurtleLoader(store);
+            case AbstractRepository.SYNTAX_RDFT:
+                return new RDFTLoader(store);
+            case AbstractRepository.SYNTAX_RDFXML:
+                return new RDFXMLLoader(store);
+            case AbstractRepository.SYNTAX_JSON_LD:
+                return new JSONLDLoader(store) {
+                    @Override
+                    protected Reader getReaderFor(Logger logger, String iri) {
+                        String resource = mapper.get(iri);
+                        if (resource == null) {
+                            logger.error("Cannot identify the location of " + iri);
+                            return null;
+                        }
+                        return getResourceReader(resource);
+                    }
+                };
+        }
+        return null;
+    }
+
+    /**
+     * Gets a reader for a test resource
+     *
+     * @param resource A test resource
+     * @return The reader
+     */
+    protected Reader getResourceReader(String resource) {
+        InputStream stream = W3CTestSuite.class.getResourceAsStream(resource);
+        return new InputStreamReader(stream);
+    }
 
     /**
      * Tests the evaluation of a resource
@@ -44,156 +124,72 @@ public abstract class W3CTestSuite {
      * @param testedURI        Tested resource's URI
      */
     protected void testEval(String expectedResource, String expectedURI, String testedResource, String testedURI) {
-        RDFStore store = null;
-        try {
-            store = new RDFStore();
-        } catch (IOException ex) {
-            // do not handle
-        }
-        TestLogger logger = new TestLogger();
+        List<Quad> expectedQuads = new ArrayList<>();
+        List<Quad> testedQuads = new ArrayList<>();
 
-        InputStream stream = W3CTestSuite.class.getResourceAsStream(expectedResource);
-        Reader reader = null;
-        try {
-            reader = new InputStreamReader(stream, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            Assert.fail(ex.toString());
-        }
-        Loader loader = null;
-        if (expectedResource.endsWith(".nt"))
-            loader = new NTriplesLoader(store);
-        else if (expectedResource.endsWith(".nq"))
-            loader = new NQuadsLoader(store);
-        else if (expectedResource.endsWith(".ttl"))
-            loader = new TurtleLoader(store);
-        else if (expectedResource.endsWith(".rdf"))
-            loader = new RDFXMLLoader(store);
-        if (loader == null)
-            Assert.fail("Failed to recognize resource " + expectedResource);
-        RDFLoaderResult expected = loader.loadRDF(logger, reader, expectedURI);
-        Assert.assertFalse("Failed to parse resource " + expectedResource, logger.isOnError());
-        Assert.assertNotNull("Failed to loadOWL resource " + expectedResource, expected);
-        try {
-            reader.close();
-        } catch (IOException ex) {
-            Assert.fail("Failed to close the resource " + expectedResource);
+        try (Reader reader = getResourceReader(expectedResource)) {
+            Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
+            Loader loader = getLoader(expectedResource);
+            Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
+            RDFLoaderResult expected = loader.loadRDF(logger, reader, expectedURI);
+            Assert.assertFalse("Failed to parse expected resource " + expectedResource, logger.isOnError());
+            Assert.assertNotNull("Failed to load expected resource " + expectedResource, expected);
+            expectedQuads.addAll(expected.getQuads());
+        } catch (IOException exception) {
+            Assert.fail("Error while accessing resource " + expectedResource);
         }
 
-        stream = W3CTestSuite.class.getResourceAsStream(testedResource);
-        try {
-            reader = new InputStreamReader(stream, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            Assert.fail(ex.toString());
-        }
-        loader = null;
-        if (testedResource.endsWith(".nt"))
-            loader = new NTriplesLoader(store);
-        else if (expectedResource.endsWith(".nq"))
-            loader = new NQuadsLoader(store);
-        else if (testedResource.endsWith(".ttl"))
-            loader = new TurtleLoader(store);
-        else if (testedResource.endsWith(".rdf"))
-            loader = new RDFXMLLoader(store);
-        if (loader == null)
-            Assert.fail("Failed to recognize resource " + testedResource);
-        RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI);
-        Assert.assertFalse("Failed to parse resource " + testedResource, logger.isOnError());
-        Assert.assertNotNull("Failed to loadRDF resource " + testedResource, tested);
-        try {
-            reader.close();
-        } catch (IOException ex) {
-            Assert.fail("Failed to close the resource " + testedResource);
+        try (Reader reader = getResourceReader(testedResource)) {
+            Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
+            Loader loader = getLoader(testedResource);
+            Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
+            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI);
+            Assert.assertFalse("Failed to parse tested resource " + testedResource, logger.isOnError());
+            Assert.assertNotNull("Failed to load tested resource " + testedResource, tested);
+            testedQuads.addAll(tested.getQuads());
+        } catch (IOException exception) {
+            Assert.fail("Error while accessing resource " + testedResource);
         }
 
-        matches(expected.getQuads(), tested.getQuads());
+        matchesTriples(expectedQuads, testedQuads);
     }
 
     /**
      * Tests that the specified resource is correctly loaded
      *
-     * @param physicalResource The physical path to the resource
-     * @param uri              The resource's URI
+     * @param testedResource Path to the tested resource
+     * @param testedURI      Tested resource's URI
      */
-    protected void testPositiveSyntax(String physicalResource, String uri) {
-        RDFStore store = null;
-        try {
-            store = new RDFStore();
-        } catch (IOException ex) {
-            // do not handle
-        }
-        TestLogger logger = new TestLogger();
-        Loader loader = null;
-        if (physicalResource.endsWith(".nt"))
-            loader = new NTriplesLoader(store);
-        else if (physicalResource.endsWith(".nq"))
-            loader = new NQuadsLoader(store);
-        else if (physicalResource.endsWith(".ttl"))
-            loader = new TurtleLoader(store);
-        else if (physicalResource.endsWith(".rdf"))
-            loader = new RDFXMLLoader(store);
-        if (loader == null)
-            Assert.fail("Failed to recognize resource " + physicalResource);
-
-        InputStream stream = W3CTestSuite.class.getResourceAsStream(physicalResource);
-        Reader reader = null;
-        try {
-            reader = new InputStreamReader(stream, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            Assert.fail(ex.toString());
-        }
-
-        RDFLoaderResult result = loader.loadRDF(logger, reader, uri);
-        Assert.assertFalse("Failed to parse resource " + physicalResource, logger.isOnError());
-        Assert.assertNotNull("Failed to loadRDF resource " + physicalResource, result);
-
-        try {
-            reader.close();
-        } catch (IOException ex) {
-            Assert.fail("Failed to close the resource " + physicalResource);
+    protected void testPositiveSyntax(String testedResource, String testedURI) {
+        try (Reader reader = getResourceReader(testedResource)) {
+            Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
+            Loader loader = getLoader(testedResource);
+            Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
+            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI);
+            Assert.assertFalse("Failed to parse tested resource " + testedResource, logger.isOnError());
+            Assert.assertNotNull("Failed to load tested resource " + testedResource, tested);
+        } catch (IOException exception) {
+            Assert.fail("Error while accessing resource " + testedResource);
         }
     }
 
     /**
      * Tests that the specified resource is not correctly loaded
      *
-     * @param physicalResource The physical path to the resource
-     * @param uri              The resource's URI
+     * @param testedResource The physical path to the resource
+     * @param testedURI      The resource's URI
      */
-    protected void testNegativeSyntax(String physicalResource, String uri) {
-        RDFStore store = null;
-        try {
-            store = new RDFStore();
-        } catch (IOException ex) {
-            // do not handle
-        }
-        TestLogger logger = new TestLogger();
-        Loader loader = null;
-        if (physicalResource.endsWith(".nt"))
-            loader = new NTriplesLoader(store);
-        else if (physicalResource.endsWith(".nq"))
-            loader = new NQuadsLoader(store);
-        else if (physicalResource.endsWith(".ttl"))
-            loader = new TurtleLoader(store);
-        else if (physicalResource.endsWith(".rdf"))
-            loader = new RDFXMLLoader(store);
-        if (loader == null)
-            Assert.fail("Failed to recognize resource " + physicalResource);
+    protected void testNegativeSyntax(String testedResource, String testedURI) {
+        try (Reader reader = getResourceReader(testedResource)) {
 
-        InputStream stream = W3CTestSuite.class.getResourceAsStream(physicalResource);
-        Reader reader = null;
-        try {
-            reader = new InputStreamReader(stream, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            Assert.fail(ex.toString());
-        }
-
-        RDFLoaderResult result = loader.loadRDF(logger, reader, uri);
-        Assert.assertNull("Mistakenly reported success of loading " + physicalResource, result);
-
-        try {
-            reader.close();
-        } catch (IOException ex) {
-            Assert.fail("Failed to close the resource " + physicalResource);
+            Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
+            Loader loader = getLoader(testedResource);
+            Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
+            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI);
+            Assert.assertTrue("Failed to report error on bad input " + testedResource, logger.isOnError());
+            Assert.assertNull("Mistakenly reported success of loading " + testedResource, tested);
+        } catch (IOException exception) {
+            Assert.fail("Error while accessing resource " + testedResource);
         }
     }
 
@@ -203,7 +199,7 @@ public abstract class W3CTestSuite {
      * @param expected The expected set of triples
      * @param tested   The tested set of triples
      */
-    public static void matches(List<Quad> expected, List<Quad> tested) {
+    public static void matchesTriples(List<Quad> expected, List<Quad> tested) {
         Map<BlankNode, BlankNode> blanks = new HashMap<>();
         for (int i = 0; i != expected.size(); i++) {
             Quad quad = expected.get(i);

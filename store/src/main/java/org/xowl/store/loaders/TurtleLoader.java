@@ -1,22 +1,24 @@
-/*******************************************************************************
+/**
+ * ****************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- *
+ * <p/>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- *
+ * <p/>
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
+ * <p/>
  * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
- ******************************************************************************/
+ * Laurent Wouters - lwouters@xowl.org
+ * ****************************************************************************
+ */
 
 package org.xowl.store.loaders;
 
@@ -143,8 +145,15 @@ public class TurtleLoader implements Loader {
                         loadTriples(node);
                         break;
                 }
-            } catch (IllegalArgumentException ex) {
-                logger.error(ex);
+            } catch (LoaderException exception) {
+                logger.error(exception);
+                logger.error("@" + exception.getOrigin().getPosition());
+                TextContext context = exception.getOrigin().getContext();
+                logger.error(context.getContent());
+                logger.error(context.getPointer());
+                return null;
+            } catch (IllegalArgumentException exception) {
+                logger.error(exception);
                 return null;
             }
         }
@@ -186,7 +195,7 @@ public class TurtleLoader implements Loader {
      *
      * @param node An AST node
      */
-    private void loadTriples(ASTNode node) {
+    private void loadTriples(ASTNode node) throws LoaderException {
         if (node.getChildren().get(0).getSymbol().getID() == TurtleParser.ID.predicateObjectList) {
             // the subject is a blank node
             BlankNode subject = getNodeBlankWithProperties(node.getChildren().get(0));
@@ -204,7 +213,7 @@ public class TurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF nodes
      */
-    private Node getNode(ASTNode node) {
+    private Node getNode(ASTNode node) throws LoaderException {
         switch (node.getSymbol().getID()) {
             case 0x003C: // a
                 return getNodeIsA();
@@ -235,7 +244,7 @@ public class TurtleLoader implements Loader {
             case TurtleParser.ID.predicateObjectList:
                 return getNodeBlankWithProperties(node);
         }
-        throw new IllegalArgumentException("Unexpected node " + node.getValue());
+        throw new LoaderException("Unexpected node " + node.getValue(), node);
     }
 
     /**
@@ -267,9 +276,9 @@ public class TurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF IRI node
      */
-    private IRINode getNodePNameLN(ASTNode node) {
+    private IRINode getNodePNameLN(ASTNode node) throws LoaderException {
         String value = node.getValue();
-        return store.getNodeIRI(getIRIForLocalName(value));
+        return store.getNodeIRI(getIRIForLocalName(node, value));
     }
 
     /**
@@ -372,7 +381,7 @@ public class TurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF Literal node
      */
-    private LiteralNode getNodeLiteral(ASTNode node) {
+    private LiteralNode getNodeLiteral(ASTNode node) throws LoaderException {
         // Compute the lexical value
         String value = null;
         ASTNode childString = node.getChildren().get(0);
@@ -407,7 +416,7 @@ public class TurtleLoader implements Loader {
             return store.getLiteralNode(value, Utils.uriResolveRelative(baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
-            String local = getIRIForLocalName(suffixChild.getValue());
+            String local = getIRIForLocalName(suffixChild, suffixChild.getValue());
             return store.getLiteralNode(value, local, null);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
@@ -416,7 +425,7 @@ public class TurtleLoader implements Loader {
             ns = namespaces.get(ns);
             return store.getLiteralNode(value, ns, null);
         }
-        throw new IllegalArgumentException("Unexpected node " + node.getValue());
+        throw new LoaderException("Unexpected node " + node.getValue(), node);
     }
 
     /**
@@ -425,7 +434,7 @@ public class TurtleLoader implements Loader {
      * @param node An AST node
      * @return A RDF list node
      */
-    private Node getNodeCollection(ASTNode node) {
+    private Node getNodeCollection(ASTNode node) throws LoaderException {
         List<Node> elements = new ArrayList<>();
         for (ASTNode child : node.getChildren())
             elements.add(getNode(child));
@@ -450,7 +459,7 @@ public class TurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF blank node
      */
-    private BlankNode getNodeBlankWithProperties(ASTNode node) {
+    private BlankNode getNodeBlankWithProperties(ASTNode node) throws LoaderException {
         BlankNode subject = store.newNodeBlank();
         applyProperties(subject, node);
         return subject;
@@ -459,10 +468,11 @@ public class TurtleLoader implements Loader {
     /**
      * Gets the full IRI for the specified escaped local name
      *
+     * @param node  The parent ASt node
      * @param value An escaped local name
      * @return The equivalent full IRI
      */
-    private String getIRIForLocalName(String value) {
+    private String getIRIForLocalName(ASTNode node, String value) throws LoaderException {
         value = Utils.unescape(value);
         int index = 0;
         while (index != value.length()) {
@@ -476,7 +486,7 @@ public class TurtleLoader implements Loader {
             }
             index++;
         }
-        throw new IllegalArgumentException("Failed to resolve local name " + value);
+        throw new LoaderException("Failed to resolve local name " + value, node);
     }
 
     /**
@@ -485,7 +495,7 @@ public class TurtleLoader implements Loader {
      * @param subject An RDF subject node
      * @param node    An AST node
      */
-    private void applyProperties(SubjectNode subject, ASTNode node) {
+    private void applyProperties(SubjectNode subject, ASTNode node) throws LoaderException {
         int index = 0;
         List<ASTNode> children = node.getChildren();
         while (index != children.size()) {

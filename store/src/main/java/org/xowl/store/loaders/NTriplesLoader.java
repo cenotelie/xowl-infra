@@ -1,22 +1,24 @@
-/*******************************************************************************
+/**
+ * ****************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- *
+ * <p/>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- *
+ * <p/>
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
+ * <p/>
  * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
- ******************************************************************************/
+ * Laurent Wouters - lwouters@xowl.org
+ * ****************************************************************************
+ */
 
 package org.xowl.store.loaders;
 
@@ -97,8 +99,15 @@ public class NTriplesLoader implements Loader {
                 Node n3 = getRDFNode(triple.getChildren().get(2));
                 result.getQuads().add(new Quad(graph, (SubjectNode) n1, (Property) n2, n3));
             }
-        } catch (IllegalArgumentException ex) {
-            // IRI must be absolute
+        } catch (LoaderException exception) {
+            logger.error(exception);
+            logger.error("@" + exception.getOrigin().getPosition());
+            TextContext context = exception.getOrigin().getContext();
+            logger.error(context.getContent());
+            logger.error(context.getPointer());
+            return null;
+        } catch (IllegalArgumentException exception) {
+            logger.error(exception);
             return null;
         }
 
@@ -116,7 +125,7 @@ public class NTriplesLoader implements Loader {
      * @param node An AST node representing an RDF node
      * @return The represented RDF node
      */
-    private Node getRDFNode(ASTNode node) {
+    private Node getRDFNode(ASTNode node) throws LoaderException {
         switch (node.getSymbol().getID()) {
             case NTriplesLexer.ID.IRIREF:
                 return translateIRIREF(node);
@@ -134,11 +143,11 @@ public class NTriplesLoader implements Loader {
      * @param node An IRIREF AST node
      * @return The corresponding RDF node
      */
-    private Node translateIRIREF(ASTNode node) {
+    private Node translateIRIREF(ASTNode node) throws LoaderException {
         String value = node.getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
         if (!Utils.uriIsAbsolute(value))
-            throw new IllegalArgumentException("IRI must be absolute");
+            throw new LoaderException("IRI must be absolute", node);
         return store.getNodeIRI(value);
     }
 
@@ -165,7 +174,7 @@ public class NTriplesLoader implements Loader {
      * @param node An STRING_LITERAL_QUOTE AST node
      * @return The corresponding RDF node
      */
-    private Node translateLiteral(ASTNode node) {
+    private Node translateLiteral(ASTNode node) throws LoaderException {
         String value = node.getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
         if (node.getChildren().size() == 0) {
@@ -176,7 +185,7 @@ public class NTriplesLoader implements Loader {
             String type = child.getValue();
             type = Utils.unescape(type.substring(1, type.length() - 1));
             if (!Utils.uriIsAbsolute(type))
-                throw new IllegalArgumentException("IRI must be absolute");
+                throw new LoaderException("IRI must be absolute", node);
             return store.getLiteralNode(value, type, null);
         } else if (child.getSymbol().getID() == NTriplesLexer.ID.LANGTAG) {
             String lang = child.getValue();

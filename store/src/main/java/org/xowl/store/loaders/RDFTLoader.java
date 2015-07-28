@@ -1,22 +1,24 @@
-/*******************************************************************************
+/**
+ * ****************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- *
+ * <p/>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- *
+ * <p/>
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
+ * <p/>
  * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
- ******************************************************************************/
+ * Laurent Wouters - lwouters@xowl.org
+ * ****************************************************************************
+ */
 
 package org.xowl.store.loaders;
 
@@ -144,7 +146,19 @@ public class RDFTLoader implements Loader {
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
-        loadDocument(parseResult.getRoot());
+        try {
+            loadDocument(parseResult.getRoot());
+        } catch (LoaderException exception) {
+            logger.error(exception);
+            logger.error("@" + exception.getOrigin().getPosition());
+            TextContext context = exception.getOrigin().getContext();
+            logger.error(context.getContent());
+            logger.error(context.getPointer());
+            return null;
+        } catch (IllegalArgumentException exception) {
+            logger.error(exception);
+            return null;
+        }
         return result;
     }
 
@@ -158,7 +172,7 @@ public class RDFTLoader implements Loader {
      *
      * @param node An AST node
      */
-    private void loadDocument(ASTNode node) {
+    private void loadDocument(ASTNode node) throws LoaderException {
         for (ASTNode child : node.getChildren().get(0).getChildren())
             loadDirective(child);
         for (ASTNode child : node.getChildren().get(1).getChildren())
@@ -212,7 +226,7 @@ public class RDFTLoader implements Loader {
      *
      * @param node An AST node
      */
-    private void loadRule(ASTNode node) {
+    private void loadRule(ASTNode node) throws LoaderException {
         String name = null;
         switch (node.getChildren().get(0).getSymbol().getID()) {
             case RDFTLexer.ID.IRIREF: {
@@ -223,7 +237,7 @@ public class RDFTLoader implements Loader {
             }
             case RDFTLexer.ID.PNAME_LN: {
                 name = node.getChildren().get(0).getValue();
-                name = getIRIForLocalName(name);
+                name = getIRIForLocalName(node.getChildren().get(0), name);
                 break;
             }
             case RDFTLexer.ID.PNAME_NS: {
@@ -317,7 +331,7 @@ public class RDFTLoader implements Loader {
      * @param variables The current variables
      * @return The equivalent RDF nodes
      */
-    private Node getNode(ASTNode node, Map<String, VariableNode> variables) {
+    private Node getNode(ASTNode node, Map<String, VariableNode> variables) throws LoaderException {
         switch (node.getSymbol().getID()) {
             case RDFTLexer.ID.IRIREF:
                 return getNodeIRIRef(node);
@@ -344,7 +358,7 @@ public class RDFTLoader implements Loader {
             case RDFTLexer.ID.QVAR:
                 return getNodeVariable(node, variables);
         }
-        throw new IllegalArgumentException("Unexpected node " + node.getValue());
+        throw new LoaderException("Unexpected node " + node.getValue(), node);
     }
 
     /**
@@ -365,9 +379,9 @@ public class RDFTLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF IRI node
      */
-    private IRINode getNodePNameLN(ASTNode node) {
+    private IRINode getNodePNameLN(ASTNode node) throws LoaderException {
         String value = node.getValue();
-        return store.getNodeIRI(getIRIForLocalName(value));
+        return store.getNodeIRI(getIRIForLocalName(node, value));
     }
 
     /**
@@ -470,7 +484,7 @@ public class RDFTLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF Literal node
      */
-    private LiteralNode getNodeLiteral(ASTNode node) {
+    private LiteralNode getNodeLiteral(ASTNode node) throws LoaderException {
         // Compute the lexical value
         String value = null;
         ASTNode childString = node.getChildren().get(0);
@@ -505,7 +519,7 @@ public class RDFTLoader implements Loader {
             return store.getLiteralNode(value, Utils.uriResolveRelative(baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == RDFTLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
-            String local = getIRIForLocalName(suffixChild.getValue());
+            String local = getIRIForLocalName(suffixChild, suffixChild.getValue());
             return store.getLiteralNode(value, local, null);
         } else if (suffixChild.getSymbol().getID() == RDFTLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
@@ -514,7 +528,7 @@ public class RDFTLoader implements Loader {
             ns = namespaces.get(ns);
             return store.getLiteralNode(value, ns, null);
         }
-        throw new IllegalArgumentException("Unexpected node " + node.getValue());
+        throw new LoaderException("Unexpected node " + node.getValue(), node);
     }
 
     /**
@@ -538,10 +552,11 @@ public class RDFTLoader implements Loader {
     /**
      * Gets the full IRI for the specified escaped local name
      *
+     * @param node  The parent AST node
      * @param value An escaped local name
      * @return The equivalent full IRI
      */
-    private String getIRIForLocalName(String value) {
+    private String getIRIForLocalName(ASTNode node, String value) throws LoaderException {
         value = Utils.unescape(value);
         int index = 0;
         while (index != value.length()) {
@@ -555,6 +570,6 @@ public class RDFTLoader implements Loader {
             }
             index++;
         }
-        throw new IllegalArgumentException("Failed to resolve local name " + value);
+        throw new LoaderException("Failed to resolve local name " + value, node);
     }
 }
