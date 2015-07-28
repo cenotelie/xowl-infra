@@ -53,13 +53,5 @@ public class JSONLDTestSuiteGenerator {
             String expect = test.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result").getIRIString();
             System.out.println("@Test public void test_toRdf_" + name + "() { toRdfTest(\"" + expect + "\", \"" + input + "\"); }");
         }
-
-        ProxyObject classNormTestCase = repository.resolveProxy("http://json-ld.org/test-suite/vocab#NormalizeTest");
-        for (ProxyObject test : classNormTestCase.getInstances()) {
-            String name = test.getIRIString().substring((BaseJSONLDTest.NAMESPACE + "tests/normalize-manifest.jsonld").length() + 1);
-            String input = test.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action").getIRIString();
-            String expect = test.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result").getIRIString();
-            System.out.println("@Test public void test_normalize_" + name + "() { normalizeTest(\"" + expect + "\", \"" + input + "\"); }");
-        }
     }
 }
