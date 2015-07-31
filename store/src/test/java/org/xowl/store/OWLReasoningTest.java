@@ -27,6 +27,7 @@ import org.junit.Test;
  *
  * @author Laurent Wouters
  */
+@Ignore("Not ready yet")
 public class OWLReasoningTest extends BaseOWLReasoningTest {
     /**
      * The reason for ignoring an entailment test is that its conclusions are not present in the result due to a rule, but are loaded as part of a standard schema (RDF, RDF, OWL, etc.)
