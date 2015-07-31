@@ -21,9 +21,7 @@
 package org.xowl.server;
 
 import org.xowl.store.AbstractRepository;
-import org.xowl.store.writers.NQuadsSerializer;
-import org.xowl.store.writers.NTripleSerializer;
-import org.xowl.store.writers.RDFSerializer;
+import org.xowl.store.writers.*;
 import org.xowl.utils.collections.Couple;
 
 import javax.servlet.http.HttpServletRequest;
@@ -87,6 +85,8 @@ public abstract class Service {
             switch (contentType) {
                 case AbstractRepository.SYNTAX_NTRIPLES:
                 case AbstractRepository.SYNTAX_NQUADS:
+                case AbstractRepository.SYNTAX_TURTLE:
+                case AbstractRepository.SYNTAX_RDFXML:
                     return contentType;
             }
         }
@@ -106,6 +106,10 @@ public abstract class Service {
                 return new NTripleSerializer(writer);
             case AbstractRepository.SYNTAX_NQUADS:
                 return new NQuadsSerializer(writer);
+            case AbstractRepository.SYNTAX_TURTLE:
+                return new TurtleSerializer(writer);
+            case AbstractRepository.SYNTAX_RDFXML:
+                return new RDFXMLSerializer(writer);
             default:
                 return new NTripleSerializer(writer);
         }
