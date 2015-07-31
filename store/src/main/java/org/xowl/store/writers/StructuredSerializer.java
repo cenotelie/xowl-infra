@@ -122,12 +122,14 @@ public abstract class StructuredSerializer implements RDFSerializer {
     private void mapNode(Node node) throws UnsupportedNodeType {
         switch (node.getNodeType()) {
             case IRINode.TYPE:
-                mapIRI((IRINode) node);
+                mapIRI(node, ((IRINode) node).getIRIValue());
                 break;
             case BlankNode.TYPE:
                 mapBlank((BlankNode) node);
                 break;
             case LiteralNode.TYPE:
+                String datatype = ((LiteralNode) node).getDatatype();
+                mapIRI(node, datatype);
                 break;
             default:
                 throw new UnsupportedNodeType(node, "RDF serialization only support IRI, Blank and Literal nodes");
@@ -135,12 +137,12 @@ public abstract class StructuredSerializer implements RDFSerializer {
     }
 
     /**
-     * Maps this IRI node for a namespace
+     * Maps an IRI to its namespace
      *
-     * @param node The IRI node
+     * @param node The containing node
+     * @param iri  The IRI to map
      */
-    private void mapIRI(IRINode node) throws UnsupportedNodeType {
-        String iri = node.getIRIValue();
+    private void mapIRI(Node node, String iri) throws UnsupportedNodeType {
         int index = iri.indexOf("#");
         if (index != -1) {
             mapNamespace(iri.substring(0, index + 1));
@@ -181,13 +183,13 @@ public abstract class StructuredSerializer implements RDFSerializer {
     }
 
     /**
-     * Gets the compact IRI corresponding to the specified IRI node
+     * Gets the compact IRI corresponding to the specified IRI
      *
-     * @param node An IRI node
+     * @param node The containing node
+     * @param iri  The IRI to compact
      * @return The corresponding compact IRI as couple (prefix, suffix) where prefix:suffix expands to the original IRI
      */
-    protected Couple<String, String> getCompactIRI(IRINode node) throws UnsupportedNodeType {
-        String iri = node.getIRIValue();
+    protected Couple<String, String> getCompactIRI(Node node, String iri) throws UnsupportedNodeType {
         int index = iri.indexOf("#");
         if (index != -1) {
             String prefix = namespaces.get(iri.substring(0, index + 1));

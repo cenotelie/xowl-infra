@@ -22,10 +22,7 @@ package org.xowl.store;
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.*;
-import org.xowl.store.writers.NQuadsSerializer;
-import org.xowl.store.writers.NTripleSerializer;
-import org.xowl.store.writers.OWLSerializer;
-import org.xowl.store.writers.RDFSerializer;
+import org.xowl.store.writers.*;
 import org.xowl.utils.Logger;
 
 import java.io.*;
@@ -352,6 +349,7 @@ public abstract class AbstractRepository {
             case SYNTAX_NQUADS:
             case SYNTAX_TURTLE:
             case SYNTAX_RDFXML:
+            case SYNTAX_JSON_LD:
             case SYNTAX_RDFT: {
                 RDFSerializer serializer = newRDFSerializer(syntax, writer);
                 exportResourceRDF(logger, ontology, serializer);
@@ -460,8 +458,10 @@ public abstract class AbstractRepository {
             case SYNTAX_NQUADS:
                 return new NQuadsSerializer(writer);
             case SYNTAX_TURTLE:
-            case SYNTAX_RDFT:
+                return new TurtleSerializer(writer);
             case SYNTAX_RDFXML:
+                return new RDFXMLSerializer(writer);
+            case SYNTAX_RDFT:
             case SYNTAX_JSON_LD:
                 return null;
         }

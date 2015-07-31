@@ -20,6 +20,7 @@
 
 package org.xowl.store.writers;
 
+import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.Logger;
 import org.xowl.utils.collections.Couple;
@@ -31,23 +32,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represents a serializer of RDF data in the RDF/XML format
+ * Represents a serializer of RDF data in the Turtle format
  *
  * @author Laurent Wouters
  */
-public class RDFXMLSerializer extends StructuredSerializer {
+public class TurtleSerializer extends StructuredSerializer {
     /**
-     * The serializer
+     * The writer to use
      */
-    private final XMLSerializer serializer;
+    private final Writer writer;
 
     /**
      * Initializes this serializer
      *
      * @param writer The writer to use
      */
-    public RDFXMLSerializer(Writer writer) {
-        this.serializer = new XMLSerializer(writer, true);
+    public TurtleSerializer(Writer writer) {
+        this.writer = writer;
     }
 
     /**
@@ -75,16 +76,18 @@ public class RDFXMLSerializer extends StructuredSerializer {
      * Serializes the data
      */
     private void serialize() throws IOException, UnsupportedNodeType {
-        serializer.onPreambule("utf-8");
-        serializer.onElementOpenBegin("rdf:RDF");
         for (Map.Entry<String, String> entry : namespaces.entrySet()) {
-            serializer.onAttribute("xmlns:" + entry.getValue(), entry.getKey());
+            writer.write("@prefix ");
+            writer.write(entry.getValue());
+            writer.write(": <");
+            writer.write(entry.getKey());
+            writer.write("> .");
+            writer.write(System.lineSeparator());
         }
-        serializer.onElementOpenEnd();
         for (Map.Entry<SubjectNode, List<Quad>> entry : data.entrySet()) {
+            writer.write(System.lineSeparator());
             serializeTopLevel(entry.getKey(), entry.getValue());
         }
-        serializer.onElementClose("rdf:RDF");
     }
 
     /**
@@ -94,12 +97,17 @@ public class RDFXMLSerializer extends StructuredSerializer {
      * @param quads   All the quads for its property
      */
     private void serializeTopLevel(SubjectNode subject, List<Quad> quads) throws IOException, UnsupportedNodeType {
-        serializer.onElementOpenBegin("rdf:Description");
         if (subject.getNodeType() == IRINode.TYPE) {
-            serializer.onAttribute("rdf:about", ((IRINode) subject).getIRIValue());
+            writer.write("<");
+            writer.write(((IRINode) subject).getIRIValue());
+            writer.write(">");
         } else {
-            serializer.onAttribute("rdf:nodeID", "n" + getBlankID((BlankNode) subject));
+            writer.write("_:n");
+            writer.write(getBlankID((BlankNode) subject));
         }
+        writer.write(System.lineSeparator());
+
+        boolean first = true;
         for (int i = 0; i != quads.size(); i++) {
             Property property = quads.get(i).getProperty();
             if (bufferProperties.contains(property))
@@ -107,12 +115,20 @@ public class RDFXMLSerializer extends StructuredSerializer {
             bufferProperties.add(property);
             for (int j = i; j != quads.size(); j++) {
                 Quad quad = quads.get(j);
-                if (quad.getProperty() == property)
+                if (quad.getProperty() == property) {
+                    if (!first) {
+                        writer.write(" ;");
+                        writer.write(System.lineSeparator());
+                    }
+                    writer.write("    ");
+                    first = false;
                     serializeProperty(quad);
+                }
             }
         }
         bufferProperties.clear();
-        serializer.onElementClose("rdf:Description");
+        writer.write(" .");
+        writer.write(System.lineSeparator());
     }
 
     /**
@@ -121,29 +137,40 @@ public class RDFXMLSerializer extends StructuredSerializer {
      * @param quad The quad representing the property
      */
     private void serializeProperty(Quad quad) throws IOException, UnsupportedNodeType {
-        Couple<String, String> property = getCompactIRI(quad.getProperty(), ((IRINode) quad.getProperty()).getIRIValue());
-        serializer.onElementOpenBegin(property.x + ":" + property.y);
+        String property = ((IRINode) quad.getProperty()).getIRIValue();
+        if (Vocabulary.rdfType.equals(property))
+            writer.write("a");
+        else {
+            Couple<String, String> compact = getCompactIRI(quad.getProperty(), property);
+            writer.write(compact.x + ":" + compact.y);
+        }
+        writer.write(" ");
+
         switch (quad.getObject().getNodeType()) {
             case IRINode.TYPE:
-                serializer.onAttribute("rdf:about", ((IRINode) quad.getObject()).getIRIValue());
-                serializer.onElementOpenEndAndClose();
+                writer.write("<");
+                writer.write(((IRINode) quad.getObject()).getIRIValue());
+                writer.write(">");
                 break;
             case BlankNode.TYPE:
-                serializer.onAttribute("rdf:nodeID", "n" + getBlankID((BlankNode) quad.getObject()));
-                serializer.onElementOpenEndAndClose();
+                writer.write("_:n");
+                writer.write(getBlankID((BlankNode) quad.getObject()));
                 break;
             case LiteralNode.TYPE:
                 String lexicalValue = ((LiteralNode) quad.getObject()).getLexicalValue();
                 String datatype = ((LiteralNode) quad.getObject()).getDatatype();
                 String language = ((LiteralNode) quad.getObject()).getLangTag();
+                writer.write("\"");
+                writer.write(lexicalValue);
+                writer.write("\"");
                 if (language != null) {
-                    serializer.onAttribute("xml:lang", language);
+                    writer.write("@");
+                    writer.write(language);
                 } else if (datatype != null) {
-                    serializer.onAttribute("rdf:datatype", datatype);
+                    writer.write("^^");
+                    Couple<String, String> compact = getCompactIRI(quad.getObject(), datatype);
+                    writer.write(compact.x + ":" + compact.y);
                 }
-                serializer.onElementOpenEnd();
-                serializer.onContent(lexicalValue);
-                serializer.onElementClose(property.x + ":" + property.y);
                 break;
             default:
                 throw new UnsupportedNodeType(quad.getObject(), "RDF serialization only support IRI, Blank and Literal nodes");
