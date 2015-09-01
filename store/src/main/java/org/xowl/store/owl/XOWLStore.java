@@ -116,7 +116,7 @@ public class XOWLStore extends RDFStore {
                 return result;
             }
             case AnonymousNode.TYPE: {
-                return ((AnonymousNode) node).getAnonymous();
+                return ((AnonymousNode) node).getIndividual();
             }
             case DynamicNode.TYPE: {
                 return ((DynamicNode) node).getDynamicExpression();
@@ -178,7 +178,7 @@ public class XOWLStore extends RDFStore {
      * @return The operation result
      */
     protected int doAddEdgeFromAnonymous(GraphNode graph, AnonymousNode subject, Property property, Node value) {
-        String key = subject.getAnonymous().getNodeID();
+        String key = subject.getIndividual().getNodeID();
         EdgeBucket bucket = edgesAnon.get(key);
         if (bucket == null) {
             bucket = new EdgeBucket();
@@ -258,7 +258,7 @@ public class XOWLStore extends RDFStore {
      * @return The operation result
      */
     protected int doRemoveEdgeFromAnon(GraphNode graph, AnonymousNode subject, Property property, Node value) {
-        String key = subject.getAnonymous().getNodeID();
+        String key = subject.getIndividual().getNodeID();
         EdgeBucket bucket = edgesAnon.get(key);
         if (bucket == null)
             return REMOVE_RESULT_NOT_FOUND;
@@ -281,7 +281,7 @@ public class XOWLStore extends RDFStore {
      * @return The operation result
      */
     protected int doRemoveEdgesFromAnon(GraphNode graph, AnonymousNode subject, Property property, Node value, List<Quad> buffer) {
-        String key = subject.getAnonymous().getNodeID();
+        String key = subject.getIndividual().getNodeID();
         EdgeBucket bucket = edgesAnon.get(key);
         if (bucket == null)
             return REMOVE_RESULT_NOT_FOUND;
@@ -357,7 +357,7 @@ public class XOWLStore extends RDFStore {
     @Override
     protected EdgeBucket getBucketFor(Node node) {
         if (node != null && node.getNodeType() == AnonymousNode.TYPE)
-            return edgesAnon.get(((AnonymousNode) node).getAnonymous().getNodeID());
+            return edgesAnon.get(((AnonymousNode) node).getIndividual().getNodeID());
         return super.getBucketFor(node);
     }
 
@@ -393,7 +393,7 @@ public class XOWLStore extends RDFStore {
     protected void deserializeOtherNodes(org.xowl.utils.data.Node collection) {
         for (org.xowl.utils.data.Node node : collection.getChildren()) {
             AnonymousNode anon = new AnonymousNode(node);
-            mapNodeAnons.put(anon.getAnonymous().getNodeID(), anon);
+            mapNodeAnons.put(anon.getIndividual().getNodeID(), anon);
         }
     }
 

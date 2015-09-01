@@ -32,11 +32,6 @@ import org.xowl.utils.data.Dataset;
  */
 public class AnonymousNode implements SubjectNode {
     /**
-     * The identifier key for the serialization of the id attribute
-     */
-    public static final String SERIALIZATION_ID = "id";
-
-    /**
      * The type of node
      */
     public static final int TYPE = 4;
@@ -56,16 +51,6 @@ public class AnonymousNode implements SubjectNode {
         anonInd = anon;
     }
 
-    /**
-     * Initializes this node from a dataset
-     *
-     * @param data The node of serialized data
-     */
-    public AnonymousNode(org.xowl.utils.data.Node data) {
-        this.anonInd = new AnonymousIndividual();
-        this.anonInd.setNodeID((String) data.attribute(SERIALIZATION_ID).getValue());
-    }
-
     @Override
     public int getNodeType() {
         return TYPE;
@@ -76,20 +61,8 @@ public class AnonymousNode implements SubjectNode {
      *
      * @return The anonymous individual represented by this node
      */
-    public AnonymousIndividual getAnonymous() {
+    public AnonymousIndividual getIndividual() {
         return anonInd;
-    }
-
-    @Override
-    public org.xowl.utils.data.Node serialize(Dataset dataset) {
-        org.xowl.utils.data.Node result = new org.xowl.utils.data.Node(dataset, SERIALIZATION_NAME);
-        Attribute attributeType = new Attribute(dataset, SERIALIZATION_TYPE);
-        attributeType.setValue(TYPE);
-        result.getAttributes().add(attributeType);
-        Attribute attributeID = new Attribute(dataset, SERIALIZATION_ID);
-        attributeID.setValue(anonInd.getNodeID());
-        result.getAttributes().add(attributeID);
-        return result;
     }
 
     @Override

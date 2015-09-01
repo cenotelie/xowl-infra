@@ -33,7 +33,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class CachedDataset implements Dataset {
+public class CachedDataset implements Dataset {
     /**
      * When adding a quad, something weird happened
      */

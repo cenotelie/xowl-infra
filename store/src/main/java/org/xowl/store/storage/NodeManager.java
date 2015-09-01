@@ -20,6 +20,8 @@
 
 package org.xowl.store.storage;
 
+import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.BlankNode;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.IRINode;
@@ -30,7 +32,12 @@ import org.xowl.store.rdf.LiteralNode;
  *
  * @author Laurent Wouters
  */
-public interface NodeStore {
+public interface NodeManager {
+    /**
+     * URI of the default graph
+     */
+    String DEFAULT_GRAPH = "http://xowl.org/store/rdfgraphs/default";
+
     /**
      * Creates a new node with the specified graph as a prefix
      *
@@ -73,4 +80,11 @@ public interface NodeStore {
      * @return The associated RDF node
      */
     LiteralNode getLiteralNode(String lex, String datatype, String lang);
+
+    /**
+     * Gets the anonymous node for the specified anonymous individual
+     * @param individual An anonymous individual
+     * @return The associated anonymous node
+     */
+    AnonymousNode getAnonNode(AnonymousIndividual individual);
 }

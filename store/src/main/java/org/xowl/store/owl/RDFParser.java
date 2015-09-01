@@ -299,7 +299,7 @@ public class RDFParser {
         if (node.getNodeType() == IRINode.TYPE)
             return (IRI) store.getOWL(node);
         else if (node.getNodeType() == AnonymousNode.TYPE)
-            return ((AnonymousNode) node).getAnonymous();
+            return ((AnonymousNode) node).getIndividual();
         return null;
     }
 

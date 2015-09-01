@@ -23,6 +23,7 @@ package org.xowl.store.rdf;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.storage.StringStore;
 import org.xowl.store.storage.UnsupportedNodeType;
+import org.xowl.store.storage.cache.LiteralBucket;
 import org.xowl.utils.collections.*;
 import org.xowl.utils.data.Attribute;
 import org.xowl.utils.data.AttributeTypeException;
