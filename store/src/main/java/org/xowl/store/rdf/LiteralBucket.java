@@ -19,7 +19,7 @@
  **********************************************************************/
 package org.xowl.store.rdf;
 
-import org.xowl.store.cache.StringStore;
+import org.xowl.store.storage.StringStore;
 import org.xowl.utils.data.Dataset;
 
 import java.util.Arrays;

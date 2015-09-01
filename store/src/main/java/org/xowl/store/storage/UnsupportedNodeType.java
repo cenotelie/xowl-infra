@@ -18,7 +18,9 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.storage;
+
+import org.xowl.store.rdf.Node;
 
 /**
  * Exception thrown when the given RDF node is of an unsupported type

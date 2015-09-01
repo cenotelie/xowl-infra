@@ -23,6 +23,7 @@ import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.Couple;

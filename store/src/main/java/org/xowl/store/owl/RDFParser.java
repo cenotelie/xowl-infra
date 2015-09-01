@@ -26,6 +26,7 @@ import org.xowl.store.rete.RETENetwork;
 import org.xowl.store.rete.RETERule;
 import org.xowl.store.rete.Token;
 import org.xowl.store.rete.TokenActivable;
+import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.io.IOException;
 import java.util.*;

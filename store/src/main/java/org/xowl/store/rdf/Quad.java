@@ -21,7 +21,7 @@
 package org.xowl.store.rdf;
 
 /**
- * Represents a triple in an graph
+ * Represents a quad in an graph
  *
  * @author Laurent Wouters
  */
@@ -29,19 +29,19 @@ public class Quad {
     /**
      * The containing graph
      */
-    private GraphNode graph;
+    protected GraphNode graph;
     /**
      * The subject node
      */
-    private SubjectNode subject;
+    protected SubjectNode subject;
     /**
      * The property
      */
-    private Property property;
+    protected Property property;
     /**
      * The object node
      */
-    private Node object;
+    protected Node object;
 
     /**
      * Initializes this quad
@@ -77,15 +77,6 @@ public class Quad {
     }
 
     /**
-     * Sets the subject node
-     *
-     * @param subject The subject node
-     */
-    void setSubject(SubjectNode subject) {
-        this.subject = subject;
-    }
-
-    /**
      * Gets the property
      *
      * @return The property
@@ -95,30 +86,12 @@ public class Quad {
     }
 
     /**
-     * Gets the property
-     *
-     * @param property The property
-     */
-    void setProperty(Property property) {
-        this.property = property;
-    }
-
-    /**
      * Gets the object node
      *
      * @return The object node
      */
     public Node getObject() {
         return object;
-    }
-
-    /**
-     * Sets the object node
-     *
-     * @param object The object node
-     */
-    void setObject(Node object) {
-        this.object = object;
     }
 
     /**

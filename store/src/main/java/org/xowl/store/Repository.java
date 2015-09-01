@@ -26,6 +26,7 @@ import org.xowl.store.owl.*;
 import org.xowl.store.owl.QueryEngine;
 import org.xowl.store.owl.RuleEngine;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.store.writers.OWLSerializer;
 import org.xowl.store.writers.RDFSerializer;
 import org.xowl.utils.Logger;

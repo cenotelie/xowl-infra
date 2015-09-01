@@ -20,7 +20,7 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.store.cache.StringStore;
+import org.xowl.store.storage.StringStore;
 import org.xowl.utils.data.Attribute;
 import org.xowl.utils.data.Dataset;
 

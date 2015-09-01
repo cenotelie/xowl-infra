@@ -27,6 +27,7 @@ import org.xowl.store.loaders.Loader;
 import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.TurtleLoader;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.io.*;
 import java.util.Iterator;

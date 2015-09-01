@@ -27,6 +27,7 @@ import org.xowl.lang.owl2.Literal;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.runtime.Entity;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.collections.*;
 import org.xowl.utils.data.Attribute;
 import org.xowl.utils.data.Dataset;

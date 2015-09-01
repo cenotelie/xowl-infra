@@ -20,8 +20,6 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.utils.data.Dataset;
-
 /**
  * Represents a variable in a quad pattern
  *
@@ -58,11 +56,6 @@ public class VariableNode implements SubjectNode, Property, GraphNode {
     @Override
     public int getNodeType() {
         return TYPE;
-    }
-
-    @Override
-    public org.xowl.utils.data.Node serialize(Dataset dataset) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

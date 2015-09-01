@@ -20,6 +20,7 @@
 package org.xowl.store.rdf;
 
 import org.xowl.store.rete.*;
+import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.util.*;
 

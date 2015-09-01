@@ -22,6 +22,7 @@ package org.xowl.store;
 import org.junit.Assert;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.io.IOException;
 import java.util.*;

@@ -20,9 +20,6 @@
 
 package org.xowl.store.rdf;
 
-import org.xowl.utils.data.Attribute;
-import org.xowl.utils.data.Dataset;
-
 /**
  * Represents a blank node in a RDF graph
  *
@@ -30,36 +27,22 @@ import org.xowl.utils.data.Dataset;
  */
 public class BlankNode implements SubjectNode, GraphNode {
     /**
-     * The identifier key for the serialization of the id attribute
-     */
-    private static final String SERIALIZATION_ID = "id";
-
-    /**
      * The type of node
      */
     public static final int TYPE = 1;
 
     /**
-     * the node's unique identifier
+     * The node's unique identifier
      */
-    private final int blankID;
+    private final long blankID;
 
     /**
      * Initializes this node
      *
      * @param id The unique identifier for this node
      */
-    public BlankNode(int id) {
+    public BlankNode(long id) {
         blankID = id;
-    }
-
-    /**
-     * Initializes this node from a dataset
-     *
-     * @param data The node of serialized data
-     */
-    public BlankNode(org.xowl.utils.data.Node data) {
-        this.blankID = (int) data.attribute(SERIALIZATION_ID).getValue();
     }
 
     @Override
@@ -72,38 +55,17 @@ public class BlankNode implements SubjectNode, GraphNode {
      *
      * @return The blank identifier of this node, or -1 if none
      */
-    public int getBlankID() {
+    public long getBlankID() {
         return blankID;
     }
 
     @Override
-    public org.xowl.utils.data.Node serialize(Dataset dataset) {
-        org.xowl.utils.data.Node result = new org.xowl.utils.data.Node(dataset, SERIALIZATION_NAME);
-        Attribute attributeType = new Attribute(dataset, SERIALIZATION_TYPE);
-        attributeType.setValue(TYPE);
-        result.getAttributes().add(attributeType);
-        Attribute attributeID = new Attribute(dataset, SERIALIZATION_ID);
-        attributeID.setValue(blankID);
-        result.getAttributes().add(attributeID);
-        return result;
-    }
-
-    @Override
-    public int hashCode() {
-        return blankID;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof BlankNode) {
-            BlankNode node = (BlankNode) obj;
-            return (blankID == node.blankID);
-        }
-        return false;
+    public boolean equals(Object o) {
+        return (o instanceof BlankNode) && (this.blankID == ((BlankNode)o).getBlankID());
     }
 
     @Override
     public String toString() {
-        return "_:" + Integer.toString(blankID);
+        return "_:" + Long.toString(blankID);
     }
 }

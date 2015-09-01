@@ -21,7 +21,8 @@
 package org.xowl.store.rdf;
 
 import org.xowl.store.Vocabulary;
-import org.xowl.store.cache.StringStore;
+import org.xowl.store.storage.StringStore;
+import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.collections.*;
 import org.xowl.utils.data.Attribute;
 import org.xowl.utils.data.AttributeTypeException;
@@ -45,7 +46,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
      */
     public static final int ADD_RESULT_INCREMENT = 1;
     /**
-     * When adding a quad, it was not already present and was hterefore new
+     * When adding a quad, it was not already present and was therefore new
      */
     public static final int ADD_RESULT_NEW = 2;
     /**
@@ -285,7 +286,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
      * Applies the specified change to this store
      *
      * @param change A change
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
     public void insert(Change change) throws UnsupportedNodeType {
         Quad quad = change.getValue();
@@ -310,7 +311,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
      * Applies the specified changeset to this store
      *
      * @param changeset A changeset
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
     public void insert(Changeset changeset) throws UnsupportedNodeType {
         Collection<Quad> positives = new ArrayList<>();
@@ -339,7 +340,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
      * If the quad is already in the store, its multiplicity is increased; listeners will not be notified.
      *
      * @param quad A quad
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
     public void add(Quad quad) throws UnsupportedNodeType {
         int result = doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
@@ -355,7 +356,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
      * @param subject  The quad subject node
      * @param property The quad property
      * @param value    The quad value
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
     public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         int result = doAddEdge(graph, subject, property, value);
@@ -372,7 +373,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
      * @param property The quad property
      * @param value    The quad value
      * @return The operation result
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
     protected int doAddEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
@@ -497,7 +498,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
      * Listeners are notified of the completely removed quads only.
      *
      * @param quad A quad
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
     public void remove(Quad quad) throws UnsupportedNodeType {
         if (quad.getGraph() != null && quad.getSubject() != null && quad.getProperty() != null && quad.getObject() != null) {
@@ -530,7 +531,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
      * @param subject  The quad subject node
      * @param property The quad property
      * @param value    The quad value
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
     public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         if (graph != null && subject != null && property != null && value != null) {
@@ -561,7 +562,7 @@ public class RDFStore extends AbstractStore implements ChangeListener {
      * @param property The quad property
      * @param value    The quad value
      * @return The operation result
-     * @throws org.xowl.store.rdf.UnsupportedNodeType when the subject node type is unsupported
+     * @throws UnsupportedNodeType when the subject node type is unsupported
      */
     protected int doRemoveEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {

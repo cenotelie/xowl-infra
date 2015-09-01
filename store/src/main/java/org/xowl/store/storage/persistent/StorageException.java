@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,20 +16,22 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store.storage.persistent;
 
 /**
- * Represents a node in a RDF graph
+ * Represents the failure to meet the expectations of the storage layer
  *
  * @author Laurent Wouters
  */
-public interface Node {
+class StorageException extends Exception {
     /**
-     * Gets the node's type
+     * Initializes this exception
      *
-     * @return The node's type
+     * @param message The exception's message
      */
-    int getNodeType();
+    public StorageException(String message) {
+        super(message);
+    }
 }

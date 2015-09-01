@@ -22,6 +22,7 @@ package org.xowl.store.writers;
 
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.Logger;
 import org.xowl.utils.collections.Couple;
 

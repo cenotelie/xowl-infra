@@ -25,7 +25,7 @@ import org.xowl.store.loaders.*;
 import org.xowl.store.rdf.Changeset;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.RDFStore;
-import org.xowl.store.rdf.UnsupportedNodeType;
+import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.io.*;
 import java.util.ArrayList;
