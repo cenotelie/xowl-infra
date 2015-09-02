@@ -80,7 +80,7 @@ public class SimpleRDFService extends Service {
                 String contentType = negotiateType(getContentTypes(request));
                 response.setHeader("Content-Type", contentType);
                 RDFSerializer serializer = getSerializer(contentType, out);
-                Iterator<Quad> quads = repository.getStore().getAll(repository.getStore().getNodeIRI(ontology.getHasIRI().getHasValue()));
+                Iterator<Quad> quads = repository.getStore().getAll(repository.getStore().getIRINode(ontology.getHasIRI().getHasValue()));
                 serializer.serialize(logger, quads);
                 out.flush();
             } catch (IOException exception) {
@@ -90,7 +90,7 @@ public class SimpleRDFService extends Service {
         }
 
         // is this a known resource?
-        IRINode node = repository.getStore().getNodeExistingIRI(uri);
+        IRINode node = repository.getStore().getExistingIRINode(uri);
         if (node != null) {
             try (PrintWriter out = response.getWriter()) {
                 String contentType = negotiateType(getContentTypes(request));
