@@ -22,8 +22,11 @@ package org.xowl.store.owl;
 import org.xowl.lang.owl2.Axiom;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.VariableNode;
+import org.xowl.store.storage.BaseStore;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents a query engine for a OWL store
@@ -34,7 +37,7 @@ public class QueryEngine {
     /**
      * The xOWL store
      */
-    private final XOWLStore store;
+    private final BaseStore store;
     /**
      * The current evaluator
      */
@@ -63,7 +66,7 @@ public class QueryEngine {
      * @param store     The OWL store to query
      * @param evaluator The current evaluator
      */
-    public QueryEngine(XOWLStore store, Evaluator evaluator) {
+    public QueryEngine(BaseStore store, Evaluator evaluator) {
         this.store = store;
         this.evaluator = evaluator;
         this.rdfEngine = new org.xowl.store.rdf.QueryEngine(store);
@@ -120,7 +123,7 @@ public class QueryEngine {
     private Bindings translate(org.xowl.store.rdf.QuerySolution solution, TranslationContext context) {
         Bindings bindings = new Bindings();
         for (VariableNode var : solution.getVariables()) {
-            Object value = store.getOWL(solution.get(var));
+            Object value = Utils.getOWL(solution.get(var));
             bindings.bind(context.get(var), value);
         }
         return bindings;

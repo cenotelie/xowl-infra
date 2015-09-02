@@ -1,24 +1,22 @@
-/**
- * ****************************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- * <p/>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * <p/>
+ *
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- * <p/>
+ *
  * Contributors:
- * Laurent Wouters - lwouters@xowl.org
- * ****************************************************************************
- */
+ *     Laurent Wouters - lwouters@xowl.org
+ ******************************************************************************/
 
 package org.xowl.store.loaders;
 
@@ -28,6 +26,7 @@ import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.Files;
 import org.xowl.utils.Logger;
 
@@ -47,7 +46,7 @@ public class TurtleLoader implements Loader {
     /**
      * The RDF store to create nodes from
      */
-    private final RDFStore store;
+    private final NodeManager store;
     /**
      * The loaded triples
      */
@@ -90,7 +89,7 @@ public class TurtleLoader implements Loader {
      *
      * @param store The RDF store used to create nodes
      */
-    public TurtleLoader(RDFStore store) {
+    public TurtleLoader(NodeManager store) {
         this.store = store;
     }
 
@@ -120,7 +119,7 @@ public class TurtleLoader implements Loader {
     public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
         RDFLoaderResult result = new RDFLoaderResult();
         quads = result.getQuads();
-        graph = store.getNodeIRI(uri);
+        graph = store.getIRINode(uri);
         resource = uri;
         baseURI = resource;
         namespaces = new HashMap<>();
@@ -254,7 +253,7 @@ public class TurtleLoader implements Loader {
      */
     private IRINode getNodeIsA() {
         if (cacheIsA == null)
-            cacheIsA = store.getNodeIRI(Vocabulary.rdfType);
+            cacheIsA = store.getIRINode(Vocabulary.rdfType);
         return cacheIsA;
     }
 
@@ -267,7 +266,7 @@ public class TurtleLoader implements Loader {
     private IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
-        return store.getNodeIRI(Utils.uriResolveRelative(baseURI, value));
+        return store.getIRINode(Utils.uriResolveRelative(baseURI, value));
     }
 
     /**
@@ -278,7 +277,7 @@ public class TurtleLoader implements Loader {
      */
     private IRINode getNodePNameLN(ASTNode node) throws LoaderException {
         String value = node.getValue();
-        return store.getNodeIRI(getIRIForLocalName(node, value));
+        return store.getIRINode(getIRIForLocalName(node, value));
     }
 
     /**
@@ -291,7 +290,7 @@ public class TurtleLoader implements Loader {
         String value = node.getValue();
         value = Utils.unescape(value.substring(0, value.length() - 1));
         value = namespaces.get(value);
-        return store.getNodeIRI(value);
+        return store.getIRINode(value);
     }
 
     /**
@@ -306,7 +305,7 @@ public class TurtleLoader implements Loader {
         BlankNode blank = blanks.get(value);
         if (blank != null)
             return blank;
-        blank = store.newNodeBlank();
+        blank = store.getBlankNode();
         blanks.put(value, blank);
         return blank;
     }
@@ -317,7 +316,7 @@ public class TurtleLoader implements Loader {
      * @return A new blank node
      */
     private BlankNode getNodeAnon() {
-        return store.newNodeBlank();
+        return store.getBlankNode();
     }
 
     /**
@@ -439,17 +438,17 @@ public class TurtleLoader implements Loader {
         for (ASTNode child : node.getChildren())
             elements.add(getNode(child));
         if (elements.isEmpty())
-            return store.getNodeIRI(Vocabulary.rdfNil);
+            return store.getIRINode(Vocabulary.rdfNil);
 
         BlankNode[] proxies = new BlankNode[elements.size()];
         for (int i = 0; i != proxies.length; i++) {
-            proxies[i] = store.newNodeBlank();
-            quads.add(new Quad(graph, proxies[i], store.getNodeIRI(Vocabulary.rdfFirst), elements.get(i)));
+            proxies[i] = store.getBlankNode();
+            quads.add(new Quad(graph, proxies[i], store.getIRINode(Vocabulary.rdfFirst), elements.get(i)));
         }
         for (int i = 0; i != proxies.length - 1; i++) {
-            quads.add(new Quad(graph, proxies[i], store.getNodeIRI(Vocabulary.rdfRest), proxies[i + 1]));
+            quads.add(new Quad(graph, proxies[i], store.getIRINode(Vocabulary.rdfRest), proxies[i + 1]));
         }
-        quads.add(new Quad(graph, proxies[proxies.length - 1], store.getNodeIRI(Vocabulary.rdfRest), store.getNodeIRI(Vocabulary.rdfNil)));
+        quads.add(new Quad(graph, proxies[proxies.length - 1], store.getIRINode(Vocabulary.rdfRest), store.getIRINode(Vocabulary.rdfNil)));
         return proxies[0];
     }
 
@@ -460,7 +459,7 @@ public class TurtleLoader implements Loader {
      * @return The equivalent RDF blank node
      */
     private BlankNode getNodeBlankWithProperties(ASTNode node) throws LoaderException {
-        BlankNode subject = store.newNodeBlank();
+        BlankNode subject = store.getBlankNode();
         applyProperties(subject, node);
         return subject;
     }

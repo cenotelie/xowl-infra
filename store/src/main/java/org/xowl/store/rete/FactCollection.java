@@ -19,9 +19,9 @@
  ******************************************************************************/
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.AbstractStore;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.VariableNode;
+import org.xowl.store.storage.Dataset;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -35,7 +35,7 @@ class FactCollection implements Collection<Quad> {
     /**
      * The parent RDF store
      */
-    private final AbstractStore store;
+    private final Dataset store;
     /**
      * The matched pattern
      */
@@ -51,7 +51,7 @@ class FactCollection implements Collection<Quad> {
      * @param store   The parent RDF store
      * @param pattern The matched pattern
      */
-    public FactCollection(AbstractStore store, Quad pattern) {
+    public FactCollection(Dataset store, Quad pattern) {
         this.store = store;
         this.pattern = pattern;
         this.size = -1;
@@ -70,7 +70,7 @@ class FactCollection implements Collection<Quad> {
     public int size() {
         if (size > -1)
             return size;
-        size = store.count(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
+        size = (int) store.count(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
         return size;
     }
 

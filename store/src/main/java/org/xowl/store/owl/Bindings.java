@@ -88,8 +88,9 @@ public class Bindings {
 
     /**
      * Binds a variable
+     *
      * @param variable The variable to bind
-     * @param value The associated value
+     * @param value    The associated value
      */
     void bind(QueryVariable variable, Object value) {
         content.put(variable, value);

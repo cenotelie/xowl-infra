@@ -20,8 +20,8 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.AbstractStore;
 import org.xowl.store.rdf.Quad;
+import org.xowl.store.storage.Dataset;
 
 /**
  * Represents a element in a bucket of alpha memories
@@ -44,5 +44,5 @@ interface AlphaMemoryBucketElement {
      * @param store   The RDF data
      * @return The associated memory
      */
-    AlphaMemory resolveMemory(Quad pattern, AbstractStore store);
+    AlphaMemory resolveMemory(Quad pattern, Dataset store);
 }

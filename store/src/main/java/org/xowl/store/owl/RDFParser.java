@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.owl;
 
 import org.xowl.lang.owl2.*;
@@ -26,9 +26,10 @@ import org.xowl.store.rete.RETENetwork;
 import org.xowl.store.rete.RETERule;
 import org.xowl.store.rete.Token;
 import org.xowl.store.rete.TokenActivable;
+import org.xowl.store.storage.BaseStore;
+import org.xowl.store.storage.InMemoryStore;
 import org.xowl.store.storage.UnsupportedNodeType;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -40,7 +41,7 @@ public class RDFParser {
     /**
      * The xOWL store to use
      */
-    private XOWLStore store;
+    private BaseStore store;
     /**
      * The graph node to use for building pattern quads
      */
@@ -78,10 +79,10 @@ public class RDFParser {
      */
     public Collection<Axiom> translate(Collection<Quad> quads) {
         try {
-            store = new XOWLStore();
+            store = new InMemoryStore();
             graphNode = new VariableNode("__graph__");
             store.insert(new Changeset(quads, new ArrayList<Quad>(0)));
-        } catch (IOException | UnsupportedNodeType ex) {
+        } catch (UnsupportedNodeType ex) {
             // TODO: log this
         }
         execute(quads);
@@ -95,7 +96,7 @@ public class RDFParser {
      * @param quads The quads
      * @return The equivalent axioms
      */
-    public Collection<Axiom> translate(XOWLStore store, Collection<Quad> quads) {
+    public Collection<Axiom> translate(BaseStore store, Collection<Quad> quads) {
         this.store = store;
         this.graphNode = new VariableNode("__graph__");
         execute(quads);
@@ -109,7 +110,7 @@ public class RDFParser {
      * @param graph The graph
      * @return The equivalent axioms
      */
-    public Collection<Axiom> translate(XOWLStore store, GraphNode graph) {
+    public Collection<Axiom> translate(BaseStore store, GraphNode graph) {
         this.store = store;
         this.graphNode = graph;
         Collection<Quad> quads = new ArrayList<>();
@@ -202,7 +203,7 @@ public class RDFParser {
      * @return The quad pattern
      */
     private Quad getPattern(SubjectNode subject, String property, Node object) {
-        return new Quad(graphNode, subject, store.getNodeIRI(property), object);
+        return new Quad(graphNode, subject, store.getIRINode(property), object);
     }
 
     /**
@@ -214,7 +215,7 @@ public class RDFParser {
      * @return The quad pattern
      */
     private Quad getPattern(SubjectNode subject, String property, String object) {
-        return new Quad(graphNode, subject, store.getNodeIRI(property), store.getNodeIRI(object));
+        return new Quad(graphNode, subject, store.getIRINode(property), store.getIRINode(object));
     }
 
     /**
@@ -225,7 +226,7 @@ public class RDFParser {
      */
     private Datarange getExpressionDatarange(Node node) {
         if (node.getNodeType() == IRINode.TYPE)
-            return (IRI) store.getOWL(node);
+            return (IRI) Utils.getOWL(node);
         return (Datarange) expDatarange.get(node).getExpression();
     }
 
@@ -237,7 +238,7 @@ public class RDFParser {
      */
     private ClassExpression getExpressionClass(Node node) {
         if (node.getNodeType() == IRINode.TYPE)
-            return (IRI) store.getOWL(node);
+            return (IRI) Utils.getOWL(node);
         return (ClassExpression) expClasses.get(node).getExpression();
     }
 
@@ -249,7 +250,7 @@ public class RDFParser {
      */
     private ObjectPropertyExpression getExpressionObjectProperty(Node node) {
         if (node.getNodeType() == IRINode.TYPE)
-            return (IRI) store.getOWL(node);
+            return (IRI) Utils.getOWL(node);
         return (ObjectPropertyExpression) expObjProperties.get(node).getExpression();
     }
 
@@ -261,7 +262,7 @@ public class RDFParser {
      */
     private IRI getExpressionAnnotationProperty(Node node) {
         if (node.getNodeType() == IRINode.TYPE)
-            return (IRI) store.getOWL(node);
+            return (IRI) Utils.getOWL(node);
         return null;
     }
 
@@ -273,7 +274,7 @@ public class RDFParser {
      */
     private DataPropertyExpression getExpressionDataProperty(Node node) {
         if (node.getNodeType() == IRINode.TYPE)
-            return (IRI) store.getOWL(node);
+            return (IRI) Utils.getOWL(node);
         return null;
     }
 
@@ -285,7 +286,7 @@ public class RDFParser {
      */
     private LiteralExpression getExpressionLiteral(Node node) {
         if (node.getNodeType() == LiteralNode.TYPE)
-            return (LiteralExpression) store.getOWL(node);
+            return (LiteralExpression) Utils.getOWL(node);
         return null;
     }
 
@@ -297,7 +298,7 @@ public class RDFParser {
      */
     private IndividualExpression getExpressionIndividual(Node node) {
         if (node.getNodeType() == IRINode.TYPE)
-            return (IRI) store.getOWL(node);
+            return (IRI) Utils.getOWL(node);
         else if (node.getNodeType() == AnonymousNode.TYPE)
             return ((AnonymousNode) node).getIndividual();
         return null;
@@ -450,7 +451,7 @@ public class RDFParser {
      */
     private List<Node> getValues(SubjectNode subject, String property) {
         List<Node> results = new ArrayList<>();
-        Iterator<Quad> iterator = store.getAll(subject, store.getNodeIRI(property), null);
+        Iterator<Quad> iterator = store.getAll(subject, store.getIRINode(property), null);
         while (iterator.hasNext()) {
             results.add(iterator.next().getObject());
         }
@@ -725,7 +726,7 @@ public class RDFParser {
                         for (Node restrictNode : restrictions) {
                             FacetRestriction facet = new FacetRestriction();
                             Quad triple = getTriple((SubjectNode) restrictNode);
-                            facet.setConstrainingFacet((IRI) store.getOWL(triple.getProperty()));
+                            facet.setConstrainingFacet((IRI) Utils.getOWL(triple.getProperty()));
                             facet.setConstrainingValue((Literal) getExpressionLiteral(triple.getObject()));
                             value.addFacetRestrictions(facet);
                         }

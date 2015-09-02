@@ -1,24 +1,22 @@
-/**
- * ****************************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- * <p/>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * <p/>
+ *
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- * <p/>
+ *
  * Contributors:
- * Laurent Wouters - lwouters@xowl.org
- * ****************************************************************************
- */
+ *     Laurent Wouters - lwouters@xowl.org
+ ******************************************************************************/
 
 package org.xowl.store.loaders;
 
@@ -28,6 +26,7 @@ import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.Files;
 import org.xowl.utils.Logger;
 import org.xowl.utils.collections.Couple;
@@ -159,7 +158,7 @@ public abstract class JSONLDLoader implements Loader {
     /**
      * The RDF store to create nodes from
      */
-    private final RDFStore store;
+    private final NodeManager store;
     /**
      * The current logger
      */
@@ -195,7 +194,7 @@ public abstract class JSONLDLoader implements Loader {
      *
      * @param store The RDF store used to create nodes
      */
-    public JSONLDLoader(RDFStore store) {
+    public JSONLDLoader(NodeManager store) {
         this.store = store;
     }
 
@@ -233,7 +232,7 @@ public abstract class JSONLDLoader implements Loader {
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
         try {
-            loadDocument(parseResult.getRoot(), store.getNodeIRI(uri), new JSONLDContext(this));
+            loadDocument(parseResult.getRoot(), store.getIRINode(uri), new JSONLDContext(this));
         } catch (LoaderException exception) {
             logger.error(exception);
             logger.error("@" + exception.getOrigin().getPosition());
@@ -365,7 +364,7 @@ public abstract class JSONLDLoader implements Loader {
                 value = current.expandID(value);
                 if (!Utils.uriIsAbsolute(value))
                     return null;
-                subject = store.getNodeIRI(value);
+                subject = store.getIRINode(value);
             }
         }
 
@@ -374,7 +373,7 @@ public abstract class JSONLDLoader implements Loader {
             if (typeNode != null || reverseNode != null || !members.isEmpty() || !markerTopLevel) {
                 // this object has properties, or it is not the top level, use the subject
                 if (subject == null)
-                    subject = store.newNodeBlank();
+                    subject = store.getBlankNode();
                 targetGraph = (GraphNode) subject;
             } else if (subject != null) {
                 targetGraph = (GraphNode) subject;
@@ -387,7 +386,7 @@ public abstract class JSONLDLoader implements Loader {
         markerTopLevel = false;
 
         if (subject == null)
-            subject = store.newNodeBlank();
+            subject = store.getBlankNode();
 
         // setup the type
         if (typeNode != null) {
@@ -395,9 +394,9 @@ public abstract class JSONLDLoader implements Loader {
             if (value != null) {
                 if (value instanceof List) {
                     for (Node type : ((List<Node>) value))
-                        quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), type));
+                        quads.add(new Quad(graph, subject, store.getIRINode(Vocabulary.rdfType), type));
                 } else {
-                    quads.add(new Quad(graph, subject, store.getNodeIRI(Vocabulary.rdfType), (Node) value));
+                    quads.add(new Quad(graph, subject, store.getIRINode(Vocabulary.rdfType), (Node) value));
                 }
             }
         }
@@ -442,7 +441,7 @@ public abstract class JSONLDLoader implements Loader {
             // property is undefined or
             // this is a blank node identifier, do not handle generalized RDF graphs
             return;
-        IRINode property = store.getNodeIRI(propertyIRI);
+        IRINode property = store.getIRINode(propertyIRI);
         Object value = loadValue(definition, graph, context, propertyInfo);
         if (value == null)
             return;
@@ -553,7 +552,7 @@ public abstract class JSONLDLoader implements Loader {
     private BlankNode resolveBlank(String identifier) {
         BlankNode result = blanks.get(identifier);
         if (result == null) {
-            result = store.newNodeBlank();
+            result = store.getBlankNode();
             blanks.put(identifier, result);
         }
         return result;
@@ -572,18 +571,18 @@ public abstract class JSONLDLoader implements Loader {
             if (node != null)
                 filtered.add(node);
         if (filtered.isEmpty())
-            return store.getNodeIRI(Vocabulary.rdfNil);
-        SubjectNode head = store.newNodeBlank();
+            return store.getIRINode(Vocabulary.rdfNil);
+        SubjectNode head = store.getBlankNode();
         SubjectNode current = head;
-        quads.add(new Quad(graph, current, store.getNodeIRI(Vocabulary.rdfFirst), filtered.get(0)));
+        quads.add(new Quad(graph, current, store.getIRINode(Vocabulary.rdfFirst), filtered.get(0)));
         for (int i = 1; i != filtered.size(); i++) {
             Node element = filtered.get(i);
-            SubjectNode proxy = store.newNodeBlank();
-            quads.add(new Quad(graph, current, store.getNodeIRI(Vocabulary.rdfRest), proxy));
+            SubjectNode proxy = store.getBlankNode();
+            quads.add(new Quad(graph, current, store.getIRINode(Vocabulary.rdfRest), proxy));
             current = proxy;
-            quads.add(new Quad(graph, current, store.getNodeIRI(Vocabulary.rdfFirst), element));
+            quads.add(new Quad(graph, current, store.getIRINode(Vocabulary.rdfFirst), element));
         }
-        quads.add(new Quad(graph, current, store.getNodeIRI(Vocabulary.rdfRest), store.getNodeExistingIRI(Vocabulary.rdfNil)));
+        quads.add(new Quad(graph, current, store.getIRINode(Vocabulary.rdfRest), store.getIRINode(Vocabulary.rdfNil)));
         return head;
     }
 
@@ -663,10 +662,10 @@ public abstract class JSONLDLoader implements Loader {
                     return resolveBlank(value.substring(2));
                 } else if (KEYWORD_ID.equals(info.valueType)) {
                     // this is an id
-                    return store.getNodeIRI(context.expandID(value));
+                    return store.getIRINode(context.expandID(value));
                 } else {
                     // this is a resource
-                    return store.getNodeIRI(context.expandResource(value));
+                    return store.getIRINode(context.expandResource(value));
                 }
             }
             // this is a typed literal

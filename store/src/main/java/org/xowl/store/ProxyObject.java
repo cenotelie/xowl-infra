@@ -479,7 +479,7 @@ public class ProxyObject {
     private boolean isFunctional(IRINode property) {
         // do we have the triple:
         // [property rdf:type owl:FunctionalProperty]
-        int count = repository.getStore().count(null, property, node(Vocabulary.rdfType), node(Vocabulary.owlFunctionalProperty));
+        long count = repository.getStore().count(null, property, node(Vocabulary.rdfType), node(Vocabulary.owlFunctionalProperty));
         return count > 1;
     }
 
@@ -490,7 +490,7 @@ public class ProxyObject {
      * @return The associated IRI node
      */
     private IRINode node(String iri) {
-        return repository.getStore().getNodeIRI(iri);
+        return repository.getStore().getIRINode(iri);
     }
 
     /**

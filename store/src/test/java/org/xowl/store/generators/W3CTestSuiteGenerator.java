@@ -27,6 +27,8 @@ import org.xowl.store.loaders.Loader;
 import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.TurtleLoader;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.BaseStore;
+import org.xowl.store.storage.InMemoryStore;
 import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.io.*;
@@ -71,12 +73,7 @@ public class W3CTestSuiteGenerator {
      * @param manifest The path to a manifest
      */
     public void generate(String manifest) {
-        RDFStore store = null;
-        try {
-            store = new RDFStore();
-        } catch (IOException ex) {
-            // do not handle
-        }
+        BaseStore store = new InMemoryStore();
         TestLogger logger = new TestLogger();
 
         InputStream stream = W3CTestSuite.class.getResourceAsStream(manifest);
@@ -101,8 +98,8 @@ public class W3CTestSuiteGenerator {
             Assert.fail("Unsupported quad");
         }
 
-        Iterator<Quad> triples = store.getAll(null, store.getNodeIRI(MF + "entries"), null);
-        Iterator<Node> tests = store.getList((SubjectNode) triples.next().getObject());
+        Iterator<Quad> triples = store.getAll(null, store.getIRINode(MF + "entries"), null);
+        Iterator<Node> tests = new ListIterator(store, triples.next().getObject());
         while (tests.hasNext()) {
             SubjectNode test = (SubjectNode) tests.next();
             String type = ((IRINode) getValue(store, test, Vocabulary.rdfType)).getIRIValue();
@@ -131,7 +128,7 @@ public class W3CTestSuiteGenerator {
      * @param entry       The entry node
      * @param syntax      The syntax to be tested
      */
-    private void generateTestEval(RDFStore graph, String resourceURI, SubjectNode entry, String syntax) {
+    private void generateTestEval(BaseStore graph, String resourceURI, SubjectNode entry, String syntax) {
         String name = ((LiteralNode) getValue(graph, entry, MF + "name")).getLexicalValue();
         name = name.replace("-", "_");
 
@@ -152,7 +149,7 @@ public class W3CTestSuiteGenerator {
      * @param entry       The entry node
      * @param syntax      The syntax to be tested
      */
-    private void generateTestPositiveSyntax(RDFStore graph, String resourceURI, SubjectNode entry, String syntax) {
+    private void generateTestPositiveSyntax(BaseStore graph, String resourceURI, SubjectNode entry, String syntax) {
         String name = ((LiteralNode) getValue(graph, entry, MF + "name")).getLexicalValue();
         name = name.replace("-", "_");
 
@@ -170,7 +167,7 @@ public class W3CTestSuiteGenerator {
      * @param entry       The entry node
      * @param syntax      The syntax to be tested
      */
-    private void generateTestNegativeSyntax(RDFStore graph, String resourceURI, SubjectNode entry, String syntax) {
+    private void generateTestNegativeSyntax(BaseStore graph, String resourceURI, SubjectNode entry, String syntax) {
         String name = ((LiteralNode) getValue(graph, entry, MF + "name")).getLexicalValue();
         name = name.replace("-", "_");
 
@@ -188,8 +185,8 @@ public class W3CTestSuiteGenerator {
      * @param property A property
      * @return The corresponding value
      */
-    private Node getValue(RDFStore graph, SubjectNode node, String property) {
-        Iterator<Quad> entries = graph.getAll(node, graph.getNodeIRI(property), null);
+    private Node getValue(BaseStore graph, SubjectNode node, String property) {
+        Iterator<Quad> entries = graph.getAll(node, graph.getIRINode(property), null);
         if (!entries.hasNext())
             return null;
         return entries.next().getObject();

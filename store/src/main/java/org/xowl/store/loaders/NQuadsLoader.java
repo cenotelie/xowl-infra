@@ -1,24 +1,22 @@
-/**
- * ****************************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- * <p/>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * <p/>
+ *
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- * <p/>
+ *
  * Contributors:
- * Laurent Wouters - lwouters@xowl.org
- * ****************************************************************************
- */
+ *     Laurent Wouters - lwouters@xowl.org
+ ******************************************************************************/
 
 package org.xowl.store.loaders;
 
@@ -28,6 +26,7 @@ import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.Files;
 import org.xowl.utils.Logger;
 
@@ -45,7 +44,7 @@ public class NQuadsLoader implements Loader {
     /**
      * The RDF store to create nodes from
      */
-    private final RDFStore store;
+    private final NodeManager store;
     /**
      * Maps of blanks nodes
      */
@@ -56,7 +55,7 @@ public class NQuadsLoader implements Loader {
      *
      * @param store The RDF store used to create nodes
      */
-    public NQuadsLoader(RDFStore store) {
+    public NQuadsLoader(NodeManager store) {
         this.store = store;
     }
 
@@ -86,7 +85,7 @@ public class NQuadsLoader implements Loader {
     public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
         blanks = new HashMap<>();
         RDFLoaderResult result = new RDFLoaderResult();
-        GraphNode current = store.getNodeIRI(uri);
+        GraphNode current = store.getIRINode(uri);
 
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
@@ -153,7 +152,7 @@ public class NQuadsLoader implements Loader {
         value = Utils.unescape(value.substring(1, value.length() - 1));
         if (!Utils.uriIsAbsolute(value))
             throw new LoaderException("IRI must be absolute", node);
-        return store.getNodeIRI(value);
+        return store.getIRINode(value);
     }
 
     /**
@@ -168,7 +167,7 @@ public class NQuadsLoader implements Loader {
         BlankNode blank = blanks.get(key);
         if (blank != null)
             return blank;
-        blank = store.newNodeBlank();
+        blank = store.getBlankNode();
         blanks.put(key, blank);
         return blank;
     }
@@ -212,7 +211,7 @@ public class NQuadsLoader implements Loader {
             value = Utils.unescape(value.substring(1, value.length() - 1));
             if (!Utils.uriIsAbsolute(value))
                 throw new LoaderException("IRI must be absolute", node);
-            return store.getNodeIRI(value);
+            return store.getIRINode(value);
         } else {
             return (GraphNode) translateBlankNode(node);
         }

@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters and others
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,8 +16,12 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store.rdf;
+
+import org.xowl.store.Vocabulary;
+import org.xowl.store.storage.BaseStore;
+import org.xowl.store.storage.Dataset;
 
 import java.util.Iterator;
 
@@ -26,25 +30,43 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public abstract class ListIterator implements Iterator<Node> {
-    private final int keyFirst;
-    private final int keyRest;
-    private final int keyNil;
+public class ListIterator implements Iterator<Node> {
+    /**
+     * The dataset that contains the data
+     */
+    private final Dataset dataset;
+    /**
+     * The rdf:first node
+     */
+    private final IRINode keyFirst;
+    /**
+     * The rdf:rest node
+     */
+    private final IRINode keyRest;
+    /**
+     * The rdf:nil node
+     */
+    private final IRINode keyNil;
+    /**
+     * The current proxy node
+     */
     private Node proxy;
+    /**
+     * The next value to return
+     */
     private Node nextValue;
 
     /**
      * Initializes this iterator
      *
-     * @param keyFirst The key to the rdf:first IRI
-     * @param keyRest  The key to the rdf:rest IRI
-     * @param keyNil   The key to the rdf:nil IRI
-     * @param head     The list's head node
+     * @param store The node that contains the data
+     * @param head  The list's head node
      */
-    public ListIterator(int keyFirst, int keyRest, int keyNil, Node head) {
-        this.keyFirst = keyFirst;
-        this.keyRest = keyRest;
-        this.keyNil = keyNil;
+    public ListIterator(BaseStore store, Node head) {
+        this.dataset = store;
+        this.keyFirst = store.getIRINode(Vocabulary.rdfFirst);
+        this.keyRest = store.getIRINode(Vocabulary.rdfRest);
+        this.keyNil = store.getIRINode(Vocabulary.rdfNil);
         this.proxy = head;
         findNext();
     }
@@ -57,13 +79,10 @@ public abstract class ListIterator implements Iterator<Node> {
             nextValue = null;
             return;
         }
-        if (proxy instanceof IRINodeImpl) {
-            int key = ((IRINodeImpl) proxy).getKey();
-            if (key == keyNil) {
-                proxy = null;
-                nextValue = null;
-                return;
-            }
+        if (proxy == keyNil) {
+            proxy = null;
+            nextValue = null;
+            return;
         }
         nextValue = getValue((SubjectNode) proxy, keyFirst);
         proxy = getValue((SubjectNode) proxy, keyRest);
@@ -76,30 +95,10 @@ public abstract class ListIterator implements Iterator<Node> {
      * @param property The key to the property's IRI
      * @return The associated value
      */
-    private Node getValue(SubjectNode node, int property) {
-        EdgeBucket bucket = getBucketOf(node);
-        if (bucket == null)
-            return null;
-        for (Edge edge : bucket) {
-            Property potential = edge.getProperty();
-            if (potential instanceof IRINodeImpl) {
-                int potentialKey = ((IRINodeImpl) potential).getKey();
-                if (property == potentialKey) {
-                    Iterator<EdgeTarget> targets = edge.iterator();
-                    return targets.next().getTarget();
-                }
-            }
-        }
-        return null;
+    private Node getValue(SubjectNode node, Property property) {
+        Iterator<Quad> iterator = dataset.getAll(node, property, null);
+        return iterator.hasNext() ? iterator.next().getObject() : null;
     }
-
-    /**
-     * Gets the edge bucket associated to the specified node
-     *
-     * @param node A subject node
-     * @return The associated edge bucket
-     */
-    protected abstract EdgeBucket getBucketOf(SubjectNode node);
 
     @Override
     public boolean hasNext() {

@@ -24,6 +24,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.xowl.store.loaders.*;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.BaseStore;
+import org.xowl.store.storage.InMemoryStore;
 import org.xowl.utils.Logger;
 
 import java.io.IOException;
@@ -48,7 +50,7 @@ public abstract class W3CTestSuite {
     /**
      * The store to use
      */
-    protected RDFStore store;
+    protected BaseStore store;
     /**
      * The IRI mapper
      */
@@ -57,13 +59,13 @@ public abstract class W3CTestSuite {
     @Before
     public void setup() throws IOException {
         logger = new TestLogger();
-        store = new RDFStore();
+        store = new InMemoryStore();
         mapper = IRIMapper.getDefault();
     }
 
     @After
     public void cleanup() {
-        store.clear();
+        store = new InMemoryStore();
         logger.reset();
     }
 
@@ -153,7 +155,7 @@ public abstract class W3CTestSuite {
 
         // rewrite the graph in the expected quads
         List<Quad> temp = new ArrayList<>();
-        GraphNode target = store.getNodeIRI(testedURI);
+        GraphNode target = store.getIRINode(testedURI);
         for (Quad quad : expectedQuads) {
             if (quad.getGraph().getNodeType() == IRINode.TYPE && ((IRINode) quad.getGraph()).getIRIValue().equals(expectedURI)) {
                 temp.add(new Quad(target, quad.getSubject(), quad.getProperty(), quad.getObject()));

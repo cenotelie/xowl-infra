@@ -26,6 +26,8 @@ import org.xowl.store.owl.*;
 import org.xowl.store.owl.QueryEngine;
 import org.xowl.store.owl.RuleEngine;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.BaseStore;
+import org.xowl.store.storage.InMemoryStore;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.store.writers.OWLSerializer;
 import org.xowl.store.writers.RDFSerializer;
@@ -47,7 +49,7 @@ public class Repository extends AbstractRepository {
     /**
      * The backend store
      */
-    private final XOWLStore backend;
+    private final BaseStore backend;
     /**
      * The ontologies in this repository
      */
@@ -74,7 +76,7 @@ public class Repository extends AbstractRepository {
      *
      * @return the backend store
      */
-    public XOWLStore getStore() {
+    public BaseStore getStore() {
         return backend;
     }
 
@@ -138,7 +140,7 @@ public class Repository extends AbstractRepository {
      */
     public Repository(IRIMapper mapper, Evaluator evaluator) throws IOException {
         super(mapper);
-        this.backend = new XOWLStore();
+        this.backend = new InMemoryStore();
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
         this.evaluator = evaluator;
@@ -165,7 +167,7 @@ public class Repository extends AbstractRepository {
      * @return The proxy, or null if the entity does not exist
      */
     public ProxyObject getProxy(Ontology ontology, String iri) {
-        IRINode node = backend.getNodeExistingIRI(iri);
+        IRINode node = backend.getExistingIRINode(iri);
         if (node == null)
             return null;
         return resolveProxy(ontology, node);
@@ -183,7 +185,7 @@ public class Repository extends AbstractRepository {
         Ontology ontology = ontologies.get(parts[0]);
         if (ontology == null)
             return null;
-        IRINode node = backend.getNodeExistingIRI(iri);
+        IRINode node = backend.getExistingIRINode(iri);
         if (node == null)
             return null;
         return resolveProxy(ontology, node);
@@ -243,7 +245,7 @@ public class Repository extends AbstractRepository {
      * @return The proxy
      */
     public ProxyObject resolveProxy(Ontology ontology, String iri) {
-        return resolveProxy(ontology, backend.getNodeIRI(iri));
+        return resolveProxy(ontology, backend.getIRINode(iri));
     }
 
     /**
@@ -256,7 +258,7 @@ public class Repository extends AbstractRepository {
     public ProxyObject resolveProxy(String iri) {
         String[] parts = iri.split("#");
         Ontology ontology = resolveOntology(parts[0]);
-        return resolveProxy(ontology, backend.getNodeIRI(iri));
+        return resolveProxy(ontology, backend.getIRINode(iri));
     }
 
     /**
@@ -271,7 +273,7 @@ public class Repository extends AbstractRepository {
             sub = new HashMap<>();
             proxies.put(ontology, sub);
         }
-        IRINode entity = backend.newNodeIRI(getGraph(ontology));
+        IRINode entity = backend.getIRINode(getGraph(ontology));
         ProxyObject proxy = new ProxyObject(this, ontology, entity);
         sub.put(entity, proxy);
         return proxy;
@@ -299,7 +301,7 @@ public class Repository extends AbstractRepository {
         GraphNode node = graphs.get(ontology);
         if (node != null)
             return node;
-        node = backend.getNodeIRI(ontology.getHasIRI().getHasValue());
+        node = backend.getIRINode(ontology.getHasIRI().getHasValue());
         graphs.put(ontology, node);
         return node;
     }

@@ -20,6 +20,8 @@
 package org.xowl.store.rdf;
 
 import org.xowl.store.rete.*;
+import org.xowl.store.storage.BaseStore;
+import org.xowl.store.storage.Dataset;
 import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.util.*;
@@ -64,7 +66,7 @@ public class RuleEngine implements ChangeListener {
     /**
      * The RDF store for the output
      */
-    private final RDFStore outputStore;
+    private final BaseStore outputStore;
     /**
      * The corpus of active rules
      */
@@ -112,7 +114,7 @@ public class RuleEngine implements ChangeListener {
      * @param inputStore  The RDF store serving as input
      * @param outputStore The RDF store for the output
      */
-    public RuleEngine(AbstractStore inputStore, RDFStore outputStore) {
+    public RuleEngine(Dataset inputStore, BaseStore outputStore) {
         this.outputStore = outputStore;
         this.rules = new HashMap<>();
         this.rete = new RETENetwork(inputStore);
@@ -386,9 +388,9 @@ public class RuleEngine implements ChangeListener {
         if (result != null)
             return result;
         if (createIRI)
-            result = outputStore.newNodeIRI(null);
+            result = outputStore.getIRINode((GraphNode) null);
         else
-            result = outputStore.newNodeBlank();
+            result = outputStore.getBlankNode();
         specials.put(variable, result);
         return result;
     }

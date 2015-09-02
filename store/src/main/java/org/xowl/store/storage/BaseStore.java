@@ -18,43 +18,12 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.rete;
-
-import org.xowl.store.rdf.Quad;
-
-import java.util.Collection;
+package org.xowl.store.storage;
 
 /**
- * Represents an element that can be activated by a fact in a RETE graph
+ * Represents the public API of a data store (a dataset and a node manager)
  *
  * @author Laurent Wouters
  */
-interface FactActivable {
-    /**
-     * Activates on the specified fact
-     *
-     * @param fact A fact
-     */
-    void activateFact(Quad fact);
-
-    /**
-     * Deactivates on the specified fact
-     *
-     * @param fact A fact
-     */
-    void deactivateFact(Quad fact);
-
-    /**
-     * Activates on a collection of facts
-     *
-     * @param facts A collection of facts
-     */
-    void activateFacts(Collection<Quad> facts);
-
-    /**
-     * Deactivates on a collection of facts
-     *
-     * @param facts A collection of facts
-     */
-    void deactivateFacts(Collection<Quad> facts);
+public interface BaseStore extends Dataset, NodeManager {
 }

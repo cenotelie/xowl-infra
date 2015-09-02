@@ -188,7 +188,7 @@ public class BaseOWLReasoningTest {
         repository.activateEntailmentRules(logger);
         // load the premise ontology and the default ontologies
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
-        Iterator<Quad> iterator = repository.getStore().getAll(null, null, repository.getStore().getNodeIRI("http://xowl.org/store/rules/xowl#status"), repository.getStore().getNodeIRI("http://xowl.org/store/rules/xowl#inconsistent"));
+        Iterator<Quad> iterator = repository.getStore().getAll(null, null, repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#status"), repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#inconsistent"));
         if (iterator.hasNext()) {
             StringBuilder builder = new StringBuilder("Spurious inconsistencies:");
             while (iterator.hasNext()) {
@@ -219,7 +219,7 @@ public class BaseOWLReasoningTest {
         repository.activateEntailmentRules(logger);
         // load the premise ontology and the default ontologies
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
-        Iterator<Quad> iterator = repository.getStore().getAll(null, null, repository.getStore().getNodeIRI("http://xowl.org/store/rules/xowl#status"), repository.getStore().getNodeIRI("http://xowl.org/store/rules/xowl#inconsistent"));
+        Iterator<Quad> iterator = repository.getStore().getAll(null, null, repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#status"), repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#inconsistent"));
         Assert.assertTrue("Failed to detect inconsistency", iterator.hasNext());
     }
 }

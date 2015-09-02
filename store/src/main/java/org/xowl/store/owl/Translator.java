@@ -46,6 +46,7 @@ import org.xowl.store.XOWLUtils;
 import org.xowl.store.loaders.OWLLoaderResult;
 import org.xowl.store.rdf.*;
 import org.xowl.store.rdf.Property;
+import org.xowl.store.storage.BaseStore;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,7 +62,7 @@ public class Translator {
     /**
      * The RDF store used to create new RDF nodes
      */
-    protected final XOWLStore store;
+    protected final BaseStore store;
     /**
      * The graph that contains the translated input
      */
@@ -86,7 +87,7 @@ public class Translator {
      * @param store     The XOWL store used for the creation of new RDF nodes
      * @param evaluator The evaluator for dynamic expressions, or null if dynamic expression shall no be translated and kept as is
      */
-    public Translator(TranslationContext context, XOWLStore store, Evaluator evaluator) {
+    public Translator(TranslationContext context, BaseStore store, Evaluator evaluator) {
         this.store = store;
         this.context = context;
         if (this.context == null)
@@ -102,7 +103,7 @@ public class Translator {
      * @throws TranslationException When a runtime entity is not named
      */
     public Collection<Quad> translate(OWLLoaderResult input) throws TranslationException {
-        graph = store.getNodeIRI(input.getIRI());
+        graph = store.getIRINode(input.getIRI());
         quads = new ArrayList<>();
         for (Axiom axiom : input.getAxioms())
             translateAxiom(axiom);
@@ -149,7 +150,7 @@ public class Translator {
      * @return The equivalent triple
      */
     protected Quad getTriple(SubjectNode subject, String property, Node object) {
-        return new Quad(graph, subject, store.getNodeIRI(property), object);
+        return new Quad(graph, subject, store.getIRINode(property), object);
     }
 
     /**
@@ -161,7 +162,7 @@ public class Translator {
      * @return The equivalent triple
      */
     protected Quad getTriple(SubjectNode subject, String property, String object) {
-        return new Quad(graph, subject, store.getNodeIRI(property), store.getNodeIRI(object));
+        return new Quad(graph, subject, store.getIRINode(property), store.getIRINode(object));
     }
 
     /**
@@ -172,10 +173,10 @@ public class Translator {
      */
     protected SubjectNode translateOrderedSequence(List<Node> elements) {
         if (elements.isEmpty())
-            return store.getNodeIRI(org.xowl.store.Vocabulary.rdfNil);
+            return store.getIRINode(org.xowl.store.Vocabulary.rdfNil);
         SubjectNode[] proxies = new SubjectNode[elements.size()];
         for (int i = 0; i != proxies.length; i++) {
-            BlankNode proxy = store.newNodeBlank();
+            BlankNode proxy = store.getBlankNode();
             proxies[i] = proxy;
             quads.add(getTriple(proxy, org.xowl.store.Vocabulary.rdfFirst, elements.get(i)));
         }
@@ -287,7 +288,7 @@ public class Translator {
      * @param axiom The OWL axiom to translate
      */
     protected void translateAxiomDeclaration(Declaration axiom) {
-        SubjectNode entityNode = store.getNodeIRI(axiom.getEntity().getHasValue());
+        SubjectNode entityNode = store.getIRINode(axiom.getEntity().getHasValue());
         Quad quad = null;
         if (Vocabulary.OWL2.entityClass.equals(axiom.getType()))
             quad = getTriple(entityNode, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlClass);
@@ -369,7 +370,7 @@ public class Translator {
             quads.add(quad);
             translateAxiomAnnotations(axiom, quad);
         } else {
-            SubjectNode main = store.newNodeBlank();
+            SubjectNode main = store.getBlankNode();
             quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAllDisjointClasses));
             quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
             for (Annotation annotation : axiom.getAllAnnotations())
@@ -453,7 +454,7 @@ public class Translator {
             quads.add(quad);
             translateAxiomAnnotations(axiom, quad);
         } else {
-            SubjectNode main = store.newNodeBlank();
+            SubjectNode main = store.getBlankNode();
             quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAllDisjointProperties));
             quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
             for (Annotation annotation : axiom.getAllAnnotations())
@@ -642,7 +643,7 @@ public class Translator {
             quads.add(quad);
             translateAxiomAnnotations(axiom, quad);
         } else {
-            SubjectNode main = store.newNodeBlank();
+            SubjectNode main = store.getBlankNode();
             quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAllDisjointProperties));
             quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
             for (Annotation annotation : axiom.getAllAnnotations())
@@ -725,7 +726,7 @@ public class Translator {
             quads.add(quad);
             translateAxiomAnnotations(axiom, quad);
         } else {
-            SubjectNode main = store.newNodeBlank();
+            SubjectNode main = store.getBlankNode();
             quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAllDifferent));
             quads.add(getTriple(main, Vocabulary.owlMembers, translateUnorderedSequence(elements)));
             for (Annotation annotation : axiom.getAllAnnotations())
@@ -774,7 +775,7 @@ public class Translator {
      * @throws TranslationException When a runtime object property is not named
      */
     protected void translateAxiomNegativeObjectPropertyAssertion(NegativeObjectPropertyAssertion axiom) throws TranslationException {
-        SubjectNode main = store.newNodeBlank();
+        SubjectNode main = store.getBlankNode();
         SubjectNode prop = translateObjectPropertyExpression(axiom.getObjectProperty());
         SubjectNode ind = translateIndividualExpression(axiom.getIndividual());
         SubjectNode value = translateIndividualExpression(axiom.getValueIndividual());
@@ -808,7 +809,7 @@ public class Translator {
      * @throws TranslationException When a runtime data property is not named
      */
     protected void translateAxiomNegativeDataPropertyAssertion(NegativeDataPropertyAssertion axiom) throws TranslationException {
-        SubjectNode main = store.newNodeBlank();
+        SubjectNode main = store.getBlankNode();
         SubjectNode prop = translateDataPropertyExpression(axiom.getDataProperty());
         SubjectNode ind = translateIndividualExpression(axiom.getIndividual());
         Node value = translateLiteralExpression(axiom.getValueLiteral());
@@ -858,7 +859,7 @@ public class Translator {
      */
     protected void translateAxiomAnnotationPropertyDomain(AnnotationPropertyDomain axiom) {
         SubjectNode prop = translateAnnotationProperty(axiom.getAnnotProperty());
-        quads.add(getTriple(prop, org.xowl.store.Vocabulary.rdfsDomain, store.getNodeIRI(axiom.getAnnotDomain().getHasValue())));
+        quads.add(getTriple(prop, org.xowl.store.Vocabulary.rdfsDomain, store.getIRINode(axiom.getAnnotDomain().getHasValue())));
     }
 
     /**
@@ -868,7 +869,7 @@ public class Translator {
      */
     protected void translateAxiomAnnotationPropertyRange(AnnotationPropertyRange axiom) {
         SubjectNode prop = translateAnnotationProperty(axiom.getAnnotProperty());
-        quads.add(getTriple(prop, org.xowl.store.Vocabulary.rdfsRange, store.getNodeIRI(axiom.getAnnotRange().getHasValue())));
+        quads.add(getTriple(prop, org.xowl.store.Vocabulary.rdfsRange, store.getIRINode(axiom.getAnnotRange().getHasValue())));
     }
 
     /**
@@ -964,7 +965,7 @@ public class Translator {
      * @return The RDF node representing the expression
      */
     protected SubjectNode translateClassIRI(IRI expression) {
-        return store.getNodeIRI(expression.getHasValue());
+        return store.getIRINode(expression.getHasValue());
     }
 
     /**
@@ -978,7 +979,7 @@ public class Translator {
         // Here an OWL Class is expected to be a named Class
         if (expression.getInterpretationOf() == null)
             throw new TranslationException("Cannot translate anonymous entities");
-        return store.getNodeIRI(expression.getInterpretationOf().getHasIRI().getHasValue());
+        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
     }
 
     /**
@@ -989,7 +990,7 @@ public class Translator {
      * @throws TranslationException When a runtime class is not a named class
      */
     protected SubjectNode translateClassObjectUnionOf(ObjectUnionOf expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlClass));
         List<Node> elements = new ArrayList<>();
         Iterator<ClassExpression> expressions = XOWLUtils.getAll(expression.getClassSeq());
@@ -1008,7 +1009,7 @@ public class Translator {
      * @throws TranslationException When a runtime class is not a named class
      */
     protected SubjectNode translateClassObjectIntersectionOf(ObjectIntersectionOf expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlClass));
         List<Node> elements = new ArrayList<>();
         Iterator<ClassExpression> expressions = XOWLUtils.getAll(expression.getClassSeq());
@@ -1027,7 +1028,7 @@ public class Translator {
      * @throws TranslationException when a runtime individual is not named
      */
     protected SubjectNode translateClassObjectOneOf(ObjectOneOf expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlClass));
         List<Node> elements = new ArrayList<>();
         Iterator<IndividualExpression> expressions = XOWLUtils.getAll(expression.getIndividualSeq());
@@ -1046,7 +1047,7 @@ public class Translator {
      * @throws TranslationException When a runtime class is not a named class
      */
     protected SubjectNode translateClassObjectComplementOf(ObjectComplementOf expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlClass));
         SubjectNode comp = translateClassExpression(expression.getClasse());
         quads.add(getTriple(main, Vocabulary.owlComplementOf, comp));
@@ -1061,7 +1062,7 @@ public class Translator {
      * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode translateClassDataAllValuesFrom(DataAllValuesFrom expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         List<Node> elements = new ArrayList<>();
         Iterator<DataPropertyExpression> expressions = XOWLUtils.getAll(expression.getDataPropertySeq());
@@ -1084,7 +1085,7 @@ public class Translator {
      * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode translateClassDataExactCardinality(DataExactCardinality expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateDataPropertyExpression(expression.getDataProperty());
@@ -1107,7 +1108,7 @@ public class Translator {
      * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode transltateClassDataHasValue(DataHasValue expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         SubjectNode prop = translateDataPropertyExpression(expression.getDataProperty());
         quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
@@ -1124,7 +1125,7 @@ public class Translator {
      * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode translateClassDataMaxCardinality(DataMaxCardinality expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateDataPropertyExpression(expression.getDataProperty());
@@ -1147,7 +1148,7 @@ public class Translator {
      * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode translateClassDataMinCardinality(DataMinCardinality expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateDataPropertyExpression(expression.getDataProperty());
@@ -1170,7 +1171,7 @@ public class Translator {
      * @throws TranslationException When a runtime data property is not named
      */
     protected SubjectNode translateClassDataSomeValuesFrom(DataSomeValuesFrom expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         List<Node> elements = new ArrayList<>();
         Iterator<DataPropertyExpression> expressions = XOWLUtils.getAll(expression.getDataPropertySeq());
@@ -1193,7 +1194,7 @@ public class Translator {
      * @throws TranslationException When a runtime class is not a named class
      */
     protected SubjectNode translateClassObjectAllValuesFrom(ObjectAllValuesFrom expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
         quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
@@ -1210,7 +1211,7 @@ public class Translator {
      * @throws TranslationException When a runtime class is not a named class
      */
     protected SubjectNode translateClassObjectExactCardinality(ObjectExactCardinality expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
@@ -1233,7 +1234,7 @@ public class Translator {
      * @throws TranslationException When a runtime object property is not a named object property
      */
     protected SubjectNode translateClassObjectHasSelf(ObjectHasSelf expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
         quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
@@ -1250,7 +1251,7 @@ public class Translator {
      * @throws TranslationException When a runtime object property is not a named object property
      */
     protected SubjectNode translateClassObjectHasValue(ObjectHasValue expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
         quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
@@ -1267,7 +1268,7 @@ public class Translator {
      * @throws TranslationException When a runtime class is not a named class
      */
     protected SubjectNode translateClassObjectMaxCardinality(ObjectMaxCardinality expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
@@ -1290,7 +1291,7 @@ public class Translator {
      * @throws TranslationException When a runtime class is not a named class
      */
     protected SubjectNode translateClassObjectMinCardinality(ObjectMinCardinality expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         Node n = translateLiteralExpression(expression.getCardinality());
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
@@ -1313,7 +1314,7 @@ public class Translator {
      * @throws TranslationException When a runtime class is not a named class
      */
     protected SubjectNode translateClassObjectSomeValuesFrom(ObjectSomeValuesFrom expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         SubjectNode prop = translateObjectPropertyExpression(expression.getObjectProperty());
         quads.add(getTriple(main, Vocabulary.owlOnProperty, prop));
@@ -1355,7 +1356,7 @@ public class Translator {
      * @return The RDF node representing the expression
      */
     protected SubjectNode translateObjectPropertyIRI(IRI expression) {
-        return store.getNodeIRI(expression.getHasValue());
+        return store.getIRINode(expression.getHasValue());
     }
 
     /**
@@ -1368,7 +1369,7 @@ public class Translator {
     protected SubjectNode translateObjectPropertyRuntime(org.xowl.lang.runtime.ObjectProperty expression) throws TranslationException {
         if (expression.getInterpretationOf() == null)
             throw new TranslationException("Cannot translate anonymous entities");
-        return store.getNodeIRI(expression.getInterpretationOf().getHasIRI().getHasValue());
+        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
     }
 
     /**
@@ -1379,7 +1380,7 @@ public class Translator {
      * @throws TranslationException when a runtime object property is not named
      */
     protected SubjectNode translateOjectPropertyInverseOf(ObjectInverseOf expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         SubjectNode inv = translateObjectPropertyExpression(expression.getInverse());
         quads.add(getTriple(main, Vocabulary.owlInverseOf, inv));
         return main;
@@ -1415,7 +1416,7 @@ public class Translator {
      * @return The RDF node representing the expression
      */
     protected SubjectNode translateDataPropertyIRI(IRI expression) {
-        return store.getNodeIRI(expression.getHasValue());
+        return store.getIRINode(expression.getHasValue());
     }
 
     /**
@@ -1428,7 +1429,7 @@ public class Translator {
     protected SubjectNode translateDataPropertyRuntime(DataProperty expression) throws TranslationException {
         if (expression.getInterpretationOf() == null)
             throw new TranslationException("Cannot translate anonymous entities");
-        return store.getNodeIRI(expression.getInterpretationOf().getHasIRI().getHasValue());
+        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
     }
 
     /**
@@ -1472,7 +1473,7 @@ public class Translator {
      * @return The RDF node representing the expression
      */
     protected SubjectNode translateDatatypeIRI(IRI expression) {
-        return store.getNodeIRI(expression.getHasValue());
+        return store.getIRINode(expression.getHasValue());
     }
 
     /**
@@ -1485,7 +1486,7 @@ public class Translator {
     protected SubjectNode translateDatatype(Datatype expression) throws TranslationException {
         if (expression.getInterpretationOf() == null)
             throw new TranslationException("Cannot translate anonymous entities");
-        return store.getNodeIRI(expression.getInterpretationOf().getHasIRI().getHasValue());
+        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
     }
 
     /**
@@ -1496,7 +1497,7 @@ public class Translator {
      * @throws TranslationException when a runtime datatype is not named
      */
     protected SubjectNode translateDatarangeDataComplementOf(DataComplementOf expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, org.xowl.store.Vocabulary.rdfsDatatype));
         SubjectNode comp = translateDatarange(expression.getDatarange());
         quads.add(getTriple(main, Vocabulary.owlDatatypeComplementOf, comp));
@@ -1511,7 +1512,7 @@ public class Translator {
      * @throws TranslationException when a runtime datatype is not named
      */
     protected SubjectNode translateDatarangeDataIntersectionOf(DataIntersectionOf expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, org.xowl.store.Vocabulary.rdfsDatatype));
         List<Node> elements = new ArrayList<>();
         Iterator<Datarange> expressions = XOWLUtils.getAll(expression.getDatarangeSeq());
@@ -1529,7 +1530,7 @@ public class Translator {
      * @return The RDF node representing the expression
      */
     protected SubjectNode translateDatarangeDataOneOf(DataOneOf expression) {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, org.xowl.store.Vocabulary.rdfsDatatype));
         List<Node> elements = new ArrayList<>();
         Iterator<LiteralExpression> expressions = XOWLUtils.getAll(expression.getLiteralSeq());
@@ -1548,7 +1549,7 @@ public class Translator {
      * @throws TranslationException when a runtime datatype is not named
      */
     protected SubjectNode translateDatarangeDatatypeRestriction(DatatypeRestriction expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, org.xowl.store.Vocabulary.rdfsDatatype));
         SubjectNode base = translateDatarange(expression.getDatarange());
         quads.add(getTriple(main, Vocabulary.owlOnDatatype, base));
@@ -1567,7 +1568,7 @@ public class Translator {
      * @return The RDF node representing the expression
      */
     protected SubjectNode translateDatarangeFacetRestriction(FacetRestriction restriction) {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         Node lit = translateLiteralExpression(restriction.getConstrainingValue());
         quads.add(getTriple(main, restriction.getConstrainingFacet().getHasValue(), lit));
         return main;
@@ -1581,7 +1582,7 @@ public class Translator {
      * @throws TranslationException when a runtime datatype is not named
      */
     protected SubjectNode translateDatarangeDataUnionOf(DataUnionOf expression) throws TranslationException {
-        BlankNode main = store.newNodeBlank();
+        BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, org.xowl.store.Vocabulary.rdfsDatatype));
         List<Node> elements = new ArrayList<>();
         Iterator<Datarange> expressions = XOWLUtils.getAll(expression.getDatarangeSeq());
@@ -1635,7 +1636,7 @@ public class Translator {
      * @return The RDF node representing the expression
      */
     protected SubjectNode translateNamedIndividualIRI(IRI expression) {
-        return store.getNodeIRI(expression.getHasValue());
+        return store.getIRINode(expression.getHasValue());
     }
 
     /**
@@ -1648,7 +1649,7 @@ public class Translator {
     protected SubjectNode translateNamedIndividual(NamedIndividual expression) throws TranslationException {
         if (expression.getInterpretationOf() == null)
             throw new TranslationException("Cannot translate anonymous entities");
-        return store.getNodeIRI(expression.getInterpretationOf().getHasIRI().getHasValue());
+        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
     }
 
     /**
@@ -1658,7 +1659,7 @@ public class Translator {
      * @return The RDF node representing the expression
      */
     protected SubjectNode translateAnonymousIndividual(AnonymousIndividual expression) {
-        return store.getAnonymousNode(expression);
+        return store.getAnonNode(expression);
     }
 
     /**
@@ -1736,7 +1737,7 @@ public class Translator {
      * @return The RDF node representing the expression
      */
     protected SubjectNode translateFunctionIRI(IRI expression) {
-        return store.getNodeIRI(expression.getHasValue());
+        return store.getIRINode(expression.getHasValue());
     }
 
     /**
@@ -1750,7 +1751,7 @@ public class Translator {
         // Here an OWL Class is expected to be a named Class
         if (expression.getInterpretationOf() == null)
             throw new TranslationException("Cannot translate anonymous entities");
-        return store.getNodeIRI(expression.getInterpretationOf().getHasIRI().getHasValue());
+        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
     }
 
     /**
@@ -1760,7 +1761,7 @@ public class Translator {
      * @return The RDF node representing the expression
      */
     protected IRINode translateAnnotationProperty(IRI expression) {
-        return store.getNodeIRI(expression.getHasValue());
+        return store.getIRINode(expression.getHasValue());
     }
 
     /**
@@ -1771,9 +1772,9 @@ public class Translator {
      */
     protected SubjectNode translateAnnotationSubject(AnnotationSubject expression) {
         if (expression instanceof IRI)
-            return store.getNodeIRI(((IRI) expression).getHasValue());
+            return store.getIRINode(((IRI) expression).getHasValue());
         else
-            return store.getAnonymousNode((AnonymousIndividual) expression);
+            return store.getAnonNode((AnonymousIndividual) expression);
     }
 
     /**
@@ -1784,9 +1785,9 @@ public class Translator {
      */
     protected Node translateAnnotationValue(AnnotationValue expression) {
         if (expression instanceof IRI)
-            return store.getNodeIRI(((IRI) expression).getHasValue());
+            return store.getIRINode(((IRI) expression).getHasValue());
         else if (expression instanceof AnonymousIndividual)
-            return store.getAnonymousNode((AnonymousIndividual) expression);
+            return store.getAnonNode((AnonymousIndividual) expression);
         else
             return translateLiteral((Literal) expression);
     }
@@ -1802,7 +1803,7 @@ public class Translator {
         Node value = translateAnnotationValue(annotation.getAnnotValue());
         quads.add(new Quad(graph, annotated, prop, value));
         if (!annotation.getAllAnnotations().isEmpty()) {
-            SubjectNode main = store.newNodeBlank();
+            SubjectNode main = store.getBlankNode();
             quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAnnotation));
             quads.add(getTriple(main, Vocabulary.owlAnnotatedSource, annotated));
             quads.add(getTriple(main, Vocabulary.owlAnnotatedProperty, prop));
@@ -1820,7 +1821,7 @@ public class Translator {
      */
     protected void translateAxiomAnnotations(Axiom axiom, Quad main) {
         if (!axiom.getAllAnnotations().isEmpty()) {
-            SubjectNode x = store.newNodeBlank();
+            SubjectNode x = store.getBlankNode();
             quads.add(getTriple(x, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlAxiom));
             quads.add(getTriple(x, Vocabulary.owlAnnotatedSource, main.getSubject()));
             quads.add(getTriple(x, Vocabulary.owlAnnotatedProperty, main.getProperty()));

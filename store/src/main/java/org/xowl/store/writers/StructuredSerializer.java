@@ -55,7 +55,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
     /**
      * Buffer for renaming blank nodes
      */
-    private int[] blanks;
+    private long[] blanks;
     /**
      * Index of the next blank node slot
      */
@@ -79,7 +79,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
         this.namespaces.put(Vocabulary.xsd, "xsd");
         this.namespaces.put(Vocabulary.owl, "owl");
         this.data = new HashMap<>();
-        this.blanks = new int[BLANKS_MAP_INIT_SIZE];
+        this.blanks = new long[BLANKS_MAP_INIT_SIZE];
         this.nextBlank = 0;
         this.nextNamespace = 0;
         this.bufferProperties = new ArrayList<>(5);
@@ -172,7 +172,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * @param node The blank node
      */
     private void mapBlank(BlankNode node) {
-        int id = node.getBlankID();
+        long id = node.getBlankID();
         for (int i = 0; i != nextBlank; i++) {
             if (blanks[i] == id)
                 return;
@@ -208,7 +208,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * @return The corresponding identifier
      */
     protected int getBlankID(BlankNode node) throws IOException {
-        int id = node.getBlankID();
+        long id = node.getBlankID();
         for (int i = 0; i != nextBlank; i++) {
             if (blanks[i] == id)
                 return i;

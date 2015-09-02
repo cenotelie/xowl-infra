@@ -24,14 +24,15 @@ import org.xowl.lang.owl2.Axiom;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.rules.Assertion;
 import org.xowl.lang.rules.Rule;
-import org.xowl.store.rdf.*;
+import org.xowl.store.rdf.GraphNode;
+import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.VariableNode;
 import org.xowl.store.rete.Token;
+import org.xowl.store.storage.BaseStore;
+import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.collections.Couple;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a rule engine operating over an OWL dataset
@@ -49,7 +50,7 @@ public class RuleEngine {
          * @param inputStore  The RDF store serving as input
          * @param outputStore The RDF store for the output
          */
-        public Backend(AbstractStore inputStore, RDFStore outputStore) {
+        public Backend(BaseStore inputStore, BaseStore outputStore) {
             super(inputStore, outputStore);
         }
 
@@ -61,7 +62,7 @@ public class RuleEngine {
             if (result != null)
                 return result;
             evaluator.push(buildBindings(owlRules.get(rule).x, token, specials));
-            result = outputStore.getRDF(evaluator.eval(((DynamicNode) node).getDynamicExpression()));
+            result = Utils.getRDF(outputStore, evaluator.eval(((DynamicNode) node).getDynamicExpression()));
             specials.put(node, result);
             evaluator.pop();
             return result;
@@ -79,13 +80,13 @@ public class RuleEngine {
             Bindings bindings = new Bindings();
             for (Map.Entry<VariableNode, Node> entry : token.getBindings().entrySet()) {
                 QueryVariable qvar = context.get(entry.getKey());
-                Object value = outputStore.getOWL(entry.getValue());
+                Object value = Utils.getOWL(entry.getValue());
                 bindings.bind(qvar, value);
             }
             for (Map.Entry<Node, Node> entry : specials.entrySet()) {
                 if (entry.getKey().getNodeType() == VariableNode.TYPE) {
                     QueryVariable qvar = context.get((VariableNode) entry.getKey());
-                    Object value = outputStore.getOWL(entry.getValue());
+                    Object value = Utils.getOWL(entry.getValue());
                     bindings.bind(qvar, value);
                 }
             }
@@ -96,7 +97,7 @@ public class RuleEngine {
     /**
      * The XOWL store for the output
      */
-    private final XOWLStore outputStore;
+    private final BaseStore outputStore;
     /**
      * The current evaluator
      */
@@ -129,7 +130,7 @@ public class RuleEngine {
      * @param inputStore The store to operate over
      * @param evaluator  The evaluator
      */
-    public RuleEngine(AbstractStore inputStore, XOWLStore outputStore, Evaluator evaluator) {
+    public RuleEngine(BaseStore inputStore, BaseStore outputStore, Evaluator evaluator) {
         this.outputStore = outputStore;
         this.evaluator = evaluator;
         this.backend = new Backend(inputStore, outputStore);
@@ -240,8 +241,8 @@ public class RuleEngine {
             if (allowsPattern)
                 return null;
             else
-                return outputStore.getNodeIRI(RDFStore.createAnonymousGraph());
+                return outputStore.getIRINode(NodeManager.DEFAULT_GRAPH + "/" + UUID.randomUUID());
         }
-        return outputStore.getNodeIRI(ontology.getHasIRI().getHasValue());
+        return outputStore.getIRINode(ontology.getHasIRI().getHasValue());
     }
 }

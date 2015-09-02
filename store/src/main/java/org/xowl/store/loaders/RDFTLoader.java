@@ -1,24 +1,22 @@
-/**
- * ****************************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- * <p/>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * <p/>
+ *
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- * <p/>
+ *
  * Contributors:
- * Laurent Wouters - lwouters@xowl.org
- * ****************************************************************************
- */
+ *     Laurent Wouters - lwouters@xowl.org
+ ******************************************************************************/
 
 package org.xowl.store.loaders;
 
@@ -28,6 +26,7 @@ import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.Files;
 import org.xowl.utils.Logger;
 
@@ -44,7 +43,7 @@ public class RDFTLoader implements Loader {
     /**
      * The RDF store to create nodes from
      */
-    private final RDFStore store;
+    private final NodeManager store;
     /**
      * The loaded rules
      */
@@ -91,7 +90,7 @@ public class RDFTLoader implements Loader {
      *
      * @param store The RDF store used to create nodes
      */
-    public RDFTLoader(RDFStore store) {
+    public RDFTLoader(NodeManager store) {
         this.store = store;
     }
 
@@ -135,9 +134,9 @@ public class RDFTLoader implements Loader {
         RDFLoaderResult result = new RDFLoaderResult();
         rules = result.getRules();
         if (graphMeta == null)
-            graphMeta = store.getDefaultGraph();
+            graphMeta = store.getIRINode(NodeManager.DEFAULT_GRAPH);
         if (graphTarget == null)
-            graphTarget = store.getDefaultGraph();
+            graphTarget = store.getIRINode(NodeManager.DEFAULT_GRAPH);
         resource = uri;
         baseURI = resource;
         namespaces = new HashMap<>();
@@ -370,7 +369,7 @@ public class RDFTLoader implements Loader {
     private IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
-        return store.getNodeIRI(Utils.uriResolveRelative(baseURI, value));
+        return store.getIRINode(Utils.uriResolveRelative(baseURI, value));
     }
 
     /**
@@ -381,7 +380,7 @@ public class RDFTLoader implements Loader {
      */
     private IRINode getNodePNameLN(ASTNode node) throws LoaderException {
         String value = node.getValue();
-        return store.getNodeIRI(getIRIForLocalName(node, value));
+        return store.getIRINode(getIRIForLocalName(node, value));
     }
 
     /**
@@ -394,7 +393,7 @@ public class RDFTLoader implements Loader {
         String value = node.getValue();
         value = Utils.unescape(value.substring(0, value.length() - 1));
         value = namespaces.get(value);
-        return store.getNodeIRI(value);
+        return store.getIRINode(value);
     }
 
     /**
@@ -409,7 +408,7 @@ public class RDFTLoader implements Loader {
         BlankNode blank = blanks.get(value);
         if (blank != null)
             return blank;
-        blank = store.newNodeBlank();
+        blank = store.getBlankNode();
         blanks.put(value, blank);
         return blank;
     }
@@ -420,7 +419,7 @@ public class RDFTLoader implements Loader {
      * @return A new blank node
      */
     private BlankNode getNodeAnon() {
-        return store.newNodeBlank();
+        return store.getBlankNode();
     }
 
     /**

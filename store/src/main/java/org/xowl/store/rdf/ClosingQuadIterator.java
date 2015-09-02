@@ -20,6 +20,8 @@
 
 package org.xowl.store.rdf;
 
+import org.xowl.store.storage.Dataset;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -34,7 +36,7 @@ public class ClosingQuadIterator implements Iterator<Quad> {
     /**
      * The parent store
      */
-    private RDFStore store;
+    private Dataset store;
     /**
      * The content iterators
      */
@@ -50,7 +52,7 @@ public class ClosingQuadIterator implements Iterator<Quad> {
      * @param store    The parent store
      * @param original The iterator over the original quads
      */
-    public ClosingQuadIterator(RDFStore store, Iterator<Quad> original) {
+    public ClosingQuadIterator(Dataset store, Iterator<Quad> original) {
         this.store = store;
         this.content = new Stack<>();
         this.content.push(original);

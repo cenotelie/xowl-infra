@@ -24,7 +24,6 @@ import org.xowl.lang.actions.DynamicExpression;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Property;
 import org.xowl.store.rdf.SubjectNode;
-import org.xowl.utils.data.Dataset;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -91,12 +90,6 @@ public class DynamicNode implements SubjectNode, Property, GraphNode {
     @Override
     public int getNodeType() {
         return TYPE;
-    }
-
-    @Override
-    public org.xowl.utils.data.Node serialize(Dataset dataset) {
-        // do not serialize dynamic nodes
-        throw new UnsupportedOperationException();
     }
 
     @Override

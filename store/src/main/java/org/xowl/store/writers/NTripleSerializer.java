@@ -97,7 +97,7 @@ public class NTripleSerializer implements RDFSerializer {
             }
             case BlankNode.TYPE: {
                 writer.write("_:");
-                writer.write(((BlankNode) node).getBlankID());
+                writer.write(Long.toString(((BlankNode) node).getBlankID()));
                 break;
             }
             case LiteralNode.TYPE: {

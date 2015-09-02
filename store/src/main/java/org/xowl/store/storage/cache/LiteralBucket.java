@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.storage.cache;
 
@@ -48,6 +48,7 @@ class LiteralBucket {
 
     /**
      * Gets the number of literals in this bucket
+     *
      * @return The number of literals in this bucket
      */
     public int getSize() {
@@ -65,7 +66,7 @@ class LiteralBucket {
     /**
      * Gets the literal with the specified type and language tag
      *
-     * @param lexical The original lexical value
+     * @param lexical  The original lexical value
      * @param datatype The datatype to match
      * @param langTag  The language tag to match
      * @return The matching literal node

@@ -83,6 +83,7 @@ public interface NodeManager {
 
     /**
      * Gets the anonymous node for the specified anonymous individual
+     *
      * @param individual An anonymous individual
      * @return The associated anonymous node
      */

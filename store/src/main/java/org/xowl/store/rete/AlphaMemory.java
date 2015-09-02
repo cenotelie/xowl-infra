@@ -20,8 +20,8 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.AbstractStore;
 import org.xowl.store.rdf.Quad;
+import org.xowl.store.storage.Dataset;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +36,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     /**
      * The parent RDF store
      */
-    private AbstractStore store;
+    private Dataset store;
     /**
      * The pattern matched by this memory
      */
@@ -109,7 +109,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     }
 
     @Override
-    public AlphaMemory resolveMemory(Quad pattern, AbstractStore store) {
+    public AlphaMemory resolveMemory(Quad pattern, Dataset store) {
         if (this.store == null) {
             this.store = store;
             this.pattern = pattern;

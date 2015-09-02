@@ -21,6 +21,7 @@
 package org.xowl.store.rdf;
 
 import org.xowl.store.rete.*;
+import org.xowl.store.storage.Dataset;
 
 import java.util.*;
 
@@ -286,7 +287,7 @@ public class QueryEngine implements ChangeListener {
      *
      * @param store The RDF store to query
      */
-    public QueryEngine(AbstractStore store) {
+    public QueryEngine(Dataset store) {
         this.rete = new RETENetwork(store);
         this.newChanges = new ArrayList<>();
         this.newChangesets = new ArrayList<>();

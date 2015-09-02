@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.store.rdf;
 
@@ -61,7 +61,7 @@ public class BlankNode implements SubjectNode, GraphNode {
 
     @Override
     public boolean equals(Object o) {
-        return (o instanceof BlankNode) && (this.blankID == ((BlankNode)o).getBlankID());
+        return (o instanceof BlankNode) && (this.blankID == ((BlankNode) o).getBlankID());
     }
 
     @Override
