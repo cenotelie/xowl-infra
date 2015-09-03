@@ -1,0 +1,403 @@
+/**********************************************************************
+ * Copyright (c) 2015 Laurent Wouters and others
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General
+ * Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contributors:
+ *     Laurent Wouters - lwouters@xowl.org
+ **********************************************************************/
+
+grammar SPARQL
+{
+	options
+	{
+		Axiom = "unit";
+		Separator = "BLANK";
+	}
+	terminals
+	{
+		NEW_LINE		-> U+000D /* CR */
+						|  U+000A /* LF */
+						|  U+000D U+000A /* CR LF */
+						|  U+2028 /* LS */
+						|  U+2029 /* PS */ ;
+		WHITE_SPACE		-> U+0020 | U+0009 | U+000B | U+000C ;
+		COMMENT			-> '#' (.* - (.* NEW_LINE .*)) NEW_LINE ;
+		BLANK			-> NEW_LINE | WHITE_SPACE | COMMENT ;
+
+		LANGTAG					-> '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ;
+		
+		IRIREF					-> '<' (
+									. - (U+0000 .. U+0020 | [<>"{}|^`\\])
+									| '\\u' [a-fA-F0-9]{4}
+									| '\\U' [a-fA-F0-9]{8}
+								)* '>' ;
+		
+		PLX						-> '%' [a-fA-F0-9] [a-fA-F0-9]
+								|  '\\' ( [_~.!$&'()*+,;=/?#@%] | '-') ;
+		
+		PN_CHARS_BASE			-> [A-Za-z] | U+00C0 .. U+00D6 | U+00D8 .. U+00F6 | U+00F8 .. U+02FF | U+0370 .. U+037D
+											| U+037F .. U+1FFF | U+200C .. U+200D | U+2070 .. U+218F | U+2C00 .. U+2FEF
+											| U+3001 .. U+D7FF | U+F900 .. U+FDCF | U+FDF0 .. U+FFFD
+											| U+10000 .. U+EFFFF ;
+		PN_CHARS_U				-> PN_CHARS_BASE | '_' | ':' ;
+		PN_CHARS				-> PN_CHARS_U | '-' | [0-9] | U+00B7 | U+0300 .. U+036F | U+203F .. U+2040;
+		PN_PREFIX				-> PN_CHARS_BASE ((PN_CHARS | '.')* PN_CHARS)? ;
+		PN_LOCAL				-> (PN_CHARS_U | ':' | [0-9] | PLX) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX))? ;
+		
+		PNAME_NS				-> PN_PREFIX? ':' ;
+		PNAME_LN				-> PNAME_NS PN_LOCAL ;
+		BLANK_NODE_LABEL		-> '_:' (PN_CHARS_U | [0-9]) ((PN_CHARS | '.')* PN_CHARS)? ;
+		
+		VARIABLE				-> ('?' | '$')  (PN_CHARS_U | [0-9]) (PN_CHARS_U | [0-9] | U+00B7 | U+0300 .. U+036F | U+203F .. U+2040)* ;
+
+		ANON					-> '[' WHITE_SPACE* ']' ;
+		
+		INTEGER					-> ('+' | '-')? [0-9]+ ;
+		DECIMAL					-> ('+' | '-')? [0-9]* '.' [0-9]+ ;
+		DOUBLE					-> ('+' | '-')? ( [0-9]+ '.' [0-9]* [eE] ('+' | '-')? [0-9]+
+												| '.' [0-9]+ [eE] ('+' | '-')? [0-9]+
+												| [0-9]+ [eE] ('+' | '-')? [0-9]+
+												) ;
+		
+		STRING_LITERAL_QUOTE		-> '"' (
+									. - (U+0022 | U+005C | U+000A | U+000D)
+									| '\\' ([tbnrf"'] | '\\')
+									| '\\u' [a-fA-F0-9]{4}
+									| '\\U' [a-fA-F0-9]{8}
+									)* '"' ;
+		STRING_LITERAL_SINGLE_QUOTE	-> '\'' (
+									. - (U+0027 | U+005C | U+000A | U+000D)
+									| '\\' ([tbnrf"'] | '\\')
+									| '\\u' [a-fA-F0-9]{4}
+									| '\\U' [a-fA-F0-9]{8}
+									)* '\'' ;
+		STRING_LITERAL_LONG_SINGLE_QUOTE -> '\'\'\'' (
+											('\'' | '\'\'')?
+												(
+													[^'\\]
+													| '\\' ([tbnrf"'] | '\\')
+													| '\\u' [a-fA-F0-9]{4}
+													| '\\U' [a-fA-F0-9]{8}
+												)
+											)* '\'\'\'' ;
+		STRING_LITERAL_LONG_QUOTE		-> '"""' (
+											('"' | '""')?
+												(
+													[^"\\]
+													| '\\' ([tbnrf"'] | '\\')
+													| '\\u' [a-fA-F0-9]{4}
+													| '\\U' [a-fA-F0-9]{8}
+												)
+											)* '"""' ;
+
+		PREFIX		-> [Pp] [Rr] [Ee] [Ff] [Ii] [Xx] ;
+		BASE		-> [Bb] [Aa] [Ss] [Ee] ;
+		SELECT		-> [Ss] [Ee] [Ll] [Ee] [Cc] [Tt] ;
+		DISTINCT	-> [Dd] [Ii] [Ss] [Tt] [Ii] [Nn] [Cc] [Tt] ;
+		REDUCED		-> [Rr] [Ee] [Dd] [Uu] [Cc] [Ee] [Dd] ;
+		AS			-> [Aa] [Ss] ;
+		CONSTRUCT	-> [Cc] [Oo] [Nn] [Ss] [Tt] [Rr] [Uu] [Cc] [Tt] ;
+		WHERE		-> [Ww] [Hh] [Ee] [Rr] [Ee] ;
+		DESCRIBE	-> [Dd] [Ee] [Ss] [Cc] [Rr] [Ii] [Bb] [Ee] ;
+		ASK			-> [Aa] [Ss] [Kk] ;
+		FROM		-> [Ff] [Rr] [Oo] [Mm] ;
+		NAMED		-> [Nn] [Aa] [Mm] [Ee] [Dd] ;
+		GROUP		-> [Gg] [Rr] [Oo] [Uu] [Pp] ;
+		BY			-> [Bb] [Yy] ;
+		HAVING		-> [Hh] [Aa] [Vv] [Ii] [Nn] [Gg] ;
+		ORDER		-> [Oo] [Rr] [Dd] [Ee] [Rr] ;
+		ASC			-> [Aa] [Ss] [Cc] ;
+		DESC		-> [Dd] [Ee] [Ss] [Cc] ;
+		LIMIT		-> [Ll] [Ii] [Mm] [Ii] [Tt] ;
+		OFFSET		-> [Oo] [Ff] [Ff] [Ss] [Ee] [Tt] ;
+		VALUES		-> [Vv] [Aa] [Ll] [Uu] [Ee] [Ss] ;
+		SILENT		-> [Ss] [Ii] [Ll] [Ee] [Nn] [Tt] ;
+		TO			-> [Tt] [Oo] ;
+		INTO		-> [Ii] [Nn] [Tt] [Oo] ;
+		LOAD		-> [Ll] [Oo] [Aa] [Dd] ;
+		CLEAR		-> [Cc] [Ll] [Ee] [Aa] [Rr] ;
+		DROP		-> [Dd] [Rr] [Oo] [Pp] ;
+		CREATE		-> [Cc] [Rr] [Ee] [Aa] [Tt] [Ee] ;
+		ADD			-> [Aa] [Dd] [Dd] ;
+		MOVE		-> [Mm] [Oo] [Vv] [Ee] ;
+		COPY		-> [Cc] [Oo] [Pp] [Yy] ;
+		INSERT		-> [Ii] [Nn] [Ss] [Ee] [Rr] [Tt] ;
+		DELETE		-> [Dd] [Ee] [Ll] [Ee] [Tt] [Ee] ;
+		WITH		-> [Ww] [Ii] [Tt] [Hh] ;
+		DATA		-> [Dd] [Aa] [Tt] [Aa] ;
+		USING		-> [Uu] [Ss] [Ii] [Nn] [Gg] ;
+		DEFAULT		-> [Dd] [Ee] [Ff] [Aa] [Uu] [Ll] [Tt] ;
+		GRAPH		-> [Gg] [Rr] [Aa] [Pp] [Hh] ;
+		ALL			-> [Aa] [Ll] [Ll] ;
+		OPTIONAL	-> [Oo] [Pp] [Tt] [Ii] [Oo] [Nn] [Aa] [Ll] ;
+		SERVICE		-> [Ss] [Ee] [Rr] [Vv] [Ii] [Cc] [Ee] ;
+		BIND		-> [Bb] [Ii] [Nn] [Dd] ;
+		UNION		-> [Uu] [Nn] [Ii] [Oo] [Nn] ;
+		MINUS		-> [Mm] [Ii] [Nn] [Uu] [Ss] ;
+		FILTER		-> [Ff] [Ii] [Ll] [Tt] [Ee] [Rr] ;
+		UNDEF		-> [Uu] [Nn] [Dd] [Ee] [Ff] ;
+		IN			-> [Ii] [Nn] ;
+		NOT			-> [Nn] [Oo] [Tt] ;
+	}
+	rules
+	{
+		unit					-> query^ | update^ ;
+		query					-> prologue (select | construct | describe | ask) clause_values ;
+		update					-> prologue (update1 (';'! update)? )? ;
+		update1					-> load^ | clear^ | drop^ | add^ | move^ | copy^ | create^ | insert^ | delete^ | deleteWhere^ | modify^ ;
+
+		prologue				-> (decl_base | decl_prefix)* ;
+		decl_base				-> BASE! IRIREF ;
+		decl_prefix				-> PREFIX! PNAME_NS IRIREF ;
+
+		select					-> clause_select clause_dataset* clause_where modifier ;
+		sub_select				-> clause_select clause_where modifier clause_values ;
+		clause_select			-> SELECT! clause_select_mod clause_select_vars ;
+		clause_select_mod		-> (DISTINCT | REDUCED)? ;
+		clause_select_vars		-> '*'! | clause_select_var+ ;
+		clause_select_var		-> VARIABLE^ | '('! expression AS^ VARIABLE ')'! ;
+
+		construct				-> construct1^ | construct2^ ;
+		construct1				-> CONSTRUCT! construct_template clause_dataset* clause_where modifier ;
+		construct2				-> CONSTRUCT! clause_dataset* WHERE! '{'! triples_template? '}'! modifier ;
+		construct_template		-> '{'! construct_triples? '}'! ;
+		construct_triples		-> triples_same_subj ('.'! construct_triples? )? ;
+
+		describe				-> DESCRIBE! describe_vars clause_dataset* clause_where? modifier ;
+		describe_vars			-> '*'! | var_or_iri* ;
+		
+		ask						-> ASK! clause_dataset* clause_where modifier ;
+
+		clause_dataset			-> FROM! (clause_graph_default | clause_graph_named) ;
+		clause_graph_default	-> source_selector ;
+		clause_graph_named		-> NAMED! source_selector ;
+		source_selector			-> iri^ ;
+
+		clause_where			-> WHERE! graph_pattern_group ;
+
+		modifier				-> clause_group? clause_having? clause_order? clauses_limit_offset? ;
+		clause_group			-> GROUP! BY! clause_group_cond+ ;
+		clause_group_cond		-> built_in_call^  | function_call^ | VARIABLE^ | '('! expression AS^ VARIABLE ')'! ;
+		clause_having			-> HAVING! clause_having_cond+ ;
+		clause_having_cond		-> constraint^ ;
+		clause_order			-> ORDER! BY! clause_order_cond+ ;
+		clause_order_cond		-> ASC^ exp_bracketted
+								|  DESC^ exp_bracketted
+								|  constraint^
+								|  VARIABLE^ ;
+		clauses_limit_offset	-> clause_limit clause_offset?
+								|  clause_offset clause_limit? ;
+		clause_limit			-> LIMIT! INTEGER ;
+		clause_offset			-> OFFSET! INTEGER ;
+		clause_values			-> (VALUES! data_block)? ;
+
+		load					-> LOAD! SILENT? iri (INTO! graph_ref)? ;
+		clear					-> CLEAR! SILENT? graph_ref_all ;
+		drop					-> DROP! SILENT? graph_ref_all ;
+		create					-> CREATE! SILENT? graph_ref ;
+		add						-> ADD! SILENT? graph_or_default TO! graph_or_default ;
+		move					-> MOVE! SILENT? graph_or_default TO! graph_or_default ;
+		copy					-> COPY! SILENT? graph_or_default TO! graph_or_default ;
+		insert					-> INSERT! DATA! quad_data ;
+		delete					-> DELETE! DATA! quad_data ;
+		deleteWhere				-> DELETE! WHERE! quad_pattern ;
+		modify					-> (WITH! iri)? (clause_delete clause_insert? | clause_insert) clause_using* WHERE! graph_pattern_group ;
+		clause_delete			-> DELETE! quad_pattern ;
+		clause_insert			-> INSERT! quad_pattern ;
+		clause_using			-> USING! (iri | NAMED iri) ;
+
+
+		graph_or_default		-> DEFAULT^ | (GRAPH!)? iri^ ;
+		graph_ref				-> GRAPH! iri^ ;
+		graph_ref_all			-> graph_ref^ | DEFAULT^ | NAMED^ | ALL^ ;
+		graph_pattern_group		-> '{'! (sub_select^ | graph_pattern_group_sub^) '}'! ;
+		graph_pattern_group_sub	-> triples_block? graph_pattern_group_sub_elem* ;
+		graph_pattern_group_sub_elem	-> graph_pattern_not_triples ('.'!)? triples_block? ;
+		graph_pattern_not_triples		-> graph_pattern_group_or_union^ | graph_pattern_optional^ | graph_pattern_minus^ | graph_pattern_graph^ | graph_pattern_service^ | filter^ | bind^ | inline_data^ ;
+		graph_pattern_optional	-> OPTIONAL! graph_pattern_group ;
+		graph_pattern_graph		-> GRAPH! var_or_iri graph_pattern_group ;
+		graph_pattern_service	-> SERVICE! SILENT? var_or_iri graph_pattern_group ;
+		graph_pattern_group_or_union	-> graph_pattern_group (UNION! graph_pattern_group)* ;
+		graph_pattern_minus		-> MINUS! graph_pattern_group ;
+
+		bind					-> BIND! '('!  expression AS! VARIABLE ')'! ;
+		inline_data				-> VALUES! data_block ;
+		data_block				-> inline_data_one^ | inline_data_full^ ;
+		inline_data_one			-> VARIABLE '{'! data_block_value* '}'! ;
+		inline_data_full		-> inline_data_full_vars '{'! inline_data_full_val* '}'! ;
+		inline_data_full_vars	-> '('! VARIABLE* ')'! ;
+		inline_data_full_val	-> '(' data_block_value* ')' ;
+		data_block_value		-> iri^ | literal^ | UNDEF^ ;
+
+		filter					-> FILTER! constraint ;
+		constraint				-> exp_bracketted^ | built_in_call^  | function_call^ ;
+
+		quad_pattern			-> '{'! quads^ '}'! ;
+		quad_data				-> '{'! quads^ '}'! ;
+		quads					-> triples_template? quads_supp* ;
+		quads_supp				-> quads_not_triples ('.'!)? triples_template? ;
+		quads_not_triples		-> GRAPH! var_or_iri '{'! triples_template? '}'! ;
+		triples_template		-> triples_same_subj ('.'! triples_template? )? ;
+		triples_block			-> triples_same_subj ('.'! triples_block? )? ;
+		triples_same_subj		-> var_or_term property_list_not_empty
+								|  triples_node property_list ;
+		property_list			-> (property_list_not_empty^)? ;
+		property_list_not_empty	-> verb object_list (';'! (verb object_list)? )* ;
+		verb					-> var_or_iri^ | 'a'^ ;
+		object_list				-> object (','! object)* ;
+		object					-> graph_node^ ;
+		triples_node			-> collection^ | blank_node_property_list^ ;
+		blank_node_property_list-> '['! property_list_not_empty^ ']'! ;
+		collection				-> '('! graph_node+ ')'! ;
+		graph_node				-> var_or_term^ | triples_node^ ;
+		var_or_term				-> VARIABLE^ | graph_term^ ;
+		var_or_iri				-> VARIABLE^ | iri^ ;
+		graph_term				-> iri^ | literal^ | blank_node^ | "nil"^ '('! ')'! ;
+
+		triples_same_subj_path	-> var_or_term property_list_path_ne
+								|  triples_node_path property_list_path ;
+		property_list_path		-> (property_list_path_ne^)? ;
+		property_list_path_ne	-> (verb_path | verb_simple) object_list_path (';'! ((verb_path | verb_simple) object_list)? )* ;
+		verb_path				-> verb^ ;
+		verb_simple				-> VARIABLE^ ;
+		object_list_path		-> object_path (','! object_path)* ;
+		object_path				-> graph_node_path^ ;
+		triples_node_path		-> collection_path^ | blank_node_property_list_path^ ;
+		blank_node_property_list_path -> '['! property_list_path_ne^ ']'! ;
+		collection_path			-> '('! graph_node_path+ ')'! ;
+		graph_node_path			-> var_or_term^ | triples_node_path^ ;
+		path					-> path_alt^ ;
+		path_alt				-> path_seq^
+								|  path_alt '|'^ path_seq ;
+		path_seq				-> path_elt_or_inv^
+								|  path_seq '/'^ path_elt_or_inv ;
+		path_elt_or_inv			-> path_elt^ | '^'^ path_elt ;
+		path_elt				-> path_primary^
+								|  path_primary ('?'^ | '*'^ | '+'^)? ;
+		path_primary			-> iri^ | 'a'^ | '!'^ path_neg | '('! path^ ')'! ;
+		path_neg				-> path_in | '('! (path_in ('|'! path_in)*)? ')'! ;
+		path_in					-> iri^ | 'a'^ | '^'^ (iri | 'a') ;
+
+
+		expression_list			-> '('! (expression (','! expression)*)? ')'! ;
+		expression				-> exp_or^ ;
+		exp_or					-> exp_and^
+								|  exp_or '||'^ exp_and ;
+		exp_and					-> exp_logical^
+								|  exp_and '&&'^ exp_logical ;
+		exp_logical				-> exp_relational^ ;
+		exp_relational			-> exp_numeric^
+								|  exp_numeric '='^ exp_numeric
+								|  exp_numeric '!='^ exp_numeric
+								|  exp_numeric '<'^ exp_numeric
+								|  exp_numeric '>'^ exp_numeric
+								|  exp_numeric '>='^ exp_numeric
+								|  exp_numeric '<='^ exp_numeric
+								|  exp_numeric IN^ expression_list
+								|  exp_numeric NOT^ IN! expression_list ;
+		exp_numeric				-> exp_add^ ;
+		exp_add					-> exp_mult^
+								|  exp_add '+'^ exp_mult
+								|  exp_add '-'^ exp_mult ;
+		exp_mult				-> exp_unary^
+								|  exp_mult '*'^ exp_unary
+								|  exp_mult '/'^ exp_unary ;
+		exp_unary				-> exp_primary^
+								|  '!'^ exp_primary
+								|  '+'^ exp_primary
+								|  '-'^ exp_primary ;
+		exp_primary				-> exp_bracketted^
+								|  built_in_call^
+								|  iri_or_function^
+								|  literal^
+								|  VARIABLE^ ;
+		exp_bracketted			-> '('! expression^ ')'! ;
+		built_in_call			-> 'COUNT'			'('! DISTINCT? ('*'! | expression) ')'!
+								|  'SUM'			'('! DISTINCT? expression ')'!
+								|  'MIN'			'('! DISTINCT? expression ')'!
+								|  'MAX'			'('! DISTINCT? expression ')'!
+								|  'AVG'			'('! DISTINCT? expression ')'!
+								|  'SAMPLE'			'('! DISTINCT? expression ')'!
+								|  'GROUP_CONCAT'	'('! DISTINCT? expression (';'! 'SEPARATOR'! '='! string)? ')'!
+								|  'STR'			'('! expression ')'!
+								|  'LANG'			'('! expression ')'!
+								|  'LANGMATCHES'	'('! expression ','! expression ')'!
+								|  'DATATYPE'		'('! expression ')'!
+								|  'BOUND'			'('! VARIABLE ')'!
+								|  'IRI'			'('! expression ')'!
+								|  'URI'			'('! expression ')'!
+								|  'BNODE'			'('! expression? ')'!
+								|  'RAND'			'('! ')'!
+								|  'ABS'			'('! expression ')'!
+								|  'CEIL'			'('! expression ')'!
+								|  'FLOOR'			'('! expression ')'!
+								|  'ROUND'			'('! expression ')'!
+								|  'CONCAT'			expression_list
+								|  'SUBSTR'			'('! expression ','! expression ( ','! expression )? ')'!
+								|  'STRLEN'			'('! expression ')'!
+								|  'REPLACE'		'('! expression ','! expression ','! expression ( ','! expression )? ')'!
+								|  'UCASE'			'('! expression ')'!
+								|  'LCASE'			'('! expression ')'!
+								|  'ENCODE_FOR_URI'	'('! expression ')'!
+								|  'CONTAINS'		'('! expression ','! expression ')'!
+								|  'STRSTARTS'		'('! expression ','! expression ')'!
+								|  'STRENDS'		'('! expression ','! expression ')'!
+								|  'STRBEFORE'		'('! expression ','! expression ')'!
+								|  'STRAFTER'		'('! expression ','! expression ')'!
+								|  'YEAR'			'('! expression ')'!
+								|  'MONTH'			'('! expression ')'!
+								|  'DAY'			'('! expression ')'!
+								|  'HOURS'			'('! expression ')'!
+								|  'MINUTES'		'('! expression ')'!
+								|  'SECONDS'		'('! expression ')'!
+								|  'TIMEZONE'		'('! expression ')'!
+								|  'TZ'				'('! expression ')'!
+								|  'NOW'			'('! ')'!
+								|  'UUID'			'('! ')'!
+								|  'STRUUID'		'('! ')'!
+								|  'MD5'			'('! expression ')'!
+								|  'SHA1'			'('! expression ')'!
+								|  'SHA256'			'('! expression ')'!
+								|  'SHA384'			'('! expression ')'!
+								|  'SHA512'			'('! expression ')'!
+								|  'COALESCE'		expression_list
+								|  'IF'				'('! expression ','! expression ','! expression ')'!
+								|  'STRLANG'		'('! expression ','! expression ')'!
+								|  'STRDT'			'('! expression ','! expression ')'!
+								|  'sameTerm'		'('! expression ','! expression ')'!
+								|  'isIRI'			'('! expression ')'!
+								|  'isURI'			'('! expression ')'!
+								|  'isBLANK'		'('! expression ')'!
+								|  'isLITERAL'		'('! expression ')'!
+								|  'isNUMERIC'		'('! expression ')'!
+								|  'REGEX'			'('! expression ','! expression ( ','! expression )? ')'!
+								|  'EXISTS'			graph_pattern_group
+								|  NOT 'EXISTS'		graph_pattern_group ;
+		iri_or_function			-> iri arg_list? ;
+		function_call			-> iri arg_list ;
+		arg_list				-> '('! (DISTINCT? expression (','! expression)*)? ')'! ;
+
+
+		blank_node				-> 	BLANK_NODE_LABEL^ | ANON^ ;
+		literal					-> 	literal_rdf^ | literal_numeric^ | literal_bool^ ;
+		literal_bool			-> 	'true'^ | 'false'^ ;
+		literal_numeric			-> 	INTEGER^ | DECIMAL^ | DOUBLE^ ;
+		literal_rdf				-> 	string (LANGTAG | '^^'! iri)? ;
+		string					-> 	STRING_LITERAL_QUOTE^ | STRING_LITERAL_SINGLE_QUOTE^ | STRING_LITERAL_LONG_SINGLE_QUOTE^ | STRING_LITERAL_LONG_QUOTE^ ;
+		iri						-> 	IRIREF^ | prefixedName^ ;
+		prefixedName			-> 	PNAME_LN^ | PNAME_NS^ ;
+		
+	}
+}
