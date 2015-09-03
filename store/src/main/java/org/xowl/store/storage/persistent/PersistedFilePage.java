@@ -116,7 +116,7 @@ class PersistedFilePage {
             flags = backend.readChar();
             byte[] storedDigest = backend.readBytes(20);
             backend.seek(location + PAGE_HEADER_SIZE);
-            byte[] computedDigest = backend.digestSHA1(backend.getBlockSize() - PAGE_HEADER_SIZE);
+            byte[] computedDigest = backend.digestSHA1(PersistedFile.BLOCK_SIZE - PAGE_HEADER_SIZE);
             if (!Arrays.equals(storedDigest, computedDigest))
                 throw new StorageException("Page checksum verification failed on load");
             backend.seek(location + 24);
@@ -126,7 +126,7 @@ class PersistedFilePage {
         } else {
             flags = 0;
             startFreeSpace = PAGE_HEADER_SIZE;
-            startData = (char) backend.getBlockSize();
+            startData = (char) PersistedFile.BLOCK_SIZE;
         }
     }
 
@@ -183,7 +183,7 @@ class PersistedFilePage {
         if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >> 2) {
             // we can reuse empty entries and there are at least one
             char entryIndex = 0;
-            char dataOffset = (char) backend.getBlockSize();
+            char dataOffset = (char) PersistedFile.BLOCK_SIZE;
             backend.seek(location + PAGE_HEADER_SIZE);
             while (entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
                 char eOffset = backend.readChar();
@@ -327,7 +327,7 @@ class PersistedFilePage {
      */
     public void onCommit() throws IOException {
         backend.seek(location + PAGE_HEADER_SIZE);
-        byte[] digest = backend.digestSHA1(backend.getBlockSize() - PAGE_HEADER_SIZE);
+        byte[] digest = backend.digestSHA1(PersistedFile.BLOCK_SIZE - PAGE_HEADER_SIZE);
         backend.seek(location);
         backend.writeChar(PAGE_LAYOUT_VERSION);
         backend.writeChar(flags);
