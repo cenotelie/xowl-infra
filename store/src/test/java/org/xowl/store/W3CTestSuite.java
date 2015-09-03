@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -114,7 +115,7 @@ public abstract class W3CTestSuite {
      */
     protected Reader getResourceReader(String resource) {
         InputStream stream = W3CTestSuite.class.getResourceAsStream(resource);
-        return new InputStreamReader(stream);
+        return new InputStreamReader(stream, Charset.forName("UTF-8"));
     }
 
     /**
