@@ -29,6 +29,7 @@ import org.xowl.utils.collections.SingleIterator;
 import org.xowl.utils.collections.SparseIterator;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -174,6 +175,24 @@ class EdgeTarget implements Iterable<GraphNode> {
         }
     }
 
+    /**
+     * Clears this object for the specified graph
+     *
+     * @param graph  The graph to clear
+     * @param buffer The buffer for the removed quads
+     * @return true if the object is now empty
+     */
+    public boolean clear(GraphNode graph, List<CachedQuad> buffer) {
+        for (int i = 0; i != graphs.length; i++) {
+            if (graphs[i] != null && graphs[i].equals(graph)) {
+                buffer.add(new CachedQuad(graphs[i], null, null, null));
+                graphs[i] = null;
+                size--;
+            }
+        }
+        return (size == 0);
+    }
+
     @Override
     public Iterator<GraphNode> iterator() {
         return new SparseIterator<>(graphs);
@@ -207,6 +226,18 @@ class EdgeTarget implements Iterable<GraphNode> {
         }
 
         return new SingleIterator<>(null);
+    }
+
+    /**
+     * Finds all the graphs in this object
+     *
+     * @param buffer The buffer to store the result
+     */
+    public void getGraphs(Collection<GraphNode> buffer) {
+        for (int i = 0; i != graphs.length; i++) {
+            if (graphs[i] != null && !buffer.contains(graphs[i]))
+                buffer.add(graphs[i]);
+        }
     }
 
     /**

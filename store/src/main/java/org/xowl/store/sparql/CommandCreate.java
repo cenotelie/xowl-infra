@@ -20,7 +20,7 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.store.storage.BaseStore;
+import org.xowl.store.Repository;
 
 /**
  * Represents the SPARQL CREATE command.
@@ -54,7 +54,7 @@ public class CommandCreate implements Command {
     }
 
     @Override
-    public Result execute(BaseStore store) {
+    public Result execute(Repository repository) {
         return ResultSuccess.INSTANCE;
     }
 }

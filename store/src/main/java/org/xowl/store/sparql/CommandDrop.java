@@ -20,6 +20,13 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Repository;
+import org.xowl.store.rdf.GraphNode;
+import org.xowl.store.rdf.IRINode;
+import org.xowl.store.storage.NodeManager;
+
+import java.util.Collection;
+
 /**
  * Represents the SPARQL DROP command.
  * The DROP operation removes the specified graph(s) from the Graph Store.
@@ -32,7 +39,7 @@ package org.xowl.store.sparql;
  *
  * @author Laurent Wouters
  */
-public class CommandDrop {
+public class CommandDrop implements Command {
     /**
      * The type of reference to the target
      */
@@ -57,5 +64,29 @@ public class CommandDrop {
         this.targetType = targetType;
         this.target = target;
         this.isSilent = isSilent;
+    }
+
+    @Override
+    public Result execute(Repository repository) {
+        switch (targetType) {
+            case Single:
+                if (target != null)
+                    repository.getStore().clear(repository.getStore().getIRINode(target));
+                break;
+            case Named:
+                Collection<GraphNode> targets = repository.getStore().getGraphs();
+                for (GraphNode target : targets) {
+                    if (target.getNodeType() == IRINode.TYPE && !NodeManager.DEFAULT_GRAPH.equals(((IRINode) target).getIRIValue()))
+                        repository.getStore().clear(target);
+                }
+                break;
+            case Default:
+                repository.getStore().clear(repository.getStore().getIRINode(NodeManager.DEFAULT_GRAPH));
+                break;
+            case All:
+                repository.getStore().clear();
+                break;
+        }
+        return ResultSuccess.INSTANCE;
     }
 }

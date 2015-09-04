@@ -26,6 +26,10 @@ import org.xowl.store.owl.*;
 import org.xowl.store.owl.QueryEngine;
 import org.xowl.store.owl.RuleEngine;
 import org.xowl.store.rdf.*;
+import org.xowl.store.sparql.Command;
+import org.xowl.store.sparql.Result;
+import org.xowl.store.sparql.ResultFailure;
+import org.xowl.store.sparql.ResultSuccess;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.InMemoryStore;
 import org.xowl.store.storage.UnsupportedNodeType;
@@ -38,6 +42,7 @@ import org.xowl.utils.collections.SkippableIterator;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.*;
 
 /**
@@ -144,6 +149,27 @@ public class Repository extends AbstractRepository {
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
         this.evaluator = evaluator;
+    }
+
+    /**
+     * Executes the specified SPARQL command
+     *
+     * @param logger The logger to use
+     * @param sparql A SPARQL command
+     * @return The result
+     */
+    public Result execute(Logger logger, String sparql) {
+        SPARQLLoader loader = new SPARQLLoader(backend);
+        List<Command> commands = loader.load(logger, new StringReader(sparql));
+        if (commands == null)
+            return ResultFailure.INSTANCE;
+        Result result = ResultSuccess.INSTANCE;
+        for (Command command : commands) {
+            Result temp = command.execute(this);
+            if (temp.isFailure())
+                result = temp;
+        }
+        return result;
     }
 
     /**

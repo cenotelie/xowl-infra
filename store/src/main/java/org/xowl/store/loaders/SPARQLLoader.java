@@ -28,17 +28,14 @@ import org.xowl.store.rdf.BlankNode;
 import org.xowl.store.rdf.IRINode;
 import org.xowl.store.rdf.LiteralNode;
 import org.xowl.store.rdf.Quad;
-import org.xowl.store.sparql.Command;
+import org.xowl.store.sparql.*;
 import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.Files;
 import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Loader for SPARQL queries
@@ -104,12 +101,34 @@ public class SPARQLLoader {
 
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
+            return Collections.emptyList();
+
+        try {
+            // prologue is always the first node
+            loadPrologue(parseResult.getRoot().getChildren().get(0));
+            ASTNode current = parseResult.getRoot().getChildren().get(1);
+            switch (current.getSymbol().getID()) {
+                case SPARQLParser.ID.create:
+                    result.add(loadCommandCreate(current));
+                    break;
+                case SPARQLParser.ID.drop:
+                    result.add(loadCommandDrop(current));
+                    break;
+                case SPARQLParser.ID.clear:
+                    result.add(loadCommandClear(current));
+                    break;
+            }
+        } catch (LoaderException exception) {
+            logger.error(exception);
+            logger.error("@" + exception.getOrigin().getPosition());
+            TextContext context = exception.getOrigin().getContext();
+            logger.error(context.getContent());
+            logger.error(context.getPointer());
             return null;
-
-        for (ASTNode node : parseResult.getRoot().getChildren()) {
-
+        } catch (IllegalArgumentException exception) {
+            logger.error(exception);
+            return null;
         }
-
         return result;
     }
 
@@ -141,5 +160,200 @@ public class SPARQLLoader {
         return result;
     }
 
+    /**
+     * Loads the prologue from the corresponding AST node
+     *
+     * @param node The AST node
+     */
+    private void loadPrologue(ASTNode node) {
+        for (ASTNode child : node.getChildren()) {
+            switch (child.getSymbol().getID()) {
+                case SPARQLParser.ID.decl_base:
+                    loadBase(child);
+                    break;
+                case SPARQLParser.ID.decl_prefix:
+                    loadPrefixID(child);
+                    break;
+            }
+        }
+    }
 
+    /**
+     * Loads a prefix and its associated namespace represented by the specified AST node
+     *
+     * @param node An AST node
+     */
+    private void loadPrefixID(ASTNode node) {
+        String prefix = node.getChildren().get(0).getValue();
+        String uri = node.getChildren().get(1).getValue();
+        prefix = prefix.substring(0, prefix.length() - 1);
+        uri = Utils.unescape(uri.substring(1, uri.length() - 1));
+        namespaces.put(prefix, uri);
+    }
+
+    /**
+     * Loads the base URI represented by the specified AST node
+     *
+     * @param node An AST node
+     */
+    private void loadBase(ASTNode node) {
+        String value = node.getChildren().get(0).getValue();
+        value = Utils.unescape(value.substring(1, value.length() - 1));
+        baseURI = Utils.uriResolveRelative(baseURI, value);
+    }
+
+    /**
+     * Loads a CREATE command from the specified AST node
+     *
+     * @param node An AST node
+     * @return The CREATE command
+     */
+    private Command loadCommandCreate(ASTNode node) throws LoaderException {
+        int count = node.getChildren().size();
+        boolean isSilent = (count >= 2);
+        ASTNode child = node.getChildren().get(count - 1);
+        IRINode iriNode = null;
+        switch (child.getSymbol().getID()) {
+            case SPARQLLexer.ID.IRIREF:
+                iriNode = getNodeIRIRef(node);
+                break;
+            case SPARQLLexer.ID.PNAME_LN:
+                iriNode = getNodePNameLN(node);
+                break;
+            case SPARQLLexer.ID.PNAME_NS:
+                iriNode = getNodePNameNS(node);
+                break;
+        }
+        return new CommandCreate(iriNode != null ? iriNode.getIRIValue() : null, isSilent);
+    }
+
+    /**
+     * Loads a DROP command from the specified AST node
+     *
+     * @param node An AST node
+     * @return The CREATE command
+     */
+    private Command loadCommandDrop(ASTNode node) throws LoaderException {
+        int count = node.getChildren().size();
+        boolean isSilent = (count >= 2);
+        ASTNode child = node.getChildren().get(count - 1);
+        GraphReferenceType refType = GraphReferenceType.Single;
+        IRINode iriNode = null;
+        switch (child.getSymbol().getID()) {
+            case SPARQLLexer.ID.DEFAULT:
+                refType = GraphReferenceType.Default;
+                break;
+            case SPARQLLexer.ID.NAMED:
+                refType = GraphReferenceType.Named;
+                break;
+            case SPARQLLexer.ID.ALL:
+                refType = GraphReferenceType.All;
+                break;
+            case SPARQLLexer.ID.IRIREF:
+                iriNode = getNodeIRIRef(node);
+                break;
+            case SPARQLLexer.ID.PNAME_LN:
+                iriNode = getNodePNameLN(node);
+                break;
+            case SPARQLLexer.ID.PNAME_NS:
+                iriNode = getNodePNameNS(node);
+                break;
+        }
+        return new CommandDrop(refType, iriNode != null ? iriNode.getIRIValue() : null, isSilent);
+    }
+
+    /**
+     * Loads a CLEAR command from the specified AST node
+     *
+     * @param node An AST node
+     * @return The CREATE command
+     */
+    private Command loadCommandClear(ASTNode node) throws LoaderException {
+        int count = node.getChildren().size();
+        boolean isSilent = (count >= 2);
+        ASTNode child = node.getChildren().get(count - 1);
+        GraphReferenceType refType = GraphReferenceType.Single;
+        IRINode iriNode = null;
+        switch (child.getSymbol().getID()) {
+            case SPARQLLexer.ID.DEFAULT:
+                refType = GraphReferenceType.Default;
+                break;
+            case SPARQLLexer.ID.NAMED:
+                refType = GraphReferenceType.Named;
+                break;
+            case SPARQLLexer.ID.ALL:
+                refType = GraphReferenceType.All;
+                break;
+            case SPARQLLexer.ID.IRIREF:
+                iriNode = getNodeIRIRef(node);
+                break;
+            case SPARQLLexer.ID.PNAME_LN:
+                iriNode = getNodePNameLN(node);
+                break;
+            case SPARQLLexer.ID.PNAME_NS:
+                iriNode = getNodePNameNS(node);
+                break;
+        }
+        return new CommandClear(refType, iriNode != null ? iriNode.getIRIValue() : null, isSilent);
+    }
+
+    /**
+     * Gets the RDF IRI node equivalent to the specified AST node
+     *
+     * @param node An AST node
+     * @return The equivalent RDF IRI node
+     */
+    private IRINode getNodeIRIRef(ASTNode node) {
+        String value = node.getValue();
+        value = Utils.unescape(value.substring(1, value.length() - 1));
+        return store.getIRINode(Utils.uriResolveRelative(baseURI, value));
+    }
+
+    /**
+     * Gets the RDF IRI node equivalent to the specified AST node (local name)
+     *
+     * @param node An AST node
+     * @return The equivalent RDF IRI node
+     */
+    private IRINode getNodePNameLN(ASTNode node) throws LoaderException {
+        String value = node.getValue();
+        return store.getIRINode(getIRIForLocalName(node, value));
+    }
+
+    /**
+     * Gets the RDF IRI node equivalent to the specified AST node (namespace)
+     *
+     * @param node An AST node
+     * @return The equivalent RDF IRI node
+     */
+    private IRINode getNodePNameNS(ASTNode node) {
+        String value = node.getValue();
+        value = Utils.unescape(value.substring(0, value.length() - 1));
+        value = namespaces.get(value);
+        return store.getIRINode(value);
+    }
+
+    /**
+     * Gets the full IRI for the specified escaped local name
+     *
+     * @param node  The parent ASt node
+     * @param value An escaped local name
+     * @return The equivalent full IRI
+     */
+    private String getIRIForLocalName(ASTNode node, String value) throws LoaderException {
+        value = Utils.unescape(value);
+        int index = 0;
+        while (index != value.length()) {
+            if (value.charAt(index) == ':') {
+                String prefix = value.substring(0, index);
+                String uri = namespaces.get(prefix);
+                if (uri != null) {
+                    String name = value.substring(index + 1);
+                    return Utils.uriResolveRelative(baseURI, Utils.unescape(uri + name));
+                }
+            }
+            index++;
+        }
+        throw new LoaderException("Failed to resolve local name " + value, node);
+    }
 }

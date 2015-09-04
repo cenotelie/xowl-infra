@@ -20,7 +20,7 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.store.storage.BaseStore;
+import org.xowl.store.Repository;
 
 /**
  * Represents SPARQL command
@@ -29,10 +29,10 @@ import org.xowl.store.storage.BaseStore;
  */
 public interface Command {
     /**
-     * Executes this command on the specified store
+     * Executes this command on the specified repository
      *
-     * @param store The store on which to execute the command
+     * @param repository The repository on which to execute the command
      * @return The command's result
      */
-    Result execute(BaseStore store);
+    Result execute(Repository repository);
 }

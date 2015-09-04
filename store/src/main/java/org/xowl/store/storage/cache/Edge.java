@@ -27,6 +27,7 @@ import org.xowl.store.rdf.VariableNode;
 import org.xowl.utils.collections.*;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -171,6 +172,29 @@ class Edge implements Iterable<EdgeTarget> {
         }
     }
 
+    /**
+     * Clears this object for the specified graph
+     *
+     * @param graph  The graph to clear
+     * @param buffer The buffer for the removed quads
+     * @return true if the object is now empty
+     */
+    public boolean clear(GraphNode graph, List<CachedQuad> buffer) {
+        for (int i = 0; i != targets.length; i++) {
+            if (targets[i] != null) {
+                int originalSize = buffer.size();
+                boolean empty = targets[i].clear(graph, buffer);
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setObject(targets[i].getTarget());
+                if (empty) {
+                    targets[i] = null;
+                    size--;
+                }
+            }
+        }
+        return (size == 0);
+    }
+
     @Override
     public Iterator<EdgeTarget> iterator() {
         return new SparseIterator<>(targets);
@@ -215,6 +239,18 @@ class Edge implements Iterable<EdgeTarget> {
         }
 
         return new SingleIterator<>(null);
+    }
+
+    /**
+     * Finds all the graphs in this object
+     *
+     * @param buffer The buffer to store the result
+     */
+    public void getGraphs(Collection<GraphNode> buffer) {
+        for (int i = 0; i != targets.length; i++) {
+            if (targets[i] != null)
+                targets[i].getGraphs(buffer);
+        }
     }
 
     /**
