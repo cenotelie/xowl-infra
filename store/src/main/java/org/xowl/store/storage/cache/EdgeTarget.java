@@ -194,13 +194,19 @@ class EdgeTarget implements Iterable<GraphNode> {
     }
 
     /**
-     * Copies all the quads with the specified origin graph, to quads with the target graph
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed if the overwrite flag is used.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is not affected.
      *
-     * @param origin The origin graph
-     * @param target The target graph
-     * @param buffer The buffer of the new quads
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
+     * @return true if the object is now empty
      */
-    public void copy(GraphNode origin, GraphNode target, List<CachedQuad> buffer) {
+    public boolean copy(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
         int indexOld = -1;
         int indexNew = -1;
         int indexEmpty = -1;
@@ -230,20 +236,32 @@ class EdgeTarget implements Iterable<GraphNode> {
                 graphs[indexEmpty] = target;
                 multiplicities[indexEmpty] = 1;
                 size++;
-                buffer.add(new CachedQuad(target, null, null, null));
+                bufferNew.add(new CachedQuad(target, null, null, null));
             }
+        } else if (overwrite && indexNew != -1) {
+            // the target graph is there but not the old one and we must overwrite
+            // we need to remove this
+            graphs[indexNew] = null;
+            multiplicities[indexNew] = 0;
+            size--;
+            bufferOld.add(new CachedQuad(target, null, null, null));
         }
+        return (size == 0);
     }
 
     /**
-     * Moves all the quads with the specified origin graph, to quads with the target graph
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is always removed.
      *
      * @param origin    The origin graph
      * @param target    The target graph
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
+     * @return true if the object is now empty
      */
-    public void move(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+    public boolean move(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
         int indexOld = -1;
         int indexNew = -1;
         for (int i = 0; i != graphs.length; i++) {
@@ -269,8 +287,16 @@ class EdgeTarget implements Iterable<GraphNode> {
                 multiplicities[indexOld] = 1;
                 bufferNew.add(new CachedQuad(target, null, null, null));
             }
+            bufferOld.add(new CachedQuad(origin, null, null, null));
+        } else if (indexNew != -1) {
+            // the target graph is there but not the old one
+            // we need to remove this
+            graphs[indexNew] = null;
+            multiplicities[indexNew] = 0;
+            size--;
             bufferOld.add(new CachedQuad(target, null, null, null));
         }
+        return (size == 0);
     }
 
     @Override

@@ -832,12 +832,13 @@ public class CachedDataset implements Dataset {
 
     @Override
     public void copy(GraphNode origin, GraphNode target) {
-        List<CachedQuad> buffer = new ArrayList<>();
-        doCopyFromIRIs(origin, target, buffer);
-        doCopyFromBlanks(origin, target, buffer);
-        doCopyFromAnons(origin, target, buffer);
-        if (!buffer.isEmpty()) {
-            Changeset changeset = new Changeset((Collection) buffer, new ArrayList<Quad>());
+        List<CachedQuad> bufferOld = new ArrayList<>();
+        List<CachedQuad> bufferNew = new ArrayList<>();
+        doCopyFromIRIs(origin, target, bufferOld, bufferNew, true);
+        doCopyFromBlanks(origin, target, bufferOld, bufferNew, true);
+        doCopyFromAnons(origin, target, bufferOld, bufferNew, true);
+        if (!bufferOld.isEmpty() || !bufferNew.isEmpty()) {
+            Changeset changeset = new Changeset((Collection) bufferNew, (Collection) bufferOld);
             for (ChangeListener listener : listeners) {
                 listener.onChange(changeset);
             }
@@ -845,51 +846,90 @@ public class CachedDataset implements Dataset {
     }
 
     /**
-     * Copies all the quads with the specified origin graph, to quads with the target graph for IRI subjects
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed if the overwrite flag is used.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is not affected.
      *
-     * @param origin The origin graph
-     * @param target The target graph
-     * @param buffer The buffer of the new quads
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
      */
-    private void doCopyFromIRIs(GraphNode origin, GraphNode target, List<CachedQuad> buffer) {
+    private void doCopyFromIRIs(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+        List<IRINode> toDelete = new ArrayList<>();
         for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
-            int originalSize = buffer.size();
-            entry.getValue().copy(origin, target, buffer);
-            for (int j = originalSize; j != buffer.size(); j++)
-                buffer.get(j).setSubject(entry.getKey());
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            boolean empty = entry.getValue().copy(origin, target, bufferOld, bufferNew, overwrite);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
         }
+        for (IRINode key : toDelete)
+            edgesIRI.remove(key);
     }
 
     /**
-     * Copies all the quads with the specified origin graph, to quads with the target graph for blank subjects
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed if the overwrite flag is used.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is not affected.
      *
-     * @param origin The origin graph
-     * @param target The target graph
-     * @param buffer The buffer of the new quads
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
      */
-    private void doCopyFromBlanks(GraphNode origin, GraphNode target, List<CachedQuad> buffer) {
+    private void doCopyFromBlanks(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+        List<BlankNode> toDelete = new ArrayList<>();
         for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
-            int originalSize = buffer.size();
-            entry.getValue().copy(origin, target, buffer);
-            for (int j = originalSize; j != buffer.size(); j++)
-                buffer.get(j).setSubject(entry.getKey());
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            boolean empty = entry.getValue().copy(origin, target, bufferOld, bufferNew, overwrite);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
         }
+        for (BlankNode key : toDelete)
+            edgesBlank.remove(key);
     }
 
     /**
-     * Copies all the quads with the specified origin graph, to quads with the target graph for anonymous subjects
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed if the overwrite flag is used.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is not affected.
      *
-     * @param origin The origin graph
-     * @param target The target graph
-     * @param buffer The buffer of the new quads
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
      */
-    private void doCopyFromAnons(GraphNode origin, GraphNode target, List<CachedQuad> buffer) {
+    private void doCopyFromAnons(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+        List<AnonymousNode> toDelete = new ArrayList<>();
         for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
-            int originalSize = buffer.size();
-            entry.getValue().copy(origin, target, buffer);
-            for (int j = originalSize; j != buffer.size(); j++)
-                buffer.get(j).setSubject(entry.getKey());
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            boolean empty = entry.getValue().copy(origin, target, bufferOld, bufferNew, overwrite);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
         }
+        for (AnonymousNode key : toDelete)
+            edgesAnon.remove(key);
     }
 
     @Override
@@ -908,63 +948,87 @@ public class CachedDataset implements Dataset {
     }
 
     /**
-     * Copies all the quads with the specified origin graph, to quads with the target graph for IRI subjects
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is always removed.
      *
      * @param origin    The origin graph
      * @param target    The target graph
-     * @param bufferOld The buffer of the old quads
+     * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
      */
     private void doMoveFromIRIs(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        List<IRINode> toDelete = new ArrayList<>();
         for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
             int originalSizeOld = bufferOld.size();
             int originalSizeNew = bufferNew.size();
-            entry.getValue().move(origin, target, bufferOld, bufferNew);
+            boolean empty = entry.getValue().move(origin, target, bufferOld, bufferNew);
             for (int j = originalSizeOld; j != bufferOld.size(); j++)
                 bufferOld.get(j).setSubject(entry.getKey());
             for (int j = originalSizeNew; j != bufferNew.size(); j++)
                 bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
         }
+        for (IRINode key : toDelete)
+            edgesIRI.remove(key);
     }
 
     /**
-     * Copies all the quads with the specified origin graph, to quads with the target graph for blank subjects
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is always removed.
      *
      * @param origin    The origin graph
      * @param target    The target graph
-     * @param bufferOld The buffer of the old quads
+     * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
      */
     private void doMoveFromBlanks(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        List<BlankNode> toDelete = new ArrayList<>();
         for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
             int originalSizeOld = bufferOld.size();
             int originalSizeNew = bufferNew.size();
-            entry.getValue().move(origin, target, bufferOld, bufferNew);
+            boolean empty = entry.getValue().move(origin, target, bufferOld, bufferNew);
             for (int j = originalSizeOld; j != bufferOld.size(); j++)
                 bufferOld.get(j).setSubject(entry.getKey());
             for (int j = originalSizeNew; j != bufferNew.size(); j++)
                 bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
         }
+        for (BlankNode key : toDelete)
+            edgesBlank.remove(key);
     }
 
     /**
-     * Copies all the quads with the specified origin graph, to quads with the target graph for anonymous subjects
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is always removed.
      *
      * @param origin    The origin graph
      * @param target    The target graph
-     * @param bufferOld The buffer of the old quads
+     * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
      */
     private void doMoveFromAnons(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        List<AnonymousNode> toDelete = new ArrayList<>();
         for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
             int originalSizeOld = bufferOld.size();
             int originalSizeNew = bufferNew.size();
-            entry.getValue().move(origin, target, bufferOld, bufferNew);
+            boolean empty = entry.getValue().move(origin, target, bufferOld, bufferNew);
             for (int j = originalSizeOld; j != bufferOld.size(); j++)
                 bufferOld.get(j).setSubject(entry.getKey());
             for (int j = originalSizeNew; j != bufferNew.size(); j++)
                 bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
         }
+        for (AnonymousNode key : toDelete)
+            edgesAnon.remove(key);
     }
 
     /**

@@ -199,7 +199,10 @@ public interface Dataset {
     void clear(GraphNode graph);
 
     /**
-     * Copies all the quads with the specified origin graph, to quads with the target graph
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed if the overwrite flag is used.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is not affected.
      *
      * @param origin The origin graph
      * @param target The target graph
@@ -207,7 +210,10 @@ public interface Dataset {
     void copy(GraphNode origin, GraphNode target);
 
     /**
-     * Moves all the quads with the specified origin graph, to quads with the target graph
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is always removed.
      *
      * @param origin The origin graph
      * @param target The target graph

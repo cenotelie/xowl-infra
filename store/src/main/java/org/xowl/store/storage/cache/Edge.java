@@ -196,43 +196,66 @@ class Edge implements Iterable<EdgeTarget> {
     }
 
     /**
-     * Copies all the quads with the specified origin graph, to quads with the target graph
-     *
-     * @param origin The origin graph
-     * @param target The target graph
-     * @param buffer The buffer of the new quads
-     */
-    public void copy(GraphNode origin, GraphNode target, List<CachedQuad> buffer) {
-        for (int i = 0; i != targets.length; i++) {
-            if (targets[i] != null) {
-                int originalSize = buffer.size();
-                targets[i].copy(origin, target, buffer);
-                for (int j = originalSize; j != buffer.size(); j++)
-                    buffer.get(j).setObject(targets[i].getTarget());
-            }
-        }
-    }
-
-    /**
-     * Moves all the quads with the specified origin graph, to quads with the target graph
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed if the overwrite flag is used.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is not affected.
      *
      * @param origin    The origin graph
      * @param target    The target graph
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
+     * @return true if the object is now empty
      */
-    public void move(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+    public boolean copy(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null) {
                 int originalSizeOld = bufferOld.size();
                 int originalSizeNew = bufferNew.size();
-                targets[i].move(origin, target, bufferOld, bufferNew);
+                boolean empty = targets[i].copy(origin, target, bufferOld, bufferNew, overwrite);
                 for (int j = originalSizeOld; j != bufferOld.size(); j++)
                     bufferOld.get(j).setObject(targets[i].getTarget());
                 for (int j = originalSizeNew; j != bufferNew.size(); j++)
                     bufferNew.get(j).setObject(targets[i].getTarget());
+                if (empty) {
+                    targets[i] = null;
+                    size--;
+                }
             }
         }
+        return (size == 0);
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is always removed.
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @return true if the object is now empty
+     */
+    public boolean move(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        for (int i = 0; i != targets.length; i++) {
+            if (targets[i] != null) {
+                int originalSizeOld = bufferOld.size();
+                int originalSizeNew = bufferNew.size();
+                boolean empty = targets[i].move(origin, target, bufferOld, bufferNew);
+                for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                    bufferOld.get(j).setObject(targets[i].getTarget());
+                for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                    bufferNew.get(j).setObject(targets[i].getTarget());
+                if (empty) {
+                    targets[i] = null;
+                    size--;
+                }
+            }
+        }
+        return (size == 0);
     }
 
     @Override
