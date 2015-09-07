@@ -211,6 +211,9 @@ public class SPARQLLoader {
             loadPrologue(node.getChildren().get(0));
             if (node.getChildren().size() >= 2) {
                 switch (node.getChildren().get(1).getSymbol().getID()) {
+                    case SPARQLParser.ID.load:
+                        result.add(loadCommandLoad(node.getChildren().get(1)));
+                        break;
                     case SPARQLParser.ID.create:
                         result.add(loadCommandCreate(node.getChildren().get(1)));
                         break;
@@ -285,6 +288,23 @@ public class SPARQLLoader {
         String value = node.getChildren().get(0).getValue();
         value = Utils.unescape(value.substring(1, value.length() - 1));
         baseURI = Utils.uriResolveRelative(baseURI, value);
+    }
+
+    /**
+     * Loads a LOAD command from the specified AST node
+     *
+     * @param node An AST node
+     * @return The LOAD command
+     */
+    private Command loadCommandLoad(ASTNode node) throws LoaderException {
+        boolean isSilent = (node.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.SILENT);
+        int index = isSilent ? 1 : 0;
+        String toLoad = loadGraphRef(node.getChildren().get(index)).y;
+        String target = null;
+        index++;
+        if (index < node.getChildren().size())
+            target = loadGraphRef(node.getChildren().get(index)).y;
+        return new CommandLoad(toLoad, target, isSilent);
     }
 
     /**

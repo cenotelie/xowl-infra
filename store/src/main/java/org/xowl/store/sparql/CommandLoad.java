@@ -20,6 +20,9 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Repository;
+import org.xowl.utils.SinkLogger;
+
 /**
  * Represents the SPARQL LOAD command.
  * The LOAD operation reads an RDF document from a IRI and inserts its triples into the specified graph in the Graph Store.
@@ -37,7 +40,7 @@ package org.xowl.store.sparql;
  *
  * @author Laurent Wouters
  */
-public class CommandLoad {
+public class CommandLoad implements Command {
     /**
      * The IRI of the resource to load
      */
@@ -62,5 +65,14 @@ public class CommandLoad {
         this.iri = iri;
         this.target = target;
         this.isSilent = isSilent;
+    }
+
+    @Override
+    public Result execute(Repository repository) {
+        if (target != null)
+            return isSilent ? ResultSuccess.INSTANCE : new ResultFailure("INTO clause is not supported");
+        SinkLogger logger = new SinkLogger();
+        repository.load(logger, iri);
+        return !logger.isOnError() || isSilent ? ResultSuccess.INSTANCE : ResultFailure.INSTANCE;
     }
 }
