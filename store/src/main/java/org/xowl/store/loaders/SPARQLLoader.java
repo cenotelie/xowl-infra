@@ -124,6 +124,9 @@ public class SPARQLLoader {
                 case SPARQLParser.ID.move:
                     result.add(loadCommandMove(current));
                     break;
+                case SPARQLParser.ID.add:
+                    result.add(loadCommandAdd(current));
+                    break;
             }
         } catch (LoaderException exception) {
             logger.error(exception);
@@ -286,6 +289,20 @@ public class SPARQLLoader {
         Couple<GraphReferenceType, String> refOrigin = loadGraphRef(node.getChildren().get(count - 2));
         Couple<GraphReferenceType, String> refTarget = loadGraphRef(node.getChildren().get(count - 1));
         return new CommandMove(refOrigin.x, refOrigin.y, refTarget.x, refTarget.y, isSilent);
+    }
+
+    /**
+     * Loads a ADD command from the specified AST node
+     *
+     * @param node An AST node
+     * @return The ADD command
+     */
+    private Command loadCommandAdd(ASTNode node) throws LoaderException {
+        int count = node.getChildren().size();
+        boolean isSilent = (count >= 3);
+        Couple<GraphReferenceType, String> refOrigin = loadGraphRef(node.getChildren().get(count - 2));
+        Couple<GraphReferenceType, String> refTarget = loadGraphRef(node.getChildren().get(count - 1));
+        return new CommandAdd(refOrigin.x, refOrigin.y, refTarget.x, refTarget.y, isSilent);
     }
 
     /**

@@ -204,10 +204,11 @@ public interface Dataset {
      * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
      * The quad in the origin graph is not affected.
      *
-     * @param origin The origin graph
-     * @param target The target graph
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param overwrite Whether to overwrite quads from the target graph
      */
-    void copy(GraphNode origin, GraphNode target);
+    void copy(GraphNode origin, GraphNode target, boolean overwrite);
 
     /**
      * Moves all the quads with the specified origin graph, to quads with the target graph.

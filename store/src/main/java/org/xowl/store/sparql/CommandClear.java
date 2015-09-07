@@ -33,9 +33,7 @@ import java.util.Collection;
  * Here, the DEFAULT keyword is used to remove all triples in the default graph of the Graph Store, the NAMED keyword is used to remove all triples in all named graphs of the Graph Store and the ALL keyword is used to remove all triples in all graphs of the Graph Store.
  * The GRAPH keyword is used to remove all triples from a graph denoted by IRIref.
  * This operation is not required to remove the empty graphs from the Graph Store, but an implementation MAY decide to do so.
- * If the store records the existence of empty graphs, then the SPARQL 1.1 Update service, by default, SHOULD return failure if the specified graph does not exist.
- * If SILENT is present, the result of the operation will always be success.
- * Stores that do not record empty graphs will always return success.
+ * The result of the operation will always be success.
  *
  * @author Laurent Wouters
  */

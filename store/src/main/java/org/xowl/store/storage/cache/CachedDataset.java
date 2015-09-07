@@ -831,12 +831,12 @@ public class CachedDataset implements Dataset {
     }
 
     @Override
-    public void copy(GraphNode origin, GraphNode target) {
+    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
         List<CachedQuad> bufferOld = new ArrayList<>();
         List<CachedQuad> bufferNew = new ArrayList<>();
-        doCopyFromIRIs(origin, target, bufferOld, bufferNew, true);
-        doCopyFromBlanks(origin, target, bufferOld, bufferNew, true);
-        doCopyFromAnons(origin, target, bufferOld, bufferNew, true);
+        doCopyFromIRIs(origin, target, bufferOld, bufferNew, overwrite);
+        doCopyFromBlanks(origin, target, bufferOld, bufferNew, overwrite);
+        doCopyFromAnons(origin, target, bufferOld, bufferNew, overwrite);
         if (!bufferOld.isEmpty() || !bufferNew.isEmpty()) {
             Changeset changeset = new Changeset((Collection) bufferNew, (Collection) bufferOld);
             for (ChangeListener listener : listeners) {

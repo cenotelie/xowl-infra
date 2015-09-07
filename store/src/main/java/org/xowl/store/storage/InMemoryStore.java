@@ -149,8 +149,8 @@ public class InMemoryStore implements BaseStore {
     }
 
     @Override
-    public void copy(GraphNode origin, GraphNode target) {
-        dataset.copy(origin, target);
+    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+        dataset.copy(origin, target, overwrite);
     }
 
     @Override

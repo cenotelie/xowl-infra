@@ -33,8 +33,7 @@ import java.util.Objects;
  * The difference between COPY and the DROP/INSERT combination is that if COPY is used to copy a graph onto itself then no operation will be performed and the data will be left as it was.
  * Using DROP/INSERT in this situation would result in an empty graph.
  * If the destination graph does not exist, it will be created.
- * By default, the service MAY return failure if the input graph does not exist.
- * If SILENT is present, the result of the operation will always be success.
+ * The result of the operation will always be success.
  *
  * @author Laurent Wouters
  */
@@ -83,7 +82,7 @@ public class CommandCopy implements Command {
             return ResultSuccess.INSTANCE;
         GraphNode graphOrigin = repository.getStore().getIRINode(originType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : origin);
         GraphNode graphTarget = repository.getStore().getIRINode(targetType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : target);
-        repository.getStore().copy(graphOrigin, graphTarget);
+        repository.getStore().copy(graphOrigin, graphTarget, true);
         return ResultSuccess.INSTANCE;
     }
 }

@@ -20,17 +20,22 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Repository;
+import org.xowl.store.rdf.GraphNode;
+import org.xowl.store.storage.NodeManager;
+
+import java.util.Objects;
+
 /**
  * Represents the SPARQL ADD command.
  * The ADD operation is a shortcut for inserting all data from an input graph into a destination graph.
  * Data from the input graph is not affected, and initial data from the destination graph, if any, is kept intact.
  * If the destination graph does not exist, it will be created.
- * By default, the service MAY return failure if the input graph does not exist.
- * If SILENT is present, the result of the operation will always be success.
+ * The result of the operation will always be success.
  *
  * @author Laurent Wouters
  */
-public class CommandAdd {
+public class CommandAdd implements Command {
     /**
      * The type of reference to the origin
      */
@@ -67,5 +72,15 @@ public class CommandAdd {
         this.targetType = targetType;
         this.target = target;
         this.isSilent = isSilent;
+    }
+
+    @Override
+    public Result execute(Repository repository) {
+        if (originType == targetType && Objects.equals(origin, target))
+            return ResultSuccess.INSTANCE;
+        GraphNode graphOrigin = repository.getStore().getIRINode(originType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : origin);
+        GraphNode graphTarget = repository.getStore().getIRINode(targetType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : target);
+        repository.getStore().copy(graphOrigin, graphTarget, false);
+        return ResultSuccess.INSTANCE;
     }
 }
