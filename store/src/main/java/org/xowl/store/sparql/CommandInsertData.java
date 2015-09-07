@@ -20,7 +20,10 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Repository;
+import org.xowl.store.rdf.Changeset;
 import org.xowl.store.rdf.Quad;
+import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +41,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public class CommandInsertData {
+public class CommandInsertData implements Command {
     /**
      * The quads to insert
      */
@@ -51,5 +54,15 @@ public class CommandInsertData {
      */
     public CommandInsertData(Collection<Quad> quads) {
         this.quads = new ArrayList<>(quads);
+    }
+
+    @Override
+    public Result execute(Repository repository) {
+        try {
+            repository.getStore().insert(new Changeset(quads, new ArrayList<Quad>()));
+            return ResultSuccess.INSTANCE;
+        } catch (UnsupportedNodeType exception) {
+            return new ResultFailure(exception.getMessage());
+        }
     }
 }

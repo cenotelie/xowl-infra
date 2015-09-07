@@ -20,7 +20,10 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Repository;
+import org.xowl.store.rdf.Changeset;
 import org.xowl.store.rdf.Quad;
+import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +39,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public class CommandDeleteData {
+public class CommandDeleteData implements Command {
     /**
      * The quads to delete
      */
@@ -49,5 +52,15 @@ public class CommandDeleteData {
      */
     public CommandDeleteData(Collection<Quad> quads) {
         this.quads = new ArrayList<>(quads);
+    }
+
+    @Override
+    public Result execute(Repository repository) {
+        try {
+            repository.getStore().insert(new Changeset(new ArrayList<Quad>(), quads));
+            return ResultSuccess.INSTANCE;
+        } catch (UnsupportedNodeType exception) {
+            return new ResultFailure(exception.getMessage());
+        }
     }
 }
