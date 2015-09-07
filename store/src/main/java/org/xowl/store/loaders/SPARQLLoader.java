@@ -49,6 +49,14 @@ public class SPARQLLoader {
      */
     private final NodeManager store;
     /**
+     * The context's default IRIs
+     */
+    private final Collection<String> defaultIRIs;
+    /**
+     * The context's named IRIs
+     */
+    private final Collection<String> namedIRIs;
+    /**
      * The loaded triples
      */
     private List<Quad> quads;
@@ -84,6 +92,21 @@ public class SPARQLLoader {
      */
     public SPARQLLoader(NodeManager store) {
         this.store = store;
+        this.defaultIRIs = new ArrayList<>();
+        this.namedIRIs = new ArrayList<>();
+    }
+
+    /**
+     * Initializes this loader
+     *
+     * @param store       The RDF store used to create nodes
+     * @param defaultIRIs The context's default IRIs
+     * @param namedIRIs   The context's named IRIs
+     */
+    public SPARQLLoader(NodeManager store, Collection<String> defaultIRIs, Collection<String> namedIRIs) {
+        this.store = store;
+        this.defaultIRIs = new ArrayList<>(defaultIRIs);
+        this.namedIRIs = new ArrayList<>(namedIRIs);
     }
 
     /**
@@ -307,6 +330,7 @@ public class SPARQLLoader {
 
     /**
      * Loads a graph reference from the specified AST node
+     *
      * @param node An AST node
      * @return The reference
      */

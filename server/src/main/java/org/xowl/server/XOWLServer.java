@@ -20,7 +20,6 @@
 
 package org.xowl.server;
 
-import org.xowl.store.IRIMapper;
 import org.xowl.store.Repository;
 import org.xowl.utils.ConsoleLogger;
 import org.xowl.utils.Logger;
@@ -51,7 +50,7 @@ public class XOWLServer extends HttpServlet {
         try {
             Repository repository = new Repository();
             repository.activateEntailmentRules(logger);
-            temp = newSimpleRDFService(logger, repository, "http://xowl.org");
+            temp = new SPARQLService(logger, repository);
         } catch (IOException exception) {
             logger.error(exception);
         }
@@ -62,18 +61,7 @@ public class XOWLServer extends HttpServlet {
         service.onGet(request, response);
     }
 
-    /**
-     * Creates a new simple RDF service serving the data in the specified repository
-     *
-     * @param logger     The logger
-     * @param repository The repository to serve
-     * @param baseURI    The base URI for this service
-     * @return The service
-     */
-    public static Service newSimpleRDFService(Logger logger, Repository repository, String baseURI) {
-        IRIMapper mapper = new IRIMapper();
-        mapper.addRegexpMap(75, "(.*)\\?res=(.*)", "\\2");
-        mapper.addRegexpMap(50, "(.*)", baseURI + "\\1");
-        return new SimpleRDFService(logger, repository, mapper);
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        service.onPost(request, response);
     }
 }

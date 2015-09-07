@@ -26,6 +26,8 @@ import org.xowl.utils.collections.Couple;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +40,29 @@ import java.util.List;
  * @author Laurent Wouters
  */
 public abstract class Service {
+
+    /**
+     * Gets the message body of the specified request
+     *
+     * @param request A request
+     * @return The message body
+     */
+    protected String getMessageBody(HttpServletRequest request) {
+        if (request.getContentLength() <= 0)
+            return "";
+        try (BufferedReader reader = request.getReader()) {
+            char[] buffer = new char[1024];
+            StringBuilder builder = new StringBuilder();
+            int read = reader.read(buffer);
+            while (read > 0) {
+                builder.append(buffer, 0, read);
+                read = reader.read(buffer);
+            }
+            return builder.toString();
+        } catch (IOException exception) {
+            return "";
+        }
+    }
 
     /**
      * Retrieves the requested content types by order of preference
@@ -122,4 +147,12 @@ public abstract class Service {
      * @param response The response to build
      */
     public abstract void onGet(HttpServletRequest request, HttpServletResponse response);
+
+    /**
+     * Responds to a POST request
+     *
+     * @param request  The request
+     * @param response The response to build
+     */
+    public abstract void onPost(HttpServletRequest request, HttpServletResponse response);
 }
