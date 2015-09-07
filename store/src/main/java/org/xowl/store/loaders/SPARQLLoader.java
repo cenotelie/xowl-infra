@@ -235,6 +235,9 @@ public class SPARQLLoader {
                     case SPARQLParser.ID.delete:
                         result.add(loadCommandDeleteData(node.getChildren().get(1)));
                         break;
+                    case SPARQLParser.ID.deleteWhere:
+                        result.add(loadCommandDeleteWhere(node.getChildren().get(1)));
+                        break;
                 }
             }
             node = node.getChildren().size() >= 3 ? node.getChildren().get(2) : null;
@@ -397,6 +400,17 @@ public class SPARQLLoader {
     private Command loadCommandDeleteData(ASTNode node) throws LoaderException {
         List<Quad> quads = loadQuads(node, store.getIRINode(NodeManager.DEFAULT_GRAPH));
         return new CommandDeleteData(Collections.unmodifiableCollection(quads));
+    }
+
+    /**
+     * Loads an DELETE WHERE command from the specified AST node
+     *
+     * @param node An AST node
+     * @return The DELETE WHERE command
+     */
+    private Command loadCommandDeleteWhere(ASTNode node) throws LoaderException {
+        List<Quad> quads = loadQuads(node, store.getIRINode(NodeManager.DEFAULT_GRAPH));
+        return new CommandDeleteWhere(Collections.unmodifiableCollection(quads));
     }
 
     /**

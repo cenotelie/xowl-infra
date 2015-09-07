@@ -20,6 +20,7 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Repository;
 import org.xowl.store.rdf.Quad;
 
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public class CommandDeleteWhere {
+public class CommandDeleteWhere implements Command {
     /**
      * The quads to delete
      */
@@ -48,5 +49,10 @@ public class CommandDeleteWhere {
      */
     public CommandDeleteWhere(Collection<Quad> quads) {
         this.quads = new ArrayList<>(quads);
+    }
+
+    @Override
+    public Result execute(Repository repository) {
+        return new ResultFailure("Not implemented");
     }
 }
