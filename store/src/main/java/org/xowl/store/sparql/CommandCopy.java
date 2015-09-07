@@ -20,6 +20,12 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Repository;
+import org.xowl.store.rdf.GraphNode;
+import org.xowl.store.storage.NodeManager;
+
+import java.util.Objects;
+
 /**
  * Represents the SPARQL COPY command.
  * The COPY operation is a shortcut for inserting all data from an input graph into a destination graph.
@@ -32,7 +38,7 @@ package org.xowl.store.sparql;
  *
  * @author Laurent Wouters
  */
-public class CommandCopy {
+public class CommandCopy implements Command {
     /**
      * The type of reference to the origin
      */
@@ -69,5 +75,15 @@ public class CommandCopy {
         this.targetType = targetType;
         this.target = target;
         this.isSilent = isSilent;
+    }
+
+    @Override
+    public Result execute(Repository repository) {
+        if (originType == targetType && Objects.equals(origin, target))
+            return ResultSuccess.INSTANCE;
+        GraphNode graphOrigin = repository.getStore().getIRINode(originType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : origin);
+        GraphNode graphTarget = repository.getStore().getIRINode(targetType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : target);
+        repository.getStore().copy(graphOrigin, graphTarget);
+        return ResultSuccess.INSTANCE;
     }
 }

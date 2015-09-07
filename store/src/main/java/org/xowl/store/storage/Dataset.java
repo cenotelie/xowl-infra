@@ -197,4 +197,20 @@ public interface Dataset {
      * @param graph A graph
      */
     void clear(GraphNode graph);
+
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph
+     *
+     * @param origin The origin graph
+     * @param target The target graph
+     */
+    void copy(GraphNode origin, GraphNode target);
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph
+     *
+     * @param origin The origin graph
+     * @param target The target graph
+     */
+    void move(GraphNode origin, GraphNode target);
 }

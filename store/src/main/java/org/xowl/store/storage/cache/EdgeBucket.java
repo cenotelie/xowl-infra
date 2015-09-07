@@ -179,6 +179,46 @@ class EdgeBucket implements Iterable<Edge> {
         return (size == 0);
     }
 
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph
+     *
+     * @param origin The origin graph
+     * @param target The target graph
+     * @param buffer The buffer of the new quads
+     */
+    public void copy(GraphNode origin, GraphNode target, List<CachedQuad> buffer) {
+        for (int i = 0; i != edges.length; i++) {
+            if (edges[i] != null) {
+                int originalSize = buffer.size();
+                edges[i].copy(origin, target, buffer);
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setProperty(edges[i].getProperty());
+            }
+        }
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     */
+    public void move(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        for (int i = 0; i != edges.length; i++) {
+            if (edges[i] != null) {
+                int originalSizeOld = bufferOld.size();
+                int originalSizeNew = bufferNew.size();
+                edges[i].move(origin, target, bufferOld, bufferNew);
+                for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                    bufferOld.get(j).setProperty(edges[i].getProperty());
+                for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                    bufferNew.get(j).setProperty(edges[i].getProperty());
+            }
+        }
+    }
+
     @Override
     public Iterator<Edge> iterator() {
         return new SparseIterator<>(edges);

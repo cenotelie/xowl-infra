@@ -20,6 +20,12 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Repository;
+import org.xowl.store.rdf.GraphNode;
+import org.xowl.store.storage.NodeManager;
+
+import java.util.Objects;
+
 /**
  * Represents the SPARQL MOVE command.
  * The MOVE operation is a shortcut for moving all data from an input graph into a destination graph.
@@ -32,7 +38,7 @@ package org.xowl.store.sparql;
  *
  * @author Laurent Wouters
  */
-public class CommandMove {
+public class CommandMove implements Command {
     /**
      * The type of reference to the origin
      */
@@ -69,5 +75,15 @@ public class CommandMove {
         this.targetType = targetType;
         this.target = target;
         this.isSilent = isSilent;
+    }
+
+    @Override
+    public Result execute(Repository repository) {
+        if (originType == targetType && Objects.equals(origin, target))
+            return ResultSuccess.INSTANCE;
+        GraphNode graphOrigin = repository.getStore().getIRINode(originType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : origin);
+        GraphNode graphTarget = repository.getStore().getIRINode(targetType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : target);
+        repository.getStore().move(graphOrigin, graphTarget);
+        return ResultSuccess.INSTANCE;
     }
 }

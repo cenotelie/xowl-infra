@@ -193,6 +193,86 @@ class EdgeTarget implements Iterable<GraphNode> {
         return (size == 0);
     }
 
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph
+     *
+     * @param origin The origin graph
+     * @param target The target graph
+     * @param buffer The buffer of the new quads
+     */
+    public void copy(GraphNode origin, GraphNode target, List<CachedQuad> buffer) {
+        int indexOld = -1;
+        int indexNew = -1;
+        int indexEmpty = -1;
+        for (int i = 0; i != graphs.length; i++) {
+            if (graphs[i] != null) {
+                if (graphs[i].equals(origin))
+                    indexOld = i;
+                if (graphs[i].equals(target))
+                    indexNew = i;
+            } else if (indexEmpty == -1) {
+                indexEmpty = i;
+            }
+        }
+        if (indexOld != -1) {
+            // if the origin graph is present, copy
+            if (indexNew != -1) {
+                // the target graph is also here, increment it
+                multiplicities[indexNew]++;
+            } else {
+                // insert the target graph
+                if (indexEmpty == -1) {
+                    // the buffer is full
+                    graphs = Arrays.copyOf(graphs, graphs.length + INIT_BUFFER_SIZE);
+                    multiplicities = Arrays.copyOf(multiplicities, multiplicities.length + INIT_BUFFER_SIZE);
+                    indexEmpty = size;
+                }
+                graphs[indexEmpty] = target;
+                multiplicities[indexEmpty] = 1;
+                size++;
+                buffer.add(new CachedQuad(target, null, null, null));
+            }
+        }
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     */
+    public void move(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        int indexOld = -1;
+        int indexNew = -1;
+        for (int i = 0; i != graphs.length; i++) {
+            if (graphs[i] != null) {
+                if (graphs[i].equals(origin))
+                    indexOld = i;
+                if (graphs[i].equals(target))
+                    indexNew = i;
+            }
+        }
+        if (indexOld != -1) {
+            // if the origin graph is present, copy
+            if (indexNew != -1) {
+                // the target graph is also here, increment it
+                multiplicities[indexNew]++;
+                graphs[indexOld] = null;
+                multiplicities[indexOld] = 0;
+                size--;
+            } else {
+                // replace the origin graph by the target one
+                // reset the multiplicity
+                graphs[indexOld] = target;
+                multiplicities[indexOld] = 1;
+                bufferNew.add(new CachedQuad(target, null, null, null));
+            }
+            bufferOld.add(new CachedQuad(target, null, null, null));
+        }
+    }
+
     @Override
     public Iterator<GraphNode> iterator() {
         return new SparseIterator<>(graphs);

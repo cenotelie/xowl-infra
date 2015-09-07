@@ -32,6 +32,7 @@ import org.xowl.store.sparql.*;
 import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.Files;
 import org.xowl.utils.Logger;
+import org.xowl.utils.collections.Couple;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -116,6 +117,12 @@ public class SPARQLLoader {
                     break;
                 case SPARQLParser.ID.clear:
                     result.add(loadCommandClear(current));
+                    break;
+                case SPARQLParser.ID.copy:
+                    result.add(loadCommandCopy(current));
+                    break;
+                case SPARQLParser.ID.move:
+                    result.add(loadCommandMove(current));
                     break;
             }
         } catch (LoaderException exception) {
@@ -236,30 +243,8 @@ public class SPARQLLoader {
     private Command loadCommandDrop(ASTNode node) throws LoaderException {
         int count = node.getChildren().size();
         boolean isSilent = (count >= 2);
-        ASTNode child = node.getChildren().get(count - 1);
-        GraphReferenceType refType = GraphReferenceType.Single;
-        IRINode iriNode = null;
-        switch (child.getSymbol().getID()) {
-            case SPARQLLexer.ID.DEFAULT:
-                refType = GraphReferenceType.Default;
-                break;
-            case SPARQLLexer.ID.NAMED:
-                refType = GraphReferenceType.Named;
-                break;
-            case SPARQLLexer.ID.ALL:
-                refType = GraphReferenceType.All;
-                break;
-            case SPARQLLexer.ID.IRIREF:
-                iriNode = getNodeIRIRef(node);
-                break;
-            case SPARQLLexer.ID.PNAME_LN:
-                iriNode = getNodePNameLN(node);
-                break;
-            case SPARQLLexer.ID.PNAME_NS:
-                iriNode = getNodePNameNS(node);
-                break;
-        }
-        return new CommandDrop(refType, iriNode != null ? iriNode.getIRIValue() : null, isSilent);
+        Couple<GraphReferenceType, String> ref = loadGraphRef(node.getChildren().get(count - 1));
+        return new CommandDrop(ref.x, ref.y, isSilent);
     }
 
     /**
@@ -271,10 +256,47 @@ public class SPARQLLoader {
     private Command loadCommandClear(ASTNode node) throws LoaderException {
         int count = node.getChildren().size();
         boolean isSilent = (count >= 2);
-        ASTNode child = node.getChildren().get(count - 1);
+        Couple<GraphReferenceType, String> ref = loadGraphRef(node.getChildren().get(count - 1));
+        return new CommandClear(ref.x, ref.y, isSilent);
+    }
+
+    /**
+     * Loads a COPY command from the specified AST node
+     *
+     * @param node An AST node
+     * @return The COPY command
+     */
+    private Command loadCommandCopy(ASTNode node) throws LoaderException {
+        int count = node.getChildren().size();
+        boolean isSilent = (count >= 3);
+        Couple<GraphReferenceType, String> refOrigin = loadGraphRef(node.getChildren().get(count - 2));
+        Couple<GraphReferenceType, String> refTarget = loadGraphRef(node.getChildren().get(count - 1));
+        return new CommandCopy(refOrigin.x, refOrigin.y, refTarget.x, refTarget.y, isSilent);
+    }
+
+    /**
+     * Loads a COPY command from the specified AST node
+     *
+     * @param node An AST node
+     * @return The COPY command
+     */
+    private Command loadCommandMove(ASTNode node) throws LoaderException {
+        int count = node.getChildren().size();
+        boolean isSilent = (count >= 3);
+        Couple<GraphReferenceType, String> refOrigin = loadGraphRef(node.getChildren().get(count - 2));
+        Couple<GraphReferenceType, String> refTarget = loadGraphRef(node.getChildren().get(count - 1));
+        return new CommandMove(refOrigin.x, refOrigin.y, refTarget.x, refTarget.y, isSilent);
+    }
+
+    /**
+     * Loads a graph reference from the specified AST node
+     * @param node An AST node
+     * @return The reference
+     */
+    private Couple<GraphReferenceType, String> loadGraphRef(ASTNode node) throws LoaderException {
         GraphReferenceType refType = GraphReferenceType.Single;
         IRINode iriNode = null;
-        switch (child.getSymbol().getID()) {
+        switch (node.getSymbol().getID()) {
             case SPARQLLexer.ID.DEFAULT:
                 refType = GraphReferenceType.Default;
                 break;
@@ -294,7 +316,7 @@ public class SPARQLLoader {
                 iriNode = getNodePNameNS(node);
                 break;
         }
-        return new CommandClear(refType, iriNode != null ? iriNode.getIRIValue() : null, isSilent);
+        return new Couple<>(refType, iriNode == null ? null : iriNode.getIRIValue());
     }
 
     /**

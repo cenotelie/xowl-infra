@@ -123,6 +123,96 @@ public class CachedDataset implements Dataset {
     }
 
     @Override
+    public Iterator<Quad> getAll() {
+        return getAll(null, null, null, null);
+    }
+
+    @Override
+    public Iterator<Quad> getAll(GraphNode graph) {
+        return getAll(graph, null, null, null);
+    }
+
+    @Override
+    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
+        return getAll(null, subject, property, object);
+    }
+
+    @Override
+    public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) {
+        if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
+            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<CachedQuad>>() {
+                @Override
+                public <X> Iterator<CachedQuad> adapt(X element) {
+                    Couple<SubjectNode, EdgeBucket> subject = (Couple<SubjectNode, EdgeBucket>) element;
+                    return subject.y.getAll(graph, property, object);
+                }
+            }), new Adapter<Quad>() {
+                @Override
+                public <X> Quad adapt(X element) {
+                    Couple<Couple<SubjectNode, EdgeBucket>, CachedQuad> result = (Couple<Couple<SubjectNode, EdgeBucket>, CachedQuad>) element;
+                    result.y.setSubject(result.x.x);
+                    return result.y;
+                }
+            });
+        } else {
+            EdgeBucket bucket = getBucketFor(subject);
+            if (bucket == null)
+                return new SingleIterator<>(null);
+            return new AdaptingIterator<>(bucket.getAll(graph, property, object), new Adapter<Quad>() {
+                @Override
+                public <X> Quad adapt(X element) {
+                    CachedQuad quad = (CachedQuad) element;
+                    quad.setSubject(subject);
+                    return quad;
+                }
+            });
+        }
+    }
+
+    @Override
+    public Collection<GraphNode> getGraphs() {
+        Collection<GraphNode> result = new ArrayList<>();
+        for (EdgeBucket bucket : edgesIRI.values())
+            bucket.getGraphs(result);
+        for (EdgeBucket bucket : edgesBlank.values())
+            bucket.getGraphs(result);
+        for (EdgeBucket bucket : edgesAnon.values())
+            bucket.getGraphs(result);
+        return result;
+    }
+
+    @Override
+    public long count() {
+        return count(null, null, null, null);
+    }
+
+    @Override
+    public long count(GraphNode graph) {
+        return count(graph, null, null, null);
+    }
+
+    @Override
+    public long count(SubjectNode subject, Property property, Node object) {
+        return count(null, subject, property, object);
+    }
+
+    @Override
+    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
+        if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
+            int count = 0;
+            Iterator<Couple<SubjectNode, EdgeBucket>> iterator = getAllSubjects();
+            while (iterator.hasNext())
+                count += iterator.next().y.count(graph, property, object);
+            return count;
+        } else {
+            EdgeBucket bucket = getBucketFor(subject);
+            if (bucket == null)
+                return 0;
+            return bucket.count(graph, property, object);
+        }
+    }
+
+    @Override
     public void insert(Change change) throws UnsupportedNodeType {
         Quad quad = change.getValue();
         if (change.isPositive()) {
@@ -741,92 +831,139 @@ public class CachedDataset implements Dataset {
     }
 
     @Override
-    public Iterator<Quad> getAll() {
-        return getAll(null, null, null, null);
+    public void copy(GraphNode origin, GraphNode target) {
+        List<CachedQuad> buffer = new ArrayList<>();
+        doCopyFromIRIs(origin, target, buffer);
+        doCopyFromBlanks(origin, target, buffer);
+        doCopyFromAnons(origin, target, buffer);
+        if (!buffer.isEmpty()) {
+            Changeset changeset = new Changeset((Collection) buffer, new ArrayList<Quad>());
+            for (ChangeListener listener : listeners) {
+                listener.onChange(changeset);
+            }
+        }
     }
 
-    @Override
-    public Iterator<Quad> getAll(GraphNode graph) {
-        return getAll(graph, null, null, null);
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph for IRI subjects
+     *
+     * @param origin The origin graph
+     * @param target The target graph
+     * @param buffer The buffer of the new quads
+     */
+    private void doCopyFromIRIs(GraphNode origin, GraphNode target, List<CachedQuad> buffer) {
+        for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
+            int originalSize = buffer.size();
+            entry.getValue().copy(origin, target, buffer);
+            for (int j = originalSize; j != buffer.size(); j++)
+                buffer.get(j).setSubject(entry.getKey());
+        }
     }
 
-    @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
-        return getAll(null, subject, property, object);
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph for blank subjects
+     *
+     * @param origin The origin graph
+     * @param target The target graph
+     * @param buffer The buffer of the new quads
+     */
+    private void doCopyFromBlanks(GraphNode origin, GraphNode target, List<CachedQuad> buffer) {
+        for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
+            int originalSize = buffer.size();
+            entry.getValue().copy(origin, target, buffer);
+            for (int j = originalSize; j != buffer.size(); j++)
+                buffer.get(j).setSubject(entry.getKey());
+        }
     }
 
-    @Override
-    public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) {
-        if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<CachedQuad>>() {
-                @Override
-                public <X> Iterator<CachedQuad> adapt(X element) {
-                    Couple<SubjectNode, EdgeBucket> subject = (Couple<SubjectNode, EdgeBucket>) element;
-                    return subject.y.getAll(graph, property, object);
-                }
-            }), new Adapter<Quad>() {
-                @Override
-                public <X> Quad adapt(X element) {
-                    Couple<Couple<SubjectNode, EdgeBucket>, CachedQuad> result = (Couple<Couple<SubjectNode, EdgeBucket>, CachedQuad>) element;
-                    result.y.setSubject(result.x.x);
-                    return result.y;
-                }
-            });
-        } else {
-            EdgeBucket bucket = getBucketFor(subject);
-            if (bucket == null)
-                return new SingleIterator<>(null);
-            return new AdaptingIterator<>(bucket.getAll(graph, property, object), new Adapter<Quad>() {
-                @Override
-                public <X> Quad adapt(X element) {
-                    CachedQuad quad = (CachedQuad) element;
-                    quad.setSubject(subject);
-                    return quad;
-                }
-            });
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph for anonymous subjects
+     *
+     * @param origin The origin graph
+     * @param target The target graph
+     * @param buffer The buffer of the new quads
+     */
+    private void doCopyFromAnons(GraphNode origin, GraphNode target, List<CachedQuad> buffer) {
+        for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
+            int originalSize = buffer.size();
+            entry.getValue().copy(origin, target, buffer);
+            for (int j = originalSize; j != buffer.size(); j++)
+                buffer.get(j).setSubject(entry.getKey());
         }
     }
 
     @Override
-    public Collection<GraphNode> getGraphs() {
-        Collection<GraphNode> result = new ArrayList<>();
-        for (EdgeBucket bucket : edgesIRI.values())
-            bucket.getGraphs(result);
-        for (EdgeBucket bucket : edgesBlank.values())
-            bucket.getGraphs(result);
-        for (EdgeBucket bucket : edgesAnon.values())
-            bucket.getGraphs(result);
-        return result;
+    public void move(GraphNode origin, GraphNode target) {
+        List<CachedQuad> bufferOld = new ArrayList<>();
+        List<CachedQuad> bufferNew = new ArrayList<>();
+        doMoveFromIRIs(origin, target, bufferOld, bufferNew);
+        doMoveFromBlanks(origin, target, bufferOld, bufferNew);
+        doMoveFromAnons(origin, target, bufferOld, bufferNew);
+        if (!bufferOld.isEmpty() || !bufferNew.isEmpty()) {
+            Changeset changeset = new Changeset((Collection) bufferNew, (Collection) bufferOld);
+            for (ChangeListener listener : listeners) {
+                listener.onChange(changeset);
+            }
+        }
     }
 
-    @Override
-    public long count() {
-        return count(null, null, null, null);
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph for IRI subjects
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the old quads
+     * @param bufferNew The buffer of the new quads
+     */
+    private void doMoveFromIRIs(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            entry.getValue().move(origin, target, bufferOld, bufferNew);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
+        }
     }
 
-    @Override
-    public long count(GraphNode graph) {
-        return count(graph, null, null, null);
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph for blank subjects
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the old quads
+     * @param bufferNew The buffer of the new quads
+     */
+    private void doMoveFromBlanks(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            entry.getValue().move(origin, target, bufferOld, bufferNew);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
+        }
     }
 
-    @Override
-    public long count(SubjectNode subject, Property property, Node object) {
-        return count(null, subject, property, object);
-    }
-
-    @Override
-    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
-            int count = 0;
-            Iterator<Couple<SubjectNode, EdgeBucket>> iterator = getAllSubjects();
-            while (iterator.hasNext())
-                count += iterator.next().y.count(graph, property, object);
-            return count;
-        } else {
-            EdgeBucket bucket = getBucketFor(subject);
-            if (bucket == null)
-                return 0;
-            return bucket.count(graph, property, object);
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph for anonymous subjects
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the old quads
+     * @param bufferNew The buffer of the new quads
+     */
+    private void doMoveFromAnons(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            entry.getValue().move(origin, target, bufferOld, bufferNew);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
         }
     }
 
