@@ -249,7 +249,7 @@ public class Repository extends AbstractRepository {
      * @param subject  The subject node representing the entity
      * @return The proxy
      */
-    private ProxyObject resolveProxy(Ontology ontology, SubjectNode subject) {
+    public ProxyObject resolveProxy(Ontology ontology, SubjectNode subject) {
         Map<SubjectNode, ProxyObject> sub = proxies.get(ontology);
         if (sub == null) {
             sub = new HashMap<>();

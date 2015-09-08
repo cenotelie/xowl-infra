@@ -23,6 +23,7 @@ import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.NodeManager;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
@@ -372,6 +373,8 @@ public class ProxyObject {
             Node node = iterator.next().getObject();
             if (node.getNodeType() == IRINode.TYPE) {
                 result.add(repository.resolveProxy(((IRINode) node).getIRIValue()));
+            } else if (node.getNodeType() == BlankNode.TYPE) {
+                result.add(repository.resolveProxy(repository.getOntology(NodeManager.DEFAULT_GRAPH), (SubjectNode) node));
             }
         }
         return result;
@@ -392,6 +395,8 @@ public class ProxyObject {
             Node node = iterator.next().getSubject();
             if (node.getNodeType() == IRINode.TYPE) {
                 result.add(repository.resolveProxy(((IRINode) node).getIRIValue()));
+            } else if (node.getNodeType() == BlankNode.TYPE) {
+                result.add(repository.resolveProxy(repository.getOntology(NodeManager.DEFAULT_GRAPH), (SubjectNode) node));
             }
         }
         return result;
