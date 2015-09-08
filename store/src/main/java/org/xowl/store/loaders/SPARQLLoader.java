@@ -126,7 +126,7 @@ public class SPARQLLoader {
 
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
-            return Collections.emptyList();
+            return null;
 
         try {
             switch (parseResult.getRoot().getSymbol().getID()) {
