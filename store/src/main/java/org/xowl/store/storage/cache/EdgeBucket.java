@@ -197,7 +197,7 @@ class EdgeBucket implements Iterable<Edge> {
             if (edges[i] != null) {
                 int originalSizeOld = bufferOld.size();
                 int originalSizeNew = bufferNew.size();
-                boolean empty = edges[i].move(origin, target, bufferOld, bufferNew);
+                boolean empty = edges[i].copy(origin, target, bufferOld, bufferNew, overwrite);
                 for (int j = originalSizeOld; j != bufferOld.size(); j++)
                     bufferOld.get(j).setProperty(edges[i].getProperty());
                 for (int j = originalSizeNew; j != bufferNew.size(); j++)

@@ -27,6 +27,7 @@ import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.InMemoryStore;
+import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.Logger;
 import org.xowl.utils.collections.Couple;
 
@@ -99,8 +100,9 @@ public abstract class BaseSPARQLTest {
         Assert.assertFalse("Failed to prepare the repository", logger.isOnError());
         Repository after = prepare(logger, outputs);
         Assert.assertFalse("Failed to prepare the repository", logger.isOnError());
-        String request = null;
-        try (InputStream stream = BaseSPARQLTest.class.getResourceAsStream(before.getIRIMapper().get(resource))) {
+        String request = before.getIRIMapper().get(resource);
+        request = request.substring(AbstractRepository.SCHEME_RESOURCE.length());
+        try (InputStream stream = BaseSPARQLTest.class.getResourceAsStream(request)) {
             InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
             char[] buffer = new char[1024];
             StringBuilder builder = new StringBuilder();
@@ -143,15 +145,12 @@ public abstract class BaseSPARQLTest {
         Repository repository = null;
         try {
             repository = new Repository();
-            repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/sparql/\\1");
+            repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
         } catch (IOException exception) {
             Assert.fail("Failed to initialize the repository");
         }
         for (Couple<String, String> input : inputs) {
-            if (input.y == null)
-                repository.load(logger, input.x);
-            else
-                repository.load(logger, input.y);
+            repository.load(logger, input.x, input.y == null ? NodeManager.DEFAULT_GRAPH : input.y);
         }
         return repository;
     }
