@@ -69,10 +69,8 @@ public class CommandLoad implements Command {
 
     @Override
     public Result execute(Repository repository) {
-        if (target != null)
-            return isSilent ? ResultSuccess.INSTANCE : new ResultFailure("INTO clause is not supported");
         SinkLogger logger = new SinkLogger();
-        repository.load(logger, iri);
+        repository.load(logger, iri, target == null ? iri : target);
         return !logger.isOnError() || isSilent ? ResultSuccess.INSTANCE : ResultFailure.INSTANCE;
     }
 }
