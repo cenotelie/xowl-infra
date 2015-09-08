@@ -71,7 +71,7 @@ public class CommandLoad implements Command {
     @Override
     public Result execute(Repository repository) {
         SinkLogger logger = new SinkLogger();
-        repository.load(logger, iri, target == null ? NodeManager.DEFAULT_GRAPH : target);
+        repository.load(logger, iri, target == null ? NodeManager.DEFAULT_GRAPH : target, true);
         return !logger.isOnError() || isSilent ? ResultSuccess.INSTANCE : ResultFailure.INSTANCE;
     }
 }

@@ -150,7 +150,7 @@ public abstract class BaseSPARQLTest {
             Assert.fail("Failed to initialize the repository");
         }
         for (Couple<String, String> input : inputs) {
-            repository.load(logger, input.x, input.y == null ? NodeManager.DEFAULT_GRAPH : input.y);
+            repository.load(logger, input.x, input.y == null ? NodeManager.DEFAULT_GRAPH : input.y, true);
         }
         return repository;
     }

@@ -197,7 +197,7 @@ public abstract class AbstractRepository {
      * @return The loaded ontology
      */
     public Ontology load(Logger logger, String resourceIRI) {
-        return load(logger, resourceIRI, resourceIRI);
+        return load(logger, resourceIRI, resourceIRI, false);
     }
 
     /**
@@ -206,15 +206,16 @@ public abstract class AbstractRepository {
      * @param logger      The current logger
      * @param resourceIRI The resource's IRI
      * @param ontologyIRI The IRI of the ontology within the document
+     * @param forceReload Whether to force the reloading of the resource
      * @return The loaded ontology
      */
-    public Ontology load(Logger logger, String resourceIRI, String ontologyIRI) {
-        Ontology result = loadResource(logger, resourceIRI, ontologyIRI);
+    public Ontology load(Logger logger, String resourceIRI, String ontologyIRI, boolean forceReload) {
+        Ontology result = loadResource(logger, resourceIRI, ontologyIRI, forceReload);
         while (!dependencies.isEmpty()) {
             List<String> batch = new ArrayList<>(dependencies);
             dependencies.clear();
             for (String dependency : batch) {
-                loadResource(logger, dependency, dependency);
+                loadResource(logger, dependency, dependency, false);
             }
         }
         return result;
@@ -295,18 +296,21 @@ public abstract class AbstractRepository {
      * @param logger      The current logger
      * @param resourceIRI The resource's IRI
      * @param ontologyIRI The IRI of the ontology within the document
+     * @param forceReload Whether to force the reloading of the resource
      * @return The loaded ontology
      */
-    private Ontology loadResource(Logger logger, String resourceIRI, String ontologyIRI) {
+    private Ontology loadResource(Logger logger, String resourceIRI, String ontologyIRI, boolean forceReload) {
         String resource = mapper.get(resourceIRI);
         if (resource == null) {
             logger.error("Cannot identify the location of " + resourceIRI);
             return null;
         }
-        Ontology ontology = resources.get(resourceIRI);
-        if (ontology != null)
-            // the resource is already loaded
-            return ontology;
+        if (!forceReload) {
+            Ontology ontology = resources.get(resourceIRI);
+            if (ontology != null)
+                // the resource is already loaded
+                return ontology;
+        }
         Reader reader = getReaderFor(logger, resource);
         if (reader == null)
             return null;
