@@ -134,7 +134,7 @@ public abstract class W3CTestSuite {
             Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
             Loader loader = getLoader(expectedResource);
             Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult expected = loader.loadRDF(logger, reader, expectedURI);
+            RDFLoaderResult expected = loader.loadRDF(logger, reader, expectedURI, expectedURI);
             Assert.assertFalse("Failed to parse expected resource " + expectedResource, logger.isOnError());
             Assert.assertNotNull("Failed to load expected resource " + expectedResource, expected);
             expectedQuads.addAll(expected.getQuads());
@@ -146,7 +146,7 @@ public abstract class W3CTestSuite {
             Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
             Loader loader = getLoader(testedResource);
             Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI);
+            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
             Assert.assertFalse("Failed to parse tested resource " + testedResource, logger.isOnError());
             Assert.assertNotNull("Failed to load tested resource " + testedResource, tested);
             testedQuads.addAll(tested.getQuads());
@@ -179,7 +179,7 @@ public abstract class W3CTestSuite {
             Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
             Loader loader = getLoader(testedResource);
             Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI);
+            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
             Assert.assertFalse("Failed to parse tested resource " + testedResource, logger.isOnError());
             Assert.assertNotNull("Failed to load tested resource " + testedResource, tested);
         } catch (IOException exception) {
@@ -199,7 +199,7 @@ public abstract class W3CTestSuite {
             Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
             Loader loader = getLoader(testedResource);
             Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI);
+            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
             Assert.assertTrue("Failed to report error on bad input " + testedResource, logger.isOnError());
             Assert.assertNull("Mistakenly reported success of loading " + testedResource, tested);
         } catch (IOException exception) {
