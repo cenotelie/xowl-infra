@@ -62,7 +62,7 @@ public class Repository extends AbstractRepository {
     /**
      * The proxies onto this repository
      */
-    private final Map<Ontology, Map<IRINode, ProxyObject>> proxies;
+    private final Map<Ontology, Map<SubjectNode, ProxyObject>> proxies;
     /**
      * The evaluator to use
      */
@@ -227,17 +227,17 @@ public class Repository extends AbstractRepository {
      */
     public Iterator<ProxyObject> getProxiesIn(final Ontology ontology) {
         Iterator<Quad> quads = backend.getAll(getGraph(ontology));
-        final HashSet<Node> known = new HashSet<>();
+        final HashSet<SubjectNode> known = new HashSet<>();
         return new SkippableIterator<>(new AdaptingIterator<>(quads, new Adapter<ProxyObject>() {
             @Override
             public <X> ProxyObject adapt(X element) {
-                Node subject = ((Quad) element).getSubject();
-                if (subject.getNodeType() != IRINode.TYPE)
+                SubjectNode subject = ((Quad) element).getSubject();
+                if (subject.getNodeType() != IRINode.TYPE && subject.getNodeType() != BlankNode.TYPE)
                     return null;
                 if (known.contains(subject))
                     return null;
                 known.add(subject);
-                return resolveProxy(ontology, (IRINode) subject);
+                return resolveProxy(ontology, subject);
             }
         }));
     }
@@ -246,20 +246,20 @@ public class Repository extends AbstractRepository {
      * Resolves a proxy on the entity represented by the specified node in the specified ontology
      *
      * @param ontology The ontology defining the entity
-     * @param iriNode  The IRI node representing the entity
+     * @param subject  The subject node representing the entity
      * @return The proxy
      */
-    private ProxyObject resolveProxy(Ontology ontology, IRINode iriNode) {
-        Map<IRINode, ProxyObject> sub = proxies.get(ontology);
+    private ProxyObject resolveProxy(Ontology ontology, SubjectNode subject) {
+        Map<SubjectNode, ProxyObject> sub = proxies.get(ontology);
         if (sub == null) {
             sub = new HashMap<>();
             proxies.put(ontology, sub);
         }
-        ProxyObject proxy = sub.get(iriNode);
+        ProxyObject proxy = sub.get(subject);
         if (proxy != null)
             return proxy;
-        proxy = new ProxyObject(this, ontology, iriNode);
-        sub.put(iriNode, proxy);
+        proxy = new ProxyObject(this, ontology, subject);
+        sub.put(subject, proxy);
         return proxy;
     }
 
@@ -294,7 +294,7 @@ public class Repository extends AbstractRepository {
      * @return A proxy on the new object
      */
     public ProxyObject newObject(Ontology ontology) {
-        Map<IRINode, ProxyObject> sub = proxies.get(ontology);
+        Map<SubjectNode, ProxyObject> sub = proxies.get(ontology);
         if (sub == null) {
             sub = new HashMap<>();
             proxies.put(ontology, sub);
@@ -311,10 +311,10 @@ public class Repository extends AbstractRepository {
      * @param proxy A proxy
      */
     protected void remove(ProxyObject proxy) {
-        Map<IRINode, ProxyObject> sub = proxies.get(proxy.getOntology());
+        Map<SubjectNode, ProxyObject> sub = proxies.get(proxy.getOntology());
         if (sub == null)
             return;
-        sub.remove(proxy.entity);
+        sub.remove(proxy.subject);
     }
 
     /**
