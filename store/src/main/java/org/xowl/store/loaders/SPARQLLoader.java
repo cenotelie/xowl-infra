@@ -320,13 +320,13 @@ public class SPARQLLoader {
         IRINode iriNode = null;
         switch (child.getSymbol().getID()) {
             case SPARQLLexer.ID.IRIREF:
-                iriNode = getNodeIRIRef(node);
+                iriNode = getNodeIRIRef(child);
                 break;
             case SPARQLLexer.ID.PNAME_LN:
-                iriNode = getNodePNameLN(node);
+                iriNode = getNodePNameLN(child);
                 break;
             case SPARQLLexer.ID.PNAME_NS:
-                iriNode = getNodePNameNS(node);
+                iriNode = getNodePNameNS(child);
                 break;
         }
         return new CommandCreate(iriNode != null ? iriNode.getIRIValue() : null, isSilent);

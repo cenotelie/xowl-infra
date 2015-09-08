@@ -85,7 +85,7 @@ public class InMemoryStore implements BaseStore {
 
     @Override
     public Collection<GraphNode> getGraphs() {
-        return null;
+        return dataset.getGraphs();
     }
 
     @Override
