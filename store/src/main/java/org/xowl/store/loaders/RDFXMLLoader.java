@@ -157,10 +157,10 @@ public class RDFXMLLoader implements Loader {
     }
 
     @Override
-    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String resourceIRI, String graphIRI) {
         RDFLoaderResult result = new RDFLoaderResult();
         quads = result.getQuads();
-        graph = store.getIRINode(uri);
+        graph = store.getIRINode(graphIRI);
         blanks = new HashMap<>();
         knownIDs = new ArrayList<>();
         imports = result.getImports();
@@ -169,7 +169,7 @@ public class RDFXMLLoader implements Loader {
             DOMParser parser = new DOMParser();
             parser.parse(new InputSource(reader));
             Document document = parser.getDocument();
-            XMLElement root = new XMLElement(document.getDocumentElement(), uri);
+            XMLElement root = new XMLElement(document.getDocumentElement(), resourceIRI);
             if (Vocabulary.rdfRDF.equals(root.getNodeIRI()))
                 loadDocument(root);
             else
