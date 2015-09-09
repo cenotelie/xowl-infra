@@ -109,4 +109,25 @@ public class QuerySolution implements Iterable<Couple<VariableNode, Node>> {
     public Iterator<Couple<VariableNode, Node>> iterator() {
         return bindings.iterator();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof QuerySolution))
+            return false;
+        QuerySolution solution = (QuerySolution) o;
+        if (solution.bindings.size() != this.bindings.size())
+            return false;
+        for (Couple<VariableNode, Node> binding : this.bindings) {
+            boolean found = false;
+            for (Couple<VariableNode, Node> candidate : solution.bindings) {
+                if (candidate.x.equals(binding.x) && candidate.y.equals(binding.y)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                return false;
+        }
+        return true;
+    }
 }
