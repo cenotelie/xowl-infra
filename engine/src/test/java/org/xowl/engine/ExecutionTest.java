@@ -36,7 +36,7 @@ public class ExecutionTest {
     public void testExecutionHello() {
         try {
             TestLogger logger = new TestLogger();
-            Engine engine = new Engine();
+            ClojureEvaluator engine = new ClojureEvaluator();
             engine.getRepository().getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
             engine.getRepository().load(logger, "http://xowl.org/engine/tests/Sample");
             Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
@@ -52,7 +52,7 @@ public class ExecutionTest {
     public void testExecutionInnerCall() {
         try {
             TestLogger logger = new TestLogger();
-            Engine engine = new Engine();
+            ClojureEvaluator engine = new ClojureEvaluator();
             engine.getRepository().getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
             engine.getRepository().load(logger, "http://xowl.org/engine/tests/Sample");
             Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
@@ -68,7 +68,7 @@ public class ExecutionTest {
     public void testExecutionInnerRule() {
         try {
             TestLogger logger = new TestLogger();
-            Engine engine = new Engine();
+            ClojureEvaluator engine = new ClojureEvaluator();
             engine.getRepository().getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
             engine.getRepository().load(logger, "http://xowl.org/engine/tests/Sample");
             Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());

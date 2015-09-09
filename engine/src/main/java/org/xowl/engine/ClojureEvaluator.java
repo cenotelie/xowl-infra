@@ -42,11 +42,11 @@ import java.util.List;
 import java.util.Stack;
 
 /**
- * Represents an execution engine for xOWL ontologies
+ * Represents the Clojure evaluator for xOWL ontologies
  *
  * @author Laurent Wouters
  */
-public class Engine implements Evaluator {
+public class ClojureEvaluator implements Evaluator {
     /**
      * The root namespace for the Clojure symbols
      */
@@ -141,7 +141,7 @@ public class Engine implements Evaluator {
      *
      * @throws IOException When the backend cannot allocate a temporary file
      */
-    public Engine() throws IOException {
+    public ClojureEvaluator() throws IOException {
         this.repository = new Repository(this);
         this.stackOWL = new Stack<>();
         this.stackCLJ = new Stack<>();
@@ -153,7 +153,7 @@ public class Engine implements Evaluator {
      * @param mapper The IRI mapper to use
      * @throws IOException When the backend cannot allocate a temporary file
      */
-    public Engine(IRIMapper mapper) throws IOException {
+    public ClojureEvaluator(IRIMapper mapper) throws IOException {
         this.repository = new Repository(mapper, this);
         this.stackOWL = new Stack<>();
         this.stackCLJ = new Stack<>();
