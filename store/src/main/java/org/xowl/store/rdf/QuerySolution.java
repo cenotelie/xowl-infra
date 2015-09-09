@@ -20,9 +20,10 @@
 
 package org.xowl.store.rdf;
 
+import org.xowl.utils.collections.Couple;
+
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Represents a solution to a RDF query
@@ -33,24 +34,15 @@ public class QuerySolution {
     /**
      * The content of this solution
      */
-    private final Map<VariableNode, Node> content;
-
-    /**
-     * Gets the inner content
-     *
-     * @return The inner content
-     */
-    Map<VariableNode, Node> getContent() {
-        return content;
-    }
+    protected final Collection<Couple<VariableNode, Node>> bindings;
 
     /**
      * Initializes this solution
      *
-     * @param bindings The bindings represented by this solution
+     * @param bindings The bindings
      */
-    QuerySolution(Map<VariableNode, Node> bindings) {
-        this.content = new HashMap<>(bindings);
+    public QuerySolution(Collection<Couple<VariableNode, Node>> bindings) {
+        this.bindings = new ArrayList<>(bindings);
     }
 
     /**
@@ -59,7 +51,7 @@ public class QuerySolution {
      * @return The size of this solution
      */
     public int size() {
-        return content.size();
+        return bindings.size();
     }
 
     /**
@@ -68,7 +60,10 @@ public class QuerySolution {
      * @return The list if the matched variables in this solution
      */
     public Collection<VariableNode> getVariables() {
-        return content.keySet();
+        Collection<VariableNode> result = new ArrayList<>(bindings.size());
+        for (Couple<VariableNode, Node> binding : bindings)
+            result.add(binding.x);
+        return result;
     }
 
     /**
@@ -78,7 +73,10 @@ public class QuerySolution {
      * @return The value associated to the specified variable
      */
     public Node get(VariableNode variable) {
-        return content.get(variable);
+        for (Couple<VariableNode, Node> binding : bindings)
+            if (binding.x.equals(variable))
+                return binding.y;
+        return null;
     }
 
     /**
@@ -88,10 +86,29 @@ public class QuerySolution {
      * @return The value associated to the specified variable
      */
     public Node get(String variable) {
-        for (VariableNode var : content.keySet()) {
-            if (var.getName().equals(variable))
-                return content.get(var);
-        }
+        for (Couple<VariableNode, Node> binding : bindings)
+            if (binding.x.getName().equals(variable))
+                return binding.y;
         return null;
+    }
+
+    /**
+     * Binds (or re-binds) the specified variable to a value
+     *
+     * @param variable The variable to bind
+     * @param value    The value to bind to
+     */
+    public void bind(String variable, Node value) {
+        bind(new VariableNode(variable), value);
+    }
+
+    /**
+     * Binds (or re-binds) the specified variable to a value
+     *
+     * @param variable The variable to bind
+     * @param value    The value to bind to
+     */
+    public void bind(VariableNode variable, Node value) {
+        bindings.add(new Couple<>(variable, value));
     }
 }

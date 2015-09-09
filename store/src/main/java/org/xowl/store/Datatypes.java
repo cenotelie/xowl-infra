@@ -18,11 +18,11 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.engine;
+package org.xowl.store;
 
-import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Literal;
-import org.xowl.store.Vocabulary;
+import org.xowl.store.rdf.LiteralNode;
+import org.xowl.utils.collections.Couple;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -31,12 +31,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Represents the implementation of a datatype in the current runtime
+ * Utility API for mapping RDF literals to native values
  *
- * @param <T> The native type implementing the datatype
  * @author Laurent Wouters
  */
-abstract class DatatypeImpl<T> {
+public class Datatypes {
     /**
      * Datatype for real numbers
      */
@@ -47,35 +46,33 @@ abstract class DatatypeImpl<T> {
     private static final String OWL_RATIONAL = Vocabulary.owl + "rational";
 
     /**
-     * Encodes the specified native value into a literal
+     * Represents the implementation of a datatype in the current runtime
      *
-     * @param value The value to encode
-     * @return The corresponding literal
+     * @param <T> The native type implementing the datatype
      */
-    public abstract Literal encode(T value);
+    private static abstract class DatatypeImpl<T> {
+        /**
+         * Gets the default datatype for this implementation
+         *
+         * @return The default datatype for this implementation
+         */
+        public abstract String getDatatype();
 
-    /**
-     * Decodes the specified literal into a native value
-     *
-     * @param literal The literal to decode
-     * @return The corresponding native value
-     */
-    public abstract T decode(Literal literal);
+        /**
+         * Encodes the specified native value into a lexical value
+         *
+         * @param value The value to encode
+         * @return The corresponding lexical value
+         */
+        public abstract String encode(T value);
 
-    /**
-     * Gets the literal for the specified data
-     *
-     * @param lexical The lexical value
-     * @param iri     The datatype's IRI
-     * @return The literal
-     */
-    protected Literal getLiteral(String lexical, String iri) {
-        Literal literal = new Literal();
-        IRI datatypeIRI = new IRI();
-        datatypeIRI.setHasValue(iri);
-        literal.setLexicalValue(lexical);
-        literal.setMemberOf(datatypeIRI);
-        return literal;
+        /**
+         * Decodes the specified lexical value into a native value
+         *
+         * @param lexical The lexical value to decode
+         * @return The corresponding native value
+         */
+        public abstract T decode(String lexical);
     }
 
     /**
@@ -88,13 +85,18 @@ abstract class DatatypeImpl<T> {
         public static final DatatypeModelByte INSTANCE = new DatatypeModelByte();
 
         @Override
-        public Literal encode(Byte value) {
-            return getLiteral(value.toString(), Vocabulary.xsdByte);
+        public String getDatatype() {
+            return Vocabulary.xsdByte;
         }
 
         @Override
-        public Byte decode(Literal literal) {
-            return Byte.valueOf(literal.getLexicalValue());
+        public String encode(Byte value) {
+            return value.toString();
+        }
+
+        @Override
+        public Byte decode(String lexical) {
+            return Byte.valueOf(lexical);
         }
     }
 
@@ -108,13 +110,18 @@ abstract class DatatypeImpl<T> {
         public static final DatatypeModelShort INSTANCE = new DatatypeModelShort();
 
         @Override
-        public Literal encode(Short value) {
-            return getLiteral(value.toString(), Vocabulary.xsdShort);
+        public String getDatatype() {
+            return Vocabulary.xsdShort;
         }
 
         @Override
-        public Short decode(Literal literal) {
-            return Short.valueOf(literal.getLexicalValue());
+        public String encode(Short value) {
+            return value.toString();
+        }
+
+        @Override
+        public Short decode(String lexical) {
+            return Short.valueOf(lexical);
         }
     }
 
@@ -128,13 +135,18 @@ abstract class DatatypeImpl<T> {
         public static final DatatypeModelInteger INSTANCE = new DatatypeModelInteger();
 
         @Override
-        public Literal encode(Integer value) {
-            return getLiteral(value.toString(), Vocabulary.xsdInt);
+        public String getDatatype() {
+            return Vocabulary.xsdInt;
         }
 
         @Override
-        public Integer decode(Literal literal) {
-            return Integer.valueOf(literal.getLexicalValue());
+        public String encode(Integer value) {
+            return value.toString();
+        }
+
+        @Override
+        public Integer decode(String lexical) {
+            return Integer.valueOf(lexical);
         }
     }
 
@@ -148,13 +160,18 @@ abstract class DatatypeImpl<T> {
         public static final DatatypeModelLong INSTANCE = new DatatypeModelLong();
 
         @Override
-        public Literal encode(Long value) {
-            return getLiteral(value.toString(), Vocabulary.xsdLong);
+        public String getDatatype() {
+            return Vocabulary.xsdLong;
         }
 
         @Override
-        public Long decode(Literal literal) {
-            return Long.valueOf(literal.getLexicalValue());
+        public String encode(Long value) {
+            return value.toString();
+        }
+
+        @Override
+        public Long decode(String lexical) {
+            return Long.valueOf(lexical);
         }
     }
 
@@ -168,13 +185,18 @@ abstract class DatatypeImpl<T> {
         public static final DatatypeModelFloat INSTANCE = new DatatypeModelFloat();
 
         @Override
-        public Literal encode(Float value) {
-            return getLiteral(value.toString(), Vocabulary.xsdFloat);
+        public String getDatatype() {
+            return Vocabulary.xsdFloat;
         }
 
         @Override
-        public Float decode(Literal literal) {
-            return Float.valueOf(literal.getLexicalValue());
+        public String encode(Float value) {
+            return value.toString();
+        }
+
+        @Override
+        public Float decode(String lexical) {
+            return Float.valueOf(lexical);
         }
     }
 
@@ -188,13 +210,18 @@ abstract class DatatypeImpl<T> {
         public static final DatatypeModelDouble INSTANCE = new DatatypeModelDouble();
 
         @Override
-        public Literal encode(Double value) {
-            return getLiteral(value.toString(), Vocabulary.xsdDouble);
+        public String getDatatype() {
+            return Vocabulary.xsdDouble;
         }
 
         @Override
-        public Double decode(Literal literal) {
-            return Double.valueOf(literal.getLexicalValue());
+        public String encode(Double value) {
+            return value.toString();
+        }
+
+        @Override
+        public Double decode(String lexical) {
+            return Double.valueOf(lexical);
         }
     }
 
@@ -208,13 +235,18 @@ abstract class DatatypeImpl<T> {
         public static final DatatypeModelBoolean INSTANCE = new DatatypeModelBoolean();
 
         @Override
-        public Literal encode(Boolean value) {
-            return getLiteral(value.toString(), Vocabulary.xsdBoolean);
+        public String getDatatype() {
+            return Vocabulary.xsdBoolean;
         }
 
         @Override
-        public Boolean decode(Literal literal) {
-            return Boolean.valueOf(literal.getLexicalValue());
+        public String encode(Boolean value) {
+            return value.toString();
+        }
+
+        @Override
+        public Boolean decode(String lexical) {
+            return Boolean.valueOf(lexical);
         }
     }
 
@@ -228,13 +260,18 @@ abstract class DatatypeImpl<T> {
         public static final DatatypeModelString INSTANCE = new DatatypeModelString();
 
         @Override
-        public Literal encode(String value) {
-            return getLiteral(value, Vocabulary.xsdString);
+        public String getDatatype() {
+            return Vocabulary.xsdString;
         }
 
         @Override
-        public String decode(Literal literal) {
-            return literal.getLexicalValue();
+        public String encode(String value) {
+            return value;
+        }
+
+        @Override
+        public String decode(String lexical) {
+            return lexical;
         }
     }
 
@@ -248,14 +285,19 @@ abstract class DatatypeImpl<T> {
         public static final DatatypeModelDate INSTANCE = new DatatypeModelDate();
 
         @Override
-        public Literal encode(Date value) {
-            return getLiteral(value.toString(), Vocabulary.xsdDate);
+        public String getDatatype() {
+            return Vocabulary.xsdDate;
         }
 
         @Override
-        public Date decode(Literal literal) {
+        public String encode(Date value) {
+            return value.toString();
+        }
+
+        @Override
+        public Date decode(String lexical) {
             try {
-                return SimpleDateFormat.getDateInstance().parse(literal.getLexicalValue());
+                return SimpleDateFormat.getDateInstance().parse(lexical);
             } catch (ParseException exception) {
                 exception.printStackTrace();
                 return null;
@@ -317,27 +359,54 @@ abstract class DatatypeImpl<T> {
      * @param value The value to encode
      * @return The corresponding literal
      */
-    public static Literal get(Object value) {
-        return REGISTER_CLASS.get(value.getClass()).encode(value);
+    public static Couple<String, String> toLiteral(Object value) {
+        DatatypeImpl impl = REGISTER_CLASS.get(value.getClass());
+        if (impl == null)
+            return new Couple<>(value.toString(), Vocabulary.xsdString);
+        return new Couple<>(impl.encode(value), impl.getDatatype());
     }
 
     /**
      * Decodes the specified literal into a native value
      *
-     * @param literal The literal to decode
+     * @param lexical  The literal's lexical value
+     * @param datatype the literal's datatype
      * @return The corresponding native value
      */
-    public static Object get(Literal literal) {
-        return REGISTER_IRI.get(literal.getMemberOf().getHasValue()).decode(literal);
+    public static Object toNative(String lexical, String datatype) {
+        DatatypeImpl impl = REGISTER_IRI.get(datatype);
+        if (impl == null)
+            return lexical;
+        return impl.decode(lexical);
     }
 
     /**
-     * Gets whether the specified object can be converted to an OWL2 literal
+     * Decodes the specified literal into a native value
      *
-     * @param object An object
-     * @return true if an literal can be produced
+     * @param literal The literal
+     * @return The corresponding native value
      */
-    public static boolean handles(Object object) {
-        return REGISTER_CLASS.containsKey(object.getClass());
+    public static Object toNative(Literal literal) {
+        return toNative(literal.getLexicalValue(), literal.getMemberOf().getHasValue());
+    }
+
+    /**
+     * Decodes the specified literal into a native value
+     *
+     * @param literal The literal
+     * @return The corresponding native value
+     */
+    public static Object toNative(org.xowl.lang.runtime.Literal literal) {
+        return toNative(literal.getLexicalValue(), literal.getMemberOf().getInterpretationOf().getHasIRI().getHasValue());
+    }
+
+    /**
+     * Decodes the specified literal into a native value
+     *
+     * @param literal The literal
+     * @return The corresponding native value
+     */
+    public static Object toNative(LiteralNode literal) {
+        return toNative(literal.getLexicalValue(), literal.getDatatype());
     }
 }

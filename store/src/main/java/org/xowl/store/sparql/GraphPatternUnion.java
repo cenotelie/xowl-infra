@@ -23,18 +23,34 @@ package org.xowl.store.sparql;
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.QuerySolution;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 /**
- * Represents an expression in SPARQL
+ * Represents the union of multiple graph patterns
  *
  * @author Laurent Wouters
  */
-public interface Expression {
+public class GraphPatternUnion implements GraphPattern {
     /**
-     * Evaluates this expression
-     *
-     * @param repository The repository to evaluate on
-     * @param bindings   The current bindings
-     * @return The result
+     * The sub elements
      */
-    Object eval(Repository repository, QuerySolution bindings);
+    private final Collection<GraphPattern> elements;
+
+    /**
+     * Initializes this pattern
+     *
+     * @param elements The sub elements
+     */
+    public GraphPatternUnion(Collection<GraphPattern> elements) {
+        this.elements = new ArrayList<>(elements);
+    }
+
+    @Override
+    public Collection<QuerySolution> match(Repository repository) {
+        Collection<QuerySolution> result = new ArrayList<>();
+        for (GraphPattern element : elements)
+            result.addAll(element.match(repository));
+        return result;
+    }
 }

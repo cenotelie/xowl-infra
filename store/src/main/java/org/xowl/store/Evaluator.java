@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.owl;
+package org.xowl.store;
 
 import org.xowl.lang.actions.DynamicExpression;
 import org.xowl.lang.actions.FunctionExpression;
@@ -26,6 +26,7 @@ import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
 import org.xowl.lang.runtime.Literal;
+import org.xowl.store.owl.Bindings;
 
 /**
  * Represents an evaluator of OWL dynamix expressions

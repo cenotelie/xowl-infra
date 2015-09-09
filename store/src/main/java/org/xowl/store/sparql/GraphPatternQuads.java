@@ -21,20 +21,35 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
+import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.Query;
 import org.xowl.store.rdf.QuerySolution;
 
+import java.util.Collection;
+
 /**
- * Represents an expression in SPARQL
+ * A graph pattern represented by a template of quads
  *
  * @author Laurent Wouters
  */
-public interface Expression {
+public class GraphPatternQuads implements GraphPattern {
     /**
-     * Evaluates this expression
-     *
-     * @param repository The repository to evaluate on
-     * @param bindings   The current bindings
-     * @return The result
+     * The RDF query
      */
-    Object eval(Repository repository, QuerySolution bindings);
+    private final Query query;
+
+    /**
+     * Initializes this pattern
+     *
+     * @param quads The quads to match
+     */
+    public GraphPatternQuads(Collection<Quad> quads) {
+        this.query = new Query();
+        this.query.getPositives().addAll(quads);
+    }
+
+    @Override
+    public Collection<QuerySolution> match(Repository repository) {
+        return repository.getRDFQueryEngine().execute(query);
+    }
 }

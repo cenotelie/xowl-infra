@@ -443,20 +443,8 @@ public class QueryEngine implements ChangeListener {
      * @return The realized quads
      */
     public static Collection<Quad> apply(Collection<Quad> template, QuerySolution solution) {
-        return apply(template, solution.getContent());
-    }
-
-    /**
-     * Applies the specified mapping to a template.
-     * This replaces the variable nodes in the template by their value in the mapping
-     *
-     * @param template The template
-     * @param mapping  The mapping of the variables to their value
-     * @return The realized quads
-     */
-    public static Collection<Quad> apply(Collection<Quad> template, Map<VariableNode, Node> mapping) {
-        Collection<Quad> result = new ArrayList<>();
-        apply(template, mapping, result);
+        Collection<Quad> result = new ArrayList<>(template.size());
+        apply(template, solution, result);
         return result;
     }
 
@@ -469,43 +457,31 @@ public class QueryEngine implements ChangeListener {
      * @param buffer   The buffer for the realized quads
      */
     public static void apply(Collection<Quad> template, QuerySolution solution, Collection<Quad> buffer) {
-        apply(template, solution.getContent(), buffer);
-    }
-
-    /**
-     * Applies the specified mapping to a template.
-     * This replaces the variable nodes in the template by their value in the mapping
-     *
-     * @param template The template
-     * @param mapping  The mapping of the variables to their value
-     * @param buffer   The buffer for the realized quads
-     */
-    public static void apply(Collection<Quad> template, Map<VariableNode, Node> mapping, Collection<Quad> buffer) {
         for (Quad quad : template) {
             GraphNode graph = quad.getGraph();
             SubjectNode subject = quad.getSubject();
             Property property = quad.getProperty();
             Node object = quad.getObject();
             if (graph.getNodeType() == VariableNode.TYPE) {
-                Node value = mapping.get(graph);
+                Node value = solution.get((VariableNode) graph);
                 if (value == null)
                     throw new IllegalArgumentException("Unbound variable " + ((VariableNode) graph).getName() + " in the template");
                 graph = (GraphNode) value;
             }
             if (subject.getNodeType() == VariableNode.TYPE) {
-                Node value = mapping.get(subject);
+                Node value = solution.get((VariableNode) subject);
                 if (value == null)
                     throw new IllegalArgumentException("Unbound variable " + ((VariableNode) subject).getName() + " in the template");
                 subject = (SubjectNode) value;
             }
             if (property.getNodeType() == VariableNode.TYPE) {
-                Node value = mapping.get(property);
+                Node value = solution.get((VariableNode) property);
                 if (value == null)
                     throw new IllegalArgumentException("Unbound variable " + ((VariableNode) property).getName() + " in the template");
                 property = (Property) value;
             }
             if (object.getNodeType() == VariableNode.TYPE) {
-                Node value = mapping.get(object);
+                Node value = solution.get((VariableNode) object);
                 if (value == null)
                     throw new IllegalArgumentException("Unbound variable " + ((VariableNode) object).getName() + " in the template");
                 object = value;

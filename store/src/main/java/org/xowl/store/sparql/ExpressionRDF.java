@@ -20,10 +20,38 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Repository;
+import org.xowl.store.owl.DynamicNode;
+import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.QuerySolution;
+import org.xowl.store.rdf.VariableNode;
+
 /**
- * Represents an implicit graph pattern described by a SPARQL SELECT query
+ * Represents the use of an RDF value in an expression
  *
  * @author Laurent Wouters
  */
-public class Select implements GraphPattern {
+public class ExpressionRDF implements Expression {
+    /**
+     * The RDF node
+     */
+    private final Node node;
+
+    /**
+     * Initializes this expression
+     *
+     * @param node The RDF node to represent
+     */
+    public ExpressionRDF(Node node) {
+        this.node = node;
+    }
+
+    @Override
+    public Object eval(Repository repository, QuerySolution bindings) {
+        if (node.getNodeType() == VariableNode.TYPE)
+            return bindings.get((VariableNode) node);
+        if (node.getNodeType() == DynamicNode.TYPE)
+            return repository.getEvaluator().eval(((DynamicNode) node).getDynamicExpression());
+        return node;
+    }
 }

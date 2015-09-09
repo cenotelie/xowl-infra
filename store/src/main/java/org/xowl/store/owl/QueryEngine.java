@@ -20,6 +20,7 @@
 package org.xowl.store.owl;
 
 import org.xowl.lang.owl2.Axiom;
+import org.xowl.store.Evaluator;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.VariableNode;
 import org.xowl.store.storage.BaseStore;

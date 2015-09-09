@@ -19,11 +19,13 @@
  ******************************************************************************/
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.VariableNode;
+import org.xowl.store.rdf.QuerySolution;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents a step in a matching rule, i.e. a join operation
@@ -38,7 +40,7 @@ public class MatchStatusStep {
     /**
      * The current bindings at the end of this step
      */
-    private final List<Map<VariableNode, Node>> bindings;
+    private final List<QuerySolution> bindings;
 
     /**
      * Gets the pattern that need to be matched
@@ -54,7 +56,7 @@ public class MatchStatusStep {
      *
      * @return The solution bindings
      */
-    public Collection<Map<VariableNode, Node>> getBindings() {
+    public Collection<QuerySolution> getBindings() {
         return Collections.unmodifiableCollection(bindings);
     }
 
@@ -74,6 +76,6 @@ public class MatchStatusStep {
      * @param token A token
      */
     protected void addBindings(Token token) {
-        this.bindings.add(token.getBindings());
+        this.bindings.add(new QuerySolution(token.getBindings()));
     }
 }

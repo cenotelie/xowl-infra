@@ -41,6 +41,7 @@ import org.xowl.lang.owl2.ObjectPropertyAssertion;
 import org.xowl.lang.owl2.ObjectSomeValuesFrom;
 import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
+import org.xowl.store.Evaluator;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.XOWLUtils;
 import org.xowl.store.loaders.OWLLoaderResult;

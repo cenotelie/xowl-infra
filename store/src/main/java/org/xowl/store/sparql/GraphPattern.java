@@ -20,10 +20,22 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Repository;
+import org.xowl.store.rdf.QuerySolution;
+
+import java.util.Collection;
+
 /**
  * Represents a pattern of RDF graphs
  *
  * @author Laurent Wouters
  */
 public interface GraphPattern {
+    /**
+     * Matches this graph pattern onto the specified repository
+     *
+     * @param repository The repository to match on
+     * @return The solutions
+     */
+    Collection<QuerySolution> match(Repository repository);
 }

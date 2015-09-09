@@ -23,18 +23,37 @@ package org.xowl.store.sparql;
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.QuerySolution;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Represents an expression in SPARQL
+ * Represents the call to an external function in an expression
  *
  * @author Laurent Wouters
  */
-public interface Expression {
+public class ExpressionFunctionCall implements Expression {
     /**
-     * Evaluates this expression
-     *
-     * @param repository The repository to evaluate on
-     * @param bindings   The current bindings
-     * @return The result
+     * The function's IRI
      */
-    Object eval(Repository repository, QuerySolution bindings);
+    private final String iri;
+    /**
+     * The arguments to use
+     */
+    private final List<Expression> arguments;
+
+    /**
+     * Initializes this expression
+     *
+     * @param iri       The function's IRI
+     * @param arguments The arguments to use
+     */
+    public ExpressionFunctionCall(String iri, List<Expression> arguments) {
+        this.iri = iri;
+        this.arguments = new ArrayList<>(arguments);
+    }
+
+    @Override
+    public Object eval(Repository repository, QuerySolution bindings) {
+        throw new UnsupportedOperationException();
+    }
 }

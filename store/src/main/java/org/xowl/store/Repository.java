@@ -86,6 +86,14 @@ public class Repository extends AbstractRepository {
     }
 
     /**
+     * Gets the evaluator used by this repository
+     * @return The evaluator used by this repository
+     */
+    public Evaluator getEvaluator() {
+        return evaluator;
+    }
+
+    /**
      * Gets the associated OWL query engine
      *
      * @return The associated OWL query engine

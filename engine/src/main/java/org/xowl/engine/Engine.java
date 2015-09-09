@@ -29,12 +29,9 @@ import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.*;
 import org.xowl.lang.runtime.Literal;
-import org.xowl.store.IRIMapper;
-import org.xowl.store.ProxyObject;
-import org.xowl.store.Repository;
-import org.xowl.store.Vocabulary;
+import org.xowl.store.*;
 import org.xowl.store.owl.Bindings;
-import org.xowl.store.owl.Evaluator;
+import org.xowl.utils.collections.Couple;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -286,7 +283,7 @@ public class Engine implements Evaluator {
      */
     protected Object getValueNative(Object owlValue) {
         if (owlValue instanceof org.xowl.lang.owl2.Literal)
-            return DatatypeImpl.get((org.xowl.lang.owl2.Literal) owlValue);
+            return Datatypes.toNative((org.xowl.lang.owl2.Literal) owlValue);
         return owlValue;
     }
 
@@ -297,8 +294,12 @@ public class Engine implements Evaluator {
      * @return The corresponding OWL2 value
      */
     protected Object getValueOWL2(Object nativeValue) {
-        if (DatatypeImpl.handles(nativeValue))
-            return DatatypeImpl.get(nativeValue);
-        return nativeValue;
+        Couple<String, String> data = Datatypes.toLiteral(nativeValue);
+        org.xowl.lang.owl2.Literal literal = new org.xowl.lang.owl2.Literal();
+        IRI datatype = new IRI();
+        datatype.setHasValue(data.y);
+        literal.setMemberOf(datatype);
+        literal.setLexicalValue(data.x);
+        return literal;
     }
 }

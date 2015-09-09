@@ -24,6 +24,7 @@ import org.xowl.lang.owl2.Axiom;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.rules.Assertion;
 import org.xowl.lang.rules.Rule;
+import org.xowl.store.Evaluator;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.VariableNode;
@@ -78,9 +79,9 @@ public class RuleEngine {
          */
         private Bindings buildBindings(TranslationContext context, Token token, Map<Node, Node> specials) {
             Bindings bindings = new Bindings();
-            for (Map.Entry<VariableNode, Node> entry : token.getBindings().entrySet()) {
-                QueryVariable qvar = context.get(entry.getKey());
-                Object value = Utils.getOWL(entry.getValue());
+            for (Couple<VariableNode, Node> entry : token.getBindings()) {
+                QueryVariable qvar = context.get(entry.x);
+                Object value = Utils.getOWL(entry.y);
                 bindings.bind(qvar, value);
             }
             for (Map.Entry<Node, Node> entry : specials.entrySet()) {
