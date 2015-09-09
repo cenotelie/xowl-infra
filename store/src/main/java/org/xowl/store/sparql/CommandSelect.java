@@ -20,47 +20,36 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.store.rdf.QuerySolution;
-
-import java.util.Collection;
-import java.util.Collections;
+import org.xowl.store.Repository;
 
 /**
- * Represents the result of a SPARQL command as a set of query solutions
+ * Represents the SPARQL SELECT command.
+ * The SELECT form of results returns variables and their bindings directly.
+ * It combines the operations of projecting the required variables with introducing new variable bindings into a query solution.
  *
  * @author Laurent Wouters
  */
-public class ResultSolutions implements Result {
+public class CommandSelect implements Command {
     /**
-     * The solutions
+     * The graph pattern for this command
      */
-    private final Collection<QuerySolution> solutions;
+    private final GraphPattern pattern;
 
     /**
-     * Gets the solutions
+     * Initializes this command
      *
-     * @return The solutions
+     * @param pattern The graph pattern for this command
      */
-    public Collection<QuerySolution> getSolutions() {
-        return Collections.unmodifiableCollection(solutions);
-    }
-
-    /**
-     * Initializes this result
-     *
-     * @param solutions The solutions
-     */
-    public ResultSolutions(Collection<QuerySolution> solutions) {
-        this.solutions = solutions;
+    public CommandSelect(GraphPattern pattern) {
+        this.pattern = pattern;
     }
 
     @Override
-    public boolean isFailure() {
-        return false;
-    }
-
-    @Override
-    public boolean isSuccess() {
-        return true;
+    public Result execute(Repository repository) {
+        try {
+            return new ResultSolutions(pattern.match(repository));
+        } catch (EvalException exception) {
+            return new ResultFailure(exception.getMessage());
+        }
     }
 }

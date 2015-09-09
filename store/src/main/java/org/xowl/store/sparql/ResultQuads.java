@@ -20,38 +20,38 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.store.rdf.QuerySolution;
+import org.xowl.store.rdf.Quad;
 
 import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Represents the result of a SPARQL command as a set of query solutions
+ * Represents the result of a SPARQL command as a set of quads
  *
  * @author Laurent Wouters
  */
-public class ResultSolutions implements Result {
+public class ResultQuads implements Result {
     /**
-     * The solutions
+     * The quads
      */
-    private final Collection<QuerySolution> solutions;
+    private final Collection<Quad> quads;
 
     /**
-     * Gets the solutions
+     * Gets the quads
      *
-     * @return The solutions
+     * @return The quads
      */
-    public Collection<QuerySolution> getSolutions() {
-        return Collections.unmodifiableCollection(solutions);
+    public Collection<Quad> getQuads() {
+        return Collections.unmodifiableCollection(quads);
     }
 
     /**
      * Initializes this result
      *
-     * @param solutions The solutions
+     * @param quads The quads
      */
-    public ResultSolutions(Collection<QuerySolution> solutions) {
-        this.solutions = solutions;
+    public ResultQuads(Collection<Quad> quads) {
+        this.quads = quads;
     }
 
     @Override

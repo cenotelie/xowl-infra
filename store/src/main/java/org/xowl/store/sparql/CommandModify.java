@@ -21,8 +21,12 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
+import org.xowl.store.rdf.Changeset;
 import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.QuerySolution;
+import org.xowl.store.storage.UnsupportedNodeType;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -86,6 +90,18 @@ public class CommandModify implements Command {
 
     @Override
     public Result execute(Repository repository) {
-        return new ResultFailure("Not implemented");
+        try {
+            Collection<QuerySolution> solutions = where.match(repository);
+            Collection<Quad> toInsert = new ArrayList<>();
+            Collection<Quad> toRemove = new ArrayList<>();
+            for (QuerySolution solution : solutions) {
+                Utils.evaluate(repository, solution, insert, toInsert);
+                Utils.evaluate(repository, solution, delete, toRemove);
+            }
+            repository.getStore().insert(new Changeset(toInsert, toRemove));
+        } catch (UnsupportedNodeType | EvalException exception) {
+            return new ResultFailure(exception.getMessage());
+        }
+        return ResultSuccess.INSTANCE;
     }
 }
