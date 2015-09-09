@@ -20,6 +20,7 @@
 
 package org.xowl.engine;
 
+import clojure.java.api.Clojure;
 import clojure.lang.Compiler;
 import clojure.lang.*;
 import org.xowl.lang.actions.DynamicExpression;
@@ -31,15 +32,13 @@ import org.xowl.lang.runtime.*;
 import org.xowl.lang.runtime.Literal;
 import org.xowl.store.*;
 import org.xowl.store.owl.Bindings;
+import org.xowl.store.sparql.Command;
 import org.xowl.utils.collections.Couple;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * Represents the Clojure evaluator for xOWL ontologies
@@ -114,59 +113,15 @@ public class ClojureEvaluator implements Evaluator {
     }
 
     /**
-     * The backend repository
+     * The stack of lexical bindings
      */
-    private final Repository repository;
-    /**
-     * The stack of OWL lexical bindings
-     */
-    private final Stack<Bindings> stackOWL;
-    /**
-     * The stack of Clojure lexical bindings
-     */
-    private final Stack<List<Var>> stackCLJ;
+    private final Stack<Map<String, Object>> contexts;
 
     /**
-     * Gets the backend repository
-     *
-     * @return The backend repository
+     * Initializes this evaluator
      */
-    public Repository getRepository() {
-        return repository;
-    }
-
-    /**
-     * Initializes this engine
-     *
-     * @throws IOException When the backend cannot allocate a temporary file
-     */
-    public ClojureEvaluator() throws IOException {
-        this.repository = new Repository(this);
-        this.stackOWL = new Stack<>();
-        this.stackCLJ = new Stack<>();
-    }
-
-    /**
-     * Initializes this engine
-     *
-     * @param mapper The IRI mapper to use
-     * @throws IOException When the backend cannot allocate a temporary file
-     */
-    public ClojureEvaluator(IRIMapper mapper) throws IOException {
-        this.repository = new Repository(mapper, this);
-        this.stackOWL = new Stack<>();
-        this.stackCLJ = new Stack<>();
-    }
-
-    /**
-     * Executes a function
-     *
-     * @param functionIRI The IRI of a function
-     * @param parameters  The parameters
-     * @return The returned value
-     */
-    public Object execute(String functionIRI, Object... parameters) {
-        return execute(repository.getProxy(functionIRI), parameters);
+    public ClojureEvaluator() {
+        this.contexts = new Stack<>();
     }
 
     /**
@@ -209,23 +164,13 @@ public class ClojureEvaluator implements Evaluator {
     }
 
     @Override
-    public void push(Bindings context) {
-        List<Var> vars = new ArrayList<>();
-        for (QueryVariable qvar : context.getVariables()) {
-            Object value = getValueNative(context.get(qvar));
-            vars.add(Var.intern(CLJ_NAMESPACE_ROOT, Symbol.intern(qvar.getName()), value));
-        }
-        stackOWL.push(context);
-        stackCLJ.push(vars);
+    public void push(Map<String, Object> context) {
+        contexts.push(context);
     }
 
     @Override
     public void pop() {
-        List<Var> vars = stackCLJ.pop();
-        for (Var var : vars) {
-            CLJ_NAMESPACE_ROOT.unmap(var.sym);
-        }
-        stackOWL.pop();
+        contexts.pop();
     }
 
     @Override
@@ -233,8 +178,23 @@ public class ClojureEvaluator implements Evaluator {
         compileOutstandings();
         Namespace old = (Namespace) RT.CURRENT_NS.deref();
         RT.CURRENT_NS.bindRoot(CLJ_NAMESPACE_ROOT);
+
+        List content = new ArrayList();
+        HashSet<String> names = new HashSet<>();
+        for (int i = 0; i !=contexts.size(); i++) {
+            for (Map.Entry<String, Object> binding : contexts.get(i).entrySet()) {
+                if (!names.contains(binding.getKey()) && !(binding.getValue() instanceof IRI)) {
+                    content.add(Symbol.create(binding.getKey()));
+                    content.add(binding.getValue());
+                    names.add(binding.getKey());
+                }
+            }
+        }
+        PersistentVector content1 = PersistentVector.create(content.toArray());
         Object cljExp = ((OpaqueExpression) expression).getValue();
-        Object result = getValueOWL2(Compiler.eval(cljExp));
+        IPersistentList top = PersistentList.create(Arrays.asList(Symbol.create("clojure.core", "let"), content1, cljExp));
+        Object result = Compiler.eval(top);
+
         RT.CURRENT_NS.bindRoot(old);
         return result;
     }
@@ -258,7 +218,6 @@ public class ClojureEvaluator implements Evaluator {
     public Datatype evalDatatype(Datarange expression) {
         return null;
     }
-
     @Override
     public Individual evalIndividual(IndividualExpression expression) {
         return null;
@@ -272,33 +231,5 @@ public class ClojureEvaluator implements Evaluator {
     @Override
     public Function evalFunction(FunctionExpression expression) {
         return null;
-    }
-
-    /**
-     * Gets the native value for the specified OWL2 value
-     *
-     * @param owlValue An OWL2 value
-     * @return The corresponding native value
-     */
-    protected Object getValueNative(Object owlValue) {
-        if (owlValue instanceof org.xowl.lang.owl2.Literal)
-            return Datatypes.toNative((org.xowl.lang.owl2.Literal) owlValue);
-        return owlValue;
-    }
-
-    /**
-     * Gets the OWL2 value for the specified OWL2 value
-     *
-     * @param nativeValue A native value
-     * @return The corresponding OWL2 value
-     */
-    protected Object getValueOWL2(Object nativeValue) {
-        Couple<String, String> data = Datatypes.toLiteral(nativeValue);
-        org.xowl.lang.owl2.Literal literal = new org.xowl.lang.owl2.Literal();
-        IRI datatype = new IRI();
-        datatype.setHasValue(data.y);
-        literal.setMemberOf(datatype);
-        literal.setLexicalValue(data.x);
-        return literal;
     }
 }

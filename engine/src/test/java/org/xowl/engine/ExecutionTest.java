@@ -23,6 +23,7 @@ package org.xowl.engine;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.store.AbstractRepository;
+import org.xowl.store.Repository;
 
 import java.io.IOException;
 
@@ -34,47 +35,37 @@ import java.io.IOException;
 public class ExecutionTest {
     @Test
     public void testExecutionHello() {
-        try {
-            TestLogger logger = new TestLogger();
-            ClojureEvaluator engine = new ClojureEvaluator();
-            engine.getRepository().getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
-            engine.getRepository().load(logger, "http://xowl.org/engine/tests/Sample");
-            Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-            Object result = engine.execute("http://xowl.org/engine/tests/Sample#hello");
-            Assert.assertFalse("Failed to execute the function", logger.isOnError());
-            Assert.assertEquals("Hello World", result);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        TestLogger logger = new TestLogger();
+        ClojureEvaluator evaluator = new ClojureEvaluator();
+        Repository repository = new Repository(evaluator);
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
+        repository.load(logger, "http://xowl.org/engine/tests/Sample");
+        Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
+        Object result = evaluator.execute(repository.getProxy("http://xowl.org/engine/tests/Sample#hello"));
+        Assert.assertFalse("Failed to execute the function", logger.isOnError());
+        Assert.assertEquals("Hello World", result);
     }
 
     @Test
     public void testExecutionInnerCall() {
-        try {
-            TestLogger logger = new TestLogger();
-            ClojureEvaluator engine = new ClojureEvaluator();
-            engine.getRepository().getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
-            engine.getRepository().load(logger, "http://xowl.org/engine/tests/Sample");
-            Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-            Object result = engine.execute("http://xowl.org/engine/tests/Sample#total", 2);
-            Assert.assertFalse("Failed to execute the function", logger.isOnError());
-            Assert.assertEquals(6l, result);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        TestLogger logger = new TestLogger();
+        ClojureEvaluator evaluator = new ClojureEvaluator();
+        Repository repository = new Repository(evaluator);
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
+        repository.load(logger, "http://xowl.org/engine/tests/Sample");
+        Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
+        Object result = evaluator.execute(repository.getProxy("http://xowl.org/engine/tests/Sample#total"), 2);
+        Assert.assertFalse("Failed to execute the function", logger.isOnError());
+        Assert.assertEquals(6l, result);
     }
 
     @Test
     public void testExecutionInnerRule() {
-        try {
-            TestLogger logger = new TestLogger();
-            ClojureEvaluator engine = new ClojureEvaluator();
-            engine.getRepository().getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
-            engine.getRepository().load(logger, "http://xowl.org/engine/tests/Sample");
-            Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-            engine.getRepository().getOWLRuleEngine().flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        TestLogger logger = new TestLogger();
+        Repository repository = new Repository(new ClojureEvaluator());
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
+        repository.load(logger, "http://xowl.org/engine/tests/Sample");
+        Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
+        repository.getOWLRuleEngine().flush();
     }
 }
