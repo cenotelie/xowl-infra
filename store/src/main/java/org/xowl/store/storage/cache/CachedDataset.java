@@ -236,15 +236,36 @@ public class CachedDataset implements Dataset {
     public void insert(Changeset changeset) throws UnsupportedNodeType {
         Collection<Quad> positives = new ArrayList<>();
         Collection<Quad> negatives = new ArrayList<>();
-        for (Quad quad : changeset.getPositives()) {
-            int result = doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            if (result == ADD_RESULT_NEW)
-                positives.add(quad);
-        }
-        for (Quad quad : changeset.getNegatives()) {
-            int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            if (result == REMOVE_RESULT_REMOVED)
-                negatives.add(quad);
+        int indexPositive = 0;
+        int indexNegative = 0;
+        try {
+            for (Quad quad : changeset.getPositives()) {
+                int result = doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+                if (result == ADD_RESULT_NEW)
+                    positives.add(quad);
+                indexPositive++;
+            }
+            for (Quad quad : changeset.getNegatives()) {
+                int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+                if (result == REMOVE_RESULT_REMOVED)
+                    negatives.add(quad);
+                indexNegative++;
+            }
+        } catch (UnsupportedNodeType exception) {
+            // rollback the previously inserted quads
+            for (Quad quad : changeset.getPositives()) {
+                if (indexPositive > 0)
+                    break;
+                doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+                indexPositive--;
+            }
+            for (Quad quad : changeset.getNegatives()) {
+                if (indexNegative > 0)
+                    break;
+                doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+                indexNegative--;
+            }
+            throw exception;
         }
         if (!positives.isEmpty() || !negatives.isEmpty()) {
             // transmit the changes only if a there are some!
