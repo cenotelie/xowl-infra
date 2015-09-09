@@ -21,48 +21,48 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.Query;
 import org.xowl.store.rdf.QuerySolution;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * A graph pattern represented by a template of quads
+ * A graph pattern to be matched by an distant SPARQL endpoint
  *
  * @author Laurent Wouters
  */
-public class GraphPatternQuads implements GraphPattern {
+public class GraphPatternService implements GraphPattern {
     /**
-     * The RDF query
+     * The inner pattern to match
      */
-    private final Query query;
+    private final GraphPattern inner;
+    /**
+     * The service endpoint to use
+     */
+    private final String service;
+    /**
+     * Whether silent failure is allowed
+     */
+    private final boolean isSilent;
 
     /**
-     * Initializes this pattern
+     * Initializes this graph pattern
      *
-     * @param quads The quads to match
+     * @param inner    The inner pattern to match
+     * @param service  The service endpoint to use
+     * @param isSilent Whether silent failure is allowed
      */
-    public GraphPatternQuads(Collection<Quad> quads) {
-        this.query = new Query();
-        this.query.getPositives().addAll(quads);
-    }
-
-    /**
-     * Initializes this pattern
-     *
-     * @param positives The quads to match
-     * @param negatives The quads taht must not be matched
-     */
-    public GraphPatternQuads(Collection<Quad> positives, Collection<Quad> negatives) {
-        this.query = new Query();
-        this.query.getPositives().addAll(positives);
-        this.query.getNegatives().add(new ArrayList<>(negatives));
+    public GraphPatternService(GraphPattern inner, String service, boolean isSilent) {
+        this.inner = inner;
+        this.service = service;
+        this.isSilent = isSilent;
     }
 
     @Override
     public Collection<QuerySolution> match(final Repository repository) throws EvalException {
-        return repository.getRDFQueryEngine().execute(query);
+        // not implemented yet
+        if (isSilent)
+            return new ArrayList<>();
+        throw new EvalException("SERVICE is not supported");
     }
 }

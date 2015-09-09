@@ -36,6 +36,7 @@ public interface GraphPattern {
      *
      * @param repository The repository to match on
      * @return The solutions
+     * @throws EvalException When an error occurs during the evaluation
      */
-    Collection<QuerySolution> match(Repository repository);
+    Collection<QuerySolution> match(Repository repository) throws EvalException;
 }

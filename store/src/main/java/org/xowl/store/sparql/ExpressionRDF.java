@@ -47,7 +47,7 @@ public class ExpressionRDF implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, QuerySolution bindings) {
+    public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
         if (node.getNodeType() == VariableNode.TYPE)
             return bindings.get((VariableNode) node);
         if (node.getNodeType() == DynamicNode.TYPE)

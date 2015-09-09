@@ -21,48 +21,33 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.Query;
 import org.xowl.store.rdf.QuerySolution;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * A graph pattern represented by a template of quads
+ * A graph pattern represented by explicit (variable, value) associations
  *
  * @author Laurent Wouters
  */
-public class GraphPatternQuads implements GraphPattern {
+public class GraphPatternInlineData implements GraphPattern {
     /**
-     * The RDF query
+     * The inline data
      */
-    private final Query query;
+    private final Collection<QuerySolution> data;
 
     /**
-     * Initializes this pattern
+     * Initializes this graph pattern
      *
-     * @param quads The quads to match
+     * @param data The inline data
      */
-    public GraphPatternQuads(Collection<Quad> quads) {
-        this.query = new Query();
-        this.query.getPositives().addAll(quads);
-    }
-
-    /**
-     * Initializes this pattern
-     *
-     * @param positives The quads to match
-     * @param negatives The quads taht must not be matched
-     */
-    public GraphPatternQuads(Collection<Quad> positives, Collection<Quad> negatives) {
-        this.query = new Query();
-        this.query.getPositives().addAll(positives);
-        this.query.getNegatives().add(new ArrayList<>(negatives));
+    public GraphPatternInlineData(Collection<QuerySolution> data) {
+        this.data = new ArrayList<>(data);
     }
 
     @Override
     public Collection<QuerySolution> match(final Repository repository) throws EvalException {
-        return repository.getRDFQueryEngine().execute(query);
+        return data;
     }
 }

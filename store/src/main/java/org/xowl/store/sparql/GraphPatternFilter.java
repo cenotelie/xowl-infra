@@ -22,30 +22,25 @@ package org.xowl.store.sparql;
 
 import org.xowl.store.Datatypes;
 import org.xowl.store.Repository;
+import org.xowl.store.rdf.LiteralNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
-import org.xowl.store.rdf.VariableNode;
-import org.xowl.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * A graph pattern represented by the explicit binding of a variable
+ * A graph pattern represented as the filtering of another one
  *
  * @author Laurent Wouters
  */
-public class GraphPatternBind implements GraphPattern {
+public class GraphPatternFilter implements GraphPattern {
     /**
      * The inner pattern
      */
     private final GraphPattern origin;
     /**
-     * The variable to bind
-     */
-    private final VariableNode variable;
-    /**
-     * The expression for the value to bind to
+     * The boolean expression used for filtering
      */
     private final Expression expression;
 
@@ -53,12 +48,10 @@ public class GraphPatternBind implements GraphPattern {
      * Initializes this graph pattern
      *
      * @param origin     The inner pattern
-     * @param variable   The variable to bind
-     * @param expression The expression for the value to bind to
+     * @param expression The boolean expression used for filtering
      */
-    public GraphPatternBind(GraphPattern origin, VariableNode variable, Expression expression) {
+    public GraphPatternFilter(GraphPattern origin, Expression expression) {
         this.origin = origin;
-        this.variable = variable;
         this.expression = expression;
     }
 
@@ -70,28 +63,17 @@ public class GraphPatternBind implements GraphPattern {
             for (QuerySolution solution : originalSolutions) {
                 Object value = expression.eval(repository, solution);
                 if (value instanceof Node) {
-                    result.add(new QuerySolution(solution, variable, (Node) value));
-                } else {
-                    Couple<String, String> literal = Datatypes.toLiteral(value);
-                    result.add(new QuerySolution(solution, variable, repository.getStore().getLiteralNode(literal.x, literal.y, null)));
+                    if (value instanceof LiteralNode)
+                        value = Datatypes.toNative((LiteralNode) value);
+                    else
+                        continue;
                 }
+                if (value instanceof Boolean && ((Boolean) value))
+                    result.add(solution);
             }
             return result;
         } else {
-            Object value = expression.eval(repository, null);
-            Node valueNode;
-            if (value instanceof Node) {
-                valueNode = (Node) value;
-            } else {
-                Couple<String, String> literal = Datatypes.toLiteral(value);
-                valueNode = repository.getStore().getLiteralNode(literal.x, literal.y, null);
-            }
-            ArrayList<Couple<VariableNode, Node>> bindings = new ArrayList<>();
-            bindings.add(new Couple<>(variable, valueNode));
-            QuerySolution solution = new QuerySolution(bindings);
-            Collection<QuerySolution> result = new ArrayList<>(1);
-            result.add(solution);
-            return result;
+            return new ArrayList<>();
         }
     }
 }

@@ -75,7 +75,7 @@ public class ExpressionOperator implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, QuerySolution bindings) {
-        throw new UnsupportedOperationException();
+    public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
+        throw new EvalException("Not yet implemented");
     }
 }

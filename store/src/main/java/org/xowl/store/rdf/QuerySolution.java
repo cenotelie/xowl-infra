@@ -24,13 +24,14 @@ import org.xowl.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Represents a solution to a RDF query
  *
  * @author Laurent Wouters
  */
-public class QuerySolution {
+public class QuerySolution implements Iterable<Couple<VariableNode, Node>> {
     /**
      * The content of this solution
      */
@@ -43,6 +44,18 @@ public class QuerySolution {
      */
     public QuerySolution(Collection<Couple<VariableNode, Node>> bindings) {
         this.bindings = new ArrayList<>(bindings);
+    }
+
+    /**
+     * Initializes this solution as a copy the specified one augmented with a new binding
+     *
+     * @param original The original solution
+     * @param variable The new variable to bind
+     * @param value    The value to bind to
+     */
+    public QuerySolution(QuerySolution original, VariableNode variable, Node value) {
+        this.bindings = new ArrayList<>(original.bindings);
+        this.bindings.add(new Couple<>(variable, value));
     }
 
     /**
@@ -92,23 +105,8 @@ public class QuerySolution {
         return null;
     }
 
-    /**
-     * Binds (or re-binds) the specified variable to a value
-     *
-     * @param variable The variable to bind
-     * @param value    The value to bind to
-     */
-    public void bind(String variable, Node value) {
-        bind(new VariableNode(variable), value);
-    }
-
-    /**
-     * Binds (or re-binds) the specified variable to a value
-     *
-     * @param variable The variable to bind
-     * @param value    The value to bind to
-     */
-    public void bind(VariableNode variable, Node value) {
-        bindings.add(new Couple<>(variable, value));
+    @Override
+    public Iterator<Couple<VariableNode, Node>> iterator() {
+        return bindings.iterator();
     }
 }

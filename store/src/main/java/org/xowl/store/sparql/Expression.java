@@ -35,6 +35,7 @@ public interface Expression {
      * @param repository The repository to evaluate on
      * @param bindings   The current bindings
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
-    Object eval(Repository repository, QuerySolution bindings);
+    Object eval(Repository repository, QuerySolution bindings) throws EvalException;
 }

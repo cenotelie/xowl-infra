@@ -20,40 +20,18 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.store.Repository;
-import org.xowl.store.rdf.QuerySolution;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Represents the call to a builtin function in an expression
+ * Exception while evaluating a SPARQL query
  *
  * @author Laurent Wouters
  */
-public class ExpressionBuiltIn implements Expression {
+public class EvalException extends Exception {
     /**
-     * The builtin's name
-     */
-    private final String name;
-    /**
-     * The arguments to use
-     */
-    private final List<Expression> arguments;
-
-    /**
-     * Initializes this expression
+     * Initializes this exception
      *
-     * @param name      The builtin's name
-     * @param arguments The arguments to use
+     * @param message The message
      */
-    public ExpressionBuiltIn(String name, List<Expression> arguments) {
-        this.name = name;
-        this.arguments = new ArrayList<>(arguments);
-    }
-
-    @Override
-    public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
-        throw new EvalException("Not yet implemented");
+    public EvalException(String message) {
+        super(message);
     }
 }
