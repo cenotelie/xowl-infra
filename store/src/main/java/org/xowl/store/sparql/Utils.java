@@ -20,6 +20,7 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.lang.actions.DynamicExpression;
 import org.xowl.lang.owl2.IRI;
 import org.xowl.store.Datatypes;
 import org.xowl.store.Repository;
@@ -28,6 +29,8 @@ import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.Couple;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Utilities for the evaluation of SPARQL queries
@@ -36,20 +39,20 @@ import java.util.Collection;
  */
 class Utils {
     /**
-     * Evaluates a SPARQL expression as a boolean native value
-     *
+     * Evaluates a dynamic expression to a native value
      * @param repository The current repository
      * @param solution   The current bindings
      * @param expression The expression to evaluate
-     * @return The evaluated node
+     * @return The evaluated native value
      */
-    public static boolean evaluateBoolean(Repository repository, QuerySolution solution, Expression expression) throws EvalException {
-        Object value = expression.eval(repository, solution);
-        if (value instanceof DynamicNode)
-            value = repository.getEvaluator().eval(((DynamicNode) value).getDynamicExpression());
-        if (value instanceof LiteralNode)
-            value = Datatypes.toNative((LiteralNode) value);
-        return (value instanceof Boolean && (Boolean) value);
+    public static Object evluateNative(Repository repository, QuerySolution solution, DynamicExpression expression) {
+        Map<String, Object> bindings = new HashMap<>();
+        for (Couple<VariableNode, Node> binding : solution)
+            bindings.put(binding.x.getName(), org.xowl.store.rdf.Utils.getNative(binding.y));
+        repository.getEvaluator().push(bindings);
+        Object result = repository.getEvaluator().eval(expression);
+        repository.getEvaluator().pop();
+        return result;
     }
 
     /**
@@ -63,10 +66,27 @@ class Utils {
     public static Object evaluateNative(Repository repository, QuerySolution solution, Expression expression) throws EvalException {
         Object value = expression.eval(repository, solution);
         if (value instanceof DynamicNode)
-            value = repository.getEvaluator().eval(((DynamicNode) value).getDynamicExpression());
+            value = evluateNative(repository, solution, ((DynamicNode) value).getDynamicExpression());
         if (value instanceof LiteralNode)
             value = Datatypes.toNative((LiteralNode) value);
         return value;
+    }
+
+    /**
+     * Evaluates a SPARQL expression as a boolean native value
+     *
+     * @param repository The current repository
+     * @param solution   The current bindings
+     * @param expression The expression to evaluate
+     * @return The evaluated node
+     */
+    public static boolean evaluateNativeBoolean(Repository repository, QuerySolution solution, Expression expression) throws EvalException {
+        Object value = expression.eval(repository, solution);
+        if (value instanceof DynamicNode)
+            value = evluateNative(repository, solution, ((DynamicNode) value).getDynamicExpression());
+        if (value instanceof LiteralNode)
+            value = Datatypes.toNative((LiteralNode) value);
+        return (value instanceof Boolean && (Boolean) value);
     }
 
     /**
@@ -80,7 +100,7 @@ class Utils {
     public static Node evaluateRDF(Repository repository, QuerySolution solution, Expression expression) throws EvalException {
         Object value = expression.eval(repository, solution);
         if (value instanceof DynamicNode)
-            value = repository.getEvaluator().eval(((DynamicNode) value).getDynamicExpression());
+            value = evluateNative(repository, solution, ((DynamicNode) value).getDynamicExpression());
         if (value instanceof Node) {
             return (Node) value;
         } else if (value instanceof IRI) {
@@ -110,7 +130,7 @@ class Utils {
             result = value;
         }
         if (result.getNodeType() == Node.TYPE_DYNAMIC && repository.getEvaluator() != null) {
-            Object value = repository.getEvaluator().eval(((DynamicNode) result).getDynamicExpression());
+            Object value = evluateNative(repository, solution, ((DynamicNode) result).getDynamicExpression());
             if (value instanceof Node) {
                 result = (GraphNode) value;
             } else if (value instanceof IRI) {

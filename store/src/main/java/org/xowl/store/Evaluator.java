@@ -26,7 +26,8 @@ import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
 import org.xowl.lang.runtime.Literal;
-import org.xowl.store.owl.Bindings;
+
+import java.util.Map;
 
 /**
  * Represents an evaluator of OWL dynamix expressions
@@ -39,7 +40,7 @@ public interface Evaluator {
      *
      * @param context The context to push
      */
-    void push(Bindings context);
+    void push(Map<String, Object> context);
 
     /**
      * Pops the head context from the stack of this evaluator

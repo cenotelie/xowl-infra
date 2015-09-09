@@ -21,10 +21,8 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
-import org.xowl.store.rdf.VariableNode;
 
 /**
  * Represents the use of an RDF value in an expression
@@ -48,10 +46,6 @@ public class ExpressionRDF implements Expression {
 
     @Override
     public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
-        if (node.getNodeType() == Node.TYPE_VARIABLE)
-            return bindings.get((VariableNode) node);
-        if (node.getNodeType() == Node.TYPE_DYNAMIC)
-            return repository.getEvaluator().eval(((DynamicNode) node).getDynamicExpression());
-        return node;
+        return Utils.evaluate(repository, bindings, node);
     }
 }

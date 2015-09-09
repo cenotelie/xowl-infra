@@ -58,7 +58,7 @@ public class GraphPatternFilter implements GraphPattern {
             Collection<QuerySolution> originalSolutions = origin.match(repository);
             Collection<QuerySolution> result = new ArrayList<>(originalSolutions.size());
             for (QuerySolution solution : originalSolutions) {
-                if (Utils.evaluateBoolean(repository, solution, expression))
+                if (Utils.evaluateNativeBoolean(repository, solution, expression))
                     result.add(solution);
             }
             return result;
