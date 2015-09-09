@@ -20,7 +20,6 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.store.Datatypes;
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
@@ -68,26 +67,14 @@ public class GraphPatternBind implements GraphPattern {
             Collection<QuerySolution> originalSolutions = origin.match(repository);
             Collection<QuerySolution> result = new ArrayList<>(originalSolutions.size());
             for (QuerySolution solution : originalSolutions) {
-                Object value = expression.eval(repository, solution);
-                if (value instanceof Node) {
-                    result.add(new QuerySolution(solution, variable, (Node) value));
-                } else {
-                    Couple<String, String> literal = Datatypes.toLiteral(value);
-                    result.add(new QuerySolution(solution, variable, repository.getStore().getLiteralNode(literal.x, literal.y, null)));
-                }
+                Node value = Utils.evaluate(repository, solution, expression);
+                result.add(new QuerySolution(solution, variable, value));
             }
             return result;
         } else {
-            Object value = expression.eval(repository, null);
-            Node valueNode;
-            if (value instanceof Node) {
-                valueNode = (Node) value;
-            } else {
-                Couple<String, String> literal = Datatypes.toLiteral(value);
-                valueNode = repository.getStore().getLiteralNode(literal.x, literal.y, null);
-            }
+            Node value = Utils.evaluate(repository, null, expression);
             ArrayList<Couple<VariableNode, Node>> bindings = new ArrayList<>();
-            bindings.add(new Couple<>(variable, valueNode));
+            bindings.add(new Couple<>(variable, value));
             QuerySolution solution = new QuerySolution(bindings);
             Collection<QuerySolution> result = new ArrayList<>(1);
             result.add(solution);

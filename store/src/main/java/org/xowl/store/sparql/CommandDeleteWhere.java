@@ -58,12 +58,11 @@ public class CommandDeleteWhere implements Command {
         query.getPositives().addAll(quads);
         Collection<QuerySolution> solutions = repository.getRDFQueryEngine().execute(query);
         Collection<Quad> toRemove = new ArrayList<>();
-        for (QuerySolution solution : solutions) {
-            QueryEngine.apply(quads, solution, toRemove);
-        }
         try {
+            for (QuerySolution solution : solutions)
+                Utils.evaluate(repository, solution, quads, toRemove);
             repository.getStore().insert(new Changeset(new ArrayList<Quad>(), toRemove));
-        } catch (UnsupportedNodeType exception) {
+        } catch (UnsupportedNodeType | EvalException exception) {
             return new ResultFailure(exception.getMessage());
         }
         return ResultSuccess.INSTANCE;
