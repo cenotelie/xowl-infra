@@ -37,15 +37,6 @@ import java.util.Map;
  */
 public class Datatypes {
     /**
-     * Datatype for real numbers
-     */
-    private static final String OWL_REAL = Vocabulary.owl + "real";
-    /**
-     * Datatype for rational numbers
-     */
-    private static final String OWL_RATIONAL = Vocabulary.owl + "rational";
-
-    /**
      * Represents the implementation of a datatype in the current runtime
      *
      * @param <T> The native type implementing the datatype
@@ -339,8 +330,8 @@ public class Datatypes {
         REGISTER_IRI.put(Vocabulary.xsdDuration, DatatypeModelDate.INSTANCE);
         REGISTER_IRI.put(Vocabulary.xsdTime, DatatypeModelDate.INSTANCE);
         REGISTER_IRI.put(Vocabulary.rdfPlainLiteral, DatatypeModelString.INSTANCE);
-        REGISTER_IRI.put(OWL_REAL, DatatypeModelDouble.INSTANCE);
-        REGISTER_IRI.put(OWL_RATIONAL, DatatypeModelDouble.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.owlRational, DatatypeModelDouble.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.owlReal, DatatypeModelDouble.INSTANCE);
 
         REGISTER_CLASS.put(Byte.class, DatatypeModelByte.INSTANCE);
         REGISTER_CLASS.put(Short.class, DatatypeModelShort.INSTANCE);
