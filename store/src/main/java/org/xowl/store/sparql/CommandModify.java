@@ -20,6 +20,7 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Repository;
 import org.xowl.store.rdf.Quad;
 
 import java.util.Collection;
@@ -56,7 +57,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public class CommandModify {
+public class CommandModify implements Command {
     /**
      * The graph pattern to match, or null
      */
@@ -81,5 +82,10 @@ public class CommandModify {
         this.where = where;
         this.insert = insert;
         this.delete = delete;
+    }
+
+    @Override
+    public Result execute(Repository repository) {
+        return new ResultFailure("Not implemented");
     }
 }

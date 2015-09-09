@@ -241,6 +241,9 @@ public class SPARQLLoader {
                     case SPARQLParser.ID.deleteWhere:
                         result.add(loadCommandDeleteWhere(node.getChildren().get(1)));
                         break;
+                    case SPARQLParser.ID.modify:
+                        result.add(loadCommandModify(node.getChildren().get(1)));
+                        break;
                 }
             }
             node = node.getChildren().size() >= 3 ? node.getChildren().get(2) : null;
@@ -434,6 +437,59 @@ public class SPARQLLoader {
     }
 
     /**
+     * Loads a INSERT/DELETE command from the specified AST node
+     *
+     * @param node An AST node
+     * @return The INSERT/DELETE command
+     */
+    private Command loadCommandModify(ASTNode node) throws LoaderException {
+        GraphNode target;
+        Collection<Quad> toInsert;
+        Collection<Quad> toDelete;
+        GraphPattern where;
+        int index = 0;
+        ASTNode current = node.getChildren().get(index);
+        if (current.getSymbol().getID() != SPARQLParser.ID.clause_delete && current.getSymbol().getID() != SPARQLParser.ID.clause_insert) {
+            // this is the WITH clause
+            target = store.getIRINode(loadGraphRef(current).y);
+            index++;
+            current = node.getChildren().get(index);
+        } else {
+            target = store.getIRINode(NodeManager.DEFAULT_GRAPH);
+        }
+        if (current.getSymbol().getID() == SPARQLParser.ID.clause_delete) {
+            toDelete = loadQuads(current.getChildren().get(0), target);
+            index++;
+            current = node.getChildren().get(index);
+        } else {
+            toDelete = new ArrayList<>();
+        }
+        if (current.getSymbol().getID() == SPARQLParser.ID.clause_insert) {
+            toInsert = loadQuads(current.getChildren().get(0), target);
+            index++;
+            current = node.getChildren().get(index);
+        } else {
+            toInsert = new ArrayList<>();
+        }
+        List<String> innerDefaultIRIs = new ArrayList<>(defaultIRIs);
+        List<String> innerNamedIRIs = new ArrayList<>(namedIRIs);
+        boolean ignore = (innerDefaultIRIs.isEmpty() && innerNamedIRIs.isEmpty());
+        while (current.getSymbol().getID() == SPARQLParser.ID.clause_using) {
+            if (!ignore) {
+                if (current.getChildren().size() >= 2) {
+                    innerNamedIRIs.add(loadGraphRef(current.getChildren().get(1)).y);
+                } else {
+                    innerDefaultIRIs.add(loadGraphRef(current.getChildren().get(0)).y);
+                }
+            }
+            index++;
+            current = node.getChildren().get(index);
+        }
+        where = loadGraphPattern(current, innerDefaultIRIs, innerNamedIRIs);
+        return new CommandModify(Collections.unmodifiableCollection(toInsert), Collections.unmodifiableCollection(toDelete), where);
+    }
+
+    /**
      * Loads a graph reference from the specified AST node
      *
      * @param node An AST node
@@ -463,6 +519,52 @@ public class SPARQLLoader {
                 break;
         }
         return new Couple<>(refType, iriNode == null ? null : iriNode.getIRIValue());
+    }
+
+    /**
+     * Loads a graph pattern from the specified AST node
+     *
+     * @param node        An AST node
+     * @param defaultIRIs The context's default IRIs
+     * @param namedIRIs   The context's named IRIs
+     * @return The graph pattern
+     */
+    private GraphPattern loadGraphPattern(ASTNode node, Collection<String> defaultIRIs, Collection<String> namedIRIs) throws LoaderException {
+        // graph_pattern_group -> '{'! (sub_select^ | graph_pattern_group_sub^) '}'!
+        switch (node.getSymbol().getID()) {
+            case SPARQLParser.ID.sub_select:
+                return loadGraphPatternSubSelect(node, defaultIRIs, namedIRIs);
+            case SPARQLParser.ID.graph_pattern_group_sub:
+                return loadGraphPatternSub(node, defaultIRIs, namedIRIs);
+        }
+        throw new LoaderException("Unrecognized graph pattern", node);
+    }
+
+    /**
+     * Loads a graph pattern from the specified AST node
+     *
+     * @param node        An AST node
+     * @param defaultIRIs The context's default IRIs
+     * @param namedIRIs   The context's named IRIs
+     * @return The graph pattern
+     */
+    private GraphPattern loadGraphPatternSubSelect(ASTNode node, Collection<String> defaultIRIs, Collection<String> namedIRIs) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Loads a graph pattern from the specified AST node
+     *
+     * @param node        An AST node
+     * @param defaultIRIs The context's default IRIs
+     * @param namedIRIs   The context's named IRIs
+     * @return The graph pattern
+     */
+    private GraphPattern loadGraphPatternSub(ASTNode node, Collection<String> defaultIRIs, Collection<String> namedIRIs) {
+        // graph_pattern_group_sub -> triples_block? graph_pattern_group_sub_elem*
+        // graph_pattern_group_sub_elem	-> graph_pattern_not_triples ('.'!)? triples_block?
+        // graph_pattern_not_triples -> graph_pattern_group_or_union^ | graph_pattern_optional^ | graph_pattern_minus^ | graph_pattern_graph^ | graph_pattern_service^ | filter^ | bind^ | inline_data^
+        throw new UnsupportedOperationException();
     }
 
     /**
