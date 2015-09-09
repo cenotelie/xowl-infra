@@ -21,46 +21,18 @@
 package org.xowl.store.rdf;
 
 /**
- * Represents a blank node in a RDF graph
- *
- * @author Laurent Wouters
+ * Utility APIs for RDF
  */
-public class BlankNode implements SubjectNode, GraphNode {
+public class Utils {
     /**
-     * The node's unique identifier
+     * Determines whether two RDF nodes are equivalent
+     * @param node1 A first node
+     * @param node2 A second node
+     * @return true of the two nodes are equivalent
      */
-    private final long blankID;
-
-    /**
-     * Initializes this node
-     *
-     * @param id The unique identifier for this node
-     */
-    public BlankNode(long id) {
-        blankID = id;
-    }
-
-    @Override
-    public int getNodeType() {
-        return TYPE_BLANK;
-    }
-
-    /**
-     * Gets the blank identifier of this node
-     *
-     * @return The blank identifier of this node, or -1 if none
-     */
-    public long getBlankID() {
-        return blankID;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return (o instanceof BlankNode) && (this.blankID == ((BlankNode) o).getBlankID());
-    }
-
-    @Override
-    public String toString() {
-        return "_:" + Long.toString(blankID);
+    public static boolean same(Node node1, Node node2) {
+        return (node1 == node2 || (node1 != null  && node2 != null
+                && node1.getNodeType() == node2.getNodeType()
+                && node1.equals(node2)));
     }
 }

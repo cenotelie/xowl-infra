@@ -21,7 +21,6 @@ package org.xowl.store.rete;
 
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.VariableNode;
 import org.xowl.store.storage.Dataset;
 
 import java.util.Arrays;
@@ -94,7 +93,7 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
     @Override
     public AlphaMemory resolveMemory(Quad pattern, Dataset store) {
         Node node = getNode(pattern);
-        if (node == null || node.getNodeType() == VariableNode.TYPE) {
+        if (node == null || node.getNodeType() == Node.TYPE_VARIABLE) {
             if (catchAll == null)
                 catchAll = createSub();
             return catchAll.resolveMemory(pattern, store);

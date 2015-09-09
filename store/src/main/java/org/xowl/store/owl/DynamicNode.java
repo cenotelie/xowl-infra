@@ -36,11 +36,6 @@ import java.util.List;
  */
 public class DynamicNode implements SubjectNode, Property, GraphNode {
     /**
-     * The type of node
-     */
-    public static final int TYPE = 5;
-
-    /**
      * The associated dynamic expression
      */
     private final DynamicExpression dynExpression;
@@ -89,7 +84,7 @@ public class DynamicNode implements SubjectNode, Property, GraphNode {
 
     @Override
     public int getNodeType() {
-        return TYPE;
+        return TYPE_DYNAMIC;
     }
 
     @Override

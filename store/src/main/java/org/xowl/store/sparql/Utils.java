@@ -67,13 +67,13 @@ class Utils {
         if (node == null)
             throw new EvalException("The node cannot be null");
         Node result = node;
-        if (result.getNodeType() == VariableNode.TYPE) {
+        if (result.getNodeType() == Node.TYPE_VARIABLE) {
             Node value = solution.get((VariableNode) result);
             if (value == null)
                 throw new EvalException("Unbound variable " + ((VariableNode) result).getName() + " in the template");
             result = value;
         }
-        if (result.getNodeType() == DynamicNode.TYPE && repository.getEvaluator() != null) {
+        if (result.getNodeType() == Node.TYPE_DYNAMIC && repository.getEvaluator() != null) {
             Object value = repository.getEvaluator().eval(((DynamicNode) result).getDynamicExpression());
             if (value instanceof Node) {
                 result = (GraphNode) value;

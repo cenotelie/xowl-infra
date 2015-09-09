@@ -22,7 +22,6 @@ package org.xowl.store.storage.cache;
 
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.VariableNode;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.SingleIterator;
@@ -311,7 +310,7 @@ class EdgeTarget implements Iterable<GraphNode> {
      * @return An iterator over the quads
      */
     public Iterator<CachedQuad> getAll(GraphNode graph) {
-        if (graph == null || graph.getNodeType() == VariableNode.TYPE) {
+        if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE) {
             return new AdaptingIterator<>(iterator(), new Adapter<CachedQuad>() {
                 @Override
                 public <X> CachedQuad adapt(X element) {
@@ -353,7 +352,7 @@ class EdgeTarget implements Iterable<GraphNode> {
      * @return The number of different quads
      */
     public int count(GraphNode graph) {
-        if (graph == null || graph.getNodeType() == VariableNode.TYPE)
+        if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE)
             return size;
         for (int i = 0; i != graphs.length; i++)
             if (graphs[i] == graph)

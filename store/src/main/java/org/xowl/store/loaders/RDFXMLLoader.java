@@ -598,7 +598,7 @@ public class RDFXMLLoader implements Loader {
      * @param value    The triples's value
      */
     private void register(SubjectNode subject, String property, Node value) {
-        if (property.equals(Vocabulary.owlImports) && value.getNodeType() == IRINode.TYPE) {
+        if (property.equals(Vocabulary.owlImports) && value.getNodeType() == Node.TYPE_IRI) {
             // this is an import statement
             imports.add(((IRINode) value).getIRIValue());
         }
@@ -613,7 +613,7 @@ public class RDFXMLLoader implements Loader {
      * @param value    The triples's value
      */
     private void register(SubjectNode subject, Property property, Node value) {
-        if (property.getNodeType() == IRINode.TYPE && ((IRINode) property).getIRIValue().equals(Vocabulary.owlImports) && value.getNodeType() == IRINode.TYPE) {
+        if (property.getNodeType() == Node.TYPE_IRI && ((IRINode) property).getIRIValue().equals(Vocabulary.owlImports) && value.getNodeType() == Node.TYPE_IRI) {
             // this is an import statement
             imports.add(((IRINode) value).getIRIValue());
         }

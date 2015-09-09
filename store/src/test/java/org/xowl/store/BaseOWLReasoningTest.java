@@ -77,7 +77,7 @@ public class BaseOWLReasoningTest {
             SubjectNode nodeSubject = quad.getSubject();
             Property nodeProperty = quad.getProperty();
             Node nodeObject = quad.getObject();
-            if (nodeSubject.getNodeType() == BlankNode.TYPE) {
+            if (nodeSubject.getNodeType() == Node.TYPE_BLANK) {
                 VariableNode variableNode = variables.get(nodeSubject);
                 if (variableNode == null) {
                     variableNode = new VariableNode(UUID.randomUUID().toString());
@@ -85,7 +85,7 @@ public class BaseOWLReasoningTest {
                 }
                 nodeSubject = variableNode;
             }
-            if (nodeObject.getNodeType() == BlankNode.TYPE) {
+            if (nodeObject.getNodeType() == Node.TYPE_BLANK) {
                 VariableNode variableNode = variables.get(nodeObject);
                 if (variableNode == null) {
                     variableNode = new VariableNode(UUID.randomUUID().toString());
@@ -144,7 +144,7 @@ public class BaseOWLReasoningTest {
             SubjectNode nodeSubject = quad.getSubject();
             Property nodeProperty = quad.getProperty();
             Node nodeObject = quad.getObject();
-            if (nodeSubject.getNodeType() == BlankNode.TYPE) {
+            if (nodeSubject.getNodeType() == Node.TYPE_BLANK) {
                 VariableNode variableNode = variables.get(nodeSubject);
                 if (variableNode == null) {
                     variableNode = new VariableNode(UUID.randomUUID().toString());
@@ -152,7 +152,7 @@ public class BaseOWLReasoningTest {
                 }
                 nodeSubject = variableNode;
             }
-            if (nodeObject.getNodeType() == BlankNode.TYPE) {
+            if (nodeObject.getNodeType() == Node.TYPE_BLANK) {
                 VariableNode variableNode = variables.get(nodeObject);
                 if (variableNode == null) {
                     variableNode = new VariableNode(UUID.randomUUID().toString());

@@ -22,9 +22,10 @@ package org.xowl.store;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.rules.Rule;
 import org.xowl.store.loaders.*;
-import org.xowl.store.owl.*;
 import org.xowl.store.owl.QueryEngine;
 import org.xowl.store.owl.RuleEngine;
+import org.xowl.store.owl.TranslationException;
+import org.xowl.store.owl.Translator;
 import org.xowl.store.rdf.*;
 import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
@@ -258,7 +259,7 @@ public class Repository extends AbstractRepository {
             @Override
             public <X> ProxyObject adapt(X element) {
                 SubjectNode subject = ((Quad) element).getSubject();
-                if (subject.getNodeType() != IRINode.TYPE && subject.getNodeType() != BlankNode.TYPE)
+                if (subject.getNodeType() != Node.TYPE_IRI && subject.getNodeType() != Node.TYPE_BLANK)
                     return null;
                 if (known.contains(subject))
                     return null;

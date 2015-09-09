@@ -91,18 +91,18 @@ public class NQuadsSerializer implements RDFSerializer {
      */
     private void serialize(Node node) throws IOException, UnsupportedNodeType {
         switch (node.getNodeType()) {
-            case IRINode.TYPE: {
+            case Node.TYPE_IRI: {
                 writer.write("<");
                 writer.write(((IRINode) node).getIRIValue());
                 writer.write(">");
                 break;
             }
-            case BlankNode.TYPE: {
+            case Node.TYPE_BLANK: {
                 writer.write("_:");
                 writer.write(Long.toString(((BlankNode) node).getBlankID()));
                 break;
             }
-            case LiteralNode.TYPE: {
+            case Node.TYPE_LITERAL: {
                 LiteralNode literalNode = (LiteralNode) node;
                 writer.write("\"");
                 writer.write(literalNode.getLexicalValue());

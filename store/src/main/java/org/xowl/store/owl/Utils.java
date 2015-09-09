@@ -26,7 +26,6 @@ import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Literal;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.runtime.Entity;
-import org.xowl.store.rdf.BlankNode;
 import org.xowl.store.rdf.IRINode;
 import org.xowl.store.rdf.LiteralNode;
 import org.xowl.store.rdf.Node;
@@ -46,17 +45,17 @@ class Utils {
      */
     public static Object getOWL(Node node) {
         switch (node.getNodeType()) {
-            case IRINode.TYPE: {
+            case Node.TYPE_IRI: {
                 IRI iri = new IRI();
                 iri.setHasValue(((IRINode) node).getIRIValue());
                 return iri;
             }
-            case BlankNode.TYPE: {
+            case Node.TYPE_BLANK: {
                 // cannot translate back blank nodes ...
                 // TODO: throw an error here
                 return null;
             }
-            case LiteralNode.TYPE: {
+            case Node.TYPE_LITERAL: {
                 LiteralNode literalNode = (LiteralNode) node;
                 Literal result = new Literal();
                 String value = literalNode.getLexicalValue();
@@ -73,10 +72,10 @@ class Utils {
                     result.setLangTag(value);
                 return result;
             }
-            case AnonymousNode.TYPE: {
+            case Node.TYPE_ANONYMOUS: {
                 return ((AnonymousNode) node).getIndividual();
             }
-            case DynamicNode.TYPE: {
+            case Node.TYPE_DYNAMIC: {
                 return ((DynamicNode) node).getDynamicExpression();
             }
         }

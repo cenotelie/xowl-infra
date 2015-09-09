@@ -26,14 +26,9 @@ package org.xowl.store.rdf;
  * @author Laurent Wouters
  */
 public abstract class LiteralNode implements Node {
-    /**
-     * The type of node
-     */
-    public static final int TYPE = 2;
-
     @Override
     public int getNodeType() {
-        return TYPE;
+        return TYPE_LITERAL;
     }
 
     /**

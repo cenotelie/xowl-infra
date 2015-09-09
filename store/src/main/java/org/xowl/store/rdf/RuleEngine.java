@@ -358,13 +358,13 @@ public class RuleEngine implements ChangeListener {
      * @return The processed node
      */
     private Node process(Rule rule, Node node, Token token, Map<Node, Node> specials, boolean createIRI) {
-        if (node == null || node.getNodeType() == VariableNode.TYPE) {
+        if (node == null || node.getNodeType() == Node.TYPE_VARIABLE) {
             return processResolve((VariableNode) node, token, specials, createIRI);
-        } else if (node.getNodeType() == IRINode.TYPE) {
+        } else if (node.getNodeType() == Node.TYPE_IRI) {
             return node;
-        } else if (node.getNodeType() == BlankNode.TYPE) {
+        } else if (node.getNodeType() == Node.TYPE_BLANK) {
             return node;
-        } else if (node.getNodeType() == LiteralNode.TYPE) {
+        } else if (node.getNodeType() == Node.TYPE_LITERAL) {
             return node;
         } else {
             return processOtherNode(rule, node, token, specials);

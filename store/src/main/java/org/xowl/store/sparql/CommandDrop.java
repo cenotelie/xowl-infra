@@ -23,6 +23,7 @@ package org.xowl.store.sparql;
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.IRINode;
+import org.xowl.store.rdf.Node;
 import org.xowl.store.storage.NodeManager;
 
 import java.util.Collection;
@@ -76,7 +77,7 @@ public class CommandDrop implements Command {
             case Named:
                 Collection<GraphNode> targets = repository.getStore().getGraphs();
                 for (GraphNode target : targets) {
-                    if (target.getNodeType() == IRINode.TYPE && !NodeManager.DEFAULT_GRAPH.equals(((IRINode) target).getIRIValue()))
+                    if (target.getNodeType() == Node.TYPE_IRI && !NodeManager.DEFAULT_GRAPH.equals(((IRINode) target).getIRIValue()))
                         repository.getStore().clear(target);
                 }
                 break;

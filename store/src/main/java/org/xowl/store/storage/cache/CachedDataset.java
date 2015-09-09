@@ -139,7 +139,7 @@ public class CachedDataset implements Dataset {
 
     @Override
     public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) {
-        if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
+        if (subject == null || subject.getNodeType() == Node.TYPE_VARIABLE) {
             return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<CachedQuad>>() {
                 @Override
                 public <X> Iterator<CachedQuad> adapt(X element) {
@@ -198,7 +198,7 @@ public class CachedDataset implements Dataset {
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
+        if (subject == null || subject.getNodeType() == Node.TYPE_VARIABLE) {
             int count = 0;
             Iterator<Couple<SubjectNode, EdgeBucket>> iterator = getAllSubjects();
             while (iterator.hasNext())
@@ -303,11 +303,11 @@ public class CachedDataset implements Dataset {
      */
     private int doAddEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
-            case IRINode.TYPE:
+            case Node.TYPE_IRI:
                 return doAddEdgeFromIRI(graph, (IRINode) subject, property, value);
-            case BlankNode.TYPE:
+            case Node.TYPE_BLANK:
                 return doAddEdgeFromBlank(graph, (BlankNode) subject, property, value);
-            case AnonymousNode.TYPE:
+            case Node.TYPE_ANONYMOUS:
                 return doAddEdgeFromAnonymous(graph, (AnonymousNode) subject, property, value);
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
@@ -426,11 +426,11 @@ public class CachedDataset implements Dataset {
      */
     private int doRemoveEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
-            case IRINode.TYPE:
+            case Node.TYPE_IRI:
                 return doRemoveEdgeFromIRI(graph, (IRINode) subject, property, value);
-            case BlankNode.TYPE:
+            case Node.TYPE_BLANK:
                 return doRemoveEdgeFromBlank(graph, (BlankNode) subject, property, value);
-            case AnonymousNode.TYPE:
+            case Node.TYPE_ANONYMOUS:
                 return doRemoveEdgeFromAnon(graph, (AnonymousNode) subject, property, value);
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
@@ -449,11 +449,11 @@ public class CachedDataset implements Dataset {
      */
     private int doRemoveEdges(GraphNode graph, SubjectNode subject, Property property, Node value, List<CachedQuad> buffer) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
-            case IRINode.TYPE:
+            case Node.TYPE_IRI:
                 return doRemoveEdgesFromIRI(graph, (IRINode) subject, property, value, buffer);
-            case BlankNode.TYPE:
+            case Node.TYPE_BLANK:
                 return doRemoveEdgesFromBlank(graph, (BlankNode) subject, property, value, buffer);
-            case AnonymousNode.TYPE:
+            case Node.TYPE_ANONYMOUS:
                 return doRemoveEdgesFromAnon(graph, (AnonymousNode) subject, property, value, buffer);
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
@@ -1091,11 +1091,11 @@ public class CachedDataset implements Dataset {
      */
     private EdgeBucket getBucketFor(Node node) {
         switch (node.getNodeType()) {
-            case IRINode.TYPE:
+            case Node.TYPE_IRI:
                 return edgesIRI.get(node);
-            case BlankNode.TYPE:
+            case Node.TYPE_BLANK:
                 return edgesBlank.get(node);
-            case AnonymousNode.TYPE:
+            case Node.TYPE_ANONYMOUS:
                 return edgesAnon.get(node);
 
             default:

@@ -158,7 +158,7 @@ public abstract class W3CTestSuite {
         List<Quad> temp = new ArrayList<>();
         GraphNode target = store.getIRINode(testedURI);
         for (Quad quad : expectedQuads) {
-            if (quad.getGraph().getNodeType() == IRINode.TYPE && ((IRINode) quad.getGraph()).getIRIValue().equals(expectedURI)) {
+            if (quad.getGraph().getNodeType() == Node.TYPE_IRI && ((IRINode) quad.getGraph()).getIRIValue().equals(expectedURI)) {
                 temp.add(new Quad(target, quad.getSubject(), quad.getProperty(), quad.getObject()));
             } else {
                 temp.add(quad);
@@ -240,7 +240,7 @@ public abstract class W3CTestSuite {
         Map<BlankNode, BlankNode> blanks = new HashMap<>();
         for (int i = 0; i != expected.size(); i++) {
             Quad quad = expected.get(i);
-            if (quad.getSubject().getNodeType() != BlankNode.TYPE) {
+            if (quad.getSubject().getNodeType() != Node.TYPE_BLANK) {
                 // ignore blank nodes at this time
                 boolean found = false;
                 for (Quad potential : tested) {
@@ -305,11 +305,11 @@ public abstract class W3CTestSuite {
         SubjectNode subject = quad1.getSubject();
         Property property = quad1.getProperty();
         Node object = quad1.getObject();
-        if (graph.getNodeType() == BlankNode.TYPE)
+        if (graph.getNodeType() == Node.TYPE_BLANK)
             graph = blanks.get(graph);
-        if (subject.getNodeType() == BlankNode.TYPE)
+        if (subject.getNodeType() == Node.TYPE_BLANK)
             subject = blanks.get(subject);
-        if (object.getNodeType() == BlankNode.TYPE)
+        if (object.getNodeType() == Node.TYPE_BLANK)
             object = blanks.get(object);
         if (!property.equals(quad2.getProperty()))
             return false;
@@ -319,11 +319,11 @@ public abstract class W3CTestSuite {
             return false;
         if (object != null && !object.equals(quad2.getObject()))
             return false;
-        if (graph == null && quad2.getGraph().getNodeType() != BlankNode.TYPE)
+        if (graph == null && quad2.getGraph().getNodeType() != Node.TYPE_BLANK)
             return false;
-        if (subject == null && quad2.getSubject().getNodeType() != BlankNode.TYPE)
+        if (subject == null && quad2.getSubject().getNodeType() != Node.TYPE_BLANK)
             return false;
-        if (object == null && quad2.getObject().getNodeType() != BlankNode.TYPE)
+        if (object == null && quad2.getObject().getNodeType() != Node.TYPE_BLANK)
             return false;
         if (graph == null)
             blanks.put((BlankNode) quad1.getGraph(), (BlankNode) quad2.getGraph());

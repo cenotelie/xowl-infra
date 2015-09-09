@@ -22,7 +22,7 @@ package org.xowl.store;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.IOException;
 
 /**
  * Tests for the functional loaders

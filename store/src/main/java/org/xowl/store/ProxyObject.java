@@ -21,7 +21,6 @@ package org.xowl.store;
 
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
-import org.xowl.lang.runtime.Datatype;
 import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
@@ -31,10 +30,10 @@ import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.Couple;
 import org.xowl.utils.collections.SkippableIterator;
 
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Represents an object in an ontology
@@ -101,7 +100,7 @@ public class ProxyObject {
      * @return The IRI of this object
      */
     public IRI getIRI() {
-        return subject.getNodeType() == IRINode.TYPE ? repository.getIRI(((IRINode) subject).getIRIValue()) : null;
+        return subject.getNodeType() == Node.TYPE_IRI ? repository.getIRI(((IRINode) subject).getIRIValue()) : null;
     }
 
     /**
@@ -110,7 +109,7 @@ public class ProxyObject {
      * @return The value of the IRI of this object
      */
     public String getIRIString() {
-        return subject.getNodeType() == IRINode.TYPE ? ((IRINode) subject).getIRIValue() : null;
+        return subject.getNodeType() == Node.TYPE_IRI ? ((IRINode) subject).getIRIValue() : null;
     }
 
     /**
@@ -345,13 +344,13 @@ public class ProxyObject {
             public <X> Couple<String, Object> adapt(X element) {
                 Quad quad = (Quad) element;
                 Node nodeProperty = quad.getProperty();
-                if (nodeProperty.getNodeType() != IRINode.TYPE)
+                if (nodeProperty.getNodeType() != Node.TYPE_IRI)
                     return null;
                 String property = ((IRINode) nodeProperty).getIRIValue();
                 Node nodeValue = quad.getObject();
-                if (nodeValue.getNodeType() == IRINode.TYPE) {
+                if (nodeValue.getNodeType() == Node.TYPE_IRI) {
                     return new Couple<String, Object>(property, repository.resolveProxy(((IRINode) nodeValue).getIRIValue()));
-                } else if (nodeValue.getNodeType() == LiteralNode.TYPE) {
+                } else if (nodeValue.getNodeType() == Node.TYPE_LITERAL) {
                     return new Couple<>(property, decode((LiteralNode) nodeValue));
                 }
                 return null;
@@ -372,9 +371,9 @@ public class ProxyObject {
         Iterator<Quad> iterator = repository.getStore().getAll(subject, property, null);
         while (iterator.hasNext()) {
             Node node = iterator.next().getObject();
-            if (node.getNodeType() == IRINode.TYPE) {
+            if (node.getNodeType() == Node.TYPE_IRI) {
                 result.add(repository.resolveProxy(((IRINode) node).getIRIValue()));
-            } else if (node.getNodeType() == BlankNode.TYPE) {
+            } else if (node.getNodeType() == Node.TYPE_BLANK) {
                 result.add(repository.resolveProxy(repository.getOntology(NodeManager.DEFAULT_GRAPH), (SubjectNode) node));
             }
         }
@@ -394,9 +393,9 @@ public class ProxyObject {
         Iterator<Quad> iterator = repository.getStore().getAll(null, property, subject);
         while (iterator.hasNext()) {
             Node node = iterator.next().getSubject();
-            if (node.getNodeType() == IRINode.TYPE) {
+            if (node.getNodeType() == Node.TYPE_IRI) {
                 result.add(repository.resolveProxy(((IRINode) node).getIRIValue()));
-            } else if (node.getNodeType() == BlankNode.TYPE) {
+            } else if (node.getNodeType() == Node.TYPE_BLANK) {
                 result.add(repository.resolveProxy(repository.getOntology(NodeManager.DEFAULT_GRAPH), (SubjectNode) node));
             }
         }
@@ -417,10 +416,10 @@ public class ProxyObject {
         while (iterator.hasNext()) {
             Node node = iterator.next().getObject();
             switch (node.getNodeType()) {
-                case LiteralNode.TYPE:
+                case Node.TYPE_LITERAL:
                     result.add(decode((LiteralNode) node));
                     break;
-                case DynamicNode.TYPE:
+                case Node.TYPE_DYNAMIC:
                     result.add(((DynamicNode) node).getDynamicExpression());
                     break;
             }
@@ -536,7 +535,7 @@ public class ProxyObject {
             // range is undefined, return xsd:String
             return Vocabulary.xsdString;
         Node rangeNode = iterator.next().getObject();
-        if (rangeNode.getNodeType() == IRINode.TYPE)
+        if (rangeNode.getNodeType() == Node.TYPE_IRI)
             return ((IRINode) rangeNode).getIRIValue();
         // range is defined, but is either a blank, or an anonymous node, return xsd:String
         return Vocabulary.xsdString;

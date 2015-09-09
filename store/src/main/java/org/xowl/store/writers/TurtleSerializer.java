@@ -98,7 +98,7 @@ public class TurtleSerializer extends StructuredSerializer {
      * @param quads   All the quads for its property
      */
     private void serializeTopLevel(SubjectNode subject, List<Quad> quads) throws IOException, UnsupportedNodeType {
-        if (subject.getNodeType() == IRINode.TYPE) {
+        if (subject.getNodeType() == Node.TYPE_IRI) {
             writer.write("<");
             writer.write(((IRINode) subject).getIRIValue());
             writer.write(">");
@@ -148,16 +148,16 @@ public class TurtleSerializer extends StructuredSerializer {
         writer.write(" ");
 
         switch (quad.getObject().getNodeType()) {
-            case IRINode.TYPE:
+            case Node.TYPE_IRI:
                 writer.write("<");
                 writer.write(((IRINode) quad.getObject()).getIRIValue());
                 writer.write(">");
                 break;
-            case BlankNode.TYPE:
+            case Node.TYPE_BLANK:
                 writer.write("_:n");
                 writer.write(getBlankID((BlankNode) quad.getObject()));
                 break;
-            case LiteralNode.TYPE:
+            case Node.TYPE_LITERAL:
                 String lexicalValue = ((LiteralNode) quad.getObject()).getLexicalValue();
                 String datatype = ((LiteralNode) quad.getObject()).getDatatype();
                 String language = ((LiteralNode) quad.getObject()).getLangTag();

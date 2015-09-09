@@ -286,7 +286,7 @@ public class RETENetwork {
      */
     private void buildJoinData(JoinData data, Quad pattern, QuadField field, Collection<VariableNode> boundVariables, Map<VariableNode, QuadField> unboundVariables) {
         Node node = pattern.getField(field);
-        if (node != null && node.getNodeType() == VariableNode.TYPE) {
+        if (node != null && node.getNodeType() == Node.TYPE_VARIABLE) {
             VariableNode variable = (VariableNode) node;
             if (boundVariables.contains(variable)) {
                 // the variable is bound, test the value of the fact against the bound variable's value

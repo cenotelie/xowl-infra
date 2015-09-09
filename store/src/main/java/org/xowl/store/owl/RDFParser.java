@@ -225,7 +225,7 @@ public class RDFParser {
      * @return The expression
      */
     private Datarange getExpressionDatarange(Node node) {
-        if (node.getNodeType() == IRINode.TYPE)
+        if (node.getNodeType() == Node.TYPE_IRI)
             return (IRI) Utils.getOWL(node);
         return (Datarange) expDatarange.get(node).getExpression();
     }
@@ -237,7 +237,7 @@ public class RDFParser {
      * @return The expression
      */
     private ClassExpression getExpressionClass(Node node) {
-        if (node.getNodeType() == IRINode.TYPE)
+        if (node.getNodeType() == Node.TYPE_IRI)
             return (IRI) Utils.getOWL(node);
         return (ClassExpression) expClasses.get(node).getExpression();
     }
@@ -249,7 +249,7 @@ public class RDFParser {
      * @return The expression
      */
     private ObjectPropertyExpression getExpressionObjectProperty(Node node) {
-        if (node.getNodeType() == IRINode.TYPE)
+        if (node.getNodeType() == Node.TYPE_IRI)
             return (IRI) Utils.getOWL(node);
         return (ObjectPropertyExpression) expObjProperties.get(node).getExpression();
     }
@@ -261,7 +261,7 @@ public class RDFParser {
      * @return The expression
      */
     private IRI getExpressionAnnotationProperty(Node node) {
-        if (node.getNodeType() == IRINode.TYPE)
+        if (node.getNodeType() == Node.TYPE_IRI)
             return (IRI) Utils.getOWL(node);
         return null;
     }
@@ -273,7 +273,7 @@ public class RDFParser {
      * @return The expression
      */
     private DataPropertyExpression getExpressionDataProperty(Node node) {
-        if (node.getNodeType() == IRINode.TYPE)
+        if (node.getNodeType() == Node.TYPE_IRI)
             return (IRI) Utils.getOWL(node);
         return null;
     }
@@ -285,7 +285,7 @@ public class RDFParser {
      * @return The expression
      */
     private LiteralExpression getExpressionLiteral(Node node) {
-        if (node.getNodeType() == LiteralNode.TYPE)
+        if (node.getNodeType() == Node.TYPE_LITERAL)
             return (LiteralExpression) Utils.getOWL(node);
         return null;
     }
@@ -297,9 +297,9 @@ public class RDFParser {
      * @return The expression
      */
     private IndividualExpression getExpressionIndividual(Node node) {
-        if (node.getNodeType() == IRINode.TYPE)
+        if (node.getNodeType() == Node.TYPE_IRI)
             return (IRI) Utils.getOWL(node);
-        else if (node.getNodeType() == AnonymousNode.TYPE)
+        else if (node.getNodeType() == Node.TYPE_ANONYMOUS)
             return ((AnonymousNode) node).getIndividual();
         return null;
     }
@@ -421,7 +421,7 @@ public class RDFParser {
     private List<Node> getListOrdered(Node sequence) {
         List<Node> elements = new ArrayList<>();
         while (true) {
-            if (sequence.getNodeType() == IRINode.TYPE) {
+            if (sequence.getNodeType() == Node.TYPE_IRI) {
                 if (Vocabulary.rdfNil.equals(((IRINode) sequence).getIRIValue()))
                     return elements;
             }
@@ -481,7 +481,7 @@ public class RDFParser {
     private boolean isOfType(SubjectNode subject, String type) {
         List<Node> types = getValues(subject, Vocabulary.rdfType);
         for (Node value : types) {
-            if (value.getNodeType() == IRINode.TYPE) {
+            if (value.getNodeType() == Node.TYPE_IRI) {
                 String iri = ((IRINode) value).getIRIValue();
                 if (type.equals(iri))
                     return true;

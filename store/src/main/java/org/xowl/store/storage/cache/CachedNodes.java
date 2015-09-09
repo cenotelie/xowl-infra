@@ -22,10 +22,7 @@ package org.xowl.store.storage.cache;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.owl.AnonymousNode;
-import org.xowl.store.rdf.BlankNode;
-import org.xowl.store.rdf.GraphNode;
-import org.xowl.store.rdf.IRINode;
-import org.xowl.store.rdf.LiteralNode;
+import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
 
 import java.lang.ref.WeakReference;
@@ -66,7 +63,7 @@ public class CachedNodes implements NodeManager {
 
     @Override
     public IRINode getIRINode(GraphNode graph) {
-        if (graph != null && graph.getNodeType() == IRINode.TYPE) {
+        if (graph != null && graph.getNodeType() == Node.TYPE_IRI) {
             String value = ((IRINode) graph).getIRIValue();
             return getIRINode(value + "#" + UUID.randomUUID().toString());
         } else {

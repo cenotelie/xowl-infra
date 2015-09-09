@@ -21,7 +21,10 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.*;
+import org.xowl.store.rdf.Changeset;
+import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.Query;
+import org.xowl.store.rdf.QuerySolution;
 import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;

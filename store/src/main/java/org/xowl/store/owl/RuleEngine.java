@@ -57,7 +57,7 @@ public class RuleEngine {
 
         @Override
         protected Node processOtherNode(org.xowl.store.rdf.Rule rule, Node node, Token token, Map<Node, Node> specials) {
-            if (node.getNodeType() != DynamicNode.TYPE || evaluator == null)
+            if (node.getNodeType() != Node.TYPE_DYNAMIC || evaluator == null)
                 return node;
             Node result = specials.get(node);
             if (result != null)
@@ -85,7 +85,7 @@ public class RuleEngine {
                 bindings.bind(qvar, value);
             }
             for (Map.Entry<Node, Node> entry : specials.entrySet()) {
-                if (entry.getKey().getNodeType() == VariableNode.TYPE) {
+                if (entry.getKey().getNodeType() == Node.TYPE_VARIABLE) {
                     QueryVariable qvar = context.get((VariableNode) entry.getKey());
                     Object value = Utils.getOWL(entry.getValue());
                     bindings.bind(qvar, value);
