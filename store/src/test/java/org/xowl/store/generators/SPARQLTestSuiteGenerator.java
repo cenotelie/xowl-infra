@@ -49,12 +49,7 @@ public class SPARQLTestSuiteGenerator {
     @Test
     public void generate() {
         TestLogger logger = new TestLogger();
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
+        Repository repository = new Repository();
 
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
         repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-fed/manifest.ttl");

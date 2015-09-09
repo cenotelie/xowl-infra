@@ -53,6 +53,30 @@ import java.util.*;
  */
 public class Repository extends AbstractRepository {
     /**
+     * The loader of evaluator services
+     */
+    private static ServiceLoader<Evaluator> SERIVCE_EVALUATOR = ServiceLoader.load(Evaluator.class);
+
+    /**
+     * Gets the default evaluator
+     *
+     * @return The default evaluator
+     */
+    private static Evaluator getDefaultEvaluator() {
+        Iterator<Evaluator> services = SERIVCE_EVALUATOR.iterator();
+        return services.hasNext() ? services.next() : null;
+    }
+
+    /**
+     * Gets a new default store
+     *
+     * @return A new default store
+     */
+    private static BaseStore getDefaultStore() {
+        return new InMemoryStore();
+    }
+
+    /**
      * The backend store
      */
     private final BaseStore backend;
@@ -88,6 +112,7 @@ public class Repository extends AbstractRepository {
 
     /**
      * Gets the evaluator used by this repository
+     *
      * @return The evaluator used by this repository
      */
     public Evaluator getEvaluator() {
@@ -136,31 +161,56 @@ public class Repository extends AbstractRepository {
 
     /**
      * Initializes this repository
-     *
-     * @throws IOException When the backend cannot allocate a temporary file
      */
-    public Repository() throws IOException {
-        this(IRIMapper.getDefault(), null);
+    public Repository() {
+        this(getDefaultStore(), IRIMapper.getDefault(), getDefaultEvaluator());
     }
 
     /**
      * Initializes this repository
      *
-     * @param evaluator The evaluator to use
-     * @throws IOException When the backend cannot allocate a temporary file
+     * @param store The store to use as backend
      */
-    public Repository(Evaluator evaluator) throws IOException {
-        this(IRIMapper.getDefault(), evaluator);
+    public Repository(BaseStore store) {
+        this(store, IRIMapper.getDefault(), getDefaultEvaluator());
     }
 
     /**
      * Initializes this repository
      *
      * @param mapper The IRI mapper to use
-     * @throws IOException When the backend cannot allocate a temporary file
      */
-    public Repository(IRIMapper mapper) throws IOException {
-        this(mapper, null);
+    public Repository(IRIMapper mapper) {
+        this(getDefaultStore(), mapper, getDefaultEvaluator());
+    }
+
+    /**
+     * Initializes this repository
+     *
+     * @param evaluator The evaluator to use
+     */
+    public Repository(Evaluator evaluator) {
+        this(getDefaultStore(), IRIMapper.getDefault(), evaluator);
+    }
+
+    /**
+     * Initializes this repository
+     *
+     * @param store  The store to use as backend
+     * @param mapper The IRI mapper to use
+     */
+    public Repository(BaseStore store, IRIMapper mapper) {
+        this(store, mapper, getDefaultEvaluator());
+    }
+
+    /**
+     * Initializes this repository
+     *
+     * @param store     The store to use as backend
+     * @param evaluator The evaluator to use
+     */
+    public Repository(BaseStore store, Evaluator evaluator) {
+        this(store, IRIMapper.getDefault(), evaluator);
     }
 
     /**
@@ -168,11 +218,21 @@ public class Repository extends AbstractRepository {
      *
      * @param mapper    The IRI mapper to use
      * @param evaluator The evaluator to use
-     * @throws IOException When the backend cannot allocate a temporary file
      */
-    public Repository(IRIMapper mapper, Evaluator evaluator) throws IOException {
+    public Repository(IRIMapper mapper, Evaluator evaluator) {
+        this(getDefaultStore(), mapper, evaluator);
+    }
+
+    /**
+     * Initializes this repository
+     *
+     * @param store     The store to use as backend
+     * @param mapper    The IRI mapper to use
+     * @param evaluator The evaluator to use
+     */
+    public Repository(BaseStore store, IRIMapper mapper, Evaluator evaluator) {
         super(mapper);
-        this.backend = new InMemoryStore();
+        this.backend = store;
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
         this.evaluator = evaluator;

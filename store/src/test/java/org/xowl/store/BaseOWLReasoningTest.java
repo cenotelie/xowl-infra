@@ -43,12 +43,7 @@ public class BaseOWLReasoningTest {
         TestLogger logger = new TestLogger();
 
         // load the conclusion ontology at get all the quads in it
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
+        Repository repository = new Repository();
         // add mapping for imported remote ontologies
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/conclusion", "resource:///entailment/" + conclusionResource);
@@ -110,12 +105,7 @@ public class BaseOWLReasoningTest {
         TestLogger logger = new TestLogger();
 
         // load the conclusion ontology at get all the quads in it
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
+        Repository repository = new Repository();
         // add mapping for imported remote ontologies
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/conclusion", "resource:///entailment/" + conclusionResource);
@@ -174,12 +164,7 @@ public class BaseOWLReasoningTest {
      */
     protected void testConsistency(String premiseResource) {
         TestLogger logger = new TestLogger();
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
+        Repository repository = new Repository();
         // add mapping for imported remote ontologies
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
@@ -207,12 +192,7 @@ public class BaseOWLReasoningTest {
      */
     protected void testInconsistency(String premiseResource) {
         TestLogger logger = new TestLogger();
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
+        Repository repository = new Repository();
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
 
         // activate the default reasoning rules

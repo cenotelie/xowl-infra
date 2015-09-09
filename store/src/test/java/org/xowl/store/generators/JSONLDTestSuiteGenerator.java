@@ -20,13 +20,10 @@
 
 package org.xowl.store.generators;
 
-import org.junit.Assert;
 import org.xowl.store.BaseJSONLDTest;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;
 import org.xowl.store.TestLogger;
-
-import java.io.IOException;
 
 /**
  * The generator of the test suite for the JSON-LD syntax
@@ -36,12 +33,7 @@ import java.io.IOException;
 public class JSONLDTestSuiteGenerator {
     public void generateToRdfTests() {
         TestLogger logger = new TestLogger();
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
+        Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap(BaseJSONLDTest.NAMESPACE + "(.*)", "resource://" + BaseJSONLDTest.PHYSICAL + "\\1");
         repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/toRdf-manifest.jsonld");
         repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/normalize-manifest.jsonld");

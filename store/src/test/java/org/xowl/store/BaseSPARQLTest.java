@@ -142,13 +142,8 @@ public abstract class BaseSPARQLTest {
      * @return The repository
      */
     private Repository prepare(Logger logger, Couple<String, String>[] inputs) {
-        Repository repository = null;
-        try {
-            repository = new Repository();
-            repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
-        } catch (IOException exception) {
-            Assert.fail("Failed to initialize the repository");
-        }
+        Repository repository = new Repository();
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
         for (Couple<String, String> input : inputs) {
             repository.load(logger, input.x, input.y == null ? NodeManager.DEFAULT_GRAPH : input.y, true);
         }

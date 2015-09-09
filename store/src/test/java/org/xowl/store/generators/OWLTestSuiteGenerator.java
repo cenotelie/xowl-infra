@@ -41,13 +41,7 @@ public class OWLTestSuiteGenerator {
      */
     public void generate() {
         TestLogger logger = new TestLogger();
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
-
+        Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://owl.semanticweb.org/exports/(.*)", "resource:///tests/\\1");
         repository.load(logger, "http://owl.semanticweb.org/exports/testOntology.rdf");
         repository.load(logger, "http://owl.semanticweb.org/exports/all.rdf");
