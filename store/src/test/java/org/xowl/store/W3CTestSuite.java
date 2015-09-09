@@ -24,6 +24,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.xowl.store.loaders.*;
 import org.xowl.store.rdf.*;
+import org.xowl.store.rdf.Utils;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.InMemoryStore;
 import org.xowl.utils.Logger;
@@ -217,7 +218,7 @@ public abstract class W3CTestSuite {
             return;
         for (int i = 0; i != quads.size() - 1; i++) {
             for (int j = i + 1; j != quads.size(); j++) {
-                if (sameQuad(quads.get(i), quads.get(j))) {
+                if (quads.get(i).equals(quads.get(j))) {
                     quads.remove(i);
                     i--;
                     break;
@@ -311,13 +312,13 @@ public abstract class W3CTestSuite {
             subject = blanks.get(subject);
         if (object.getNodeType() == Node.TYPE_BLANK)
             object = blanks.get(object);
-        if (!property.equals(quad2.getProperty()))
+        if (!Utils.same(property, quad2.getProperty()))
             return false;
-        if (graph != null && !graph.equals(quad2.getGraph()))
+        if (graph != null && !Utils.same(graph, quad2.getGraph()))
             return false;
-        if (subject != null && !subject.equals(quad2.getSubject()))
+        if (subject != null && !Utils.same(subject, quad2.getSubject()))
             return false;
-        if (object != null && !object.equals(quad2.getObject()))
+        if (object != null && !Utils.same(object, quad2.getObject()))
             return false;
         if (graph == null && quad2.getGraph().getNodeType() != Node.TYPE_BLANK)
             return false;
@@ -332,19 +333,5 @@ public abstract class W3CTestSuite {
         if (object == null)
             blanks.put((BlankNode) quad1.getObject(), (BlankNode) quad2.getObject());
         return true;
-    }
-
-    /**
-     * Determines whether the specified quads are exactly the same
-     *
-     * @param quad1 A quad
-     * @param quad2 Another quad
-     * @return <code>true</code> if the two quads are exactly the same
-     */
-    public static boolean sameQuad(Quad quad1, Quad quad2) {
-        return (quad1.getGraph().equals(quad2.getGraph())
-                && quad1.getSubject().equals(quad2.getSubject())
-                && quad1.getProperty().equals(quad2.getProperty())
-                && quad1.getObject().equals(quad2.getObject()));
     }
 }

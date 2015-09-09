@@ -21,9 +21,7 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.QuerySolution;
-import org.xowl.store.rdf.VariableNode;
+import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.Couple;
 
 import java.util.ArrayList;
@@ -66,7 +64,7 @@ public class GraphPatternMinus implements GraphPattern {
                 boolean matching = true;
                 for (Couple<VariableNode, Node> binding : restricting) {
                     Node value = solution.get(binding.x);
-                    if (value == null || !value.equals(binding.y)) {
+                    if (!org.xowl.store.rdf.Utils.same(binding.y, value)) {
                         matching = false;
                         break;
                     }

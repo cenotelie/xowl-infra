@@ -23,6 +23,7 @@ package org.xowl.store.storage.cache;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Property;
+import org.xowl.store.rdf.Utils;
 import org.xowl.utils.collections.*;
 
 import java.util.Arrays;
@@ -70,7 +71,7 @@ class EdgeBucket implements Iterable<Edge> {
         boolean hasEmpty = false;
         for (int i = 0; i != edges.length; i++) {
             hasEmpty = hasEmpty || (edges[i] == null);
-            if (edges[i] != null && edges[i].getProperty() == property) {
+            if (edges[i] != null && Utils.same(edges[i].getProperty(), property)) {
                 return edges[i].add(graph, value);
             }
         }
@@ -101,7 +102,7 @@ class EdgeBucket implements Iterable<Edge> {
      */
     public int remove(GraphNode graph, Property property, Node value) {
         for (int i = 0; i != edges.length; i++) {
-            if (edges[i] != null && edges[i].getProperty() == property) {
+            if (edges[i] != null && Utils.same(edges[i].getProperty(), property)) {
                 int result = edges[i].remove(graph, value);
                 if (result == CachedDataset.REMOVE_RESULT_EMPTIED) {
                     edges[i] = null;
@@ -125,7 +126,7 @@ class EdgeBucket implements Iterable<Edge> {
      */
     public int removeAll(GraphNode graph, Property property, Node value, List<CachedQuad> buffer) {
         for (int i = 0; i != edges.length; i++) {
-            if (edges[i] != null && (property == null || edges[i].getProperty() == property)) {
+            if (edges[i] != null && (property == null || Utils.same(edges[i].getProperty(), property))) {
                 int originalSize = buffer.size();
                 int result = edges[i].removeAll(graph, value, buffer);
                 for (int j = originalSize; j != buffer.size(); j++)
@@ -273,7 +274,7 @@ class EdgeBucket implements Iterable<Edge> {
         }
 
         for (int i = 0; i != edges.length; i++) {
-            if (edges[i] != null && edges[i].getProperty() == property) {
+            if (edges[i] != null && Utils.same(edges[i].getProperty(), property)) {
                 return new AdaptingIterator<>(edges[i].getAll(graph, value), new Adapter<CachedQuad>() {
                     @Override
                     public <X> CachedQuad adapt(X element) {
@@ -317,7 +318,7 @@ class EdgeBucket implements Iterable<Edge> {
             return count;
         }
         for (int i = 0; i != edges.length; i++)
-            if (edges[i] != null && edges[i].getProperty() == property)
+            if (edges[i] != null && Utils.same(edges[i].getProperty(), property))
                 return edges[i].count(graph, value);
         return 0;
     }

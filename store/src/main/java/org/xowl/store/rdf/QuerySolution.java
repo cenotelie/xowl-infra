@@ -87,7 +87,7 @@ public class QuerySolution implements Iterable<Couple<VariableNode, Node>> {
      */
     public Node get(VariableNode variable) {
         for (Couple<VariableNode, Node> binding : bindings)
-            if (binding.x.equals(variable))
+            if (Utils.same(binding.x, variable))
                 return binding.y;
         return null;
     }
@@ -120,7 +120,7 @@ public class QuerySolution implements Iterable<Couple<VariableNode, Node>> {
         for (Couple<VariableNode, Node> binding : this.bindings) {
             boolean found = false;
             for (Couple<VariableNode, Node> candidate : solution.bindings) {
-                if (candidate.x.equals(binding.x) && candidate.y.equals(binding.y)) {
+                if (Utils.same(candidate.x, binding.x) && Utils.same(candidate.y, binding.y)) {
                     found = true;
                     break;
                 }

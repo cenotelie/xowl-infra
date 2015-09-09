@@ -128,10 +128,10 @@ public class Quad {
     public boolean equals(Object obj) {
         if (obj instanceof Quad) {
             Quad quad = (Quad) obj;
-            if (!graph.equals(quad.graph)) return false;
-            if (!subject.equals(quad.subject)) return false;
-            if (!property.equals(quad.property)) return false;
-            return (object.equals(quad.object));
+            return (Utils.same(graph, quad.graph)
+                    && Utils.same(subject, quad.subject)
+                    && Utils.same(property, quad.property)
+                    && Utils.same(object, quad.object));
         }
         return false;
     }

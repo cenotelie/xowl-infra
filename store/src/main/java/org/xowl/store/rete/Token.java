@@ -21,6 +21,7 @@
 package org.xowl.store.rete;
 
 import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.Utils;
 import org.xowl.store.rdf.VariableNode;
 import org.xowl.utils.collections.Couple;
 
@@ -121,7 +122,7 @@ public class Token {
         if (variables == null)
             return null;
         for (int i = 0; i != variables.length; i++) {
-            if (variables[i] == variable)
+            if (Utils.same(variables[i], variable))
                 return values[i];
         }
         return null;
