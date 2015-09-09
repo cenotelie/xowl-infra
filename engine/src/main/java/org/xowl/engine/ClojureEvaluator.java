@@ -99,13 +99,12 @@ public class ClojureEvaluator implements Evaluator {
         }
         builder.append(" ]");
         Reader reader = new StringReader(builder.toString());
-        PersistentVector vector = (PersistentVector) Compiler.load(reader);
+        Iterator iterator = ((Iterable) Compiler.load(reader)).iterator();
         try {
             reader.close();
         } catch (IOException ex) {
             // do nothing
         }
-        Iterator iterator = vector.iterator();
         for (ClojureFunction function : OUTSTANDING_DEFINITIONS) {
             IFn definition = (IFn) iterator.next();
             Var.intern(CLJ_NAMESPACE_ROOT, Symbol.intern(function.getName()), definition);
