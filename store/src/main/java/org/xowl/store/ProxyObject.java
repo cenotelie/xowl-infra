@@ -21,6 +21,7 @@ package org.xowl.store;
 
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
+import org.xowl.lang.runtime.Datatype;
 import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
@@ -505,49 +506,7 @@ public class ProxyObject {
      * @return The corresponding data
      */
     private Object decode(LiteralNode node) {
-        String lexicalValue = node.getLexicalValue();
-        switch (node.getDatatype()) {
-            case Vocabulary.xsdTime:
-            case Vocabulary.xsdDateTime:
-            case Vocabulary.xsdDate:
-                try {
-                    return DateFormat.getInstance().parse(lexicalValue);
-                } catch (ParseException ex) {
-                    return null;
-                }
-            case Vocabulary.xsdBoolean:
-                return Boolean.parseBoolean(lexicalValue);
-            case Vocabulary.xsdDecimal:
-                try {
-                    return DecimalFormat.getInstance().parse(lexicalValue);
-                } catch (ParseException ex) {
-                    return null;
-                }
-            case Vocabulary.xsdFloat:
-                return Float.parseFloat(lexicalValue);
-            case Vocabulary.xsdDouble:
-                return Double.parseDouble(lexicalValue);
-            case Vocabulary.xsdDuration:
-            case Vocabulary.xsdUnsignedLong:
-            case Vocabulary.xsdLong:
-                return Long.parseLong(lexicalValue);
-            case Vocabulary.xsdNegativeInteger:
-            case Vocabulary.xsdPositiveInteger:
-            case Vocabulary.xsdNonPositiveinteger:
-            case Vocabulary.xsdNonNegativeInteger:
-            case Vocabulary.xsdUnsignedInteger:
-            case Vocabulary.xsdInteger:
-            case Vocabulary.xsdInt:
-                return Integer.parseInt(lexicalValue);
-            case Vocabulary.xsdUnsignedShort:
-            case Vocabulary.xsdShort:
-                return Short.parseShort(lexicalValue);
-            case Vocabulary.xsdUnsigedByte:
-            case Vocabulary.xsdByte:
-                return Byte.parseByte(lexicalValue);
-            default:
-                return lexicalValue;
-        }
+        return Datatypes.toNative(node);
     }
 
     /**
@@ -559,40 +518,8 @@ public class ProxyObject {
      */
     private LiteralNode encode(IRINode property, Object value) {
         String range = getRangeOf(property);
-        switch (range) {
-            case Vocabulary.xsdTime:
-            case Vocabulary.xsdDateTime:
-            case Vocabulary.xsdDate:
-                return repository.getStore().getLiteralNode(DateFormat.getInstance().format((Date) value), range, null);
-            case Vocabulary.xsdBoolean:
-                return repository.getStore().getLiteralNode(Boolean.toString((boolean) value), range, null);
-            case Vocabulary.xsdDecimal:
-                return repository.getStore().getLiteralNode(DecimalFormat.getInstance().format(value), range, null);
-            case Vocabulary.xsdFloat:
-                return repository.getStore().getLiteralNode(Float.toString((float) value), range, null);
-            case Vocabulary.xsdDouble:
-                return repository.getStore().getLiteralNode(Double.toString((double) value), range, null);
-            case Vocabulary.xsdDuration:
-            case Vocabulary.xsdUnsignedLong:
-            case Vocabulary.xsdLong:
-                return repository.getStore().getLiteralNode(Long.toString((long) value), range, null);
-            case Vocabulary.xsdNegativeInteger:
-            case Vocabulary.xsdPositiveInteger:
-            case Vocabulary.xsdNonPositiveinteger:
-            case Vocabulary.xsdNonNegativeInteger:
-            case Vocabulary.xsdUnsignedInteger:
-            case Vocabulary.xsdInteger:
-            case Vocabulary.xsdInt:
-                return repository.getStore().getLiteralNode(Integer.toString((int) value), range, null);
-            case Vocabulary.xsdUnsignedShort:
-            case Vocabulary.xsdShort:
-                return repository.getStore().getLiteralNode(Short.toString((short) value), range, null);
-            case Vocabulary.xsdUnsigedByte:
-            case Vocabulary.xsdByte:
-                return repository.getStore().getLiteralNode(Byte.toString((byte) value), range, null);
-            default:
-                return repository.getStore().getLiteralNode(value.toString(), range, null);
-        }
+        Couple<String, String> data = Datatypes.toLiteral(value);
+        return repository.getStore().getLiteralNode(data.x, range, null);
     }
 
     /**
