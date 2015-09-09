@@ -36,6 +36,15 @@ public class QuerySolution {
     private final Map<VariableNode, Node> content;
 
     /**
+     * Gets the inner content
+     *
+     * @return The inner content
+     */
+    Map<VariableNode, Node> getContent() {
+        return content;
+    }
+
+    /**
      * Initializes this solution
      *
      * @param bindings The bindings represented by this solution

@@ -86,25 +86,43 @@ public class Repository extends AbstractRepository {
     }
 
     /**
-     * Gets the associated query engine
+     * Gets the associated OWL query engine
      *
-     * @return The associated query engine
+     * @return The associated OWL query engine
      */
-    public QueryEngine getQueryEngine() {
+    public QueryEngine getOWLQueryEngine() {
         if (queryEngine == null)
             queryEngine = new QueryEngine(backend, evaluator);
         return queryEngine;
     }
 
     /**
-     * Gets the associated rule engine
+     * Gets the associated RDF query engine
      *
-     * @return The associated rule engine
+     * @return The associated RDF query engine
      */
-    public RuleEngine getRuleEngine() {
+    public org.xowl.store.rdf.QueryEngine getRDFQueryEngine() {
+        return getOWLQueryEngine().getBackend();
+    }
+
+    /**
+     * Gets the associated OWL rule engine
+     *
+     * @return The associated OWL rule engine
+     */
+    public RuleEngine getOWLRuleEngine() {
         if (ruleEngine == null)
             ruleEngine = new RuleEngine(backend, backend, evaluator);
         return ruleEngine;
+    }
+
+    /**
+     * Gets the associated RDF rule engine
+     *
+     * @return The associated RDF rule engine
+     */
+    public org.xowl.store.rdf.RuleEngine getRDFRuleEngine() {
+        return getOWLRuleEngine().getBackend();
     }
 
     /**
@@ -376,7 +394,7 @@ public class Repository extends AbstractRepository {
         }
 
         for (org.xowl.store.rdf.Rule rule : input.getRules()) {
-            getRuleEngine().getBackend().add(rule);
+            getOWLRuleEngine().getBackend().add(rule);
         }
     }
 
@@ -391,7 +409,7 @@ public class Repository extends AbstractRepository {
         }
 
         for (Rule rule : input.getRules()) {
-            getRuleEngine().add(rule, null, null, null);
+            getOWLRuleEngine().add(rule, null, null, null);
         }
     }
 

@@ -23,7 +23,6 @@ package org.xowl.engine;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.store.AbstractRepository;
-import org.xowl.store.Repository;
 
 import java.io.IOException;
 
@@ -73,7 +72,7 @@ public class ExecutionTest {
             engine.getRepository().getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/engine/Sample.xowl");
             engine.getRepository().load(logger, "http://xowl.org/engine/tests/Sample");
             Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
-            engine.getRepository().getRuleEngine().flush();
+            engine.getRepository().getOWLRuleEngine().flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

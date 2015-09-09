@@ -407,7 +407,7 @@ public class SPARQLLoader {
      * @return The INSERT DATA command
      */
     private Command loadCommandInsertData(ASTNode node) throws LoaderException {
-        List<Quad> quads = loadQuads(node, store.getIRINode(NodeManager.DEFAULT_GRAPH));
+        List<Quad> quads = loadQuads(node.getChildren().get(0), store.getIRINode(NodeManager.DEFAULT_GRAPH));
         return new CommandInsertData(Collections.unmodifiableCollection(quads));
     }
 
@@ -418,7 +418,7 @@ public class SPARQLLoader {
      * @return The DELETE DATA command
      */
     private Command loadCommandDeleteData(ASTNode node) throws LoaderException {
-        List<Quad> quads = loadQuads(node, store.getIRINode(NodeManager.DEFAULT_GRAPH));
+        List<Quad> quads = loadQuads(node.getChildren().get(0), store.getIRINode(NodeManager.DEFAULT_GRAPH));
         return new CommandDeleteData(Collections.unmodifiableCollection(quads));
     }
 
@@ -429,7 +429,7 @@ public class SPARQLLoader {
      * @return The DELETE WHERE command
      */
     private Command loadCommandDeleteWhere(ASTNode node) throws LoaderException {
-        List<Quad> quads = loadQuads(node, store.getIRINode(NodeManager.DEFAULT_GRAPH));
+        List<Quad> quads = loadQuads(node.getChildren().get(0), store.getIRINode(NodeManager.DEFAULT_GRAPH));
         return new CommandDeleteWhere(Collections.unmodifiableCollection(quads));
     }
 

@@ -96,7 +96,7 @@ public class BaseOWLReasoningTest {
             query.getPositives().add(new Quad(null, nodeSubject, nodeProperty, nodeObject));
         }
 
-        Collection<QuerySolution> solutions = repository.getQueryEngine().getBackend().execute(query);
+        Collection<QuerySolution> solutions = repository.getOWLQueryEngine().getBackend().execute(query);
         Assert.assertFalse("Entailment failed", solutions.isEmpty());
     }
 
@@ -163,7 +163,7 @@ public class BaseOWLReasoningTest {
             query.getPositives().add(new Quad(null, nodeSubject, nodeProperty, nodeObject));
         }
 
-        Collection<QuerySolution> solutions = repository.getQueryEngine().getBackend().execute(query);
+        Collection<QuerySolution> solutions = repository.getOWLQueryEngine().getBackend().execute(query);
         Assert.assertTrue("Erroneous entailment", solutions.isEmpty());
     }
 

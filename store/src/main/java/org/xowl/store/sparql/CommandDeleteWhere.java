@@ -21,7 +21,8 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.*;
+import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,6 +54,18 @@ public class CommandDeleteWhere implements Command {
 
     @Override
     public Result execute(Repository repository) {
-        return new ResultFailure("Not implemented");
+        Query query = new Query();
+        query.getPositives().addAll(quads);
+        Collection<QuerySolution> solutions = repository.getRDFQueryEngine().execute(query);
+        Collection<Quad> toRemove = new ArrayList<>();
+        for (QuerySolution solution : solutions) {
+            QueryEngine.apply(quads, solution, toRemove);
+        }
+        try {
+            repository.getStore().insert(new Changeset(new ArrayList<Quad>(), toRemove));
+        } catch (UnsupportedNodeType exception) {
+            return new ResultFailure(exception.getMessage());
+        }
+        return ResultSuccess.INSTANCE;
     }
 }
