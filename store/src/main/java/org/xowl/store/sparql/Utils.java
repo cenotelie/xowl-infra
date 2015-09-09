@@ -36,6 +36,40 @@ import java.util.Collection;
  */
 class Utils {
     /**
+     * Evaluates a SPARQL expression as a boolean native value
+     *
+     * @param repository The current repository
+     * @param solution   The current bindings
+     * @param expression The expression to evaluate
+     * @return The evaluated node
+     */
+    public static boolean evaluateBoolean(Repository repository, QuerySolution solution, Expression expression) throws EvalException {
+        Object value = expression.eval(repository, solution);
+        if (value instanceof DynamicNode)
+            value = repository.getEvaluator().eval(((DynamicNode) value).getDynamicExpression());
+        if (value instanceof LiteralNode)
+            value = Datatypes.toNative((LiteralNode) value);
+        return (value instanceof Boolean && (Boolean) value);
+    }
+
+    /**
+     * Evaluates a SPARQL expression as a native value
+     *
+     * @param repository The current repository
+     * @param solution   The current bindings
+     * @param expression The expression to evaluate
+     * @return The evaluated node
+     */
+    public static Object evaluateNative(Repository repository, QuerySolution solution, Expression expression) throws EvalException {
+        Object value = expression.eval(repository, solution);
+        if (value instanceof DynamicNode)
+            value = repository.getEvaluator().eval(((DynamicNode) value).getDynamicExpression());
+        if (value instanceof LiteralNode)
+            value = Datatypes.toNative((LiteralNode) value);
+        return value;
+    }
+
+    /**
      * Evaluates a SPARQL expression as a RDF node
      *
      * @param repository The current repository
@@ -43,10 +77,12 @@ class Utils {
      * @param expression The expression to evaluate
      * @return The evaluated node
      */
-    public static Node evaluate(Repository repository, QuerySolution solution, Expression expression) throws EvalException {
+    public static Node evaluateRDF(Repository repository, QuerySolution solution, Expression expression) throws EvalException {
         Object value = expression.eval(repository, solution);
+        if (value instanceof DynamicNode)
+            value = repository.getEvaluator().eval(((DynamicNode) value).getDynamicExpression());
         if (value instanceof Node) {
-            return (GraphNode) value;
+            return (Node) value;
         } else if (value instanceof IRI) {
             return repository.getStore().getIRINode(((IRI) value).getHasValue());
         } else {

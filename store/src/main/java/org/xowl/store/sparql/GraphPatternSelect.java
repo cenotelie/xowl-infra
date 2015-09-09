@@ -20,7 +20,6 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.store.Datatypes;
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
@@ -111,13 +110,8 @@ public class GraphPatternSelect implements GraphPattern {
                     if (projected.y == null)
                         bindings.add(new Couple<>(projected.x, original.get(projected.x)));
                     else {
-                        Object value = projected.y.eval(repository, original);
-                        if (value instanceof Node) {
-                            bindings.add(new Couple<>(projected.x, (Node) value));
-                        } else {
-                            Couple<String, String> literal = Datatypes.toLiteral(value);
-                            bindings.add(new Couple<>(projected.x, (Node) repository.getStore().getLiteralNode(literal.x, literal.y, null)));
-                        }
+                        Node value = Utils.evaluateRDF(repository, original, projected.y);
+                        bindings.add(new Couple<>(projected.x, value));
                     }
                 }
                 result.add(new QuerySolution(bindings));

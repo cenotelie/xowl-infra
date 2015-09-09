@@ -20,10 +20,7 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.store.Datatypes;
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.LiteralNode;
-import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
 
 import java.util.ArrayList;
@@ -61,14 +58,7 @@ public class GraphPatternFilter implements GraphPattern {
             Collection<QuerySolution> originalSolutions = origin.match(repository);
             Collection<QuerySolution> result = new ArrayList<>(originalSolutions.size());
             for (QuerySolution solution : originalSolutions) {
-                Object value = expression.eval(repository, solution);
-                if (value instanceof Node) {
-                    if (value instanceof LiteralNode)
-                        value = Datatypes.toNative((LiteralNode) value);
-                    else
-                        continue;
-                }
-                if (value instanceof Boolean && ((Boolean) value))
+                if (Utils.evaluateBoolean(repository, solution, expression))
                     result.add(solution);
             }
             return result;

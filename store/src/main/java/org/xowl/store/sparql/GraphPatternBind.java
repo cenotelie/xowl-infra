@@ -67,12 +67,12 @@ public class GraphPatternBind implements GraphPattern {
             Collection<QuerySolution> originalSolutions = origin.match(repository);
             Collection<QuerySolution> result = new ArrayList<>(originalSolutions.size());
             for (QuerySolution solution : originalSolutions) {
-                Node value = Utils.evaluate(repository, solution, expression);
+                Node value = Utils.evaluateRDF(repository, solution, expression);
                 result.add(new QuerySolution(solution, variable, value));
             }
             return result;
         } else {
-            Node value = Utils.evaluate(repository, null, expression);
+            Node value = Utils.evaluateRDF(repository, null, expression);
             ArrayList<Couple<VariableNode, Node>> bindings = new ArrayList<>();
             bindings.add(new Couple<>(variable, value));
             QuerySolution solution = new QuerySolution(bindings);
