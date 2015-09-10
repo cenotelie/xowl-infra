@@ -42,13 +42,13 @@ import java.util.Collection;
  */
 public class CommandDrop implements Command {
     /**
-     * The type of reference to the target
+     * The type of reference to the targets
      */
-    private final GraphReferenceType targetType;
+    private final GraphReferenceType type;
     /**
-     * The IRI of the target to clear (or null)
+     * The IRI of the target graphs to drop
      */
-    private final String target;
+    private final Collection<String> targets;
     /**
      * Whether the operation shall be silent
      */
@@ -57,21 +57,21 @@ public class CommandDrop implements Command {
     /**
      * Initializes this command
      *
-     * @param targetType The type of reference to the target
-     * @param target     The IRI of the target to clear (or null)
-     * @param isSilent   Whether the operation shall be silent
+     * @param type     The type of reference to the targets
+     * @param targets  The IRI of the target graphs to drop
+     * @param isSilent Whether the operation shall be silent
      */
-    public CommandDrop(GraphReferenceType targetType, String target, boolean isSilent) {
-        this.targetType = targetType;
-        this.target = target;
+    public CommandDrop(GraphReferenceType type, Collection<String> targets, boolean isSilent) {
+        this.type = type;
+        this.targets = targets;
         this.isSilent = isSilent;
     }
 
     @Override
     public Result execute(Repository repository) {
-        switch (targetType) {
+        switch (type) {
             case Single:
-                if (target != null)
+                for (String target : targets)
                     repository.getStore().clear(repository.getStore().getIRINode(target));
                 break;
             case Named:

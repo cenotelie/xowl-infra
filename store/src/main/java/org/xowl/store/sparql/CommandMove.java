@@ -22,9 +22,6 @@ package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.GraphNode;
-import org.xowl.store.storage.NodeManager;
-
-import java.util.Objects;
 
 /**
  * Represents the SPARQL MOVE command.
@@ -40,19 +37,11 @@ import java.util.Objects;
  */
 public class CommandMove implements Command {
     /**
-     * The type of reference to the origin
-     */
-    private final GraphReferenceType originType;
-    /**
-     * The IRI of the origin
+     * The IRI of the origin graph
      */
     private final String origin;
     /**
-     * The type of reference to the target
-     */
-    private final GraphReferenceType targetType;
-    /**
-     * The IRI of the target
+     * The IRI of the target graph
      */
     private final String target;
     /**
@@ -63,26 +52,22 @@ public class CommandMove implements Command {
     /**
      * Initializes this command
      *
-     * @param originType The type of reference to the origin
-     * @param origin     The IRI of the origin
-     * @param targetType The type of reference to the target
-     * @param target     The IRI of the target
-     * @param isSilent   Whether the operation shall be silent
+     * @param origin   The IRI of the origin graph
+     * @param target   The IRI of the target graph
+     * @param isSilent Whether the operation shall be silent
      */
-    public CommandMove(GraphReferenceType originType, String origin, GraphReferenceType targetType, String target, boolean isSilent) {
-        this.originType = originType;
+    public CommandMove(String origin, String target, boolean isSilent) {
         this.origin = origin;
-        this.targetType = targetType;
         this.target = target;
         this.isSilent = isSilent;
     }
 
     @Override
     public Result execute(Repository repository) {
-        if (originType == targetType && Objects.equals(origin, target))
+        if (origin.equals(target))
             return ResultSuccess.INSTANCE;
-        GraphNode graphOrigin = repository.getStore().getIRINode(originType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : origin);
-        GraphNode graphTarget = repository.getStore().getIRINode(targetType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : target);
+        GraphNode graphOrigin = repository.getStore().getIRINode(origin);
+        GraphNode graphTarget = repository.getStore().getIRINode(target);
         repository.getStore().move(graphOrigin, graphTarget);
         return ResultSuccess.INSTANCE;
     }

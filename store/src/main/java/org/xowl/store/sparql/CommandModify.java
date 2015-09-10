@@ -95,8 +95,8 @@ public class CommandModify implements Command {
             Collection<Quad> toInsert = new ArrayList<>();
             Collection<Quad> toRemove = new ArrayList<>();
             for (QuerySolution solution : solutions) {
-                Utils.evaluate(repository, solution, insert, toInsert);
-                Utils.evaluate(repository, solution, delete, toRemove);
+                Utils.instantiate(repository, solution, insert, toInsert);
+                Utils.instantiate(repository, solution, delete, toRemove);
             }
             repository.getStore().insert(new Changeset(toInsert, toRemove));
         } catch (UnsupportedNodeType | EvalException exception) {

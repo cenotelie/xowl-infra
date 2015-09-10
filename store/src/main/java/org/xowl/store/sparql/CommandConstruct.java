@@ -64,7 +64,7 @@ public class CommandConstruct implements Command {
             Collection<QuerySolution> solutions = pattern.match(repository);
             Collection<Quad> quads = new ArrayList<>();
             for (QuerySolution solution : solutions)
-                Utils.evaluate(repository, solution, template, quads);
+                Utils.instantiate(repository, solution, template, quads);
             return new ResultQuads(quads);
         } catch (EvalException exception) {
             return new ResultFailure(exception.getMessage());

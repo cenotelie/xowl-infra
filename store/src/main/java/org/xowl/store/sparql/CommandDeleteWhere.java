@@ -63,7 +63,7 @@ public class CommandDeleteWhere implements Command {
         Collection<Quad> toRemove = new ArrayList<>();
         try {
             for (QuerySolution solution : solutions)
-                Utils.evaluate(repository, solution, quads, toRemove);
+                Utils.instantiate(repository, solution, quads, toRemove);
             repository.getStore().insert(new Changeset(new ArrayList<Quad>(), toRemove));
         } catch (UnsupportedNodeType | EvalException exception) {
             return new ResultFailure(exception.getMessage());

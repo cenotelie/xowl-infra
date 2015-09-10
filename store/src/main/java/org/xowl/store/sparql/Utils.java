@@ -40,6 +40,7 @@ import java.util.Map;
 class Utils {
     /**
      * Evaluates a dynamic expression to a native value
+     *
      * @param repository The current repository
      * @param solution   The current bindings
      * @param expression The expression to evaluate
@@ -112,14 +113,18 @@ class Utils {
     }
 
     /**
-     * Evaluates a RDF node
+     * Instantiates a RDF node given a solution, i.e. a set of bindings for the variable nodes and the current mapping of blank nodes.
+     * A variable node is replaced by its value in the solution.
+     * A blank node is replaced by its instance-specific value in the blanks mapping.
+     * If this is the first time this blank node has been encountered in the template, the new instance-specific blank node is created and associated.
      *
      * @param repository The current repository
      * @param solution   The current bindings
-     * @param node       The node to evaluate
-     * @return The evaluated node
+     * @param blanks     The current mapping of blank nodes to their instance
+     * @param node       The node to instantiate
+     * @return The instantiated node
      */
-    public static Node evaluate(Repository repository, QuerySolution solution, Node node) throws EvalException {
+    private static Node instantiate(Repository repository, QuerySolution solution, Map<Node, Node> blanks, Node node) throws EvalException {
         if (node == null)
             throw new EvalException("The node cannot be null");
         Node result = node;
@@ -128,6 +133,13 @@ class Utils {
             if (value == null)
                 throw new EvalException("Unbound variable " + ((VariableNode) result).getName() + " in the template");
             result = value;
+        } else if (result.getNodeType() == Node.TYPE_BLANK) {
+            Node value = blanks.get(node);
+            if (value == null) {
+                value = repository.getStore().getBlankNode();
+                blanks.put(node, value);
+            }
+            return value;
         }
         if (result.getNodeType() == Node.TYPE_DYNAMIC && repository.getEvaluator() != null) {
             Object value = evluateNative(repository, solution, ((DynamicNode) result).getDynamicExpression());
@@ -144,20 +156,22 @@ class Utils {
     }
 
     /**
-     * Applies the specified mapping to a template.
-     * This replaces the variable nodes in the template by their value in the mapping
+     * Instantiate of template of quads given a solution, i.e. a set of bindings for the variable nodes.
+     * This replaces the variable nodes in the template by their value.
+     * The blank nodes in the template are also instantiated into new instance-specific blank nodes.
      *
      * @param repository The current repository
      * @param template   The template
      * @param solution   The query solution mapping the variables to their value
      * @param buffer     The buffer for the realized quads
      */
-    public static void evaluate(Repository repository, QuerySolution solution, Collection<Quad> template, Collection<Quad> buffer) throws EvalException {
+    public static void instantiate(Repository repository, QuerySolution solution, Collection<Quad> template, Collection<Quad> buffer) throws EvalException {
+        Map<Node, Node> blanks = new HashMap<>();
         for (Quad quad : template) {
-            GraphNode graph = (GraphNode) evaluate(repository, solution, quad.getGraph());
-            SubjectNode subject = (SubjectNode) evaluate(repository, solution, quad.getSubject());
-            Property property = (Property) evaluate(repository, solution, quad.getProperty());
-            Node object = evaluate(repository, solution, quad.getObject());
+            GraphNode graph = (GraphNode) instantiate(repository, solution, blanks, quad.getGraph());
+            SubjectNode subject = (SubjectNode) instantiate(repository, solution, blanks, quad.getSubject());
+            Property property = (Property) instantiate(repository, solution, blanks, quad.getProperty());
+            Node object = instantiate(repository, solution, blanks, quad.getObject());
             buffer.add(new Quad(graph, subject, property, object));
         }
     }

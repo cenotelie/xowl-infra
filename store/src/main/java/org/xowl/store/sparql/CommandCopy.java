@@ -22,9 +22,10 @@ package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.GraphNode;
-import org.xowl.store.storage.NodeManager;
 
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents the SPARQL COPY command.
@@ -39,21 +40,13 @@ import java.util.Objects;
  */
 public class CommandCopy implements Command {
     /**
-     * The type of reference to the origin
+     * The IRI of the origin graphs
      */
-    private final GraphReferenceType originType;
+    private final Collection<String> origins;
     /**
-     * The IRI of the origin
+     * The IRI of the target graphs
      */
-    private final String origin;
-    /**
-     * The type of reference to the target
-     */
-    private final GraphReferenceType targetType;
-    /**
-     * The IRI of the target
-     */
-    private final String target;
+    private final Collection<String> targets;
     /**
      * Whether the operation shall be silent
      */
@@ -62,27 +55,31 @@ public class CommandCopy implements Command {
     /**
      * Initializes this command
      *
-     * @param originType The type of reference to the origin
-     * @param origin     The IRI of the origin
-     * @param targetType The type of reference to the target
-     * @param target     The IRI of the target
-     * @param isSilent   Whether the operation shall be silent
+     * @param origins  The IRI of the origin graphs
+     * @param targets  The IRI of the target graphs
+     * @param isSilent Whether the operation shall be silent
      */
-    public CommandCopy(GraphReferenceType originType, String origin, GraphReferenceType targetType, String target, boolean isSilent) {
-        this.originType = originType;
-        this.origin = origin;
-        this.targetType = targetType;
-        this.target = target;
+    public CommandCopy(Collection<String> origins, Collection<String> targets, boolean isSilent) {
+        this.origins = origins;
+        this.targets = targets;
         this.isSilent = isSilent;
     }
 
     @Override
     public Result execute(Repository repository) {
-        if (originType == targetType && Objects.equals(origin, target))
-            return ResultSuccess.INSTANCE;
-        GraphNode graphOrigin = repository.getStore().getIRINode(originType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : origin);
-        GraphNode graphTarget = repository.getStore().getIRINode(targetType == GraphReferenceType.Default ? NodeManager.DEFAULT_GRAPH : target);
-        repository.getStore().copy(graphOrigin, graphTarget, true);
+        List<String> overwritten = new ArrayList<>();
+        for (String origin : origins) {
+            GraphNode graphOrigin = repository.getStore().getIRINode(origin);
+            for (String target : targets) {
+                if (!origin.equals(target)) {
+                    boolean overwrite = !overwritten.contains(target);
+                    GraphNode graphTarget = repository.getStore().getIRINode(target);
+                    repository.getStore().copy(graphOrigin, graphTarget, overwrite);
+                    if (overwrite)
+                        overwritten.add(target);
+                }
+            }
+        }
         return ResultSuccess.INSTANCE;
     }
 }
