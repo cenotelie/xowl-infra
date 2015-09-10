@@ -578,21 +578,23 @@ public class SPARQLLoader {
         } else {
             toInsert = new ArrayList<>();
         }
-        List<String> innerDefaultIRIs = new ArrayList<>(defaultIRIs);
-        List<String> innerNamedIRIs = new ArrayList<>(namedIRIs);
-        boolean ignore = (innerDefaultIRIs.isEmpty() && innerNamedIRIs.isEmpty());
+        for (String iri : defaultIRIs)
+            context.addDefaultGraph(iri);
+        for (String iri : namedIRIs)
+            context.addNamedIRI(iri);
+        boolean ignore = context.isDatasetDefined();
         while (current.getSymbol().getID() == SPARQLParser.ID.clause_using) {
             if (!ignore) {
                 if (current.getChildren().size() >= 2) {
-                    innerNamedIRIs.add(loadGraphRef(current.getChildren().get(1)).y);
+                    context.addNamedIRI(loadGraphRef(current.getChildren().get(1)).y);
                 } else {
-                    innerDefaultIRIs.add(loadGraphRef(current.getChildren().get(0)).y);
+                    context.addDefaultGraph(loadGraphRef(current.getChildren().get(0)).y);
                 }
             }
             index++;
             current = node.getChildren().get(index);
         }
-        where = loadGraphPattern(context, current);
+        where = loadGraphPattern(context, null, current);
         return new CommandModify(Collections.unmodifiableCollection(toInsert), Collections.unmodifiableCollection(toDelete), where);
     }
 
@@ -632,16 +634,17 @@ public class SPARQLLoader {
      * Loads a graph pattern from the specified AST node
      *
      * @param context The current context
+     * @param graph   The current graph, if any
      * @param node    An AST node
      * @return The graph pattern
      */
-    private GraphPattern loadGraphPattern(SPARQLContext context, ASTNode node) throws LoaderException {
-        // graph_pattern_group -> '{'! (sub_select^ | graph_pattern_group_sub^) '}'!
+    private GraphPattern loadGraphPattern(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
+        // graph_pattern -> '{'! (sub_select^ | graph_pattern_group^) '}'!
         switch (node.getSymbol().getID()) {
             case SPARQLParser.ID.sub_select:
                 return loadGraphPatternSubSelect(context, node);
-            case SPARQLParser.ID.graph_pattern_group_sub:
-                return loadGraphPatternSub(context, node);
+            case SPARQLParser.ID.graph_pattern_group:
+                return loadGraphPatternGroup(context, graph, node);
         }
         throw new LoaderException("Unrecognized graph pattern", node);
     }
@@ -658,18 +661,147 @@ public class SPARQLLoader {
     }
 
     /**
-     * Loads a graph pattern from the specified AST node
+     * Loads a group of graph pattern from the specified AST node
      *
      * @param context The current context
+     * @param graph   The current graph, if any
      * @param node    An AST node
-     * @return The graph pattern
+     * @return The overall graph pattern
      */
-    private GraphPattern loadGraphPatternSub(SPARQLContext context, ASTNode node) {
-        // graph_pattern_group_sub -> triples_block? graph_pattern_group_sub_elem*
-        // graph_pattern_group_sub_elem	-> graph_pattern_not_triples ('.'!)? triples_block?
-        // graph_pattern_not_triples -> graph_pattern_group_or_union^ | graph_pattern_optional^ | graph_pattern_minus^ | graph_pattern_graph^ | graph_pattern_service^ | filter^ | bind^ | inline_data^
-        throw new UnsupportedOperationException();
+    private GraphPattern loadGraphPatternGroup(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
+        // graph_pattern_group -> triples_block? (graph_pattern_other ('.'!)? triples_block?)* ;
+
+        // buffers of patterns read so far
+        GraphPatternQuads base = new GraphPatternQuads();
+        GraphPattern current = null;
+
+        // build the child context for this group
+        SPARQLContext currentContext = new SPARQLContext(context);
+
+        // load all the quads
+        for (ASTNode child : node.getChildren()) {
+            switch (child.getSymbol().getID()) {
+                case SPARQLParser.ID.triples_block: {
+                    List<Quad> quads = loadGraphPatternTriples(currentContext, graph, child);
+                    base.addPositives(quads);
+                    break;
+                }
+                case SPARQLParser.ID.graph_pattern_optional: {
+                    GraphPattern inner = loadGraphPattern(currentContext, graph, child.getChildren().get(0));
+                    current = new GraphPatternOptional(current == null ? base : current, inner);
+                    break;
+                }
+                case SPARQLParser.ID.graph_pattern_minus: {
+                    GraphPattern inner = loadGraphPattern(currentContext, graph, child.getChildren().get(0));
+                    if (inner instanceof GraphPatternQuads) {
+                        Query query = ((GraphPatternQuads) inner).getQuery();
+                        if (query.getNegatives().isEmpty()) {
+                            base.addNegatives(query.getPositives());
+                            break;
+                        }
+                    }
+                    current = new GraphPatternMinus(current == null ? base : current, inner);
+                    break;
+                }
+                case SPARQLParser.ID.graph_pattern_service: {
+                    GraphPattern inner = loadGraphPattern(currentContext, graph, child.getChildren().get(child.getChildren().size() - 1));
+                    Node enpoint = getNode(currentContext, child.getChildren().get(child.getChildren().size() - 2), graph, null);
+                    current = new GraphPatternService(current == null ? base : current, inner, enpoint, child.getChildren().size() >= 3);
+                    break;
+                }
+                case SPARQLParser.ID.graph_pattern_filter: {
+                    Expression expression = loadExpression(currentContext, graph, child.getChildren().get(0));
+                    current = new GraphPatternFilter(current == null ? base : current, expression);
+                    break;
+                }
+                case SPARQLParser.ID.graph_pattern_bind: {
+                    Expression expression = loadExpression(currentContext, graph, child.getChildren().get(0));
+                    Node variable = getVariable(currentContext, child.getChildren().get(1));
+                    current = new GraphPatternBind(current == null ? base : current, (VariableNode) variable, expression);
+                    break;
+                }
+                case SPARQLParser.ID.graph_pattern_data: {
+                    Collection<QuerySolution> data = loadDataBlock(currentContext, child.getChildren().get(0));
+                    //current = new GraphPatternInlineData()
+                    break;
+                }
+            }
+        }
+        return current;
     }
+
+    /**
+     * Loads an inline data block from the specified AST node
+     * @param context The current context
+     * @param node An AST node
+     * @return The inline data
+     */
+    private Collection<QuerySolution> loadDataBlock(SPARQLContext context, ASTNode node) throws LoaderException {
+        Collection<QuerySolution> result = new ArrayList<>();
+        switch (node.getSymbol().getID()) {
+            case SPARQLParser.ID.inline_data_one: {
+                VariableNode variable = (VariableNode) getVariable(context, node.getChildren().get(0));
+                for (int i = 1; i != node.getChildren().size(); i++) {
+                    Node value = getNode(context, node.getChildren().get(i), null, null);
+                    result.add(new QuerySolution(Collections.singletonList(new Couple<>(variable, value))));
+                }
+                break;
+            }
+            case SPARQLParser.ID.inline_data_full: {
+                List<VariableNode> variables = new ArrayList<>();
+                for (ASTNode child : node.getChildren().get(0).getChildren())
+                    variables.add((VariableNode) getVariable(context, child));
+                for (int i = 1; i != node.getChildren().size(); i++) {
+                    List<Node> values = new ArrayList<>();
+                    for (ASTNode child : node.getChildren().get(i).getChildren())
+                        values.add(getNode(context, child, null, null));
+                    List<Couple<VariableNode, Node>> bindings = new ArrayList<>();
+                    for (int v = 0; v != variables.size(); v++)
+                        bindings.add(new Couple<>(variables.get(i), values.get(i)));
+                    result.add(new QuerySolution(bindings));
+                }
+                break;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Loads a SPARQL expression from the specified AST node
+     *
+     * @param context The current context
+     * @param graph   The current graph, if any
+     * @param node    An AST node
+     * @return The expression
+     */
+    private Expression loadExpression(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
+        return null;
+    }
+
+    /**
+     * Loads a graph pattern specified as a block of triples from the specified AST node
+     *
+     * @param context The current context
+     * @param graph   The current graph, if any
+     * @param node    An AST node
+     * @return The quads
+     */
+    private List<Quad> loadGraphPatternTriples(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
+        GraphNode target = graph;
+        if (target == null) {
+            if (!context.getDefaultGraphs().isEmpty()) {
+                if (context.getDefaultGraphs().size() > 1)
+                    throw new LoaderException("Cannot load triples with multiple DEFAULT graphs", node);
+                target = store.getIRINode(context.getDefaultGraphs().iterator().next());
+            } else {
+                target = store.getIRINode(NodeManager.DEFAULT_GRAPH);
+            }
+        }
+        List<Quad> result = new ArrayList<>();
+        loadTriples(context, node, target, result);
+        return result;
+    }
+
 
     /**
      * Loads quads from the specified AST node
@@ -762,7 +894,9 @@ public class SPARQLLoader {
      */
     private Node getNode(SPARQLContext context, ASTNode node, GraphNode graph, List<Quad> buffer) throws LoaderException {
         switch (node.getSymbol().getID()) {
-            case 0x00EE: // a
+            case SPARQLLexer.ID.UNDEF:
+                return null;
+            case 0x00EC: // a
                 return getNodeIsA();
             case SPARQLParser.ID.nil:
                 return getNodeNil();
@@ -778,9 +912,9 @@ public class SPARQLLoader {
                 return getNodeAnon();
             case SPARQLLexer.ID.VARIABLE:
                 return getVariable(context, node);
-            case 0x0147: // true
+            case 0x0145: // true
                 return getNodeTrue();
-            case 0x0148: // false
+            case 0x0146: // false
                 return getNodeFalse();
             case SPARQLLexer.ID.INTEGER:
                 return getNodeInteger(node);

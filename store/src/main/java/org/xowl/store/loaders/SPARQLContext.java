@@ -94,6 +94,20 @@ class SPARQLContext {
     }
 
     /**
+     * Initializes this context from the specified parent
+     *
+     * @param parent A parent context
+     */
+    public SPARQLContext(SPARQLContext parent) {
+        this.manager = parent.manager;
+        this.emitVariableForBlank = parent.emitVariableForBlank;
+        this.defaultIRIs = new ArrayList<>(parent.defaultIRIs);
+        this.namedIRIs = new ArrayList<>(parent.namedIRIs);
+        this.blanks = new HashMap<>(parent.blanks);
+        this.variables = new HashMap<>(parent.variables);
+    }
+
+    /**
      * Gets whether the current context defines a custom dataset
      *
      * @return true if the context defines a custom dataset

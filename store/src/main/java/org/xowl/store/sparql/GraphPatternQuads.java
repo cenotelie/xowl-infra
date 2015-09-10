@@ -25,7 +25,6 @@ import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.Query;
 import org.xowl.store.rdf.QuerySolution;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -40,25 +39,37 @@ public class GraphPatternQuads implements GraphPattern {
     private final Query query;
 
     /**
-     * Initializes this pattern
+     * Gets the RDF query represented by this pattern
      *
-     * @param quads The quads to match
+     * @return The RDF query
      */
-    public GraphPatternQuads(Collection<Quad> quads) {
-        this.query = new Query();
-        this.query.getPositives().addAll(quads);
+    public Query getQuery() {
+        return query;
     }
 
     /**
      * Initializes this pattern
-     *
-     * @param positives The quads to match
-     * @param negatives The quads taht must not be matched
      */
-    public GraphPatternQuads(Collection<Quad> positives, Collection<Quad> negatives) {
+    public GraphPatternQuads() {
         this.query = new Query();
-        this.query.getPositives().addAll(positives);
-        this.query.getNegatives().add(new ArrayList<>(negatives));
+    }
+
+    /**
+     * Adds positive quads to this pattern
+     *
+     * @param quads The quads to add
+     */
+    public void addPositives(Collection<Quad> quads) {
+        query.getPositives().addAll(quads);
+    }
+
+    /**
+     * Adds a conjunction of negative quads to this pattern
+     *
+     * @param quads The conjunction of negative quads
+     */
+    public void addNegatives(Collection<Quad> quads) {
+        query.getNegatives().add(quads);
     }
 
     @Override

@@ -5,9 +5,14 @@
 
 package org.xowl.store.loaders;
 
+import org.xowl.hime.redist.SemanticAction;
+import org.xowl.hime.redist.SemanticBody;
 import org.xowl.hime.redist.Symbol;
+import org.xowl.hime.redist.parsers.InitializationException;
 import org.xowl.hime.redist.parsers.LRkAutomaton;
 import org.xowl.hime.redist.parsers.LRkParser;
+
+import java.util.Map;
 
 /**
  * Represents a parser
@@ -238,25 +243,25 @@ class SPARQLParser extends LRkParser {
          */
         public static final int graph_ref_all = 0x0080;
         /**
+         * The unique identifier for variable graph_pattern
+         */
+        public static final int graph_pattern = 0x0081;
+        /**
          * The unique identifier for variable graph_pattern_group
          */
-        public static final int graph_pattern_group = 0x0081;
+        public static final int graph_pattern_group = 0x0082;
         /**
-         * The unique identifier for variable graph_pattern_group_sub
+         * The unique identifier for variable graph_pattern_other
          */
-        public static final int graph_pattern_group_sub = 0x0082;
-        /**
-         * The unique identifier for variable graph_pattern_group_sub_elem
-         */
-        public static final int graph_pattern_group_sub_elem = 0x0083;
-        /**
-         * The unique identifier for variable graph_pattern_not_triples
-         */
-        public static final int graph_pattern_not_triples = 0x0084;
+        public static final int graph_pattern_other = 0x0083;
         /**
          * The unique identifier for variable graph_pattern_optional
          */
-        public static final int graph_pattern_optional = 0x0085;
+        public static final int graph_pattern_optional = 0x0084;
+        /**
+         * The unique identifier for variable graph_pattern_minus
+         */
+        public static final int graph_pattern_minus = 0x0085;
         /**
          * The unique identifier for variable graph_pattern_graph
          */
@@ -266,21 +271,21 @@ class SPARQLParser extends LRkParser {
          */
         public static final int graph_pattern_service = 0x0087;
         /**
-         * The unique identifier for variable graph_pattern_group_or_union
+         * The unique identifier for variable graph_pattern_filter
          */
-        public static final int graph_pattern_group_or_union = 0x0088;
+        public static final int graph_pattern_filter = 0x0088;
         /**
-         * The unique identifier for variable graph_pattern_minus
+         * The unique identifier for variable graph_pattern_bind
          */
-        public static final int graph_pattern_minus = 0x0089;
+        public static final int graph_pattern_bind = 0x0089;
         /**
-         * The unique identifier for variable bind
+         * The unique identifier for variable graph_pattern_data
          */
-        public static final int bind = 0x008A;
+        public static final int graph_pattern_data = 0x008A;
         /**
-         * The unique identifier for variable inline_data
+         * The unique identifier for variable graph_pattern_union
          */
-        public static final int inline_data = 0x008B;
+        public static final int graph_pattern_union = 0x008B;
         /**
          * The unique identifier for variable data_block
          */
@@ -306,273 +311,269 @@ class SPARQLParser extends LRkParser {
          */
         public static final int data_block_value = 0x0091;
         /**
-         * The unique identifier for variable filter
-         */
-        public static final int filter = 0x0092;
-        /**
          * The unique identifier for variable constraint
          */
-        public static final int constraint = 0x0093;
+        public static final int constraint = 0x0092;
         /**
          * The unique identifier for variable quad_pattern
          */
-        public static final int quad_pattern = 0x0094;
+        public static final int quad_pattern = 0x0093;
         /**
          * The unique identifier for variable quad_data
          */
-        public static final int quad_data = 0x0095;
+        public static final int quad_data = 0x0094;
         /**
          * The unique identifier for variable quads
          */
-        public static final int quads = 0x0096;
+        public static final int quads = 0x0095;
         /**
          * The unique identifier for variable quads_supp
          */
-        public static final int quads_supp = 0x0097;
+        public static final int quads_supp = 0x0096;
         /**
          * The unique identifier for variable quads_not_triples
          */
-        public static final int quads_not_triples = 0x0098;
+        public static final int quads_not_triples = 0x0097;
         /**
          * The unique identifier for variable triples_template
          */
-        public static final int triples_template = 0x0099;
+        public static final int triples_template = 0x0098;
         /**
          * The unique identifier for variable triples_block
          */
-        public static final int triples_block = 0x009A;
+        public static final int triples_block = 0x0099;
         /**
          * The unique identifier for variable triples_same_subj
          */
-        public static final int triples_same_subj = 0x009B;
+        public static final int triples_same_subj = 0x009A;
         /**
          * The unique identifier for variable property_list
          */
-        public static final int property_list = 0x009C;
+        public static final int property_list = 0x009B;
         /**
          * The unique identifier for variable property_list_not_empty
          */
-        public static final int property_list_not_empty = 0x009D;
+        public static final int property_list_not_empty = 0x009C;
         /**
          * The unique identifier for variable verb
          */
-        public static final int verb = 0x009E;
+        public static final int verb = 0x009D;
         /**
          * The unique identifier for variable object_list
          */
-        public static final int object_list = 0x009F;
+        public static final int object_list = 0x009E;
         /**
          * The unique identifier for variable object
          */
-        public static final int object = 0x00A0;
+        public static final int object = 0x009F;
         /**
          * The unique identifier for variable triples_node
          */
-        public static final int triples_node = 0x00A1;
+        public static final int triples_node = 0x00A0;
         /**
          * The unique identifier for variable blank_node_property_list
          */
-        public static final int blank_node_property_list = 0x00A2;
+        public static final int blank_node_property_list = 0x00A1;
         /**
          * The unique identifier for variable collection
          */
-        public static final int collection = 0x00A3;
+        public static final int collection = 0x00A2;
         /**
          * The unique identifier for variable graph_node
          */
-        public static final int graph_node = 0x00A4;
+        public static final int graph_node = 0x00A3;
         /**
          * The unique identifier for variable var_or_term
          */
-        public static final int var_or_term = 0x00A5;
+        public static final int var_or_term = 0x00A4;
         /**
          * The unique identifier for variable var_or_iri
          */
-        public static final int var_or_iri = 0x00A6;
+        public static final int var_or_iri = 0x00A5;
         /**
          * The unique identifier for variable graph_term
          */
-        public static final int graph_term = 0x00A7;
+        public static final int graph_term = 0x00A6;
         /**
          * The unique identifier for variable triples_same_subj_path
          */
-        public static final int triples_same_subj_path = 0x00A8;
+        public static final int triples_same_subj_path = 0x00A7;
         /**
          * The unique identifier for variable property_list_path
          */
-        public static final int property_list_path = 0x00A9;
+        public static final int property_list_path = 0x00A8;
         /**
          * The unique identifier for variable property_list_path_ne
          */
-        public static final int property_list_path_ne = 0x00AA;
+        public static final int property_list_path_ne = 0x00A9;
         /**
          * The unique identifier for variable verb_path
          */
-        public static final int verb_path = 0x00AB;
+        public static final int verb_path = 0x00AA;
         /**
          * The unique identifier for variable verb_simple
          */
-        public static final int verb_simple = 0x00AC;
+        public static final int verb_simple = 0x00AB;
         /**
          * The unique identifier for variable object_list_path
          */
-        public static final int object_list_path = 0x00AD;
+        public static final int object_list_path = 0x00AC;
         /**
          * The unique identifier for variable object_path
          */
-        public static final int object_path = 0x00AE;
+        public static final int object_path = 0x00AD;
         /**
          * The unique identifier for variable triples_node_path
          */
-        public static final int triples_node_path = 0x00AF;
+        public static final int triples_node_path = 0x00AE;
         /**
          * The unique identifier for variable blank_node_property_list_path
          */
-        public static final int blank_node_property_list_path = 0x00B0;
+        public static final int blank_node_property_list_path = 0x00AF;
         /**
          * The unique identifier for variable collection_path
          */
-        public static final int collection_path = 0x00B1;
+        public static final int collection_path = 0x00B0;
         /**
          * The unique identifier for variable graph_node_path
          */
-        public static final int graph_node_path = 0x00B2;
+        public static final int graph_node_path = 0x00B1;
         /**
          * The unique identifier for variable path
          */
-        public static final int path = 0x00B3;
+        public static final int path = 0x00B2;
         /**
          * The unique identifier for variable path_alt
          */
-        public static final int path_alt = 0x00B4;
+        public static final int path_alt = 0x00B3;
         /**
          * The unique identifier for variable path_seq
          */
-        public static final int path_seq = 0x00B5;
+        public static final int path_seq = 0x00B4;
         /**
          * The unique identifier for variable path_elt_or_inv
          */
-        public static final int path_elt_or_inv = 0x00B6;
+        public static final int path_elt_or_inv = 0x00B5;
         /**
          * The unique identifier for variable path_elt
          */
-        public static final int path_elt = 0x00B7;
+        public static final int path_elt = 0x00B6;
         /**
          * The unique identifier for variable path_primary
          */
-        public static final int path_primary = 0x00B8;
+        public static final int path_primary = 0x00B7;
         /**
          * The unique identifier for variable path_neg
          */
-        public static final int path_neg = 0x00B9;
+        public static final int path_neg = 0x00B8;
         /**
          * The unique identifier for variable path_in
          */
-        public static final int path_in = 0x00BA;
+        public static final int path_in = 0x00B9;
         /**
          * The unique identifier for variable expression_list
          */
-        public static final int expression_list = 0x00BB;
+        public static final int expression_list = 0x00BA;
         /**
          * The unique identifier for variable expression
          */
-        public static final int expression = 0x00BC;
+        public static final int expression = 0x00BB;
         /**
          * The unique identifier for variable exp_or
          */
-        public static final int exp_or = 0x00BD;
+        public static final int exp_or = 0x00BC;
         /**
          * The unique identifier for variable exp_and
          */
-        public static final int exp_and = 0x00BE;
+        public static final int exp_and = 0x00BD;
         /**
          * The unique identifier for variable exp_logical
          */
-        public static final int exp_logical = 0x00BF;
+        public static final int exp_logical = 0x00BE;
         /**
          * The unique identifier for variable exp_relational
          */
-        public static final int exp_relational = 0x00C0;
+        public static final int exp_relational = 0x00BF;
         /**
          * The unique identifier for variable exp_numeric
          */
-        public static final int exp_numeric = 0x00C1;
+        public static final int exp_numeric = 0x00C0;
         /**
          * The unique identifier for variable exp_add
          */
-        public static final int exp_add = 0x00C2;
+        public static final int exp_add = 0x00C1;
         /**
          * The unique identifier for variable exp_mult
          */
-        public static final int exp_mult = 0x00C3;
+        public static final int exp_mult = 0x00C2;
         /**
          * The unique identifier for variable exp_unary
          */
-        public static final int exp_unary = 0x00C4;
+        public static final int exp_unary = 0x00C3;
         /**
          * The unique identifier for variable exp_primary
          */
-        public static final int exp_primary = 0x00C5;
+        public static final int exp_primary = 0x00C4;
         /**
          * The unique identifier for variable exp_bracketted
          */
-        public static final int exp_bracketted = 0x00C6;
+        public static final int exp_bracketted = 0x00C5;
         /**
          * The unique identifier for variable built_in_call
          */
-        public static final int built_in_call = 0x00C7;
+        public static final int built_in_call = 0x00C6;
         /**
          * The unique identifier for variable iri_or_function
          */
-        public static final int iri_or_function = 0x00C8;
+        public static final int iri_or_function = 0x00C7;
         /**
          * The unique identifier for variable function_call
          */
-        public static final int function_call = 0x00C9;
+        public static final int function_call = 0x00C8;
         /**
          * The unique identifier for variable arg_list
          */
-        public static final int arg_list = 0x00CA;
+        public static final int arg_list = 0x00C9;
         /**
          * The unique identifier for variable blank_node
          */
-        public static final int blank_node = 0x00CB;
+        public static final int blank_node = 0x00CA;
         /**
          * The unique identifier for variable literal
          */
-        public static final int literal = 0x00CC;
+        public static final int literal = 0x00CB;
         /**
          * The unique identifier for variable literal_bool
          */
-        public static final int literal_bool = 0x00CD;
+        public static final int literal_bool = 0x00CC;
         /**
          * The unique identifier for variable literal_numeric
          */
-        public static final int literal_numeric = 0x00CE;
+        public static final int literal_numeric = 0x00CD;
         /**
          * The unique identifier for variable literal_rdf
          */
-        public static final int literal_rdf = 0x00CF;
+        public static final int literal_rdf = 0x00CE;
         /**
          * The unique identifier for variable string
          */
-        public static final int string = 0x00D0;
+        public static final int string = 0x00CF;
         /**
          * The unique identifier for variable iri
          */
-        public static final int iri = 0x00D1;
+        public static final int iri = 0x00D0;
         /**
          * The unique identifier for variable prefixedName
          */
-        public static final int prefixedName = 0x00D2;
+        public static final int prefixedName = 0x00D1;
         /**
          * The unique identifier for variable __axiom
          */
-        public static final int __axiom = 0x014A;
+        public static final int __axiom = 0x0148;
         /**
          * The unique identifier for virtual nil
          */
-        public static final int nil = 0x00F4;
+        public static final int nil = 0x00F2;
     }
     /**
      * The collection of variables matched by this parser
@@ -635,93 +636,93 @@ class SPARQLParser extends LRkParser {
         new Symbol(0x007E, "graph_or_default"), 
         new Symbol(0x007F, "graph_ref"), 
         new Symbol(0x0080, "graph_ref_all"), 
-        new Symbol(0x0081, "graph_pattern_group"), 
-        new Symbol(0x0082, "graph_pattern_group_sub"), 
-        new Symbol(0x0083, "graph_pattern_group_sub_elem"), 
-        new Symbol(0x0084, "graph_pattern_not_triples"), 
-        new Symbol(0x0085, "graph_pattern_optional"), 
+        new Symbol(0x0081, "graph_pattern"), 
+        new Symbol(0x0082, "graph_pattern_group"), 
+        new Symbol(0x0083, "graph_pattern_other"), 
+        new Symbol(0x0084, "graph_pattern_optional"), 
+        new Symbol(0x0085, "graph_pattern_minus"), 
         new Symbol(0x0086, "graph_pattern_graph"), 
         new Symbol(0x0087, "graph_pattern_service"), 
-        new Symbol(0x0088, "graph_pattern_group_or_union"), 
-        new Symbol(0x0089, "graph_pattern_minus"), 
-        new Symbol(0x008A, "bind"), 
-        new Symbol(0x008B, "inline_data"), 
+        new Symbol(0x0088, "graph_pattern_filter"), 
+        new Symbol(0x0089, "graph_pattern_bind"), 
+        new Symbol(0x008A, "graph_pattern_data"), 
+        new Symbol(0x008B, "graph_pattern_union"), 
         new Symbol(0x008C, "data_block"), 
         new Symbol(0x008D, "inline_data_one"), 
         new Symbol(0x008E, "inline_data_full"), 
         new Symbol(0x008F, "inline_data_full_vars"), 
         new Symbol(0x0090, "inline_data_full_val"), 
         new Symbol(0x0091, "data_block_value"), 
-        new Symbol(0x0092, "filter"), 
-        new Symbol(0x0093, "constraint"), 
-        new Symbol(0x0094, "quad_pattern"), 
-        new Symbol(0x0095, "quad_data"), 
-        new Symbol(0x0096, "quads"), 
-        new Symbol(0x0097, "quads_supp"), 
-        new Symbol(0x0098, "quads_not_triples"), 
-        new Symbol(0x0099, "triples_template"), 
-        new Symbol(0x009A, "triples_block"), 
-        new Symbol(0x009B, "triples_same_subj"), 
-        new Symbol(0x009C, "property_list"), 
-        new Symbol(0x009D, "property_list_not_empty"), 
-        new Symbol(0x009E, "verb"), 
-        new Symbol(0x009F, "object_list"), 
-        new Symbol(0x00A0, "object"), 
-        new Symbol(0x00A1, "triples_node"), 
-        new Symbol(0x00A2, "blank_node_property_list"), 
-        new Symbol(0x00A3, "collection"), 
-        new Symbol(0x00A4, "graph_node"), 
-        new Symbol(0x00A5, "var_or_term"), 
-        new Symbol(0x00A6, "var_or_iri"), 
-        new Symbol(0x00A7, "graph_term"), 
-        new Symbol(0x00A8, "triples_same_subj_path"), 
-        new Symbol(0x00A9, "property_list_path"), 
-        new Symbol(0x00AA, "property_list_path_ne"), 
-        new Symbol(0x00AB, "verb_path"), 
-        new Symbol(0x00AC, "verb_simple"), 
-        new Symbol(0x00AD, "object_list_path"), 
-        new Symbol(0x00AE, "object_path"), 
-        new Symbol(0x00AF, "triples_node_path"), 
-        new Symbol(0x00B0, "blank_node_property_list_path"), 
-        new Symbol(0x00B1, "collection_path"), 
-        new Symbol(0x00B2, "graph_node_path"), 
-        new Symbol(0x00B3, "path"), 
-        new Symbol(0x00B4, "path_alt"), 
-        new Symbol(0x00B5, "path_seq"), 
-        new Symbol(0x00B6, "path_elt_or_inv"), 
-        new Symbol(0x00B7, "path_elt"), 
-        new Symbol(0x00B8, "path_primary"), 
-        new Symbol(0x00B9, "path_neg"), 
-        new Symbol(0x00BA, "path_in"), 
-        new Symbol(0x00BB, "expression_list"), 
-        new Symbol(0x00BC, "expression"), 
-        new Symbol(0x00BD, "exp_or"), 
-        new Symbol(0x00BE, "exp_and"), 
-        new Symbol(0x00BF, "exp_logical"), 
-        new Symbol(0x00C0, "exp_relational"), 
-        new Symbol(0x00C1, "exp_numeric"), 
-        new Symbol(0x00C2, "exp_add"), 
-        new Symbol(0x00C3, "exp_mult"), 
-        new Symbol(0x00C4, "exp_unary"), 
-        new Symbol(0x00C5, "exp_primary"), 
-        new Symbol(0x00C6, "exp_bracketted"), 
-        new Symbol(0x00C7, "built_in_call"), 
-        new Symbol(0x00C8, "iri_or_function"), 
-        new Symbol(0x00C9, "function_call"), 
-        new Symbol(0x00CA, "arg_list"), 
-        new Symbol(0x00CB, "blank_node"), 
-        new Symbol(0x00CC, "literal"), 
-        new Symbol(0x00CD, "literal_bool"), 
-        new Symbol(0x00CE, "literal_numeric"), 
-        new Symbol(0x00CF, "literal_rdf"), 
-        new Symbol(0x00D0, "string"), 
-        new Symbol(0x00D1, "iri"), 
-        new Symbol(0x00D2, "prefixedName"), 
+        new Symbol(0x0092, "constraint"), 
+        new Symbol(0x0093, "quad_pattern"), 
+        new Symbol(0x0094, "quad_data"), 
+        new Symbol(0x0095, "quads"), 
+        new Symbol(0x0096, "quads_supp"), 
+        new Symbol(0x0097, "quads_not_triples"), 
+        new Symbol(0x0098, "triples_template"), 
+        new Symbol(0x0099, "triples_block"), 
+        new Symbol(0x009A, "triples_same_subj"), 
+        new Symbol(0x009B, "property_list"), 
+        new Symbol(0x009C, "property_list_not_empty"), 
+        new Symbol(0x009D, "verb"), 
+        new Symbol(0x009E, "object_list"), 
+        new Symbol(0x009F, "object"), 
+        new Symbol(0x00A0, "triples_node"), 
+        new Symbol(0x00A1, "blank_node_property_list"), 
+        new Symbol(0x00A2, "collection"), 
+        new Symbol(0x00A3, "graph_node"), 
+        new Symbol(0x00A4, "var_or_term"), 
+        new Symbol(0x00A5, "var_or_iri"), 
+        new Symbol(0x00A6, "graph_term"), 
+        new Symbol(0x00A7, "triples_same_subj_path"), 
+        new Symbol(0x00A8, "property_list_path"), 
+        new Symbol(0x00A9, "property_list_path_ne"), 
+        new Symbol(0x00AA, "verb_path"), 
+        new Symbol(0x00AB, "verb_simple"), 
+        new Symbol(0x00AC, "object_list_path"), 
+        new Symbol(0x00AD, "object_path"), 
+        new Symbol(0x00AE, "triples_node_path"), 
+        new Symbol(0x00AF, "blank_node_property_list_path"), 
+        new Symbol(0x00B0, "collection_path"), 
+        new Symbol(0x00B1, "graph_node_path"), 
+        new Symbol(0x00B2, "path"), 
+        new Symbol(0x00B3, "path_alt"), 
+        new Symbol(0x00B4, "path_seq"), 
+        new Symbol(0x00B5, "path_elt_or_inv"), 
+        new Symbol(0x00B6, "path_elt"), 
+        new Symbol(0x00B7, "path_primary"), 
+        new Symbol(0x00B8, "path_neg"), 
+        new Symbol(0x00B9, "path_in"), 
+        new Symbol(0x00BA, "expression_list"), 
+        new Symbol(0x00BB, "expression"), 
+        new Symbol(0x00BC, "exp_or"), 
+        new Symbol(0x00BD, "exp_and"), 
+        new Symbol(0x00BE, "exp_logical"), 
+        new Symbol(0x00BF, "exp_relational"), 
+        new Symbol(0x00C0, "exp_numeric"), 
+        new Symbol(0x00C1, "exp_add"), 
+        new Symbol(0x00C2, "exp_mult"), 
+        new Symbol(0x00C3, "exp_unary"), 
+        new Symbol(0x00C4, "exp_primary"), 
+        new Symbol(0x00C5, "exp_bracketted"), 
+        new Symbol(0x00C6, "built_in_call"), 
+        new Symbol(0x00C7, "iri_or_function"), 
+        new Symbol(0x00C8, "function_call"), 
+        new Symbol(0x00C9, "arg_list"), 
+        new Symbol(0x00CA, "blank_node"), 
+        new Symbol(0x00CB, "literal"), 
+        new Symbol(0x00CC, "literal_bool"), 
+        new Symbol(0x00CD, "literal_numeric"), 
+        new Symbol(0x00CE, "literal_rdf"), 
+        new Symbol(0x00CF, "string"), 
+        new Symbol(0x00D0, "iri"), 
+        new Symbol(0x00D1, "prefixedName"), 
+        new Symbol(0x00D3, "__V211"), 
         new Symbol(0x00D4, "__V212"), 
-        new Symbol(0x00D5, "__V213"), 
-        new Symbol(0x00D7, "__V215"), 
+        new Symbol(0x00D6, "__V214"), 
+        new Symbol(0x00D9, "__V217"), 
         new Symbol(0x00DA, "__V218"), 
-        new Symbol(0x00DB, "__V219"), 
+        new Symbol(0x00DE, "__V222"), 
         new Symbol(0x00DF, "__V223"), 
         new Symbol(0x00E0, "__V224"), 
         new Symbol(0x00E1, "__V225"), 
@@ -735,17 +736,15 @@ class SPARQLParser extends LRkParser {
         new Symbol(0x00E9, "__V233"), 
         new Symbol(0x00EA, "__V234"), 
         new Symbol(0x00EB, "__V235"), 
-        new Symbol(0x00EC, "__V236"), 
-        new Symbol(0x00ED, "__V237"), 
-        new Symbol(0x00F0, "__V240"), 
+        new Symbol(0x00EE, "__V238"), 
+        new Symbol(0x00F1, "__V241"), 
         new Symbol(0x00F3, "__V243"), 
+        new Symbol(0x00F4, "__V244"), 
         new Symbol(0x00F5, "__V245"), 
-        new Symbol(0x00F6, "__V246"), 
-        new Symbol(0x00F7, "__V247"), 
-        new Symbol(0x00FE, "__V254"), 
-        new Symbol(0x00FF, "__V255"), 
-        new Symbol(0x0146, "__V326"), 
-        new Symbol(0x014A, "__axiom") };
+        new Symbol(0x00FC, "__V252"), 
+        new Symbol(0x00FD, "__V253"), 
+        new Symbol(0x0144, "__V324"), 
+        new Symbol(0x0148, "__axiom") };
     /**
      * The collection of virtuals matched by this parser
      *
@@ -753,7 +752,7 @@ class SPARQLParser extends LRkParser {
      * so that virtual indices in the automaton can be used to retrieve the virtuals in this table
      */
     private static final Symbol[] virtuals = {
-        new Symbol(0x00F4, "nil") };
+        new Symbol(0x00F2, "nil") };
     /**
      * Initializes a new instance of the parser
      *

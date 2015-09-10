@@ -185,7 +185,7 @@ grammar SPARQL
 		clause_graph_named		-> NAMED! source_selector ;
 		source_selector			-> iri^ ;
 
-		clause_where			-> WHERE! graph_pattern_group ;
+		clause_where			-> WHERE! graph_pattern ;
 
 		modifier				-> clause_group? clause_having? clause_order? clauses_limit_offset? ;
 		clause_group			-> GROUP! BY! clause_group_cond+ ;
@@ -213,7 +213,7 @@ grammar SPARQL
 		insert					-> INSERT! DATA! quad_data ;
 		delete					-> DELETE! DATA! quad_data ;
 		deleteWhere				-> DELETE! WHERE! quad_pattern ;
-		modify					-> (WITH! iri)? (clause_delete clause_insert? | clause_insert) clause_using* WHERE! graph_pattern_group ;
+		modify					-> (WITH! iri)? (clause_delete clause_insert? | clause_insert) clause_using* WHERE! graph_pattern ;
 		clause_delete			-> DELETE! quad_pattern ;
 		clause_insert			-> INSERT! quad_pattern ;
 		clause_using			-> USING! (iri | NAMED iri) ;
@@ -222,26 +222,32 @@ grammar SPARQL
 		graph_or_default		-> DEFAULT^ | (GRAPH!)? iri^ ;
 		graph_ref				-> GRAPH! iri^ ;
 		graph_ref_all			-> graph_ref^ | DEFAULT^ | NAMED^ | ALL^ ;
-		graph_pattern_group		-> '{'! (sub_select^ | graph_pattern_group_sub^) '}'! ;
-		graph_pattern_group_sub	-> triples_block? graph_pattern_group_sub_elem* ;
-		graph_pattern_group_sub_elem	-> graph_pattern_not_triples ('.'!)? triples_block? ;
-		graph_pattern_not_triples		-> graph_pattern_group_or_union^ | graph_pattern_optional^ | graph_pattern_minus^ | graph_pattern_graph^ | graph_pattern_service^ | filter^ | bind^ | inline_data^ ;
-		graph_pattern_optional	-> OPTIONAL! graph_pattern_group ;
-		graph_pattern_graph		-> GRAPH! var_or_iri graph_pattern_group ;
-		graph_pattern_service	-> SERVICE! SILENT? var_or_iri graph_pattern_group ;
-		graph_pattern_group_or_union	-> graph_pattern_group (UNION! graph_pattern_group)* ;
-		graph_pattern_minus		-> MINUS! graph_pattern_group ;
+		graph_pattern			-> '{'! (sub_select^ | graph_pattern_group^) '}'! ;
+		graph_pattern_group		-> triples_block? (graph_pattern_other ('.'!)? triples_block?)* ;
+		graph_pattern_other		-> graph_pattern_optional^
+								|  graph_pattern_minus^
+								|  graph_pattern_graph^
+								|  graph_pattern_service^
+								|  graph_pattern_filter^
+								|  graph_pattern_bind^
+								|  graph_pattern_data^
+								|  graph_pattern_union^ ;
+		graph_pattern_optional	-> OPTIONAL! graph_pattern ;
+		graph_pattern_minus		-> MINUS! graph_pattern ;
+		graph_pattern_graph		-> GRAPH! var_or_iri graph_pattern ;
+		graph_pattern_service	-> SERVICE! SILENT? var_or_iri graph_pattern ;
+		graph_pattern_filter	-> FILTER! constraint ;
+		graph_pattern_bind		-> BIND! '('!  expression AS! VARIABLE ')'!;
+		graph_pattern_data		-> VALUES! data_block ;
+		graph_pattern_union		-> graph_pattern^
+								|  graph_pattern_union UNION^ graph_pattern ;
 
-		bind					-> BIND! '('!  expression AS! VARIABLE ')'! ;
-		inline_data				-> VALUES! data_block ;
 		data_block				-> inline_data_one^ | inline_data_full^ ;
 		inline_data_one			-> VARIABLE '{'! data_block_value* '}'! ;
 		inline_data_full		-> inline_data_full_vars '{'! inline_data_full_val* '}'! ;
 		inline_data_full_vars	-> '('! VARIABLE* ')'! ;
 		inline_data_full_val	-> '(' data_block_value* ')' ;
 		data_block_value		-> iri^ | literal^ | UNDEF^ ;
-
-		filter					-> FILTER! constraint ;
 		constraint				-> exp_bracketted^ | built_in_call^  | function_call^ ;
 
 		quad_pattern			-> '{'! quads^ '}'! ;
@@ -383,8 +389,8 @@ grammar SPARQL
 								|  'isLITERAL'		'('! expression ')'!
 								|  'isNUMERIC'		'('! expression ')'!
 								|  'REGEX'			'('! expression ','! expression ( ','! expression )? ')'!
-								|  'EXISTS'			graph_pattern_group
-								|  NOT 'EXISTS'		graph_pattern_group ;
+								|  'EXISTS'			graph_pattern
+								|  NOT 'EXISTS'		graph_pattern ;
 		iri_or_function			-> iri arg_list? ;
 		function_call			-> iri arg_list ;
 		arg_list				-> '('! (DISTINCT? expression (','! expression)*)? ')'! ;

@@ -21,6 +21,7 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
+import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
 
 import java.util.ArrayList;
@@ -33,13 +34,17 @@ import java.util.Collection;
  */
 public class GraphPatternService implements GraphPattern {
     /**
-     * The inner pattern to match
+     * The inner graph pattern
      */
     private final GraphPattern inner;
     /**
+     * The pattern to match on the remote endpoint
+     */
+    private final GraphPattern remote;
+    /**
      * The service endpoint to use
      */
-    private final String service;
+    private final Node service;
     /**
      * Whether silent failure is allowed
      */
@@ -48,12 +53,14 @@ public class GraphPatternService implements GraphPattern {
     /**
      * Initializes this graph pattern
      *
-     * @param inner    The inner pattern to match
+     * @param inner    The inner graph pattern
+     * @param remote   The pattern to match on the remote endpoint
      * @param service  The service endpoint to use
      * @param isSilent Whether silent failure is allowed
      */
-    public GraphPatternService(GraphPattern inner, String service, boolean isSilent) {
+    public GraphPatternService(GraphPattern inner, GraphPattern remote, Node service, boolean isSilent) {
         this.inner = inner;
+        this.remote = remote;
         this.service = service;
         this.isSilent = isSilent;
     }
