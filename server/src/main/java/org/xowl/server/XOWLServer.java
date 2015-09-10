@@ -46,15 +46,9 @@ public class XOWLServer extends HttpServlet {
      */
     public XOWLServer() {
         Logger logger = new ConsoleLogger();
-        Service temp = null;
-        try {
-            Repository repository = new Repository();
-            repository.activateEntailmentRules(logger);
-            temp = new SPARQLService(logger, repository);
-        } catch (IOException exception) {
-            logger.error(exception);
-        }
-        service = temp;
+        Repository repository = new Repository();
+        repository.activateEntailmentRules(logger);
+        service = new SPARQLService(logger, repository);
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
