@@ -177,11 +177,13 @@ public class SPARQLLoader {
      * @return The command
      */
     private Command loadQuery(ASTNode node) throws LoaderException {
-        loadPrologue(node.getChildren().get(0));
         switch (node.getChildren().get(1).getSymbol().getID()) {
             case SPARQLParser.ID.select:
+                return loadCommandSelect(node);
             case SPARQLParser.ID.construct:
+
             case SPARQLParser.ID.describe:
+
             case SPARQLParser.ID.ask:
                 break;
         }
@@ -511,6 +513,52 @@ public class SPARQLLoader {
     }
 
     /**
+     * Loads a SELECT command from the specified AST node
+     *
+     * @param node An AST node
+     * @return The SELECT command
+     */
+    private Command loadCommandSelect(ASTNode node) throws LoaderException {
+        // query -> prologue (select | construct | describe | ask) clause_values
+        // select -> clause_select clause_dataset* clause_where modifier ;
+        // clause_select -> SELECT! clause_select_mod clause_select_vars ;
+        ASTNode nodeSelect = node.getChildren().get(1);
+        ASTNode clauseSelect = nodeSelect.getChildren().get(0);
+        ASTNode clauseSelectMod = clauseSelect.getChildren().get(0);
+
+        SPARQLContext context = new SPARQLContext(store, true);
+        loadPrologue(node.getChildren().get(0));
+        boolean isDistinct = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.DISTINCT);
+        boolean isReduced = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.REDUCED);
+        for (ASTNode child : nodeSelect.getChildren()) {
+            if (child.getSymbol().getID() == SPARQLParser.ID.clause_dataset) {
+                ASTNode inner = child.getChildren().get(0);
+                if (inner.getSymbol().getID() == SPARQLParser.ID.clause_graph_default) {
+                    String iri = loadGraphRef(inner.getChildren().get(0)).y;
+                    context.addDefaultGraph(iri);
+                } else if (inner.getSymbol().getID() == SPARQLParser.ID.clause_graph_named) {
+                    String iri = loadGraphRef(inner.getChildren().get(0)).y;
+                    context.addNamedIRI(iri);
+                }
+            }
+        }
+        GraphPattern where = loadGraphPattern(context, null, nodeSelect.getChildren().get(nodeSelect.getChildren().size() - 2).getChildren().get(0));
+        GraphPatternModifier modifier = loadGraphPatternModifier(context, nodeSelect.getChildren().get(nodeSelect.getChildren().size() - 1));
+        GraphPatternInlineData values = null;
+        if (!node.getChildren().get(2).getChildren().isEmpty())
+            values = new GraphPatternInlineData(loadDataBlock(context, node.getChildren().get(2)));
+        GraphPatternSelect select = new GraphPatternSelect(isDistinct, isReduced, where, modifier, values);
+        for (ASTNode child : clauseSelect.getChildren().get(1).getChildren()) {
+            if (child.getSymbol().getID() == SPARQLLexer.ID.AS) {
+                select.addToProjection((VariableNode) getVariable(context, child.getChildren().get(1)), loadExpression(context, null, child.getChildren().get(0)));
+            } else {
+                select.addToProjection((VariableNode) getVariable(context, child));
+            }
+        }
+        return new CommandSelect(select);
+    }
+
+    /**
      * Loads an INSERT DATA command from the specified AST node
      *
      * @param node An AST node
@@ -663,7 +711,7 @@ public class SPARQLLoader {
         boolean isDistinct = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.DISTINCT);
         boolean isReduced = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.REDUCED);
 
-        GraphPattern where = loadGraphPattern(context, null, node.getChildren().get(1));
+        GraphPattern where = loadGraphPattern(context, null, node.getChildren().get(1).getChildren().get(0));
         GraphPatternInlineData values = null;
         if (!node.getChildren().get(3).getChildren().isEmpty())
             values = new GraphPatternInlineData(loadDataBlock(context, node.getChildren().get(3).getChildren().get(0)));
