@@ -21,11 +21,12 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.Query;
-import org.xowl.store.rdf.QuerySolution;
+import org.xowl.store.rdf.*;
+import org.xowl.utils.collections.Couple;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * A graph pattern represented by a template of quads
@@ -74,6 +75,11 @@ public class GraphPatternQuads implements GraphPattern {
 
     @Override
     public Collection<QuerySolution> match(final Repository repository) throws EvalException {
+        if (query.getPositives().isEmpty() && query.getNegatives().isEmpty()) {
+            // for an empty query return a single solution with no binding
+            // this is because an empty match pattern matches all graphs, including the empty one
+            return Collections.singletonList(new QuerySolution(new ArrayList<Couple<VariableNode, Node>>()));
+        }
         return repository.getRDFQueryEngine().execute(query);
     }
 }

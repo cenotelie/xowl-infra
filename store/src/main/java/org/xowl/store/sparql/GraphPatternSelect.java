@@ -128,6 +128,8 @@ public class GraphPatternSelect implements GraphPattern {
         }
 
         originals = modifier != null ? modifier.apply(originals) : originals;
+        if (values != null)
+            originals.addAll(values.match(repository));
 
         return originals;
     }

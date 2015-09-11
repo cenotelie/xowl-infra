@@ -21,20 +21,16 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
-import org.xowl.store.rdf.VariableNode;
-import org.xowl.utils.collections.Couple;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * A graph pattern as the intersection of two other patterns
+ * A graph pattern as the join of two other patterns
  *
  * @author Laurent Wouters
  */
-public class GraphPatternIntersection implements GraphPattern {
+public class GraphPatternJoin implements GraphPattern {
     /**
      * The pattern on the left
      */
@@ -50,7 +46,7 @@ public class GraphPatternIntersection implements GraphPattern {
      * @param left  The pattern on the left
      * @param right The pattern on the right
      */
-    public GraphPatternIntersection(GraphPattern left, GraphPattern right) {
+    public GraphPatternJoin(GraphPattern left, GraphPattern right) {
         this.left = left;
         this.right = right;
     }
@@ -59,26 +55,6 @@ public class GraphPatternIntersection implements GraphPattern {
     public Collection<QuerySolution> match(final Repository repository) throws EvalException {
         Collection<QuerySolution> leftSolutions = left.match(repository);
         Collection<QuerySolution> rightSolutions = right.match(repository);
-        Collection<QuerySolution> result = new ArrayList<>();
-        for (QuerySolution leftSolution : leftSolutions) {
-            boolean toKeep = false;
-            for (QuerySolution rightSolution : rightSolutions) {
-                boolean matching = true;
-                for (Couple<VariableNode, Node> binding : leftSolution) {
-                    Node value = rightSolution.get(binding.x);
-                    if (!org.xowl.store.rdf.Utils.same(binding.y, value)) {
-                        matching = false;
-                        break;
-                    }
-                }
-                if (matching) {
-                    toKeep = true;
-                    break;
-                }
-            }
-            if (toKeep)
-                result.add(leftSolution);
-        }
-        return result;
+        return Utils.join(leftSolutions, rightSolutions);
     }
 }

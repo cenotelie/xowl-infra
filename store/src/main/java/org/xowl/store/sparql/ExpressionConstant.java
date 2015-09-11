@@ -21,42 +21,30 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.*;
-import org.xowl.utils.collections.Couple;
-
-import java.util.ArrayList;
-import java.util.Collection;
+import org.xowl.store.rdf.QuerySolution;
 
 /**
- * A graph pattern represented as the restriction of one by another
+ * A constant expression in SPARQL, usually a native value (Integer, Long, Boolean, etc.)
  *
  * @author Laurent Wouters
  */
-public class GraphPatternMinus implements GraphPattern {
+public class ExpressionConstant implements Expression {
     /**
-     * The restricted pattern
+     * The constant value
      */
-    private final GraphPattern original;
-    /**
-     * The restricting pattern
-     */
-    private final GraphPattern restricting;
+    private final Object value;
 
     /**
-     * Initializes this graph pattern
+     * Initializes this expression
      *
-     * @param original    The restricted pattern
-     * @param restricting The restricting pattern
+     * @param value The constant value
      */
-    public GraphPatternMinus(GraphPattern original, GraphPattern restricting) {
-        this.original = original;
-        this.restricting = restricting;
+    public ExpressionConstant(Object value) {
+        this.value = value;
     }
 
     @Override
-    public Collection<QuerySolution> match(final Repository repository) throws EvalException {
-        Collection<QuerySolution> originalSolutions = original.match(repository);
-        Collection<QuerySolution> restrictingSolutions = restricting.match(repository);
-        return Utils.minus(originalSolutions, restrictingSolutions);
+    public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
+        return value;
     }
 }

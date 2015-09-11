@@ -24,6 +24,7 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
+import org.xowl.store.Datatypes;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.sparql.*;
@@ -656,8 +657,27 @@ public class SPARQLLoader {
      * @param node    An AST node
      * @return The graph pattern
      */
-    private GraphPattern loadGraphPatternSubSelect(SPARQLContext context, ASTNode node) {
-        throw new UnsupportedOperationException();
+    private GraphPattern loadGraphPatternSubSelect(SPARQLContext context, ASTNode node) throws LoaderException {
+        ASTNode clauseSelect = node.getChildren().get(0);
+        ASTNode clauseSelectMod = clauseSelect.getChildren().get(0);
+        boolean isDistinct = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.DISTINCT);
+        boolean isReduced = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.REDUCED);
+
+        GraphPattern where = loadGraphPattern(context, null, node.getChildren().get(1));
+        GraphPatternInlineData values = null;
+        if (!node.getChildren().get(3).getChildren().isEmpty())
+            values = new GraphPatternInlineData(loadDataBlock(context, node.getChildren().get(3).getChildren().get(0)));
+        GraphPatternModifier modifier = loadGraphPatternModifier(context, node.getChildren().get(2));
+        GraphPatternSelect select = new GraphPatternSelect(isDistinct, isReduced, where, modifier, values);
+
+        for (ASTNode child : clauseSelect.getChildren().get(1).getChildren()) {
+            if (child.getSymbol().getID() == SPARQLLexer.ID.AS) {
+                select.addToProjection((VariableNode) getVariable(context, child.getChildren().get(1)), loadExpression(context, null, child.getChildren().get(0)));
+            } else {
+                select.addToProjection((VariableNode) getVariable(context, child));
+            }
+        }
+        return select;
     }
 
     /**
@@ -697,11 +717,25 @@ public class SPARQLLoader {
                         Query query = ((GraphPatternQuads) inner).getQuery();
                         if (query.getNegatives().isEmpty()) {
                             base.addNegatives(query.getPositives());
-                            break;
+                        } else {
+                            current = new GraphPatternMinus(current == null ? base : current, inner);
                         }
+                    } else {
+                        current = new GraphPatternMinus(current == null ? base : current, inner);
                     }
-                    current = new GraphPatternMinus(current == null ? base : current, inner);
                     break;
+                }
+                case SPARQLParser.ID.graph_pattern_graph: {
+                    GraphNode sub = (GraphNode) getNode(currentContext, child.getChildren().get(0), null, null);
+                    GraphPattern inner = loadGraphPattern(currentContext, sub, child.getChildren().get(1));
+                    if (inner instanceof GraphPatternQuads) {
+                        Query query = ((GraphPatternQuads) inner).getQuery();
+                        base.addPositives(query.getPositives());
+                        for (Collection<Quad> conjunction : query.getNegatives())
+                            base.addNegatives(conjunction);
+                    } else {
+                        current = new GraphPatternJoin(current == null ? base : current, inner);
+                    }
                 }
                 case SPARQLParser.ID.graph_pattern_service: {
                     GraphPattern inner = loadGraphPattern(currentContext, graph, child.getChildren().get(child.getChildren().size() - 1));
@@ -722,7 +756,12 @@ public class SPARQLLoader {
                 }
                 case SPARQLParser.ID.graph_pattern_data: {
                     Collection<QuerySolution> data = loadDataBlock(currentContext, child.getChildren().get(0));
-                    //current = new GraphPatternInlineData()
+                    current = new GraphPatternUnion(Arrays.asList(current == null ? base : current, new GraphPatternInlineData(data)));
+                    break;
+                }
+                case SPARQLLexer.ID.UNION: {
+                    GraphPattern inner = loadGraphPatternUnion(currentContext, graph, child);
+                    current = new GraphPatternJoin(current == null ? base : current, inner);
                     break;
                 }
             }
@@ -731,9 +770,81 @@ public class SPARQLLoader {
     }
 
     /**
-     * Loads an inline data block from the specified AST node
+     * Loads a union of graph patterns from the specified AST node
+     *
      * @param context The current context
-     * @param node An AST node
+     * @param graph   The current graph, if any
+     * @param node    An AST node
+     * @return The overall graph pattern
+     */
+    private GraphPattern loadGraphPatternUnion(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
+        List<GraphPattern> inners = new ArrayList<>();
+        ASTNode current = node;
+        while (current.getSymbol().getID() == SPARQLLexer.ID.UNION) {
+            GraphPattern right = loadGraphPattern(context, graph, current.getChildren().get(1));
+            inners.add(right);
+            current = current.getChildren().get(0);
+        }
+        inners.add(loadGraphPattern(context, graph, current));
+        Collections.reverse(inners);
+        return new GraphPatternUnion(inners);
+    }
+
+    /**
+     * Loads a modifier of graph patterns from an AST node
+     *
+     * @param context The current context
+     * @param node    An AST node
+     * @return The modifier
+     */
+    private GraphPatternModifier loadGraphPatternModifier(SPARQLContext context, ASTNode node) throws LoaderException {
+        if (node.getChildren().isEmpty())
+            return null;
+        GraphPatternModifier modifier = new GraphPatternModifier();
+        for (ASTNode child : node.getChildren()) {
+            switch (child.getSymbol().getID()) {
+                case SPARQLParser.ID.clause_group:
+                    for (ASTNode condNode : child.getChildren()) {
+                        if (condNode.getSymbol().getID() == SPARQLLexer.ID.AS)
+                            modifier.addGroup(loadExpression(context, null, condNode.getChildren().get(0)),
+                                    (VariableNode) getVariable(context, condNode.getChildren().get(1)));
+                        else
+                            modifier.addGroup(loadExpression(context, null, condNode));
+                    }
+                    break;
+                case SPARQLParser.ID.clause_having:
+                    for (ASTNode havingNode : child.getChildren()) {
+                        modifier.addConstraint(loadExpression(context, null, havingNode));
+                    }
+                    break;
+                case SPARQLParser.ID.clause_order:
+                    for (ASTNode orderNode : child.getChildren()) {
+                        if (orderNode.getSymbol().getID() == SPARQLLexer.ID.ASC)
+                            modifier.addOrdering(loadExpression(context, null, orderNode));
+                        else if (orderNode.getSymbol().getID() == SPARQLLexer.ID.DESC)
+                            modifier.addOrdering(loadExpression(context, null, orderNode), true);
+                        else
+                            modifier.addOrdering(loadExpression(context, null, orderNode));
+                    }
+                    break;
+                case SPARQLParser.ID.clauses_limit_offset:
+                    for (ASTNode limitNode : child.getChildren()) {
+                        if (limitNode.getSymbol().getID() == SPARQLParser.ID.clause_limit)
+                            modifier.setLimit(Integer.parseInt(limitNode.getChildren().get(0).getValue()));
+                        else if (limitNode.getSymbol().getID() == SPARQLParser.ID.clause_offset)
+                            modifier.setOffset(Integer.parseInt(limitNode.getChildren().get(0).getValue()));
+                    }
+                    break;
+            }
+        }
+        return modifier;
+    }
+
+    /**
+     * Loads an inline data block from the specified AST node
+     *
+     * @param context The current context
+     * @param node    An AST node
      * @return The inline data
      */
     private Collection<QuerySolution> loadDataBlock(SPARQLContext context, ASTNode node) throws LoaderException {
@@ -775,7 +886,64 @@ public class SPARQLLoader {
      * @return The expression
      */
     private Expression loadExpression(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
-        return null;
+        switch (node.getSymbol().getID()) {
+            case 0x0145: // true
+                return new ExpressionConstant(true);
+            case 0x0146: // false
+                return new ExpressionConstant(false);
+            case SPARQLLexer.ID.INTEGER:
+                return new ExpressionConstant(Integer.valueOf(node.getValue()));
+            case SPARQLLexer.ID.DECIMAL:
+                return new ExpressionConstant(Double.valueOf(node.getValue()));
+            case SPARQLLexer.ID.DOUBLE:
+                return new ExpressionConstant(Double.valueOf(node.getValue()));
+            case SPARQLLexer.ID.VARIABLE:
+                return new ExpressionRDF(getVariable(context, node));
+            case SPARQLParser.ID.literal_rdf:
+                return new ExpressionConstant(Datatypes.toNative(getNodeLiteral(node)));
+            case 0x00FE: // ||
+                return new ExpressionOperator(ExpressionOperator.Op.BoolOr, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x00FF: // &&
+                return new ExpressionOperator(ExpressionOperator.Op.BoolAnd, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x0100: // =
+                return new ExpressionOperator(ExpressionOperator.Op.Equal, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x0101: // !=
+                return new ExpressionOperator(ExpressionOperator.Op.NotEqual, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x0102: // <
+                return new ExpressionOperator(ExpressionOperator.Op.Less, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x0103: // >
+                return new ExpressionOperator(ExpressionOperator.Op.Greater, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x0104: // >=
+                return new ExpressionOperator(ExpressionOperator.Op.GreaterOrEqual, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x0105: // <=
+                return new ExpressionOperator(ExpressionOperator.Op.LessOrEqual, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x00FA: // +
+                if (node.getChildren().size() == 1)
+                    return new ExpressionOperator(ExpressionOperator.Op.UnaryPlus, loadExpression(context, graph, node.getChildren().get(0)));
+                else
+                    return new ExpressionOperator(ExpressionOperator.Op.Plus, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x0106: // -
+                if (node.getChildren().size() == 1)
+                    return new ExpressionOperator(ExpressionOperator.Op.UnaryMinus, loadExpression(context, graph, node.getChildren().get(0)));
+                else
+                    return new ExpressionOperator(ExpressionOperator.Op.Minus, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x00D5: // *
+                return new ExpressionOperator(ExpressionOperator.Op.Multiply, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x00F7: // /
+                return new ExpressionOperator(ExpressionOperator.Op.Divide, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
+            case 0x00FB: // !
+                return new ExpressionOperator(ExpressionOperator.Op.BoolNot, loadExpression(context, graph, node.getChildren().get(0)));
+            case SPARQLParser.ID.function_call:
+            case SPARQLParser.ID.iri_or_function:
+                if (node.getChildren().size() == 1) {
+                    return new ExpressionRDF(getNode(context, node.getChildren().get(0), null, null));
+                } else {
+                    throw new LoaderException("Unrecognized expression", node);
+                }
+            case SPARQLParser.ID.built_in_call:
+                throw new LoaderException("Unrecognized expression", node);
+        }
+        throw new LoaderException("Unrecognized expression", node);
     }
 
     /**
@@ -801,7 +969,6 @@ public class SPARQLLoader {
         loadTriples(context, node, target, result);
         return result;
     }
-
 
     /**
      * Loads quads from the specified AST node

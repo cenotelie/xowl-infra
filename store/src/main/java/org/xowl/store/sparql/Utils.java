@@ -28,6 +28,7 @@ import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
 import org.xowl.utils.collections.Couple;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +47,7 @@ class Utils {
      * @param expression The expression to evaluate
      * @return The evaluated native value
      */
-    public static Object evluateNative(Repository repository, QuerySolution solution, DynamicExpression expression) {
+    public static Object evaluateNative(Repository repository, QuerySolution solution, DynamicExpression expression) {
         Map<String, Object> bindings = new HashMap<>();
         for (Couple<VariableNode, Node> binding : solution)
             bindings.put(binding.x.getName(), org.xowl.store.rdf.Utils.getNative(binding.y));
@@ -54,23 +55,6 @@ class Utils {
         Object result = repository.getEvaluator().eval(expression);
         repository.getEvaluator().pop();
         return result;
-    }
-
-    /**
-     * Evaluates a SPARQL expression as a native value
-     *
-     * @param repository The current repository
-     * @param solution   The current bindings
-     * @param expression The expression to evaluate
-     * @return The evaluated node
-     */
-    public static Object evaluateNative(Repository repository, QuerySolution solution, Expression expression) throws EvalException {
-        Object value = expression.eval(repository, solution);
-        if (value instanceof DynamicNode)
-            value = evluateNative(repository, solution, ((DynamicNode) value).getDynamicExpression());
-        if (value instanceof LiteralNode)
-            value = Datatypes.toNative((LiteralNode) value);
-        return value;
     }
 
     /**
@@ -84,7 +68,7 @@ class Utils {
     public static boolean evaluateNativeBoolean(Repository repository, QuerySolution solution, Expression expression) throws EvalException {
         Object value = expression.eval(repository, solution);
         if (value instanceof DynamicNode)
-            value = evluateNative(repository, solution, ((DynamicNode) value).getDynamicExpression());
+            value = evaluateNative(repository, solution, ((DynamicNode) value).getDynamicExpression());
         if (value instanceof LiteralNode)
             value = Datatypes.toNative((LiteralNode) value);
         return (value instanceof Boolean && (Boolean) value);
@@ -101,7 +85,7 @@ class Utils {
     public static Node evaluateRDF(Repository repository, QuerySolution solution, Expression expression) throws EvalException {
         Object value = expression.eval(repository, solution);
         if (value instanceof DynamicNode)
-            value = evluateNative(repository, solution, ((DynamicNode) value).getDynamicExpression());
+            value = evaluateNative(repository, solution, ((DynamicNode) value).getDynamicExpression());
         if (value instanceof Node) {
             return (Node) value;
         } else if (value instanceof IRI) {
@@ -142,9 +126,9 @@ class Utils {
             return value;
         }
         if (result.getNodeType() == Node.TYPE_DYNAMIC && repository.getEvaluator() != null) {
-            Object value = evluateNative(repository, solution, ((DynamicNode) result).getDynamicExpression());
+            Object value = evaluateNative(repository, solution, ((DynamicNode) result).getDynamicExpression());
             if (value instanceof Node) {
-                result = (GraphNode) value;
+                result = (Node) value;
             } else if (value instanceof IRI) {
                 result = repository.getStore().getIRINode(((IRI) value).getHasValue());
             } else {
@@ -174,5 +158,105 @@ class Utils {
             Node object = instantiate(repository, solution, blanks, quad.getObject());
             buffer.add(new Quad(graph, subject, property, object));
         }
+    }
+
+    /**
+     * Performs the join of two solution sets.
+     * A solution is in the joined set is the merged solution of a solution on the left and another on the right.
+     * The join is the set of all the merged solutions between compatible solutions on the left and right.
+     *
+     * @param left  A set of solutions
+     * @param right Another set of solutions
+     * @return The join set
+     */
+    public static Collection<QuerySolution> join(Collection<QuerySolution> left, Collection<QuerySolution> right) {
+        Collection<QuerySolution> result = new ArrayList<>();
+        for (QuerySolution l : left) {
+            for (QuerySolution r : right) {
+                QuerySolution j = merge(l, r);
+                if (j != null)
+                    result.add(j);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Performs the set difference between a left set of solution and a right set of solutions.
+     * The result is the subset of solutions on the left that are not compatible with a solution on the right.
+     *
+     * @param left  A set of solutions
+     * @param right Another set of solutions
+     * @return The difference
+     */
+    public static Collection<QuerySolution> minus(Collection<QuerySolution> left, Collection<QuerySolution> right) {
+        Collection<QuerySolution> result = new ArrayList<>();
+        for (QuerySolution l : left) {
+            boolean match = false;
+            for (QuerySolution r : right) {
+                if (compatible(l, r)) {
+                    match = true;
+                    break;
+                }
+            }
+            if (!match)
+                result.add(l);
+        }
+        return result;
+    }
+
+    /**
+     * Determines whether two solutions are compatible.
+     * Two solutions are compatible iff for all variables bound by both solution, their value is the same.
+     * The variables that are bound in a solution but not the other are not considered.
+     *
+     * @param left  A solution
+     * @param right Another solution
+     * @return Whether the two solutions are compatible
+     */
+    public static boolean compatible(QuerySolution left, QuerySolution right) {
+        for (Couple<VariableNode, Node> binding : left) {
+            Node value = right.get(binding.x);
+            if (value != null && !org.xowl.store.rdf.Utils.same(binding.y, value)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Builds the merge of two solutions.
+     * If the two solutions are not compatible, null is returned.
+     * If the solutions are compatible, the merged solution contains all the bindings from both solutions.
+     *
+     * @param left  A solution
+     * @param right Another solution
+     * @return The merged solution, or null if the two were not compatible
+     */
+    public static QuerySolution merge(QuerySolution left, QuerySolution right) {
+        Collection<Couple<VariableNode, Node>> bindings = new ArrayList<>();
+        for (Couple<VariableNode, Node> binding : left) {
+            Node value = right.get(binding.x);
+            if (value != null) {
+                if (!org.xowl.store.rdf.Utils.same(binding.y, value))
+                    return null;
+                bindings.add(binding);
+            } else {
+                bindings.add(binding);
+            }
+        }
+        for (Couple<VariableNode, Node> binding : right) {
+            boolean found = false;
+            for (Couple<VariableNode, Node> present : bindings) {
+                if (org.xowl.store.rdf.Utils.same(binding.x, present.x)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                bindings.add(binding);
+            }
+        }
+        return new QuerySolution(bindings);
     }
 }
