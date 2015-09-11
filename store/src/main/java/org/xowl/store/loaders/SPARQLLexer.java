@@ -24,53 +24,77 @@ class SPARQLLexer extends ContextFreeLexer {
      */
     public static class ID {
         /**
-         * The unique identifier for terminal PN_LOCAL
+         * The unique identifier for terminal OP_LESS
          */
-        public static final int PN_LOCAL = 0x000E;
+        public static final int OP_LESS = 0x0024;
         /**
-         * The unique identifier for terminal PN_CHARS
+         * The unique identifier for terminal BUILTIN
          */
-        public static final int PN_CHARS = 0x000C;
+        public static final int BUILTIN = 0x002B;
         /**
-         * The unique identifier for terminal PN_CHARS_U
+         * The unique identifier for terminal OP_PLUS
          */
-        public static final int PN_CHARS_U = 0x000B;
+        public static final int OP_PLUS = 0x001B;
         /**
-         * The unique identifier for terminal PN_PREFIX
+         * The unique identifier for terminal OP_MINUS
          */
-        public static final int PN_PREFIX = 0x000D;
+        public static final int OP_MINUS = 0x001C;
         /**
-         * The unique identifier for terminal PN_CHARS_BASE
+         * The unique identifier for terminal OP_MULT
          */
-        public static final int PN_CHARS_BASE = 0x000A;
+        public static final int OP_MULT = 0x001D;
         /**
-         * The unique identifier for terminal BLANK
+         * The unique identifier for terminal OP_DIV
          */
-        public static final int BLANK = 0x0006;
+        public static final int OP_DIV = 0x001E;
         /**
-         * The unique identifier for terminal NEW_LINE
+         * The unique identifier for terminal OP_UNION
          */
-        public static final int NEW_LINE = 0x0003;
+        public static final int OP_UNION = 0x0029;
         /**
-         * The unique identifier for terminal WHITE_SPACE
+         * The unique identifier for terminal OP_NOT
          */
-        public static final int WHITE_SPACE = 0x0004;
+        public static final int OP_NOT = 0x0021;
         /**
-         * The unique identifier for terminal PNAME_NS
+         * The unique identifier for terminal OP_EQ
          */
-        public static final int PNAME_NS = 0x000F;
+        public static final int OP_EQ = 0x0022;
+        /**
+         * The unique identifier for terminal OP_GREAT
+         */
+        public static final int OP_GREAT = 0x0026;
+        /**
+         * The unique identifier for terminal OP_OPT
+         */
+        public static final int OP_OPT = 0x0028;
+        /**
+         * The unique identifier for terminal OP_INV
+         */
+        public static final int OP_INV = 0x002A;
+        /**
+         * The unique identifier for terminal A
+         */
+        public static final int A = 0x002E;
         /**
          * The unique identifier for terminal INTEGER
          */
         public static final int INTEGER = 0x0014;
         /**
-         * The unique identifier for terminal COMMENT
+         * The unique identifier for terminal PNAME_NS
          */
-        public static final int COMMENT = 0x0005;
+        public static final int PNAME_NS = 0x000F;
+        /**
+         * The unique identifier for terminal BLANK
+         */
+        public static final int BLANK = 0x0006;
         /**
          * The unique identifier for terminal LANGTAG
          */
         public static final int LANGTAG = 0x0007;
+        /**
+         * The unique identifier for terminal OP_LEQ
+         */
+        public static final int OP_LEQ = 0x0025;
         /**
          * The unique identifier for terminal IRIREF
          */
@@ -88,33 +112,45 @@ class SPARQLLexer extends ContextFreeLexer {
          */
         public static final int STRING_LITERAL_SINGLE_QUOTE = 0x0018;
         /**
-         * The unique identifier for terminal BY
+         * The unique identifier for terminal OP_BOR
          */
-        public static final int BY = 0x0028;
+        public static final int OP_BOR = 0x001F;
         /**
-         * The unique identifier for terminal AS
+         * The unique identifier for terminal OP_BAND
          */
-        public static final int AS = 0x0020;
+        public static final int OP_BAND = 0x0020;
         /**
-         * The unique identifier for terminal TO
+         * The unique identifier for terminal OP_NEQ
          */
-        public static final int TO = 0x0031;
+        public static final int OP_NEQ = 0x0023;
         /**
-         * The unique identifier for terminal IN
+         * The unique identifier for terminal OP_GEQ
          */
-        public static final int IN = 0x0049;
-        /**
-         * The unique identifier for terminal DECIMAL
-         */
-        public static final int DECIMAL = 0x0015;
+        public static final int OP_GEQ = 0x0027;
         /**
          * The unique identifier for terminal VARIABLE
          */
         public static final int VARIABLE = 0x0012;
         /**
-         * The unique identifier for terminal PLX
+         * The unique identifier for terminal TO
          */
-        public static final int PLX = 0x0009;
+        public static final int TO = 0x0045;
+        /**
+         * The unique identifier for terminal AS
+         */
+        public static final int AS = 0x0034;
+        /**
+         * The unique identifier for terminal BY
+         */
+        public static final int BY = 0x003C;
+        /**
+         * The unique identifier for terminal IN
+         */
+        public static final int IN = 0x005D;
+        /**
+         * The unique identifier for terminal DECIMAL
+         */
+        public static final int DECIMAL = 0x0015;
         /**
          * The unique identifier for terminal PNAME_LN
          */
@@ -126,115 +162,123 @@ class SPARQLLexer extends ContextFreeLexer {
         /**
          * The unique identifier for terminal ASK
          */
-        public static final int ASK = 0x0024;
+        public static final int ASK = 0x0038;
         /**
          * The unique identifier for terminal ASC
          */
-        public static final int ASC = 0x002B;
+        public static final int ASC = 0x003F;
         /**
          * The unique identifier for terminal ADD
          */
-        public static final int ADD = 0x0037;
+        public static final int ADD = 0x004B;
         /**
          * The unique identifier for terminal ALL
          */
-        public static final int ALL = 0x0041;
+        public static final int ALL = 0x0055;
         /**
          * The unique identifier for terminal NOT
          */
-        public static final int NOT = 0x004A;
+        public static final int NOT = 0x005E;
         /**
          * The unique identifier for terminal DOUBLE
          */
         public static final int DOUBLE = 0x0016;
         /**
-         * The unique identifier for terminal BASE
+         * The unique identifier for terminal TRUE
          */
-        public static final int BASE = 0x001C;
-        /**
-         * The unique identifier for terminal BIND
-         */
-        public static final int BIND = 0x0044;
-        /**
-         * The unique identifier for terminal DATA
-         */
-        public static final int DATA = 0x003D;
-        /**
-         * The unique identifier for terminal DESC
-         */
-        public static final int DESC = 0x002C;
-        /**
-         * The unique identifier for terminal DROP
-         */
-        public static final int DROP = 0x0035;
-        /**
-         * The unique identifier for terminal COPY
-         */
-        public static final int COPY = 0x0039;
-        /**
-         * The unique identifier for terminal WITH
-         */
-        public static final int WITH = 0x003C;
+        public static final int TRUE = 0x002C;
         /**
          * The unique identifier for terminal FROM
          */
-        public static final int FROM = 0x0025;
+        public static final int FROM = 0x0039;
+        /**
+         * The unique identifier for terminal WITH
+         */
+        public static final int WITH = 0x0050;
+        /**
+         * The unique identifier for terminal BASE
+         */
+        public static final int BASE = 0x0030;
+        /**
+         * The unique identifier for terminal BIND
+         */
+        public static final int BIND = 0x0058;
+        /**
+         * The unique identifier for terminal DESC
+         */
+        public static final int DESC = 0x0040;
+        /**
+         * The unique identifier for terminal DROP
+         */
+        public static final int DROP = 0x0049;
+        /**
+         * The unique identifier for terminal DATA
+         */
+        public static final int DATA = 0x0051;
+        /**
+         * The unique identifier for terminal COPY
+         */
+        public static final int COPY = 0x004D;
         /**
          * The unique identifier for terminal LOAD
          */
-        public static final int LOAD = 0x0033;
+        public static final int LOAD = 0x0047;
         /**
          * The unique identifier for terminal INTO
          */
-        public static final int INTO = 0x0032;
+        public static final int INTO = 0x0046;
         /**
          * The unique identifier for terminal MOVE
          */
-        public static final int MOVE = 0x0038;
+        public static final int MOVE = 0x004C;
         /**
-         * The unique identifier for terminal CLEAR
+         * The unique identifier for terminal FALSE
          */
-        public static final int CLEAR = 0x0034;
+        public static final int FALSE = 0x002D;
         /**
          * The unique identifier for terminal WHERE
          */
-        public static final int WHERE = 0x0022;
+        public static final int WHERE = 0x0036;
         /**
          * The unique identifier for terminal NAMED
          */
-        public static final int NAMED = 0x0026;
-        /**
-         * The unique identifier for terminal GROUP
-         */
-        public static final int GROUP = 0x0027;
-        /**
-         * The unique identifier for terminal GRAPH
-         */
-        public static final int GRAPH = 0x0040;
-        /**
-         * The unique identifier for terminal ORDER
-         */
-        public static final int ORDER = 0x002A;
-        /**
-         * The unique identifier for terminal LIMIT
-         */
-        public static final int LIMIT = 0x002D;
-        /**
-         * The unique identifier for terminal MINUS
-         */
-        public static final int MINUS = 0x0046;
+        public static final int NAMED = 0x003A;
         /**
          * The unique identifier for terminal USING
          */
-        public static final int USING = 0x003E;
+        public static final int USING = 0x0052;
         /**
          * The unique identifier for terminal UNION
          */
-        public static final int UNION = 0x0045;
+        public static final int UNION = 0x0059;
         /**
          * The unique identifier for terminal UNDEF
          */
-        public static final int UNDEF = 0x0048;
+        public static final int UNDEF = 0x005C;
+        /**
+         * The unique identifier for terminal GROUP
+         */
+        public static final int GROUP = 0x003B;
+        /**
+         * The unique identifier for terminal GRAPH
+         */
+        public static final int GRAPH = 0x0054;
+        /**
+         * The unique identifier for terminal ORDER
+         */
+        public static final int ORDER = 0x003E;
+        /**
+         * The unique identifier for terminal CLEAR
+         */
+        public static final int CLEAR = 0x0048;
+        /**
+         * The unique identifier for terminal LIMIT
+         */
+        public static final int LIMIT = 0x0041;
+        /**
+         * The unique identifier for terminal MINUS
+         */
+        public static final int MINUS = 0x005A;
         /**
          * The unique identifier for terminal STRING_LITERAL_LONG_QUOTE
          */
@@ -244,73 +288,81 @@ class SPARQLLexer extends ContextFreeLexer {
          */
         public static final int STRING_LITERAL_LONG_SINGLE_QUOTE = 0x0019;
         /**
-         * The unique identifier for terminal PREFIX
-         */
-        public static final int PREFIX = 0x001B;
-        /**
-         * The unique identifier for terminal SELECT
-         */
-        public static final int SELECT = 0x001D;
-        /**
-         * The unique identifier for terminal SILENT
-         */
-        public static final int SILENT = 0x0030;
-        /**
-         * The unique identifier for terminal DELETE
-         */
-        public static final int DELETE = 0x003B;
-        /**
-         * The unique identifier for terminal CREATE
-         */
-        public static final int CREATE = 0x0036;
-        /**
          * The unique identifier for terminal FILTER
          */
-        public static final int FILTER = 0x0047;
+        public static final int FILTER = 0x005B;
         /**
-         * The unique identifier for terminal HAVING
+         * The unique identifier for terminal PREFIX
          */
-        public static final int HAVING = 0x0029;
-        /**
-         * The unique identifier for terminal OFFSET
-         */
-        public static final int OFFSET = 0x002E;
+        public static final int PREFIX = 0x002F;
         /**
          * The unique identifier for terminal VALUES
          */
-        public static final int VALUES = 0x002F;
+        public static final int VALUES = 0x0043;
+        /**
+         * The unique identifier for terminal SELECT
+         */
+        public static final int SELECT = 0x0031;
+        /**
+         * The unique identifier for terminal SILENT
+         */
+        public static final int SILENT = 0x0044;
+        /**
+         * The unique identifier for terminal DELETE
+         */
+        public static final int DELETE = 0x004F;
+        /**
+         * The unique identifier for terminal OFFSET
+         */
+        public static final int OFFSET = 0x0042;
+        /**
+         * The unique identifier for terminal CREATE
+         */
+        public static final int CREATE = 0x004A;
+        /**
+         * The unique identifier for terminal EXISTS
+         */
+        public static final int EXISTS = 0x005F;
+        /**
+         * The unique identifier for terminal HAVING
+         */
+        public static final int HAVING = 0x003D;
         /**
          * The unique identifier for terminal INSERT
          */
-        public static final int INSERT = 0x003A;
+        public static final int INSERT = 0x004E;
         /**
          * The unique identifier for terminal SERVICE
          */
-        public static final int SERVICE = 0x0043;
+        public static final int SERVICE = 0x0057;
         /**
          * The unique identifier for terminal DEFAULT
          */
-        public static final int DEFAULT = 0x003F;
+        public static final int DEFAULT = 0x0053;
         /**
          * The unique identifier for terminal REDUCED
          */
-        public static final int REDUCED = 0x001F;
+        public static final int REDUCED = 0x0033;
         /**
          * The unique identifier for terminal DISTINCT
          */
-        public static final int DISTINCT = 0x001E;
+        public static final int DISTINCT = 0x0032;
         /**
          * The unique identifier for terminal DESCRIBE
          */
-        public static final int DESCRIBE = 0x0023;
+        public static final int DESCRIBE = 0x0037;
         /**
          * The unique identifier for terminal OPTIONAL
          */
-        public static final int OPTIONAL = 0x0042;
+        public static final int OPTIONAL = 0x0056;
+        /**
+         * The unique identifier for terminal SEPARATOR
+         */
+        public static final int SEPARATOR = 0x0060;
         /**
          * The unique identifier for terminal CONSTRUCT
          */
-        public static final int CONSTRUCT = 0x0021;
+        public static final int CONSTRUCT = 0x0035;
     }
     /**
      * Contains the constant IDs for the contexts for this lexer
@@ -330,168 +382,102 @@ class SPARQLLexer extends ContextFreeLexer {
     private static final Symbol[] terminals = {
         new Symbol(0x0001, "ε"),
         new Symbol(0x0002, "$"),
-        new Symbol(0x0102, "<"),
-        new Symbol(0x000E, "PN_LOCAL"),
-        new Symbol(0x000C, "PN_CHARS"),
-        new Symbol(0x000B, "PN_CHARS_U"),
-        new Symbol(0x00EF, "["),
-        new Symbol(0x000D, "PN_PREFIX"),
-        new Symbol(0x000A, "PN_CHARS_BASE"),
-        new Symbol(0x00EC, "a"),
-        new Symbol(0x00D2, ";"),
-        new Symbol(0x00D5, "*"),
-        new Symbol(0x00D7, "("),
-        new Symbol(0x00D8, ")"),
-        new Symbol(0x00DB, "{"),
-        new Symbol(0x00DC, "}"),
-        new Symbol(0x00DD, "."),
-        new Symbol(0x00ED, ","),
-        new Symbol(0x00F0, "]"),
-        new Symbol(0x00F6, "|"),
-        new Symbol(0x00F7, "/"),
-        new Symbol(0x00F8, "^"),
-        new Symbol(0x00F9, "?"),
-        new Symbol(0x00FA, "+"),
-        new Symbol(0x00FB, "!"),
-        new Symbol(0x0100, "="),
-        new Symbol(0x0103, ">"),
-        new Symbol(0x0106, "-"),
-        new Symbol(0x0006, "BLANK"),
-        new Symbol(0x0003, "NEW_LINE"),
-        new Symbol(0x0004, "WHITE_SPACE"),
-        new Symbol(0x000F, "PNAME_NS"),
+        new Symbol(0x0024, "OP_LESS"),
+        new Symbol(0x002B, "BUILTIN"),
+        new Symbol(0x0106, "["),
+        new Symbol(0x001B, "OP_PLUS"),
+        new Symbol(0x001C, "OP_MINUS"),
+        new Symbol(0x001D, "OP_MULT"),
+        new Symbol(0x001E, "OP_DIV"),
+        new Symbol(0x0029, "OP_UNION"),
+        new Symbol(0x0021, "OP_NOT"),
+        new Symbol(0x0110, "="),
+        new Symbol(0x0022, "OP_EQ"),
+        new Symbol(0x0026, "OP_GREAT"),
+        new Symbol(0x0028, "OP_OPT"),
+        new Symbol(0x002A, "OP_INV"),
+        new Symbol(0x002E, "A"),
+        new Symbol(0x00EB, ";"),
+        new Symbol(0x00EF, "("),
+        new Symbol(0x00F0, ")"),
+        new Symbol(0x00F3, "{"),
+        new Symbol(0x00F4, "}"),
+        new Symbol(0x00F5, "."),
+        new Symbol(0x0104, ","),
+        new Symbol(0x0107, "]"),
         new Symbol(0x0014, "INTEGER"),
-        new Symbol(0x0005, "COMMENT"),
+        new Symbol(0x000F, "PNAME_NS"),
+        new Symbol(0x0006, "BLANK"),
         new Symbol(0x0007, "LANGTAG"),
-        new Symbol(0x0105, "<="),
+        new Symbol(0x0025, "OP_LEQ"),
         new Symbol(0x0008, "IRIREF"),
         new Symbol(0x0013, "ANON"),
         new Symbol(0x0017, "STRING_LITERAL_QUOTE"),
         new Symbol(0x0018, "STRING_LITERAL_SINGLE_QUOTE"),
-        new Symbol(0x0028, "BY"),
-        new Symbol(0x0020, "AS"),
-        new Symbol(0x012F, "TZ"),
-        new Symbol(0x0031, "TO"),
-        new Symbol(0x0139, "IF"),
-        new Symbol(0x0049, "IN"),
-        new Symbol(0x0015, "DECIMAL"),
-        new Symbol(0x00FE, "||"),
-        new Symbol(0x0147, "^^"),
+        new Symbol(0x001F, "OP_BOR"),
+        new Symbol(0x0020, "OP_BAND"),
+        new Symbol(0x0023, "OP_NEQ"),
+        new Symbol(0x0027, "OP_GEQ"),
         new Symbol(0x0012, "VARIABLE"),
-        new Symbol(0x0101, "!="),
-        new Symbol(0x00FF, "&&"),
-        new Symbol(0x0104, ">="),
-        new Symbol(0x0009, "PLX"),
+        new Symbol(0x0112, "^^"),
+        new Symbol(0x0045, "TO"),
+        new Symbol(0x0034, "AS"),
+        new Symbol(0x003C, "BY"),
+        new Symbol(0x005D, "IN"),
+        new Symbol(0x0015, "DECIMAL"),
         new Symbol(0x0010, "PNAME_LN"),
         new Symbol(0x0011, "BLANK_NODE_LABEL"),
-        new Symbol(0x0108, "SUM"),
-        new Symbol(0x010F, "STR"),
-        new Symbol(0x012A, "DAY"),
-        new Symbol(0x010B, "AVG"),
-        new Symbol(0x0118, "ABS"),
-        new Symbol(0x0024, "ASK"),
-        new Symbol(0x002B, "ASC"),
-        new Symbol(0x0037, "ADD"),
-        new Symbol(0x0041, "ALL"),
-        new Symbol(0x0130, "NOW"),
-        new Symbol(0x004A, "NOT"),
-        new Symbol(0x0114, "IRI"),
-        new Symbol(0x0109, "MIN"),
-        new Symbol(0x010A, "MAX"),
-        new Symbol(0x0133, "MD5"),
-        new Symbol(0x0115, "URI"),
+        new Symbol(0x0038, "ASK"),
+        new Symbol(0x003F, "ASC"),
+        new Symbol(0x004B, "ADD"),
+        new Symbol(0x0055, "ALL"),
+        new Symbol(0x005E, "NOT"),
         new Symbol(0x0016, "DOUBLE"),
-        new Symbol(0x001C, "BASE"),
-        new Symbol(0x0044, "BIND"),
-        new Symbol(0x0134, "SHA1"),
-        new Symbol(0x003D, "DATA"),
-        new Symbol(0x002C, "DESC"),
-        new Symbol(0x0035, "DROP"),
-        new Symbol(0x0117, "RAND"),
-        new Symbol(0x0039, "COPY"),
-        new Symbol(0x0119, "CEIL"),
-        new Symbol(0x003C, "WITH"),
-        new Symbol(0x0025, "FROM"),
-        new Symbol(0x0110, "LANG"),
-        new Symbol(0x0033, "LOAD"),
-        new Symbol(0x0145, "true"),
-        new Symbol(0x0032, "INTO"),
-        new Symbol(0x0038, "MOVE"),
-        new Symbol(0x0131, "UUID"),
-        new Symbol(0x0128, "YEAR"),
-        new Symbol(0x0113, "BOUND"),
-        new Symbol(0x0116, "BNODE"),
-        new Symbol(0x013B, "STRDT"),
-        new Symbol(0x011B, "ROUND"),
-        new Symbol(0x0142, "REGEX"),
-        new Symbol(0x0107, "COUNT"),
-        new Symbol(0x0034, "CLEAR"),
-        new Symbol(0x0022, "WHERE"),
-        new Symbol(0x011A, "FLOOR"),
-        new Symbol(0x0146, "false"),
-        new Symbol(0x0026, "NAMED"),
-        new Symbol(0x0027, "GROUP"),
-        new Symbol(0x0040, "GRAPH"),
-        new Symbol(0x012B, "HOURS"),
-        new Symbol(0x002A, "ORDER"),
-        new Symbol(0x0121, "LCASE"),
-        new Symbol(0x002D, "LIMIT"),
-        new Symbol(0x013D, "isIRI"),
-        new Symbol(0x013E, "isURI"),
-        new Symbol(0x0046, "MINUS"),
-        new Symbol(0x0129, "MONTH"),
-        new Symbol(0x0120, "UCASE"),
-        new Symbol(0x003E, "USING"),
-        new Symbol(0x0045, "UNION"),
-        new Symbol(0x0048, "UNDEF"),
+        new Symbol(0x002C, "TRUE"),
+        new Symbol(0x0039, "FROM"),
+        new Symbol(0x0050, "WITH"),
+        new Symbol(0x0030, "BASE"),
+        new Symbol(0x0058, "BIND"),
+        new Symbol(0x0040, "DESC"),
+        new Symbol(0x0049, "DROP"),
+        new Symbol(0x0051, "DATA"),
+        new Symbol(0x004D, "COPY"),
+        new Symbol(0x0047, "LOAD"),
+        new Symbol(0x0046, "INTO"),
+        new Symbol(0x004C, "MOVE"),
+        new Symbol(0x002D, "FALSE"),
+        new Symbol(0x0036, "WHERE"),
+        new Symbol(0x003A, "NAMED"),
+        new Symbol(0x0052, "USING"),
+        new Symbol(0x0059, "UNION"),
+        new Symbol(0x005C, "UNDEF"),
+        new Symbol(0x003B, "GROUP"),
+        new Symbol(0x0054, "GRAPH"),
+        new Symbol(0x003E, "ORDER"),
+        new Symbol(0x0048, "CLEAR"),
+        new Symbol(0x0041, "LIMIT"),
+        new Symbol(0x005A, "MINUS"),
         new Symbol(0x001A, "STRING_LITERAL_LONG_QUOTE"),
         new Symbol(0x0019, "STRING_LITERAL_LONG_SINGLE_QUOTE"),
-        new Symbol(0x001B, "PREFIX"),
-        new Symbol(0x011D, "SUBSTR"),
-        new Symbol(0x010C, "SAMPLE"),
-        new Symbol(0x001D, "SELECT"),
-        new Symbol(0x011E, "STRLEN"),
-        new Symbol(0x0135, "SHA256"),
-        new Symbol(0x0136, "SHA384"),
-        new Symbol(0x0137, "SHA512"),
-        new Symbol(0x0030, "SILENT"),
-        new Symbol(0x003B, "DELETE"),
-        new Symbol(0x011C, "CONCAT"),
-        new Symbol(0x0036, "CREATE"),
-        new Symbol(0x0047, "FILTER"),
-        new Symbol(0x0029, "HAVING"),
-        new Symbol(0x002E, "OFFSET"),
-        new Symbol(0x002F, "VALUES"),
-        new Symbol(0x003A, "INSERT"),
-        new Symbol(0x0143, "EXISTS"),
-        new Symbol(0x012D, "SECONDS"),
-        new Symbol(0x0043, "SERVICE"),
-        new Symbol(0x013A, "STRLANG"),
-        new Symbol(0x0125, "STRENDS"),
-        new Symbol(0x0132, "STRUUID"),
-        new Symbol(0x003F, "DEFAULT"),
-        new Symbol(0x011F, "REPLACE"),
-        new Symbol(0x001F, "REDUCED"),
-        new Symbol(0x013F, "isBLANK"),
-        new Symbol(0x012C, "MINUTES"),
-        new Symbol(0x0127, "STRAFTER"),
-        new Symbol(0x013C, "sameTerm"),
-        new Symbol(0x0112, "DATATYPE"),
-        new Symbol(0x001E, "DISTINCT"),
-        new Symbol(0x0023, "DESCRIBE"),
-        new Symbol(0x0123, "CONTAINS"),
-        new Symbol(0x0138, "COALESCE"),
-        new Symbol(0x0042, "OPTIONAL"),
-        new Symbol(0x012E, "TIMEZONE"),
-        new Symbol(0x010E, "SEPARATOR"),
-        new Symbol(0x0124, "STRSTARTS"),
-        new Symbol(0x0126, "STRBEFORE"),
-        new Symbol(0x0021, "CONSTRUCT"),
-        new Symbol(0x0140, "isLITERAL"),
-        new Symbol(0x0141, "isNUMERIC"),
-        new Symbol(0x0111, "LANGMATCHES"),
-        new Symbol(0x010D, "GROUP_CONCAT"),
-        new Symbol(0x0122, "ENCODE_FOR_URI") };
+        new Symbol(0x005B, "FILTER"),
+        new Symbol(0x002F, "PREFIX"),
+        new Symbol(0x0043, "VALUES"),
+        new Symbol(0x0031, "SELECT"),
+        new Symbol(0x0044, "SILENT"),
+        new Symbol(0x004F, "DELETE"),
+        new Symbol(0x0042, "OFFSET"),
+        new Symbol(0x004A, "CREATE"),
+        new Symbol(0x005F, "EXISTS"),
+        new Symbol(0x003D, "HAVING"),
+        new Symbol(0x004E, "INSERT"),
+        new Symbol(0x0057, "SERVICE"),
+        new Symbol(0x0053, "DEFAULT"),
+        new Symbol(0x0033, "REDUCED"),
+        new Symbol(0x0032, "DISTINCT"),
+        new Symbol(0x0037, "DESCRIBE"),
+        new Symbol(0x0056, "OPTIONAL"),
+        new Symbol(0x0060, "SEPARATOR"),
+        new Symbol(0x0035, "CONSTRUCT") };
     /**
      * Initializes a new instance of the lexer
      *

@@ -29,551 +29,563 @@ class SPARQLParser extends LRkParser {
         /**
          * The unique identifier for variable unit
          */
-        public static final int unit = 0x004B;
+        public static final int unit = 0x0061;
         /**
          * The unique identifier for variable query
          */
-        public static final int query = 0x004C;
+        public static final int query = 0x0062;
         /**
          * The unique identifier for variable update
          */
-        public static final int update = 0x004D;
+        public static final int update = 0x0063;
         /**
          * The unique identifier for variable update1
          */
-        public static final int update1 = 0x004E;
+        public static final int update1 = 0x0064;
         /**
          * The unique identifier for variable prologue
          */
-        public static final int prologue = 0x004F;
+        public static final int prologue = 0x0065;
         /**
          * The unique identifier for variable decl_base
          */
-        public static final int decl_base = 0x0050;
+        public static final int decl_base = 0x0066;
         /**
          * The unique identifier for variable decl_prefix
          */
-        public static final int decl_prefix = 0x0051;
+        public static final int decl_prefix = 0x0067;
         /**
          * The unique identifier for variable select
          */
-        public static final int select = 0x0052;
+        public static final int select = 0x0068;
         /**
          * The unique identifier for variable sub_select
          */
-        public static final int sub_select = 0x0053;
+        public static final int sub_select = 0x0069;
         /**
          * The unique identifier for variable clause_select
          */
-        public static final int clause_select = 0x0054;
+        public static final int clause_select = 0x006A;
         /**
          * The unique identifier for variable clause_select_mod
          */
-        public static final int clause_select_mod = 0x0055;
+        public static final int clause_select_mod = 0x006B;
         /**
          * The unique identifier for variable clause_select_vars
          */
-        public static final int clause_select_vars = 0x0056;
+        public static final int clause_select_vars = 0x006C;
         /**
          * The unique identifier for variable clause_select_var
          */
-        public static final int clause_select_var = 0x0057;
+        public static final int clause_select_var = 0x006D;
         /**
          * The unique identifier for variable construct
          */
-        public static final int construct = 0x0058;
+        public static final int construct = 0x006E;
         /**
          * The unique identifier for variable construct1
          */
-        public static final int construct1 = 0x0059;
+        public static final int construct1 = 0x006F;
         /**
          * The unique identifier for variable construct2
          */
-        public static final int construct2 = 0x005A;
+        public static final int construct2 = 0x0070;
         /**
          * The unique identifier for variable construct_template
          */
-        public static final int construct_template = 0x005B;
+        public static final int construct_template = 0x0071;
         /**
          * The unique identifier for variable construct_triples
          */
-        public static final int construct_triples = 0x005C;
+        public static final int construct_triples = 0x0072;
         /**
          * The unique identifier for variable describe
          */
-        public static final int describe = 0x005D;
+        public static final int describe = 0x0073;
         /**
          * The unique identifier for variable describe_vars
          */
-        public static final int describe_vars = 0x005E;
+        public static final int describe_vars = 0x0074;
         /**
          * The unique identifier for variable ask
          */
-        public static final int ask = 0x005F;
+        public static final int ask = 0x0075;
         /**
          * The unique identifier for variable clause_dataset
          */
-        public static final int clause_dataset = 0x0060;
+        public static final int clause_dataset = 0x0076;
         /**
          * The unique identifier for variable clause_graph_default
          */
-        public static final int clause_graph_default = 0x0061;
+        public static final int clause_graph_default = 0x0077;
         /**
          * The unique identifier for variable clause_graph_named
          */
-        public static final int clause_graph_named = 0x0062;
+        public static final int clause_graph_named = 0x0078;
         /**
          * The unique identifier for variable source_selector
          */
-        public static final int source_selector = 0x0063;
+        public static final int source_selector = 0x0079;
         /**
          * The unique identifier for variable clause_where
          */
-        public static final int clause_where = 0x0064;
+        public static final int clause_where = 0x007A;
         /**
          * The unique identifier for variable modifier
          */
-        public static final int modifier = 0x0065;
+        public static final int modifier = 0x007B;
         /**
          * The unique identifier for variable clause_group
          */
-        public static final int clause_group = 0x0066;
+        public static final int clause_group = 0x007C;
         /**
          * The unique identifier for variable clause_group_cond
          */
-        public static final int clause_group_cond = 0x0067;
+        public static final int clause_group_cond = 0x007D;
         /**
          * The unique identifier for variable clause_having
          */
-        public static final int clause_having = 0x0068;
+        public static final int clause_having = 0x007E;
         /**
          * The unique identifier for variable clause_having_cond
          */
-        public static final int clause_having_cond = 0x0069;
+        public static final int clause_having_cond = 0x007F;
         /**
          * The unique identifier for variable clause_order
          */
-        public static final int clause_order = 0x006A;
+        public static final int clause_order = 0x0080;
         /**
          * The unique identifier for variable clause_order_cond
          */
-        public static final int clause_order_cond = 0x006B;
+        public static final int clause_order_cond = 0x0081;
         /**
          * The unique identifier for variable clauses_limit_offset
          */
-        public static final int clauses_limit_offset = 0x006C;
+        public static final int clauses_limit_offset = 0x0082;
         /**
          * The unique identifier for variable clause_limit
          */
-        public static final int clause_limit = 0x006D;
+        public static final int clause_limit = 0x0083;
         /**
          * The unique identifier for variable clause_offset
          */
-        public static final int clause_offset = 0x006E;
+        public static final int clause_offset = 0x0084;
         /**
          * The unique identifier for variable clause_values
          */
-        public static final int clause_values = 0x006F;
+        public static final int clause_values = 0x0085;
         /**
          * The unique identifier for variable load
          */
-        public static final int load = 0x0070;
+        public static final int load = 0x0086;
         /**
          * The unique identifier for variable clear
          */
-        public static final int clear = 0x0071;
+        public static final int clear = 0x0087;
         /**
          * The unique identifier for variable drop
          */
-        public static final int drop = 0x0072;
+        public static final int drop = 0x0088;
         /**
          * The unique identifier for variable create
          */
-        public static final int create = 0x0073;
+        public static final int create = 0x0089;
         /**
          * The unique identifier for variable add
          */
-        public static final int add = 0x0074;
+        public static final int add = 0x008A;
         /**
          * The unique identifier for variable move
          */
-        public static final int move = 0x0075;
+        public static final int move = 0x008B;
         /**
          * The unique identifier for variable copy
          */
-        public static final int copy = 0x0076;
+        public static final int copy = 0x008C;
         /**
          * The unique identifier for variable insert
          */
-        public static final int insert = 0x0077;
+        public static final int insert = 0x008D;
         /**
          * The unique identifier for variable delete
          */
-        public static final int delete = 0x0078;
+        public static final int delete = 0x008E;
         /**
          * The unique identifier for variable deleteWhere
          */
-        public static final int deleteWhere = 0x0079;
+        public static final int deleteWhere = 0x008F;
         /**
          * The unique identifier for variable modify
          */
-        public static final int modify = 0x007A;
+        public static final int modify = 0x0090;
         /**
          * The unique identifier for variable clause_delete
          */
-        public static final int clause_delete = 0x007B;
+        public static final int clause_delete = 0x0091;
         /**
          * The unique identifier for variable clause_insert
          */
-        public static final int clause_insert = 0x007C;
+        public static final int clause_insert = 0x0092;
         /**
          * The unique identifier for variable clause_using
          */
-        public static final int clause_using = 0x007D;
+        public static final int clause_using = 0x0093;
         /**
          * The unique identifier for variable graph_or_default
          */
-        public static final int graph_or_default = 0x007E;
+        public static final int graph_or_default = 0x0094;
         /**
          * The unique identifier for variable graph_ref
          */
-        public static final int graph_ref = 0x007F;
+        public static final int graph_ref = 0x0095;
         /**
          * The unique identifier for variable graph_ref_all
          */
-        public static final int graph_ref_all = 0x0080;
+        public static final int graph_ref_all = 0x0096;
         /**
          * The unique identifier for variable graph_pattern
          */
-        public static final int graph_pattern = 0x0081;
+        public static final int graph_pattern = 0x0097;
         /**
          * The unique identifier for variable graph_pattern_group
          */
-        public static final int graph_pattern_group = 0x0082;
+        public static final int graph_pattern_group = 0x0098;
         /**
          * The unique identifier for variable graph_pattern_other
          */
-        public static final int graph_pattern_other = 0x0083;
+        public static final int graph_pattern_other = 0x0099;
         /**
          * The unique identifier for variable graph_pattern_optional
          */
-        public static final int graph_pattern_optional = 0x0084;
+        public static final int graph_pattern_optional = 0x009A;
         /**
          * The unique identifier for variable graph_pattern_minus
          */
-        public static final int graph_pattern_minus = 0x0085;
+        public static final int graph_pattern_minus = 0x009B;
         /**
          * The unique identifier for variable graph_pattern_graph
          */
-        public static final int graph_pattern_graph = 0x0086;
+        public static final int graph_pattern_graph = 0x009C;
         /**
          * The unique identifier for variable graph_pattern_service
          */
-        public static final int graph_pattern_service = 0x0087;
+        public static final int graph_pattern_service = 0x009D;
         /**
          * The unique identifier for variable graph_pattern_filter
          */
-        public static final int graph_pattern_filter = 0x0088;
+        public static final int graph_pattern_filter = 0x009E;
         /**
          * The unique identifier for variable graph_pattern_bind
          */
-        public static final int graph_pattern_bind = 0x0089;
+        public static final int graph_pattern_bind = 0x009F;
         /**
          * The unique identifier for variable graph_pattern_data
          */
-        public static final int graph_pattern_data = 0x008A;
+        public static final int graph_pattern_data = 0x00A0;
         /**
          * The unique identifier for variable graph_pattern_union
          */
-        public static final int graph_pattern_union = 0x008B;
+        public static final int graph_pattern_union = 0x00A1;
         /**
          * The unique identifier for variable data_block
          */
-        public static final int data_block = 0x008C;
+        public static final int data_block = 0x00A2;
         /**
          * The unique identifier for variable inline_data_one
          */
-        public static final int inline_data_one = 0x008D;
+        public static final int inline_data_one = 0x00A3;
         /**
          * The unique identifier for variable inline_data_full
          */
-        public static final int inline_data_full = 0x008E;
+        public static final int inline_data_full = 0x00A4;
         /**
          * The unique identifier for variable inline_data_full_vars
          */
-        public static final int inline_data_full_vars = 0x008F;
+        public static final int inline_data_full_vars = 0x00A5;
         /**
          * The unique identifier for variable inline_data_full_val
          */
-        public static final int inline_data_full_val = 0x0090;
+        public static final int inline_data_full_val = 0x00A6;
         /**
          * The unique identifier for variable data_block_value
          */
-        public static final int data_block_value = 0x0091;
+        public static final int data_block_value = 0x00A7;
         /**
          * The unique identifier for variable constraint
          */
-        public static final int constraint = 0x0092;
+        public static final int constraint = 0x00A8;
         /**
          * The unique identifier for variable quad_pattern
          */
-        public static final int quad_pattern = 0x0093;
+        public static final int quad_pattern = 0x00A9;
         /**
          * The unique identifier for variable quad_data
          */
-        public static final int quad_data = 0x0094;
+        public static final int quad_data = 0x00AA;
         /**
          * The unique identifier for variable quads
          */
-        public static final int quads = 0x0095;
+        public static final int quads = 0x00AB;
         /**
          * The unique identifier for variable quads_supp
          */
-        public static final int quads_supp = 0x0096;
+        public static final int quads_supp = 0x00AC;
         /**
          * The unique identifier for variable quads_not_triples
          */
-        public static final int quads_not_triples = 0x0097;
+        public static final int quads_not_triples = 0x00AD;
         /**
          * The unique identifier for variable triples_template
          */
-        public static final int triples_template = 0x0098;
+        public static final int triples_template = 0x00AE;
         /**
          * The unique identifier for variable triples_block
          */
-        public static final int triples_block = 0x0099;
+        public static final int triples_block = 0x00AF;
         /**
          * The unique identifier for variable triples_same_subj
          */
-        public static final int triples_same_subj = 0x009A;
+        public static final int triples_same_subj = 0x00B0;
         /**
          * The unique identifier for variable property_list
          */
-        public static final int property_list = 0x009B;
+        public static final int property_list = 0x00B1;
         /**
          * The unique identifier for variable property_list_not_empty
          */
-        public static final int property_list_not_empty = 0x009C;
+        public static final int property_list_not_empty = 0x00B2;
         /**
          * The unique identifier for variable verb
          */
-        public static final int verb = 0x009D;
+        public static final int verb = 0x00B3;
         /**
          * The unique identifier for variable object_list
          */
-        public static final int object_list = 0x009E;
+        public static final int object_list = 0x00B4;
         /**
          * The unique identifier for variable object
          */
-        public static final int object = 0x009F;
+        public static final int object = 0x00B5;
         /**
          * The unique identifier for variable triples_node
          */
-        public static final int triples_node = 0x00A0;
+        public static final int triples_node = 0x00B6;
         /**
          * The unique identifier for variable blank_node_property_list
          */
-        public static final int blank_node_property_list = 0x00A1;
+        public static final int blank_node_property_list = 0x00B7;
         /**
          * The unique identifier for variable collection
          */
-        public static final int collection = 0x00A2;
+        public static final int collection = 0x00B8;
         /**
          * The unique identifier for variable graph_node
          */
-        public static final int graph_node = 0x00A3;
+        public static final int graph_node = 0x00B9;
         /**
          * The unique identifier for variable var_or_term
          */
-        public static final int var_or_term = 0x00A4;
+        public static final int var_or_term = 0x00BA;
         /**
          * The unique identifier for variable var_or_iri
          */
-        public static final int var_or_iri = 0x00A5;
+        public static final int var_or_iri = 0x00BB;
         /**
          * The unique identifier for variable graph_term
          */
-        public static final int graph_term = 0x00A6;
+        public static final int graph_term = 0x00BC;
         /**
          * The unique identifier for variable triples_same_subj_path
          */
-        public static final int triples_same_subj_path = 0x00A7;
+        public static final int triples_same_subj_path = 0x00BD;
         /**
          * The unique identifier for variable property_list_path
          */
-        public static final int property_list_path = 0x00A8;
+        public static final int property_list_path = 0x00BE;
         /**
          * The unique identifier for variable property_list_path_ne
          */
-        public static final int property_list_path_ne = 0x00A9;
+        public static final int property_list_path_ne = 0x00BF;
         /**
          * The unique identifier for variable verb_path
          */
-        public static final int verb_path = 0x00AA;
+        public static final int verb_path = 0x00C0;
         /**
          * The unique identifier for variable verb_simple
          */
-        public static final int verb_simple = 0x00AB;
+        public static final int verb_simple = 0x00C1;
         /**
          * The unique identifier for variable object_list_path
          */
-        public static final int object_list_path = 0x00AC;
+        public static final int object_list_path = 0x00C2;
         /**
          * The unique identifier for variable object_path
          */
-        public static final int object_path = 0x00AD;
+        public static final int object_path = 0x00C3;
         /**
          * The unique identifier for variable triples_node_path
          */
-        public static final int triples_node_path = 0x00AE;
+        public static final int triples_node_path = 0x00C4;
         /**
          * The unique identifier for variable blank_node_property_list_path
          */
-        public static final int blank_node_property_list_path = 0x00AF;
+        public static final int blank_node_property_list_path = 0x00C5;
         /**
          * The unique identifier for variable collection_path
          */
-        public static final int collection_path = 0x00B0;
+        public static final int collection_path = 0x00C6;
         /**
          * The unique identifier for variable graph_node_path
          */
-        public static final int graph_node_path = 0x00B1;
+        public static final int graph_node_path = 0x00C7;
         /**
          * The unique identifier for variable path
          */
-        public static final int path = 0x00B2;
+        public static final int path = 0x00C8;
         /**
          * The unique identifier for variable path_alt
          */
-        public static final int path_alt = 0x00B3;
+        public static final int path_alt = 0x00C9;
         /**
          * The unique identifier for variable path_seq
          */
-        public static final int path_seq = 0x00B4;
+        public static final int path_seq = 0x00CA;
         /**
          * The unique identifier for variable path_elt_or_inv
          */
-        public static final int path_elt_or_inv = 0x00B5;
+        public static final int path_elt_or_inv = 0x00CB;
         /**
          * The unique identifier for variable path_elt
          */
-        public static final int path_elt = 0x00B6;
+        public static final int path_elt = 0x00CC;
         /**
          * The unique identifier for variable path_primary
          */
-        public static final int path_primary = 0x00B7;
+        public static final int path_primary = 0x00CD;
         /**
          * The unique identifier for variable path_neg
          */
-        public static final int path_neg = 0x00B8;
+        public static final int path_neg = 0x00CE;
         /**
          * The unique identifier for variable path_in
          */
-        public static final int path_in = 0x00B9;
+        public static final int path_in = 0x00CF;
         /**
          * The unique identifier for variable expression_list
          */
-        public static final int expression_list = 0x00BA;
+        public static final int expression_list = 0x00D0;
         /**
          * The unique identifier for variable expression
          */
-        public static final int expression = 0x00BB;
+        public static final int expression = 0x00D1;
         /**
          * The unique identifier for variable exp_or
          */
-        public static final int exp_or = 0x00BC;
+        public static final int exp_or = 0x00D2;
         /**
          * The unique identifier for variable exp_and
          */
-        public static final int exp_and = 0x00BD;
+        public static final int exp_and = 0x00D3;
         /**
          * The unique identifier for variable exp_logical
          */
-        public static final int exp_logical = 0x00BE;
+        public static final int exp_logical = 0x00D4;
         /**
          * The unique identifier for variable exp_relational
          */
-        public static final int exp_relational = 0x00BF;
+        public static final int exp_relational = 0x00D5;
         /**
          * The unique identifier for variable exp_numeric
          */
-        public static final int exp_numeric = 0x00C0;
+        public static final int exp_numeric = 0x00D6;
         /**
          * The unique identifier for variable exp_add
          */
-        public static final int exp_add = 0x00C1;
+        public static final int exp_add = 0x00D7;
         /**
          * The unique identifier for variable exp_mult
          */
-        public static final int exp_mult = 0x00C2;
+        public static final int exp_mult = 0x00D8;
         /**
          * The unique identifier for variable exp_unary
          */
-        public static final int exp_unary = 0x00C3;
+        public static final int exp_unary = 0x00D9;
         /**
          * The unique identifier for variable exp_primary
          */
-        public static final int exp_primary = 0x00C4;
+        public static final int exp_primary = 0x00DA;
         /**
          * The unique identifier for variable exp_bracketted
          */
-        public static final int exp_bracketted = 0x00C5;
+        public static final int exp_bracketted = 0x00DB;
         /**
          * The unique identifier for variable built_in_call
          */
-        public static final int built_in_call = 0x00C6;
+        public static final int built_in_call = 0x00DC;
+        /**
+         * The unique identifier for variable built_in_call_distinct
+         */
+        public static final int built_in_call_distinct = 0x00DD;
+        /**
+         * The unique identifier for variable built_in_call_args
+         */
+        public static final int built_in_call_args = 0x00DE;
+        /**
+         * The unique identifier for variable built_in_call_sep
+         */
+        public static final int built_in_call_sep = 0x00DF;
         /**
          * The unique identifier for variable iri_or_function
          */
-        public static final int iri_or_function = 0x00C7;
+        public static final int iri_or_function = 0x00E0;
         /**
          * The unique identifier for variable function_call
          */
-        public static final int function_call = 0x00C8;
+        public static final int function_call = 0x00E1;
         /**
          * The unique identifier for variable arg_list
          */
-        public static final int arg_list = 0x00C9;
+        public static final int arg_list = 0x00E2;
         /**
          * The unique identifier for variable blank_node
          */
-        public static final int blank_node = 0x00CA;
+        public static final int blank_node = 0x00E3;
         /**
          * The unique identifier for variable literal
          */
-        public static final int literal = 0x00CB;
+        public static final int literal = 0x00E4;
         /**
          * The unique identifier for variable literal_bool
          */
-        public static final int literal_bool = 0x00CC;
+        public static final int literal_bool = 0x00E5;
         /**
          * The unique identifier for variable literal_numeric
          */
-        public static final int literal_numeric = 0x00CD;
+        public static final int literal_numeric = 0x00E6;
         /**
          * The unique identifier for variable literal_rdf
          */
-        public static final int literal_rdf = 0x00CE;
+        public static final int literal_rdf = 0x00E7;
         /**
          * The unique identifier for variable string
          */
-        public static final int string = 0x00CF;
+        public static final int string = 0x00E8;
         /**
          * The unique identifier for variable iri
          */
-        public static final int iri = 0x00D0;
+        public static final int iri = 0x00E9;
         /**
          * The unique identifier for variable prefixedName
          */
-        public static final int prefixedName = 0x00D1;
+        public static final int prefixedName = 0x00EA;
         /**
          * The unique identifier for variable __axiom
          */
-        public static final int __axiom = 0x0148;
+        public static final int __axiom = 0x0113;
         /**
          * The unique identifier for virtual nil
          */
-        public static final int nil = 0x00F2;
+        public static final int nil = 0x0109;
     }
     /**
      * The collection of variables matched by this parser
@@ -582,169 +594,173 @@ class SPARQLParser extends LRkParser {
      * so that variable indices in the automaton can be used to retrieve the variables in this table
      */
     private static final Symbol[] variables = {
-        new Symbol(0x004B, "unit"), 
-        new Symbol(0x004C, "query"), 
-        new Symbol(0x004D, "update"), 
-        new Symbol(0x004E, "update1"), 
-        new Symbol(0x004F, "prologue"), 
-        new Symbol(0x0050, "decl_base"), 
-        new Symbol(0x0051, "decl_prefix"), 
-        new Symbol(0x0052, "select"), 
-        new Symbol(0x0053, "sub_select"), 
-        new Symbol(0x0054, "clause_select"), 
-        new Symbol(0x0055, "clause_select_mod"), 
-        new Symbol(0x0056, "clause_select_vars"), 
-        new Symbol(0x0057, "clause_select_var"), 
-        new Symbol(0x0058, "construct"), 
-        new Symbol(0x0059, "construct1"), 
-        new Symbol(0x005A, "construct2"), 
-        new Symbol(0x005B, "construct_template"), 
-        new Symbol(0x005C, "construct_triples"), 
-        new Symbol(0x005D, "describe"), 
-        new Symbol(0x005E, "describe_vars"), 
-        new Symbol(0x005F, "ask"), 
-        new Symbol(0x0060, "clause_dataset"), 
-        new Symbol(0x0061, "clause_graph_default"), 
-        new Symbol(0x0062, "clause_graph_named"), 
-        new Symbol(0x0063, "source_selector"), 
-        new Symbol(0x0064, "clause_where"), 
-        new Symbol(0x0065, "modifier"), 
-        new Symbol(0x0066, "clause_group"), 
-        new Symbol(0x0067, "clause_group_cond"), 
-        new Symbol(0x0068, "clause_having"), 
-        new Symbol(0x0069, "clause_having_cond"), 
-        new Symbol(0x006A, "clause_order"), 
-        new Symbol(0x006B, "clause_order_cond"), 
-        new Symbol(0x006C, "clauses_limit_offset"), 
-        new Symbol(0x006D, "clause_limit"), 
-        new Symbol(0x006E, "clause_offset"), 
-        new Symbol(0x006F, "clause_values"), 
-        new Symbol(0x0070, "load"), 
-        new Symbol(0x0071, "clear"), 
-        new Symbol(0x0072, "drop"), 
-        new Symbol(0x0073, "create"), 
-        new Symbol(0x0074, "add"), 
-        new Symbol(0x0075, "move"), 
-        new Symbol(0x0076, "copy"), 
-        new Symbol(0x0077, "insert"), 
-        new Symbol(0x0078, "delete"), 
-        new Symbol(0x0079, "deleteWhere"), 
-        new Symbol(0x007A, "modify"), 
-        new Symbol(0x007B, "clause_delete"), 
-        new Symbol(0x007C, "clause_insert"), 
-        new Symbol(0x007D, "clause_using"), 
-        new Symbol(0x007E, "graph_or_default"), 
-        new Symbol(0x007F, "graph_ref"), 
-        new Symbol(0x0080, "graph_ref_all"), 
-        new Symbol(0x0081, "graph_pattern"), 
-        new Symbol(0x0082, "graph_pattern_group"), 
-        new Symbol(0x0083, "graph_pattern_other"), 
-        new Symbol(0x0084, "graph_pattern_optional"), 
-        new Symbol(0x0085, "graph_pattern_minus"), 
-        new Symbol(0x0086, "graph_pattern_graph"), 
-        new Symbol(0x0087, "graph_pattern_service"), 
-        new Symbol(0x0088, "graph_pattern_filter"), 
-        new Symbol(0x0089, "graph_pattern_bind"), 
-        new Symbol(0x008A, "graph_pattern_data"), 
-        new Symbol(0x008B, "graph_pattern_union"), 
-        new Symbol(0x008C, "data_block"), 
-        new Symbol(0x008D, "inline_data_one"), 
-        new Symbol(0x008E, "inline_data_full"), 
-        new Symbol(0x008F, "inline_data_full_vars"), 
-        new Symbol(0x0090, "inline_data_full_val"), 
-        new Symbol(0x0091, "data_block_value"), 
-        new Symbol(0x0092, "constraint"), 
-        new Symbol(0x0093, "quad_pattern"), 
-        new Symbol(0x0094, "quad_data"), 
-        new Symbol(0x0095, "quads"), 
-        new Symbol(0x0096, "quads_supp"), 
-        new Symbol(0x0097, "quads_not_triples"), 
-        new Symbol(0x0098, "triples_template"), 
-        new Symbol(0x0099, "triples_block"), 
-        new Symbol(0x009A, "triples_same_subj"), 
-        new Symbol(0x009B, "property_list"), 
-        new Symbol(0x009C, "property_list_not_empty"), 
-        new Symbol(0x009D, "verb"), 
-        new Symbol(0x009E, "object_list"), 
-        new Symbol(0x009F, "object"), 
-        new Symbol(0x00A0, "triples_node"), 
-        new Symbol(0x00A1, "blank_node_property_list"), 
-        new Symbol(0x00A2, "collection"), 
-        new Symbol(0x00A3, "graph_node"), 
-        new Symbol(0x00A4, "var_or_term"), 
-        new Symbol(0x00A5, "var_or_iri"), 
-        new Symbol(0x00A6, "graph_term"), 
-        new Symbol(0x00A7, "triples_same_subj_path"), 
-        new Symbol(0x00A8, "property_list_path"), 
-        new Symbol(0x00A9, "property_list_path_ne"), 
-        new Symbol(0x00AA, "verb_path"), 
-        new Symbol(0x00AB, "verb_simple"), 
-        new Symbol(0x00AC, "object_list_path"), 
-        new Symbol(0x00AD, "object_path"), 
-        new Symbol(0x00AE, "triples_node_path"), 
-        new Symbol(0x00AF, "blank_node_property_list_path"), 
-        new Symbol(0x00B0, "collection_path"), 
-        new Symbol(0x00B1, "graph_node_path"), 
-        new Symbol(0x00B2, "path"), 
-        new Symbol(0x00B3, "path_alt"), 
-        new Symbol(0x00B4, "path_seq"), 
-        new Symbol(0x00B5, "path_elt_or_inv"), 
-        new Symbol(0x00B6, "path_elt"), 
-        new Symbol(0x00B7, "path_primary"), 
-        new Symbol(0x00B8, "path_neg"), 
-        new Symbol(0x00B9, "path_in"), 
-        new Symbol(0x00BA, "expression_list"), 
-        new Symbol(0x00BB, "expression"), 
-        new Symbol(0x00BC, "exp_or"), 
-        new Symbol(0x00BD, "exp_and"), 
-        new Symbol(0x00BE, "exp_logical"), 
-        new Symbol(0x00BF, "exp_relational"), 
-        new Symbol(0x00C0, "exp_numeric"), 
-        new Symbol(0x00C1, "exp_add"), 
-        new Symbol(0x00C2, "exp_mult"), 
-        new Symbol(0x00C3, "exp_unary"), 
-        new Symbol(0x00C4, "exp_primary"), 
-        new Symbol(0x00C5, "exp_bracketted"), 
-        new Symbol(0x00C6, "built_in_call"), 
-        new Symbol(0x00C7, "iri_or_function"), 
-        new Symbol(0x00C8, "function_call"), 
-        new Symbol(0x00C9, "arg_list"), 
-        new Symbol(0x00CA, "blank_node"), 
-        new Symbol(0x00CB, "literal"), 
-        new Symbol(0x00CC, "literal_bool"), 
-        new Symbol(0x00CD, "literal_numeric"), 
-        new Symbol(0x00CE, "literal_rdf"), 
-        new Symbol(0x00CF, "string"), 
-        new Symbol(0x00D0, "iri"), 
-        new Symbol(0x00D1, "prefixedName"), 
-        new Symbol(0x00D3, "__V211"), 
-        new Symbol(0x00D4, "__V212"), 
-        new Symbol(0x00D6, "__V214"), 
-        new Symbol(0x00D9, "__V217"), 
-        new Symbol(0x00DA, "__V218"), 
-        new Symbol(0x00DE, "__V222"), 
-        new Symbol(0x00DF, "__V223"), 
-        new Symbol(0x00E0, "__V224"), 
-        new Symbol(0x00E1, "__V225"), 
-        new Symbol(0x00E2, "__V226"), 
-        new Symbol(0x00E3, "__V227"), 
-        new Symbol(0x00E4, "__V228"), 
-        new Symbol(0x00E5, "__V229"), 
-        new Symbol(0x00E6, "__V230"), 
-        new Symbol(0x00E7, "__V231"), 
-        new Symbol(0x00E8, "__V232"), 
-        new Symbol(0x00E9, "__V233"), 
-        new Symbol(0x00EA, "__V234"), 
-        new Symbol(0x00EB, "__V235"), 
+        new Symbol(0x0061, "unit"), 
+        new Symbol(0x0062, "query"), 
+        new Symbol(0x0063, "update"), 
+        new Symbol(0x0064, "update1"), 
+        new Symbol(0x0065, "prologue"), 
+        new Symbol(0x0066, "decl_base"), 
+        new Symbol(0x0067, "decl_prefix"), 
+        new Symbol(0x0068, "select"), 
+        new Symbol(0x0069, "sub_select"), 
+        new Symbol(0x006A, "clause_select"), 
+        new Symbol(0x006B, "clause_select_mod"), 
+        new Symbol(0x006C, "clause_select_vars"), 
+        new Symbol(0x006D, "clause_select_var"), 
+        new Symbol(0x006E, "construct"), 
+        new Symbol(0x006F, "construct1"), 
+        new Symbol(0x0070, "construct2"), 
+        new Symbol(0x0071, "construct_template"), 
+        new Symbol(0x0072, "construct_triples"), 
+        new Symbol(0x0073, "describe"), 
+        new Symbol(0x0074, "describe_vars"), 
+        new Symbol(0x0075, "ask"), 
+        new Symbol(0x0076, "clause_dataset"), 
+        new Symbol(0x0077, "clause_graph_default"), 
+        new Symbol(0x0078, "clause_graph_named"), 
+        new Symbol(0x0079, "source_selector"), 
+        new Symbol(0x007A, "clause_where"), 
+        new Symbol(0x007B, "modifier"), 
+        new Symbol(0x007C, "clause_group"), 
+        new Symbol(0x007D, "clause_group_cond"), 
+        new Symbol(0x007E, "clause_having"), 
+        new Symbol(0x007F, "clause_having_cond"), 
+        new Symbol(0x0080, "clause_order"), 
+        new Symbol(0x0081, "clause_order_cond"), 
+        new Symbol(0x0082, "clauses_limit_offset"), 
+        new Symbol(0x0083, "clause_limit"), 
+        new Symbol(0x0084, "clause_offset"), 
+        new Symbol(0x0085, "clause_values"), 
+        new Symbol(0x0086, "load"), 
+        new Symbol(0x0087, "clear"), 
+        new Symbol(0x0088, "drop"), 
+        new Symbol(0x0089, "create"), 
+        new Symbol(0x008A, "add"), 
+        new Symbol(0x008B, "move"), 
+        new Symbol(0x008C, "copy"), 
+        new Symbol(0x008D, "insert"), 
+        new Symbol(0x008E, "delete"), 
+        new Symbol(0x008F, "deleteWhere"), 
+        new Symbol(0x0090, "modify"), 
+        new Symbol(0x0091, "clause_delete"), 
+        new Symbol(0x0092, "clause_insert"), 
+        new Symbol(0x0093, "clause_using"), 
+        new Symbol(0x0094, "graph_or_default"), 
+        new Symbol(0x0095, "graph_ref"), 
+        new Symbol(0x0096, "graph_ref_all"), 
+        new Symbol(0x0097, "graph_pattern"), 
+        new Symbol(0x0098, "graph_pattern_group"), 
+        new Symbol(0x0099, "graph_pattern_other"), 
+        new Symbol(0x009A, "graph_pattern_optional"), 
+        new Symbol(0x009B, "graph_pattern_minus"), 
+        new Symbol(0x009C, "graph_pattern_graph"), 
+        new Symbol(0x009D, "graph_pattern_service"), 
+        new Symbol(0x009E, "graph_pattern_filter"), 
+        new Symbol(0x009F, "graph_pattern_bind"), 
+        new Symbol(0x00A0, "graph_pattern_data"), 
+        new Symbol(0x00A1, "graph_pattern_union"), 
+        new Symbol(0x00A2, "data_block"), 
+        new Symbol(0x00A3, "inline_data_one"), 
+        new Symbol(0x00A4, "inline_data_full"), 
+        new Symbol(0x00A5, "inline_data_full_vars"), 
+        new Symbol(0x00A6, "inline_data_full_val"), 
+        new Symbol(0x00A7, "data_block_value"), 
+        new Symbol(0x00A8, "constraint"), 
+        new Symbol(0x00A9, "quad_pattern"), 
+        new Symbol(0x00AA, "quad_data"), 
+        new Symbol(0x00AB, "quads"), 
+        new Symbol(0x00AC, "quads_supp"), 
+        new Symbol(0x00AD, "quads_not_triples"), 
+        new Symbol(0x00AE, "triples_template"), 
+        new Symbol(0x00AF, "triples_block"), 
+        new Symbol(0x00B0, "triples_same_subj"), 
+        new Symbol(0x00B1, "property_list"), 
+        new Symbol(0x00B2, "property_list_not_empty"), 
+        new Symbol(0x00B3, "verb"), 
+        new Symbol(0x00B4, "object_list"), 
+        new Symbol(0x00B5, "object"), 
+        new Symbol(0x00B6, "triples_node"), 
+        new Symbol(0x00B7, "blank_node_property_list"), 
+        new Symbol(0x00B8, "collection"), 
+        new Symbol(0x00B9, "graph_node"), 
+        new Symbol(0x00BA, "var_or_term"), 
+        new Symbol(0x00BB, "var_or_iri"), 
+        new Symbol(0x00BC, "graph_term"), 
+        new Symbol(0x00BD, "triples_same_subj_path"), 
+        new Symbol(0x00BE, "property_list_path"), 
+        new Symbol(0x00BF, "property_list_path_ne"), 
+        new Symbol(0x00C0, "verb_path"), 
+        new Symbol(0x00C1, "verb_simple"), 
+        new Symbol(0x00C2, "object_list_path"), 
+        new Symbol(0x00C3, "object_path"), 
+        new Symbol(0x00C4, "triples_node_path"), 
+        new Symbol(0x00C5, "blank_node_property_list_path"), 
+        new Symbol(0x00C6, "collection_path"), 
+        new Symbol(0x00C7, "graph_node_path"), 
+        new Symbol(0x00C8, "path"), 
+        new Symbol(0x00C9, "path_alt"), 
+        new Symbol(0x00CA, "path_seq"), 
+        new Symbol(0x00CB, "path_elt_or_inv"), 
+        new Symbol(0x00CC, "path_elt"), 
+        new Symbol(0x00CD, "path_primary"), 
+        new Symbol(0x00CE, "path_neg"), 
+        new Symbol(0x00CF, "path_in"), 
+        new Symbol(0x00D0, "expression_list"), 
+        new Symbol(0x00D1, "expression"), 
+        new Symbol(0x00D2, "exp_or"), 
+        new Symbol(0x00D3, "exp_and"), 
+        new Symbol(0x00D4, "exp_logical"), 
+        new Symbol(0x00D5, "exp_relational"), 
+        new Symbol(0x00D6, "exp_numeric"), 
+        new Symbol(0x00D7, "exp_add"), 
+        new Symbol(0x00D8, "exp_mult"), 
+        new Symbol(0x00D9, "exp_unary"), 
+        new Symbol(0x00DA, "exp_primary"), 
+        new Symbol(0x00DB, "exp_bracketted"), 
+        new Symbol(0x00DC, "built_in_call"), 
+        new Symbol(0x00DD, "built_in_call_distinct"), 
+        new Symbol(0x00DE, "built_in_call_args"), 
+        new Symbol(0x00DF, "built_in_call_sep"), 
+        new Symbol(0x00E0, "iri_or_function"), 
+        new Symbol(0x00E1, "function_call"), 
+        new Symbol(0x00E2, "arg_list"), 
+        new Symbol(0x00E3, "blank_node"), 
+        new Symbol(0x00E4, "literal"), 
+        new Symbol(0x00E5, "literal_bool"), 
+        new Symbol(0x00E6, "literal_numeric"), 
+        new Symbol(0x00E7, "literal_rdf"), 
+        new Symbol(0x00E8, "string"), 
+        new Symbol(0x00E9, "iri"), 
+        new Symbol(0x00EA, "prefixedName"), 
+        new Symbol(0x00EC, "__V236"), 
+        new Symbol(0x00ED, "__V237"), 
         new Symbol(0x00EE, "__V238"), 
         new Symbol(0x00F1, "__V241"), 
-        new Symbol(0x00F3, "__V243"), 
-        new Symbol(0x00F4, "__V244"), 
-        new Symbol(0x00F5, "__V245"), 
+        new Symbol(0x00F2, "__V242"), 
+        new Symbol(0x00F6, "__V246"), 
+        new Symbol(0x00F7, "__V247"), 
+        new Symbol(0x00F8, "__V248"), 
+        new Symbol(0x00F9, "__V249"), 
+        new Symbol(0x00FA, "__V250"), 
+        new Symbol(0x00FB, "__V251"), 
         new Symbol(0x00FC, "__V252"), 
         new Symbol(0x00FD, "__V253"), 
-        new Symbol(0x0144, "__V324"), 
-        new Symbol(0x0148, "__axiom") };
+        new Symbol(0x00FE, "__V254"), 
+        new Symbol(0x00FF, "__V255"), 
+        new Symbol(0x0100, "__V256"), 
+        new Symbol(0x0101, "__V257"), 
+        new Symbol(0x0102, "__V258"), 
+        new Symbol(0x0103, "__V259"), 
+        new Symbol(0x0105, "__V261"), 
+        new Symbol(0x0108, "__V264"), 
+        new Symbol(0x010A, "__V266"), 
+        new Symbol(0x010B, "__V267"), 
+        new Symbol(0x010C, "__V268"), 
+        new Symbol(0x010D, "__V269"), 
+        new Symbol(0x010E, "__V270"), 
+        new Symbol(0x010F, "__V271"), 
+        new Symbol(0x0111, "__V273"), 
+        new Symbol(0x0113, "__axiom") };
     /**
      * The collection of virtuals matched by this parser
      *
@@ -752,7 +768,7 @@ class SPARQLParser extends LRkParser {
      * so that virtual indices in the automaton can be used to retrieve the virtuals in this table
      */
     private static final Symbol[] virtuals = {
-        new Symbol(0x00F2, "nil") };
+        new Symbol(0x0109, "nil") };
     /**
      * Initializes a new instance of the parser
      *

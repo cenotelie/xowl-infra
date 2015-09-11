@@ -935,9 +935,9 @@ public class SPARQLLoader {
      */
     private Expression loadExpression(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
         switch (node.getSymbol().getID()) {
-            case 0x0145: // true
+            case SPARQLLexer.ID.TRUE: // true
                 return new ExpressionConstant(true);
-            case 0x0146: // false
+            case SPARQLLexer.ID.FALSE: // false
                 return new ExpressionConstant(false);
             case SPARQLLexer.ID.INTEGER:
                 return new ExpressionConstant(Integer.valueOf(node.getValue()));
@@ -949,37 +949,37 @@ public class SPARQLLoader {
                 return new ExpressionRDF(getVariable(context, node));
             case SPARQLParser.ID.literal_rdf:
                 return new ExpressionConstant(Datatypes.toNative(getNodeLiteral(node)));
-            case 0x00FE: // ||
+            case SPARQLLexer.ID.OP_BOR: // ||
                 return new ExpressionOperator(ExpressionOperator.Op.BoolOr, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x00FF: // &&
+            case SPARQLLexer.ID.OP_BAND: // &&
                 return new ExpressionOperator(ExpressionOperator.Op.BoolAnd, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x0100: // =
+            case SPARQLLexer.ID.OP_EQ: // =
                 return new ExpressionOperator(ExpressionOperator.Op.Equal, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x0101: // !=
+            case SPARQLLexer.ID.OP_NEQ: // !=
                 return new ExpressionOperator(ExpressionOperator.Op.NotEqual, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x0102: // <
+            case SPARQLLexer.ID.OP_LESS: // <
                 return new ExpressionOperator(ExpressionOperator.Op.Less, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x0103: // >
+            case SPARQLLexer.ID.OP_GREAT: // >
                 return new ExpressionOperator(ExpressionOperator.Op.Greater, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x0104: // >=
+            case SPARQLLexer.ID.OP_GEQ: // >=
                 return new ExpressionOperator(ExpressionOperator.Op.GreaterOrEqual, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x0105: // <=
+            case SPARQLLexer.ID.OP_LEQ: // <=
                 return new ExpressionOperator(ExpressionOperator.Op.LessOrEqual, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x00FA: // +
+            case SPARQLLexer.ID.OP_PLUS: // +
                 if (node.getChildren().size() == 1)
                     return new ExpressionOperator(ExpressionOperator.Op.UnaryPlus, loadExpression(context, graph, node.getChildren().get(0)));
                 else
                     return new ExpressionOperator(ExpressionOperator.Op.Plus, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x0106: // -
+            case SPARQLLexer.ID.OP_MINUS: // -
                 if (node.getChildren().size() == 1)
                     return new ExpressionOperator(ExpressionOperator.Op.UnaryMinus, loadExpression(context, graph, node.getChildren().get(0)));
                 else
                     return new ExpressionOperator(ExpressionOperator.Op.Minus, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x00D5: // *
+            case SPARQLLexer.ID.OP_MULT: // *
                 return new ExpressionOperator(ExpressionOperator.Op.Multiply, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x00F7: // /
+            case SPARQLLexer.ID.OP_DIV: // /
                 return new ExpressionOperator(ExpressionOperator.Op.Divide, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
-            case 0x00FB: // !
+            case SPARQLLexer.ID.OP_NOT: // !
                 return new ExpressionOperator(ExpressionOperator.Op.BoolNot, loadExpression(context, graph, node.getChildren().get(0)));
             case SPARQLParser.ID.function_call:
             case SPARQLParser.ID.iri_or_function:
@@ -1111,7 +1111,7 @@ public class SPARQLLoader {
         switch (node.getSymbol().getID()) {
             case SPARQLLexer.ID.UNDEF:
                 return null;
-            case 0x00EC: // a
+            case SPARQLLexer.ID.A: // a
                 return getNodeIsA();
             case SPARQLParser.ID.nil:
                 return getNodeNil();
@@ -1127,9 +1127,9 @@ public class SPARQLLoader {
                 return getNodeAnon();
             case SPARQLLexer.ID.VARIABLE:
                 return getVariable(context, node);
-            case 0x0145: // true
+            case SPARQLLexer.ID.TRUE: // true
                 return getNodeTrue();
-            case 0x0146: // false
+            case SPARQLLexer.ID.FALSE: // false
                 return getNodeFalse();
             case SPARQLLexer.ID.INTEGER:
                 return getNodeInteger(node);

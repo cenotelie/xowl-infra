@@ -27,46 +27,47 @@ grammar SPARQL
 	}
 	terminals
 	{
-		NEW_LINE		-> U+000D /* CR */
-						|  U+000A /* LF */
-						|  U+000D U+000A /* CR LF */
-						|  U+2028 /* LS */
-						|  U+2029 /* PS */ ;
-		WHITE_SPACE		-> U+0020 | U+0009 | U+000B | U+000C ;
-		COMMENT			-> '#' (.* - (.* NEW_LINE .*)) NEW_LINE ;
-		BLANK			-> NEW_LINE | WHITE_SPACE | COMMENT ;
+		// separator characters
+		fragment NEW_LINE	-> U+000D /* CR */
+							|  U+000A /* LF */
+							|  U+000D U+000A /* CR LF */
+							|  U+2028 /* LS */
+							|  U+2029 /* PS */ ;
+		fragment WHITE_SPACE -> U+0020 | U+0009 | U+000B | U+000C ;
+		fragment COMMENT	-> '#' (.* - (.* NEW_LINE .*)) NEW_LINE ;
+		BLANK				-> NEW_LINE | WHITE_SPACE | COMMENT ;
 
+		// simple RDF stuff
 		LANGTAG					-> '@' [a-zA-Z]+ ('-' [a-zA-Z0-9]+)* ;
-		
 		IRIREF					-> '<' (
 									. - (U+0000 .. U+0020 | [<>"{}|^`\\])
 									| '\\u' [a-fA-F0-9]{4}
 									| '\\U' [a-fA-F0-9]{8}
 								)* '>' ;
+		// short URIS
+		fragment PLX			-> '%' [a-fA-F0-9] [a-fA-F0-9]
+								|  '\\' ( [_~.!$&'()*+,;:=/?#@%] | '-') ;
 		
-		PLX						-> '%' [a-fA-F0-9] [a-fA-F0-9]
-								|  '\\' ( [_~.!$&'()*+,;=/?#@%] | '-') ;
-		
-		PN_CHARS_BASE			-> [A-Za-z] | U+00C0 .. U+00D6 | U+00D8 .. U+00F6 | U+00F8 .. U+02FF | U+0370 .. U+037D
+		fragment PN_CHARS_BASE	-> [A-Za-z] | U+00C0 .. U+00D6 | U+00D8 .. U+00F6 | U+00F8 .. U+02FF | U+0370 .. U+037D
 											| U+037F .. U+1FFF | U+200C .. U+200D | U+2070 .. U+218F | U+2C00 .. U+2FEF
 											| U+3001 .. U+D7FF | U+F900 .. U+FDCF | U+FDF0 .. U+FFFD
 											| U+10000 .. U+EFFFF ;
-		PN_CHARS_U				-> PN_CHARS_BASE | '_' | ':' ;
-		PN_CHARS				-> PN_CHARS_U | '-' | [0-9] | U+00B7 | U+0300 .. U+036F | U+203F .. U+2040;
-		PN_PREFIX				-> PN_CHARS_BASE ((PN_CHARS | '.')* PN_CHARS)? ;
-		PN_LOCAL				-> (PN_CHARS_U | ':' | [0-9] | PLX) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX))? ;
-		
+		fragment PN_CHARS_U		-> PN_CHARS_BASE | '_' | ':' ;
+		fragment PN_CHARS		-> PN_CHARS_U | '-' | [0-9] | U+00B7 | U+0300 .. U+036F | U+203F .. U+2040;
+		fragment PN_PREFIX		-> PN_CHARS_BASE ((PN_CHARS | '.')* PN_CHARS)? ;
+		fragment PN_LOCAL		-> (PN_CHARS_U | ':' | [0-9] | PLX) ((PN_CHARS | '.' | ':' | PLX)* (PN_CHARS | ':' | PLX))? ;
 		PNAME_NS				-> PN_PREFIX? ':' ;
 		PNAME_LN				-> PNAME_NS PN_LOCAL ;
 		BLANK_NODE_LABEL		-> '_:' (PN_CHARS_U | [0-9]) ((PN_CHARS | '.')* PN_CHARS)? ;
-		
-		VARIABLE				-> ('?' | '$')  (PN_CHARS_U | [0-9]) (PN_CHARS_U | [0-9] | U+00B7 | U+0300 .. U+036F | U+203F .. U+2040)* ;
 
+		// Additional nodes for SPARQL
+		VARIABLE				-> ('?' | '$')  (PN_CHARS_U | [0-9]) (PN_CHARS_U | [0-9] | U+00B7 | U+0300 .. U+036F | U+203F .. U+2040)* ;
 		ANON					-> '[' WHITE_SPACE* ']' ;
-		
-		INTEGER					-> ('+' | '-')? [0-9]+ ;
-		DECIMAL					-> ('+' | '-')? [0-9]* '.' [0-9]+ ;
-		DOUBLE					-> ('+' | '-')? ( [0-9]+ '.' [0-9]* [eE] ('+' | '-')? [0-9]+
+
+		// Basic literals
+		INTEGER					-> [0-9]+ ;
+		DECIMAL					-> [0-9]* '.' [0-9]+ ;
+		DOUBLE					-> ( [0-9]+ '.' [0-9]* [eE] ('+' | '-')? [0-9]+
 												| '.' [0-9]+ [eE] ('+' | '-')? [0-9]+
 												| [0-9]+ [eE] ('+' | '-')? [0-9]+
 												) ;
@@ -102,54 +103,80 @@ grammar SPARQL
 												)
 											)* '"""' ;
 
-		PREFIX		-> [Pp] [Rr] [Ee] [Ff] [Ii] [Xx] ;
-		BASE		-> [Bb] [Aa] [Ss] [Ee] ;
-		SELECT		-> [Ss] [Ee] [Ll] [Ee] [Cc] [Tt] ;
-		DISTINCT	-> [Dd] [Ii] [Ss] [Tt] [Ii] [Nn] [Cc] [Tt] ;
-		REDUCED		-> [Rr] [Ee] [Dd] [Uu] [Cc] [Ee] [Dd] ;
-		AS			-> [Aa] [Ss] ;
-		CONSTRUCT	-> [Cc] [Oo] [Nn] [Ss] [Tt] [Rr] [Uu] [Cc] [Tt] ;
-		WHERE		-> [Ww] [Hh] [Ee] [Rr] [Ee] ;
-		DESCRIBE	-> [Dd] [Ee] [Ss] [Cc] [Rr] [Ii] [Bb] [Ee] ;
-		ASK			-> [Aa] [Ss] [Kk] ;
-		FROM		-> [Ff] [Rr] [Oo] [Mm] ;
-		NAMED		-> [Nn] [Aa] [Mm] [Ee] [Dd] ;
-		GROUP		-> [Gg] [Rr] [Oo] [Uu] [Pp] ;
-		BY			-> [Bb] [Yy] ;
-		HAVING		-> [Hh] [Aa] [Vv] [Ii] [Nn] [Gg] ;
-		ORDER		-> [Oo] [Rr] [Dd] [Ee] [Rr] ;
-		ASC			-> [Aa] [Ss] [Cc] ;
-		DESC		-> [Dd] [Ee] [Ss] [Cc] ;
-		LIMIT		-> [Ll] [Ii] [Mm] [Ii] [Tt] ;
-		OFFSET		-> [Oo] [Ff] [Ff] [Ss] [Ee] [Tt] ;
-		VALUES		-> [Vv] [Aa] [Ll] [Uu] [Ee] [Ss] ;
-		SILENT		-> [Ss] [Ii] [Ll] [Ee] [Nn] [Tt] ;
-		TO			-> [Tt] [Oo] ;
-		INTO		-> [Ii] [Nn] [Tt] [Oo] ;
-		LOAD		-> [Ll] [Oo] [Aa] [Dd] ;
-		CLEAR		-> [Cc] [Ll] [Ee] [Aa] [Rr] ;
-		DROP		-> [Dd] [Rr] [Oo] [Pp] ;
-		CREATE		-> [Cc] [Rr] [Ee] [Aa] [Tt] [Ee] ;
-		ADD			-> [Aa] [Dd] [Dd] ;
-		MOVE		-> [Mm] [Oo] [Vv] [Ee] ;
-		COPY		-> [Cc] [Oo] [Pp] [Yy] ;
-		INSERT		-> [Ii] [Nn] [Ss] [Ee] [Rr] [Tt] ;
-		DELETE		-> [Dd] [Ee] [Ll] [Ee] [Tt] [Ee] ;
-		WITH		-> [Ww] [Ii] [Tt] [Hh] ;
-		DATA		-> [Dd] [Aa] [Tt] [Aa] ;
-		USING		-> [Uu] [Ss] [Ii] [Nn] [Gg] ;
-		DEFAULT		-> [Dd] [Ee] [Ff] [Aa] [Uu] [Ll] [Tt] ;
-		GRAPH		-> [Gg] [Rr] [Aa] [Pp] [Hh] ;
-		ALL			-> [Aa] [Ll] [Ll] ;
-		OPTIONAL	-> [Oo] [Pp] [Tt] [Ii] [Oo] [Nn] [Aa] [Ll] ;
-		SERVICE		-> [Ss] [Ee] [Rr] [Vv] [Ii] [Cc] [Ee] ;
-		BIND		-> [Bb] [Ii] [Nn] [Dd] ;
-		UNION		-> [Uu] [Nn] [Ii] [Oo] [Nn] ;
-		MINUS		-> [Mm] [Ii] [Nn] [Uu] [Ss] ;
-		FILTER		-> [Ff] [Ii] [Ll] [Tt] [Ee] [Rr] ;
-		UNDEF		-> [Uu] [Nn] [Dd] [Ee] [Ff] ;
-		IN			-> [Ii] [Nn] ;
-		NOT			-> [Nn] [Oo] [Tt] ;
+		// Operators
+		OP_PLUS		-> '+' ;
+		OP_MINUS	-> '-' ;
+		OP_MULT		-> '*' ;
+		OP_DIV		-> '/' ;
+		OP_BOR		-> '||' ;
+		OP_BAND		-> '&&' ;
+		OP_NOT		-> '!' ;
+		OP_EQ		-> '=' ;
+		OP_NEQ		-> '!=' ;
+		OP_LESS		-> '<' ;
+		OP_LEQ		-> '<=' ;
+		OP_GREAT	-> '>' ;
+		OP_GEQ		-> '>=' ;
+		OP_OPT		-> '?' ;
+		OP_UNION	-> '|' ;
+		OP_INV		-> '^' ;
+
+		BUILTIN		-> [a-zA-Z_] [a-zA-Z_0-9]* ;
+
+		// Keywords
+		TRUE		-> ~'true' ;
+		FALSE		-> ~'false' ;
+		A			-> ~'a' ;
+		PREFIX		-> ~'prefix' ;
+		BASE		-> ~'base' ;
+		SELECT		-> ~'select' ;
+		DISTINCT	-> ~'distinct' ;
+		REDUCED		-> ~'reduced' ;
+		AS			-> ~'as' ;
+		CONSTRUCT	-> ~'construct' ;
+		WHERE		-> ~'where' ;
+		DESCRIBE	-> ~'describe' ;
+		ASK			-> ~'ask' ;
+		FROM		-> ~'from' ;
+		NAMED		-> ~'named' ;
+		GROUP		-> ~'group' ;
+		BY			-> ~'by' ;
+		HAVING		-> ~'having' ;
+		ORDER		-> ~'order' ;
+		ASC			-> ~'asc' ;
+		DESC		-> ~'desc' ;
+		LIMIT		-> ~'limit' ;
+		OFFSET		-> ~'offset' ;
+		VALUES		-> ~'values' ;
+		SILENT		-> ~'silent' ;
+		TO			-> ~'to' ;
+		INTO		-> ~'into' ;
+		LOAD		-> ~'load' ;
+		CLEAR		-> ~'clear' ;
+		DROP		-> ~'drop' ;
+		CREATE		-> ~'create' ;
+		ADD			-> ~'add' ;
+		MOVE		-> ~'move' ;
+		COPY		-> ~'copy' ;
+		INSERT		-> ~'insert' ;
+		DELETE		-> ~'delete' ;
+		WITH		-> ~'with' ;
+		DATA		-> ~'data' ;
+		USING		-> ~'using' ;
+		DEFAULT		-> ~'default' ;
+		GRAPH		-> ~'graph' ;
+		ALL			-> ~'all' ;
+		OPTIONAL	-> ~'optional' ;
+		SERVICE		-> ~'service' ;
+		BIND		-> ~'bind' ;
+		UNION		-> ~'union' ;
+		MINUS		-> ~'minus' ;
+		FILTER		-> ~'filter' ;
+		UNDEF		-> ~'undef' ;
+		IN			-> ~'in' ;
+		NOT			-> ~'not' ;
+		EXISTS		-> ~'exists' ;
+		SEPARATOR	-> ~'separator' ;
 	}
 	rules
 	{
@@ -166,7 +193,7 @@ grammar SPARQL
 		sub_select				-> clause_select clause_where modifier clause_values ;
 		clause_select			-> SELECT! clause_select_mod clause_select_vars ;
 		clause_select_mod		-> (DISTINCT | REDUCED)? ;
-		clause_select_vars		-> '*'! | clause_select_var+ ;
+		clause_select_vars		-> OP_MULT! | clause_select_var+ ;
 		clause_select_var		-> VARIABLE^ | '('! expression AS^ VARIABLE ')'! ;
 
 		construct				-> construct1^ | construct2^ ;
@@ -176,7 +203,7 @@ grammar SPARQL
 		construct_triples		-> triples_same_subj ('.'! construct_triples? )? ;
 
 		describe				-> DESCRIBE! describe_vars clause_dataset* clause_where? modifier ;
-		describe_vars			-> '*'! | var_or_iri* ;
+		describe_vars			-> OP_MULT! | var_or_iri* ;
 		
 		ask						-> ASK! clause_dataset* clause_where modifier ;
 
@@ -185,7 +212,7 @@ grammar SPARQL
 		clause_graph_named		-> NAMED! source_selector ;
 		source_selector			-> iri^ ;
 
-		clause_where			-> WHERE! graph_pattern ;
+		clause_where			-> (WHERE!)? graph_pattern ;
 
 		modifier				-> clause_group? clause_having? clause_order? clauses_limit_offset? ;
 		clause_group			-> GROUP! BY! clause_group_cond+ ;
@@ -256,12 +283,12 @@ grammar SPARQL
 		quads_supp				-> quads_not_triples ('.'!)? triples_template? ;
 		quads_not_triples		-> GRAPH! var_or_iri '{'! triples_template? '}'! ;
 		triples_template		-> triples_same_subj ('.'! triples_template? )? ;
-		triples_block			-> triples_same_subj ('.'! triples_block? )? ;
+		triples_block			-> triples_same_subj_path ('.'! triples_block? )? ;
 		triples_same_subj		-> var_or_term property_list_not_empty
 								|  triples_node property_list ;
 		property_list			-> (property_list_not_empty^)? ;
 		property_list_not_empty	-> verb object_list (';'! (verb object_list)? )* ;
-		verb					-> var_or_iri^ | 'a'^ ;
+		verb					-> var_or_iri^ | A^ ;
 		object_list				-> object (','! object)* ;
 		object					-> graph_node^ ;
 		triples_node			-> collection^ | blank_node_property_list^ ;
@@ -276,7 +303,7 @@ grammar SPARQL
 								|  triples_node_path property_list_path ;
 		property_list_path		-> (property_list_path_ne^)? ;
 		property_list_path_ne	-> (verb_path | verb_simple) object_list_path (';'! ((verb_path | verb_simple) object_list)? )* ;
-		verb_path				-> verb^ ;
+		verb_path				-> path^ ;
 		verb_simple				-> VARIABLE^ ;
 		object_list_path		-> object_path (','! object_path)* ;
 		object_path				-> graph_node_path^ ;
@@ -286,111 +313,55 @@ grammar SPARQL
 		graph_node_path			-> var_or_term^ | triples_node_path^ ;
 		path					-> path_alt^ ;
 		path_alt				-> path_seq^
-								|  path_alt '|'^ path_seq ;
+								|  path_alt OP_UNION^ path_seq ;
 		path_seq				-> path_elt_or_inv^
-								|  path_seq '/'^ path_elt_or_inv ;
-		path_elt_or_inv			-> path_elt^ | '^'^ path_elt ;
-		path_elt				-> path_primary^
-								|  path_primary ('?'^ | '*'^ | '+'^)? ;
-		path_primary			-> iri^ | 'a'^ | '!'^ path_neg | '('! path^ ')'! ;
-		path_neg				-> path_in | '('! (path_in ('|'! path_in)*)? ')'! ;
-		path_in					-> iri^ | 'a'^ | '^'^ (iri | 'a') ;
+								|  path_seq OP_DIV^ path_elt_or_inv ;
+		path_elt_or_inv			-> path_elt^ | OP_INV^ path_elt ;
+		path_elt				-> path_primary^ (OP_OPT^ | OP_MULT^ | OP_PLUS^)? ;
+		path_primary			-> iri^ | A^ | OP_NOT^ path_neg | '('! path^ ')'! ;
+		path_neg				-> path_in | '('! (path_in (OP_UNION! path_in)*)? ')'! ;
+		path_in					-> iri^ | A^ | OP_INV^ (iri | A) ;
 
 
 		expression_list			-> '('! (expression (','! expression)*)? ')'! ;
 		expression				-> exp_or^ ;
 		exp_or					-> exp_and^
-								|  exp_or '||'^ exp_and ;
+								|  exp_or OP_BOR^ exp_and ;
 		exp_and					-> exp_logical^
-								|  exp_and '&&'^ exp_logical ;
+								|  exp_and OP_BAND^ exp_logical ;
 		exp_logical				-> exp_relational^ ;
 		exp_relational			-> exp_numeric^
-								|  exp_numeric '='^ exp_numeric
-								|  exp_numeric '!='^ exp_numeric
-								|  exp_numeric '<'^ exp_numeric
-								|  exp_numeric '>'^ exp_numeric
-								|  exp_numeric '>='^ exp_numeric
-								|  exp_numeric '<='^ exp_numeric
+								|  exp_numeric OP_EQ^ exp_numeric
+								|  exp_numeric OP_NEQ^ exp_numeric
+								|  exp_numeric OP_LESS^ exp_numeric
+								|  exp_numeric OP_LEQ^ exp_numeric
+								|  exp_numeric OP_GREAT^ exp_numeric
+								|  exp_numeric OP_GEQ^ exp_numeric
 								|  exp_numeric IN^ expression_list
 								|  exp_numeric NOT^ IN! expression_list ;
 		exp_numeric				-> exp_add^ ;
 		exp_add					-> exp_mult^
-								|  exp_add '+'^ exp_mult
-								|  exp_add '-'^ exp_mult ;
+								|  exp_add OP_PLUS^ exp_mult
+								|  exp_add OP_MINUS^ exp_mult ;
 		exp_mult				-> exp_unary^
-								|  exp_mult '*'^ exp_unary
-								|  exp_mult '/'^ exp_unary ;
+								|  exp_mult OP_MULT^ exp_unary
+								|  exp_mult OP_DIV^ exp_unary ;
 		exp_unary				-> exp_primary^
-								|  '!'^ exp_primary
-								|  '+'^ exp_primary
-								|  '-'^ exp_primary ;
+								|  OP_NOT^ exp_primary
+								|  OP_PLUS^ exp_primary
+								|  OP_MINUS^ exp_primary ;
 		exp_primary				-> exp_bracketted^
 								|  built_in_call^
 								|  iri_or_function^
 								|  literal^
 								|  VARIABLE^ ;
 		exp_bracketted			-> '('! expression^ ')'! ;
-		built_in_call			-> 'COUNT'			'('! DISTINCT? ('*'! | expression) ')'!
-								|  'SUM'			'('! DISTINCT? expression ')'!
-								|  'MIN'			'('! DISTINCT? expression ')'!
-								|  'MAX'			'('! DISTINCT? expression ')'!
-								|  'AVG'			'('! DISTINCT? expression ')'!
-								|  'SAMPLE'			'('! DISTINCT? expression ')'!
-								|  'GROUP_CONCAT'	'('! DISTINCT? expression (';'! 'SEPARATOR'! '='! string)? ')'!
-								|  'STR'			'('! expression ')'!
-								|  'LANG'			'('! expression ')'!
-								|  'LANGMATCHES'	'('! expression ','! expression ')'!
-								|  'DATATYPE'		'('! expression ')'!
-								|  'BOUND'			'('! VARIABLE ')'!
-								|  'IRI'			'('! expression ')'!
-								|  'URI'			'('! expression ')'!
-								|  'BNODE'			'('! expression? ')'!
-								|  'RAND'			'('! ')'!
-								|  'ABS'			'('! expression ')'!
-								|  'CEIL'			'('! expression ')'!
-								|  'FLOOR'			'('! expression ')'!
-								|  'ROUND'			'('! expression ')'!
-								|  'CONCAT'			expression_list
-								|  'SUBSTR'			'('! expression ','! expression ( ','! expression )? ')'!
-								|  'STRLEN'			'('! expression ')'!
-								|  'REPLACE'		'('! expression ','! expression ','! expression ( ','! expression )? ')'!
-								|  'UCASE'			'('! expression ')'!
-								|  'LCASE'			'('! expression ')'!
-								|  'ENCODE_FOR_URI'	'('! expression ')'!
-								|  'CONTAINS'		'('! expression ','! expression ')'!
-								|  'STRSTARTS'		'('! expression ','! expression ')'!
-								|  'STRENDS'		'('! expression ','! expression ')'!
-								|  'STRBEFORE'		'('! expression ','! expression ')'!
-								|  'STRAFTER'		'('! expression ','! expression ')'!
-								|  'YEAR'			'('! expression ')'!
-								|  'MONTH'			'('! expression ')'!
-								|  'DAY'			'('! expression ')'!
-								|  'HOURS'			'('! expression ')'!
-								|  'MINUTES'		'('! expression ')'!
-								|  'SECONDS'		'('! expression ')'!
-								|  'TIMEZONE'		'('! expression ')'!
-								|  'TZ'				'('! expression ')'!
-								|  'NOW'			'('! ')'!
-								|  'UUID'			'('! ')'!
-								|  'STRUUID'		'('! ')'!
-								|  'MD5'			'('! expression ')'!
-								|  'SHA1'			'('! expression ')'!
-								|  'SHA256'			'('! expression ')'!
-								|  'SHA384'			'('! expression ')'!
-								|  'SHA512'			'('! expression ')'!
-								|  'COALESCE'		expression_list
-								|  'IF'				'('! expression ','! expression ','! expression ')'!
-								|  'STRLANG'		'('! expression ','! expression ')'!
-								|  'STRDT'			'('! expression ','! expression ')'!
-								|  'sameTerm'		'('! expression ','! expression ')'!
-								|  'isIRI'			'('! expression ')'!
-								|  'isURI'			'('! expression ')'!
-								|  'isBLANK'		'('! expression ')'!
-								|  'isLITERAL'		'('! expression ')'!
-								|  'isNUMERIC'		'('! expression ')'!
-								|  'REGEX'			'('! expression ','! expression ( ','! expression )? ')'!
-								|  'EXISTS'			graph_pattern
-								|  NOT 'EXISTS'		graph_pattern ;
+		built_in_call			-> BUILTIN '('! built_in_call_distinct built_in_call_args built_in_call_sep ')'!
+								|  EXISTS graph_pattern
+								|  NOT EXISTS graph_pattern ;
+		built_in_call_distinct	-> DISTINCT? ;
+		built_in_call_args		-> OP_MULT! | (expression (','! expression)*)? ;
+		built_in_call_sep		-> (';'! SEPARATOR! '='! string)? ;
 		iri_or_function			-> iri arg_list? ;
 		function_call			-> iri arg_list ;
 		arg_list				-> '('! (DISTINCT? expression (','! expression)*)? ')'! ;
@@ -398,7 +369,7 @@ grammar SPARQL
 
 		blank_node				-> 	BLANK_NODE_LABEL^ | ANON^ ;
 		literal					-> 	literal_rdf^ | literal_numeric^ | literal_bool^ ;
-		literal_bool			-> 	'true'^ | 'false'^ ;
+		literal_bool			-> 	TRUE^ | FALSE^ ;
 		literal_numeric			-> 	INTEGER^ | DECIMAL^ | DOUBLE^ ;
 		literal_rdf				-> 	string (LANGTAG | '^^'! iri)? ;
 		string					-> 	STRING_LITERAL_QUOTE^ | STRING_LITERAL_SINGLE_QUOTE^ | STRING_LITERAL_LONG_SINGLE_QUOTE^ | STRING_LITERAL_LONG_QUOTE^ ;
