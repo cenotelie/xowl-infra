@@ -57,7 +57,7 @@ public class ExpressionIn implements Expression {
         Object value = primary.eval(repository, bindings);
         for (Expression test : range) {
             Object testValue = test.eval(repository, bindings);
-            if (ExpressionOperator.op_equals(value, testValue))
+            if (ExpressionOperator.equals(value, testValue))
                 return true;
         }
         return false;

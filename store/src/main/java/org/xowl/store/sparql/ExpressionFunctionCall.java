@@ -21,10 +21,12 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.QuerySolution;
+import org.xowl.store.rdf.*;
+import org.xowl.store.rdf.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Represents the call to an external function in an expression
@@ -66,6 +68,165 @@ public class ExpressionFunctionCall implements Expression {
 
     @Override
     public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
-        throw new EvalException("Not yet implemented");
+        if (iri.equalsIgnoreCase("IF")) {
+            if (arguments.size() < 3)
+                throw new EvalException("IF requires 3 arguments");
+            boolean test = ExpressionOperator.bool(ExpressionOperator.primitive(arguments.get(0).eval(repository, bindings)));
+            return arguments.get(test ? 1 : 2).eval(repository, bindings);
+        }
+        if (iri.equalsIgnoreCase("COALESCE")) {
+            for (Expression exp : arguments) {
+                try {
+                    return exp.eval(repository, bindings);
+                } catch (EvalException ex) {
+                    // ignore as per SPARQL specification
+                }
+            }
+            throw new EvalException("No adequate argument provided to COALESCE");
+        }
+        if (iri.equalsIgnoreCase("sameTerm")) {
+            if (arguments.size() < 2)
+                throw new EvalException("sameTerm requires 2 arguments");
+            Object v1 = arguments.get(0).eval(repository, bindings);
+            Object v2 = arguments.get(1).eval(repository, bindings);
+            if (!(v1 instanceof Node) || !(v2 instanceof Node))
+                throw new EvalException("Type error (RDF nodes required)");
+            Utils.same((Node) v1, (Node) v2);
+        }
+        if (iri.equalsIgnoreCase("isIRI") || iri.equalsIgnoreCase("isURI")) {
+            if (arguments.size() < 1)
+                throw new EvalException("isIRI requires 1 argument");
+            Object v1 = arguments.get(0).eval(repository, bindings);
+            if (!(v1 instanceof Node))
+                throw new EvalException("Type error (RDF node required)");
+            return ((Node) v1).getNodeType() == Node.TYPE_IRI;
+        }
+        if (iri.equalsIgnoreCase("isBlank")) {
+            if (arguments.size() < 1)
+                throw new EvalException("isBlank requires 1 argument");
+            Object v1 = arguments.get(0).eval(repository, bindings);
+            if (!(v1 instanceof Node))
+                throw new EvalException("Type error (RDF node required)");
+            return ((Node) v1).getNodeType() == Node.TYPE_BLANK;
+        }
+        if (iri.equalsIgnoreCase("isLiteral")) {
+            if (arguments.size() < 1)
+                throw new EvalException("isLiteral requires 1 argument");
+            Object v1 = arguments.get(0).eval(repository, bindings);
+            if (!(v1 instanceof Node))
+                throw new EvalException("Type error (RDF node required)");
+            return ((Node) v1).getNodeType() == Node.TYPE_LITERAL;
+        }
+        if (iri.equalsIgnoreCase("isNumeric")) {
+            if (arguments.size() < 1)
+                throw new EvalException("isNumeric requires 1 argument");
+            Object v1 = arguments.get(0).eval(repository, bindings);
+            if (!(v1 instanceof LiteralNode))
+                throw new EvalException("Type error (RDF node required)");
+            v1 = ExpressionOperator.primitive(v1);
+            return (ExpressionOperator.isNumInteger(v1) || ExpressionOperator.isNumDecimal(v1));
+        }
+        if (iri.equalsIgnoreCase("str")) {
+            if (arguments.size() < 1)
+                throw new EvalException("str requires 1 argument");
+            Object v1 = arguments.get(0).eval(repository, bindings);
+            if (v1 instanceof IRINode)
+                return ((IRINode) v1).getIRIValue();
+            if (v1 instanceof LiteralNode)
+                return ((LiteralNode) v1).getLexicalValue();
+            throw new EvalException("Type error (RDF Literal or IRI node required)");
+        }
+        if (iri.equalsIgnoreCase("lang")) {
+            if (arguments.size() < 1)
+                throw new EvalException("lang requires 1 argument");
+            Object v1 = arguments.get(0).eval(repository, bindings);
+            if (!(v1 instanceof LiteralNode))
+                throw new EvalException("Type error (RDF Literal node required)");
+            return ((LiteralNode) v1).getLangTag();
+        }
+        if (iri.equalsIgnoreCase("datatype")) {
+            if (arguments.size() < 1)
+                throw new EvalException("datatype requires 1 argument");
+            Object v1 = arguments.get(0).eval(repository, bindings);
+            if (!(v1 instanceof LiteralNode))
+                throw new EvalException("Type error (RDF Literal node required)");
+            return repository.getStore().getIRINode(((LiteralNode) v1).getDatatype());
+        }
+        if (iri.equalsIgnoreCase("iri") || iri.equalsIgnoreCase("uri")) {
+            if (arguments.size() < 1)
+                throw new EvalException("iri requires 1 argument");
+            Object v1 = arguments.get(0).eval(repository, bindings);
+            if (v1 instanceof String)
+                return repository.getStore().getIRINode(v1.toString());
+            if (v1 instanceof IRINode)
+                return v1;
+            if (v1 instanceof LiteralNode)
+                return repository.getStore().getIRINode(((LiteralNode) v1).getLexicalValue());
+            throw new EvalException("Type error (String required)");
+        }
+        if (iri.equalsIgnoreCase("BNODE")) {
+            //TODO: implement the version with 1 argument
+            return repository.getStore().getBlankNode();
+        }
+        if (iri.equalsIgnoreCase("STRDT")) {
+            if (arguments.size() < 1)
+                throw new EvalException("STRDT requires 2 arguments");
+            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(repository, bindings));
+            Object v2 = ExpressionOperator.primitive(arguments.get(1).eval(repository, bindings));
+            return repository.getStore().getLiteralNode(v1.toString(), v2.toString(), null);
+        }
+        if (iri.equalsIgnoreCase("STRLANG")) {
+            if (arguments.size() < 1)
+                throw new EvalException("STRLANG requires 2 arguments");
+            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(repository, bindings));
+            Object v2 = ExpressionOperator.primitive(arguments.get(1).eval(repository, bindings));
+            return repository.getStore().getLiteralNode(v1.toString(), null, v2.toString());
+        }
+        if (iri.equalsIgnoreCase("UUID")) {
+            String value = "urn:uuid:" + UUID.randomUUID().toString();
+            return repository.getStore().getIRINode(value);
+        }
+        if (iri.equalsIgnoreCase("STRUUID")) {
+            return UUID.randomUUID().toString();
+        }
+        if (iri.equalsIgnoreCase("STRLEN")) {
+            if (arguments.size() < 1)
+                throw new EvalException("STRLEN requires 1 argument");
+            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(repository, bindings));
+            if (!(v1 instanceof String))
+                throw new EvalException("Type error (String required)");
+            return v1.toString().length();
+        }
+        if (iri.equalsIgnoreCase("SUBSTR")) {
+            if (arguments.size() < 1)
+                throw new EvalException("SUBSTR requires 2 argument");
+            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(repository, bindings));
+            Object v2 = ExpressionOperator.primitive(arguments.get(1).eval(repository, bindings));
+            Object v3 = arguments.size() >= 3 ? ExpressionOperator.primitive(arguments.get(2).eval(repository, bindings)) : null;
+            if (!(v1 instanceof String))
+                throw new EvalException("Type error (String required)");
+            if (!ExpressionOperator.isNumInteger(v2))
+                throw new EvalException("Type error (Integer required)");
+            if (v3 != null && !ExpressionOperator.isNumInteger(v3))
+                throw new EvalException("Type error (Integer required)");
+            return v3 != null ? v1.toString().substring((int) ExpressionOperator.integer(v2), (int) ExpressionOperator.integer(v3)) : v1.toString().substring((int) ExpressionOperator.integer(v2));
+        }
+        if (iri.equalsIgnoreCase("UCASE")) {
+            if (arguments.size() < 1)
+                throw new EvalException("UCASE requires 1 argument");
+            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(repository, bindings));
+            if (!(v1 instanceof String))
+                throw new EvalException("Type error (String required)");
+            return v1.toString().toUpperCase();
+        }
+        if (iri.equalsIgnoreCase("LCASE")) {
+            if (arguments.size() < 1)
+                throw new EvalException("LCASE requires 1 argument");
+            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(repository, bindings));
+            if (!(v1 instanceof String))
+                throw new EvalException("Type error (String required)");
+            return v1.toString().toLowerCase();
+        }
+        throw new EvalException("Unknown function " + iri);
     }
 }

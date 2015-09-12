@@ -58,13 +58,8 @@ public class ExpressionRDF implements Expression {
             result = value;
         }
         if (result.getNodeType() == Node.TYPE_DYNAMIC && repository.getEvaluator() != null) {
-            Object value = Utils.evaluateNative(repository, bindings, ((DynamicNode) result).getDynamicExpression());
-            if (value instanceof Node) {
-                result = (Node) value;
-            } else {
-                return value;
-            }
+            return Utils.evaluateNative(repository, bindings, ((DynamicNode) result).getDynamicExpression());
         }
-        return org.xowl.store.rdf.Utils.getNative(result);
+        return result;
     }
 }

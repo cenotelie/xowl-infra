@@ -20,8 +20,15 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Datatypes;
 import org.xowl.store.Repository;
+import org.xowl.store.rdf.LiteralNode;
+import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
+import org.xowl.store.rdf.Utils;
+
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * Represents an operator in an expression
@@ -76,18 +83,619 @@ public class ExpressionOperator implements Expression {
 
     @Override
     public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
-        throw new EvalException("Not yet implemented");
+        switch (operator) {
+            case BoolAnd:
+                return boolean_and(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case BoolOr:
+                return boolean_or(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case BoolNot:
+                return boolean_not(operand1.eval(repository, bindings));
+            case Equal:
+                return equals(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case NotEqual:
+                return different(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case Less:
+                return lesser_than(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case LessOrEqual:
+                return lesser_or_equal(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case Greater:
+                return greater_than(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case GreaterOrEqual:
+                return greater_or_equal(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case Plus:
+                return plus(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case Minus:
+                return minus(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case Multiply:
+                return multiply(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case Divide:
+                return divide(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+            case UnaryPlus:
+                return plus(operand1.eval(repository, bindings));
+            case UnaryMinus:
+                return minus(operand1.eval(repository, bindings));
+        }
+        throw new EvalException("Unrecognized operator");
     }
 
+    /**
+     * Coerce an expression to a primitive value
+     *
+     * @param value An expression's value
+     * @return The primitive equivalent
+     */
+    public static Object primitive(Object value) throws EvalException {
+        if (value instanceof Node) {
+            Node node = (Node) value;
+            if (node.getNodeType() == Node.TYPE_LITERAL) {
+                return Datatypes.toNative((LiteralNode) node);
+            } else {
+                throw new EvalException("RDF node other than literals cannot be coerced");
+            }
+        }
+        return value;
+    }
 
     /**
-     * Determines whether the two operands are equals modulo the SPARQL semantics
+     * Coerce the value to a boolean
+     *
+     * @param value The value to coerce
+     * @return The boolean
+     */
+    public static boolean bool(Object value) throws EvalException {
+        if (value == null)
+            return false;
+        if (value.getClass().isPrimitive() || value instanceof String) {
+            if (value instanceof Boolean)
+                return (Boolean) value;
+            return value != 0;
+        }
+        throw new EvalException("Failed to coerce value of type " + value.getClass().toString() + " to boolean");
+    }
+
+    /**
+     * Gets whether the value of a numeric integer type
+     *
+     * @param value The value
+     * @return Whether the value of a numeric integer type
+     */
+    public static boolean isNumInteger(Object value) {
+        return (value instanceof Byte || value instanceof Character || value instanceof Short || value instanceof Integer || value instanceof Long);
+    }
+
+    /**
+     * Coerce the value to a numeric integer
+     *
+     * @param value The value
+     * @return The coerced value
+     */
+    public static long integer(Object value) throws EvalException {
+        if (value instanceof Byte) {
+            return ((Byte) value);
+        } else if (value instanceof Character) {
+            return ((Character) value);
+        } else if (value instanceof Short) {
+            return ((Short) value);
+        } else if (value instanceof Integer) {
+            return ((Integer) value);
+        } else if (value instanceof Long) {
+            return ((Long) value);
+        }
+        throw new EvalException("Incorrect type " + value.getClass().getName());
+    }
+
+    /**
+     * Gets whether the value of a numeric decimal type
+     *
+     * @param value The value
+     * @return Whether the value of a numeric decimal type
+     */
+    public static boolean isNumDecimal(Object value) {
+        return (value instanceof Float || value instanceof Double);
+    }
+
+    /**
+     * Coerce the value to a numeric decimal
+     *
+     * @param value The value
+     * @return The coerced value
+     */
+    public static double decimal(Object value) throws EvalException {
+        if (value instanceof Float) {
+            return ((Float) value);
+        } else if (value instanceof Double) {
+            return ((Double) value);
+        }
+        throw new EvalException("Incorrect type " + value.getClass().getName());
+    }
+
+    /**
+     * Boolean AND operator
      *
      * @param left  The left operand
      * @param right The right operand
      * @return The result
      */
-    public static boolean op_equals(Object left, Object right) {
-        return left != null && right != null && left.equals(right);
+    public static boolean boolean_and(Object left, Object right) throws EvalException {
+        return bool(primitive(left)) && bool(primitive(right));
+    }
+
+    /**
+     * Boolean OR operand
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static boolean boolean_or(Object left, Object right) throws EvalException {
+        return bool(primitive(left)) || bool(primitive(right));
+    }
+
+    /**
+     * Boolean NOT operator
+     *
+     * @param operand The operand
+     * @return The result
+     */
+    public static boolean boolean_not(Object operand) throws EvalException {
+        return !bool(primitive(operand));
+    }
+
+    /**
+     * SPARQL equality operator
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static boolean equals(Object left, Object right) throws EvalException {
+        if (left == null && right == null)
+            return true;
+        if (left == null || right == null)
+            return false;
+
+        if (left instanceof Node) {
+            Node nodeLeft = (Node) left;
+            if (right instanceof Node) {
+                Node nodeRight = (Node) right;
+                if (nodeLeft.getNodeType() == Node.TYPE_LITERAL) {
+                    return nodeRight.getNodeType() == Node.TYPE_LITERAL && Objects.equals(primitive(nodeLeft), primitive(nodeRight));
+                } else if (nodeRight.getNodeType() == Node.TYPE_LITERAL)
+                    return false;
+                return Utils.same(nodeLeft, nodeRight);
+            } else
+                return nodeLeft.getNodeType() == Node.TYPE_LITERAL && Objects.equals(primitive(nodeLeft), right);
+        } else if (right instanceof Node) {
+            Node nodeRight = (Node) right;
+            return nodeRight.getNodeType() == Node.TYPE_LITERAL && Objects.equals(left, primitive(nodeRight));
+        }
+        return Objects.equals(left, right);
+    }
+
+    /**
+     * SPARQL difference operator
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static boolean different(Object left, Object right) throws EvalException {
+        return !equals(left, right);
+    }
+
+    /**
+     * SPARQL < operator
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static boolean lesser_than(Object left, Object right) throws EvalException {
+        left = primitive(left);
+        right = primitive(right);
+
+        if (left instanceof Boolean || right instanceof Boolean)
+            throw new EvalException("Type error");
+
+        if (left instanceof String) {
+            return right instanceof String && left.toString().compareTo(right.toString()) < 0;
+        } else if (right instanceof String) {
+            return false;
+        }
+
+        if (left instanceof Date) {
+            return right instanceof Date && ((Date) left).compareTo((Date) right) < 0;
+        } else if (right instanceof Date) {
+            return false;
+        }
+
+        if (isNumInteger(left)) {
+            if (isNumInteger(right)) {
+                long l1 = integer(left);
+                long l2 = integer(right);
+                return l1 < l2;
+            } else if (isNumDecimal(right)) {
+                long l1 = integer(left);
+                double l2 = decimal(right);
+                return l1 < l2;
+            } else {
+                return false;
+            }
+        }
+        if (isNumDecimal(left)) {
+            if (isNumInteger(right)) {
+                double l1 = decimal(left);
+                long l2 = integer(right);
+                return l1 < l2;
+            } else if (isNumDecimal(right)) {
+                double l1 = decimal(left);
+                double l2 = decimal(right);
+                return l1 < l2;
+            } else {
+                return false;
+            }
+        }
+
+        throw new EvalException("Type error");
+    }
+
+    /**
+     * SPARQL <= operator
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static boolean lesser_or_equal(Object left, Object right) throws EvalException {
+        left = primitive(left);
+        right = primitive(right);
+
+        if (left instanceof Boolean || right instanceof Boolean)
+            throw new EvalException("Type error");
+
+        if (left instanceof String) {
+            return right instanceof String && left.toString().compareTo(right.toString()) <= 0;
+        } else if (right instanceof String) {
+            return false;
+        }
+
+        if (left instanceof Date) {
+            return right instanceof Date && ((Date) left).compareTo((Date) right) <= 0;
+        } else if (right instanceof Date) {
+            return false;
+        }
+
+        if (isNumInteger(left)) {
+            if (isNumInteger(right)) {
+                long l1 = integer(left);
+                long l2 = integer(right);
+                return l1 <= l2;
+            } else if (isNumDecimal(right)) {
+                long l1 = integer(left);
+                double l2 = decimal(right);
+                return l1 <= l2;
+            } else {
+                return false;
+            }
+        }
+        if (isNumDecimal(left)) {
+            if (isNumInteger(right)) {
+                double l1 = decimal(left);
+                long l2 = integer(right);
+                return l1 <= l2;
+            } else if (isNumDecimal(right)) {
+                double l1 = decimal(left);
+                double l2 = decimal(right);
+                return l1 <= l2;
+            } else {
+                return false;
+            }
+        }
+
+        throw new EvalException("Type error");
+    }
+
+    /**
+     * SPARQL > operator
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static boolean greater_than(Object left, Object right) throws EvalException {
+        left = primitive(left);
+        right = primitive(right);
+
+        if (left instanceof Boolean || right instanceof Boolean)
+            throw new EvalException("Type error");
+
+        if (left instanceof String) {
+            return right instanceof String && left.toString().compareTo(right.toString()) > 0;
+        } else if (right instanceof String) {
+            return false;
+        }
+
+        if (left instanceof Date) {
+            return right instanceof Date && ((Date) left).compareTo((Date) right) > 0;
+        } else if (right instanceof Date) {
+            return false;
+        }
+
+        if (isNumInteger(left)) {
+            if (isNumInteger(right)) {
+                long l1 = integer(left);
+                long l2 = integer(right);
+                return l1 > l2;
+            } else if (isNumDecimal(right)) {
+                long l1 = integer(left);
+                double l2 = decimal(right);
+                return l1 > l2;
+            } else {
+                return false;
+            }
+        }
+        if (isNumDecimal(left)) {
+            if (isNumInteger(right)) {
+                double l1 = decimal(left);
+                long l2 = integer(right);
+                return l1 > l2;
+            } else if (isNumDecimal(right)) {
+                double l1 = decimal(left);
+                double l2 = decimal(right);
+                return l1 > l2;
+            } else {
+                return false;
+            }
+        }
+
+        throw new EvalException("Type error");
+    }
+
+    /**
+     * SPARQL >= operator
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static boolean greater_or_equal(Object left, Object right) throws EvalException {
+        left = primitive(left);
+        right = primitive(right);
+
+        if (left instanceof Boolean || right instanceof Boolean)
+            throw new EvalException("Type error");
+
+        if (left instanceof String) {
+            return right instanceof String && left.toString().compareTo(right.toString()) >= 0;
+        } else if (right instanceof String) {
+            return false;
+        }
+
+        if (left instanceof Date) {
+            return right instanceof Date && ((Date) left).compareTo((Date) right) >= 0;
+        } else if (right instanceof Date) {
+            return false;
+        }
+
+        if (isNumInteger(left)) {
+            if (isNumInteger(right)) {
+                long l1 = integer(left);
+                long l2 = integer(right);
+                return l1 >= l2;
+            } else if (isNumDecimal(right)) {
+                long l1 = integer(left);
+                double l2 = decimal(right);
+                return l1 >= l2;
+            } else {
+                return false;
+            }
+        }
+        if (isNumDecimal(left)) {
+            if (isNumInteger(right)) {
+                double l1 = decimal(left);
+                long l2 = integer(right);
+                return l1 >= l2;
+            } else if (isNumDecimal(right)) {
+                double l1 = decimal(left);
+                double l2 = decimal(right);
+                return l1 >= l2;
+            } else {
+                return false;
+            }
+        }
+
+        throw new EvalException("Type error");
+    }
+
+    /**
+     * SPARQL unary + operator
+     *
+     * @param value The operand
+     * @return The result
+     */
+    public static Object plus(Object value) throws EvalException {
+        value = primitive(value);
+        if (isNumInteger(value) || isNumDecimal(value))
+            return value;
+        throw new EvalException("Type error");
+    }
+
+    /**
+     * SPARQL binary + operator
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static Object plus(Object left, Object right) throws EvalException {
+        left = primitive(left);
+        right = primitive(right);
+
+        if (left instanceof String) {
+            return String.join(left.toString(), right.toString());
+        } else if (right instanceof String) {
+            return String.join(left.toString(), right.toString());
+        }
+
+        if (isNumInteger(left)) {
+            if (isNumInteger(right)) {
+                long l1 = integer(left);
+                long l2 = integer(right);
+                return l1 + l2;
+            } else if (isNumDecimal(right)) {
+                long l1 = integer(left);
+                double l2 = decimal(right);
+                return l1 + l2;
+            } else {
+                throw new EvalException("Type error");
+            }
+        }
+        if (isNumDecimal(left)) {
+            if (isNumInteger(right)) {
+                double l1 = decimal(left);
+                long l2 = integer(right);
+                return l1 + l2;
+            } else if (isNumDecimal(right)) {
+                double l1 = decimal(left);
+                double l2 = decimal(right);
+                return l1 + l2;
+            } else {
+                throw new EvalException("Type error");
+            }
+        }
+
+        throw new EvalException("Type error");
+    }
+
+    /**
+     * SPARQL unary - operator
+     *
+     * @param value The operand
+     * @return The result
+     */
+    public static Object minus(Object value) throws EvalException {
+        value = primitive(value);
+        if (isNumInteger(value))
+            return -integer(value);
+        if (isNumDecimal(value))
+            return -decimal(value);
+        throw new EvalException("Type error");
+    }
+
+    /**
+     * SPARQL binary - operator
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static Object minus(Object left, Object right) throws EvalException {
+        left = primitive(left);
+        right = primitive(right);
+        if (isNumInteger(left)) {
+            if (isNumInteger(right)) {
+                long l1 = integer(left);
+                long l2 = integer(right);
+                return l1 - l2;
+            } else if (isNumDecimal(right)) {
+                long l1 = integer(left);
+                double l2 = decimal(right);
+                return l1 - l2;
+            } else {
+                throw new EvalException("Type error");
+            }
+        }
+        if (isNumDecimal(left)) {
+            if (isNumInteger(right)) {
+                double l1 = decimal(left);
+                long l2 = integer(right);
+                return l1 - l2;
+            } else if (isNumDecimal(right)) {
+                double l1 = decimal(left);
+                double l2 = decimal(right);
+                return l1 - l2;
+            } else {
+                throw new EvalException("Type error");
+            }
+        }
+        throw new EvalException("Type error");
+    }
+
+    /**
+     * SPARQL * operator
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static Object multiply(Object left, Object right) throws EvalException {
+        left = primitive(left);
+        right = primitive(right);
+        if (isNumInteger(left)) {
+            if (isNumInteger(right)) {
+                long l1 = integer(left);
+                long l2 = integer(right);
+                return l1 * l2;
+            } else if (isNumDecimal(right)) {
+                long l1 = integer(left);
+                double l2 = decimal(right);
+                return l1 * l2;
+            } else {
+                throw new EvalException("Type error");
+            }
+        }
+        if (isNumDecimal(left)) {
+            if (isNumInteger(right)) {
+                double l1 = decimal(left);
+                long l2 = integer(right);
+                return l1 * l2;
+            } else if (isNumDecimal(right)) {
+                double l1 = decimal(left);
+                double l2 = decimal(right);
+                return l1 * l2;
+            } else {
+                throw new EvalException("Type error");
+            }
+        }
+        throw new EvalException("Type error");
+    }
+
+    /**
+     * SPARQL / operator
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static Object divide(Object left, Object right) throws EvalException {
+        left = primitive(left);
+        right = primitive(right);
+        if (isNumInteger(left)) {
+            if (isNumInteger(right)) {
+                long l1 = integer(left);
+                long l2 = integer(right);
+                return l1 / l2;
+            } else if (isNumDecimal(right)) {
+                long l1 = integer(left);
+                double l2 = decimal(right);
+                return l1 / l2;
+            } else {
+                throw new EvalException("Type error");
+            }
+        }
+        if (isNumDecimal(left)) {
+            if (isNumInteger(right)) {
+                double l1 = decimal(left);
+                long l2 = integer(right);
+                return l1 / l2;
+            } else if (isNumDecimal(right)) {
+                double l1 = decimal(left);
+                double l2 = decimal(right);
+                return l1 / l2;
+            } else {
+                throw new EvalException("Type error");
+            }
+        }
+        throw new EvalException("Type error");
     }
 }
