@@ -596,7 +596,7 @@ public class SPARQLLoader {
 
         List<Quad> template;
         if (!nodeConstruct.getChildren().get(0).getChildren().isEmpty()) {
-            template = loadGraphPatternTriples(contextTemplate, null, nodeConstruct.getChildren().get(0).getChildren().get(0));
+            template = loadGraphPatternTriples(contextTemplate, nodeConstruct.getChildren().get(0).getChildren().get(0), null);
         } else {
             template = new ArrayList<>();
         }
@@ -628,7 +628,7 @@ public class SPARQLLoader {
                     String iri = loadGraphRef(inner.getChildren().get(0)).y;
                     context.addNamedIRI(iri);
                 } else if (inner.getSymbol().getID() == SPARQLParser.ID.triples_template) {
-                    template = loadGraphPatternTriples(context, null, inner);
+                    template = loadGraphPatternTriples(context, inner, null);
                 }
             }
         }
@@ -771,8 +771,8 @@ public class SPARQLLoader {
      * @return The INSERT/DELETE command
      */
     private Command loadCommandModify(ASTNode node) throws LoaderException {
-        SPARQLContext context = new SPARQLContext(store);
-        GraphNode target;
+        SPARQLContext context = new SPARQLContext(store, true);
+        GraphNode target = null;
         Collection<Quad> toInsert;
         Collection<Quad> toDelete;
         GraphPattern where;
@@ -783,8 +783,6 @@ public class SPARQLLoader {
             target = store.getIRINode(loadGraphRef(current).y);
             index++;
             current = node.getChildren().get(index);
-        } else {
-            target = store.getIRINode(NodeManager.DEFAULT_GRAPH);
         }
         if (current.getSymbol().getID() == SPARQLParser.ID.clause_delete) {
             toDelete = loadQuads(context, current.getChildren().get(0), target);
@@ -816,7 +814,7 @@ public class SPARQLLoader {
             index++;
             current = node.getChildren().get(index);
         }
-        where = loadGraphPattern(context, null, current);
+        where = loadGraphPattern(context, target, current);
         return new CommandModify(Collections.unmodifiableCollection(toInsert), Collections.unmodifiableCollection(toDelete), where);
     }
 
@@ -923,7 +921,7 @@ public class SPARQLLoader {
         for (ASTNode child : node.getChildren()) {
             switch (child.getSymbol().getID()) {
                 case SPARQLParser.ID.triples_block: {
-                    List<Quad> quads = loadGraphPatternTriples(currentContext, graph, child);
+                    List<Quad> quads = loadGraphPatternTriples(currentContext, child, graph);
                     base.addPositives(quads);
                     break;
                 }
@@ -1302,11 +1300,11 @@ public class SPARQLLoader {
      * Loads a graph pattern specified as a block of triples from the specified AST node
      *
      * @param context The current context
-     * @param graph   The current graph, if any
      * @param node    An AST node
+     * @param graph   The current graph, if any
      * @return The quads
      */
-    private List<Quad> loadGraphPatternTriples(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
+    private List<Quad> loadGraphPatternTriples(SPARQLContext context, ASTNode node, GraphNode graph) throws LoaderException {
         GraphNode target = graph;
         if (target == null) {
             if (!context.getDefaultGraphs().isEmpty()) {
@@ -1332,14 +1330,24 @@ public class SPARQLLoader {
      */
     private List<Quad> loadQuads(SPARQLContext context, ASTNode node, GraphNode graph) throws LoaderException {
         // quads -> triples_template? quads_supp*
+        GraphNode target = graph;
+        if (target == null) {
+            if (!context.getDefaultGraphs().isEmpty()) {
+                if (context.getDefaultGraphs().size() > 1)
+                    throw new LoaderException("Cannot load triples with multiple DEFAULT graphs", node);
+                target = store.getIRINode(context.getDefaultGraphs().iterator().next());
+            } else {
+                target = store.getIRINode(NodeManager.DEFAULT_GRAPH);
+            }
+        }
         List<Quad> result = new ArrayList<>();
         for (ASTNode child : node.getChildren()) {
             switch (child.getSymbol().getID()) {
                 case SPARQLParser.ID.triples_template:
-                    loadTriples(context, child, graph, result);
+                    loadTriples(context, child, target, result);
                     break;
                 case SPARQLParser.ID.quads_supp:
-                    loadQuadsSupplementary(context, child, graph, result);
+                    loadQuadsSupplementary(context, child, target, result);
                     break;
             }
         }
