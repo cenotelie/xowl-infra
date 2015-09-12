@@ -201,8 +201,6 @@ public class SPARQLLoader {
     private List<Command> loadUpdate(ASTNode node) throws LoaderException {
         List<Command> result = new ArrayList<>();
         while (node != null) {
-            namespaces.clear();
-            baseURI = null;
             loadPrologue(node.getChildren().get(0));
             if (node.getChildren().size() >= 2) {
                 switch (node.getChildren().get(1).getSymbol().getID()) {
