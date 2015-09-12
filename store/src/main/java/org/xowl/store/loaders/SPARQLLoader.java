@@ -989,7 +989,7 @@ public class SPARQLLoader {
                 }
             }
         }
-        return current;
+        return current == null ? base : current;
     }
 
     /**
