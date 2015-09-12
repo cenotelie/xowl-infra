@@ -45,7 +45,7 @@ public class CommandConstruct implements Command {
     /**
      * The template quads
      */
-    private final List<Quad> template;
+    private final Collection<Quad> template;
 
     /**
      * Initializes this command
@@ -53,7 +53,7 @@ public class CommandConstruct implements Command {
      * @param pattern  The graph pattern for this command
      * @param template The template quads
      */
-    public CommandConstruct(GraphPattern pattern, List<Quad> template) {
+    public CommandConstruct(GraphPattern pattern, Collection<Quad> template) {
         this.pattern = pattern;
         this.template = new ArrayList<>(template);
     }
