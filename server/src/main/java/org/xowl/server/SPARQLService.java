@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -88,17 +89,19 @@ public class SPARQLService extends Service {
             if (request.getContentLength() > 0) {
                 // should be empty
                 // ill-formed request
+                logger.error("Ill-formed request, content is not empty");
                 response.setStatus(400);
             } else {
                 String contentType = negotiateType(getContentTypes(request));
                 String[] defaults = request.getParameterValues("default-graph-uri");
                 String[] named = request.getParameterValues("named-graph-uri");
                 response.setHeader("Content-Type", contentType);
-                executeRequest(query, Arrays.asList(defaults), Arrays.asList(named), contentType, response);
+                executeRequest(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
             }
         } else {
             // expected a query parameter
             // ill-formed request
+            logger.error("Ill-formed request, expected a query parameter");
             response.setStatus(400);
         }
     }
@@ -109,22 +112,35 @@ public class SPARQLService extends Service {
         response.setCharacterEncoding("UTF-8");
 
         List<String> contentTypes = getContentTypes(request);
-        if (contentTypes.contains(TYPE_SPARQL_QUERY) || contentTypes.contains(TYPE_SPARQL_UPDATE)) {
-            String[] defaults = request.getParameterValues("default-graph-uri");
-            String[] named = request.getParameterValues("named-graph-uri");
-            String contentType = negotiateType(contentTypes);
-            response.setHeader("Content-Type", contentType);
-            String query = getMessageBody(request);
-            executeRequest(query, Arrays.asList(defaults), Arrays.asList(named), contentType, response);
-        } else if (contentTypes.contains(TYPE_URL_ENCODED)) {
-            String contentType = negotiateType(contentTypes);
-            response.setHeader("Content-Type", contentType);
-            String content = getMessageBody(request);
-            // TODO: decode and implement this
-            response.setStatus(501);
-        } else {
-            // incorrect content types
-            response.setStatus(400);
+        String requestType = request.getContentType();
+        int index = requestType.indexOf(";");
+        if (index != -1)
+            requestType = requestType.substring(0, index);
+        requestType = requestType.trim();
+        switch (requestType) {
+            case TYPE_SPARQL_QUERY:
+            case TYPE_SPARQL_UPDATE: {
+                String[] defaults = request.getParameterValues("default-graph-uri");
+                String[] named = request.getParameterValues("named-graph-uri");
+                String contentType = negotiateType(contentTypes);
+                response.setHeader("Content-Type", contentType);
+                String query = getMessageBody(request);
+                executeRequest(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
+                break;
+            }
+            case TYPE_URL_ENCODED: {
+                String contentType = negotiateType(contentTypes);
+                response.setHeader("Content-Type", contentType);
+                String content = getMessageBody(request);
+                // TODO: decode and implement this
+                response.setStatus(501);
+                break;
+            }
+            default:
+                // incorrect content types
+                logger.error("Incorrect content type for the request: " + requestType);
+                response.setStatus(400);
+                break;
         }
     }
 
@@ -142,14 +158,14 @@ public class SPARQLService extends Service {
         List<Command> commands = loader.load(logger, new StringReader(request));
         if (commands == null) {
             // ill-formed request
+            logger.error("Failed to parse and load the request");
             response.setStatus(400);
             return;
         }
         Result result = ResultSuccess.INSTANCE;
         for (Command command : commands) {
-            Result temp = command.execute(repository);
-            if (temp.isFailure()) {
-                result = temp;
+            result = command.execute(repository);
+            if (result.isFailure()) {
                 break;
             }
         }

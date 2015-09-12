@@ -63,8 +63,9 @@ public class ResultSuccess implements Result {
             case Result.SYNTAX_JSON:
                 printJSON(writer);
                 break;
+            default:
+                throw new IllegalArgumentException("Unsupported format " + syntax);
         }
-        throw new IllegalArgumentException("Unsupported format " + syntax);
     }
 
     /**
@@ -87,6 +88,6 @@ public class ResultSuccess implements Result {
      * @param writer The writer to use
      */
     private void printJSON(Writer writer) throws IOException {
-        writer.write("{ \"head\": { } \"boolean\": \"true\" }");
+        writer.write("{ \"head\": { }, \"boolean\": \"true\" }");
     }
 }

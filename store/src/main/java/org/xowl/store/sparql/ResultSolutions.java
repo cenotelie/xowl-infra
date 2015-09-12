@@ -84,8 +84,9 @@ public class ResultSolutions implements Result {
             case Result.SYNTAX_JSON:
                 printJSON(writer);
                 break;
+            default:
+                throw new IllegalArgumentException("Unsupported format " + syntax);
         }
-        throw new IllegalArgumentException("Unsupported format " + syntax);
     }
 
     /**
@@ -280,7 +281,7 @@ public class ResultSolutions implements Result {
             writer.write(variables.get(i).getName());
             writer.write("\"");
         }
-        writer.write("] } \"results\": { \"bindings\": [");
+        writer.write("] }, \"results\": { \"bindings\": [");
         boolean firstSolution = true;
         for (QuerySolution solution : solutions) {
             if (!firstSolution)
@@ -291,7 +292,7 @@ public class ResultSolutions implements Result {
             for (int i = 0; i != variables.size(); i++) {
                 Node value = solution.get(variables.get(i));
                 if (value != null) {
-                    if (firstBinding)
+                    if (!firstBinding)
                         writer.write(", ");
                     firstBinding = false;
                     writer.write("\"");
