@@ -78,4 +78,16 @@ public class ExpressionOperator implements Expression {
     public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
         throw new EvalException("Not yet implemented");
     }
+
+
+    /**
+     * Determines whether the two operands are equals modulo the SPARQL semantics
+     *
+     * @param left  The left operand
+     * @param right The right operand
+     * @return The result
+     */
+    public static boolean op_equals(Object left, Object right) {
+        return left != null && right != null && left.equals(right);
+    }
 }

@@ -1156,6 +1156,20 @@ public class SPARQLLoader {
                 return new ExpressionOperator(ExpressionOperator.Op.Divide, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_NOT: // !
                 return new ExpressionOperator(ExpressionOperator.Op.BoolNot, loadExpression(context, graph, node.getChildren().get(0)));
+            case SPARQLLexer.ID.IN: { // IN
+                Expression primary = loadExpression(context, graph, node.getChildren().get(0));
+                List<Expression> range = new ArrayList<>();
+                for (ASTNode child : node.getChildren().get(1).getChildren())
+                    range.add(loadExpression(context, graph, child));
+                return new ExpressionIn(primary, range);
+            }
+            case SPARQLLexer.ID.NOT: { // NOT IN
+                Expression primary = loadExpression(context, graph, node.getChildren().get(0));
+                List<Expression> range = new ArrayList<>();
+                for (ASTNode child : node.getChildren().get(1).getChildren())
+                    range.add(loadExpression(context, graph, child));
+                return new ExpressionOperator(ExpressionOperator.Op.BoolNot, new ExpressionIn(primary, range));
+            }
             case SPARQLParser.ID.function_call:
                 return loadExpressionFunctionCall(context, graph, node);
             case SPARQLParser.ID.iri_or_function:
@@ -1217,14 +1231,14 @@ public class SPARQLLoader {
         if (!node.getChildren().get(3).getChildren().isEmpty()) {
             ASTNode childString = node.getChildren().get(3).getChildren().get(0);
             switch (childString.getSymbol().getID()) {
-                case TurtleLexer.ID.STRING_LITERAL_SINGLE_QUOTE:
-                case TurtleLexer.ID.STRING_LITERAL_QUOTE:
+                case SPARQLLexer.ID.STRING_LITERAL_SINGLE_QUOTE:
+                case SPARQLLexer.ID.STRING_LITERAL_QUOTE:
                     separator = childString.getValue();
                     separator = separator.substring(1, separator.length() - 1);
                     separator = Utils.unescape(separator);
                     break;
-                case TurtleLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
-                case TurtleLexer.ID.STRING_LITERAL_LONG_QUOTE:
+                case SPARQLLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
+                case SPARQLLexer.ID.STRING_LITERAL_LONG_QUOTE:
                     separator = childString.getValue();
                     separator = separator.substring(3, separator.length() - 3);
                     separator = Utils.unescape(separator);
@@ -1585,14 +1599,14 @@ public class SPARQLLoader {
         String value = null;
         ASTNode childString = node.getChildren().get(0);
         switch (childString.getSymbol().getID()) {
-            case TurtleLexer.ID.STRING_LITERAL_SINGLE_QUOTE:
-            case TurtleLexer.ID.STRING_LITERAL_QUOTE:
+            case SPARQLLexer.ID.STRING_LITERAL_SINGLE_QUOTE:
+            case SPARQLLexer.ID.STRING_LITERAL_QUOTE:
                 value = childString.getValue();
                 value = value.substring(1, value.length() - 1);
                 value = Utils.unescape(value);
                 break;
-            case TurtleLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
-            case TurtleLexer.ID.STRING_LITERAL_LONG_QUOTE:
+            case SPARQLLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
+            case SPARQLLexer.ID.STRING_LITERAL_LONG_QUOTE:
                 value = childString.getValue();
                 value = value.substring(3, value.length() - 3);
                 value = Utils.unescape(value);
@@ -1604,20 +1618,20 @@ public class SPARQLLoader {
             return store.getLiteralNode(value, Vocabulary.xsdString, null);
 
         ASTNode suffixChild = node.getChildren().get(1);
-        if (suffixChild.getSymbol().getID() == TurtleLexer.ID.LANGTAG) {
+        if (suffixChild.getSymbol().getID() == SPARQLLexer.ID.LANGTAG) {
             // This is a language-tagged string
             String tag = suffixChild.getValue();
             return store.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
-        } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.IRIREF) {
+        } else if (suffixChild.getSymbol().getID() == SPARQLLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getValue();
             iri = Utils.unescape(iri.substring(1, iri.length() - 1));
             return store.getLiteralNode(value, Utils.uriResolveRelative(baseURI, iri), null);
-        } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_LN) {
+        } else if (suffixChild.getSymbol().getID() == SPARQLLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
             String local = getIRIForLocalName(suffixChild, suffixChild.getValue());
             return store.getLiteralNode(value, local, null);
-        } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_NS) {
+        } else if (suffixChild.getSymbol().getID() == SPARQLLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getValue();
             ns = Utils.unescape(ns.substring(0, ns.length() - 1));
