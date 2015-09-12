@@ -20,6 +20,9 @@
 
 package org.xowl.store.sparql;
 
+import java.io.IOException;
+import java.io.Writer;
+
 /**
  * Represents the failing result of a SPARQL command
  *
@@ -29,7 +32,7 @@ public class ResultFailure implements Result {
     /**
      * The singleton instance with an empty message
      */
-    public static final ResultFailure INSTANCE = new ResultFailure(null);
+    public static final ResultFailure INSTANCE = new ResultFailure("Unknown");
 
     /**
      * The message, if any
@@ -62,5 +65,50 @@ public class ResultFailure implements Result {
     @Override
     public boolean isSuccess() {
         return false;
+    }
+
+    @Override
+    public void print(Writer writer, String syntax) throws IOException {
+        switch (syntax) {
+            case Result.SYNTAX_CSV:
+            case Result.SYNTAX_TSV:
+                writer.write("ERROR: " + message);
+                break;
+            case Result.SYNTAX_XML:
+                printXML(writer);
+                break;
+            case Result.SYNTAX_JSON:
+                printJSON(writer);
+                break;
+        }
+        throw new IllegalArgumentException("Unsupported format " + syntax);
+    }
+
+    /**
+     * Prints the results with the TSV format
+     *
+     * @param writer The writer to use
+     */
+    private void printXML(Writer writer) throws IOException {
+        writer.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+        writer.write("<sparql xmlns=\"http://www.w3.org/2005/sparql-results#\">");
+        writer.write("<head>");
+        writer.write("</head>");
+        writer.write("<boolean>false</boolean>");
+        writer.write("<error>");
+        writer.write(message);
+        writer.write("</error>");
+        writer.write("</sparql>");
+    }
+
+    /**
+     * Prints the results with the JSON format
+     *
+     * @param writer The writer to use
+     */
+    private void printJSON(Writer writer) throws IOException {
+        writer.write("{ \"head\": { }  \"boolean\": \"false\" \"error\": \"");
+        writer.write(Utils.quoteJSON(message));
+        writer.write("\" }");
     }
 }

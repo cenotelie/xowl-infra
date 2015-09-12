@@ -20,12 +20,32 @@
 
 package org.xowl.store.sparql;
 
+import java.io.IOException;
+import java.io.Writer;
+
 /**
  * Represents the result of a SPARQL command
  *
  * @author Laurent Wouters
  */
 public interface Result {
+    /**
+     * XML syntax for SPARQL results
+     */
+    String SYNTAX_XML = "application/sparql-results+xml";
+    /**
+     * JSON syntax for SPARQL results
+     */
+    String SYNTAX_JSON = "application/sparql-results+json";
+    /**
+     * CSV syntax for SPARQL results
+     */
+    String SYNTAX_CSV = "text/csv";
+    /**
+     * TSV syntax for SPARQL results
+     */
+    String SYNTAX_TSV = "text/tab-separated-values";
+
     /**
      * Gets whether the result is a failure
      *
@@ -39,4 +59,13 @@ public interface Result {
      * @return Whether the result is a success
      */
     boolean isSuccess();
+
+    /**
+     * Prints this result to the specified writer
+     *
+     * @param writer A writer
+     * @param syntax The syntax to user
+     * @throws IOException When writing to an incorrect writer
+     */
+    void print(Writer writer, String syntax) throws IOException;
 }

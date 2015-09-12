@@ -20,8 +20,13 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.AbstractRepository;
 import org.xowl.store.rdf.Quad;
+import org.xowl.store.writers.*;
+import org.xowl.utils.SinkLogger;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -62,5 +67,28 @@ public class ResultQuads implements Result {
     @Override
     public boolean isSuccess() {
         return true;
+    }
+
+    @Override
+    public void print(Writer writer, String syntax) throws IOException {
+        RDFSerializer serializer;
+        switch (syntax) {
+            case AbstractRepository.SYNTAX_NTRIPLES:
+                serializer = new NTripleSerializer(writer);
+                break;
+            case AbstractRepository.SYNTAX_NQUADS:
+                serializer = new NQuadsSerializer(writer);
+                break;
+            case AbstractRepository.SYNTAX_TURTLE:
+                serializer = new TurtleSerializer(writer);
+                break;
+            case AbstractRepository.SYNTAX_RDFXML:
+                serializer = new RDFXMLSerializer(writer);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported format " + syntax);
+        }
+        SinkLogger logger = new SinkLogger();
+        serializer.serialize(logger, quads.iterator());
     }
 }

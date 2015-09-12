@@ -20,6 +20,9 @@
 
 package org.xowl.store.sparql;
 
+import java.io.IOException;
+import java.io.Writer;
+
 /**
  * Represents the result of a SPARQL command as a boolean value
  *
@@ -57,5 +60,50 @@ public class ResultYesNo implements Result {
     @Override
     public boolean isSuccess() {
         return true;
+    }
+
+    @Override
+    public void print(Writer writer, String syntax) throws IOException {
+        switch (syntax) {
+            case Result.SYNTAX_CSV:
+            case Result.SYNTAX_TSV:
+                writer.write(Boolean.toString(value));
+                break;
+            case Result.SYNTAX_XML:
+                printXML(writer);
+                break;
+            case Result.SYNTAX_JSON:
+                printJSON(writer);
+                break;
+        }
+        throw new IllegalArgumentException("Unsupported format " + syntax);
+    }
+
+    /**
+     * Prints the results with the TSV format
+     *
+     * @param writer The writer to use
+     */
+    private void printXML(Writer writer) throws IOException {
+        writer.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+        writer.write("<sparql xmlns=\"http://www.w3.org/2005/sparql-results#\">");
+        writer.write("<head>");
+        writer.write("</head>");
+        writer.write("<boolean>");
+        writer.write(Boolean.toString(value));
+        writer.write("</boolean>");
+        writer.write("</sparql>");
+    }
+
+    /**
+     * Prints the results with the JSON format
+     *
+     * @param writer The writer to use
+     */
+    private void printJSON(Writer writer) throws IOException {
+        writer.write("{ \"head\": { }");
+        writer.write(" \"boolean\": \"");
+        writer.write(Boolean.toString(value));
+        writer.write("\" }");
     }
 }
