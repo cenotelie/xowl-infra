@@ -21,14 +21,13 @@
 package org.xowl.server;
 
 import org.xowl.store.AbstractRepository;
-import org.xowl.store.writers.*;
+import org.xowl.store.sparql.Result;
 import org.xowl.utils.collections.Couple;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -108,6 +107,12 @@ public abstract class Service {
     protected String negotiateType(List<String> contentTypes) {
         for (String contentType : contentTypes) {
             switch (contentType) {
+                // The SPARQL result syntaxes
+                case Result.SYNTAX_CSV:
+                case Result.SYNTAX_TSV:
+                case Result.SYNTAX_XML:
+                case Result.SYNTAX_JSON:
+                    // The RDF syntaxes for quads
                 case AbstractRepository.SYNTAX_NTRIPLES:
                 case AbstractRepository.SYNTAX_NQUADS:
                 case AbstractRepository.SYNTAX_TURTLE:
@@ -115,29 +120,7 @@ public abstract class Service {
                     return contentType;
             }
         }
-        return AbstractRepository.SYNTAX_NTRIPLES;
-    }
-
-    /**
-     * Gets the appropriate serializer
-     *
-     * @param contentType The accepted content type
-     * @param writer      The target writer
-     * @return The corresponding serializer
-     */
-    protected RDFSerializer getSerializer(String contentType, Writer writer) {
-        switch (contentType) {
-            case AbstractRepository.SYNTAX_NTRIPLES:
-                return new NTripleSerializer(writer);
-            case AbstractRepository.SYNTAX_NQUADS:
-                return new NQuadsSerializer(writer);
-            case AbstractRepository.SYNTAX_TURTLE:
-                return new TurtleSerializer(writer);
-            case AbstractRepository.SYNTAX_RDFXML:
-                return new RDFXMLSerializer(writer);
-            default:
-                return new NTripleSerializer(writer);
-        }
+        return AbstractRepository.SYNTAX_NQUADS;
     }
 
     /**

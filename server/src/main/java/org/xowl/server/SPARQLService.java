@@ -20,15 +20,18 @@
 
 package org.xowl.server;
 
+import org.xowl.store.AbstractRepository;
 import org.xowl.store.Repository;
 import org.xowl.store.loaders.SPARQLLoader;
 import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
+import org.xowl.store.sparql.ResultQuads;
 import org.xowl.store.sparql.ResultSuccess;
 import org.xowl.utils.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collection;
@@ -91,7 +94,7 @@ public class SPARQLService extends Service {
                 String[] defaults = request.getParameterValues("default-graph-uri");
                 String[] named = request.getParameterValues("named-graph-uri");
                 response.setHeader("Content-Type", contentType);
-                executeRequest(query, Arrays.asList(defaults), Arrays.asList(named), response);
+                executeRequest(query, Arrays.asList(defaults), Arrays.asList(named), contentType, response);
             }
         } else {
             // expected a query parameter
@@ -112,7 +115,7 @@ public class SPARQLService extends Service {
             String contentType = negotiateType(contentTypes);
             response.setHeader("Content-Type", contentType);
             String query = getMessageBody(request);
-            executeRequest(query, Arrays.asList(defaults), Arrays.asList(named), response);
+            executeRequest(query, Arrays.asList(defaults), Arrays.asList(named), contentType, response);
         } else if (contentTypes.contains(TYPE_URL_ENCODED)) {
             String contentType = negotiateType(contentTypes);
             response.setHeader("Content-Type", contentType);
@@ -131,9 +134,10 @@ public class SPARQLService extends Service {
      * @param request     The request
      * @param defaultIRIs The context's default IRIs
      * @param namedIRIs   The context's named IRIs
+     * @param contentType The negotiated content type for the response
      * @param response    The response to write to
      */
-    private void executeRequest(String request, Collection<String> defaultIRIs, Collection<String> namedIRIs, HttpServletResponse response) {
+    private void executeRequest(String request, Collection<String> defaultIRIs, Collection<String> namedIRIs, String contentType, HttpServletResponse response) {
         SPARQLLoader loader = new SPARQLLoader(repository.getStore(), defaultIRIs, namedIRIs);
         List<Command> commands = loader.load(logger, new StringReader(request));
         if (commands == null) {
@@ -149,11 +153,42 @@ public class SPARQLService extends Service {
                 break;
             }
         }
-        if (result.isFailure()) {
-            response.setStatus(500);
-            return;
+        response.setStatus(result.isFailure() ? 500 : 200);
+        try {
+            result.print(response.getWriter(), coerceContentType(result, contentType));
+        } catch (IOException exception) {
+            logger.error(exception);
         }
-        response.setStatus(200);
-        // TODO: write the content of the response for queries
+    }
+
+    /**
+     * Coerce the content type of a SPARQL response depending on the result type
+     *
+     * @param result The SPARQL result
+     * @param type   The negotiated content type
+     * @return The coerced content type
+     */
+    private String coerceContentType(Result result, String type) {
+        if (result instanceof ResultQuads) {
+            switch (type) {
+                case AbstractRepository.SYNTAX_NTRIPLES:
+                case AbstractRepository.SYNTAX_NQUADS:
+                case AbstractRepository.SYNTAX_TURTLE:
+                case AbstractRepository.SYNTAX_RDFXML:
+                    return type;
+                default:
+                    return AbstractRepository.SYNTAX_NQUADS;
+            }
+        } else {
+            switch (type) {
+                case Result.SYNTAX_CSV:
+                case Result.SYNTAX_TSV:
+                case Result.SYNTAX_XML:
+                case Result.SYNTAX_JSON:
+                    return type;
+                default:
+                    return Result.SYNTAX_JSON;
+            }
+        }
     }
 }
