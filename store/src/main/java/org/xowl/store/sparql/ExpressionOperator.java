@@ -145,11 +145,12 @@ public class ExpressionOperator implements Expression {
     public static boolean bool(Object value) throws EvalException {
         if (value == null)
             return false;
-        if (value.getClass().isPrimitive() || value instanceof String) {
-            if (value instanceof Boolean)
-                return (Boolean) value;
-            return value != 0;
-        }
+        if (value instanceof Boolean)
+            return (Boolean) value;
+        if (isNumInteger(value))
+            return integer(value) != 0;
+        if (isNumDecimal(value))
+            return decimal(value) != 0;
         throw new EvalException("Failed to coerce value of type " + value.getClass().toString() + " to boolean");
     }
 
