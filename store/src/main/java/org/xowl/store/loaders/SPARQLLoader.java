@@ -957,6 +957,7 @@ public class SPARQLLoader {
                     } else {
                         current = new GraphPatternJoin(current == null ? base : current, inner);
                     }
+                    break;
                 }
                 case SPARQLParser.ID.graph_pattern_service: {
                     GraphPattern inner = loadGraphPattern(currentContext, graph, child.getChildren().get(child.getChildren().size() - 1));
@@ -982,7 +983,42 @@ public class SPARQLLoader {
                 }
                 case SPARQLLexer.ID.UNION: {
                     GraphPattern inner = loadGraphPatternUnion(currentContext, graph, child);
-                    current = new GraphPatternJoin(current == null ? base : current, inner);
+                    if (current == null) {
+                        if (base.getQuery().getPositives().isEmpty() && base.getQuery().getNegatives().isEmpty())
+                            current = inner;
+                        else
+                            current = new GraphPatternJoin(base, inner);
+                    } else
+                        current = new GraphPatternJoin(current, inner);
+                    break;
+                }
+                case SPARQLParser.ID.sub_select: {
+                    GraphPattern inner = loadGraphPatternSubSelect(currentContext, child);
+                    if (current == null) {
+                        if (base.getQuery().getPositives().isEmpty() && base.getQuery().getNegatives().isEmpty())
+                            current = inner;
+                        else
+                            current = new GraphPatternJoin(base, inner);
+                    } else
+                        current = new GraphPatternJoin(current, inner);
+                    break;
+                }
+                case SPARQLParser.ID.graph_pattern_group: {
+                    GraphPattern inner = loadGraphPatternGroup(currentContext, graph, child);
+                    if (inner instanceof GraphPatternQuads) {
+                        Query query = ((GraphPatternQuads) inner).getQuery();
+                        base.addPositives(query.getPositives());
+                        for (Collection<Quad> conjunction : query.getNegatives())
+                            base.addNegatives(conjunction);
+                    } else {
+                        if (current == null) {
+                            if (base.getQuery().getPositives().isEmpty() && base.getQuery().getNegatives().isEmpty())
+                                current = inner;
+                            else
+                                current = new GraphPatternJoin(base, inner);
+                        } else
+                            current = new GraphPatternJoin(current, inner);
+                    }
                     break;
                 }
             }
@@ -1322,7 +1358,7 @@ public class SPARQLLoader {
         // triples_template -> triples_same_subj ('.'! triples_template? )?
         ASTNode current = node;
         while (current != null) {
-            ASTNode sameSubj = node.getChildren().get(0);
+            ASTNode sameSubj = current.getChildren().get(0);
             // triples_same_subj -> var_or_term    property_list_not_empty
             // triples_same_subj -> triples_node   property_list
             Node subject = getNode(context, sameSubj.getChildren().get(0), graph, buffer);
