@@ -552,7 +552,7 @@ public class SPARQLLoader {
         GraphPatternSelect select = new GraphPatternSelect(isDistinct, isReduced, where, modifier, values);
         for (ASTNode child : clauseSelect.getChildren().get(1).getChildren()) {
             if (child.getSymbol().getID() == SPARQLLexer.ID.AS) {
-                select.addToProjection((VariableNode) getVariable(context, child.getChildren().get(1)), loadExpression(context, child.getChildren().get(0)));
+                select.addToProjection((VariableNode) getVariable(context, child.getChildren().get(1)), loadExpression(context, null, child.getChildren().get(0)));
             } else {
                 select.addToProjection((VariableNode) getVariable(context, child));
             }
@@ -895,7 +895,7 @@ public class SPARQLLoader {
 
         for (ASTNode child : clauseSelect.getChildren().get(1).getChildren()) {
             if (child.getSymbol().getID() == SPARQLLexer.ID.AS) {
-                select.addToProjection((VariableNode) getVariable(context, child.getChildren().get(1)), loadExpression(context, child.getChildren().get(0)));
+                select.addToProjection((VariableNode) getVariable(context, child.getChildren().get(1)), loadExpression(context, null, child.getChildren().get(0)));
             } else {
                 select.addToProjection((VariableNode) getVariable(context, child));
             }
@@ -967,12 +967,12 @@ public class SPARQLLoader {
                     break;
                 }
                 case SPARQLParser.ID.graph_pattern_filter: {
-                    Expression expression = loadExpression(currentContext, child.getChildren().get(0));
+                    Expression expression = loadExpression(currentContext, graph, child.getChildren().get(0));
                     current = new GraphPatternFilter(current == null ? base : current, expression);
                     break;
                 }
                 case SPARQLParser.ID.graph_pattern_bind: {
-                    Expression expression = loadExpression(currentContext, child.getChildren().get(0));
+                    Expression expression = loadExpression(currentContext, graph, child.getChildren().get(0));
                     Node variable = getVariable(currentContext, child.getChildren().get(1));
                     current = new GraphPatternBind(current == null ? base : current, (VariableNode) variable, expression);
                     break;
@@ -1029,25 +1029,25 @@ public class SPARQLLoader {
                 case SPARQLParser.ID.clause_group:
                     for (ASTNode condNode : child.getChildren()) {
                         if (condNode.getSymbol().getID() == SPARQLLexer.ID.AS)
-                            modifier.addGroup(loadExpression(context, condNode.getChildren().get(0)),
+                            modifier.addGroup(loadExpression(context, null, condNode.getChildren().get(0)),
                                     (VariableNode) getVariable(context, condNode.getChildren().get(1)));
                         else
-                            modifier.addGroup(loadExpression(context, condNode));
+                            modifier.addGroup(loadExpression(context, null, condNode));
                     }
                     break;
                 case SPARQLParser.ID.clause_having:
                     for (ASTNode havingNode : child.getChildren()) {
-                        modifier.addConstraint(loadExpression(context, havingNode));
+                        modifier.addConstraint(loadExpression(context, null, havingNode));
                     }
                     break;
                 case SPARQLParser.ID.clause_order:
                     for (ASTNode orderNode : child.getChildren()) {
                         if (orderNode.getSymbol().getID() == SPARQLLexer.ID.ASC)
-                            modifier.addOrdering(loadExpression(context, orderNode));
+                            modifier.addOrdering(loadExpression(context, null, orderNode));
                         else if (orderNode.getSymbol().getID() == SPARQLLexer.ID.DESC)
-                            modifier.addOrdering(loadExpression(context, orderNode), true);
+                            modifier.addOrdering(loadExpression(context, null, orderNode), true);
                         else
-                            modifier.addOrdering(loadExpression(context, orderNode));
+                            modifier.addOrdering(loadExpression(context, null, orderNode));
                     }
                     break;
                 case SPARQLParser.ID.clauses_limit_offset:
@@ -1104,10 +1104,11 @@ public class SPARQLLoader {
      * Loads a SPARQL expression from the specified AST node
      *
      * @param context The current context
+     * @param graph   The current graph, if any
      * @param node    An AST node
      * @return The expression
      */
-    private Expression loadExpression(SPARQLContext context, ASTNode node) throws LoaderException {
+    private Expression loadExpression(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
         switch (node.getSymbol().getID()) {
             case SPARQLLexer.ID.TRUE: // true
                 return new ExpressionConstant(true);
@@ -1124,48 +1125,129 @@ public class SPARQLLoader {
             case SPARQLParser.ID.literal_rdf:
                 return new ExpressionConstant(Datatypes.toNative(getNodeLiteral(node)));
             case SPARQLLexer.ID.OP_BOR: // ||
-                return new ExpressionOperator(ExpressionOperator.Op.BoolOr, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                return new ExpressionOperator(ExpressionOperator.Op.BoolOr, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_BAND: // &&
-                return new ExpressionOperator(ExpressionOperator.Op.BoolAnd, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                return new ExpressionOperator(ExpressionOperator.Op.BoolAnd, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_EQ: // =
-                return new ExpressionOperator(ExpressionOperator.Op.Equal, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                return new ExpressionOperator(ExpressionOperator.Op.Equal, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_NEQ: // !=
-                return new ExpressionOperator(ExpressionOperator.Op.NotEqual, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                return new ExpressionOperator(ExpressionOperator.Op.NotEqual, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_LESS: // <
-                return new ExpressionOperator(ExpressionOperator.Op.Less, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                return new ExpressionOperator(ExpressionOperator.Op.Less, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_GREAT: // >
-                return new ExpressionOperator(ExpressionOperator.Op.Greater, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                return new ExpressionOperator(ExpressionOperator.Op.Greater, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_GEQ: // >=
-                return new ExpressionOperator(ExpressionOperator.Op.GreaterOrEqual, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                return new ExpressionOperator(ExpressionOperator.Op.GreaterOrEqual, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_LEQ: // <=
-                return new ExpressionOperator(ExpressionOperator.Op.LessOrEqual, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                return new ExpressionOperator(ExpressionOperator.Op.LessOrEqual, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_PLUS: // +
                 if (node.getChildren().size() == 1)
-                    return new ExpressionOperator(ExpressionOperator.Op.UnaryPlus, loadExpression(context, node.getChildren().get(0)));
+                    return new ExpressionOperator(ExpressionOperator.Op.UnaryPlus, loadExpression(context, graph, node.getChildren().get(0)));
                 else
-                    return new ExpressionOperator(ExpressionOperator.Op.Plus, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                    return new ExpressionOperator(ExpressionOperator.Op.Plus, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_MINUS: // -
                 if (node.getChildren().size() == 1)
-                    return new ExpressionOperator(ExpressionOperator.Op.UnaryMinus, loadExpression(context, node.getChildren().get(0)));
+                    return new ExpressionOperator(ExpressionOperator.Op.UnaryMinus, loadExpression(context, graph, node.getChildren().get(0)));
                 else
-                    return new ExpressionOperator(ExpressionOperator.Op.Minus, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                    return new ExpressionOperator(ExpressionOperator.Op.Minus, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_MULT: // *
-                return new ExpressionOperator(ExpressionOperator.Op.Multiply, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                return new ExpressionOperator(ExpressionOperator.Op.Multiply, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_DIV: // /
-                return new ExpressionOperator(ExpressionOperator.Op.Divide, loadExpression(context, node.getChildren().get(0)), loadExpression(context, node.getChildren().get(1)));
+                return new ExpressionOperator(ExpressionOperator.Op.Divide, loadExpression(context, graph, node.getChildren().get(0)), loadExpression(context, graph, node.getChildren().get(1)));
             case SPARQLLexer.ID.OP_NOT: // !
-                return new ExpressionOperator(ExpressionOperator.Op.BoolNot, loadExpression(context, node.getChildren().get(0)));
+                return new ExpressionOperator(ExpressionOperator.Op.BoolNot, loadExpression(context, graph, node.getChildren().get(0)));
             case SPARQLParser.ID.function_call:
+                return loadExpressionFunctionCall(context, graph, node);
             case SPARQLParser.ID.iri_or_function:
-                if (node.getChildren().size() == 1) {
+                if (node.getChildren().size() == 1)
                     return new ExpressionRDF(getNode(context, node.getChildren().get(0), null, null));
-                } else {
-                    throw new LoaderException("Unrecognized expression", node);
-                }
+                else
+                    return loadExpressionFunctionCall(context, graph, node);
             case SPARQLParser.ID.built_in_call:
-                throw new LoaderException("Unrecognized expression", node);
+                return loadExpressionBuiltin(context, graph, node);
         }
         throw new LoaderException("Unrecognized expression", node);
+    }
+
+    /**
+     * Loads a built-in SPARQL expression from the specified AST node
+     *
+     * @param context The current context
+     * @param graph   The current graph, if any
+     * @param node    An AST node
+     * @return The expression
+     */
+    private Expression loadExpressionFunctionCall(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
+        IRINode nameNode = ((IRINode) getNode(context, node.getChildren().get(0), null, null));
+        if (nameNode == null)
+            throw new LoaderException("Failed to get the function's name", node);
+        List<Expression> arguments = new ArrayList<>();
+        boolean isDistinct = false;
+        for (ASTNode child : node.getChildren().get(1).getChildren()) {
+            if (child.getSymbol().getID() == SPARQLLexer.ID.DISTINCT)
+                isDistinct = true;
+            else
+                arguments.add(loadExpression(context, graph, child));
+        }
+        return new ExpressionFunctionCall(nameNode.getIRIValue(), arguments, isDistinct, null);
+    }
+
+    /**
+     * Loads a built-in SPARQL expression from the specified AST node
+     *
+     * @param context The current context
+     * @param graph   The current graph, if any
+     * @param node    An AST node
+     * @return The expression
+     */
+    private Expression loadExpressionBuiltin(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
+        if (node.getChildren().get(0).getSymbol().getID() != SPARQLLexer.ID.BUILTIN)
+            return loadExpressionBuiltinExists(context, graph, node);
+
+        String name = node.getChildren().get(0).getValue();
+        List<Expression> arguments = new ArrayList<>();
+        boolean isDistinct = !node.getChildren().get(1).getChildren().isEmpty();
+        String separator = null;
+        for (ASTNode child : node.getChildren().get(2).getChildren()) {
+            if (child.getSymbol().getID() == SPARQLLexer.ID.DISTINCT)
+                isDistinct = true;
+            else
+                arguments.add(loadExpression(context, graph, child));
+        }
+        if (!node.getChildren().get(3).getChildren().isEmpty()) {
+            ASTNode childString = node.getChildren().get(3).getChildren().get(0);
+            switch (childString.getSymbol().getID()) {
+                case TurtleLexer.ID.STRING_LITERAL_SINGLE_QUOTE:
+                case TurtleLexer.ID.STRING_LITERAL_QUOTE:
+                    separator = childString.getValue();
+                    separator = separator.substring(1, separator.length() - 1);
+                    separator = Utils.unescape(separator);
+                    break;
+                case TurtleLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
+                case TurtleLexer.ID.STRING_LITERAL_LONG_QUOTE:
+                    separator = childString.getValue();
+                    separator = separator.substring(3, separator.length() - 3);
+                    separator = Utils.unescape(separator);
+                    break;
+            }
+        }
+        return new ExpressionFunctionCall(name, arguments, isDistinct, separator);
+    }
+
+    /**
+     * Loads a built-in SPARQL expression from the specified AST node
+     *
+     * @param context The current context
+     * @param graph   The current graph, if any
+     * @param node    An AST node
+     * @return The expression
+     */
+    private Expression loadExpressionBuiltinExists(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
+        GraphPattern pattern = loadGraphPattern(context, graph, node.getChildren().get(node.getChildren().size() - 1));
+        Expression exp = new ExpressionExists(pattern);
+        if (node.getChildren().size() >= 3)
+            exp = new ExpressionOperator(ExpressionOperator.Op.BoolNot, exp);
+        return exp;
     }
 
     /**

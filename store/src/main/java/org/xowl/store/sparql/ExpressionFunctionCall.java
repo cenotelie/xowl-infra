@@ -40,16 +40,28 @@ public class ExpressionFunctionCall implements Expression {
      * The arguments to use
      */
     private final List<Expression> arguments;
+    /**
+     * Whether the DISTINCT keyword is applied
+     */
+    private final boolean isDistinct;
+    /**
+     * The separator marker
+     */
+    private final String separator;
 
     /**
      * Initializes this expression
      *
-     * @param iri       The function's IRI
-     * @param arguments The arguments to use
+     * @param iri        The function's IRI
+     * @param arguments  The arguments to use
+     * @param isDistinct Whether the DISTINCT keyword is applied
+     * @param separator  The separator marker
      */
-    public ExpressionFunctionCall(String iri, List<Expression> arguments) {
+    public ExpressionFunctionCall(String iri, List<Expression> arguments, boolean isDistinct, String separator) {
         this.iri = iri;
         this.arguments = new ArrayList<>(arguments);
+        this.isDistinct = isDistinct;
+        this.separator = separator;
     }
 
     @Override
