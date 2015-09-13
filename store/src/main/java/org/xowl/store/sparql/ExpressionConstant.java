@@ -23,6 +23,8 @@ package org.xowl.store.sparql;
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.QuerySolution;
 
+import java.util.Collection;
+
 /**
  * A constant expression in SPARQL, usually a native value (Integer, Long, Boolean, etc.)
  *
@@ -45,6 +47,11 @@ public class ExpressionConstant implements Expression {
 
     @Override
     public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
+        return value;
+    }
+
+    @Override
+    public Object eval(Repository repository, Collection<QuerySolution> solutions) throws EvalException {
         return value;
     }
 }

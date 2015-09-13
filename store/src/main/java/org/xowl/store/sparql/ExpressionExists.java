@@ -47,7 +47,13 @@ public class ExpressionExists implements Expression {
 
     @Override
     public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
-        Collection<QuerySolution> solutions = pattern.match(repository);
-        return !solutions.isEmpty();
+        Collection<QuerySolution> result = pattern.match(repository);
+        return !result.isEmpty();
+    }
+
+    @Override
+    public Object eval(Repository repository, Collection<QuerySolution> solutions) throws EvalException {
+        Collection<QuerySolution> result = pattern.match(repository);
+        return !result.isEmpty();
     }
 }

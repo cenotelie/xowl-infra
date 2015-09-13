@@ -23,6 +23,8 @@ package org.xowl.store.sparql;
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.QuerySolution;
 
+import java.util.Collection;
+
 /**
  * Represents an expression in SPARQL
  *
@@ -38,4 +40,13 @@ public interface Expression {
      * @throws EvalException When an error occurs during the evaluation
      */
     Object eval(Repository repository, QuerySolution bindings) throws EvalException;
+
+    /**
+     * Evaluates this expression
+     *
+     * @param repository The repository to evaluate on
+     * @param solutions  The current set of solutions
+     * @return The result
+     */
+    Object eval(Repository repository, Collection<QuerySolution> solutions) throws EvalException;
 }

@@ -25,6 +25,7 @@ import org.xowl.store.rdf.*;
 import org.xowl.store.rdf.Utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -228,5 +229,93 @@ public class ExpressionFunctionCall implements Expression {
             return v1.toString().toLowerCase();
         }
         throw new EvalException("Unknown function " + iri);
+    }
+
+    @Override
+    public Object eval(Repository repository, Collection<QuerySolution> solutions) throws EvalException {
+        /*
+          'COUNT' '(' 'DISTINCT'? ( '*' | Expression ) ')'
+| 'SUM' '(' 'DISTINCT'? Expression ')'
+| 'MIN' '(' 'DISTINCT'? Expression ')'
+| 'MAX' '(' 'DISTINCT'? Expression ')'
+| 'AVG' '(' 'DISTINCT'? Expression ')'
+| 'SAMPLE' '(' 'DISTINCT'? Expression ')'
+| 'GROUP_CONCAT' '(' 'DISTINCT'? Expression ( ';' 'SEPARATOR' '=' String )? ')'
+         */
+
+
+        if (iri.equalsIgnoreCase("COUNT")) {
+            if (arguments.isEmpty()) {
+                if (isDistinct)
+                    return getDistincts(solutions).size();
+                return solutions.size();
+            } else {
+                List<Object> values = new ArrayList<>(solutions.size());
+                for (QuerySolution solution : solutions)
+                    values.add(arguments.get(0).eval(repository, solution));
+                if (isDistinct)
+                    values = getDistincts(values);
+                return values.size();
+            }
+        }
+        if (iri.equalsIgnoreCase("SUM")) {
+            List<Object> values = new ArrayList<>(solutions.size());
+            for (QuerySolution solution : solutions)
+                values.add(arguments.get(0).eval(repository, solution));
+            if (isDistinct)
+                values = getDistincts(values);
+            Object accumulator = 0d;
+            for (Object value : values)
+                accumulator = ExpressionOperator.plus(accumulator, value);
+
+        }
+        if (iri.equalsIgnoreCase("MIN")) {
+
+        }
+        if (iri.equalsIgnoreCase("MAX")) {
+
+        }
+        if (iri.equalsIgnoreCase("AVG")) {
+
+        }
+        if (iri.equalsIgnoreCase("SAMPLE")) {
+
+        }
+        if (iri.equalsIgnoreCase("GROUP_CONCAT")) {
+
+        }
+
+        // not an aggregate function, applies the function an all solution set
+        List<Object> results = new ArrayList<>(solutions.size());
+        for (QuerySolution solution : solutions)
+            results.add(eval(repository, solution));
+        return results;
+    }
+
+    /**
+     * Gets the distinct values
+     * @param originals The original values
+     * @return The distinct values
+     */
+    private List<Object> getDistincts(List<Object> originals) {
+        List<Object> result = new ArrayList<>();
+        for (Object original : originals)
+            if (!result.contains(original))
+                result.add(original);
+        return result;
+    }
+
+    /**
+     * Gets the distinct solutions
+     *
+     * @param solutions The original solutions
+     * @return The distinct ones
+     */
+    private Collection<QuerySolution> getDistincts(Collection<QuerySolution> solutions) {
+        Collection<QuerySolution> result = new ArrayList<>();
+        for (QuerySolution solution : solutions)
+            if (!result.contains(solution))
+                result.add(solution);
+        return result;
     }
 }

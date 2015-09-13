@@ -27,8 +27,7 @@ import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
 import org.xowl.store.rdf.Utils;
 
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents an operator in an expression
@@ -83,37 +82,81 @@ public class ExpressionOperator implements Expression {
 
     @Override
     public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
+        Object v1 = operand1.eval(repository, bindings);
+        Object v2 = operand2 == null ? null : operand2.eval(repository, bindings);
+        return apply(v1, v2);
+    }
+
+    @Override
+    public Object eval(Repository repository, Collection<QuerySolution> solutions) throws EvalException {
+        Object v1 = operand1.eval(repository, solutions);
+        Object v2 = operand2 == null ? null : operand2.eval(repository, solutions);
+        if (v1 instanceof Collection) {
+            Collection<Object> c1 = (Collection<Object>) v1;
+            List<Object> results = new ArrayList<>(c1.size());
+            if (v2 != null && v2 instanceof Collection) {
+                Collection<Object> c2 = (Collection<Object>) v2;
+                if (c1.size() != c2.size())
+                    throw new EvalException("Cardinality error");
+                Iterator<Object> i1 = c1.iterator();
+                Iterator<Object> i2 = c2.iterator();
+                while (i1.hasNext())
+                    results.add(apply(i1.next(), i2.next()));
+            } else {
+                for (Object p1 : c1)
+                    results.add(apply(p1, v2));
+            }
+            return results;
+        } else if (v2 != null && v2 instanceof Collection) {
+            Collection<Object> c2 = (Collection<Object>) v2;
+            List<Object> results = new ArrayList<>(c2.size());
+            for (Object p2 : c2)
+                results.add(apply(v1, p2));
+            return results;
+        } else {
+            return apply(v1, v2);
+        }
+    }
+
+    /**
+     * Applies the operator represented by this expression onto the specified values
+     *
+     * @param v1 The value of the first operand
+     * @param v2 The value of the second operand
+     * @return The result
+     */
+    private Object apply(Object v1, Object v2) throws EvalException {
         switch (operator) {
             case BoolAnd:
-                return boolean_and(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return boolean_and(v1, v2);
             case BoolOr:
-                return boolean_or(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return boolean_or(v1, v2);
             case BoolNot:
-                return boolean_not(operand1.eval(repository, bindings));
+                return boolean_not(v1);
             case Equal:
-                return equals(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return equals(v1, v2);
             case NotEqual:
-                return different(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return different(v1, v2);
             case Less:
-                return lesser_than(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return lesser_than(v1, v2);
             case LessOrEqual:
-                return lesser_or_equal(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return lesser_or_equal(v1, v2);
             case Greater:
-                return greater_than(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return greater_than(v1, v2);
             case GreaterOrEqual:
-                return greater_or_equal(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return greater_or_equal(v1, v2);
             case Plus:
-                return plus(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return plus(v1, v2);
             case Minus:
-                return minus(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return minus(v1, v2);
             case Multiply:
-                return multiply(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return multiply(v1, v2);
             case Divide:
-                return divide(operand1.eval(repository, bindings), operand2.eval(repository, bindings));
+                return divide(v1, v2);
             case UnaryPlus:
-                return plus(operand1.eval(repository, bindings));
+                return plus(v1);
             case UnaryMinus:
-                return minus(operand1.eval(repository, bindings));
+                return minus(v1);
         }
         throw new EvalException("Unrecognized operator");
     }

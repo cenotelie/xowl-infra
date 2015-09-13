@@ -26,6 +26,10 @@ import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
 import org.xowl.store.rdf.VariableNode;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Represents the use of an RDF value in an expression
  *
@@ -61,5 +65,19 @@ public class ExpressionRDF implements Expression {
             return Utils.evaluateNative(repository, bindings, ((DynamicNode) result).getDynamicExpression());
         }
         return result;
+    }
+
+    @Override
+    public Object eval(Repository repository, Collection<QuerySolution> solutions) throws EvalException {
+        if (node == null)
+            throw new EvalException("The node cannot be null");
+        if (node.getNodeType() == Node.TYPE_VARIABLE || node.getNodeType() == Node.TYPE_DYNAMIC) {
+            List<Object> results = new ArrayList<>();
+            for (QuerySolution solution : solutions)
+                results.add(eval(repository, solution));
+            return results;
+        } else {
+            return node;
+        }
     }
 }
