@@ -20,15 +20,12 @@
 
 package org.xowl.store.generators;
 
-import org.junit.Assert;
-import org.junit.Test;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;
 import org.xowl.store.TestLogger;
 import org.xowl.store.Vocabulary;
 import org.xowl.utils.collections.Couple;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +43,6 @@ public class SPARQLTestSuiteGenerator {
     /**
      * Generates the SPARQL test suite
      */
-    @Test
     public void generate() {
         TestLogger logger = new TestLogger();
         Repository repository = new Repository();
@@ -69,6 +65,22 @@ public class SPARQLTestSuiteGenerator {
         repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/move/manifest.ttl");
         repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/update-silent/manifest.ttl");
 
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/aggregates/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/bind/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/bindings/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/construct/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/csv-tsv-res/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/exists/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/grouping/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/json-res/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/negation/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/project-expression/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/property-path/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/service/manifest.ttl");
+        repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/subquery/manifest.ttl");
+
         ProxyObject classTestCase = repository.resolveProxy("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest11");
         for (ProxyObject test : classTestCase.getInstances())
             generateCodePositiveSyntax(test);
@@ -81,9 +93,16 @@ public class SPARQLTestSuiteGenerator {
         classTestCase = repository.resolveProxy("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest");
         for (ProxyObject test : classTestCase.getInstances())
             generateCodeNegativeSyntax(test);
+
         classTestCase = repository.resolveProxy("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#UpdateEvaluationTest");
         for (ProxyObject test : classTestCase.getInstances())
             generateCodeUpdateEvaluation(test);
+        classTestCase = repository.resolveProxy("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#QueryEvaluationTest");
+        for (ProxyObject test : classTestCase.getInstances())
+            generateCodeQueryEvaluation(test);
+        classTestCase = repository.resolveProxy("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#CSVResultFormatTest");
+        for (ProxyObject test : classTestCase.getInstances())
+            generateCodeQueryEvaluation(test);
     }
 
     /**
@@ -175,6 +194,41 @@ public class SPARQLTestSuiteGenerator {
             builder.append(")");
         }
         builder.append(" }); }");
+        System.out.println(builder.toString());
+    }
+
+    /**
+     * Generates the code for the specified query evaluation test
+     *
+     * @param test A test specification
+     */
+    private void generateCodeQueryEvaluation(ProxyObject test) {
+        String name = getName((String) test.getDataValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#name"));
+        ProxyObject action = test.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action");
+        ProxyObject result = test.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result");
+
+        String request = action.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-query#query").getIRIString();
+        List<String> initialData = new ArrayList<>();
+        for (ProxyObject data : action.getObjectValues("http://www.w3.org/2001/sw/DataAccess/tests/test-query#data"))
+            initialData.add(data.getIRIString());
+        for (ProxyObject data : action.getObjectValues("http://www.w3.org/2001/sw/DataAccess/tests/test-query#graphData"))
+            initialData.add(data.getIRIString());
+
+        StringBuilder builder = new StringBuilder("@Test public void testQueryEvaluation_");
+        builder.append(name);
+        builder.append("() { testQueryEvaluation(\"");
+        builder.append(request);
+        builder.append("\", new String[] { ");
+        for (int i = 0; i != initialData.size(); i++) {
+            if (i != 0)
+                builder.append(", ");
+            builder.append("\"");
+            builder.append(initialData.get(i));
+            builder.append("\"");
+        }
+        builder.append(" }, \"");
+        builder.append(result.getIRIString());
+        builder.append("\"); }");
         System.out.println(builder.toString());
     }
 

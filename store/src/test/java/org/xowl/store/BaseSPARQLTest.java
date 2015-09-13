@@ -117,7 +117,41 @@ public abstract class BaseSPARQLTest {
         }
         Result result = before.execute(logger, request);
         Assert.assertFalse("Error while executing the request", logger.isOnError());
+        Assert.assertFalse("Error while executing the request", result.isSuccess());
         W3CTestSuite.matchesQuads(getQuads(after), getQuads(before));
+    }
+
+    /**
+     * Tests the correct execution of an query request
+     *
+     * @param resource The resource containing the request
+     * @param inputs   The data before the request's execution
+     */
+    protected void testQueryEvaluation(String resource, String[] inputs, String output) {
+        /*TestLogger logger = new TestLogger();
+        Repository before = prepare(logger, inputs);
+        Assert.assertFalse("Failed to prepare the repository", logger.isOnError());
+        String request = before.getIRIMapper().get(resource);
+        request = request.substring(AbstractRepository.SCHEME_RESOURCE.length());
+        try (InputStream stream = BaseSPARQLTest.class.getResourceAsStream(request)) {
+            InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
+            char[] buffer = new char[1024];
+            StringBuilder builder = new StringBuilder();
+            int read = reader.read(buffer);
+            while (read > 0) {
+                builder.append(buffer, 0, read);
+                read = reader.read(buffer);
+            }
+            request = builder.toString();
+        } catch (IOException exception) {
+            Assert.fail(exception.getMessage());
+        }
+        Result result = before.execute(logger, request);
+        Assert.assertFalse("Error while executing the request", logger.isOnError());
+        Assert.assertFalse("Error while executing the request", result.isSuccess());
+
+
+        W3CTestSuite.matchesQuads(getQuads(after), getQuads(before));*/
     }
 
     /**
