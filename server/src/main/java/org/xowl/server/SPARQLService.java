@@ -23,10 +23,7 @@ package org.xowl.server;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.Repository;
 import org.xowl.store.loaders.SPARQLLoader;
-import org.xowl.store.sparql.Command;
-import org.xowl.store.sparql.Result;
-import org.xowl.store.sparql.ResultQuads;
-import org.xowl.store.sparql.ResultSuccess;
+import org.xowl.store.sparql.*;
 import org.xowl.utils.Logger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -162,7 +159,7 @@ public class SPARQLService extends Service {
             response.setStatus(400);
             return;
         }
-        Result result = ResultSuccess.INSTANCE;
+        Result result = ResultFailure.INSTANCE;
         for (Command command : commands) {
             result = command.execute(repository);
             if (result.isFailure()) {

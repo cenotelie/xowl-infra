@@ -250,11 +250,11 @@ public class Repository extends AbstractRepository {
         List<Command> commands = loader.load(logger, new StringReader(sparql));
         if (commands == null)
             return ResultFailure.INSTANCE;
-        Result result = ResultSuccess.INSTANCE;
+        Result result = ResultFailure.INSTANCE;
         for (Command command : commands) {
-            Result temp = command.execute(this);
-            if (temp.isFailure())
-                result = temp;
+            result = command.execute(this);
+            if (result.isFailure())
+                break;
         }
         return result;
     }
