@@ -721,11 +721,11 @@ public class ExpressionOperator implements Expression {
             if (isNumInteger(right)) {
                 long l1 = integer(left);
                 long l2 = integer(right);
-                return l1 / l2;
+                return l2 == 0 ? new EvalException("Divide by 0") : l1 / l2;
             } else if (isNumDecimal(right)) {
                 long l1 = integer(left);
                 double l2 = decimal(right);
-                return l1 / l2;
+                return l2 == 0 ? new EvalException("Divide by 0") : l1 / l2;
             } else {
                 throw new EvalException("Type error");
             }
@@ -734,11 +734,11 @@ public class ExpressionOperator implements Expression {
             if (isNumInteger(right)) {
                 double l1 = decimal(left);
                 long l2 = integer(right);
-                return l1 / l2;
+                return l2 == 0 ? new EvalException("Divide by 0") : l1 / l2;
             } else if (isNumDecimal(right)) {
                 double l1 = decimal(left);
                 double l2 = decimal(right);
-                return l1 / l2;
+                return l2 == 0 ? new EvalException("Divide by 0") : l1 / l2;
             } else {
                 throw new EvalException("Type error");
             }

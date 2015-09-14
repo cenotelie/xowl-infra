@@ -21,6 +21,7 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
+import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.rdf.Utils;
 
@@ -174,14 +175,14 @@ public class ExpressionFunctionCall implements Expression {
                 throw new EvalException("STRDT requires 2 arguments");
             Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(repository, bindings));
             Object v2 = ExpressionOperator.primitive(arguments.get(1).eval(repository, bindings));
-            return repository.getStore().getLiteralNode(v1.toString(), v2.toString(), null);
+            return repository.getStore().getLiteralNode(v1 == null ? "" : v1.toString(), v2 == null ? Vocabulary.xsdString : v2.toString(), null);
         }
         if (iri.equalsIgnoreCase("STRLANG")) {
             if (arguments.size() < 1)
                 throw new EvalException("STRLANG requires 2 arguments");
             Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(repository, bindings));
             Object v2 = ExpressionOperator.primitive(arguments.get(1).eval(repository, bindings));
-            return repository.getStore().getLiteralNode(v1.toString(), null, v2.toString());
+            return repository.getStore().getLiteralNode(v1 == null ? "" : v1.toString(), null, v2 == null ? null : v2.toString());
         }
         if (iri.equalsIgnoreCase("UUID")) {
             String value = "urn:uuid:" + UUID.randomUUID().toString();

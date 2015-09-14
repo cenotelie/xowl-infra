@@ -322,20 +322,20 @@ class Utils {
                     if (item2 != null)
                         return isDescending ? 1 : -1;
                     return 0;
-                } else if (item2 == null) {
+                } else if (item2.y == null) {
                     return isDescending ? -1 : 1;
                 } else {
                     return isDescending ? item2.y.compareTo(item1.y) : item1.y.compareTo(item2.y);
                 }
             }
         });
-        if (ci == conditions.size())
+        if (ci + 1 == conditions.size())
             return;
         final Expression expression = conditions.get(ci + 1).x;
-        double current = buffer[first].y;
+        Double current = buffer[first].y;
         int indexCurrent = first;
         for (int i = first; i != last; i++) {
-            if (buffer[i].y != current) {
+            if (!Objects.equals(buffer[i].y, current)) {
                 // difference with the previous value
                 orderByComputeKey(buffer, indexCurrent, i, expression, repository);
                 orderBy(buffer, indexCurrent, i, conditions, ci + 1, repository);
@@ -389,16 +389,20 @@ class Utils {
         for (QuerySolution solution : solutions) {
             List<Couple<VariableNode, Node>> bindings = new ArrayList<>();
             for (Couple<VariableNode, Expression> projector : projection) {
-                Object value = null;
-                try {
-                    value = projector.y.eval(repository, solution);
-                    if (value instanceof ExpressionErrorValue)
-                        value = null;
-                } catch (EvalException exception) {
-                    // do nothing
+                if (projector.y != null) {
+                    Object value = null;
+                    try {
+                        value = projector.y.eval(repository, solution);
+                        if (value instanceof ExpressionErrorValue)
+                            value = null;
+                    } catch (EvalException exception) {
+                        // do nothing
+                    }
+                    Node valueNode = ExpressionOperator.rdf(value, repository);
+                    bindings.add(new Couple<>(projector.x, valueNode));
+                } else {
+                    bindings.add(new Couple<>(projector.x, solution.get(projector.x)));
                 }
-                Node valueNode = ExpressionOperator.rdf(value, repository);
-                bindings.add(new Couple<>(projector.x, valueNode));
             }
             result.add(new QuerySolution(bindings));
         }

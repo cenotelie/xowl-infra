@@ -73,8 +73,10 @@ class SolutionsGroup implements Solutions {
         @Override
         public int size() {
             int acc = (content != null ? content.size() : 0);
-            for (Group sub : subGroups)
-                acc += sub.size();
+            if (subGroups != null) {
+                for (Group sub : subGroups)
+                    acc += sub.size();
+            }
             return acc;
         }
 
@@ -83,13 +85,18 @@ class SolutionsGroup implements Solutions {
             List<Iterator<QuerySolution>> iterators = new ArrayList<>();
             if (content != null)
                 iterators.add(content.iterator());
-            for (Group sub : subGroups)
-                iterators.add(sub.iterator());
+            if (subGroups != null) {
+                for (Group sub : subGroups)
+                    iterators.add(sub.iterator());
+            }
             if (iterators.isEmpty())
                 return new SingleIterator<>(null);
             if (iterators.size() == 1)
                 return iterators.get(0);
-            return new ConcatenatedIterator<>((Iterator<QuerySolution>[]) iterators.toArray());
+            Iterator<QuerySolution>[] buffer = new Iterator[iterators.size()];
+            for (int i = 0; i != iterators.size(); i++)
+                buffer[i] = iterators.get(i);
+            return new ConcatenatedIterator<>(buffer);
         }
 
         /**

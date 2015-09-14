@@ -290,7 +290,6 @@ public class Datatypes {
             try {
                 return SimpleDateFormat.getDateInstance().parse(lexical);
             } catch (ParseException exception) {
-                exception.printStackTrace();
                 return null;
             }
         }
