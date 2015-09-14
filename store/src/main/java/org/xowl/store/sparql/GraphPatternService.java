@@ -22,10 +22,6 @@ package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.QuerySolution;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * A graph pattern to be matched by an distant SPARQL endpoint
@@ -66,10 +62,10 @@ public class GraphPatternService implements GraphPattern {
     }
 
     @Override
-    public Collection<QuerySolution> match(final Repository repository) throws EvalException {
+    public Solutions match(final Repository repository) throws EvalException {
         // not implemented yet
         if (isSilent)
-            return new ArrayList<>();
+            return new SolutionsMultiset(0);
         throw new EvalException("SERVICE is not supported");
     }
 }

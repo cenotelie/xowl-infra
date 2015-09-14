@@ -23,7 +23,8 @@ package org.xowl.store.sparql;
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.QuerySolution;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A SPARQL expression verifying whether a graph pattern exists
@@ -47,13 +48,16 @@ public class ExpressionExists implements Expression {
 
     @Override
     public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
-        Collection<QuerySolution> result = pattern.match(repository);
-        return !result.isEmpty();
+        // TODO: substitute variables in the child pattern
+        Solutions result = pattern.match(repository);
+        return result.size() > 0;
     }
 
     @Override
-    public Object eval(Repository repository, Collection<QuerySolution> solutions) throws EvalException {
-        Collection<QuerySolution> result = pattern.match(repository);
-        return !result.isEmpty();
+    public Object eval(Repository repository, Solutions solutions) throws EvalException {
+        List<Object> result = new ArrayList<>(solutions.size());
+        for (QuerySolution solution : solutions)
+            result.add(eval(repository, solution));
+        return result;
     }
 }

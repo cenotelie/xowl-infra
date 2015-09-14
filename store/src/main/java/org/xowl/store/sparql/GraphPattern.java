@@ -21,9 +21,6 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.QuerySolution;
-
-import java.util.Collection;
 
 /**
  * Represents a pattern of RDF graphs
@@ -38,5 +35,5 @@ public interface GraphPattern {
      * @return The solutions
      * @throws EvalException When an error occurs during the evaluation
      */
-    Collection<QuerySolution> match(Repository repository) throws EvalException;
+    Solutions match(Repository repository) throws EvalException;
 }

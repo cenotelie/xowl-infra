@@ -23,35 +23,41 @@ package org.xowl.store.sparql;
 import org.xowl.store.Repository;
 
 /**
- * A graph pattern represented as the restriction of one by another
+ * A graph pattern as the left join of two other patterns
  *
  * @author Laurent Wouters
  */
-public class GraphPatternMinus implements GraphPattern {
+public class GraphPatternLeftJoin implements GraphPattern {
     /**
-     * The restricted pattern
+     * The pattern on the left
      */
-    private final GraphPattern original;
+    private final GraphPattern left;
     /**
-     * The restricting pattern
+     * The pattern on the right
      */
-    private final GraphPattern restricting;
+    private final GraphPattern right;
+    /**
+     * The expression for this join
+     */
+    private final Expression expression;
 
     /**
      * Initializes this graph pattern
      *
-     * @param original    The restricted pattern
-     * @param restricting The restricting pattern
+     * @param left       The pattern on the left
+     * @param right      The pattern on the right
+     * @param expression The expression for this join
      */
-    public GraphPatternMinus(GraphPattern original, GraphPattern restricting) {
-        this.original = original;
-        this.restricting = restricting;
+    public GraphPatternLeftJoin(GraphPattern left, GraphPattern right, Expression expression) {
+        this.left = left;
+        this.right = right;
+        this.expression = expression;
     }
 
     @Override
     public Solutions match(final Repository repository) throws EvalException {
-        Solutions originalSolutions = original.match(repository);
-        Solutions restrictingSolutions = restricting.match(repository);
-        return Utils.minus(originalSolutions, restrictingSolutions);
+        Solutions leftSolutions = left.match(repository);
+        Solutions rightSolutions = right.match(repository);
+        return Utils.leftJoin(leftSolutions, rightSolutions, expression, repository);
     }
 }

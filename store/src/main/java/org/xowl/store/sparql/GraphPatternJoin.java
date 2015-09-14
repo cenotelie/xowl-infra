@@ -21,9 +21,6 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.QuerySolution;
-
-import java.util.Collection;
 
 /**
  * A graph pattern as the join of two other patterns
@@ -52,9 +49,9 @@ public class GraphPatternJoin implements GraphPattern {
     }
 
     @Override
-    public Collection<QuerySolution> match(final Repository repository) throws EvalException {
-        Collection<QuerySolution> leftSolutions = left.match(repository);
-        Collection<QuerySolution> rightSolutions = right.match(repository);
+    public Solutions match(final Repository repository) throws EvalException {
+        Solutions leftSolutions = left.match(repository);
+        Solutions rightSolutions = right.match(repository);
         return Utils.join(leftSolutions, rightSolutions);
     }
 }

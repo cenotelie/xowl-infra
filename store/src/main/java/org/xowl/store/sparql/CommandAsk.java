@@ -21,9 +21,6 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.QuerySolution;
-
-import java.util.Collection;
 
 /**
  * Represents the SPARQL ASK command.
@@ -50,8 +47,8 @@ public class CommandAsk implements Command {
     @Override
     public Result execute(Repository repository) {
         try {
-            Collection<QuerySolution> solutions = pattern.match(repository);
-            return new ResultYesNo(!solutions.isEmpty());
+            Solutions solutions = pattern.match(repository);
+            return new ResultYesNo(solutions.size() > 0);
         } catch (EvalException exception) {
             return new ResultFailure(exception.getMessage());
         }

@@ -91,7 +91,7 @@ public class CommandModify implements Command {
     @Override
     public Result execute(Repository repository) {
         try {
-            Collection<QuerySolution> solutions = where.match(repository);
+            Solutions solutions = where.match(repository);
             Collection<Quad> toInsert = new ArrayList<>();
             Collection<Quad> toRemove = new ArrayList<>();
             for (QuerySolution solution : solutions) {

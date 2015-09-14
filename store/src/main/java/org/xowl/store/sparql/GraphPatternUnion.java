@@ -47,10 +47,11 @@ public class GraphPatternUnion implements GraphPattern {
     }
 
     @Override
-    public Collection<QuerySolution> match(final Repository repository) throws EvalException {
-        Collection<QuerySolution> result = new ArrayList<>();
+    public Solutions match(final Repository repository) throws EvalException {
+        SolutionsMultiset result = new SolutionsMultiset();
         for (GraphPattern element : elements)
-            result.addAll(element.match(repository));
+            for (QuerySolution solution : element.match(repository))
+                result.add(solution);
         return result;
     }
 }

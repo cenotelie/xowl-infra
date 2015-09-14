@@ -21,13 +21,10 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.QuerySolution;
 import org.xowl.store.rdf.VariableNode;
 import org.xowl.utils.collections.Couple;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -99,38 +96,12 @@ public class GraphPatternSelect implements GraphPattern {
     }
 
     @Override
-    public Collection<QuerySolution> match(final Repository repository) throws EvalException {
-        Collection<QuerySolution> originals = where.match(repository);
-
-        if (!projection.isEmpty()) {
-            Collection<QuerySolution> result = new ArrayList<>();
-            for (QuerySolution original : originals) {
-                List<Couple<VariableNode, Node>> bindings = new ArrayList<>();
-                for (Couple<VariableNode, Expression> projected : projection) {
-                    if (projected.y == null)
-                        bindings.add(new Couple<>(projected.x, original.get(projected.x)));
-                    else {
-                        Node value = Utils.evaluateRDF(repository, original, projected.y);
-                        bindings.add(new Couple<>(projected.x, value));
-                    }
-                }
-                result.add(new QuerySolution(bindings));
-            }
-            originals = result;
-        }
-
-        if (isDistinct || isReduced) {
-            Collection<QuerySolution> result = new ArrayList<>();
-            for (QuerySolution solution : originals)
-                if (!result.contains(solution))
-                    result.add(solution);
-            originals = result;
-        }
-
-        originals = modifier != null ? modifier.apply(originals) : originals;
-        if (values != null)
-            originals.addAll(values.match(repository));
-
-        return originals;
+    public Solutions match(final Repository repository) throws EvalException {
+        Solutions solutions = where.match(repository);
+        solutions = modifier != null ? modifier.apply(solutions, repository) : solutions;
+        solutions = (isDistinct || isReduced) ? Utils.distinct(solutions) : solutions;
+        solutions = (values != null) ? Utils.join(solutions, values.match(repository)) : solutions;
+        solutions = (!projection.isEmpty()) ? Utils.project(solutions, projection, repository) : solutions;
+        return solutions;
     }
 }

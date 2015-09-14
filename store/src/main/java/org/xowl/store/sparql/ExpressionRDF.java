@@ -27,7 +27,6 @@ import org.xowl.store.rdf.QuerySolution;
 import org.xowl.store.rdf.VariableNode;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -53,12 +52,12 @@ public class ExpressionRDF implements Expression {
     @Override
     public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
         if (node == null)
-            throw new EvalException("The node cannot be null");
+            return null;
         Node result = node;
         if (result.getNodeType() == Node.TYPE_VARIABLE) {
             Node value = bindings.get((VariableNode) result);
             if (value == null)
-                throw new EvalException("Unbound variable " + ((VariableNode) result).getName());
+                return new ExpressionErrorValue("Unbound variable " + ((VariableNode) result).getName());
             result = value;
         }
         if (result.getNodeType() == Node.TYPE_DYNAMIC && repository.getEvaluator() != null) {
@@ -68,16 +67,10 @@ public class ExpressionRDF implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, Collection<QuerySolution> solutions) throws EvalException {
-        if (node == null)
-            throw new EvalException("The node cannot be null");
-        if (node.getNodeType() == Node.TYPE_VARIABLE || node.getNodeType() == Node.TYPE_DYNAMIC) {
-            List<Object> results = new ArrayList<>();
-            for (QuerySolution solution : solutions)
-                results.add(eval(repository, solution));
-            return results;
-        } else {
-            return node;
-        }
+    public Object eval(Repository repository, Solutions solutions) throws EvalException {
+        List<Object> result = new ArrayList<>(solutions.size());
+        for (QuerySolution solution : solutions)
+            result.add(eval(repository, solution));
+        return result;
     }
 }

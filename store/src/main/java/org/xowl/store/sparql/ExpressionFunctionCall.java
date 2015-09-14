@@ -232,7 +232,7 @@ public class ExpressionFunctionCall implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, Collection<QuerySolution> solutions) throws EvalException {
+    public Object eval(Repository repository, Solutions solutions) throws EvalException {
         /*
           'COUNT' '(' 'DISTINCT'? ( '*' | Expression ) ')'
 | 'SUM' '(' 'DISTINCT'? Expression ')'
@@ -244,7 +244,7 @@ public class ExpressionFunctionCall implements Expression {
          */
 
 
-        if (iri.equalsIgnoreCase("COUNT")) {
+        /*if (iri.equalsIgnoreCase("COUNT")) {
             if (arguments.isEmpty()) {
                 if (isDistinct)
                     return getDistincts(solutions).size();
@@ -289,11 +289,13 @@ public class ExpressionFunctionCall implements Expression {
         List<Object> results = new ArrayList<>(solutions.size());
         for (QuerySolution solution : solutions)
             results.add(eval(repository, solution));
-        return results;
+        return results;*/
+        return null;
     }
 
     /**
      * Gets the distinct values
+     *
      * @param originals The original values
      * @return The distinct values
      */

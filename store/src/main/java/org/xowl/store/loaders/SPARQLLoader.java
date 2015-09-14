@@ -950,7 +950,12 @@ public class SPARQLLoader {
                 }
                 case SPARQLParser.ID.graph_pattern_optional: {
                     GraphPattern inner = loadGraphPattern(currentContext, graph, child.getChildren().get(0));
-                    current = new GraphPatternOptional(current == null ? base : current, inner);
+                    if (inner instanceof GraphPatternFilter) {
+                        GraphPatternFilter filter = (GraphPatternFilter) inner;
+                        current = new GraphPatternLeftJoin(current == null ? base : current, filter.getInner(), filter.getExpression());
+                    } else {
+                        current = new GraphPatternLeftJoin(current == null ? base : current, inner, new ExpressionConstant(true));
+                    }
                     break;
                 }
                 case SPARQLParser.ID.graph_pattern_minus: {

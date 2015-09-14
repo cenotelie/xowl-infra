@@ -20,38 +20,18 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.store.Repository;
+import org.xowl.store.rdf.QuerySolution;
 
 /**
- * A graph pattern represented as the restriction of one by another
+ * A set of SPARQL solutions
  *
  * @author Laurent Wouters
  */
-public class GraphPatternMinus implements GraphPattern {
+public interface Solutions extends Iterable<QuerySolution> {
     /**
-     * The restricted pattern
-     */
-    private final GraphPattern original;
-    /**
-     * The restricting pattern
-     */
-    private final GraphPattern restricting;
-
-    /**
-     * Initializes this graph pattern
+     * Gets the number of solutions in this set
      *
-     * @param original    The restricted pattern
-     * @param restricting The restricting pattern
+     * @return The number of solutions
      */
-    public GraphPatternMinus(GraphPattern original, GraphPattern restricting) {
-        this.original = original;
-        this.restricting = restricting;
-    }
-
-    @Override
-    public Solutions match(final Repository repository) throws EvalException {
-        Solutions originalSolutions = original.match(repository);
-        Solutions restrictingSolutions = restricting.match(repository);
-        return Utils.minus(originalSolutions, restrictingSolutions);
-    }
+    int size();
 }

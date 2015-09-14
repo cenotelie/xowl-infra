@@ -21,10 +21,6 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
-import org.xowl.store.rdf.QuerySolution;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * A graph pattern represented as the filtering of another one
@@ -42,6 +38,24 @@ public class GraphPatternFilter implements GraphPattern {
     private final Expression expression;
 
     /**
+     * Gets the inner pattern
+     *
+     * @return The inner pattern
+     */
+    public GraphPattern getInner() {
+        return origin;
+    }
+
+    /**
+     * Gets the boolean expression used for filtering
+     *
+     * @return The boolean expression used for filtering
+     */
+    public Expression getExpression() {
+        return expression;
+    }
+
+    /**
      * Initializes this graph pattern
      *
      * @param origin     The inner pattern
@@ -53,17 +67,7 @@ public class GraphPatternFilter implements GraphPattern {
     }
 
     @Override
-    public Collection<QuerySolution> match(final Repository repository) throws EvalException {
-        if (origin != null) {
-            Collection<QuerySolution> originalSolutions = origin.match(repository);
-            Collection<QuerySolution> result = new ArrayList<>(originalSolutions.size());
-            for (QuerySolution solution : originalSolutions) {
-                if (Utils.evaluateNativeBoolean(repository, solution, expression))
-                    result.add(solution);
-            }
-            return result;
-        } else {
-            return new ArrayList<>();
-        }
+    public Solutions match(final Repository repository) throws EvalException {
+        return Utils.filter(origin.match(repository), expression, repository);
     }
 }

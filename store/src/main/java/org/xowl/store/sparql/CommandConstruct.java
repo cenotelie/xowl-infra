@@ -26,7 +26,6 @@ import org.xowl.store.rdf.QuerySolution;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Represents the SPARQL CONSTRUCT command.
@@ -61,7 +60,7 @@ public class CommandConstruct implements Command {
     @Override
     public Result execute(Repository repository) {
         try {
-            Collection<QuerySolution> solutions = pattern.match(repository);
+            Solutions solutions = pattern.match(repository);
             Collection<Quad> quads = new ArrayList<>();
             for (QuerySolution solution : solutions)
                 Utils.instantiate(repository, solution, template, quads);

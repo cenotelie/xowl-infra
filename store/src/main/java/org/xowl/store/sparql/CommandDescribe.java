@@ -91,7 +91,7 @@ public class CommandDescribe implements Command {
                 for (String iri : iris)
                     describe(repository, repository.getStore().getIRINode(iri), buffer);
             } else {
-                Collection<QuerySolution> solutions = pattern.match(repository);
+                Solutions solutions = pattern.match(repository);
                 List<SubjectNode> explored = new ArrayList<>();
                 for (QuerySolution solution : solutions) {
                     for (VariableNode variable : variables) {

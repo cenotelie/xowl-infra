@@ -20,40 +20,32 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.store.Repository;
-import org.xowl.store.rdf.QuerySolution;
-
-import java.util.Collection;
-
 /**
- * A graph pattern with an optional part
+ * Represents an error in the evaluation of a SPARQL expression
  *
  * @author Laurent Wouters
  */
-public class GraphPatternOptional implements GraphPattern {
+class ExpressionErrorValue {
     /**
-     * The mandatory part of the pattern
+     * The error message
      */
-    private final GraphPattern mandatory;
-    /**
-     * The optional part of the pattern
-     */
-    private final GraphPattern optional;
+    private final String message;
 
     /**
-     * Initializes this graph pattern
+     * Gets the error message
      *
-     * @param mandatory The mandatory part of the pattern
-     * @param optional  The optional part of the pattern
+     * @return The error message
      */
-    public GraphPatternOptional(GraphPattern mandatory, GraphPattern optional) {
-        this.mandatory = mandatory;
-        this.optional = optional;
+    public String getMessage() {
+        return message;
     }
 
-    @Override
-    public Collection<QuerySolution> match(final Repository repository) throws EvalException {
-        // not implemented yet
-        throw new EvalException("OPTIONAL is not supported");
+    /**
+     * Initializes this error value
+     *
+     * @param message The error message
+     */
+    public ExpressionErrorValue(String message) {
+        this.message = message;
     }
 }

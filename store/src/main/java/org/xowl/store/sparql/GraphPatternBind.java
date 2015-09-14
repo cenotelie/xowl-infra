@@ -27,7 +27,6 @@ import org.xowl.store.rdf.VariableNode;
 import org.xowl.utils.collections.Couple;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * A graph pattern represented by the explicit binding of a variable
@@ -62,21 +61,16 @@ public class GraphPatternBind implements GraphPattern {
     }
 
     @Override
-    public Collection<QuerySolution> match(final Repository repository) throws EvalException {
+    public Solutions match(final Repository repository) throws EvalException {
         if (origin != null) {
-            Collection<QuerySolution> originalSolutions = origin.match(repository);
-            Collection<QuerySolution> result = new ArrayList<>(originalSolutions.size());
-            for (QuerySolution solution : originalSolutions) {
-                Node value = Utils.evaluateRDF(repository, solution, expression);
-                result.add(new QuerySolution(solution, variable, value));
-            }
-            return result;
+            Solutions originalSolutions = origin.match(repository);
+            return Utils.extend(originalSolutions, variable, expression, repository);
         } else {
-            Node value = Utils.evaluateRDF(repository, null, expression);
+            Node value = ExpressionOperator.rdf(expression.eval(repository, (QuerySolution) null), repository);
             ArrayList<Couple<VariableNode, Node>> bindings = new ArrayList<>();
             bindings.add(new Couple<>(variable, value));
             QuerySolution solution = new QuerySolution(bindings);
-            Collection<QuerySolution> result = new ArrayList<>(1);
+            SolutionsMultiset result = new SolutionsMultiset(1);
             result.add(solution);
             return result;
         }

@@ -24,7 +24,6 @@ import org.xowl.store.Repository;
 import org.xowl.store.rdf.QuerySolution;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -65,8 +64,8 @@ public class ExpressionIn implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, Collection<QuerySolution> solutions) throws EvalException {
-        List<Object> result = new ArrayList<>();
+    public Object eval(Repository repository, Solutions solutions) throws EvalException {
+        List<Object> result = new ArrayList<>(solutions.size());
         for (QuerySolution solution : solutions)
             result.add(eval(repository, solution));
         return result;

@@ -47,7 +47,7 @@ public class GraphPatternInlineData implements GraphPattern {
     }
 
     @Override
-    public Collection<QuerySolution> match(final Repository repository) throws EvalException {
-        return data;
+    public Solutions match(final Repository repository) throws EvalException {
+        return new SolutionsMultiset(data);
     }
 }

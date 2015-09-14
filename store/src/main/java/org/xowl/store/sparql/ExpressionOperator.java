@@ -26,8 +26,12 @@ import org.xowl.store.rdf.LiteralNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
 import org.xowl.store.rdf.Utils;
+import org.xowl.utils.collections.Couple;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents an operator in an expression
@@ -88,34 +92,11 @@ public class ExpressionOperator implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, Collection<QuerySolution> solutions) throws EvalException {
-        Object v1 = operand1.eval(repository, solutions);
-        Object v2 = operand2 == null ? null : operand2.eval(repository, solutions);
-        if (v1 instanceof Collection) {
-            Collection<Object> c1 = (Collection<Object>) v1;
-            List<Object> results = new ArrayList<>(c1.size());
-            if (v2 != null && v2 instanceof Collection) {
-                Collection<Object> c2 = (Collection<Object>) v2;
-                if (c1.size() != c2.size())
-                    throw new EvalException("Cardinality error");
-                Iterator<Object> i1 = c1.iterator();
-                Iterator<Object> i2 = c2.iterator();
-                while (i1.hasNext())
-                    results.add(apply(i1.next(), i2.next()));
-            } else {
-                for (Object p1 : c1)
-                    results.add(apply(p1, v2));
-            }
-            return results;
-        } else if (v2 != null && v2 instanceof Collection) {
-            Collection<Object> c2 = (Collection<Object>) v2;
-            List<Object> results = new ArrayList<>(c2.size());
-            for (Object p2 : c2)
-                results.add(apply(v1, p2));
-            return results;
-        } else {
-            return apply(v1, v2);
-        }
+    public Object eval(Repository repository, Solutions solutions) throws EvalException {
+        List<Object> result = new ArrayList<>(solutions.size());
+        for (QuerySolution solution : solutions)
+            result.add(eval(repository, solution));
+        return result;
     }
 
     /**
@@ -168,15 +149,35 @@ public class ExpressionOperator implements Expression {
      * @return The primitive equivalent
      */
     public static Object primitive(Object value) throws EvalException {
+        if (value == null)
+            return null;
         if (value instanceof Node) {
             Node node = (Node) value;
             if (node.getNodeType() == Node.TYPE_LITERAL) {
                 return Datatypes.toNative((LiteralNode) node);
             } else {
-                throw new EvalException("RDF node other than literals cannot be coerced");
+                return new ExpressionErrorValue("RDF node other than literals cannot be coerced");
             }
         }
         return value;
+    }
+
+    /**
+     * Coerce an expression to a RDF value
+     *
+     * @param value      An expression's value
+     * @param repository The current repository
+     * @return The RDF node equivalent
+     */
+    public static Node rdf(Object value, Repository repository) {
+        if (value == null)
+            return null;
+        if (value instanceof ExpressionErrorValue)
+            return null;
+        if (value instanceof Node)
+            return ((Node) value);
+        Couple<String, String> literalData = Datatypes.toLiteral(repository);
+        return repository.getStore().getLiteralNode(literalData.x, literalData.y, null);
     }
 
     /**
@@ -190,11 +191,13 @@ public class ExpressionOperator implements Expression {
             return false;
         if (value instanceof Boolean)
             return (Boolean) value;
+        if (value instanceof ExpressionErrorValue)
+            return false;
         if (isNumInteger(value))
             return integer(value) != 0;
         if (isNumDecimal(value))
             return decimal(value) != 0;
-        throw new EvalException("Failed to coerce value of type " + value.getClass().toString() + " to boolean");
+        return false;
     }
 
     /**

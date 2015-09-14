@@ -26,7 +26,6 @@ import org.xowl.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * A graph pattern represented by a template of quads
@@ -74,12 +73,14 @@ public class GraphPatternQuads implements GraphPattern {
     }
 
     @Override
-    public Collection<QuerySolution> match(final Repository repository) throws EvalException {
+    public Solutions match(final Repository repository) throws EvalException {
         if (query.getPositives().isEmpty() && query.getNegatives().isEmpty()) {
             // for an empty query return a single solution with no binding
             // this is because an empty match pattern matches all graphs, including the empty one
-            return Collections.singletonList(new QuerySolution(new ArrayList<Couple<VariableNode, Node>>()));
+            SolutionsMultiset result = new SolutionsMultiset(1);
+            result.add(new QuerySolution(new ArrayList<Couple<VariableNode, Node>>()));
+            return result;
         }
-        return repository.getRDFQueryEngine().execute(query);
+        return new SolutionsMultiset(repository.getRDFQueryEngine().execute(query));
     }
 }

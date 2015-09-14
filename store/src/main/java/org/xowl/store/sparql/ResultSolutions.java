@@ -26,8 +26,6 @@ import org.xowl.store.rdf.*;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,15 +37,15 @@ public class ResultSolutions implements Result {
     /**
      * The solutions
      */
-    private final Collection<QuerySolution> solutions;
+    private final Solutions solutions;
 
     /**
      * Gets the solutions
      *
      * @return The solutions
      */
-    public Collection<QuerySolution> getSolutions() {
-        return Collections.unmodifiableCollection(solutions);
+    public Solutions getSolutions() {
+        return solutions;
     }
 
     /**
@@ -55,7 +53,7 @@ public class ResultSolutions implements Result {
      *
      * @param solutions The solutions
      */
-    public ResultSolutions(Collection<QuerySolution> solutions) {
+    public ResultSolutions(Solutions solutions) {
         this.solutions = solutions;
     }
 

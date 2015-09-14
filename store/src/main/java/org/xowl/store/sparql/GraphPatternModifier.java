@@ -20,12 +20,11 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.store.rdf.QuerySolution;
+import org.xowl.store.Repository;
 import org.xowl.store.rdf.VariableNode;
 import org.xowl.utils.collections.Couple;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -100,7 +99,7 @@ public class GraphPatternModifier {
      * @param expression The expression used to derive the ordering key
      */
     public void addOrdering(Expression expression) {
-        order.add(new Couple<>(expression, true));
+        order.add(new Couple<>(expression, false));
     }
 
     /**
@@ -134,10 +133,24 @@ public class GraphPatternModifier {
     /**
      * Applies this modifier to the specified solution set
      *
-     * @param solutions The solution set
+     * @param solutions  The solution set
+     * @param repository The repository to evaluate on
      * @return The transformed solution set
      */
-    public Collection<QuerySolution> apply(Collection<QuerySolution> solutions) throws EvalException {
-        return solutions;
+    public Solutions apply(Solutions solutions, Repository repository) throws EvalException {
+        Solutions result = solutions;
+        if (!having.isEmpty()) {
+            Expression exp = having.get(0);
+            for (int i = 1; i != having.size(); i++)
+                exp = new ExpressionOperator(ExpressionOperator.Op.BoolAnd, exp, having.get(i));
+            result = Utils.filter(result, exp, repository);
+        }
+        if (!order.isEmpty())
+            result = Utils.orderBy(result, order, repository);
+        if (offset != 0 || limit != Integer.MAX_VALUE)
+            result = Utils.slice(result, offset, limit);
+        if (!groups.isEmpty())
+            result = Utils.group(result, groups, repository);
+        return result;
     }
 }
