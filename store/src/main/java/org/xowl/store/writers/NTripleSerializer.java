@@ -19,6 +19,7 @@
  ******************************************************************************/
 package org.xowl.store.writers;
 
+import org.xowl.store.loaders.Utils;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.Logger;
@@ -91,7 +92,7 @@ public class NTripleSerializer implements RDFSerializer {
         switch (node.getNodeType()) {
             case Node.TYPE_IRI: {
                 writer.write("<");
-                writer.write(((IRINode) node).getIRIValue());
+                writer.write(Utils.escape(((IRINode) node).getIRIValue()));
                 writer.write(">");
                 break;
             }
@@ -103,7 +104,7 @@ public class NTripleSerializer implements RDFSerializer {
             case Node.TYPE_LITERAL: {
                 LiteralNode literalNode = (LiteralNode) node;
                 writer.write("\"");
-                writer.write(literalNode.getLexicalValue());
+                writer.write(Utils.escape(literalNode.getLexicalValue()));
                 writer.write("\"");
                 String datatype = literalNode.getDatatype();
                 String langTag = literalNode.getLangTag();
@@ -112,7 +113,7 @@ public class NTripleSerializer implements RDFSerializer {
                     writer.write(langTag);
                 } else if (datatype != null) {
                     writer.write("^^<");
-                    writer.write(datatype);
+                    writer.write(Utils.escape(datatype));
                     writer.write(">");
                 }
                 break;

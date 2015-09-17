@@ -21,6 +21,7 @@
 package org.xowl.store.writers;
 
 import org.xowl.store.Vocabulary;
+import org.xowl.store.loaders.Utils;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.Logger;
@@ -81,7 +82,7 @@ public class TurtleSerializer extends StructuredSerializer {
             writer.write("@prefix ");
             writer.write(entry.getValue());
             writer.write(": <");
-            writer.write(entry.getKey());
+            writer.write(Utils.escape(entry.getKey()));
             writer.write("> .");
             writer.write(System.lineSeparator());
         }
@@ -100,7 +101,7 @@ public class TurtleSerializer extends StructuredSerializer {
     private void serializeTopLevel(SubjectNode subject, List<Quad> quads) throws IOException, UnsupportedNodeType {
         if (subject.getNodeType() == Node.TYPE_IRI) {
             writer.write("<");
-            writer.write(((IRINode) subject).getIRIValue());
+            writer.write(Utils.escape(((IRINode) subject).getIRIValue()));
             writer.write(">");
         } else {
             writer.write("_:n");
@@ -150,7 +151,7 @@ public class TurtleSerializer extends StructuredSerializer {
         switch (quad.getObject().getNodeType()) {
             case Node.TYPE_IRI:
                 writer.write("<");
-                writer.write(((IRINode) quad.getObject()).getIRIValue());
+                writer.write(Utils.escape(((IRINode) quad.getObject()).getIRIValue()));
                 writer.write(">");
                 break;
             case Node.TYPE_BLANK:
@@ -162,7 +163,7 @@ public class TurtleSerializer extends StructuredSerializer {
                 String datatype = ((LiteralNode) quad.getObject()).getDatatype();
                 String language = ((LiteralNode) quad.getObject()).getLangTag();
                 writer.write("\"");
-                writer.write(lexicalValue);
+                writer.write(Utils.escape(lexicalValue));
                 writer.write("\"");
                 if (language != null) {
                     writer.write("@");

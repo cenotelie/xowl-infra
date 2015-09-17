@@ -94,6 +94,51 @@ public class Utils {
     }
 
     /**
+     * Translates the specified string into a new one by replacing character that should be escaped by their escape sequence
+     *
+     * @param content A string that can contain escape sequences
+     * @return The escaped string
+     */
+    public static String escape(String content) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i != content.length(); i++) {
+            char c = content.charAt(i);
+            if (c == '\t')
+                builder.append("\\t");
+            else if (c == '\r')
+                builder.append("\\r");
+            else if (c == '\n')
+                builder.append("\\n");
+            else if (c == '\b')
+                builder.append("\\b");
+            else if (c == '\f')
+                builder.append("\\f");
+            else if (Character.isHighSurrogate(c)) {
+                char c2 = content.charAt(i + 1);
+                i++;
+                int cp = ((c2 - 0xDC00) | ((c - 0xD800) << 10)) + 0x10000;
+                String s = Integer.toHexString(cp);
+                while (s.length() < 8)
+                    s = "0" + s;
+                builder.append("U+");
+                builder.append(s);
+            } else if (c >= 0x300) {
+                String s = Integer.toHexString(c);
+                while (s.length() < 4)
+                    s = "0" + s;
+                builder.append("u+");
+                builder.append(s);
+            } else if (ESCAPED_GLYHPS.contains(Character.toString(c))) {
+                builder.append('\\');
+                builder.append(c);
+            } else {
+                builder.append(c);
+            }
+        }
+        return builder.toString();
+    }
+
+    /**
      * Determines whether the specified URI is absolute.
      * An URI is considered absolute if it has a scheme component, as well as either an authority or path component
      * (See <a href="http://tools.ietf.org/html/rfc3986#section-4.3>RFC 3986 - 4.3</a>)
