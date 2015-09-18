@@ -22,7 +22,7 @@ package org.xowl.store;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.IOException;
 
 /**
  * Tests for the functional loaders
@@ -38,14 +38,9 @@ public class FunctionalLoaderTest {
      */
     protected void testLoading(String uri) {
         TestLogger logger = new TestLogger();
-        try {
-            Repository repository = new Repository();
-            repository.load(logger, uri);
-            Assert.assertFalse("Failed to load resource " + uri, logger.isOnError());
-        } catch (IOException ex) {
-            // do not handle
-            Assert.fail(ex.getMessage());
-        }
+        Repository repository = new Repository();
+        repository.load(logger, uri);
+        Assert.assertFalse("Failed to load resource " + uri, logger.isOnError());
     }
 
     @Test

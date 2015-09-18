@@ -41,17 +41,16 @@ import org.xowl.lang.owl2.ObjectPropertyAssertion;
 import org.xowl.lang.owl2.ObjectSomeValuesFrom;
 import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
+import org.xowl.store.Evaluator;
 import org.xowl.store.Vocabulary;
-import org.xowl.store.XOWLUtils;
 import org.xowl.store.loaders.OWLLoaderResult;
 import org.xowl.store.rdf.*;
 import org.xowl.store.rdf.Property;
 import org.xowl.store.storage.BaseStore;
+import org.xowl.utils.collections.Adapter;
+import org.xowl.utils.collections.AdaptingIterator;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a OWL to RDF translator
@@ -344,7 +343,7 @@ public class Translator {
      */
     protected void translateAxiomEquivalentClasses(EquivalentClasses axiom) throws TranslationException {
         List<SubjectNode> elements = new ArrayList<>();
-        Iterator<ClassExpression> expressions = XOWLUtils.getAll(axiom.getClassSeq());
+        Iterator<ClassExpression> expressions = getAll(axiom.getClassSeq());
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
@@ -362,7 +361,7 @@ public class Translator {
      */
     protected void translateAxiomDisjointClasses(DisjointClasses axiom) throws TranslationException {
         List<Node> elements = new ArrayList<>();
-        Iterator<ClassExpression> expressions = XOWLUtils.getAll(axiom.getClassSeq());
+        Iterator<ClassExpression> expressions = getAll(axiom.getClassSeq());
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
         if (elements.size() == 2) {
@@ -387,7 +386,7 @@ public class Translator {
     protected void translateAxiomDisjointUnion(DisjointUnion axiom) throws TranslationException {
         SubjectNode classe = translateClassExpression(axiom.getClasse());
         List<Node> elements = new ArrayList<>();
-        Iterator<ClassExpression> expressions = XOWLUtils.getAll(axiom.getClassSeq());
+        Iterator<ClassExpression> expressions = getAll(axiom.getClassSeq());
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
         Quad quad = getTriple(classe, Vocabulary.owlDisjointUnionOf, translateUnorderedSequence(elements));
@@ -404,7 +403,7 @@ public class Translator {
     protected void translateAxiomSubObjectPropertyOf(SubObjectPropertyOf axiom) throws TranslationException {
         if (axiom.getObjectPropertyChain() != null) {
             List<Node> elements = new ArrayList<>();
-            Iterator<ObjectPropertyExpression> expressions = XOWLUtils.getAll(axiom.getObjectPropertyChain());
+            Iterator<ObjectPropertyExpression> expressions = getAll(axiom.getObjectPropertyChain());
             while (expressions.hasNext())
                 elements.add(translateObjectPropertyExpression(expressions.next()));
             SubjectNode sup = translateObjectPropertyExpression(axiom.getSuperObjectProperty());
@@ -428,7 +427,7 @@ public class Translator {
      */
     protected void translateAxiomEquivalentObjectProperties(EquivalentObjectProperties axiom) throws TranslationException {
         List<SubjectNode> elements = new ArrayList<>();
-        Iterator<ObjectPropertyExpression> expressions = XOWLUtils.getAll(axiom.getObjectPropertySeq());
+        Iterator<ObjectPropertyExpression> expressions = getAll(axiom.getObjectPropertySeq());
         while (expressions.hasNext())
             elements.add(translateObjectPropertyExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
@@ -446,7 +445,7 @@ public class Translator {
      */
     protected void translateAxiomDisjointObjectProperties(DisjointObjectProperties axiom) throws TranslationException {
         List<Node> elements = new ArrayList<>();
-        Iterator<ObjectPropertyExpression> expressions = XOWLUtils.getAll(axiom.getObjectPropertySeq());
+        Iterator<ObjectPropertyExpression> expressions = getAll(axiom.getObjectPropertySeq());
         while (expressions.hasNext())
             elements.add(translateObjectPropertyExpression(expressions.next()));
         if (elements.size() == 2) {
@@ -617,7 +616,7 @@ public class Translator {
      */
     protected void translateAxiomEquivalentDataProperties(EquivalentDataProperties axiom) throws TranslationException {
         List<SubjectNode> elements = new ArrayList<>();
-        Iterator<DataPropertyExpression> expressions = XOWLUtils.getAll(axiom.getDataPropertySeq());
+        Iterator<DataPropertyExpression> expressions = getAll(axiom.getDataPropertySeq());
         while (expressions.hasNext())
             elements.add(translateDataPropertyExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
@@ -635,7 +634,7 @@ public class Translator {
      */
     protected void translateAxiomDisjointDataProperties(DisjointDataProperties axiom) throws TranslationException {
         List<Node> elements = new ArrayList<>();
-        Iterator<DataPropertyExpression> expressions = XOWLUtils.getAll(axiom.getDataPropertySeq());
+        Iterator<DataPropertyExpression> expressions = getAll(axiom.getDataPropertySeq());
         while (expressions.hasNext())
             elements.add(translateDataPropertyExpression(expressions.next()));
         if (elements.size() == 2) {
@@ -700,7 +699,7 @@ public class Translator {
      */
     protected void translateAxiomSameIndividual(SameIndividual axiom) throws TranslationException {
         List<SubjectNode> elements = new ArrayList<>();
-        Iterator<IndividualExpression> expressions = XOWLUtils.getAll(axiom.getIndividualSeq());
+        Iterator<IndividualExpression> expressions = getAll(axiom.getIndividualSeq());
         while (expressions.hasNext())
             elements.add(translateIndividualExpression(expressions.next()));
         for (int i = 0; i != elements.size() - 1; i++) {
@@ -718,7 +717,7 @@ public class Translator {
      */
     protected void translateAxiomDifferentIndividuals(DifferentIndividuals axiom) throws TranslationException {
         List<Node> elements = new ArrayList<>();
-        Iterator<IndividualExpression> expressions = XOWLUtils.getAll(axiom.getIndividualSeq());
+        Iterator<IndividualExpression> expressions = getAll(axiom.getIndividualSeq());
         while (expressions.hasNext())
             elements.add(translateIndividualExpression(expressions.next()));
         if (elements.size() == 2) {
@@ -830,10 +829,10 @@ public class Translator {
     protected void translateAxiomHasKey(HasKey axiom) throws TranslationException {
         SubjectNode classe = translateClassExpression(axiom.getClasse());
         List<Node> elements = new ArrayList<>();
-        Iterator<ObjectPropertyExpression> objExpressions = XOWLUtils.getAll(axiom.getObjectPropertySeq());
+        Iterator<ObjectPropertyExpression> objExpressions = getAll(axiom.getObjectPropertySeq());
         while (objExpressions.hasNext())
             elements.add(translateObjectPropertyExpression(objExpressions.next()));
-        Iterator<DataPropertyExpression> dataExpressions = XOWLUtils.getAll(axiom.getDataPropertySeq());
+        Iterator<DataPropertyExpression> dataExpressions = getAll(axiom.getDataPropertySeq());
         while (dataExpressions.hasNext())
             elements.add(translateDataPropertyExpression(dataExpressions.next()));
         Quad quad = getTriple(classe, Vocabulary.owlHasKey, translateUnorderedSequence(elements));
@@ -993,7 +992,7 @@ public class Translator {
         BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlClass));
         List<Node> elements = new ArrayList<>();
-        Iterator<ClassExpression> expressions = XOWLUtils.getAll(expression.getClassSeq());
+        Iterator<ClassExpression> expressions = getAll(expression.getClassSeq());
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
@@ -1012,7 +1011,7 @@ public class Translator {
         BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlClass));
         List<Node> elements = new ArrayList<>();
-        Iterator<ClassExpression> expressions = XOWLUtils.getAll(expression.getClassSeq());
+        Iterator<ClassExpression> expressions = getAll(expression.getClassSeq());
         while (expressions.hasNext())
             elements.add(translateClassExpression(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
@@ -1031,7 +1030,7 @@ public class Translator {
         BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlClass));
         List<Node> elements = new ArrayList<>();
-        Iterator<IndividualExpression> expressions = XOWLUtils.getAll(expression.getIndividualSeq());
+        Iterator<IndividualExpression> expressions = getAll(expression.getIndividualSeq());
         while (expressions.hasNext())
             elements.add(translateIndividualExpression(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
@@ -1065,7 +1064,7 @@ public class Translator {
         BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         List<Node> elements = new ArrayList<>();
-        Iterator<DataPropertyExpression> expressions = XOWLUtils.getAll(expression.getDataPropertySeq());
+        Iterator<DataPropertyExpression> expressions = getAll(expression.getDataPropertySeq());
         while (expressions.hasNext())
             elements.add(translateDataPropertyExpression(expressions.next()));
         if (elements.size() == 1)
@@ -1174,7 +1173,7 @@ public class Translator {
         BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, Vocabulary.owlRestriction));
         List<Node> elements = new ArrayList<>();
-        Iterator<DataPropertyExpression> expressions = XOWLUtils.getAll(expression.getDataPropertySeq());
+        Iterator<DataPropertyExpression> expressions = getAll(expression.getDataPropertySeq());
         while (expressions.hasNext())
             elements.add(translateDataPropertyExpression(expressions.next()));
         if (elements.size() == 1)
@@ -1515,7 +1514,7 @@ public class Translator {
         BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, org.xowl.store.Vocabulary.rdfsDatatype));
         List<Node> elements = new ArrayList<>();
-        Iterator<Datarange> expressions = XOWLUtils.getAll(expression.getDatarangeSeq());
+        Iterator<Datarange> expressions = getAll(expression.getDatarangeSeq());
         while (expressions.hasNext())
             elements.add(translateDatarange(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
@@ -1533,7 +1532,7 @@ public class Translator {
         BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, org.xowl.store.Vocabulary.rdfsDatatype));
         List<Node> elements = new ArrayList<>();
-        Iterator<LiteralExpression> expressions = XOWLUtils.getAll(expression.getLiteralSeq());
+        Iterator<LiteralExpression> expressions = getAll(expression.getLiteralSeq());
         while (expressions.hasNext())
             elements.add(translateLiteralExpression(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
@@ -1585,7 +1584,7 @@ public class Translator {
         BlankNode main = store.getBlankNode();
         quads.add(getTriple(main, org.xowl.store.Vocabulary.rdfType, org.xowl.store.Vocabulary.rdfsDatatype));
         List<Node> elements = new ArrayList<>();
-        Iterator<Datarange> expressions = XOWLUtils.getAll(expression.getDatarangeSeq());
+        Iterator<Datarange> expressions = getAll(expression.getDatarangeSeq());
         while (expressions.hasNext())
             elements.add(translateDatarange(expressions.next()));
         SubjectNode seq = translateUnorderedSequence(elements);
@@ -1829,5 +1828,121 @@ public class Translator {
             for (Annotation child : axiom.getAllAnnotations())
                 translateAnnotation(x, child);
         }
+    }
+
+    /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<ClassExpression> getAll(ClassSequenceExpression expression) {
+        List<ClassElement> elements = new ArrayList<>(((ClassSequence) expression).getAllClassElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<ClassExpression>() {
+            @Override
+            public <X> ClassExpression adapt(X element) {
+                return ((ClassElement) element).getClasse();
+            }
+        });
+    }
+
+    /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<Datarange> getAll(DatarangeSequenceExpression expression) {
+        List<DatarangeElement> elements = new ArrayList<>(((DatarangeSequence) expression).getAllDatarangeElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<Datarange>() {
+            @Override
+            public <X> Datarange adapt(X element) {
+                return ((DatarangeElement) element).getDatarange();
+            }
+        });
+    }
+
+    /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<ObjectPropertyExpression> getAll(ObjectPropertySequenceExpression expression) {
+        List<ObjectPropertyElement> elements = new ArrayList<>(((ObjectPropertySequence) expression).getAllObjectPropertyElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<ObjectPropertyExpression>() {
+            @Override
+            public <X> ObjectPropertyExpression adapt(X element) {
+                return ((ObjectPropertyElement) element).getObjectProperty();
+            }
+        });
+    }
+
+    /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<DataPropertyExpression> getAll(DataPropertySequenceExpression expression) {
+        List<DataPropertyElement> elements = new ArrayList<>(((DataPropertySequence) expression).getAllDataPropertyElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<DataPropertyExpression>() {
+            @Override
+            public <X> DataPropertyExpression adapt(X element) {
+                return ((DataPropertyElement) element).getDataProperty();
+            }
+        });
+    }
+
+    /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<IndividualExpression> getAll(IndividualSequenceExpression expression) {
+        List<IndividualElement> elements = new ArrayList<>(((IndividualSequence) expression).getAllIndividualElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<IndividualExpression>() {
+            @Override
+            public <X> IndividualExpression adapt(X element) {
+                return ((IndividualElement) element).getIndividual();
+            }
+        });
+    }
+
+    /**
+     * Gets an iterator over all the expressions within the specified expression of a sequence
+     *
+     * @param expression The expression of a sequence
+     * @return An iterator over the contained expressions
+     */
+    private static Iterator<LiteralExpression> getAll(LiteralSequenceExpression expression) {
+        List<LiteralElement> elements = new ArrayList<>(((LiteralSequence) expression).getAllLiteralElements());
+        sortElements(elements);
+        return new AdaptingIterator<>(elements.iterator(), new Adapter<LiteralExpression>() {
+            @Override
+            public <X> LiteralExpression adapt(X element) {
+                return ((LiteralElement) element).getLiteral();
+            }
+        });
+    }
+
+    /**
+     * Sorts the specified list of sequence element by their indices
+     *
+     * @param elements A list of sequence elements
+     */
+    private static void sortElements(List<? extends SequenceElement> elements) {
+        Collections.sort(elements, new Comparator<SequenceElement>() {
+            @Override
+            public int compare(SequenceElement left, SequenceElement right) {
+                return left.getIndex().compareTo(right.getIndex());
+            }
+        });
     }
 }

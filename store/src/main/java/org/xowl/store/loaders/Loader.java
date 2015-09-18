@@ -43,12 +43,13 @@ public interface Loader {
     /**
      * Loads quads from the specified input
      *
-     * @param logger The logger to use
-     * @param reader The resource's reader
-     * @param uri    The resource's URI
+     * @param logger      The logger to use
+     * @param reader      The resource's reader
+     * @param resourceIRI The resource's IRI
+     * @param graphIRI    The default's graph IRI
      * @return The loaded data
      */
-    RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri);
+    RDFLoaderResult loadRDF(Logger logger, Reader reader, String resourceIRI, String graphIRI);
 
     /**
      * Loads axioms from the specified input

@@ -30,12 +30,6 @@ import org.xowl.store.rdf.SubjectNode;
  */
 public class AnonymousNode implements SubjectNode {
     /**
-     * The type of node
-     */
-    public static final int TYPE = 4;
-
-
-    /**
      * The associated anonymous individual
      */
     private final AnonymousIndividual anonInd;
@@ -51,7 +45,7 @@ public class AnonymousNode implements SubjectNode {
 
     @Override
     public int getNodeType() {
-        return TYPE;
+        return TYPE_ANONYMOUS;
     }
 
     /**

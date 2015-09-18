@@ -21,7 +21,10 @@ package org.xowl.store.owl;
 
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.VariableNode;
+import org.xowl.utils.collections.Couple;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -45,9 +48,11 @@ class RDFParserTrigger {
      * @param rule     The triggered rule
      * @param bindings The bindings
      */
-    public RDFParserTrigger(RDFParserRule rule, Map<VariableNode, Node> bindings) {
+    public RDFParserTrigger(RDFParserRule rule, Collection<Couple<VariableNode, Node>> bindings) {
         this.rule = rule;
-        this.bindings = bindings;
+        this.bindings = new HashMap<>();
+        for (Couple<VariableNode, Node> binding : bindings)
+            this.bindings.put(binding.x, binding.y);
     }
 
     /**

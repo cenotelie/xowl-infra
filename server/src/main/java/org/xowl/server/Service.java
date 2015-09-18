@@ -21,12 +21,13 @@
 package org.xowl.server;
 
 import org.xowl.store.AbstractRepository;
-import org.xowl.store.writers.*;
+import org.xowl.store.sparql.Result;
 import org.xowl.utils.collections.Couple;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.Writer;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,6 +39,29 @@ import java.util.List;
  * @author Laurent Wouters
  */
 public abstract class Service {
+
+    /**
+     * Gets the message body of the specified request
+     *
+     * @param request A request
+     * @return The message body
+     */
+    protected String getMessageBody(HttpServletRequest request) {
+        if (request.getContentLength() <= 0)
+            return "";
+        try (BufferedReader reader = request.getReader()) {
+            char[] buffer = new char[1024];
+            StringBuilder builder = new StringBuilder();
+            int read = reader.read(buffer);
+            while (read > 0) {
+                builder.append(buffer, 0, read);
+                read = reader.read(buffer);
+            }
+            return builder.toString();
+        } catch (IOException exception) {
+            return "";
+        }
+    }
 
     /**
      * Retrieves the requested content types by order of preference
@@ -83,6 +107,12 @@ public abstract class Service {
     protected String negotiateType(List<String> contentTypes) {
         for (String contentType : contentTypes) {
             switch (contentType) {
+                // The SPARQL result syntaxes
+                case Result.SYNTAX_CSV:
+                case Result.SYNTAX_TSV:
+                case Result.SYNTAX_XML:
+                case Result.SYNTAX_JSON:
+                    // The RDF syntaxes for quads
                 case AbstractRepository.SYNTAX_NTRIPLES:
                 case AbstractRepository.SYNTAX_NQUADS:
                 case AbstractRepository.SYNTAX_TURTLE:
@@ -90,29 +120,7 @@ public abstract class Service {
                     return contentType;
             }
         }
-        return AbstractRepository.SYNTAX_NTRIPLES;
-    }
-
-    /**
-     * Gets the appropriate serializer
-     *
-     * @param contentType The accepted content type
-     * @param writer      The target writer
-     * @return The corresponding serializer
-     */
-    protected RDFSerializer getSerializer(String contentType, Writer writer) {
-        switch (contentType) {
-            case AbstractRepository.SYNTAX_NTRIPLES:
-                return new NTripleSerializer(writer);
-            case AbstractRepository.SYNTAX_NQUADS:
-                return new NQuadsSerializer(writer);
-            case AbstractRepository.SYNTAX_TURTLE:
-                return new TurtleSerializer(writer);
-            case AbstractRepository.SYNTAX_RDFXML:
-                return new RDFXMLSerializer(writer);
-            default:
-                return new NTripleSerializer(writer);
-        }
+        return AbstractRepository.SYNTAX_NQUADS;
     }
 
     /**
@@ -122,4 +130,12 @@ public abstract class Service {
      * @param response The response to build
      */
     public abstract void onGet(HttpServletRequest request, HttpServletResponse response);
+
+    /**
+     * Responds to a POST request
+     *
+     * @param request  The request
+     * @param response The response to build
+     */
+    public abstract void onPost(HttpServletRequest request, HttpServletResponse response);
 }

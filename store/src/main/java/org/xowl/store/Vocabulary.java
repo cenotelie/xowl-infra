@@ -233,6 +233,8 @@ public class Vocabulary {
     public static final String owlThing = owl + "Thing";
     public static final String owlNothing = owl + "Nothing";
     public static final String owlImports = owl + "imports";
+    public static final String owlReal = owl + "real";
+    public static final String owlRational = owl + "rational";
 
     public static final String xowl = IRIMapper.IRI_XOWL_LANG;
     public static final String xowlDefinedAs = xowl + "actions#definedAs";

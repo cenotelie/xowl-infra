@@ -43,12 +43,7 @@ public class BaseOWLReasoningTest {
         TestLogger logger = new TestLogger();
 
         // load the conclusion ontology at get all the quads in it
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
+        Repository repository = new Repository();
         // add mapping for imported remote ontologies
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/conclusion", "resource:///entailment/" + conclusionResource);
@@ -77,7 +72,7 @@ public class BaseOWLReasoningTest {
             SubjectNode nodeSubject = quad.getSubject();
             Property nodeProperty = quad.getProperty();
             Node nodeObject = quad.getObject();
-            if (nodeSubject.getNodeType() == BlankNode.TYPE) {
+            if (nodeSubject.getNodeType() == Node.TYPE_BLANK) {
                 VariableNode variableNode = variables.get(nodeSubject);
                 if (variableNode == null) {
                     variableNode = new VariableNode(UUID.randomUUID().toString());
@@ -85,7 +80,7 @@ public class BaseOWLReasoningTest {
                 }
                 nodeSubject = variableNode;
             }
-            if (nodeObject.getNodeType() == BlankNode.TYPE) {
+            if (nodeObject.getNodeType() == Node.TYPE_BLANK) {
                 VariableNode variableNode = variables.get(nodeObject);
                 if (variableNode == null) {
                     variableNode = new VariableNode(UUID.randomUUID().toString());
@@ -96,7 +91,7 @@ public class BaseOWLReasoningTest {
             query.getPositives().add(new Quad(null, nodeSubject, nodeProperty, nodeObject));
         }
 
-        Collection<QuerySolution> solutions = repository.getQueryEngine().getBackend().execute(query);
+        Collection<QuerySolution> solutions = repository.getRDFQueryEngine().execute(query);
         Assert.assertFalse("Entailment failed", solutions.isEmpty());
     }
 
@@ -110,12 +105,7 @@ public class BaseOWLReasoningTest {
         TestLogger logger = new TestLogger();
 
         // load the conclusion ontology at get all the quads in it
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
+        Repository repository = new Repository();
         // add mapping for imported remote ontologies
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/conclusion", "resource:///entailment/" + conclusionResource);
@@ -144,7 +134,7 @@ public class BaseOWLReasoningTest {
             SubjectNode nodeSubject = quad.getSubject();
             Property nodeProperty = quad.getProperty();
             Node nodeObject = quad.getObject();
-            if (nodeSubject.getNodeType() == BlankNode.TYPE) {
+            if (nodeSubject.getNodeType() == Node.TYPE_BLANK) {
                 VariableNode variableNode = variables.get(nodeSubject);
                 if (variableNode == null) {
                     variableNode = new VariableNode(UUID.randomUUID().toString());
@@ -152,7 +142,7 @@ public class BaseOWLReasoningTest {
                 }
                 nodeSubject = variableNode;
             }
-            if (nodeObject.getNodeType() == BlankNode.TYPE) {
+            if (nodeObject.getNodeType() == Node.TYPE_BLANK) {
                 VariableNode variableNode = variables.get(nodeObject);
                 if (variableNode == null) {
                     variableNode = new VariableNode(UUID.randomUUID().toString());
@@ -163,7 +153,7 @@ public class BaseOWLReasoningTest {
             query.getPositives().add(new Quad(null, nodeSubject, nodeProperty, nodeObject));
         }
 
-        Collection<QuerySolution> solutions = repository.getQueryEngine().getBackend().execute(query);
+        Collection<QuerySolution> solutions = repository.getRDFQueryEngine().execute(query);
         Assert.assertTrue("Erroneous entailment", solutions.isEmpty());
     }
 
@@ -174,12 +164,7 @@ public class BaseOWLReasoningTest {
      */
     protected void testConsistency(String premiseResource) {
         TestLogger logger = new TestLogger();
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
+        Repository repository = new Repository();
         // add mapping for imported remote ontologies
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
@@ -207,12 +192,7 @@ public class BaseOWLReasoningTest {
      */
     protected void testInconsistency(String premiseResource) {
         TestLogger logger = new TestLogger();
-        Repository repository = null;
-        try {
-            repository = new Repository();
-        } catch (IOException e) {
-            Assert.fail("Failed to initialize the repository");
-        }
+        Repository repository = new Repository();
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
 
         // activate the default reasoning rules

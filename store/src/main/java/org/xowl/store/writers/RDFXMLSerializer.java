@@ -96,7 +96,7 @@ public class RDFXMLSerializer extends StructuredSerializer {
      */
     private void serializeTopLevel(SubjectNode subject, List<Quad> quads) throws IOException, UnsupportedNodeType {
         serializer.onElementOpenBegin("rdf:Description");
-        if (subject.getNodeType() == IRINode.TYPE) {
+        if (subject.getNodeType() == Node.TYPE_IRI) {
             serializer.onAttribute("rdf:about", ((IRINode) subject).getIRIValue());
         } else {
             serializer.onAttribute("rdf:nodeID", "n" + getBlankID((BlankNode) subject));
@@ -125,15 +125,15 @@ public class RDFXMLSerializer extends StructuredSerializer {
         Couple<String, String> property = getCompactIRI(quad.getProperty(), ((IRINode) quad.getProperty()).getIRIValue());
         serializer.onElementOpenBegin(property.x + ":" + property.y);
         switch (quad.getObject().getNodeType()) {
-            case IRINode.TYPE:
+            case Node.TYPE_IRI:
                 serializer.onAttribute("rdf:about", ((IRINode) quad.getObject()).getIRIValue());
                 serializer.onElementOpenEndAndClose();
                 break;
-            case BlankNode.TYPE:
+            case Node.TYPE_BLANK:
                 serializer.onAttribute("rdf:nodeID", "n" + getBlankID((BlankNode) quad.getObject()));
                 serializer.onElementOpenEndAndClose();
                 break;
-            case LiteralNode.TYPE:
+            case Node.TYPE_LITERAL:
                 String lexicalValue = ((LiteralNode) quad.getObject()).getLexicalValue();
                 String datatype = ((LiteralNode) quad.getObject()).getDatatype();
                 String language = ((LiteralNode) quad.getObject()).getLangTag();

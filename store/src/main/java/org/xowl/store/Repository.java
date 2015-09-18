@@ -22,10 +22,15 @@ package org.xowl.store;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.rules.Rule;
 import org.xowl.store.loaders.*;
-import org.xowl.store.owl.*;
 import org.xowl.store.owl.QueryEngine;
 import org.xowl.store.owl.RuleEngine;
+import org.xowl.store.owl.TranslationException;
+import org.xowl.store.owl.Translator;
 import org.xowl.store.rdf.*;
+import org.xowl.store.sparql.Command;
+import org.xowl.store.sparql.Result;
+import org.xowl.store.sparql.ResultFailure;
+import org.xowl.store.sparql.ResultSuccess;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.InMemoryStore;
 import org.xowl.store.storage.UnsupportedNodeType;
@@ -38,6 +43,7 @@ import org.xowl.utils.collections.SkippableIterator;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.*;
 
 /**
@@ -46,6 +52,30 @@ import java.util.*;
  * @author Laurent Wouters
  */
 public class Repository extends AbstractRepository {
+    /**
+     * The loader of evaluator services
+     */
+    private static ServiceLoader<Evaluator> SERIVCE_EVALUATOR = ServiceLoader.load(Evaluator.class);
+
+    /**
+     * Gets the default evaluator
+     *
+     * @return The default evaluator
+     */
+    private static Evaluator getDefaultEvaluator() {
+        Iterator<Evaluator> services = SERIVCE_EVALUATOR.iterator();
+        return services.hasNext() ? services.next() : null;
+    }
+
+    /**
+     * Gets a new default store
+     *
+     * @return A new default store
+     */
+    private static BaseStore getDefaultStore() {
+        return new InMemoryStore();
+    }
+
     /**
      * The backend store
      */
@@ -57,7 +87,7 @@ public class Repository extends AbstractRepository {
     /**
      * The proxies onto this repository
      */
-    private final Map<Ontology, Map<IRINode, ProxyObject>> proxies;
+    private final Map<Ontology, Map<SubjectNode, ProxyObject>> proxies;
     /**
      * The evaluator to use
      */
@@ -81,54 +111,106 @@ public class Repository extends AbstractRepository {
     }
 
     /**
-     * Gets the associated query engine
+     * Gets the evaluator used by this repository
      *
-     * @return The associated query engine
+     * @return The evaluator used by this repository
      */
-    public QueryEngine getQueryEngine() {
+    public Evaluator getEvaluator() {
+        return evaluator;
+    }
+
+    /**
+     * Gets the associated OWL query engine
+     *
+     * @return The associated OWL query engine
+     */
+    public QueryEngine getOWLQueryEngine() {
         if (queryEngine == null)
             queryEngine = new QueryEngine(backend, evaluator);
         return queryEngine;
     }
 
     /**
-     * Gets the associated rule engine
+     * Gets the associated RDF query engine
      *
-     * @return The associated rule engine
+     * @return The associated RDF query engine
      */
-    public RuleEngine getRuleEngine() {
+    public org.xowl.store.rdf.QueryEngine getRDFQueryEngine() {
+        return getOWLQueryEngine().getBackend();
+    }
+
+    /**
+     * Gets the associated OWL rule engine
+     *
+     * @return The associated OWL rule engine
+     */
+    public RuleEngine getOWLRuleEngine() {
         if (ruleEngine == null)
             ruleEngine = new RuleEngine(backend, backend, evaluator);
         return ruleEngine;
     }
 
     /**
-     * Initializes this repository
+     * Gets the associated RDF rule engine
      *
-     * @throws IOException When the backend cannot allocate a temporary file
+     * @return The associated RDF rule engine
      */
-    public Repository() throws IOException {
-        this(IRIMapper.getDefault(), null);
+    public org.xowl.store.rdf.RuleEngine getRDFRuleEngine() {
+        return getOWLRuleEngine().getBackend();
+    }
+
+    /**
+     * Initializes this repository
+     */
+    public Repository() {
+        this(getDefaultStore(), IRIMapper.getDefault(), getDefaultEvaluator());
     }
 
     /**
      * Initializes this repository
      *
-     * @param evaluator The evaluator to use
-     * @throws IOException When the backend cannot allocate a temporary file
+     * @param store The store to use as backend
      */
-    public Repository(Evaluator evaluator) throws IOException {
-        this(IRIMapper.getDefault(), evaluator);
+    public Repository(BaseStore store) {
+        this(store, IRIMapper.getDefault(), getDefaultEvaluator());
     }
 
     /**
      * Initializes this repository
      *
      * @param mapper The IRI mapper to use
-     * @throws IOException When the backend cannot allocate a temporary file
      */
-    public Repository(IRIMapper mapper) throws IOException {
-        this(mapper, null);
+    public Repository(IRIMapper mapper) {
+        this(getDefaultStore(), mapper, getDefaultEvaluator());
+    }
+
+    /**
+     * Initializes this repository
+     *
+     * @param evaluator The evaluator to use
+     */
+    public Repository(Evaluator evaluator) {
+        this(getDefaultStore(), IRIMapper.getDefault(), evaluator);
+    }
+
+    /**
+     * Initializes this repository
+     *
+     * @param store  The store to use as backend
+     * @param mapper The IRI mapper to use
+     */
+    public Repository(BaseStore store, IRIMapper mapper) {
+        this(store, mapper, getDefaultEvaluator());
+    }
+
+    /**
+     * Initializes this repository
+     *
+     * @param store     The store to use as backend
+     * @param evaluator The evaluator to use
+     */
+    public Repository(BaseStore store, Evaluator evaluator) {
+        this(store, IRIMapper.getDefault(), evaluator);
     }
 
     /**
@@ -136,14 +218,45 @@ public class Repository extends AbstractRepository {
      *
      * @param mapper    The IRI mapper to use
      * @param evaluator The evaluator to use
-     * @throws IOException When the backend cannot allocate a temporary file
      */
-    public Repository(IRIMapper mapper, Evaluator evaluator) throws IOException {
+    public Repository(IRIMapper mapper, Evaluator evaluator) {
+        this(getDefaultStore(), mapper, evaluator);
+    }
+
+    /**
+     * Initializes this repository
+     *
+     * @param store     The store to use as backend
+     * @param mapper    The IRI mapper to use
+     * @param evaluator The evaluator to use
+     */
+    public Repository(BaseStore store, IRIMapper mapper, Evaluator evaluator) {
         super(mapper);
-        this.backend = new InMemoryStore();
+        this.backend = store;
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
         this.evaluator = evaluator;
+    }
+
+    /**
+     * Executes the specified SPARQL command
+     *
+     * @param logger The logger to use
+     * @param sparql A SPARQL command
+     * @return The result
+     */
+    public Result execute(Logger logger, String sparql) {
+        SPARQLLoader loader = new SPARQLLoader(backend);
+        List<Command> commands = loader.load(logger, new StringReader(sparql));
+        if (commands == null)
+            return ResultFailure.INSTANCE;
+        Result result = ResultFailure.INSTANCE;
+        for (Command command : commands) {
+            result = command.execute(this);
+            if (result.isFailure())
+                break;
+        }
+        return result;
     }
 
     /**
@@ -201,17 +314,17 @@ public class Repository extends AbstractRepository {
      */
     public Iterator<ProxyObject> getProxiesIn(final Ontology ontology) {
         Iterator<Quad> quads = backend.getAll(getGraph(ontology));
-        final HashSet<Node> known = new HashSet<>();
+        final HashSet<SubjectNode> known = new HashSet<>();
         return new SkippableIterator<>(new AdaptingIterator<>(quads, new Adapter<ProxyObject>() {
             @Override
             public <X> ProxyObject adapt(X element) {
-                Node subject = ((Quad) element).getSubject();
-                if (subject.getNodeType() != IRINode.TYPE)
+                SubjectNode subject = ((Quad) element).getSubject();
+                if (subject.getNodeType() != Node.TYPE_IRI && subject.getNodeType() != Node.TYPE_BLANK)
                     return null;
                 if (known.contains(subject))
                     return null;
                 known.add(subject);
-                return resolveProxy(ontology, (IRINode) subject);
+                return resolveProxy(ontology, subject);
             }
         }));
     }
@@ -220,20 +333,20 @@ public class Repository extends AbstractRepository {
      * Resolves a proxy on the entity represented by the specified node in the specified ontology
      *
      * @param ontology The ontology defining the entity
-     * @param iriNode  The IRI node representing the entity
+     * @param subject  The subject node representing the entity
      * @return The proxy
      */
-    private ProxyObject resolveProxy(Ontology ontology, IRINode iriNode) {
-        Map<IRINode, ProxyObject> sub = proxies.get(ontology);
+    public ProxyObject resolveProxy(Ontology ontology, SubjectNode subject) {
+        Map<SubjectNode, ProxyObject> sub = proxies.get(ontology);
         if (sub == null) {
             sub = new HashMap<>();
             proxies.put(ontology, sub);
         }
-        ProxyObject proxy = sub.get(iriNode);
+        ProxyObject proxy = sub.get(subject);
         if (proxy != null)
             return proxy;
-        proxy = new ProxyObject(this, ontology, iriNode);
-        sub.put(iriNode, proxy);
+        proxy = new ProxyObject(this, ontology, subject);
+        sub.put(subject, proxy);
         return proxy;
     }
 
@@ -268,7 +381,7 @@ public class Repository extends AbstractRepository {
      * @return A proxy on the new object
      */
     public ProxyObject newObject(Ontology ontology) {
-        Map<IRINode, ProxyObject> sub = proxies.get(ontology);
+        Map<SubjectNode, ProxyObject> sub = proxies.get(ontology);
         if (sub == null) {
             sub = new HashMap<>();
             proxies.put(ontology, sub);
@@ -285,10 +398,10 @@ public class Repository extends AbstractRepository {
      * @param proxy A proxy
      */
     protected void remove(ProxyObject proxy) {
-        Map<IRINode, ProxyObject> sub = proxies.get(proxy.getOntology());
+        Map<SubjectNode, ProxyObject> sub = proxies.get(proxy.getOntology());
         if (sub == null)
             return;
-        sub.remove(proxy.entity);
+        sub.remove(proxy.subject);
     }
 
     /**
@@ -350,7 +463,7 @@ public class Repository extends AbstractRepository {
         }
 
         for (org.xowl.store.rdf.Rule rule : input.getRules()) {
-            getRuleEngine().getBackend().add(rule);
+            getRDFRuleEngine().add(rule);
         }
     }
 
@@ -365,7 +478,7 @@ public class Repository extends AbstractRepository {
         }
 
         for (Rule rule : input.getRules()) {
-            getRuleEngine().add(rule, null, null, null);
+            getOWLRuleEngine().add(rule, null, null, null);
         }
     }
 

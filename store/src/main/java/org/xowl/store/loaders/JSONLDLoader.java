@@ -221,18 +221,18 @@ public abstract class JSONLDLoader implements Loader {
     }
 
     @Override
-    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String resourceIRI, String graphIRI) {
         RDFLoaderResult result = new RDFLoaderResult();
         this.logger = logger;
         quads = result.getQuads();
-        resource = uri;
+        resource = resourceIRI;
         blanks = new HashMap<>();
         markerTopLevel = true;
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
         try {
-            loadDocument(parseResult.getRoot(), store.getIRINode(uri), new JSONLDContext(this));
+            loadDocument(parseResult.getRoot(), store.getIRINode(graphIRI), new JSONLDContext(this));
         } catch (LoaderException exception) {
             logger.error(exception);
             logger.error("@" + exception.getOrigin().getPosition());

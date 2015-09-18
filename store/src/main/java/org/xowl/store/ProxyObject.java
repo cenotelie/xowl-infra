@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,23 +16,24 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.store;
 
 import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.NodeManager;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.Couple;
 import org.xowl.utils.collections.SkippableIterator;
 
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Represents an object in an ontology
@@ -49,21 +50,21 @@ public class ProxyObject {
      */
     protected Ontology ontology;
     /**
-     * The represented entity as an RDF IRI node
+     * The represented entity as a subject RDF node
      */
-    protected IRINode entity;
+    protected SubjectNode subject;
 
     /**
      * Initializes this object
      *
      * @param repository The parent repository
      * @param ontology   The containing ontology
-     * @param entity     The represented entity as an RDF IRI node
+     * @param subject    The represented entity as a subject RDF node
      */
-    protected ProxyObject(Repository repository, Ontology ontology, IRINode entity) {
+    protected ProxyObject(Repository repository, Ontology ontology, SubjectNode subject) {
         this.repository = repository;
         this.ontology = ontology;
-        this.entity = entity;
+        this.subject = subject;
     }
 
     /**
@@ -89,8 +90,8 @@ public class ProxyObject {
      *
      * @return The represented entity as an RDF IRI node
      */
-    protected IRINode getNode() {
-        return entity;
+    protected SubjectNode getNode() {
+        return subject;
     }
 
     /**
@@ -99,7 +100,7 @@ public class ProxyObject {
      * @return The IRI of this object
      */
     public IRI getIRI() {
-        return repository.getIRI(entity.getIRIValue());
+        return subject.getNodeType() == Node.TYPE_IRI ? repository.getIRI(((IRINode) subject).getIRIValue()) : null;
     }
 
     /**
@@ -108,7 +109,7 @@ public class ProxyObject {
      * @return The value of the IRI of this object
      */
     public String getIRIString() {
-        return entity.getIRIValue();
+        return subject.getNodeType() == Node.TYPE_IRI ? ((IRINode) subject).getIRIValue() : null;
     }
 
     /**
@@ -255,7 +256,7 @@ public class ProxyObject {
         if (isFunctional(propertyNode)) {
             removeAllValues(propertyNode);
         }
-        addValue(propertyNode, value.entity);
+        addValue(propertyNode, value.subject);
     }
 
     /**
@@ -288,7 +289,7 @@ public class ProxyObject {
      * @param value    The value
      */
     public void unset(String property, ProxyObject value) {
-        removeValue(node(property), value.entity);
+        removeValue(node(property), value.subject);
     }
 
     /**
@@ -310,13 +311,13 @@ public class ProxyObject {
         try {
             // get all triple of the form
             // [entity ? ?]
-            Iterator<Quad> iterator = repository.getStore().getAll(entity, null, null);
+            Iterator<Quad> iterator = repository.getStore().getAll(subject, null, null);
             while (iterator.hasNext()) {
                 toRemove.add(iterator.next());
             }
             // get all triple of the form
             // [? ? entity]
-            iterator = repository.getStore().getAll(null, null, entity);
+            iterator = repository.getStore().getAll(null, null, subject);
             while (iterator.hasNext()) {
                 toRemove.add(iterator.next());
             }
@@ -329,7 +330,7 @@ public class ProxyObject {
         repository.remove(this);
         repository = null;
         ontology = null;
-        entity = null;
+        subject = null;
     }
 
     /**
@@ -338,18 +339,18 @@ public class ProxyObject {
      * @return The properties and the values
      */
     private Iterator<Couple<String, Object>> queryProperties() {
-        return new SkippableIterator<>(new AdaptingIterator<>(repository.getStore().getAll(entity, null, null), new Adapter<Couple<String, Object>>() {
+        return new SkippableIterator<>(new AdaptingIterator<>(repository.getStore().getAll(subject, null, null), new Adapter<Couple<String, Object>>() {
             @Override
             public <X> Couple<String, Object> adapt(X element) {
                 Quad quad = (Quad) element;
                 Node nodeProperty = quad.getProperty();
-                if (nodeProperty.getNodeType() != IRINode.TYPE)
+                if (nodeProperty.getNodeType() != Node.TYPE_IRI)
                     return null;
                 String property = ((IRINode) nodeProperty).getIRIValue();
                 Node nodeValue = quad.getObject();
-                if (nodeValue.getNodeType() == IRINode.TYPE) {
+                if (nodeValue.getNodeType() == Node.TYPE_IRI) {
                     return new Couple<String, Object>(property, repository.resolveProxy(((IRINode) nodeValue).getIRIValue()));
-                } else if (nodeValue.getNodeType() == LiteralNode.TYPE) {
+                } else if (nodeValue.getNodeType() == Node.TYPE_LITERAL) {
                     return new Couple<>(property, decode((LiteralNode) nodeValue));
                 }
                 return null;
@@ -367,11 +368,13 @@ public class ProxyObject {
         Collection<ProxyObject> result = new ArrayList<>();
         // get all triple of the form
         // [entity property ?]
-        Iterator<Quad> iterator = repository.getStore().getAll(entity, property, null);
+        Iterator<Quad> iterator = repository.getStore().getAll(subject, property, null);
         while (iterator.hasNext()) {
             Node node = iterator.next().getObject();
-            if (node.getNodeType() == IRINode.TYPE) {
+            if (node.getNodeType() == Node.TYPE_IRI) {
                 result.add(repository.resolveProxy(((IRINode) node).getIRIValue()));
+            } else if (node.getNodeType() == Node.TYPE_BLANK) {
+                result.add(repository.resolveProxy(repository.getOntology(NodeManager.DEFAULT_GRAPH), (SubjectNode) node));
             }
         }
         return result;
@@ -387,11 +390,13 @@ public class ProxyObject {
         Collection<ProxyObject> result = new ArrayList<>();
         // get all triple of the form
         // [entity property ?]
-        Iterator<Quad> iterator = repository.getStore().getAll(null, property, entity);
+        Iterator<Quad> iterator = repository.getStore().getAll(null, property, subject);
         while (iterator.hasNext()) {
             Node node = iterator.next().getSubject();
-            if (node.getNodeType() == IRINode.TYPE) {
+            if (node.getNodeType() == Node.TYPE_IRI) {
                 result.add(repository.resolveProxy(((IRINode) node).getIRIValue()));
+            } else if (node.getNodeType() == Node.TYPE_BLANK) {
+                result.add(repository.resolveProxy(repository.getOntology(NodeManager.DEFAULT_GRAPH), (SubjectNode) node));
             }
         }
         return result;
@@ -407,14 +412,14 @@ public class ProxyObject {
         Collection<Object> result = new ArrayList<>();
         // get all triple of the form
         // [entity property ?]
-        Iterator<Quad> iterator = repository.getStore().getAll(entity, property, null);
+        Iterator<Quad> iterator = repository.getStore().getAll(subject, property, null);
         while (iterator.hasNext()) {
             Node node = iterator.next().getObject();
             switch (node.getNodeType()) {
-                case LiteralNode.TYPE:
+                case Node.TYPE_LITERAL:
                     result.add(decode((LiteralNode) node));
                     break;
-                case DynamicNode.TYPE:
+                case Node.TYPE_DYNAMIC:
                     result.add(((DynamicNode) node).getDynamicExpression());
                     break;
             }
@@ -430,7 +435,7 @@ public class ProxyObject {
      */
     private void addValue(IRINode property, Node value) {
         try {
-            repository.getStore().add(repository.getGraph(ontology), entity, property, value);
+            repository.getStore().add(repository.getGraph(ontology), subject, property, value);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }
@@ -444,7 +449,7 @@ public class ProxyObject {
      */
     private void removeValue(IRINode property, Node value) {
         try {
-            repository.getStore().remove(repository.getGraph(ontology), entity, property, value);
+            repository.getStore().remove(repository.getGraph(ontology), subject, property, value);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }
@@ -459,7 +464,7 @@ public class ProxyObject {
         try {
             // get all triple of the form
             // [entity property ?]
-            Iterator<Quad> iterator = repository.getStore().getAll(entity, property, null);
+            Iterator<Quad> iterator = repository.getStore().getAll(subject, property, null);
             List<Quad> toRemove = new ArrayList<>();
             while (iterator.hasNext()) {
                 toRemove.add(iterator.next());
@@ -500,49 +505,7 @@ public class ProxyObject {
      * @return The corresponding data
      */
     private Object decode(LiteralNode node) {
-        String lexicalValue = node.getLexicalValue();
-        switch (node.getDatatype()) {
-            case Vocabulary.xsdTime:
-            case Vocabulary.xsdDateTime:
-            case Vocabulary.xsdDate:
-                try {
-                    return DateFormat.getInstance().parse(lexicalValue);
-                } catch (ParseException ex) {
-                    return null;
-                }
-            case Vocabulary.xsdBoolean:
-                return Boolean.parseBoolean(lexicalValue);
-            case Vocabulary.xsdDecimal:
-                try {
-                    return DecimalFormat.getInstance().parse(lexicalValue);
-                } catch (ParseException ex) {
-                    return null;
-                }
-            case Vocabulary.xsdFloat:
-                return Float.parseFloat(lexicalValue);
-            case Vocabulary.xsdDouble:
-                return Double.parseDouble(lexicalValue);
-            case Vocabulary.xsdDuration:
-            case Vocabulary.xsdUnsignedLong:
-            case Vocabulary.xsdLong:
-                return Long.parseLong(lexicalValue);
-            case Vocabulary.xsdNegativeInteger:
-            case Vocabulary.xsdPositiveInteger:
-            case Vocabulary.xsdNonPositiveinteger:
-            case Vocabulary.xsdNonNegativeInteger:
-            case Vocabulary.xsdUnsignedInteger:
-            case Vocabulary.xsdInteger:
-            case Vocabulary.xsdInt:
-                return Integer.parseInt(lexicalValue);
-            case Vocabulary.xsdUnsignedShort:
-            case Vocabulary.xsdShort:
-                return Short.parseShort(lexicalValue);
-            case Vocabulary.xsdUnsigedByte:
-            case Vocabulary.xsdByte:
-                return Byte.parseByte(lexicalValue);
-            default:
-                return lexicalValue;
-        }
+        return Datatypes.toNative(node);
     }
 
     /**
@@ -554,40 +517,8 @@ public class ProxyObject {
      */
     private LiteralNode encode(IRINode property, Object value) {
         String range = getRangeOf(property);
-        switch (range) {
-            case Vocabulary.xsdTime:
-            case Vocabulary.xsdDateTime:
-            case Vocabulary.xsdDate:
-                return repository.getStore().getLiteralNode(DateFormat.getInstance().format((Date) value), range, null);
-            case Vocabulary.xsdBoolean:
-                return repository.getStore().getLiteralNode(Boolean.toString((boolean) value), range, null);
-            case Vocabulary.xsdDecimal:
-                return repository.getStore().getLiteralNode(DecimalFormat.getInstance().format(value), range, null);
-            case Vocabulary.xsdFloat:
-                return repository.getStore().getLiteralNode(Float.toString((float) value), range, null);
-            case Vocabulary.xsdDouble:
-                return repository.getStore().getLiteralNode(Double.toString((double) value), range, null);
-            case Vocabulary.xsdDuration:
-            case Vocabulary.xsdUnsignedLong:
-            case Vocabulary.xsdLong:
-                return repository.getStore().getLiteralNode(Long.toString((long) value), range, null);
-            case Vocabulary.xsdNegativeInteger:
-            case Vocabulary.xsdPositiveInteger:
-            case Vocabulary.xsdNonPositiveinteger:
-            case Vocabulary.xsdNonNegativeInteger:
-            case Vocabulary.xsdUnsignedInteger:
-            case Vocabulary.xsdInteger:
-            case Vocabulary.xsdInt:
-                return repository.getStore().getLiteralNode(Integer.toString((int) value), range, null);
-            case Vocabulary.xsdUnsignedShort:
-            case Vocabulary.xsdShort:
-                return repository.getStore().getLiteralNode(Short.toString((short) value), range, null);
-            case Vocabulary.xsdUnsigedByte:
-            case Vocabulary.xsdByte:
-                return repository.getStore().getLiteralNode(Byte.toString((byte) value), range, null);
-            default:
-                return repository.getStore().getLiteralNode(value.toString(), range, null);
-        }
+        Couple<String, String> data = Datatypes.toLiteral(value);
+        return repository.getStore().getLiteralNode(data.x, range, null);
     }
 
     /**
@@ -604,7 +535,7 @@ public class ProxyObject {
             // range is undefined, return xsd:String
             return Vocabulary.xsdString;
         Node rangeNode = iterator.next().getObject();
-        if (rangeNode.getNodeType() == IRINode.TYPE)
+        if (rangeNode.getNodeType() == Node.TYPE_IRI)
             return ((IRINode) rangeNode).getIRIValue();
         // range is defined, but is either a blank, or an anonymous node, return xsd:String
         return Vocabulary.xsdString;
@@ -612,20 +543,20 @@ public class ProxyObject {
 
     @Override
     public int hashCode() {
-        return entity.hashCode();
+        return subject.hashCode();
     }
 
     @Override
     public boolean equals(Object object) {
         if (object instanceof ProxyObject) {
             ProxyObject proxy = (ProxyObject) object;
-            return this.entity == proxy.entity;
+            return this.subject == proxy.subject;
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return entity.getIRIValue();
+        return subject.toString();
     }
 }

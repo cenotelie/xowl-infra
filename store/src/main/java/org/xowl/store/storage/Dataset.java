@@ -22,6 +22,7 @@ package org.xowl.store.storage;
 
 import org.xowl.store.rdf.*;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -79,6 +80,13 @@ public interface Dataset {
      * @return An iterator over the results
      */
     Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object);
+
+    /**
+     * Gets the graphs in this dataset
+     *
+     * @return The graphs in this dataset
+     */
+    Collection<GraphNode> getGraphs();
 
     /**
      * Gets the number of different quads in this dataset
@@ -177,4 +185,39 @@ public interface Dataset {
      * @throws UnsupportedNodeType when the subject node type is unsupported
      */
     void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType;
+
+    /**
+     * Removes all the quads from this dataset
+     */
+    void clear();
+
+    /**
+     * Removes all the quads from this dataset for the specified graph
+     *
+     * @param graph A graph
+     */
+    void clear(GraphNode graph);
+
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed if the overwrite flag is used.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is not affected.
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param overwrite Whether to overwrite quads from the target graph
+     */
+    void copy(GraphNode origin, GraphNode target, boolean overwrite);
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is always removed.
+     *
+     * @param origin The origin graph
+     * @param target The target graph
+     */
+    void move(GraphNode origin, GraphNode target);
 }

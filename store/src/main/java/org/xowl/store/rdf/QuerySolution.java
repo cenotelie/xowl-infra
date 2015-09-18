@@ -20,28 +20,42 @@
 
 package org.xowl.store.rdf;
 
+import org.xowl.utils.collections.Couple;
+
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Iterator;
 
 /**
  * Represents a solution to a RDF query
  *
  * @author Laurent Wouters
  */
-public class QuerySolution {
+public class QuerySolution implements Iterable<Couple<VariableNode, Node>> {
     /**
      * The content of this solution
      */
-    private final Map<VariableNode, Node> content;
+    protected final Collection<Couple<VariableNode, Node>> bindings;
 
     /**
      * Initializes this solution
      *
-     * @param bindings The bindings represented by this solution
+     * @param bindings The bindings
      */
-    QuerySolution(Map<VariableNode, Node> bindings) {
-        this.content = new HashMap<>(bindings);
+    public QuerySolution(Collection<Couple<VariableNode, Node>> bindings) {
+        this.bindings = new ArrayList<>(bindings);
+    }
+
+    /**
+     * Initializes this solution as a copy the specified one augmented with a new binding
+     *
+     * @param original The original solution
+     * @param variable The new variable to bind
+     * @param value    The value to bind to
+     */
+    public QuerySolution(QuerySolution original, VariableNode variable, Node value) {
+        this.bindings = new ArrayList<>(original.bindings);
+        this.bindings.add(new Couple<>(variable, value));
     }
 
     /**
@@ -50,7 +64,7 @@ public class QuerySolution {
      * @return The size of this solution
      */
     public int size() {
-        return content.size();
+        return bindings.size();
     }
 
     /**
@@ -59,7 +73,10 @@ public class QuerySolution {
      * @return The list if the matched variables in this solution
      */
     public Collection<VariableNode> getVariables() {
-        return content.keySet();
+        Collection<VariableNode> result = new ArrayList<>(bindings.size());
+        for (Couple<VariableNode, Node> binding : bindings)
+            result.add(binding.x);
+        return result;
     }
 
     /**
@@ -69,7 +86,10 @@ public class QuerySolution {
      * @return The value associated to the specified variable
      */
     public Node get(VariableNode variable) {
-        return content.get(variable);
+        for (Couple<VariableNode, Node> binding : bindings)
+            if (Utils.same(binding.x, variable))
+                return binding.y;
+        return null;
     }
 
     /**
@@ -79,10 +99,35 @@ public class QuerySolution {
      * @return The value associated to the specified variable
      */
     public Node get(String variable) {
-        for (VariableNode var : content.keySet()) {
-            if (var.getName().equals(variable))
-                return content.get(var);
-        }
+        for (Couple<VariableNode, Node> binding : bindings)
+            if (binding.x.getName().equals(variable))
+                return binding.y;
         return null;
+    }
+
+    @Override
+    public Iterator<Couple<VariableNode, Node>> iterator() {
+        return bindings.iterator();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof QuerySolution))
+            return false;
+        QuerySolution solution = (QuerySolution) o;
+        if (solution.bindings.size() != this.bindings.size())
+            return false;
+        for (Couple<VariableNode, Node> binding : this.bindings) {
+            boolean found = false;
+            for (Couple<VariableNode, Node> candidate : solution.bindings) {
+                if (Utils.same(candidate.x, binding.x) && Utils.same(candidate.y, binding.y)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                return false;
+        }
+        return true;
     }
 }

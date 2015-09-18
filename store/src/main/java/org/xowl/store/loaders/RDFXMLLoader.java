@@ -157,10 +157,10 @@ public class RDFXMLLoader implements Loader {
     }
 
     @Override
-    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String resourceIRI, String graphIRI) {
         RDFLoaderResult result = new RDFLoaderResult();
         quads = result.getQuads();
-        graph = store.getIRINode(uri);
+        graph = store.getIRINode(graphIRI);
         blanks = new HashMap<>();
         knownIDs = new ArrayList<>();
         imports = result.getImports();
@@ -169,7 +169,7 @@ public class RDFXMLLoader implements Loader {
             DOMParser parser = new DOMParser();
             parser.parse(new InputSource(reader));
             Document document = parser.getDocument();
-            XMLElement root = new XMLElement(document.getDocumentElement(), uri);
+            XMLElement root = new XMLElement(document.getDocumentElement(), resourceIRI);
             if (Vocabulary.rdfRDF.equals(root.getNodeIRI()))
                 loadDocument(root);
             else
@@ -598,7 +598,7 @@ public class RDFXMLLoader implements Loader {
      * @param value    The triples's value
      */
     private void register(SubjectNode subject, String property, Node value) {
-        if (property.equals(Vocabulary.owlImports) && value.getNodeType() == IRINode.TYPE) {
+        if (property.equals(Vocabulary.owlImports) && value.getNodeType() == Node.TYPE_IRI) {
             // this is an import statement
             imports.add(((IRINode) value).getIRIValue());
         }
@@ -613,7 +613,7 @@ public class RDFXMLLoader implements Loader {
      * @param value    The triples's value
      */
     private void register(SubjectNode subject, Property property, Node value) {
-        if (property.getNodeType() == IRINode.TYPE && ((IRINode) property).getIRIValue().equals(Vocabulary.owlImports) && value.getNodeType() == IRINode.TYPE) {
+        if (property.getNodeType() == Node.TYPE_IRI && ((IRINode) property).getIRIValue().equals(Vocabulary.owlImports) && value.getNodeType() == Node.TYPE_IRI) {
             // this is an import statement
             imports.add(((IRINode) value).getIRIValue());
         }

@@ -64,7 +64,7 @@ public class OWLXMLLoader implements Loader {
     }
 
     @Override
-    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String resourceIRI, String graphIRI) {
         throw new UnsupportedOperationException();
     }
 

@@ -72,7 +72,7 @@ public class ClosingQuadIterator implements Iterator<Quad> {
     @Override
     public Quad next() {
         Quad result = content.peek().next();
-        if (result.getObject().getNodeType() == BlankNode.TYPE) {
+        if (result.getObject().getNodeType() == Node.TYPE_BLANK) {
             BlankNode blank = (BlankNode) result.getObject();
             if (!explored.contains(blank)) {
                 // push the iterator for this blank node

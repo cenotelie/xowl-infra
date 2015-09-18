@@ -26,6 +26,7 @@ import org.xowl.store.rdf.*;
 import org.xowl.store.storage.cache.CachedDataset;
 import org.xowl.store.storage.cache.CachedNodes;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -83,6 +84,11 @@ public class InMemoryStore implements BaseStore {
     }
 
     @Override
+    public Collection<GraphNode> getGraphs() {
+        return dataset.getGraphs();
+    }
+
+    @Override
     public long count() {
         return dataset.count();
     }
@@ -130,6 +136,26 @@ public class InMemoryStore implements BaseStore {
     @Override
     public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         dataset.remove(graph, subject, property, value);
+    }
+
+    @Override
+    public void clear() {
+        dataset.clear();
+    }
+
+    @Override
+    public void clear(GraphNode graph) {
+        dataset.clear(graph);
+    }
+
+    @Override
+    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+        dataset.copy(origin, target, overwrite);
+    }
+
+    @Override
+    public void move(GraphNode origin, GraphNode target) {
+        dataset.move(origin, target);
     }
 
     @Override

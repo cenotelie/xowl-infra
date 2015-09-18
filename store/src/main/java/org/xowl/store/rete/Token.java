@@ -21,10 +21,12 @@
 package org.xowl.store.rete;
 
 import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.Utils;
 import org.xowl.store.rdf.VariableNode;
+import org.xowl.utils.collections.Couple;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Represent a token in a RETE network, i.e. a piece of matching data
@@ -120,7 +122,7 @@ public class Token {
         if (variables == null)
             return null;
         for (int i = 0; i != variables.length; i++) {
-            if (variables[i] == variable)
+            if (Utils.same(variables[i], variable))
                 return values[i];
         }
         return null;
@@ -131,16 +133,16 @@ public class Token {
      *
      * @return The bindings in this token
      */
-    public Map<VariableNode, Node> getBindings() {
-        HashMap<VariableNode, Node> bindings = new HashMap<>();
+    public Collection<Couple<VariableNode, Node>> getBindings() {
+        Collection<Couple<VariableNode, Node>> result = new ArrayList<>();
         Token current = this;
         while (current != null) {
             if (current.variables != null) {
                 for (int i = 0; i != current.variables.length; i++)
-                    bindings.put(current.variables[i], current.values[i]);
+                    result.add(new Couple<>(current.variables[i], current.values[i]));
             }
             current = current.parent;
         }
-        return bindings;
+        return result;
     }
 }

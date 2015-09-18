@@ -23,10 +23,11 @@ package org.xowl.store.storage.cache;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Property;
-import org.xowl.store.rdf.VariableNode;
+import org.xowl.store.rdf.Utils;
 import org.xowl.utils.collections.*;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -70,7 +71,7 @@ class EdgeBucket implements Iterable<Edge> {
         boolean hasEmpty = false;
         for (int i = 0; i != edges.length; i++) {
             hasEmpty = hasEmpty || (edges[i] == null);
-            if (edges[i] != null && edges[i].getProperty() == property) {
+            if (edges[i] != null && Utils.same(edges[i].getProperty(), property)) {
                 return edges[i].add(graph, value);
             }
         }
@@ -101,7 +102,7 @@ class EdgeBucket implements Iterable<Edge> {
      */
     public int remove(GraphNode graph, Property property, Node value) {
         for (int i = 0; i != edges.length; i++) {
-            if (edges[i] != null && edges[i].getProperty() == property) {
+            if (edges[i] != null && Utils.same(edges[i].getProperty(), property)) {
                 int result = edges[i].remove(graph, value);
                 if (result == CachedDataset.REMOVE_RESULT_EMPTIED) {
                     edges[i] = null;
@@ -125,7 +126,7 @@ class EdgeBucket implements Iterable<Edge> {
      */
     public int removeAll(GraphNode graph, Property property, Node value, List<CachedQuad> buffer) {
         for (int i = 0; i != edges.length; i++) {
-            if (edges[i] != null && (property == null || edges[i].getProperty() == property)) {
+            if (edges[i] != null && (property == null || Utils.same(edges[i].getProperty(), property))) {
                 int originalSize = buffer.size();
                 int result = edges[i].removeAll(graph, value, buffer);
                 for (int j = originalSize; j != buffer.size(); j++)
@@ -155,6 +156,92 @@ class EdgeBucket implements Iterable<Edge> {
         }
     }
 
+    /**
+     * Clears this object for the specified graph
+     *
+     * @param graph  The graph to clear
+     * @param buffer The buffer for the removed quads
+     * @return true if the object is now empty
+     */
+    public boolean clear(GraphNode graph, List<CachedQuad> buffer) {
+        for (int i = 0; i != edges.length; i++) {
+            if (edges[i] != null) {
+                int originalSize = buffer.size();
+                boolean empty = edges[i].clear(graph, buffer);
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setProperty(edges[i].getProperty());
+                if (empty) {
+                    edges[i] = null;
+                    size--;
+                }
+            }
+        }
+        return (size == 0);
+    }
+
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed if the overwrite flag is used.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is not affected.
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
+     * @return true if the object is now empty
+     */
+    public boolean copy(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+        for (int i = 0; i != edges.length; i++) {
+            if (edges[i] != null) {
+                int originalSizeOld = bufferOld.size();
+                int originalSizeNew = bufferNew.size();
+                boolean empty = edges[i].copy(origin, target, bufferOld, bufferNew, overwrite);
+                for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                    bufferOld.get(j).setProperty(edges[i].getProperty());
+                for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                    bufferNew.get(j).setProperty(edges[i].getProperty());
+                if (empty) {
+                    edges[i] = null;
+                    size--;
+                }
+            }
+        }
+        return (size == 0);
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is always removed.
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @return true if the object is now empty
+     */
+    public boolean move(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        for (int i = 0; i != edges.length; i++) {
+            if (edges[i] != null) {
+                int originalSizeOld = bufferOld.size();
+                int originalSizeNew = bufferNew.size();
+                boolean empty = edges[i].move(origin, target, bufferOld, bufferNew);
+                for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                    bufferOld.get(j).setProperty(edges[i].getProperty());
+                for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                    bufferNew.get(j).setProperty(edges[i].getProperty());
+                if (empty) {
+                    edges[i] = null;
+                    size--;
+                }
+            }
+        }
+        return (size == 0);
+    }
+
     @Override
     public Iterator<Edge> iterator() {
         return new SparseIterator<>(edges);
@@ -169,7 +256,7 @@ class EdgeBucket implements Iterable<Edge> {
      * @return An iterator over the quads
      */
     public Iterator<CachedQuad> getAll(final GraphNode graph, final Property property, final Node value) {
-        if (property == null || property.getNodeType() == VariableNode.TYPE) {
+        if (property == null || property.getNodeType() == Node.TYPE_VARIABLE) {
             return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(edges), new Adapter<Iterator<CachedQuad>>() {
                 @Override
                 public <X> Iterator<CachedQuad> adapt(X element) {
@@ -187,7 +274,7 @@ class EdgeBucket implements Iterable<Edge> {
         }
 
         for (int i = 0; i != edges.length; i++) {
-            if (edges[i] != null && edges[i].getProperty() == property) {
+            if (edges[i] != null && Utils.same(edges[i].getProperty(), property)) {
                 return new AdaptingIterator<>(edges[i].getAll(graph, value), new Adapter<CachedQuad>() {
                     @Override
                     public <X> CachedQuad adapt(X element) {
@@ -203,6 +290,18 @@ class EdgeBucket implements Iterable<Edge> {
     }
 
     /**
+     * Finds all the graphs in this object
+     *
+     * @param buffer The buffer to store the result
+     */
+    public void getGraphs(Collection<GraphNode> buffer) {
+        for (int i = 0; i != edges.length; i++) {
+            if (edges[i] != null)
+                edges[i].getGraphs(buffer);
+        }
+    }
+
+    /**
      * Returns the number of different quads with the specified data
      *
      * @param graph    The filtering graph
@@ -211,7 +310,7 @@ class EdgeBucket implements Iterable<Edge> {
      * @return The number of different quads
      */
     public int count(GraphNode graph, Property property, Node value) {
-        if (property == null || property.getNodeType() == VariableNode.TYPE) {
+        if (property == null || property.getNodeType() == Node.TYPE_VARIABLE) {
             int count = 0;
             for (int i = 0; i != edges.length; i++)
                 if (edges[i] != null)
@@ -219,7 +318,7 @@ class EdgeBucket implements Iterable<Edge> {
             return count;
         }
         for (int i = 0; i != edges.length; i++)
-            if (edges[i] != null && edges[i].getProperty() == property)
+            if (edges[i] != null && Utils.same(edges[i].getProperty(), property))
                 return edges[i].count(graph, value);
         return 0;
     }

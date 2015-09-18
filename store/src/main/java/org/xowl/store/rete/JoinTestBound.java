@@ -20,10 +20,7 @@
 
 package org.xowl.store.rete;
 
-import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.QuadField;
-import org.xowl.store.rdf.VariableNode;
+import org.xowl.store.rdf.*;
 
 /**
  * Represents a test on a bound variable for the joining operations in the beta graph of a RETE network
@@ -60,7 +57,7 @@ class JoinTestBound extends JoinTest {
     public boolean check(Token token, Quad fact) {
         Node arg1 = token.getBinding(variable);
         Node arg2 = fact.getField(field);
-        return (arg1.getNodeType() == arg2.getNodeType() && arg1.equals(arg2));
+        return Utils.same(arg1, arg2);
     }
 
     @Override

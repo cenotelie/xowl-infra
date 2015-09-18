@@ -27,11 +27,6 @@ package org.xowl.store.rdf;
  */
 public class BlankNode implements SubjectNode, GraphNode {
     /**
-     * The type of node
-     */
-    public static final int TYPE = 1;
-
-    /**
      * The node's unique identifier
      */
     private final long blankID;
@@ -47,7 +42,7 @@ public class BlankNode implements SubjectNode, GraphNode {
 
     @Override
     public int getNodeType() {
-        return TYPE;
+        return TYPE_BLANK;
     }
 
     /**

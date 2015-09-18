@@ -19,14 +19,12 @@
  ******************************************************************************/
 package org.xowl.store.owl;
 
-import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.Axiom;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.rules.Assertion;
 import org.xowl.lang.rules.Rule;
-import org.xowl.store.rdf.GraphNode;
-import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.VariableNode;
+import org.xowl.store.Evaluator;
+import org.xowl.store.rdf.*;
 import org.xowl.store.rete.Token;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.NodeManager;
@@ -56,12 +54,12 @@ public class RuleEngine {
 
         @Override
         protected Node processOtherNode(org.xowl.store.rdf.Rule rule, Node node, Token token, Map<Node, Node> specials) {
-            if (node.getNodeType() != DynamicNode.TYPE || evaluator == null)
+            if (node.getNodeType() != Node.TYPE_DYNAMIC || evaluator == null)
                 return node;
             Node result = specials.get(node);
             if (result != null)
                 return result;
-            evaluator.push(buildBindings(owlRules.get(rule).x, token, specials));
+            evaluator.push(buildBindings(token, specials));
             result = Utils.getRDF(outputStore, evaluator.eval(((DynamicNode) node).getDynamicExpression()));
             specials.put(node, result);
             evaluator.pop();
@@ -71,23 +69,18 @@ public class RuleEngine {
         /**
          * Builds the bindings data for the evaluator from the specified information
          *
-         * @param context  The translation context
          * @param token    The matching token in the rule engine
          * @param specials The existing special bindings
          * @return The bindings for the evaluator
          */
-        private Bindings buildBindings(TranslationContext context, Token token, Map<Node, Node> specials) {
-            Bindings bindings = new Bindings();
-            for (Map.Entry<VariableNode, Node> entry : token.getBindings().entrySet()) {
-                QueryVariable qvar = context.get(entry.getKey());
-                Object value = Utils.getOWL(entry.getValue());
-                bindings.bind(qvar, value);
+        private Map<String, Object> buildBindings(Token token, Map<Node, Node> specials) {
+            Map<String, Object> bindings = new HashMap<>();
+            for (Couple<VariableNode, Node> entry : token.getBindings()) {
+                bindings.put(entry.x.getName(), Utils.getNative(entry.y));
             }
             for (Map.Entry<Node, Node> entry : specials.entrySet()) {
-                if (entry.getKey().getNodeType() == VariableNode.TYPE) {
-                    QueryVariable qvar = context.get((VariableNode) entry.getKey());
-                    Object value = Utils.getOWL(entry.getValue());
-                    bindings.bind(qvar, value);
+                if (entry.getKey().getNodeType() == Node.TYPE_VARIABLE) {
+                    bindings.put(((VariableNode) entry.getValue()).getName(), Utils.getNative(entry.getValue()));
                 }
             }
             return bindings;

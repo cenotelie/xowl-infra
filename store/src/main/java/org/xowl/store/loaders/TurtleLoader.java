@@ -116,11 +116,11 @@ public class TurtleLoader implements Loader {
     }
 
     @Override
-    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String resourceIRI, String graphIRI) {
         RDFLoaderResult result = new RDFLoaderResult();
         quads = result.getQuads();
-        graph = store.getIRINode(uri);
-        resource = uri;
+        graph = store.getIRINode(graphIRI);
+        resource = resourceIRI;
         baseURI = resource;
         namespaces = new HashMap<>();
         blanks = new HashMap<>();

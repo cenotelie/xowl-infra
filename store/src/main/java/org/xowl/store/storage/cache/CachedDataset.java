@@ -123,6 +123,96 @@ public class CachedDataset implements Dataset {
     }
 
     @Override
+    public Iterator<Quad> getAll() {
+        return getAll(null, null, null, null);
+    }
+
+    @Override
+    public Iterator<Quad> getAll(GraphNode graph) {
+        return getAll(graph, null, null, null);
+    }
+
+    @Override
+    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
+        return getAll(null, subject, property, object);
+    }
+
+    @Override
+    public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) {
+        if (subject == null || subject.getNodeType() == Node.TYPE_VARIABLE) {
+            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<CachedQuad>>() {
+                @Override
+                public <X> Iterator<CachedQuad> adapt(X element) {
+                    Couple<SubjectNode, EdgeBucket> subject = (Couple<SubjectNode, EdgeBucket>) element;
+                    return subject.y.getAll(graph, property, object);
+                }
+            }), new Adapter<Quad>() {
+                @Override
+                public <X> Quad adapt(X element) {
+                    Couple<Couple<SubjectNode, EdgeBucket>, CachedQuad> result = (Couple<Couple<SubjectNode, EdgeBucket>, CachedQuad>) element;
+                    result.y.setSubject(result.x.x);
+                    return result.y;
+                }
+            });
+        } else {
+            EdgeBucket bucket = getBucketFor(subject);
+            if (bucket == null)
+                return new SingleIterator<>(null);
+            return new AdaptingIterator<>(bucket.getAll(graph, property, object), new Adapter<Quad>() {
+                @Override
+                public <X> Quad adapt(X element) {
+                    CachedQuad quad = (CachedQuad) element;
+                    quad.setSubject(subject);
+                    return quad;
+                }
+            });
+        }
+    }
+
+    @Override
+    public Collection<GraphNode> getGraphs() {
+        Collection<GraphNode> result = new ArrayList<>();
+        for (EdgeBucket bucket : edgesIRI.values())
+            bucket.getGraphs(result);
+        for (EdgeBucket bucket : edgesBlank.values())
+            bucket.getGraphs(result);
+        for (EdgeBucket bucket : edgesAnon.values())
+            bucket.getGraphs(result);
+        return result;
+    }
+
+    @Override
+    public long count() {
+        return count(null, null, null, null);
+    }
+
+    @Override
+    public long count(GraphNode graph) {
+        return count(graph, null, null, null);
+    }
+
+    @Override
+    public long count(SubjectNode subject, Property property, Node object) {
+        return count(null, subject, property, object);
+    }
+
+    @Override
+    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
+        if (subject == null || subject.getNodeType() == Node.TYPE_VARIABLE) {
+            int count = 0;
+            Iterator<Couple<SubjectNode, EdgeBucket>> iterator = getAllSubjects();
+            while (iterator.hasNext())
+                count += iterator.next().y.count(graph, property, object);
+            return count;
+        } else {
+            EdgeBucket bucket = getBucketFor(subject);
+            if (bucket == null)
+                return 0;
+            return bucket.count(graph, property, object);
+        }
+    }
+
+    @Override
     public void insert(Change change) throws UnsupportedNodeType {
         Quad quad = change.getValue();
         if (change.isPositive()) {
@@ -146,15 +236,36 @@ public class CachedDataset implements Dataset {
     public void insert(Changeset changeset) throws UnsupportedNodeType {
         Collection<Quad> positives = new ArrayList<>();
         Collection<Quad> negatives = new ArrayList<>();
-        for (Quad quad : changeset.getPositives()) {
-            int result = doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            if (result == ADD_RESULT_NEW)
-                positives.add(quad);
-        }
-        for (Quad quad : changeset.getNegatives()) {
-            int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            if (result == REMOVE_RESULT_REMOVED)
-                negatives.add(quad);
+        int indexPositive = 0;
+        int indexNegative = 0;
+        try {
+            for (Quad quad : changeset.getPositives()) {
+                int result = doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+                if (result == ADD_RESULT_NEW)
+                    positives.add(quad);
+                indexPositive++;
+            }
+            for (Quad quad : changeset.getNegatives()) {
+                int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+                if (result == REMOVE_RESULT_REMOVED)
+                    negatives.add(quad);
+                indexNegative++;
+            }
+        } catch (UnsupportedNodeType exception) {
+            // rollback the previously inserted quads
+            for (Quad quad : changeset.getPositives()) {
+                if (indexPositive > 0)
+                    break;
+                doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+                indexPositive--;
+            }
+            for (Quad quad : changeset.getNegatives()) {
+                if (indexNegative > 0)
+                    break;
+                doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+                indexNegative--;
+            }
+            throw exception;
         }
         if (!positives.isEmpty() || !negatives.isEmpty()) {
             // transmit the changes only if a there are some!
@@ -192,11 +303,11 @@ public class CachedDataset implements Dataset {
      */
     private int doAddEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
-            case IRINode.TYPE:
+            case Node.TYPE_IRI:
                 return doAddEdgeFromIRI(graph, (IRINode) subject, property, value);
-            case BlankNode.TYPE:
+            case Node.TYPE_BLANK:
                 return doAddEdgeFromBlank(graph, (BlankNode) subject, property, value);
-            case AnonymousNode.TYPE:
+            case Node.TYPE_ANONYMOUS:
                 return doAddEdgeFromAnonymous(graph, (AnonymousNode) subject, property, value);
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
@@ -259,82 +370,6 @@ public class CachedDataset implements Dataset {
         return bucket.add(graph, property, value);
     }
 
-    /**
-     * Clears this store by removing all quads
-     */
-    public void clear() {
-        List<CachedQuad> buffer = new ArrayList<>();
-        doClearFromAll(buffer);
-        if (!buffer.isEmpty()) {
-            Changeset changeset = new Changeset(new ArrayList<Quad>(), (Collection) buffer);
-            for (ChangeListener listener : listeners) {
-                listener.onChange(changeset);
-            }
-        }
-    }
-
-    /**
-     * Executes the clear operation removing all quads from this store
-     *
-     * @param buffer The buffer for the removed quads
-     */
-    private void doClearFromAll(List<CachedQuad> buffer) {
-        doClearFromIRIs(buffer);
-        doClearFromBlanks(buffer);
-        doClearFromAnons(buffer);
-    }
-
-    /**
-     * Executes the clear operation removing all quads with IRI nodes as subject
-     *
-     * @param buffer The buffer for the removed quads
-     */
-    private void doClearFromIRIs(List<CachedQuad> buffer) {
-        for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
-            int originalSize = buffer.size();
-            entry.getValue().clear(buffer);
-            if (buffer.size() > originalSize) {
-                for (int j = originalSize; j != buffer.size(); j++)
-                    buffer.get(j).setSubject(entry.getKey());
-            }
-        }
-        edgesIRI.clear();
-    }
-
-    /**
-     * Executes the clear operation removing all quads with blank nodes as subject
-     *
-     * @param buffer The buffer for the removed quads
-     */
-    private void doClearFromBlanks(List<CachedQuad> buffer) {
-        for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
-            int originalSize = buffer.size();
-            entry.getValue().clear(buffer);
-            if (buffer.size() > originalSize) {
-                for (int j = originalSize; j != buffer.size(); j++)
-                    buffer.get(j).setSubject(entry.getKey());
-            }
-        }
-        edgesBlank.clear();
-    }
-
-    /**
-     * Executes the clear operation removing all quads with anonymous nodes as subject
-     *
-     * @param buffer The buffer for the removed quads
-     */
-    private void doClearFromAnons(List<CachedQuad> buffer) {
-        for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
-            int originalSize = buffer.size();
-            entry.getValue().clear(buffer);
-            if (buffer.size() > originalSize) {
-                for (int j = originalSize; j != buffer.size(); j++)
-                    buffer.get(j).setSubject(entry.getKey());
-            }
-        }
-        edgesAnon.clear();
-    }
-
     @Override
     public void remove(Quad quad) throws UnsupportedNodeType {
         if (quad.getGraph() != null && quad.getSubject() != null && quad.getProperty() != null && quad.getObject() != null) {
@@ -391,11 +426,11 @@ public class CachedDataset implements Dataset {
      */
     private int doRemoveEdge(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
-            case IRINode.TYPE:
+            case Node.TYPE_IRI:
                 return doRemoveEdgeFromIRI(graph, (IRINode) subject, property, value);
-            case BlankNode.TYPE:
+            case Node.TYPE_BLANK:
                 return doRemoveEdgeFromBlank(graph, (BlankNode) subject, property, value);
-            case AnonymousNode.TYPE:
+            case Node.TYPE_ANONYMOUS:
                 return doRemoveEdgeFromAnon(graph, (AnonymousNode) subject, property, value);
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
@@ -414,11 +449,11 @@ public class CachedDataset implements Dataset {
      */
     private int doRemoveEdges(GraphNode graph, SubjectNode subject, Property property, Node value, List<CachedQuad> buffer) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
-            case IRINode.TYPE:
+            case Node.TYPE_IRI:
                 return doRemoveEdgesFromIRI(graph, (IRINode) subject, property, value, buffer);
-            case BlankNode.TYPE:
+            case Node.TYPE_BLANK:
                 return doRemoveEdgesFromBlank(graph, (BlankNode) subject, property, value, buffer);
-            case AnonymousNode.TYPE:
+            case Node.TYPE_ANONYMOUS:
                 return doRemoveEdgesFromAnon(graph, (AnonymousNode) subject, property, value, buffer);
             default:
                 throw new UnsupportedNodeType(subject, "Subject node must be IRI or BLANK");
@@ -649,81 +684,372 @@ public class CachedDataset implements Dataset {
     }
 
     @Override
-    public Iterator<Quad> getAll() {
-        return getAll(null, null, null, null);
-    }
-
-    @Override
-    public Iterator<Quad> getAll(GraphNode graph) {
-        return getAll(graph, null, null, null);
-    }
-
-    @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
-        return getAll(null, subject, property, object);
-    }
-
-    @Override
-    public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) {
-        if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<CachedQuad>>() {
-                @Override
-                public <X> Iterator<CachedQuad> adapt(X element) {
-                    Couple<SubjectNode, EdgeBucket> subject = (Couple<SubjectNode, EdgeBucket>) element;
-                    return subject.y.getAll(graph, property, object);
-                }
-            }), new Adapter<Quad>() {
-                @Override
-                public <X> Quad adapt(X element) {
-                    Couple<Couple<SubjectNode, EdgeBucket>, CachedQuad> result = (Couple<Couple<SubjectNode, EdgeBucket>, CachedQuad>) element;
-                    result.y.setSubject(result.x.x);
-                    return result.y;
-                }
-            });
-        } else {
-            EdgeBucket bucket = getBucketFor(subject);
-            if (bucket == null)
-                return new SingleIterator<>(null);
-            return new AdaptingIterator<>(bucket.getAll(graph, property, object), new Adapter<Quad>() {
-                @Override
-                public <X> Quad adapt(X element) {
-                    CachedQuad quad = (CachedQuad) element;
-                    quad.setSubject(subject);
-                    return quad;
-                }
-            });
+    public void clear() {
+        List<CachedQuad> buffer = new ArrayList<>();
+        doClearFromAll(buffer);
+        if (!buffer.isEmpty()) {
+            Changeset changeset = new Changeset(new ArrayList<Quad>(), (Collection) buffer);
+            for (ChangeListener listener : listeners) {
+                listener.onChange(changeset);
+            }
         }
     }
 
     @Override
-    public long count() {
-        return count(null, null, null, null);
-    }
-
-    @Override
-    public long count(GraphNode graph) {
-        return count(graph, null, null, null);
-    }
-
-    @Override
-    public long count(SubjectNode subject, Property property, Node object) {
-        return count(null, subject, property, object);
-    }
-
-    @Override
-    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        if (subject == null || subject.getNodeType() == VariableNode.TYPE) {
-            int count = 0;
-            Iterator<Couple<SubjectNode, EdgeBucket>> iterator = getAllSubjects();
-            while (iterator.hasNext())
-                count += iterator.next().y.count(graph, property, object);
-            return count;
-        } else {
-            EdgeBucket bucket = getBucketFor(subject);
-            if (bucket == null)
-                return 0;
-            return bucket.count(graph, property, object);
+    public void clear(GraphNode graph) {
+        if (graph == null) {
+            clear();
+            return;
         }
+        List<CachedQuad> buffer = new ArrayList<>();
+        doClearFromAll(graph, buffer);
+        if (!buffer.isEmpty()) {
+            Changeset changeset = new Changeset(new ArrayList<Quad>(), (Collection) buffer);
+            for (ChangeListener listener : listeners) {
+                listener.onChange(changeset);
+            }
+        }
+    }
+
+    /**
+     * Executes the clear operation removing all quads from this store
+     *
+     * @param buffer The buffer for the removed quads
+     */
+    private void doClearFromAll(List<CachedQuad> buffer) {
+        doClearFromIRIs(buffer);
+        doClearFromBlanks(buffer);
+        doClearFromAnons(buffer);
+    }
+
+    /**
+     * Executes the clear operation removing all quads from this store for the specified graph
+     *
+     * @param graph  The graph to clear
+     * @param buffer The buffer for the removed quads
+     */
+    private void doClearFromAll(GraphNode graph, List<CachedQuad> buffer) {
+        doClearFromIRIs(graph, buffer);
+        doClearFromBlanks(graph, buffer);
+        doClearFromAnons(graph, buffer);
+    }
+
+    /**
+     * Executes the clear operation removing all quads with IRI nodes as subject
+     *
+     * @param buffer The buffer for the removed quads
+     */
+    private void doClearFromIRIs(List<CachedQuad> buffer) {
+        for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
+            int originalSize = buffer.size();
+            entry.getValue().clear(buffer);
+            if (buffer.size() > originalSize) {
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setSubject(entry.getKey());
+            }
+        }
+        edgesIRI.clear();
+    }
+
+    /**
+     * Executes the clear operation removing all quads with IRI nodes as subject for the specified graph
+     *
+     * @param graph  The graph to clear
+     * @param buffer The buffer for the removed quads
+     */
+    private void doClearFromIRIs(GraphNode graph, List<CachedQuad> buffer) {
+        List<IRINode> toDelete = new ArrayList<>();
+        for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
+            int originalSize = buffer.size();
+            boolean empty = entry.getValue().clear(graph, buffer);
+            if (buffer.size() > originalSize) {
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setSubject(entry.getKey());
+            }
+            if (empty)
+                toDelete.add(entry.getKey());
+        }
+        for (IRINode key : toDelete)
+            edgesIRI.remove(key);
+    }
+
+    /**
+     * Executes the clear operation removing all quads with blank nodes as subject
+     *
+     * @param buffer The buffer for the removed quads
+     */
+    private void doClearFromBlanks(List<CachedQuad> buffer) {
+        for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
+            int originalSize = buffer.size();
+            entry.getValue().clear(buffer);
+            if (buffer.size() > originalSize) {
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setSubject(entry.getKey());
+            }
+        }
+        edgesBlank.clear();
+    }
+
+    /**
+     * Executes the clear operation removing all quads with blank nodes as subject for the specified graph
+     *
+     * @param graph  The graph to clear
+     * @param buffer The buffer for the removed quads
+     */
+    private void doClearFromBlanks(GraphNode graph, List<CachedQuad> buffer) {
+        List<BlankNode> toDelete = new ArrayList<>();
+        for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
+            int originalSize = buffer.size();
+            boolean empty = entry.getValue().clear(graph, buffer);
+            if (buffer.size() > originalSize) {
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setSubject(entry.getKey());
+            }
+            if (empty)
+                toDelete.add(entry.getKey());
+        }
+        for (BlankNode key : toDelete)
+            edgesBlank.remove(key);
+    }
+
+    /**
+     * Executes the clear operation removing all quads with anonymous nodes as subject
+     *
+     * @param buffer The buffer for the removed quads
+     */
+    private void doClearFromAnons(List<CachedQuad> buffer) {
+        for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
+            int originalSize = buffer.size();
+            entry.getValue().clear(buffer);
+            if (buffer.size() > originalSize) {
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setSubject(entry.getKey());
+            }
+        }
+        edgesAnon.clear();
+    }
+
+    /**
+     * Executes the clear operation removing all quads with anonymous nodes as subject for the specified graph
+     *
+     * @param graph  The graph to clear
+     * @param buffer The buffer for the removed quads
+     */
+    private void doClearFromAnons(GraphNode graph, List<CachedQuad> buffer) {
+        List<AnonymousNode> toDelete = new ArrayList<>();
+        for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
+            int originalSize = buffer.size();
+            boolean empty = entry.getValue().clear(graph, buffer);
+            if (buffer.size() > originalSize) {
+                for (int j = originalSize; j != buffer.size(); j++)
+                    buffer.get(j).setSubject(entry.getKey());
+            }
+            if (empty)
+                toDelete.add(entry.getKey());
+        }
+        for (AnonymousNode key : toDelete)
+            edgesAnon.remove(key);
+    }
+
+    @Override
+    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+        List<CachedQuad> bufferOld = new ArrayList<>();
+        List<CachedQuad> bufferNew = new ArrayList<>();
+        doCopyFromIRIs(origin, target, bufferOld, bufferNew, overwrite);
+        doCopyFromBlanks(origin, target, bufferOld, bufferNew, overwrite);
+        doCopyFromAnons(origin, target, bufferOld, bufferNew, overwrite);
+        if (!bufferOld.isEmpty() || !bufferNew.isEmpty()) {
+            Changeset changeset = new Changeset((Collection) bufferNew, (Collection) bufferOld);
+            for (ChangeListener listener : listeners) {
+                listener.onChange(changeset);
+            }
+        }
+    }
+
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed if the overwrite flag is used.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is not affected.
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
+     */
+    private void doCopyFromIRIs(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+        List<IRINode> toDelete = new ArrayList<>();
+        for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            boolean empty = entry.getValue().copy(origin, target, bufferOld, bufferNew, overwrite);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
+        }
+        for (IRINode key : toDelete)
+            edgesIRI.remove(key);
+    }
+
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed if the overwrite flag is used.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is not affected.
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
+     */
+    private void doCopyFromBlanks(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+        List<BlankNode> toDelete = new ArrayList<>();
+        for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            boolean empty = entry.getValue().copy(origin, target, bufferOld, bufferNew, overwrite);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
+        }
+        for (BlankNode key : toDelete)
+            edgesBlank.remove(key);
+    }
+
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed if the overwrite flag is used.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is not affected.
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
+     */
+    private void doCopyFromAnons(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+        List<AnonymousNode> toDelete = new ArrayList<>();
+        for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            boolean empty = entry.getValue().copy(origin, target, bufferOld, bufferNew, overwrite);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
+        }
+        for (AnonymousNode key : toDelete)
+            edgesAnon.remove(key);
+    }
+
+    @Override
+    public void move(GraphNode origin, GraphNode target) {
+        List<CachedQuad> bufferOld = new ArrayList<>();
+        List<CachedQuad> bufferNew = new ArrayList<>();
+        doMoveFromIRIs(origin, target, bufferOld, bufferNew);
+        doMoveFromBlanks(origin, target, bufferOld, bufferNew);
+        doMoveFromAnons(origin, target, bufferOld, bufferNew);
+        if (!bufferOld.isEmpty() || !bufferNew.isEmpty()) {
+            Changeset changeset = new Changeset((Collection) bufferNew, (Collection) bufferOld);
+            for (ChangeListener listener : listeners) {
+                listener.onChange(changeset);
+            }
+        }
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is always removed.
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     */
+    private void doMoveFromIRIs(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        List<IRINode> toDelete = new ArrayList<>();
+        for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            boolean empty = entry.getValue().move(origin, target, bufferOld, bufferNew);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
+        }
+        for (IRINode key : toDelete)
+            edgesIRI.remove(key);
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is always removed.
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     */
+    private void doMoveFromBlanks(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        List<BlankNode> toDelete = new ArrayList<>();
+        for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            boolean empty = entry.getValue().move(origin, target, bufferOld, bufferNew);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
+        }
+        for (BlankNode key : toDelete)
+            edgesBlank.remove(key);
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     * Pre-existing quads from the target graph that do not correspond to an equivalent in the origin graph are removed.
+     * If a target quad already exists, its multiplicity is incremented, otherwise it is created.
+     * The quad in the origin graph is always removed.
+     *
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     */
+    private void doMoveFromAnons(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+        List<AnonymousNode> toDelete = new ArrayList<>();
+        for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
+            int originalSizeOld = bufferOld.size();
+            int originalSizeNew = bufferNew.size();
+            boolean empty = entry.getValue().move(origin, target, bufferOld, bufferNew);
+            for (int j = originalSizeOld; j != bufferOld.size(); j++)
+                bufferOld.get(j).setSubject(entry.getKey());
+            for (int j = originalSizeNew; j != bufferNew.size(); j++)
+                bufferNew.get(j).setSubject(entry.getKey());
+            if (empty)
+                toDelete.add(entry.getKey());
+        }
+        for (AnonymousNode key : toDelete)
+            edgesAnon.remove(key);
     }
 
     /**
@@ -765,11 +1091,11 @@ public class CachedDataset implements Dataset {
      */
     private EdgeBucket getBucketFor(Node node) {
         switch (node.getNodeType()) {
-            case IRINode.TYPE:
+            case Node.TYPE_IRI:
                 return edgesIRI.get(node);
-            case BlankNode.TYPE:
+            case Node.TYPE_BLANK:
                 return edgesBlank.get(node);
-            case AnonymousNode.TYPE:
+            case Node.TYPE_ANONYMOUS:
                 return edgesAnon.get(node);
 
             default:

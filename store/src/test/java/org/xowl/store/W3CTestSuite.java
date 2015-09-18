@@ -24,6 +24,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.xowl.store.loaders.*;
 import org.xowl.store.rdf.*;
+import org.xowl.store.rdf.Utils;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.InMemoryStore;
 import org.xowl.utils.Logger;
@@ -134,7 +135,7 @@ public abstract class W3CTestSuite {
             Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
             Loader loader = getLoader(expectedResource);
             Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult expected = loader.loadRDF(logger, reader, expectedURI);
+            RDFLoaderResult expected = loader.loadRDF(logger, reader, expectedURI, expectedURI);
             Assert.assertFalse("Failed to parse expected resource " + expectedResource, logger.isOnError());
             Assert.assertNotNull("Failed to load expected resource " + expectedResource, expected);
             expectedQuads.addAll(expected.getQuads());
@@ -146,7 +147,7 @@ public abstract class W3CTestSuite {
             Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
             Loader loader = getLoader(testedResource);
             Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI);
+            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
             Assert.assertFalse("Failed to parse tested resource " + testedResource, logger.isOnError());
             Assert.assertNotNull("Failed to load tested resource " + testedResource, tested);
             testedQuads.addAll(tested.getQuads());
@@ -158,7 +159,7 @@ public abstract class W3CTestSuite {
         List<Quad> temp = new ArrayList<>();
         GraphNode target = store.getIRINode(testedURI);
         for (Quad quad : expectedQuads) {
-            if (quad.getGraph().getNodeType() == IRINode.TYPE && ((IRINode) quad.getGraph()).getIRIValue().equals(expectedURI)) {
+            if (quad.getGraph().getNodeType() == Node.TYPE_IRI && ((IRINode) quad.getGraph()).getIRIValue().equals(expectedURI)) {
                 temp.add(new Quad(target, quad.getSubject(), quad.getProperty(), quad.getObject()));
             } else {
                 temp.add(quad);
@@ -179,7 +180,7 @@ public abstract class W3CTestSuite {
             Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
             Loader loader = getLoader(testedResource);
             Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI);
+            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
             Assert.assertFalse("Failed to parse tested resource " + testedResource, logger.isOnError());
             Assert.assertNotNull("Failed to load tested resource " + testedResource, tested);
         } catch (IOException exception) {
@@ -199,7 +200,7 @@ public abstract class W3CTestSuite {
             Assert.assertNotNull("Failed to get a reader for the expected resource", reader);
             Loader loader = getLoader(testedResource);
             Assert.assertNotNull("Failed to get a reader for the tested resource", loader);
-            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI);
+            RDFLoaderResult tested = loader.loadRDF(logger, reader, testedURI, testedURI);
             Assert.assertTrue("Failed to report error on bad input " + testedResource, logger.isOnError());
             Assert.assertNull("Mistakenly reported success of loading " + testedResource, tested);
         } catch (IOException exception) {
@@ -217,7 +218,7 @@ public abstract class W3CTestSuite {
             return;
         for (int i = 0; i != quads.size() - 1; i++) {
             for (int j = i + 1; j != quads.size(); j++) {
-                if (sameQuad(quads.get(i), quads.get(j))) {
+                if (quads.get(i).equals(quads.get(j))) {
                     quads.remove(i);
                     i--;
                     break;
@@ -240,7 +241,7 @@ public abstract class W3CTestSuite {
         Map<BlankNode, BlankNode> blanks = new HashMap<>();
         for (int i = 0; i != expected.size(); i++) {
             Quad quad = expected.get(i);
-            if (quad.getSubject().getNodeType() != BlankNode.TYPE) {
+            if (quad.getSubject().getNodeType() != Node.TYPE_BLANK) {
                 // ignore blank nodes at this time
                 boolean found = false;
                 for (Quad potential : tested) {
@@ -305,25 +306,25 @@ public abstract class W3CTestSuite {
         SubjectNode subject = quad1.getSubject();
         Property property = quad1.getProperty();
         Node object = quad1.getObject();
-        if (graph.getNodeType() == BlankNode.TYPE)
+        if (graph.getNodeType() == Node.TYPE_BLANK)
             graph = blanks.get(graph);
-        if (subject.getNodeType() == BlankNode.TYPE)
+        if (subject.getNodeType() == Node.TYPE_BLANK)
             subject = blanks.get(subject);
-        if (object.getNodeType() == BlankNode.TYPE)
+        if (object.getNodeType() == Node.TYPE_BLANK)
             object = blanks.get(object);
-        if (!property.equals(quad2.getProperty()))
+        if (!Utils.same(property, quad2.getProperty()))
             return false;
-        if (graph != null && !graph.equals(quad2.getGraph()))
+        if (graph != null && !Utils.same(graph, quad2.getGraph()))
             return false;
-        if (subject != null && !subject.equals(quad2.getSubject()))
+        if (subject != null && !Utils.same(subject, quad2.getSubject()))
             return false;
-        if (object != null && !object.equals(quad2.getObject()))
+        if (object != null && !Utils.same(object, quad2.getObject()))
             return false;
-        if (graph == null && quad2.getGraph().getNodeType() != BlankNode.TYPE)
+        if (graph == null && quad2.getGraph().getNodeType() != Node.TYPE_BLANK)
             return false;
-        if (subject == null && quad2.getSubject().getNodeType() != BlankNode.TYPE)
+        if (subject == null && quad2.getSubject().getNodeType() != Node.TYPE_BLANK)
             return false;
-        if (object == null && quad2.getObject().getNodeType() != BlankNode.TYPE)
+        if (object == null && quad2.getObject().getNodeType() != Node.TYPE_BLANK)
             return false;
         if (graph == null)
             blanks.put((BlankNode) quad1.getGraph(), (BlankNode) quad2.getGraph());
@@ -332,19 +333,5 @@ public abstract class W3CTestSuite {
         if (object == null)
             blanks.put((BlankNode) quad1.getObject(), (BlankNode) quad2.getObject());
         return true;
-    }
-
-    /**
-     * Determines whether the specified quads are exactly the same
-     *
-     * @param quad1 A quad
-     * @param quad2 Another quad
-     * @return <code>true</code> if the two quads are exactly the same
-     */
-    public static boolean sameQuad(Quad quad1, Quad quad2) {
-        return (quad1.getGraph().equals(quad2.getGraph())
-                && quad1.getSubject().equals(quad2.getSubject())
-                && quad1.getProperty().equals(quad2.getProperty())
-                && quad1.getObject().equals(quad2.getObject()));
     }
 }

@@ -122,13 +122,13 @@ public abstract class StructuredSerializer implements RDFSerializer {
      */
     private void mapNode(Node node) throws UnsupportedNodeType {
         switch (node.getNodeType()) {
-            case IRINode.TYPE:
+            case Node.TYPE_IRI:
                 mapIRI(node, ((IRINode) node).getIRIValue());
                 break;
-            case BlankNode.TYPE:
+            case Node.TYPE_BLANK:
                 mapBlank((BlankNode) node);
                 break;
-            case LiteralNode.TYPE:
+            case Node.TYPE_LITERAL:
                 String datatype = ((LiteralNode) node).getDatatype();
                 mapIRI(node, datatype);
                 break;

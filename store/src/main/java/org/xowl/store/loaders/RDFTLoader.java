@@ -130,14 +130,14 @@ public class RDFTLoader implements Loader {
     }
 
     @Override
-    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String resourceIRI, String graphIRI) {
         RDFLoaderResult result = new RDFLoaderResult();
         rules = result.getRules();
         if (graphMeta == null)
             graphMeta = store.getIRINode(NodeManager.DEFAULT_GRAPH);
         if (graphTarget == null)
             graphTarget = store.getIRINode(NodeManager.DEFAULT_GRAPH);
-        resource = uri;
+        resource = resourceIRI;
         baseURI = resource;
         namespaces = new HashMap<>();
         blanks = new HashMap<>();

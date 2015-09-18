@@ -26,14 +26,9 @@ package org.xowl.store.rdf;
  * @author Laurent Wouters
  */
 public abstract class IRINode implements SubjectNode, Property, GraphNode {
-    /**
-     * The type of node
-     */
-    public static final int TYPE = 0;
-
     @Override
     public int getNodeType() {
-        return TYPE;
+        return TYPE_IRI;
     }
 
     @Override

@@ -82,10 +82,10 @@ public class NQuadsLoader implements Loader {
     }
 
     @Override
-    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String uri) {
+    public RDFLoaderResult loadRDF(Logger logger, Reader reader, String resourceIRI, String graphIRI) {
         blanks = new HashMap<>();
         RDFLoaderResult result = new RDFLoaderResult();
-        GraphNode current = store.getIRINode(uri);
+        GraphNode current = store.getIRINode(graphIRI);
 
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)

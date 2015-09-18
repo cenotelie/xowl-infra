@@ -77,7 +77,7 @@ public class ClojureXOWLDeserializer extends XOWLDeserializer {
         }
         StringBuilder builder = new StringBuilder();
         serializeClojure(builder, node.getChildren().get(2));
-        ClojureFunction definition = Engine.register(name, builder.toString());
+        ClojureFunction definition = ClojureEvaluator.register(name, builder.toString());
 
         FunctionDefinitionAxiom axiom = new FunctionDefinitionAxiom();
         loadAxiomBase(node, axiom);

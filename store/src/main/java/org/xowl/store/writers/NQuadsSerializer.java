@@ -19,6 +19,7 @@
  ******************************************************************************/
 package org.xowl.store.writers;
 
+import org.xowl.store.loaders.Utils;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.Logger;
@@ -91,21 +92,21 @@ public class NQuadsSerializer implements RDFSerializer {
      */
     private void serialize(Node node) throws IOException, UnsupportedNodeType {
         switch (node.getNodeType()) {
-            case IRINode.TYPE: {
+            case Node.TYPE_IRI: {
                 writer.write("<");
-                writer.write(((IRINode) node).getIRIValue());
+                writer.write(Utils.escape(((IRINode) node).getIRIValue()));
                 writer.write(">");
                 break;
             }
-            case BlankNode.TYPE: {
+            case Node.TYPE_BLANK: {
                 writer.write("_:");
                 writer.write(Long.toString(((BlankNode) node).getBlankID()));
                 break;
             }
-            case LiteralNode.TYPE: {
+            case Node.TYPE_LITERAL: {
                 LiteralNode literalNode = (LiteralNode) node;
                 writer.write("\"");
-                writer.write(literalNode.getLexicalValue());
+                writer.write(Utils.escape(literalNode.getLexicalValue()));
                 writer.write("\"");
                 String datatype = literalNode.getDatatype();
                 String langTag = literalNode.getLangTag();
@@ -114,7 +115,7 @@ public class NQuadsSerializer implements RDFSerializer {
                     writer.write(langTag);
                 } else if (datatype != null) {
                     writer.write("^^<");
-                    writer.write(datatype);
+                    writer.write(Utils.escape(datatype));
                     writer.write(">");
                 }
                 break;
