@@ -94,7 +94,7 @@ public class NQuadsSerializer implements RDFSerializer {
         switch (node.getNodeType()) {
             case Node.TYPE_IRI: {
                 writer.write("<");
-                writer.write(Utils.escape(((IRINode) node).getIRIValue()));
+                writer.write(Utils.escapeURI(((IRINode) node).getIRIValue()));
                 writer.write(">");
                 break;
             }
@@ -106,7 +106,7 @@ public class NQuadsSerializer implements RDFSerializer {
             case Node.TYPE_LITERAL: {
                 LiteralNode literalNode = (LiteralNode) node;
                 writer.write("\"");
-                writer.write(Utils.escape(literalNode.getLexicalValue()));
+                writer.write(Utils.escapeText(literalNode.getLexicalValue()));
                 writer.write("\"");
                 String datatype = literalNode.getDatatype();
                 String langTag = literalNode.getLangTag();
@@ -115,7 +115,7 @@ public class NQuadsSerializer implements RDFSerializer {
                     writer.write(langTag);
                 } else if (datatype != null) {
                     writer.write("^^<");
-                    writer.write(Utils.escape(datatype));
+                    writer.write(Utils.escapeURI(datatype));
                     writer.write(">");
                 }
                 break;

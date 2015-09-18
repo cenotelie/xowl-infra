@@ -34,9 +34,13 @@ import java.util.Stack;
  */
 public class Utils {
     /**
-     * Strings containing the escaped glyphs
+     * String containing the escaped glyphs in text
      */
-    private static final String ESCAPED_GLYHPS = "\\'\"_~.!$&()*+,;=/?#@%-";
+    private static final String ESCAPED_GLYHPS_TEXT = "\\'\"_~.!$&()*+,;=/?#@%-";
+    /**
+     * String containing the escaped glyphs in uris
+     */
+    private static final String ESCAPED_GLYPHS_URIS = "<>\"{}|^`\\";
     /**
      * Utility for the validation of double values
      */
@@ -84,7 +88,7 @@ public class Utils {
                     for (int j = 0; j != str.length(); j++)
                         buffer[next++] = str.charAt(j);
                     i += 9;
-                } else if (ESCAPED_GLYHPS.contains(Character.toString(n))) {
+                } else if (ESCAPED_GLYHPS_TEXT.contains(Character.toString(n))) {
                     buffer[next++] = n;
                     i++;
                 }
@@ -94,12 +98,44 @@ public class Utils {
     }
 
     /**
+     * Translates the specified URI into a new one by replacing character that should be escaped by their escape sequence
+     *
+     * @param content A string that can contain escape sequences
+     * @return The escaped URI
+     */
+    public static String escapeURI(String content) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i != content.length(); i++) {
+            char c = content.charAt(i);
+            if (c < 0x20 || ESCAPED_GLYPHS_URIS.contains(Character.toString(c))) {
+                String s = Integer.toHexString(c);
+                while (s.length() < 4)
+                    s = "0" + s;
+                builder.append("u");
+                builder.append(s);
+            } else if (Character.isHighSurrogate(c)) {
+                char c2 = content.charAt(i + 1);
+                i++;
+                int cp = ((c2 - 0xDC00) | ((c - 0xD800) << 10)) + 0x10000;
+                String s = Integer.toHexString(cp);
+                while (s.length() < 8)
+                    s = "0" + s;
+                builder.append("U");
+                builder.append(s);
+            } else {
+                builder.append(c);
+            }
+        }
+        return builder.toString();
+    }
+
+    /**
      * Translates the specified string into a new one by replacing character that should be escaped by their escape sequence
      *
      * @param content A string that can contain escape sequences
      * @return The escaped string
      */
-    public static String escape(String content) {
+    public static String escapeText(String content) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i != content.length(); i++) {
             char c = content.charAt(i);
@@ -113,6 +149,10 @@ public class Utils {
                 builder.append("\\b");
             else if (c == '\f')
                 builder.append("\\f");
+            else if (c == '"')
+                builder.append("\\\"");
+            else if (c == '\\')
+                builder.append("\\\\");
             else if (Character.isHighSurrogate(c)) {
                 char c2 = content.charAt(i + 1);
                 i++;
@@ -120,17 +160,8 @@ public class Utils {
                 String s = Integer.toHexString(cp);
                 while (s.length() < 8)
                     s = "0" + s;
-                builder.append("U+");
+                builder.append("U");
                 builder.append(s);
-            } else if (c >= 0x300) {
-                String s = Integer.toHexString(c);
-                while (s.length() < 4)
-                    s = "0" + s;
-                builder.append("u+");
-                builder.append(s);
-            } else if (ESCAPED_GLYHPS.contains(Character.toString(c))) {
-                builder.append('\\');
-                builder.append(c);
             } else {
                 builder.append(c);
             }
