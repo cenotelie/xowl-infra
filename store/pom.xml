@@ -6,7 +6,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<groupId>org.xowl.infra</groupId>
-	<artifactId>store</artifactId>
+	<artifactId>xowl-store</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0.0</version>
 	<name>xOWL Store</name>
@@ -26,13 +26,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.xowl.infra</groupId>
-			<artifactId>commons</artifactId>
+			<artifactId>xowl-commons</artifactId>
 			<version>1.0.0</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.xowl.infra</groupId>
-			<artifactId>lang</artifactId>
+			<artifactId>xowl-lang</artifactId>
 			<version>1.0.0</version>
 			<scope>compile</scope>
 		</dependency>

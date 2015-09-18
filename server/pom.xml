@@ -6,7 +6,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<groupId>org.xowl.infra</groupId>
-	<artifactId>server</artifactId>
+	<artifactId>xowl-server</artifactId>
 	<packaging>war</packaging>
 	<version>1.0.0</version>
 	<name>xOWL Server</name>
@@ -26,13 +26,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.xowl.infra</groupId>
-			<artifactId>store</artifactId>
+			<artifactId>xowl-store</artifactId>
 			<version>1.0.0</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.xowl.infra</groupId>
-			<artifactId>engine</artifactId>
+			<artifactId>xowl-engine</artifactId>
 			<version>1.0.0</version>
 			<scope>compile</scope>
 		</dependency>

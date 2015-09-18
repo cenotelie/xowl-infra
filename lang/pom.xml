@@ -6,7 +6,7 @@
 		<version>1.0.0</version>
 	</parent>
 	<groupId>org.xowl.infra</groupId>
-	<artifactId>lang</artifactId>
+	<artifactId>xowl-lang</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0.0</version>
 	<name>xOWL Language Implementation</name>
