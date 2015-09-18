@@ -25,6 +25,8 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.lang.owl2.*;
+import org.xowl.store.IOUtils;
+import org.xowl.store.URIUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.utils.Logger;
 
@@ -103,7 +105,7 @@ public class OWLXMLLoader implements Loader {
                     loadPrefixID(child);
                     break;
                 case Vocabulary.OWL2.ontoImport:
-                    cache.addImport(Utils.uriResolveRelative(baseURI, Utils.unescape(child.getContent())));
+                    cache.addImport(URIUtils.resolveRelative(baseURI, IOUtils.unescape(child.getContent())));
                     break;
                 case Vocabulary.OWL2.ontoAnnotation:
                     cache.addAnnotation(loadAnnotation(child));
@@ -123,7 +125,7 @@ public class OWLXMLLoader implements Loader {
     private void loadPrefixID(XMLElement node) {
         String prefix = node.getAttribute("name");
         String uri = node.getAttribute("IRI");
-        namespaces.put(prefix, Utils.unescape(uri));
+        namespaces.put(prefix, IOUtils.unescape(uri));
     }
 
     /**
@@ -133,7 +135,7 @@ public class OWLXMLLoader implements Loader {
      * @return The equivalent full IRI
      */
     private String getIRIForLocalName(String value) {
-        value = Utils.unescape(value);
+        value = IOUtils.unescape(value);
         int index = 0;
         while (index != value.length()) {
             if (value.charAt(index) == ':') {
@@ -141,7 +143,7 @@ public class OWLXMLLoader implements Loader {
                 String uri = namespaces.get(prefix);
                 if (uri != null) {
                     String name = value.substring(index + 1);
-                    return Utils.uriResolveRelative(baseURI, Utils.unescape(uri + name));
+                    return URIUtils.resolveRelative(baseURI, IOUtils.unescape(uri + name));
                 }
             }
             index++;
@@ -897,7 +899,7 @@ public class OWLXMLLoader implements Loader {
         IRI iri = new IRI();
         switch (node.getNodeName()) {
             case "IRI":
-                iri.setHasValue(Utils.uriResolveRelative(baseURI, Utils.unescape(node.getContent())));
+                iri.setHasValue(URIUtils.resolveRelative(baseURI, IOUtils.unescape(node.getContent())));
                 break;
             case "AbbreviatedIRI":
                 iri.setHasValue(getIRIForLocalName(node.getContent()));
@@ -905,7 +907,7 @@ public class OWLXMLLoader implements Loader {
             default:
                 String value = node.getAttribute("IRI");
                 if (value != null)
-                    iri.setHasValue(Utils.uriResolveRelative(baseURI, Utils.unescape(value)));
+                    iri.setHasValue(URIUtils.resolveRelative(baseURI, IOUtils.unescape(value)));
                 else
                     iri.setHasValue(getIRIForLocalName(node.getAttribute("abbreviatedIRI")));
                 break;
@@ -1502,7 +1504,7 @@ public class OWLXMLLoader implements Loader {
         switch (node.getNodeName()) {
             case "IRI": {
                 IRI iri = new IRI();
-                iri.setHasValue(Utils.uriResolveRelative(baseURI, Utils.unescape(node.getContent())));
+                iri.setHasValue(URIUtils.resolveRelative(baseURI, IOUtils.unescape(node.getContent())));
                 return iri;
             }
             case "AbbreviatedIRI": {

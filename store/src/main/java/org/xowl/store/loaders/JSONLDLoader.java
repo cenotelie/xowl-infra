@@ -20,10 +20,14 @@
 
 package org.xowl.store.loaders;
 
+import org.apache.xerces.impl.dv.InvalidDatatypeValueException;
+import org.apache.xerces.impl.dv.xs.DoubleDV;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
+import org.xowl.store.IOUtils;
+import org.xowl.store.URIUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
@@ -121,10 +125,30 @@ public abstract class JSONLDLoader implements Loader {
      * The property info for the rdf:type property
      */
     private static final JSONLDNameInfo PROPERTY_TYPE_INFO = new JSONLDNameInfo();
+    /**
+     * Utility for the validation of double values
+     */
+    private static final DoubleDV CANONICAL_DOUBLE = new DoubleDV();
 
     static {
         PROPERTY_TYPE_INFO.fullIRI = Vocabulary.rdfType;
         PROPERTY_TYPE_INFO.valueType = KEYWORD_VOCAB;
+    }
+
+    /**
+     * Gets the canonical lexical form of a double value
+     *
+     * @param value A serialized double value
+     * @return The canonical lexical form
+     */
+    private static String canonicalDouble(String value) {
+        try {
+            Object x = CANONICAL_DOUBLE.getActualValue(value, null);
+            return x.toString();
+        } catch (InvalidDatatypeValueException exception) {
+            // do nothing
+            return value;
+        }
     }
 
     /**
@@ -142,7 +166,7 @@ public abstract class JSONLDLoader implements Loader {
             case JSONLDLexer.ID.LITERAL_STRING:
                 String value = node.getValue();
                 value = value.substring(1, value.length() - 1);
-                return Utils.unescape(value);
+                return IOUtils.unescape(value);
             case JSONLDLexer.ID.LITERAL_NULL:
                 return null;
             case JSONLDLexer.ID.LITERAL_TRUE:
@@ -362,7 +386,7 @@ public abstract class JSONLDLoader implements Loader {
             } else {
                 // this is an IRI
                 value = current.expandID(value);
-                if (!Utils.uriIsAbsolute(value))
+                if (!URIUtils.isAbsolute(value))
                     return null;
                 subject = store.getIRINode(value);
             }
@@ -437,7 +461,7 @@ public abstract class JSONLDLoader implements Loader {
             propertyIRI = propertyInfo.reversed;
             reversed = !reversed;
         }
-        if (propertyIRI == null || propertyIRI.startsWith("_:") || !Utils.uriIsAbsolute(propertyIRI))
+        if (propertyIRI == null || propertyIRI.startsWith("_:") || !URIUtils.isAbsolute(propertyIRI))
             // property is undefined or
             // this is a blank node identifier, do not handle generalized RDF graphs
             return;
@@ -598,7 +622,7 @@ public abstract class JSONLDLoader implements Loader {
         String value = node.getValue();
         if (info != null && info.valueType != null) {
             // coerced type
-            return store.getLiteralNode(Utils.canonicalDouble(value), context.expandName(info.valueType), null);
+            return store.getLiteralNode(canonicalDouble(value), context.expandName(info.valueType), null);
         }
         return store.getLiteralNode(value, Vocabulary.xsdBoolean, null);
     }
@@ -621,7 +645,7 @@ public abstract class JSONLDLoader implements Loader {
                         case Vocabulary.xsdFloat:
                         case Vocabulary.xsdDouble:
                         case Vocabulary.xsdDecimal:
-                            return store.getLiteralNode(Utils.canonicalDouble(value), context.expandName(info.valueType), null);
+                            return store.getLiteralNode(canonicalDouble(value), context.expandName(info.valueType), null);
                         default:
                             return store.getLiteralNode(value, context.expandName(info.valueType), null);
                     }
@@ -630,10 +654,10 @@ public abstract class JSONLDLoader implements Loader {
             }
             case JSONLDLexer.ID.LITERAL_DECIMAL:
             case JSONLDLexer.ID.LITERAL_DOUBLE: {
-                String value = Utils.canonicalDouble(node.getValue());
+                String value = canonicalDouble(node.getValue());
                 if (info != null && info.valueType != null) {
                     // coerced type
-                    return store.getLiteralNode(Utils.canonicalDouble(value), context.expandName(info.valueType), null);
+                    return store.getLiteralNode(canonicalDouble(value), context.expandName(info.valueType), null);
                 }
                 return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
             }

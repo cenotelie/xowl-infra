@@ -20,6 +20,7 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.IOUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 
@@ -135,7 +136,7 @@ public class ResultSolutions implements Result {
                         case Node.TYPE_LITERAL:
                             LiteralNode lit = (LiteralNode) value;
                             writer.write('"');
-                            writer.write(Utils.quoteCSV(lit.getLexicalValue()));
+                            writer.write(IOUtils.escapeStringCSV(lit.getLexicalValue()));
                             writer.write('"');
                             break;
                     }
@@ -179,7 +180,7 @@ public class ResultSolutions implements Result {
                         case Node.TYPE_LITERAL:
                             LiteralNode lit = (LiteralNode) value;
                             writer.write('"');
-                            writer.write(Utils.quoteTSV(lit.getLexicalValue()));
+                            writer.write(IOUtils.escapeStringTSV(lit.getLexicalValue()));
                             writer.write('"');
                             if (lit.getLangTag() != null) {
                                 writer.write("@");
@@ -310,7 +311,7 @@ public class ResultSolutions implements Result {
                         case Node.TYPE_LITERAL:
                             LiteralNode lit = (LiteralNode) value;
                             writer.write("{\"type\": \"literal\", \"value\": \"");
-                            writer.write(Utils.quoteJSON(lit.getLexicalValue()));
+                            writer.write(IOUtils.escapeStringJSON(lit.getLexicalValue()));
                             writer.write("\"");
                             if (lit.getLangTag() != null) {
                                 writer.write(", \"xml:lang=\": \"");

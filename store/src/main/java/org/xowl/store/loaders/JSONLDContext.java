@@ -21,6 +21,7 @@
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
+import org.xowl.store.URIUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -181,7 +182,7 @@ class JSONLDContext {
         }
         // if we can use the resource URI, resolve against it
         if (useResource)
-            return Utils.uriResolveRelative(loader.getCurrentResource(), Utils.quote(name));
+            return URIUtils.resolveRelative(loader.getCurrentResource(), quote(name));
         // all failed :( return as is
         return name;
     }
@@ -275,7 +276,7 @@ class JSONLDContext {
                     if (JSONLDLoader.MARKER_NULL.equals(fragment.getBaseURI()))
                         // explicitly forbids the expansion
                         return JSONLDLoader.MARKER_NULL;
-                    return Utils.uriResolveRelative(fragment.getBaseURI(), Utils.quote(name));
+                    return URIUtils.resolveRelative(fragment.getBaseURI(), quote(name));
                 }
             }
             current = current.parent;
@@ -354,5 +355,23 @@ class JSONLDContext {
             current = current.parent;
         }
         return null;
+    }
+
+    /**
+     * Quotes illegal URI characters in the specified term
+     *
+     * @param term A term
+     * @return The term with the illegal characters quoted
+     */
+    private static String quote(String term) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i != term.length(); i++) {
+            char c = term.charAt(i);
+            if (Character.isWhitespace(c))
+                builder.append("+");
+            else
+                builder.append(c);
+        }
+        return builder.toString();
     }
 }

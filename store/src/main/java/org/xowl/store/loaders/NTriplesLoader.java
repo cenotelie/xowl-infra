@@ -24,6 +24,8 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
+import org.xowl.store.IOUtils;
+import org.xowl.store.URIUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
@@ -144,8 +146,8 @@ public class NTriplesLoader implements Loader {
      */
     private Node translateIRIREF(ASTNode node) throws LoaderException {
         String value = node.getValue();
-        value = Utils.unescape(value.substring(1, value.length() - 1));
-        if (!Utils.uriIsAbsolute(value))
+        value = IOUtils.unescape(value.substring(1, value.length() - 1));
+        if (!URIUtils.isAbsolute(value))
             throw new LoaderException("IRI must be absolute", node);
         return store.getIRINode(value);
     }
@@ -175,15 +177,15 @@ public class NTriplesLoader implements Loader {
      */
     private Node translateLiteral(ASTNode node) throws LoaderException {
         String value = node.getValue();
-        value = Utils.unescape(value.substring(1, value.length() - 1));
+        value = IOUtils.unescape(value.substring(1, value.length() - 1));
         if (node.getChildren().size() == 0) {
             return store.getLiteralNode(value, Vocabulary.xsdString, null);
         }
         ASTNode child = node.getChildren().get(0);
         if (child.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
             String type = child.getValue();
-            type = Utils.unescape(type.substring(1, type.length() - 1));
-            if (!Utils.uriIsAbsolute(type))
+            type = IOUtils.unescape(type.substring(1, type.length() - 1));
+            if (!URIUtils.isAbsolute(type))
                 throw new LoaderException("IRI must be absolute", node);
             return store.getLiteralNode(value, type, null);
         } else if (child.getSymbol().getID() == NTriplesLexer.ID.LANGTAG) {

@@ -22,7 +22,6 @@ package org.xowl.store;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xowl.store.loaders.Utils;
 
 /**
  * Test suite for the implementation of RFC 3986
@@ -42,7 +41,7 @@ public class RFC3986Test {
      * @param expected The expected output
      */
     private static void testRelativeResolution(String input, String expected) {
-        String output = Utils.uriResolveRelative(BASE, input);
+        String output = URIUtils.resolveRelative(BASE, input);
         Assert.assertEquals(expected, output);
     }
 

@@ -20,6 +20,8 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.IOUtils;
+
 import java.io.IOException;
 import java.io.Writer;
 
@@ -109,7 +111,7 @@ public class ResultFailure implements Result {
      */
     private void printJSON(Writer writer) throws IOException {
         writer.write("{ \"head\": { },  \"boolean\": \"false\", \"error\": \"");
-        writer.write(Utils.quoteJSON(message));
+        writer.write(IOUtils.escapeStringJSON(message));
         writer.write("\" }");
     }
 }

@@ -23,6 +23,8 @@ package org.xowl.store.loaders;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xowl.store.IOUtils;
+import org.xowl.store.URIUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
@@ -243,8 +245,8 @@ class XMLElement implements Iterable<XMLElement> {
      * @return The equivalent sanitized base URI
      */
     private String sanitizeBaseURI(String value) {
-        String[] components = Utils.uriParse(value);
-        return Utils.uriRecompose(components[Utils.URI_COMPONENT_SCHEME], components[Utils.URI_COMPONENT_AUTHORITY], components[Utils.URI_COMPONENT_PATH], components[Utils.URI_COMPONENT_QUERY], null);
+        String[] components = URIUtils.parse(value);
+        return URIUtils.recompose(components[URIUtils.COMPONENT_SCHEME], components[URIUtils.COMPONENT_AUTHORITY], components[URIUtils.COMPONENT_PATH], components[URIUtils.COMPONENT_QUERY], null);
     }
 
     /**
@@ -297,7 +299,7 @@ class XMLElement implements Iterable<XMLElement> {
      */
     private String resolveLocalName(String localName) {
         XMLElement current = this;
-        localName = Utils.unescape(localName);
+        localName = IOUtils.unescape(localName);
         if (!localName.contains(":"))
             return currentNamespace + localName;
         while (current != null) {
@@ -308,7 +310,7 @@ class XMLElement implements Iterable<XMLElement> {
                     String uri = current.namespaces.get(prefix);
                     if (uri != null) {
                         String name = localName.substring(index + 1);
-                        return Utils.uriResolveRelative(baseURI, Utils.unescape(uri + name));
+                        return URIUtils.resolveRelative(baseURI, IOUtils.unescape(uri + name));
                     }
                 }
                 index++;
@@ -325,7 +327,7 @@ class XMLElement implements Iterable<XMLElement> {
      * @return The resolved and normalized IRI
      */
     public String resolve(String iri) {
-        return Utils.uriResolveRelative(baseURI != null ? baseURI : resource, Utils.unescape(iri));
+        return URIUtils.resolveRelative(baseURI != null ? baseURI : resource, IOUtils.unescape(iri));
     }
 
     /**
