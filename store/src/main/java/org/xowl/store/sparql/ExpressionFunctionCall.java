@@ -20,10 +20,13 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.RDFUtils;
 import org.xowl.store.Repository;
 import org.xowl.store.Vocabulary;
-import org.xowl.store.rdf.*;
-import org.xowl.store.rdf.Utils;
+import org.xowl.store.rdf.IRINode;
+import org.xowl.store.rdf.LiteralNode;
+import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.QuerySolution;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,7 +96,7 @@ public class ExpressionFunctionCall implements Expression {
             Object v2 = arguments.get(1).eval(repository, bindings);
             if (!(v1 instanceof Node) || !(v2 instanceof Node))
                 throw new EvalException("Type error (RDF nodes required)");
-            Utils.same((Node) v1, (Node) v2);
+            RDFUtils.same((Node) v1, (Node) v2);
         }
         if (iri.equalsIgnoreCase("isIRI") || iri.equalsIgnoreCase("isURI")) {
             if (arguments.size() < 1)

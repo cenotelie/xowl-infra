@@ -23,6 +23,7 @@ package org.xowl.store.sparql;
 import org.xowl.lang.actions.DynamicExpression;
 import org.xowl.lang.owl2.IRI;
 import org.xowl.store.Datatypes;
+import org.xowl.store.RDFUtils;
 import org.xowl.store.Repository;
 import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
@@ -47,7 +48,7 @@ class Utils {
     public static Object evaluateNative(Repository repository, QuerySolution solution, DynamicExpression expression) {
         Map<String, Object> bindings = new HashMap<>();
         for (Couple<VariableNode, Node> binding : solution)
-            bindings.put(binding.x.getName(), org.xowl.store.rdf.Utils.getNative(binding.y));
+            bindings.put(binding.x.getName(), RDFUtils.getNative(binding.y));
         repository.getEvaluator().push(bindings);
         Object result = repository.getEvaluator().eval(expression);
         repository.getEvaluator().pop();
@@ -467,7 +468,7 @@ class Utils {
     public static boolean compatible(QuerySolution left, QuerySolution right) {
         for (Couple<VariableNode, Node> binding : left) {
             Node value = right.get(binding.x);
-            if (value != null && !org.xowl.store.rdf.Utils.same(binding.y, value)) {
+            if (value != null && !RDFUtils.same(binding.y, value)) {
                 return false;
             }
         }
@@ -488,7 +489,7 @@ class Utils {
         for (Couple<VariableNode, Node> binding : left) {
             Node value = right.get(binding.x);
             if (value != null) {
-                if (!org.xowl.store.rdf.Utils.same(binding.y, value))
+                if (!RDFUtils.same(binding.y, value))
                     return null;
                 bindings.add(binding);
             } else {
@@ -498,7 +499,7 @@ class Utils {
         for (Couple<VariableNode, Node> binding : right) {
             boolean found = false;
             for (Couple<VariableNode, Node> present : bindings) {
-                if (org.xowl.store.rdf.Utils.same(binding.x, present.x)) {
+                if (RDFUtils.same(binding.x, present.x)) {
                     found = true;
                     break;
                 }

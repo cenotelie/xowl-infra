@@ -19,10 +19,10 @@
  ******************************************************************************/
 package org.xowl.store.rete;
 
+import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.QuadField;
-import org.xowl.store.rdf.Utils;
 
 /**
  * Represents a test on an unbound variable for the joining operations in the beta graph of a RETE network
@@ -59,7 +59,7 @@ class JoinTestUnbound extends JoinTest {
     public boolean check(Token token, Quad fact) {
         Node arg1 = fact.getField(reference);
         Node arg2 = fact.getField(tested);
-        return Utils.same(arg1, arg2);
+        return RDFUtils.same(arg1, arg2);
     }
 
     @Override

@@ -20,10 +20,10 @@
 
 package org.xowl.store.storage.cache;
 
+import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Property;
-import org.xowl.store.rdf.Utils;
 import org.xowl.utils.collections.*;
 
 import java.util.Arrays;
@@ -89,7 +89,7 @@ class Edge implements Iterable<EdgeTarget> {
         boolean hasEmpty = false;
         for (int i = 0; i != targets.length; i++) {
             hasEmpty = hasEmpty || (targets[i] == null);
-            if (targets[i] != null && Utils.same(targets[i].getTarget(), value)) {
+            if (targets[i] != null && RDFUtils.same(targets[i].getTarget(), value)) {
                 return targets[i].add(graph);
             }
         }
@@ -119,7 +119,7 @@ class Edge implements Iterable<EdgeTarget> {
      */
     public int remove(GraphNode graph, Node value) {
         for (int i = 0; i != targets.length; i++) {
-            if (targets[i] != null && Utils.same(targets[i].getTarget(), value)) {
+            if (targets[i] != null && RDFUtils.same(targets[i].getTarget(), value)) {
                 int result = targets[i].remove(graph);
                 if (result == CachedDataset.REMOVE_RESULT_EMPTIED) {
                     targets[i] = null;
@@ -142,7 +142,7 @@ class Edge implements Iterable<EdgeTarget> {
      */
     public int removeAll(GraphNode graph, Node value, List<CachedQuad> buffer) {
         for (int i = 0; i != targets.length; i++) {
-            if (targets[i] != null && (value == null || Utils.same(targets[i].getTarget(), value))) {
+            if (targets[i] != null && (value == null || RDFUtils.same(targets[i].getTarget(), value))) {
                 int originalSize = buffer.size();
                 int result = targets[i].removeAll(graph, buffer);
                 for (int j = originalSize; j != buffer.size(); j++)
@@ -289,7 +289,7 @@ class Edge implements Iterable<EdgeTarget> {
         }
 
         for (int i = 0; i != targets.length; i++) {
-            if (targets[i] != null && Utils.same(targets[i].getTarget(), value)) {
+            if (targets[i] != null && RDFUtils.same(targets[i].getTarget(), value)) {
                 return new AdaptingIterator<>(targets[i].getAll(graph), new Adapter<CachedQuad>() {
                     @Override
                     public <X> CachedQuad adapt(X element) {
@@ -332,7 +332,7 @@ class Edge implements Iterable<EdgeTarget> {
             return count;
         }
         for (int i = 0; i != targets.length; i++)
-            if (targets[i] != null && Utils.same(targets[i].getTarget(), value))
+            if (targets[i] != null && RDFUtils.same(targets[i].getTarget(), value))
                 return targets[i].count(graph);
         return 0;
     }

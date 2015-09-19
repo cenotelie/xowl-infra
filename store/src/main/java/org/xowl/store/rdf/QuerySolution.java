@@ -20,6 +20,7 @@
 
 package org.xowl.store.rdf;
 
+import org.xowl.store.RDFUtils;
 import org.xowl.utils.collections.Couple;
 
 import java.util.ArrayList;
@@ -87,7 +88,7 @@ public class QuerySolution implements Iterable<Couple<VariableNode, Node>> {
      */
     public Node get(VariableNode variable) {
         for (Couple<VariableNode, Node> binding : bindings)
-            if (Utils.same(binding.x, variable))
+            if (RDFUtils.same(binding.x, variable))
                 return binding.y;
         return null;
     }
@@ -120,7 +121,7 @@ public class QuerySolution implements Iterable<Couple<VariableNode, Node>> {
         for (Couple<VariableNode, Node> binding : this.bindings) {
             boolean found = false;
             for (Couple<VariableNode, Node> candidate : solution.bindings) {
-                if (Utils.same(candidate.x, binding.x) && Utils.same(candidate.y, binding.y)) {
+                if (RDFUtils.same(candidate.x, binding.x) && RDFUtils.same(candidate.y, binding.y)) {
                     found = true;
                     break;
                 }

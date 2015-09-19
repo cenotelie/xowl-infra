@@ -20,6 +20,7 @@
 package org.xowl.store.owl;
 
 import org.xowl.lang.owl2.*;
+import org.xowl.store.RDFUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.rete.RETENetwork;
@@ -226,7 +227,7 @@ public class RDFParser {
      */
     private Datarange getExpressionDatarange(Node node) {
         if (node.getNodeType() == Node.TYPE_IRI)
-            return (IRI) Utils.getOWL(node);
+            return (IRI) RDFUtils.getOWL(node);
         return (Datarange) expDatarange.get(node).getExpression();
     }
 
@@ -238,7 +239,7 @@ public class RDFParser {
      */
     private ClassExpression getExpressionClass(Node node) {
         if (node.getNodeType() == Node.TYPE_IRI)
-            return (IRI) Utils.getOWL(node);
+            return (IRI) RDFUtils.getOWL(node);
         return (ClassExpression) expClasses.get(node).getExpression();
     }
 
@@ -250,7 +251,7 @@ public class RDFParser {
      */
     private ObjectPropertyExpression getExpressionObjectProperty(Node node) {
         if (node.getNodeType() == Node.TYPE_IRI)
-            return (IRI) Utils.getOWL(node);
+            return (IRI) RDFUtils.getOWL(node);
         return (ObjectPropertyExpression) expObjProperties.get(node).getExpression();
     }
 
@@ -262,7 +263,7 @@ public class RDFParser {
      */
     private IRI getExpressionAnnotationProperty(Node node) {
         if (node.getNodeType() == Node.TYPE_IRI)
-            return (IRI) Utils.getOWL(node);
+            return (IRI) RDFUtils.getOWL(node);
         return null;
     }
 
@@ -274,7 +275,7 @@ public class RDFParser {
      */
     private DataPropertyExpression getExpressionDataProperty(Node node) {
         if (node.getNodeType() == Node.TYPE_IRI)
-            return (IRI) Utils.getOWL(node);
+            return (IRI) RDFUtils.getOWL(node);
         return null;
     }
 
@@ -286,7 +287,7 @@ public class RDFParser {
      */
     private LiteralExpression getExpressionLiteral(Node node) {
         if (node.getNodeType() == Node.TYPE_LITERAL)
-            return (LiteralExpression) Utils.getOWL(node);
+            return (LiteralExpression) RDFUtils.getOWL(node);
         return null;
     }
 
@@ -298,7 +299,7 @@ public class RDFParser {
      */
     private IndividualExpression getExpressionIndividual(Node node) {
         if (node.getNodeType() == Node.TYPE_IRI)
-            return (IRI) Utils.getOWL(node);
+            return (IRI) RDFUtils.getOWL(node);
         else if (node.getNodeType() == Node.TYPE_ANONYMOUS)
             return ((AnonymousNode) node).getIndividual();
         return null;
@@ -726,7 +727,7 @@ public class RDFParser {
                         for (Node restrictNode : restrictions) {
                             FacetRestriction facet = new FacetRestriction();
                             Quad triple = getTriple((SubjectNode) restrictNode);
-                            facet.setConstrainingFacet((IRI) Utils.getOWL(triple.getProperty()));
+                            facet.setConstrainingFacet((IRI) RDFUtils.getOWL(triple.getProperty()));
                             facet.setConstrainingValue((Literal) getExpressionLiteral(triple.getObject()));
                             value.addFacetRestrictions(facet);
                         }

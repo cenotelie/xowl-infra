@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.rdf;
+package org.xowl.store;
 
 import org.xowl.lang.actions.DynamicExpression;
 import org.xowl.lang.owl2.AnonymousIndividual;
@@ -26,15 +26,19 @@ import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Literal;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.runtime.Entity;
-import org.xowl.store.Datatypes;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.owl.DynamicNode;
+import org.xowl.store.rdf.IRINode;
+import org.xowl.store.rdf.LiteralNode;
+import org.xowl.store.rdf.Node;
 import org.xowl.store.storage.NodeManager;
 
 /**
  * Utility APIs for RDF
+ *
+ * @author Laurent Wouters
  */
-public class Utils {
+public class RDFUtils {
     /**
      * Determines whether two RDF nodes are equivalent
      *

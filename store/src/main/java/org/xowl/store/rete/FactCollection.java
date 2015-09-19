@@ -19,9 +19,9 @@
  ******************************************************************************/
 package org.xowl.store.rete;
 
+import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.Utils;
 import org.xowl.store.storage.Dataset;
 
 import java.util.Collection;
@@ -98,13 +98,13 @@ class FactCollection implements Collection<Quad> {
         if (!(o instanceof Quad))
             return false;
         Quad quad = (Quad) o;
-        if (pattern.getGraph().getNodeType() != Node.TYPE_VARIABLE && !Utils.same(pattern.getGraph(), quad.getGraph()))
+        if (pattern.getGraph().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getGraph(), quad.getGraph()))
             return false;
-        if (pattern.getSubject().getNodeType() != Node.TYPE_VARIABLE && !Utils.same(pattern.getSubject(), quad.getSubject()))
+        if (pattern.getSubject().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getSubject(), quad.getSubject()))
             return false;
-        if (pattern.getProperty().getNodeType() != Node.TYPE_VARIABLE && !Utils.same(pattern.getProperty(), quad.getProperty()))
+        if (pattern.getProperty().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getProperty(), quad.getProperty()))
             return false;
-        if (pattern.getObject().getNodeType() != Node.TYPE_VARIABLE && !Utils.same(pattern.getObject(), quad.getObject()))
+        if (pattern.getObject().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getObject(), quad.getObject()))
             return false;
         // the quad matches the pattern
         Iterator<Quad> iterator = store.getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());

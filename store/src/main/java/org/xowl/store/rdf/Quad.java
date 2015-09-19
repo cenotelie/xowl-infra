@@ -20,6 +20,8 @@
 
 package org.xowl.store.rdf;
 
+import org.xowl.store.RDFUtils;
+
 /**
  * Represents a quad in an graph
  *
@@ -128,10 +130,10 @@ public class Quad {
     public boolean equals(Object obj) {
         if (obj instanceof Quad) {
             Quad quad = (Quad) obj;
-            return (Utils.same(graph, quad.graph)
-                    && Utils.same(subject, quad.subject)
-                    && Utils.same(property, quad.property)
-                    && Utils.same(object, quad.object));
+            return (RDFUtils.same(graph, quad.graph)
+                    && RDFUtils.same(subject, quad.subject)
+                    && RDFUtils.same(property, quad.property)
+                    && RDFUtils.same(object, quad.object));
         }
         return false;
     }

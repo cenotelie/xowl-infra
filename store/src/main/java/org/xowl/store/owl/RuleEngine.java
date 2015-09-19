@@ -24,7 +24,10 @@ import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.rules.Assertion;
 import org.xowl.lang.rules.Rule;
 import org.xowl.store.Evaluator;
-import org.xowl.store.rdf.*;
+import org.xowl.store.RDFUtils;
+import org.xowl.store.rdf.GraphNode;
+import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.VariableNode;
 import org.xowl.store.rete.Token;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.NodeManager;
@@ -60,7 +63,7 @@ public class RuleEngine {
             if (result != null)
                 return result;
             evaluator.push(buildBindings(token, specials));
-            result = Utils.getRDF(outputStore, evaluator.eval(((DynamicNode) node).getDynamicExpression()));
+            result = RDFUtils.getRDF(outputStore, evaluator.eval(((DynamicNode) node).getDynamicExpression()));
             specials.put(node, result);
             evaluator.pop();
             return result;
@@ -76,11 +79,11 @@ public class RuleEngine {
         private Map<String, Object> buildBindings(Token token, Map<Node, Node> specials) {
             Map<String, Object> bindings = new HashMap<>();
             for (Couple<VariableNode, Node> entry : token.getBindings()) {
-                bindings.put(entry.x.getName(), Utils.getNative(entry.y));
+                bindings.put(entry.x.getName(), RDFUtils.getNative(entry.y));
             }
             for (Map.Entry<Node, Node> entry : specials.entrySet()) {
                 if (entry.getKey().getNodeType() == Node.TYPE_VARIABLE) {
-                    bindings.put(((VariableNode) entry.getValue()).getName(), Utils.getNative(entry.getValue()));
+                    bindings.put(((VariableNode) entry.getValue()).getName(), RDFUtils.getNative(entry.getValue()));
                 }
             }
             return bindings;

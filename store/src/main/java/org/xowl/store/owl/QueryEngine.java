@@ -21,7 +21,9 @@ package org.xowl.store.owl;
 
 import org.xowl.lang.owl2.Axiom;
 import org.xowl.store.Evaluator;
-import org.xowl.store.rdf.*;
+import org.xowl.store.RDFUtils;
+import org.xowl.store.rdf.GraphNode;
+import org.xowl.store.rdf.VariableNode;
 import org.xowl.store.storage.BaseStore;
 
 import java.util.ArrayList;
@@ -123,7 +125,7 @@ public class QueryEngine {
     private Bindings translate(org.xowl.store.rdf.QuerySolution solution, TranslationContext context) {
         Bindings bindings = new Bindings();
         for (VariableNode var : solution.getVariables()) {
-            Object value = Utils.getOWL(solution.get(var));
+            Object value = RDFUtils.getOWL(solution.get(var));
             bindings.bind(context.get(var), value);
         }
         return bindings;

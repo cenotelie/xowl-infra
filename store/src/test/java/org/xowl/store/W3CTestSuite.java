@@ -24,7 +24,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.xowl.store.loaders.*;
 import org.xowl.store.rdf.*;
-import org.xowl.store.rdf.Utils;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.InMemoryStore;
 import org.xowl.utils.Logger;
@@ -312,13 +311,13 @@ public abstract class W3CTestSuite {
             subject = blanks.get(subject);
         if (object.getNodeType() == Node.TYPE_BLANK)
             object = blanks.get(object);
-        if (!Utils.same(property, quad2.getProperty()))
+        if (!RDFUtils.same(property, quad2.getProperty()))
             return false;
-        if (graph != null && !Utils.same(graph, quad2.getGraph()))
+        if (graph != null && !RDFUtils.same(graph, quad2.getGraph()))
             return false;
-        if (subject != null && !Utils.same(subject, quad2.getSubject()))
+        if (subject != null && !RDFUtils.same(subject, quad2.getSubject()))
             return false;
-        if (object != null && !Utils.same(object, quad2.getObject()))
+        if (object != null && !RDFUtils.same(object, quad2.getObject()))
             return false;
         if (graph == null && quad2.getGraph().getNodeType() != Node.TYPE_BLANK)
             return false;

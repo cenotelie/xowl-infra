@@ -20,9 +20,9 @@
 
 package org.xowl.store.rete;
 
+import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.Utils;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.CombiningIterator;
@@ -406,7 +406,7 @@ class BetaMemory implements TokenHolder {
         for (Binder binder : binders) {
             Node value1 = token.getLocalBinding(binder.getVariable());
             Node value2 = fact.getField(binder.getField());
-            if (!Utils.same(value1, value2))
+            if (!RDFUtils.same(value1, value2))
                 return false;
         }
         return true;

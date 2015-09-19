@@ -21,11 +21,11 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.Datatypes;
+import org.xowl.store.RDFUtils;
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.LiteralNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
-import org.xowl.store.rdf.Utils;
 import org.xowl.utils.collections.Couple;
 
 import java.util.ArrayList;
@@ -309,7 +309,7 @@ public class ExpressionOperator implements Expression {
                     return nodeRight.getNodeType() == Node.TYPE_LITERAL && Objects.equals(primitive(nodeLeft), primitive(nodeRight));
                 } else if (nodeRight.getNodeType() == Node.TYPE_LITERAL)
                     return false;
-                return Utils.same(nodeLeft, nodeRight);
+                return RDFUtils.same(nodeLeft, nodeRight);
             } else
                 return nodeLeft.getNodeType() == Node.TYPE_LITERAL && Objects.equals(primitive(nodeLeft), right);
         } else if (right instanceof Node) {
