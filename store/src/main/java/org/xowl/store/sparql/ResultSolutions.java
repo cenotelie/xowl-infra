@@ -170,7 +170,7 @@ public class ResultSolutions implements Result {
                     switch (value.getNodeType()) {
                         case Node.TYPE_IRI:
                             writer.write("<");
-                            writer.write(((IRINode) value).getIRIValue());
+                            writer.write(IOUtils.escapeAbsoluteURIW3C(((IRINode) value).getIRIValue()));
                             writer.write(">");
                             break;
                         case Node.TYPE_BLANK:
@@ -188,12 +188,12 @@ public class ResultSolutions implements Result {
                             } else if (lit.getDatatype() != null) {
                                 String datatype = lit.getDatatype();
                                 if (datatype.startsWith(Vocabulary.xsd)) {
-                                    datatype = "xsd:" + datatype.substring(Vocabulary.xsd.length());
+                                    datatype = "xsd:" + IOUtils.escapeAbsoluteURIW3C(datatype.substring(Vocabulary.xsd.length()));
                                     writer.write("^^");
                                     writer.write(datatype);
                                 } else {
                                     writer.write("^^<");
-                                    writer.write(datatype);
+                                    writer.write(IOUtils.escapeAbsoluteURIW3C(datatype));
                                     writer.write(">");
                                 }
                             }
@@ -245,11 +245,11 @@ public class ResultSolutions implements Result {
                             LiteralNode lit = (LiteralNode) value;
                             if (lit.getLangTag() != null) {
                                 writer.write(" xml:lang=\"");
-                                writer.write(lit.getLangTag());
+                                writer.write(IOUtils.escapeStringW3C(lit.getLangTag()));
                                 writer.write("\">");
                             } else if (lit.getDatatype() != null) {
                                 writer.write(" datatype=\"");
-                                writer.write(lit.getDatatype());
+                                writer.write(IOUtils.escapeStringW3C(lit.getDatatype()));
                                 writer.write("\">");
                             }
                             writer.write(lit.getLexicalValue());
@@ -277,7 +277,7 @@ public class ResultSolutions implements Result {
             if (i != 0)
                 writer.write(", ");
             writer.write("\"");
-            writer.write(variables.get(i).getName());
+            writer.write(IOUtils.escapeStringJSON(variables.get(i).getName()));
             writer.write("\"");
         }
         writer.write("] }, \"results\": { \"bindings\": [");
@@ -295,18 +295,18 @@ public class ResultSolutions implements Result {
                         writer.write(", ");
                     firstBinding = false;
                     writer.write("\"");
-                    writer.write(variables.get(i).getName());
+                    writer.write(IOUtils.escapeStringJSON(variables.get(i).getName()));
                     writer.write("\": ");
                     switch (value.getNodeType()) {
                         case Node.TYPE_IRI:
                             writer.write("{\"type\": \"uri\", \"value\": \"");
-                            writer.write(((IRINode) value).getIRIValue());
-                            writer.write("}");
+                            writer.write(IOUtils.escapeStringJSON(((IRINode) value).getIRIValue()));
+                            writer.write("\"}");
                             break;
                         case Node.TYPE_BLANK:
                             writer.write("{\"type\": \"bnode\", \"value\": \"");
                             writer.write(Long.toString(((BlankNode) value).getBlankID()));
-                            writer.write("}");
+                            writer.write("\"}");
                             break;
                         case Node.TYPE_LITERAL:
                             LiteralNode lit = (LiteralNode) value;
@@ -315,11 +315,11 @@ public class ResultSolutions implements Result {
                             writer.write("\"");
                             if (lit.getLangTag() != null) {
                                 writer.write(", \"xml:lang=\": \"");
-                                writer.write(lit.getLangTag());
+                                writer.write(IOUtils.escapeStringJSON(lit.getLangTag()));
                                 writer.write("\"");
                             } else if (lit.getDatatype() != null) {
                                 writer.write(", \"datatype=\": \"");
-                                writer.write(lit.getDatatype());
+                                writer.write(IOUtils.escapeStringJSON(lit.getDatatype()));
                                 writer.write("\"");
                             }
                             writer.write("}");

@@ -134,27 +134,7 @@ public class IOUtils {
      * @return The escaped value
      */
     public static String escapeStringW3C(String value) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i != value.length(); i++) {
-            char c = value.charAt(i);
-            if (c == '"')
-                builder.append("\\\"");
-            else if (c == '\\')
-                builder.append("\\\\");
-            else if (c == '\t')
-                builder.append("\\t");
-            else if (c == '\r')
-                builder.append("\\r");
-            else if (c == '\n')
-                builder.append("\\n");
-            else if (c == '\b')
-                builder.append("\\b");
-            else if (c == '\f')
-                builder.append("\\f");
-            else
-                builder.append(c);
-        }
-        return builder.toString();
+        return escapeStringBaseDoubleQuote(value);
     }
 
     /**
@@ -191,27 +171,7 @@ public class IOUtils {
      * @return The escaped value
      */
     public static String escapeStringTSV(String value) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i != value.length(); i++) {
-            char c = value.charAt(i);
-            if (c == '"')
-                builder.append("\\\"");
-            else if (c == '\\')
-                builder.append("\\\\");
-            else if (c == '\t')
-                builder.append("\\t");
-            else if (c == '\r')
-                builder.append("\\r");
-            else if (c == '\n')
-                builder.append("\\n");
-            else if (c == '\b')
-                builder.append("\\b");
-            else if (c == '\f')
-                builder.append("\\f");
-            else
-                builder.append(c);
-        }
-        return builder.toString();
+        return escapeStringBaseDoubleQuote(value);
     }
 
     /**
@@ -224,6 +184,18 @@ public class IOUtils {
      * @return The escaped value
      */
     public static String escapeStringJSON(String value) {
+        return escapeStringBaseDoubleQuote(value);
+    }
+
+    /**
+     * Escapes basic special characters in the specified string assuming the result will be quoted with the double quotes characters (")
+     * All characters are copied as-is, except for the following, which are escaped with a reverse solidus (\) prefix:
+     * ", \ and special control characters \t, \r, \n, \b, \f.
+     *
+     * @param value The value to escape
+     * @return The escaped value
+     */
+    public static String escapeStringBaseDoubleQuote(String value) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i != value.length(); i++) {
             char c = value.charAt(i);
