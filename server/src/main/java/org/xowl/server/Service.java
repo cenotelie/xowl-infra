@@ -129,11 +129,11 @@ public abstract class Service {
      * @param response The response to setup
      */
     protected void enableCORS(HttpServletResponse response) {
-        //response.setHeader("Access-Control-Expose-Headers", "true");
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Accept, Content-Type");
+        response.setHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Cache-Control");
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Credentials", "false");
+        response.setHeader("Cache-Control", "no-cache");
     }
 
     /**
