@@ -91,11 +91,6 @@ public class RDFUtils {
                 iri.setHasValue(((IRINode) node).getIRIValue());
                 return iri;
             }
-            case Node.TYPE_BLANK: {
-                // cannot translate back blank nodes ...
-                // TODO: throw an error here
-                return null;
-            }
             case Node.TYPE_LITERAL: {
                 LiteralNode literalNode = (LiteralNode) node;
                 Literal result = new Literal();
@@ -120,7 +115,7 @@ public class RDFUtils {
                 return ((DynamicNode) node).getDynamicExpression();
             }
         }
-        return null;
+        throw new IllegalArgumentException("RDF node " + node.getClass().getName() + " cannot be mapped to an OWL element");
     }
 
     /**
@@ -148,8 +143,7 @@ public class RDFUtils {
         } else if (element instanceof DynamicExpression) {
             return new DynamicNode((DynamicExpression) element);
         } else {
-            // TODO: throw an error here
-            return null;
+            throw new IllegalArgumentException("OWL element " + element.getClass().getName() + " cannot be mapped to a RDF node");
         }
     }
 }
