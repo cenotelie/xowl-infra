@@ -92,7 +92,6 @@ public class SPARQLService extends Service {
                 String contentType = negotiateType(getContentTypes(request));
                 String[] defaults = request.getParameterValues("default-graph-uri");
                 String[] named = request.getParameterValues("named-graph-uri");
-                response.setHeader("Content-Type", contentType);
                 enableCORS(response);
                 executeRequest(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
             }
@@ -121,16 +120,12 @@ public class SPARQLService extends Service {
                 String[] defaults = request.getParameterValues("default-graph-uri");
                 String[] named = request.getParameterValues("named-graph-uri");
                 String contentType = negotiateType(contentTypes);
-                response.setHeader("Content-Type", contentType);
                 enableCORS(response);
                 String query = getMessageBody(request);
                 executeRequest(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
                 break;
             }
             case TYPE_URL_ENCODED: {
-                String contentType = negotiateType(contentTypes);
-                response.setHeader("Content-Type", contentType);
-                String content = getMessageBody(request);
                 // TODO: decode and implement this
                 response.setStatus(501);
                 break;
@@ -169,6 +164,7 @@ public class SPARQLService extends Service {
             }
         }
         response.setStatus(result.isFailure() ? 500 : 200);
+        response.setHeader("Content-Type", coerceContentType(result, contentType));
         try {
             result.print(response.getWriter(), coerceContentType(result, contentType));
         } catch (IOException exception) {

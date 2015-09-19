@@ -314,11 +314,11 @@ public class ResultSolutions implements Result {
                             writer.write(IOUtils.escapeStringJSON(lit.getLexicalValue()));
                             writer.write("\"");
                             if (lit.getLangTag() != null) {
-                                writer.write(", \"xml:lang=\": \"");
+                                writer.write(", \"xml:lang\": \"");
                                 writer.write(IOUtils.escapeStringJSON(lit.getLangTag()));
                                 writer.write("\"");
                             } else if (lit.getDatatype() != null) {
-                                writer.write(", \"datatype=\": \"");
+                                writer.write(", \"datatype\": \"");
                                 writer.write(IOUtils.escapeStringJSON(lit.getDatatype()));
                                 writer.write("\"");
                             }
