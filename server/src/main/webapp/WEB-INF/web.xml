@@ -6,6 +6,6 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>XOWLServer</servlet-name>
-        <url-pattern>/</url-pattern>
+        <url-pattern>/sparql</url-pattern>
     </servlet-mapping>
 </web-app>

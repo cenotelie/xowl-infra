@@ -124,12 +124,26 @@ public abstract class Service {
     }
 
     /**
+     * Setups the headers of the specified HTTP response in order to enable Cross-Origin Resource Sharing
+     *
+     * @param response The response to setup
+     */
+    protected void enableCORS(HttpServletResponse response) {
+        //response.setHeader("Access-Control-Expose-Headers", "true");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Accept, Content-Type");
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Credentials", "false");
+    }
+
+    /**
      * Responds to a GET request
      *
      * @param request  The request
      * @param response The response to build
      */
-    public abstract void onGet(HttpServletRequest request, HttpServletResponse response);
+    public void onGet(HttpServletRequest request, HttpServletResponse response) {
+    }
 
     /**
      * Responds to a POST request
@@ -137,5 +151,16 @@ public abstract class Service {
      * @param request  The request
      * @param response The response to build
      */
-    public abstract void onPost(HttpServletRequest request, HttpServletResponse response);
+    public void onPost(HttpServletRequest request, HttpServletResponse response) {
+    }
+
+    /**
+     * Responds to an OPTIONS request
+     *
+     * @param request  The request
+     * @param response The response to build
+     */
+    public void onOptions(HttpServletRequest request, HttpServletResponse response) {
+        enableCORS(response);
+    }
 }

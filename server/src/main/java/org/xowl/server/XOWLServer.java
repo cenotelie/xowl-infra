@@ -51,11 +51,18 @@ public class XOWLServer extends HttpServlet {
         service = new SPARQLService(logger, repository);
     }
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         service.onGet(request, response);
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         service.onPost(request, response);
+    }
+
+    @Override
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        service.onOptions(request, response);
     }
 }

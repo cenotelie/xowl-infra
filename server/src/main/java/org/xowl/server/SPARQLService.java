@@ -93,6 +93,7 @@ public class SPARQLService extends Service {
                 String[] defaults = request.getParameterValues("default-graph-uri");
                 String[] named = request.getParameterValues("named-graph-uri");
                 response.setHeader("Content-Type", contentType);
+                enableCORS(response);
                 executeRequest(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
             }
         } else {
@@ -121,6 +122,7 @@ public class SPARQLService extends Service {
                 String[] named = request.getParameterValues("named-graph-uri");
                 String contentType = negotiateType(contentTypes);
                 response.setHeader("Content-Type", contentType);
+                enableCORS(response);
                 String query = getMessageBody(request);
                 executeRequest(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
                 break;
