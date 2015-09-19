@@ -94,7 +94,7 @@ public class NQuadsSerializer implements RDFSerializer {
         switch (node.getNodeType()) {
             case Node.TYPE_IRI: {
                 writer.write("<");
-                writer.write(IOUtils.escapeURI(((IRINode) node).getIRIValue()));
+                writer.write(IOUtils.escapeAbsoluteURIW3C(((IRINode) node).getIRIValue()));
                 writer.write(">");
                 break;
             }
@@ -115,7 +115,7 @@ public class NQuadsSerializer implements RDFSerializer {
                     writer.write(langTag);
                 } else if (datatype != null) {
                     writer.write("^^<");
-                    writer.write(IOUtils.escapeURI(datatype));
+                    writer.write(IOUtils.escapeAbsoluteURIW3C(datatype));
                     writer.write(">");
                 }
                 break;

@@ -482,7 +482,7 @@ public class TurtleLoader implements Loader {
                 String uri = namespaces.get(prefix);
                 if (uri != null) {
                     String name = value.substring(index + 1);
-                    return URIUtils.resolveRelative(baseURI, IOUtils.unescape(uri + name));
+                    return URIUtils.resolveRelative(baseURI, uri + name);
                 }
             }
             index++;

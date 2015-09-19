@@ -82,7 +82,7 @@ public class TurtleSerializer extends StructuredSerializer {
             writer.write("@prefix ");
             writer.write(entry.getValue());
             writer.write(": <");
-            writer.write(IOUtils.escapeURI(entry.getKey()));
+            writer.write(IOUtils.escapeAbsoluteURIW3C(entry.getKey()));
             writer.write("> .");
             writer.write(System.lineSeparator());
         }
@@ -101,7 +101,7 @@ public class TurtleSerializer extends StructuredSerializer {
     private void serializeTopLevel(SubjectNode subject, List<Quad> quads) throws IOException, UnsupportedNodeType {
         if (subject.getNodeType() == Node.TYPE_IRI) {
             writer.write("<");
-            writer.write(IOUtils.escapeURI(((IRINode) subject).getIRIValue()));
+            writer.write(IOUtils.escapeAbsoluteURIW3C(((IRINode) subject).getIRIValue()));
             writer.write(">");
         } else {
             writer.write("_:n");
@@ -151,7 +151,7 @@ public class TurtleSerializer extends StructuredSerializer {
         switch (quad.getObject().getNodeType()) {
             case Node.TYPE_IRI:
                 writer.write("<");
-                writer.write(IOUtils.escapeURI(((IRINode) quad.getObject()).getIRIValue()));
+                writer.write(IOUtils.escapeAbsoluteURIW3C(((IRINode) quad.getObject()).getIRIValue()));
                 writer.write(">");
                 break;
             case Node.TYPE_BLANK:

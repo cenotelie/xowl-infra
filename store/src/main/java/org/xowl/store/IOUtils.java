@@ -27,29 +27,30 @@ package org.xowl.store;
  */
 public class IOUtils {
     /**
-     * String containing the escaped glyphs in text
+     * String containing the escaped glyphs in absolute uris
      */
-    private static final String ESCAPED_GLYHPS_TEXT = "\\'\"_~.!$&()*+,;=/?#@%-";
-    /**
-     * String containing the escaped glyphs in uris
-     */
-    private static final String ESCAPED_GLYPHS_URIS = "<>\"{}|^`\\";
+    private static final String ESCAPED_GLYPHS_ABSOLUTE_URIS = "<>\"{}|^`\\";
 
     /**
-     * Translates the specified string into a new one by replacing the escape sequences by their value
+     * Replaces special sequences in the specified input value by the corresponding value.
+     * This method is general purpose in that it supports all form of escape sequences used by various syntaxes.
+     * The double double-quote escape sequence ("") representing a single double-quote character (") for the CSV syntax is not supported.
+     * The supported escape sequences:
+     * - \ u XXXX for unicode characters in the BMP with codepoint XXXX.
+     * - \ U XXXXXXXX for unicode characters outside the BMP with codepoint XXXXXXXX.
+     * - \t, \b, \r, \n, \f for the corresponding control characters (tab, backspace, carriage return, line feed, form feed).
+     * - \C for C, where C is any character other than t, b, r, n, f, u and U.
      *
-     * @param content A string that can contain escape sequences
-     * @return The translated string with the escape sequences replaced by their value
+     * @param value A string that can contain escape sequences
+     * @return The equivalent string with the escape sequences replaced by their value
      */
-    public static String unescape(String content) {
-        char[] buffer = new char[content.length()];
+    public static String unescape(String value) {
+        char[] buffer = new char[value.length()];
         int next = 0;
-        for (int i = 0; i != content.length(); i++) {
-            char c = content.charAt(i);
-            if (c != '\\') {
-                buffer[next++] = c;
-            } else {
-                char n = content.charAt(i + 1);
+        for (int i = 0; i != value.length(); i++) {
+            char c = value.charAt(i);
+            if (c == '\\') {
+                char n = value.charAt(i + 1);
                 if (n == 't') {
                     buffer[next++] = '\t';
                     i++;
@@ -66,62 +67,68 @@ public class IOUtils {
                     buffer[next++] = '\f';
                     i++;
                 } else if (n == 'u') {
-                    int codepoint = Integer.parseInt(content.substring(i + 2, i + 6), 16);
+                    // \ u XXXX for unicode characters in the BMP
+                    // note that any unicode character is encoded in UTF-16 in at most 2 Java char
+                    // therefore the length of str cannot be more that 2
+                    // therefore buffer[next++] cannot overflow
+                    int codepoint = Integer.parseInt(value.substring(i + 2, i + 6), 16);
                     String str = new String(new int[]{codepoint}, 0, 1);
                     for (int j = 0; j != str.length(); j++)
                         buffer[next++] = str.charAt(j);
                     i += 5;
                 } else if (n == 'U') {
-                    int codepoint = Integer.parseInt(content.substring(i + 2, i + 10), 16);
+                    // \ U XXXXXXXX for unicode characters outside the BMP
+                    // note that any unicode character is encoded in UTF-16 in at most 2 Java char
+                    // therefore the length of str cannot be more that 2
+                    // therefore buffer[next++] cannot overflow
+                    int codepoint = Integer.parseInt(value.substring(i + 2, i + 10), 16);
                     String str = new String(new int[]{codepoint}, 0, 1);
                     for (int j = 0; j != str.length(); j++)
                         buffer[next++] = str.charAt(j);
                     i += 9;
-                } else if (ESCAPED_GLYHPS_TEXT.contains(Character.toString(n))) {
+                } else {
+                    // \C for C, where C is any character other than t, b, r, n, f, u and U
                     buffer[next++] = n;
                     i++;
                 }
+            } else {
+                // not the start of an escape sequence, replace as is
+                buffer[next++] = c;
             }
         }
         return new String(buffer, 0, next);
     }
 
     /**
-     * Translates the specified URI into a new one by replacing character that should be escaped by their escape sequence
+     * Escapes special characters in the specified absolute URI according to the common W3C requirements for Turtle, N-Triples, N-quads, etc.
+     * All characters are copied as-is, except for the following, which are changed for a unicode escape sequence \ u XXXX:
+     * characters in range U+0000 to U+0020 and <, >, ", {, }, |, ^, `, \.
+     * This method assumes that the result will be surrounded with angle brackets (< and >).
      *
-     * @param content A string that can contain escape sequences
+     * @param value The absolute URI to escape
      * @return The escaped URI
      */
-    public static String escapeURI(String content) {
+    public static String escapeAbsoluteURIW3C(String value) {
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i != content.length(); i++) {
-            char c = content.charAt(i);
-            if (c < 0x20 || ESCAPED_GLYPHS_URIS.contains(Character.toString(c))) {
+        for (int i = 0; i != value.length(); i++) {
+            char c = value.charAt(i);
+            if (c < 0x20 || ESCAPED_GLYPHS_ABSOLUTE_URIS.contains(Character.toString(c))) {
                 String s = Integer.toHexString(c);
                 while (s.length() < 4)
                     s = "0" + s;
-                builder.append("u");
+                builder.append("\\u");
                 builder.append(s);
-            } else if (Character.isHighSurrogate(c)) {
-                char c2 = content.charAt(i + 1);
-                i++;
-                int cp = ((c2 - 0xDC00) | ((c - 0xD800) << 10)) + 0x10000;
-                String s = Integer.toHexString(cp);
-                while (s.length() < 8)
-                    s = "0" + s;
-                builder.append("U");
-                builder.append(s);
-            } else {
+            } else
                 builder.append(c);
-            }
         }
         return builder.toString();
     }
 
     /**
      * Escapes special characters in the specified string according to the common W3C requirements for Turtle, N-Triples, N-quads, etc.
-     * All characters are copied as-is, except for the following, which are escaped with a back-slash (\) prefix:
-     * ", ', \ and special control characters \t, \r, \n, \b, \f
+     * All characters are copied as-is, except for the following, which are escaped with a reverse solidus (\) prefix:
+     * ", \ and special control characters \t, \r, \n, \b, \f.
+     * This method assumes that the result will be quoted with the double quotes characters (").
      *
      * @param value The value to escape
      * @return The escaped value
@@ -132,8 +139,6 @@ public class IOUtils {
             char c = value.charAt(i);
             if (c == '"')
                 builder.append("\\\"");
-            else if (c == '\'')
-                builder.append("\\\'");
             else if (c == '\\')
                 builder.append("\\\\");
             else if (c == '\t')
@@ -146,18 +151,8 @@ public class IOUtils {
                 builder.append("\\b");
             else if (c == '\f')
                 builder.append("\\f");
-            else if (Character.isHighSurrogate(c)) {
-                char c2 = value.charAt(i + 1);
-                i++;
-                int cp = ((c2 - 0xDC00) | ((c - 0xD800) << 10)) + 0x10000;
-                String s = Integer.toHexString(cp);
-                while (s.length() < 8)
-                    s = "0" + s;
-                builder.append("U");
-                builder.append(s);
-            } else {
+            else
                 builder.append(c);
-            }
         }
         return builder.toString();
     }
@@ -170,6 +165,7 @@ public class IOUtils {
      * a        -> a
      * 'a'      -> 'a'
      * "b"c     -> ""b""c
+     * This method assumes that the result will be quoted with the double quotes characters (").
      *
      * @param value The value to escape
      * @return The escaped value
@@ -187,8 +183,9 @@ public class IOUtils {
 
     /**
      * Escapes special characters in the specified string according to the TSV requirements
-     * All characters are copied as-is, except for the following, which are escaped with a back-slash (\) prefix:
-     * ", \ and special control characters \t, \r, \n, \b, \f
+     * All characters are copied as-is, except for the following, which are escaped with a reverse solidus (\) prefix:
+     * ", \ and special control characters \t, \r, \n, \b, \f.
+     * This method assumes that the result will be quoted with the double quotes characters (").
      *
      * @param value The value to escape
      * @return The escaped value
@@ -219,8 +216,9 @@ public class IOUtils {
 
     /**
      * Escapes special characters in the specified string according to the JSON requirements
-     * All characters are copied as-is, except for the following, which are escaped with a back-slash (\) prefix:
-     * ", ', \ and special control characters \t, \r, \n, \b, \f
+     * All characters are copied as-is, except for the following, which are escaped with a reverse solidus (\) prefix:
+     * ", \ and special control characters \t, \r, \n, \b, \f.
+     * This method assumes that the result will be quoted with the double quotes characters (").
      *
      * @param value The value to escape
      * @return The escaped value
@@ -231,8 +229,6 @@ public class IOUtils {
             char c = value.charAt(i);
             if (c == '"')
                 builder.append("\\\"");
-            else if (c == '\'')
-                builder.append("\\\'");
             else if (c == '\\')
                 builder.append("\\\\");
             else if (c == '\t')
