@@ -444,25 +444,25 @@ public class RuleEngine implements ChangeListener {
         for (int i = 0; i != nodes.size(); i++) {
             RuleExplanation.ENode current = nodes.get(i);
             GraphNode graph = current.quad.getGraph();
-            if (graph.getNodeType() == Node.TYPE_IRI) {
-                String iri = ((IRINode) graph).getIRIValue();
-                if (NodeManager.INFERENCE_GRAPH.equals(iri)) {
-                    // this is an inferred triple
-                    Collection<ExecutedRule> executions = getExecutedRulesFor(current.quad);
-                    for (ExecutedRule execution : executions) {
-                        for (Quad pattern : execution.rule.getAntecedentSourcePositives()) {
-                            Node nodeSubject = process(execution.rule, pattern.getSubject(), execution.token, null, false);
-                            Node nodeProperty = process(execution.rule, pattern.getProperty(), execution.token, null, false);
-                            Node nodeObject = process(execution.rule, pattern.getObject(), execution.token, null, false);
-                            Iterator<Quad> iterator = inputStore.getAll((SubjectNode) nodeSubject, (Property) nodeProperty, nodeObject);
-                            while (iterator.hasNext()) {
-                                Quad antecedent = iterator.next();
-                                RuleExplanation.ENode target = result.resolve(antecedent);
-                                if (!nodes.contains(target))
-                                    nodes.add(target);
-                                current.antecedents.add(new Couple<>(execution.rule.getIRI(), target));
-                            }
-                        }
+            if (graph.getNodeType() != Node.TYPE_IRI)
+                continue;
+            String iri = ((IRINode) graph).getIRIValue();
+            if (!NodeManager.INFERENCE_GRAPH.equals(iri))
+                continue;
+            // this is an inferred quad
+            Collection<ExecutedRule> executions = getExecutedRulesFor(current.quad);
+            for (ExecutedRule execution : executions) {
+                for (Quad pattern : execution.rule.getAntecedentSourcePositives()) {
+                    Node nodeSubject = process(execution.rule, pattern.getSubject(), execution.token, null, false);
+                    Node nodeProperty = process(execution.rule, pattern.getProperty(), execution.token, null, false);
+                    Node nodeObject = process(execution.rule, pattern.getObject(), execution.token, null, false);
+                    Iterator<Quad> iterator = inputStore.getAll((SubjectNode) nodeSubject, (Property) nodeProperty, nodeObject);
+                    while (iterator.hasNext()) {
+                        Quad antecedent = iterator.next();
+                        RuleExplanation.ENode target = result.resolve(antecedent);
+                        if (!nodes.contains(target))
+                            nodes.add(target);
+                        current.antecedents.add(new Couple<>(execution.rule.getIRI(), target));
                     }
                 }
             }
@@ -471,54 +471,38 @@ public class RuleEngine implements ChangeListener {
     }
 
     /**
-     * Gets the rule execution that produced the specified quad
+     * Gets the rule executions that produced the specified quad
      *
      * @param quad A quad
      * @return The rule executions that produced the quads
      */
     private Collection<ExecutedRule> getExecutedRulesFor(Quad quad) {
         List<ExecutedRule> result = new ArrayList<>(1);
-        for (Rule rule : rules.keySet()) {
-            Collection<Quad> patterns = getPatternsFor(rule, quad);
-            for (Quad pattern : patterns) {
-                for (ExecutedRule er : executed.values()) {
-                    if (er.rule == rule) {
-                        Node node = process(rule, pattern.getSubject(), er.token, er.specials, false);
-                        if (!RDFUtils.same(quad.getSubject(), node))
-                            continue;
-                        node = process(rule, pattern.getProperty(), er.token, er.specials, false);
-                        if (!RDFUtils.same(quad.getProperty(), node))
-                            continue;
-                        node = process(rule, pattern.getObject(), er.token, er.specials, false);
-                        if (!RDFUtils.same(quad.getObject(), node))
-                            continue;
-                        // the pattern matches
-                        if (!result.contains(er))
-                            result.add(er);
-                    }
-                }
-            }
-        }
-        return result;
-    }
+        for (ExecutedRule execution : executed.values()) {
+            for (Quad pattern : execution.rule.getConsequentTargetPositives()) {
+                if (pattern.getSubject().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getSubject(), quad.getSubject()))
+                    continue;
+                if (pattern.getProperty().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getProperty(), quad.getProperty()))
+                    continue;
+                if (pattern.getObject().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getObject(), quad.getObject()))
+                    continue;
 
-    /**
-     * Gets the patters in the rule consequents that could have produced a quad
-     *
-     * @param rule The rule
-     * @param quad The quad to match
-     * @return The consequent quad patterns that could have produced the specified quad
-     */
-    private static Collection<Quad> getPatternsFor(Rule rule, Quad quad) {
-        Collection<Quad> result = new ArrayList<>(1);
-        for (Quad pattern : rule.getConsequentTargetPositives()) {
-            if (pattern.getSubject().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getSubject(), quad.getSubject()))
-                continue;
-            if (pattern.getProperty().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getProperty(), quad.getProperty()))
-                continue;
-            if (pattern.getObject().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getObject(), quad.getObject()))
-                continue;
-            result.add(pattern);
+                // here the pattern could have produced the quad given the right bindings
+                Node node = process(execution.rule, pattern.getSubject(), execution.token, execution.specials, false);
+                if (!RDFUtils.same(quad.getSubject(), node))
+                    continue;
+                node = process(execution.rule, pattern.getProperty(), execution.token, execution.specials, false);
+                if (!RDFUtils.same(quad.getProperty(), node))
+                    continue;
+                node = process(execution.rule, pattern.getObject(), execution.token, execution.specials, false);
+                if (!RDFUtils.same(quad.getObject(), node))
+                    continue;
+
+                // here the pattern produced the quad for this execution
+                result.add(execution);
+                // stop here assuming that the quad is only produced once by this execution
+                break;
+            }
         }
         return result;
     }
