@@ -136,9 +136,9 @@ public class RDFTLoader implements Loader {
         RDFLoaderResult result = new RDFLoaderResult();
         rules = result.getRules();
         if (graphMeta == null)
-            graphMeta = store.getIRINode(NodeManager.DEFAULT_GRAPH);
+            graphMeta = store.getIRINode(NodeManager.META_GRAPH);
         if (graphTarget == null)
-            graphTarget = store.getIRINode(NodeManager.DEFAULT_GRAPH);
+            graphTarget = store.getIRINode(NodeManager.INFERENCE_GRAPH);
         resource = resourceIRI;
         baseURI = resource;
         namespaces = new HashMap<>();

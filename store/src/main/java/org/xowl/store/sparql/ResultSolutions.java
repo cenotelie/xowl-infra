@@ -229,33 +229,7 @@ public class ResultSolutions implements Result {
                     writer.write("<binding name=\"");
                     writer.write(variables.get(i).getName());
                     writer.write("\">");
-                    switch (value.getNodeType()) {
-                        case Node.TYPE_IRI:
-                            writer.write("<uri>");
-                            writer.write(((IRINode) value).getIRIValue());
-                            writer.write("</uri>");
-                            break;
-                        case Node.TYPE_BLANK:
-                            writer.write("<bnode>");
-                            writer.write(Long.toString(((BlankNode) value).getBlankID()));
-                            writer.write("</bnode>");
-                            break;
-                        case Node.TYPE_LITERAL:
-                            writer.write("<literal");
-                            LiteralNode lit = (LiteralNode) value;
-                            if (lit.getLangTag() != null) {
-                                writer.write(" xml:lang=\"");
-                                writer.write(IOUtils.escapeStringW3C(lit.getLangTag()));
-                                writer.write("\">");
-                            } else if (lit.getDatatype() != null) {
-                                writer.write(" datatype=\"");
-                                writer.write(IOUtils.escapeStringW3C(lit.getDatatype()));
-                                writer.write("\">");
-                            }
-                            writer.write(lit.getLexicalValue());
-                            writer.write("</literal>");
-                            break;
-                    }
+                    IOUtils.serializeXML(writer, value);
                     writer.write("</binding>");
                 }
             }
@@ -297,34 +271,7 @@ public class ResultSolutions implements Result {
                     writer.write("\"");
                     writer.write(IOUtils.escapeStringJSON(variables.get(i).getName()));
                     writer.write("\": ");
-                    switch (value.getNodeType()) {
-                        case Node.TYPE_IRI:
-                            writer.write("{\"type\": \"uri\", \"value\": \"");
-                            writer.write(IOUtils.escapeStringJSON(((IRINode) value).getIRIValue()));
-                            writer.write("\"}");
-                            break;
-                        case Node.TYPE_BLANK:
-                            writer.write("{\"type\": \"bnode\", \"value\": \"");
-                            writer.write(Long.toString(((BlankNode) value).getBlankID()));
-                            writer.write("\"}");
-                            break;
-                        case Node.TYPE_LITERAL:
-                            LiteralNode lit = (LiteralNode) value;
-                            writer.write("{\"type\": \"literal\", \"value\": \"");
-                            writer.write(IOUtils.escapeStringJSON(lit.getLexicalValue()));
-                            writer.write("\"");
-                            if (lit.getLangTag() != null) {
-                                writer.write(", \"xml:lang\": \"");
-                                writer.write(IOUtils.escapeStringJSON(lit.getLangTag()));
-                                writer.write("\"");
-                            } else if (lit.getDatatype() != null) {
-                                writer.write(", \"datatype\": \"");
-                                writer.write(IOUtils.escapeStringJSON(lit.getDatatype()));
-                                writer.write("\"");
-                            }
-                            writer.write("}");
-                            break;
-                    }
+                    IOUtils.serializeJSON(writer, value);
                 }
             }
             writer.write(" }");

@@ -22,8 +22,16 @@ package org.xowl.server;
 
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.Repository;
+import org.xowl.store.loaders.NQuadsLoader;
+import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.SPARQLLoader;
-import org.xowl.store.sparql.*;
+import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.RuleExplanation;
+import org.xowl.store.sparql.Command;
+import org.xowl.store.sparql.Result;
+import org.xowl.store.sparql.ResultFailure;
+import org.xowl.store.sparql.ResultQuads;
+import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.Logger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -82,6 +90,7 @@ public class SPARQLService extends Service {
         response.setCharacterEncoding("UTF-8");
 
         String query = request.getParameter("query");
+        String action = request.getParameter("action");
         if (query != null) {
             if (request.getContentLength() > 0) {
                 // should be empty
@@ -95,8 +104,12 @@ public class SPARQLService extends Service {
                 enableCORS(response);
                 executeRequest(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
             }
+        } else if ("explain".equals(action)) {
+            String quad = request.getParameter("quad");
+            enableCORS(response);
+            response.setHeader("Content-Type", Result.SYNTAX_JSON);
+            explainQuad(quad, response);
         } else {
-            // expected a query parameter
             // ill-formed request
             logger.error("Ill-formed request, expected a query parameter");
             response.setStatus(400);
@@ -135,6 +148,29 @@ public class SPARQLService extends Service {
                 logger.error("Incorrect content type for the request: " + requestType);
                 response.setStatus(400);
                 break;
+        }
+    }
+
+    /**
+     * Retrieve the explanation about a quad
+     *
+     * @param quad     The serialized quad
+     * @param response The response to write to
+     */
+    private void explainQuad(String quad, HttpServletResponse response) {
+        NQuadsLoader loader = new NQuadsLoader(repository.getStore());
+        RDFLoaderResult result = loader.loadRDF(logger, new StringReader(quad), NodeManager.DEFAULT_GRAPH, NodeManager.DEFAULT_GRAPH);
+        if (result == null || result.getQuads().isEmpty()) {
+            response.setStatus(501);
+            return;
+        }
+        Quad first = result.getQuads().get(0);
+        RuleExplanation explanation = repository.getRDFRuleEngine().explain(first);
+        response.setStatus(200);
+        try {
+            explanation.printJSON(response.getWriter());
+        } catch (IOException exception) {
+            logger.error(exception);
         }
     }
 
