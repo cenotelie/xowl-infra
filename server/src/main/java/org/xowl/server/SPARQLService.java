@@ -63,6 +63,10 @@ public class SPARQLService extends Service {
      * The content type for a SPARQL update in a message body
      */
     private static final String TYPE_SPARQL_UPDATE = "application/sparql-update";
+    /**
+     * The content type for the explanation of a quad
+     */
+    private static final String TYPE_EXPLANATION = "application/x-xowl-explanation";
 
     /**
      * The logger
@@ -90,7 +94,6 @@ public class SPARQLService extends Service {
         response.setCharacterEncoding("UTF-8");
 
         String query = request.getParameter("query");
-        String action = request.getParameter("action");
         if (query != null) {
             if (request.getContentLength() > 0) {
                 // should be empty
@@ -104,11 +107,6 @@ public class SPARQLService extends Service {
                 enableCORS(response);
                 executeRequest(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
             }
-        } else if ("explain".equals(action)) {
-            String quad = request.getParameter("quad");
-            enableCORS(response);
-            response.setHeader("Content-Type", Result.SYNTAX_JSON);
-            explainQuad(quad, response);
         } else {
             // ill-formed request
             logger.error("Ill-formed request, expected a query parameter");
@@ -141,6 +139,13 @@ public class SPARQLService extends Service {
             case TYPE_URL_ENCODED: {
                 // TODO: decode and implement this
                 response.setStatus(501);
+                break;
+            }
+            case TYPE_EXPLANATION: {
+                String quad = getMessageBody(request);
+                enableCORS(response);
+                response.setHeader("Content-Type", Result.SYNTAX_JSON);
+                explainQuad(quad, response);
                 break;
             }
             default:
