@@ -21,12 +21,15 @@
 package org.xowl.server;
 
 import org.xowl.store.AbstractRepository;
+import org.xowl.store.IOUtils;
 import org.xowl.store.Repository;
 import org.xowl.store.loaders.NQuadsLoader;
 import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.SPARQLLoader;
 import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.Rule;
 import org.xowl.store.rdf.RuleExplanation;
+import org.xowl.store.rete.MatchStatus;
 import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultFailure;
@@ -38,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -64,9 +68,25 @@ public class SPARQLService extends Service {
      */
     private static final String TYPE_SPARQL_UPDATE = "application/sparql-update";
     /**
-     * The content type for the explanation of a quad
+     * The content type for the explanation of how a quad has been inferred
      */
-    private static final String TYPE_EXPLANATION = "application/x-xowl-explanation";
+    private static final String TYPE_RULE_EXPLANATION = "application/x-xowl-explanation";
+    /**
+     * The content type for listing the active reasoning rules
+     */
+    private static final String TYPE_RULE_LIST = "application/x-xowl-list-rules";
+    /**
+     * The content type for the matching status of a reasoning rule
+     */
+    private static final String TYPE_RULE_STATUS = "application/x-xowl-rule-status";
+    /**
+     * The content type for adding a new rule
+     */
+    private static final String TYPE_RULE_ADD = "application/x-xowl-rule-add";
+    /**
+     * The content type for removing an active rule
+     */
+    private static final String TYPE_RULE_REMOVE = "application/x-xowl-rule-remove";
 
     /**
      * The logger
@@ -141,11 +161,24 @@ public class SPARQLService extends Service {
                 response.setStatus(501);
                 break;
             }
-            case TYPE_EXPLANATION: {
+            case TYPE_RULE_EXPLANATION: {
                 String quad = getMessageBody(request);
                 enableCORS(response);
                 response.setHeader("Content-Type", Result.SYNTAX_JSON);
                 explainQuad(quad, response);
+                break;
+            }
+            case TYPE_RULE_LIST: {
+                enableCORS(response);
+                response.setHeader("Content-Type", Result.SYNTAX_JSON);
+                ruleList(response);
+                break;
+            }
+            case TYPE_RULE_STATUS: {
+                String rule = getMessageBody(request);
+                enableCORS(response);
+                response.setHeader("Content-Type", Result.SYNTAX_JSON);
+                ruleStatus(rule, response);
                 break;
             }
             default:
@@ -174,6 +207,47 @@ public class SPARQLService extends Service {
         response.setStatus(200);
         try {
             explanation.printJSON(response.getWriter());
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
+    }
+
+    /**
+     * Lists the active rules
+     *
+     * @param response The response to write to
+     */
+    private void ruleList(HttpServletResponse response) {
+        Collection<Rule> rules = repository.getRDFRuleEngine().getRules();
+        response.setStatus(200);
+        try (Writer writer = response.getWriter()) {
+            writer.write("{\"rules\": [");
+            boolean first = true;
+            for (Rule rule : rules) {
+                if (!first)
+                    writer.write(", ");
+                first = false;
+                writer.write("\"");
+                writer.write(IOUtils.escapeStringJSON(rule.getIRI()));
+                writer.write("\"");
+            }
+            writer.write("]}");
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
+    }
+
+    /**
+     * Retrieve the matching status of a rule
+     *
+     * @param rule     The IRI of a rule
+     * @param response The response to write to
+     */
+    private void ruleStatus(String rule, HttpServletResponse response) {
+        MatchStatus status = repository.getRDFRuleEngine().getMatchStatus(rule);
+        response.setStatus(200);
+        try {
+            status.printJSON(response.getWriter());
         } catch (IOException exception) {
             logger.error(exception);
         }

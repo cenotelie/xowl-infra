@@ -137,6 +137,15 @@ public class RuleEngine implements ChangeListener {
     }
 
     /**
+     * Gets the active rules
+     *
+     * @return The active rules
+     */
+    public Collection<Rule> getRules() {
+        return rules.keySet();
+    }
+
+    /**
      * Adds the specified rule
      *
      * @param rule The rule to add
@@ -414,6 +423,22 @@ public class RuleEngine implements ChangeListener {
      */
     protected Node processOtherNode(Rule rule, Node node, Token token, Map<Node, Node> specials) {
         return node;
+    }
+
+    /**
+     * Gets the matching status of the specified rule
+     *
+     * @param rule A rule's IRI
+     * @return The matching status
+     */
+    public MatchStatus getMatchStatus(String rule) {
+        for (Map.Entry<Rule, RETERule> entry : rules.entrySet()) {
+            if (entry.getKey().getIRI().equals(rule)) {
+                return rete.getStatus(entry.getValue());
+            }
+        }
+        // not a rule in this engine
+        return null;
     }
 
     /**

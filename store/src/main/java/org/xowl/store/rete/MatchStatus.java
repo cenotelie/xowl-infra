@@ -19,6 +19,8 @@
  ******************************************************************************/
 package org.xowl.store.rete;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,5 +59,20 @@ public class MatchStatus {
      */
     protected void addStep(MatchStatusStep step) {
         steps.add(step);
+    }
+
+    /**
+     * Serializes this matching status in the JSON syntax
+     *
+     * @param writer The writer to write to
+     */
+    public void printJSON(Writer writer) throws IOException {
+        writer.write("{ \"steps\": [");
+        for (int i = 0; i != steps.size(); i++) {
+            if (i != 0)
+                writer.write(", ");
+            steps.get(i).printJSON(writer);
+        }
+        writer.write("] }");
     }
 }

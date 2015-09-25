@@ -19,9 +19,14 @@
  ******************************************************************************/
 package org.xowl.store.rete;
 
+import org.xowl.store.IOUtils;
+import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.QuerySolution;
+import org.xowl.store.rdf.VariableNode;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -77,5 +82,43 @@ public class MatchStatusStep {
      */
     protected void addBindings(Token token) {
         this.bindings.add(new QuerySolution(token.getBindings()));
+    }
+
+    /**
+     * Serializes this step in the JSON syntax
+     *
+     * @param writer The writer to write to
+     */
+    public void printJSON(Writer writer) throws IOException {
+        writer.write("{ \"pattern\": { \"subject\": ");
+        IOUtils.serializeJSON(writer, pattern.getSubject());
+        writer.write(", \"property\": ");
+        IOUtils.serializeJSON(writer, pattern.getProperty());
+        writer.write(", \"object\": ");
+        IOUtils.serializeJSON(writer, pattern.getObject());
+        writer.write(", \"graph\": ");
+        IOUtils.serializeJSON(writer, pattern.getGraph());
+        writer.write("}, \"bindings\": [");
+        boolean firstSolution = true;
+        for (QuerySolution solution : bindings) {
+            if (!firstSolution)
+                writer.write(", ");
+            firstSolution = false;
+            writer.write("{");
+            boolean firstBinding = true;
+            for (VariableNode variable : solution.getVariables()) {
+                Node value = solution.get(variable);
+                if (value != null) {
+                    if (!firstBinding)
+                        writer.write(", ");
+                    firstBinding = false;
+                    writer.write("\"");
+                    writer.write(IOUtils.escapeStringJSON(variable.getName()));
+                    writer.write("\": ");
+                    IOUtils.serializeJSON(writer, value);
+                }
+            }
+            writer.write(" }");
+        }
     }
 }

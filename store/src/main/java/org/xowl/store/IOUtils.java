@@ -272,6 +272,10 @@ public class IOUtils {
      * @throws IOException When an IO error occurs
      */
     public static void serializeJSON(Writer writer, Node node) throws IOException {
+        if (node == null) {
+            writer.write("null");
+            return;
+        }
         switch (node.getNodeType()) {
             case Node.TYPE_IRI:
                 writer.write("{\"type\": \"uri\", \"value\": \"");
