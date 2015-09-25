@@ -49,7 +49,7 @@ public class RuleExplanation {
         /**
          * The antecedents of this quad, if any
          */
-        public final List<Couple<String, ENode>> antecedents;
+        public final List<Couple<String, List<ENode>>> antecedents;
 
         /**
          * Initializes this node
@@ -79,14 +79,18 @@ public class RuleExplanation {
             IOUtils.serializeJSON(writer, quad.getGraph());
             writer.write(", \"antecedents\": [");
             for (int i = 0; i != antecedents.size(); i++) {
-                Couple<String, ENode> antecedent = antecedents.get(i);
+                Couple<String, List<ENode>> antecedent = antecedents.get(i);
                 if (i != 0)
                     writer.write(", ");
                 writer.write("{ \"rule\": \"");
-                IOUtils.escapeStringJSON(antecedent.x);
-                writer.write("\", \"target\": ");
-                writer.write(Integer.toString(antecedent.y.id));
-                writer.write(" }");
+                writer.write(IOUtils.escapeStringJSON(antecedent.x));
+                writer.write("\", \"targets\": [");
+                for (int j = 0; j != antecedent.y.size(); j++) {
+                    if (j != 0)
+                        writer.write(", ");
+                    writer.write(Integer.toString(antecedent.y.get(j).id));
+                }
+                writer.write("] }");
             }
             writer.write("] }");
         }

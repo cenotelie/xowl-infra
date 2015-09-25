@@ -452,6 +452,7 @@ public class RuleEngine implements ChangeListener {
             // this is an inferred quad
             Collection<ExecutedRule> executions = getExecutedRulesFor(current.quad);
             for (ExecutedRule execution : executions) {
+                List<RuleExplanation.ENode> targets = new ArrayList<>(1);
                 for (Quad pattern : execution.rule.getAntecedentSourcePositives()) {
                     Node nodeSubject = process(execution.rule, pattern.getSubject(), execution.token, null, false);
                     Node nodeProperty = process(execution.rule, pattern.getProperty(), execution.token, null, false);
@@ -462,9 +463,11 @@ public class RuleEngine implements ChangeListener {
                         RuleExplanation.ENode target = result.resolve(antecedent);
                         if (!nodes.contains(target))
                             nodes.add(target);
-                        current.antecedents.add(new Couple<>(execution.rule.getIRI(), target));
+                        targets.add(target);
                     }
                 }
+                if (!targets.isEmpty())
+                    current.antecedents.add(new Couple<>(execution.rule.getIRI(), targets));
             }
         }
         return result;
