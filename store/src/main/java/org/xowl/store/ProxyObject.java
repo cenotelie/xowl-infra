@@ -372,9 +372,13 @@ public class ProxyObject {
         while (iterator.hasNext()) {
             Node node = iterator.next().getObject();
             if (node.getNodeType() == Node.TYPE_IRI) {
-                result.add(repository.resolveProxy(((IRINode) node).getIRIValue()));
+                ProxyObject po = repository.resolveProxy(((IRINode) node).getIRIValue());
+                if (!result.contains(po))
+                    result.add(po);
             } else if (node.getNodeType() == Node.TYPE_BLANK) {
-                result.add(repository.resolveProxy(repository.getOntology(NodeManager.DEFAULT_GRAPH), (SubjectNode) node));
+                ProxyObject po = repository.resolveProxy(repository.getOntology(NodeManager.DEFAULT_GRAPH), (SubjectNode) node);
+                if (!result.contains(po))
+                    result.add(po);
             }
         }
         return result;
@@ -394,9 +398,13 @@ public class ProxyObject {
         while (iterator.hasNext()) {
             Node node = iterator.next().getSubject();
             if (node.getNodeType() == Node.TYPE_IRI) {
-                result.add(repository.resolveProxy(((IRINode) node).getIRIValue()));
+                ProxyObject po = repository.resolveProxy(((IRINode) node).getIRIValue());
+                if (!result.contains(po))
+                    result.add(po);
             } else if (node.getNodeType() == Node.TYPE_BLANK) {
-                result.add(repository.resolveProxy(repository.getOntology(NodeManager.DEFAULT_GRAPH), (SubjectNode) node));
+                ProxyObject po = repository.resolveProxy(repository.getOntology(NodeManager.DEFAULT_GRAPH), (SubjectNode) node);
+                if (!result.contains(po))
+                    result.add(po);
             }
         }
         return result;
