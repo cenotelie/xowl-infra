@@ -190,10 +190,10 @@ class PersistedHashMap {
      *
      * @param key   A key
      * @param value A value
-     * @return true if the entry was new, false if it already existed
+     * @return The location of the value
      * @throws IOException When an IO operation failed
      */
-    public boolean put(Persistable key, Persistable value) throws IOException {
+    public long put(Persistable key, Persistable value) throws IOException {
         int hash = hash(key.hashCode());
         long location = getEntryLocation(key, false);
         long target = file.seek(location).readLong();
@@ -206,7 +206,7 @@ class PersistedHashMap {
                 file.seek(target + eKeySize + 12);
                 if (value.isPersistedIn(file))
                     // the entry already exists
-                    return false;
+                    return target + eKeySize + 12;
             }
             // not matching the hash and key
             // got to the next entry
@@ -236,7 +236,7 @@ class PersistedHashMap {
         // write back the
         locationNextEntry = file.getIndex();
         file.seek(locationHeader + 16 + 8).writeLong(locationNextEntry);
-        return true;
+        return target + key.persistedLength() + 12;
     }
 
     /**
