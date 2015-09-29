@@ -36,9 +36,13 @@ import java.security.NoSuchAlgorithmException;
  */
 class PersistedFile {
     /**
+     * The number of bits to use in order to represent an index within a block
+     */
+    public static final int BLOCK_INDEX_LENGTH = 13;
+    /**
      * The size of a block in bytes
      */
-    public static final int BLOCK_SIZE = 8192;
+    public static final int BLOCK_SIZE = 1 << BLOCK_INDEX_LENGTH;
     /**
      * The upper index mask
      */
@@ -126,8 +130,8 @@ class PersistedFile {
      *
      * @return The remaining amount of data
      */
-    public long getRemainingInBlock() {
-        return BLOCK_SIZE - (index & INDEX_MASK_LOWER);
+    public int getRemainingInBlock() {
+        return BLOCK_SIZE - (int) (index & INDEX_MASK_LOWER);
     }
 
     /**
@@ -165,9 +169,10 @@ class PersistedFile {
     /**
      * Commits any outstanding changes
      *
+     * @return The persistent file
      * @throws IOException When an IO operation failed
      */
-    public void commit() throws IOException {
+    public PersistedFile commit() throws IOException {
         for (int i = 0; i != blockCount; i++) {
             if (blockIsDirty[i]) {
                 if (blockPages[i] != null)
@@ -179,6 +184,7 @@ class PersistedFile {
         for (int i = 0; i != blockCount; i++) {
             blockIsDirty[i] = false;
         }
+        return this;
     }
 
     /**
@@ -266,13 +272,14 @@ class PersistedFile {
      * Positions the index of this file
      *
      * @param index The new index
+     * @return The persistent file
      */
-    public void seek(long index) {
+    public PersistedFile seek(long index) {
         if (index < 0)
             throw new IndexOutOfBoundsException("The index must be within the file");
         if (this.index == index)
             // do nothing
-            return;
+            return this;
         this.index = index;
         // look for a corresponding block
         for (int i = 0; i != blockCount; i++) {
@@ -280,17 +287,35 @@ class PersistedFile {
             if (index >= location && index < location + BLOCK_SIZE) {
                 blockBuffers[i].position((int) (index & INDEX_MASK_LOWER));
                 currentBlock = i;
-                return;
+                return this;
             }
         }
         currentBlock = -1;
+        return this;
     }
 
     /**
-     * Positions the index of this file onto the next block
+     * Positions the index of this file onto the next free block
+     *
+     * @return The persistent file
      */
-    public void seekNextBlock() {
-        seek((index & INDEX_MASK_UPPER) + BLOCK_SIZE);
+    public PersistedFile seekNextBlock() throws IOException {
+        long size = getSize();
+        if ((size & INDEX_MASK_UPPER) == size)
+            // already at the beginning of the next free block
+            return this;
+        return seek((size & INDEX_MASK_UPPER) + BLOCK_SIZE);
+    }
+
+    /**
+     * Gets whether the specified amount of bytes can be read at the current index
+     *
+     * @param length The number of bytes to read
+     * @return true if this is legal to read
+     * @throws IOException When an IO operation failed
+     */
+    public boolean canRead(int length) throws IOException {
+        return (index + length > getSize());
     }
 
     /**
@@ -300,7 +325,7 @@ class PersistedFile {
      * @throws IOException When an IO operation failed
      */
     public byte readByte() throws IOException {
-        if (index >= getSize())
+        if (!canRead(1))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         prepareIOAt();
         byte value = blockBuffers[currentBlock].get((int) (index & INDEX_MASK_LOWER));
@@ -316,7 +341,7 @@ class PersistedFile {
      * @throws IOException When an IO operation failed
      */
     public byte[] readBytes(int length) throws IOException {
-        if (this.index + length > getSize())
+        if (!canRead(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         byte[] result = new byte[length];
         readBytes(result, 0, length);
@@ -332,7 +357,7 @@ class PersistedFile {
      * @throws IOException When an IO operation failed
      */
     public void readBytes(byte[] buffer, int index, int length) throws IOException {
-        if (this.index + length > getSize())
+        if (!canRead(1))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         if (index < 0 || index + length > buffer.length)
             throw new IndexOutOfBoundsException("Out of bounds index and length for the specified buffer");
@@ -359,7 +384,7 @@ class PersistedFile {
      * @throws IOException When an IO operation failed
      */
     public char readChar() throws IOException {
-        if (index + 2 > getSize())
+        if (!canRead(2))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         prepareIOAt();
         if ((int) (this.index & INDEX_MASK_LOWER) + 2 <= BLOCK_SIZE) {
@@ -385,7 +410,7 @@ class PersistedFile {
      * @throws IOException When an IO operation failed
      */
     public int readInt() throws IOException {
-        if (index + 4 > getSize())
+        if (!canRead(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         prepareIOAt();
         if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
@@ -412,7 +437,7 @@ class PersistedFile {
      * @throws IOException When an IO operation failed
      */
     public long readLong() throws IOException {
-        if (index + 8 > getSize())
+        if (!canRead(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         prepareIOAt();
         if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
@@ -439,7 +464,7 @@ class PersistedFile {
      * @throws IOException When an IO operation failed
      */
     public float readFloat() throws IOException {
-        if (index + 4 > getSize())
+        if (!canRead(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         prepareIOAt();
         if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
@@ -466,7 +491,7 @@ class PersistedFile {
      * @throws IOException When an IO operation failed
      */
     public double readDouble() throws IOException {
-        if (index + 8 > getSize())
+        if (!canRead(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         prepareIOAt();
         if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
@@ -494,7 +519,7 @@ class PersistedFile {
      * @throws IOException When an IO operation failed
      */
     public byte[] digestSHA1(int length) throws IOException {
-        if (index + length > getSize())
+        if (!canRead(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -697,25 +722,6 @@ class PersistedFile {
                 }
             }
         }
-    }
-
-    /**
-     * Moves the content at the current index with the specified length of the specified offset
-     * This method only supports move operation within the same block.
-     *
-     * @param length The number of bytes to move
-     * @param offset The offset number of bytes
-     * @throws IOException When an IO operation failed
-     */
-    public void moveInBlock(int length, int offset) throws IOException {
-        int contentStart = (int) (index & INDEX_MASK_LOWER);
-        if (contentStart + length > BLOCK_SIZE)
-            throw new IndexOutOfBoundsException("The content to move in not within the block");
-        if (contentStart + offset < 0 || contentStart + length + offset > BLOCK_SIZE)
-            throw new IndexOutOfBoundsException("The move operation spills off the block");
-        prepareIOAt();
-        blockIsDirty[currentBlock] = true;
-        System.arraycopy(blockBuffers[currentBlock].array(), contentStart, blockBuffers[currentBlock].array(), contentStart + offset, length);
     }
 
     /**
