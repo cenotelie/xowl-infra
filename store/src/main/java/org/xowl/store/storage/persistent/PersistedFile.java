@@ -564,9 +564,9 @@ public class PersistedFile {
             remainingInBlock = BLOCK_SIZE;
         }
         prepareIOAt();
-        blockBuffers[currentBlock].put(buffer, targetIndex, remainingInBlock);
+        blockBuffers[currentBlock].put(buffer, targetIndex, remainingLength);
         blockIsDirty[currentBlock] = true;
-        this.index += remainingInBlock;
+        this.index += remainingLength;
     }
 
     /**
