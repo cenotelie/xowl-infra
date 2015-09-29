@@ -154,7 +154,7 @@ class PersistedFilePage {
      * @throws IOException When an IO operation failed
      */
     public boolean canStore(int length) throws IOException {
-        if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >> 2) {
+        if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
             // we can reuse empty entries and there are at least one
             char entryIndex = 0;
             backend.seek(location + PAGE_HEADER_SIZE);
@@ -180,7 +180,7 @@ class PersistedFilePage {
      * @throws StorageException When an entry of the specified length cannot be stored
      */
     public long registerEntry(int length) throws IOException, StorageException {
-        if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >> 2) {
+        if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
             // we can reuse empty entries and there are at least one
             char entryIndex = 0;
             char dataOffset = (char) PersistedFile.BLOCK_SIZE;
@@ -257,7 +257,7 @@ class PersistedFilePage {
      */
     public void removeEntry(long key) throws IOException, StorageException {
         long entryIndex = key - keyRadical;
-        if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >> 2)
+        if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >>> 2)
             throw new StorageException("The entry for the specified key is not in this page");
         backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
         char offset = backend.readChar();
@@ -308,7 +308,7 @@ class PersistedFilePage {
      */
     public int positionFor(long key) throws IOException, StorageException {
         long entryIndex = key - keyRadical;
-        if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >> 2)
+        if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >>> 2)
             throw new StorageException("The entry for the specified key is not in this page");
         backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
         char offset = backend.readChar();

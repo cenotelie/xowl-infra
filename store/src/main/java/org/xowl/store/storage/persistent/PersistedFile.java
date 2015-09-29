@@ -265,7 +265,7 @@ class PersistedFile {
      * @throws StorageException When the page version does not match the expected one
      */
     public PersistedFilePage getPageFor(long key) throws IOException, StorageException {
-        return getPage((int) ((key - keyRadical) >> 16));
+        return getPage((int) ((key - keyRadical) >>> 16));
     }
 
     /**
