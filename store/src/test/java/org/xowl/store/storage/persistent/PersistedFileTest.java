@@ -18,11 +18,10 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store;
+package org.xowl.store.storage.persistent;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xowl.store.storage.persistent.PersistedFile;
 
 import java.io.File;
 import java.io.IOException;

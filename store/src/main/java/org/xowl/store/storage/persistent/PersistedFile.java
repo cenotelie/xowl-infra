@@ -34,7 +34,7 @@ import java.security.NoSuchAlgorithmException;
  *
  * @author Laurent Wouters
  */
-public class PersistedFile {
+class PersistedFile {
     /**
      * The size of a block in bytes
      */
