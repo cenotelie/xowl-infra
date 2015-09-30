@@ -302,9 +302,9 @@ class PersistedFile {
     public PersistedFile seekNextBlock() throws IOException {
         long size = getSize();
         if ((size & INDEX_MASK_UPPER) == size)
-            // already at the beginning of the next free block
-            return this;
-        return seek((size & INDEX_MASK_UPPER) + BLOCK_SIZE);
+            // the size is a multiple of BLOCK_SIZE
+            return seek(size);
+        return seek((index & INDEX_MASK_UPPER) + BLOCK_SIZE);
     }
 
     /**
@@ -315,7 +315,7 @@ class PersistedFile {
      * @throws IOException When an IO operation failed
      */
     public boolean canRead(int length) throws IOException {
-        return (index + length > getSize());
+        return (index + length <= getSize());
     }
 
     /**

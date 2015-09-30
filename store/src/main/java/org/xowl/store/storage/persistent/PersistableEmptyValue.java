@@ -62,6 +62,6 @@ class PersistableEmptyValue implements Persistable {
 
     @Override
     public boolean isPersistedIn(PersistedFile file) throws IOException {
-        return false;
+        return true;
     }
 }
