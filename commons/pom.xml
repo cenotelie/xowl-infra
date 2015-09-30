@@ -3,12 +3,12 @@
 	<parent>
 		<groupId>org.xowl.infra</groupId>
 		<artifactId>top</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 	<groupId>org.xowl.infra</groupId>
 	<artifactId>xowl-commons</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.0</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>xOWL Commons</name>
 	<description>Common utilities for the xOWL packages</description>
 	<dependencies>
