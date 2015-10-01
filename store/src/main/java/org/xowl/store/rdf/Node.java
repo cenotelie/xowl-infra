@@ -16,14 +16,19 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
+ *     Stephen Creff - stephen.creff@gmail.org
  ******************************************************************************/
 
 package org.xowl.store.rdf;
+
+import org.xowl.store.Vocabulary;
 
 /**
  * Represents a node in a RDF graph
  *
  * @author Laurent Wouters
+ * modified to add default test
+ * @author Stephen Creff
  */
 public interface Node {
     /**
@@ -70,4 +75,17 @@ public interface Node {
      * @return The node's type
      */
     int getNodeType();
+
+    /**
+     * Test whether the node is a Blank one
+     */
+    default boolean isBlankNode(){
+        return this.getNodeType() == Node.TYPE_BLANK;
+    }
+    /**
+     * Test whether the node is a rdf:Nil IRI one
+     */
+    default boolean isNilType(){
+        return (this.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfNil.equals(((IRINode) this).getIRIValue());
+    }
 }
