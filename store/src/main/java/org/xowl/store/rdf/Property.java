@@ -32,23 +32,4 @@ import org.xowl.store.Vocabulary;
  */
 public interface Property extends Node {
 
-    /**
-     * Test whether the property is a rdf:First IRI one
-     */
-    default boolean isRdfFirst(){
-        return (this.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfFirst.equals(((IRINode) this).getIRIValue());
-    }
-    /**
-     * Test whether the property is a rdf:Rest IRI one
-     */
-    default boolean isRdfRest(){
-        return (this.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfRest.equals(((IRINode) this).getIRIValue());
-    }
-    /**
-     * Test whether the property is a rdf:Type IRI one
-     */
-    default boolean isRdfType(){
-        return (this.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfType.equals(((IRINode) this).getIRIValue());
-    }
-
 }

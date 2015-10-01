@@ -31,6 +31,7 @@ import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.IRINode;
 import org.xowl.store.rdf.LiteralNode;
 import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.Property;
 import org.xowl.store.storage.NodeManager;
 
 /**
@@ -145,5 +146,45 @@ public class RDFUtils {
         } else {
             throw new IllegalArgumentException("OWL element " + element.getClass().getName() + " cannot be mapped to a RDF node");
         }
+    }
+
+    /**
+     * Test whether the node is a rdf:Nil IRI one
+     * @param node
+     */
+    public static boolean isNilType(Node node){
+        return (node.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfNil.equals(((IRINode) node).getIRIValue());
+    }
+
+    /**
+     * Test whether the node is a Blank one
+     * @param node
+     */
+    public static boolean isBlankNode(Node node){
+        return node.getNodeType() == Node.TYPE_BLANK;
+    }
+
+    /**
+     * Test whether the property is a rdf:First IRI one
+     * @param property
+     */
+    public static boolean isRdfFirst(Property property){
+        return (property.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfFirst.equals(((IRINode) property).getIRIValue());
+    }
+
+    /**
+     * Test whether the property is a rdf:Rest IRI one
+     * @param property
+     */
+    public static boolean isRdfRest(Property property){
+        return (property.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfRest.equals(((IRINode) property).getIRIValue());
+    }
+
+    /**
+     * Test whether the property is a rdf:Type IRI one
+     * @param property
+     */
+    public static boolean isRdfType(Property property){
+        return (property.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfType.equals(((IRINode) property).getIRIValue());
     }
 }

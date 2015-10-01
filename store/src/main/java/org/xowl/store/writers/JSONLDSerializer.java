@@ -1,14 +1,15 @@
 package org.xowl.store.writers;
 
+import org.xowl.store.RDFUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.Logger;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 /*******************************************************************************
  * Copyright (c) 2015 stephen.creff
@@ -41,7 +42,7 @@ public class JSONLDSerializer extends StructuredSerializer {
      * For debugging purpose
      * Tabulation value making the output human readable
      */
-    final static boolean DEBUG = true;//java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("-agentlib:jdwp");
+    private final static boolean DEBUG = true;//java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("-agentlib:jdwp");
     private final String TAB = "\t";
 
     /**
@@ -67,12 +68,12 @@ public class JSONLDSerializer extends StructuredSerializer {
     /**
      * For each graph, The data to serialize into a list
      */
-    protected List<SubjectNode> listOfList;
+    protected final List<SubjectNode> listOfList;
 
     /**
      * For all graphs, the defined BlankNode objects
      */
-    protected List<Quad> existingBlankNodeObjectQuads;
+    protected final List<Quad> existingBlankNodeObjectQuads;
 
     /**
      * Initializes this serializer
@@ -119,16 +120,19 @@ public class JSONLDSerializer extends StructuredSerializer {
 
         if (!data.entrySet().isEmpty()) {
             if (!data.containsManyGraphs()) //Serialize default unnamed graph
-                if (data.getDefaultGraphNode()==null) {
+                if (data.getDefaultGraphNode() == null) {
                     writer.write(Vocabulary.JSONLD.objectBegin);
                     writer.write(System.lineSeparator());
                     serializeNamedGraphContent(data);
                     writer.write(System.lineSeparator());
                     writer.write(Vocabulary.JSONLD.objectEnd);
-                }else
-                  serializeDefaultGraphContent(); //FIXME Bad way to get the graph
+                } else
+                    serializeDefaultGraphContent(); //FIXME Bad way to get the graph
             else {
-                existingBlankNodeObjectQuads = data.entrySet().stream().flatMap(entry -> entry.getValue().stream()).filter(quad -> quad.getObject().isBlankNode()).collect(Collectors.toList());
+                for (Entry<SubjectNode, List<Quad>> entry : data.entrySet())
+                    for (Quad quad : entry.getValue())
+                        if (RDFUtils.isBlankNode(quad.getObject()))
+                            existingBlankNodeObjectQuads.add(quad);
                 GraphNode defaultRootGN = data.getDefaultGraphNode();
                 if (defaultRootGN != null) //Serialize Default and other named graphs
                     serializeSuperGraphContent(defaultRootGN);
@@ -142,107 +146,152 @@ public class JSONLDSerializer extends StructuredSerializer {
 
     /**
      * Serializes the default unnamed graph
+     *
      * @throws IOException
      * @throws UnsupportedNodeType
      */
-    private void serializeDefaultGraphContent()throws IOException, UnsupportedNodeType {
+    private void serializeDefaultGraphContent() throws IOException, UnsupportedNodeType {
         serializeGraphContent(this.data);
     }
+
     /**
      * Serializes the default graph (this one has sub-graphs and may have others)
+     *
      * @param graph : the given graph node
      * @throws IOException
      * @throws UnsupportedNodeType
      */
-    private void serializeSuperGraphContent(GraphNode graph)throws IOException, UnsupportedNodeType{
-        namedGraphs =  data.extractOtherGraphs(graph);
+    private void serializeSuperGraphContent(GraphNode graph) throws IOException, UnsupportedNodeType {
+        namedGraphs = data.extractOtherGraphs(graph);
         DataMap dm = data.extractGraph(graph);
-        for (Iterator<Entry<SubjectNode,List<Quad>>> iterator =  dm.entrySet().iterator(); iterator.hasNext();){
-            Entry<SubjectNode,List<Quad>> dmEntry = iterator.next();
-            if (DEBUG)tab(1);
+        for (Iterator<Entry<SubjectNode, List<Quad>>> iterator = dm.entrySet().iterator(); iterator.hasNext(); ) {
+            Entry<SubjectNode, List<Quad>> dmEntry = iterator.next();
+            if (DEBUG) tab(1);
             writer.write(Vocabulary.JSONLD.objectBegin);
             writer.write(System.lineSeparator());
-            if (DEBUG)tab(2);
+            if (DEBUG) tab(2);
             writer.write(Vocabulary.JSONLD.idTag);
             serializeJSONLDObject(dm, dmEntry.getKey());
-
-            if (DEBUG)tab(2);
-            List<DataMap> subGraphs = namedGraphs.stream().filter(dataMap -> dataMap.entrySet().stream().flatMap(entry -> entry.getValue().stream()).anyMatch(quad -> quad.getGraph().equals(dmEntry.getKey()))).collect(Collectors.toList());
-            if (!subGraphs.isEmpty()){
+            if (DEBUG) tab(2);
+            List<DataMap> subGraphs = getSubGraphs(dmEntry.getKey());
+            if (!subGraphs.isEmpty()) {
                 writer.write(Vocabulary.JSONLD.separator);
                 writer.write(System.lineSeparator());
-            }
-            for (Iterator<DataMap> it = subGraphs.iterator(); it.hasNext();){
-                DataMap subMap = it.next();
-                serializeSubGraphContent(subMap);
-                if (it.hasNext()) {
-                    writer.write(Vocabulary.JSONLD.separator);
-                    writer.write(System.lineSeparator());
+                for (Iterator<DataMap> it = subGraphs.iterator(); it.hasNext(); ) {
+                    DataMap subMap = it.next();
+                    serializeSubGraphContent(subMap);
+                    if (it.hasNext()) {
+                        writer.write(Vocabulary.JSONLD.separator);
+                        writer.write(System.lineSeparator());
+                    }
                 }
             }
-
             writer.write(System.lineSeparator());
-            if (DEBUG)tab(1);
+            if (DEBUG) tab(1);
             writer.write(Vocabulary.JSONLD.objectEnd);
             if (iterator.hasNext()) {
                 writer.write(Vocabulary.JSONLD.separator);
                 writer.write(System.lineSeparator());
             }
         }
-
-        List<DataMap> otherGraphs = namedGraphs.stream().filter(dataMap -> dataMap.entrySet().stream().flatMap(entry -> entry.getValue().stream()).noneMatch(quad ->
-                dm.entrySet().stream().map(Entry::getKey).anyMatch(subjectNode -> subjectNode.equals(quad.getGraph())))).collect(Collectors.toList());
-        if (!otherGraphs.isEmpty()){
+        List<DataMap> otherGraphs = getOtherGraphs(dm);
+        if (!otherGraphs.isEmpty()) {
             writer.write(Vocabulary.JSONLD.separator);
             writer.write(System.lineSeparator());
-        }
-        for (Iterator<DataMap> it = otherGraphs.iterator(); it.hasNext();){
-            DataMap subMap = it.next();
-            writer.write(Vocabulary.JSONLD.objectBegin);
-            writer.write(System.lineSeparator());
-            serializeNamedGraphContent(subMap) ;
-            writer.write(Vocabulary.JSONLD.objectEnd);
-            if (it.hasNext()) {
-                writer.write(Vocabulary.JSONLD.separator);
+            for (Iterator<DataMap> it = otherGraphs.iterator(); it.hasNext(); ) {
+                DataMap subMap = it.next();
+                writer.write(Vocabulary.JSONLD.objectBegin);
                 writer.write(System.lineSeparator());
+                serializeNamedGraphContent(subMap);
+                writer.write(Vocabulary.JSONLD.objectEnd);
+                if (it.hasNext()) {
+                    writer.write(Vocabulary.JSONLD.separator);
+                    writer.write(System.lineSeparator());
+                }
             }
         }
     }
 
     /**
+     * Filter the NamedGraph list to return the DataMap whose graph is another subject node
+     * @see this.namedGraphs
+     * @param subjectNode : the given subject node
+     * @return the sub list
+     */
+    private List<DataMap> getSubGraphs(SubjectNode subjectNode){
+        List<DataMap> subGraphs = new ArrayList<>();
+        for (DataMap dataMap : namedGraphs) {
+            boolean isFromGraph = false;
+            for (Entry<SubjectNode, List<Quad>> entry : dataMap.entrySet())
+                for (Quad quad : entry.getValue())
+                    if (quad.getGraph().equals(subjectNode)) {
+                        isFromGraph=true;
+                        break;
+                    }
+            if (isFromGraph)
+                subGraphs.add(dataMap);
+        }
+        return subGraphs;
+    }
+
+    /**
+     * Filter the NamedGraph list to return the DataMap whose graph is another subject node
+     * than the ones from the given default dATAmAP
+     * @see this.namedGraphs
+     * @param defaultDataMap : the given dataMap containing the subject nodes
+     * @return the sub list
+     */
+    private List<DataMap> getOtherGraphs(DataMap defaultDataMap){
+        List<DataMap> otherGraphs = new ArrayList<>();
+        for (DataMap dataMap : namedGraphs) {
+            boolean graphIsASubjectOfDefault = false;
+            for (Entry<SubjectNode, List<Quad>> entry : dataMap.entrySet()){
+                for (Quad quad : entry.getValue()){
+                    if (defaultDataMap.keySet().contains(quad.getGraph()))
+                        graphIsASubjectOfDefault = true;
+                }
+            }
+            if (!graphIsASubjectOfDefault)
+                otherGraphs.add(dataMap);
+        }
+        return otherGraphs;
+    }
+    /**
      * Serializes a named graph provided by the DataMap
+     *
      * @param data : the given DataMap
      * @throws IOException
      * @throws UnsupportedNodeType
      */
-    private void serializeNamedGraphContent(DataMap data)throws IOException, UnsupportedNodeType{
+    private void serializeNamedGraphContent(DataMap data) throws IOException, UnsupportedNodeType {
         writer.write(Vocabulary.JSONLD.idTag);
         writer.write(data.getGraphGraphNodes().get(0).toString());
         writer.write(Vocabulary.JSONLD.endLabelGoNext);
         writer.write(System.lineSeparator());
-        if (DEBUG)tab(2);
+        if (DEBUG) tab(2);
         writer.write(Vocabulary.JSONLD.graphTag);
         writer.write(System.lineSeparator());
         serializeGraphContent(data);
         writer.write(System.lineSeparator());
-        if (DEBUG)tab(2);
+        if (DEBUG) tab(2);
         writer.write(Vocabulary.JSONLD.arrayEnd);
         writer.write(System.lineSeparator());
     }
 
     /**
      * Serializes many graphs
+     *
      * @throws IOException
      * @throws UnsupportedNodeType
      */
-    private void serializeManyGraphsContent() throws IOException, UnsupportedNodeType{
+    private void serializeManyGraphsContent() throws IOException, UnsupportedNodeType {
         this.namedGraphs = data.extractGraphs();
-        for (Iterator<DataMap> it = this.namedGraphs.iterator(); it.hasNext();) {
+        for (Iterator<DataMap> it = this.namedGraphs.iterator(); it.hasNext(); ) {
             DataMap map = it.next();
-            if (DEBUG)tab(1);
+            if (DEBUG) tab(1);
             writer.write(Vocabulary.JSONLD.objectBegin);
             writer.write(System.lineSeparator());
-            if (DEBUG)tab(2);
+            if (DEBUG) tab(2);
             serializeNamedGraphContent(map);
             writer.write(Vocabulary.JSONLD.objectEnd);
             if (it.hasNext()) {
@@ -254,23 +303,25 @@ public class JSONLDSerializer extends StructuredSerializer {
 
     /**
      * Serializes a graph, subgraph a the default one
-     * @param dataMap
+     *
+     * @param dataMap : the given DataMap
      * @throws IOException
      * @throws UnsupportedNodeType
      */
-    private void serializeSubGraphContent(DataMap dataMap)throws IOException, UnsupportedNodeType{
-        if (DEBUG)tab(2);
+    private void serializeSubGraphContent(DataMap dataMap) throws IOException, UnsupportedNodeType {
+        if (DEBUG) tab(2);
         writer.write(Vocabulary.JSONLD.graphTag);
         writer.write(System.lineSeparator());
         serializeGraphContent(dataMap);
         writer.write(System.lineSeparator());
-        if (DEBUG)tab(2);
+        if (DEBUG) tab(2);
         writer.write(Vocabulary.JSONLD.arrayEnd);
         writer.write(System.lineSeparator());
     }
 
     /**
      * Serializes the graph content
+     *
      * @param data : the given graph
      * @throws IOException
      * @throws UnsupportedNodeType
@@ -279,20 +330,24 @@ public class JSONLDSerializer extends StructuredSerializer {
         DataMap dt = data;
         if (dt.containsLists()) {
             //dt = data.constructLists(); FIXME
-            dt.entrySet().stream().filter(entry -> containsJSONLDLists(entry.getValue())).filter(entry -> dt.isAListOfLists(entry.getValue())).forEach(entry -> entry.getValue().stream().filter(quad -> quad.getObject().isBlankNode()).forEach(quad1 -> listOfList.add((SubjectNode) quad1.getObject())));
-            bufferSecondaryData = dt.removeSubGraphsFromMainDataMap(listOfList, existingBlankNodeObjectQuads.stream().filter(q->!q.getGraph().equals(dt.entrySet().iterator().next().getValue().get(0).getGraph())).map(quad -> quad.getObject()).collect(Collectors.toList()));
+            for (Entry<SubjectNode, List<Quad>> entry : dt.entrySet())
+                if (containsJSONLDLists(entry.getValue())&&dt.isAListOfLists(entry.getValue()))
+                    for (Quad quad : entry.getValue())
+                        if (RDFUtils.isBlankNode(quad.getObject()))
+                            listOfList.add((SubjectNode) quad.getObject());
+            bufferSecondaryData = dt.removeSubGraphsFromMainDataMap(listOfList,getBlankNodesNotFromTheGraph(dt.entrySet().iterator().next().getValue().get(0).getGraph()));
         }
-        for (Iterator<Entry<SubjectNode, List<Quad>>> iterator = dt.entrySet().stream().filter(entry1 -> !listOfList.contains(entry1.getKey())).collect(Collectors.toList()).iterator(); iterator.hasNext(); ) {
+        for (Iterator<Entry<SubjectNode, List<Quad>>> iterator = dt.entrySet().iterator(); iterator.hasNext(); ) {
             Entry<SubjectNode, List<Quad>> entry = iterator.next();
-            if (!entry.getValue().isEmpty()) {
-                if (DEBUG)tab(1);
+            if (!listOfList.contains(entry.getKey())&&!entry.getValue().isEmpty()) {
+                if (DEBUG) tab(1);
                 writer.write(Vocabulary.JSONLD.objectBegin);
                 writer.write(System.lineSeparator());
-                if (DEBUG)tab(2);
+                if (DEBUG) tab(2);
                 writer.write(Vocabulary.JSONLD.idTag);
                 serializeJSONLDObject(dt, entry.getKey());
                 writer.write(System.lineSeparator());
-                if (DEBUG)tab(1);
+                if (DEBUG) tab(1);
                 writer.write(Vocabulary.JSONLD.objectEnd);
                 if (iterator.hasNext()) {
                     writer.write(Vocabulary.JSONLD.separator);
@@ -300,21 +355,21 @@ public class JSONLDSerializer extends StructuredSerializer {
                 }
             }
         }
-        if (!listOfList.isEmpty()){
+        if (!listOfList.isEmpty()) {
             writer.write(Vocabulary.JSONLD.separator);
             writer.write(System.lineSeparator());
-            for (Iterator<SubjectNode> it = listOfList.iterator(); it.hasNext();){
+            for (Iterator<SubjectNode> it = listOfList.iterator(); it.hasNext(); ) {
                 SubjectNode sn = it.next();
-                if (DEBUG)tab(1);
+                if (DEBUG) tab(1);
                 writer.write(Vocabulary.JSONLD.objectBegin);
                 writer.write(System.lineSeparator());
-                if (DEBUG)tab(2);
+                if (DEBUG) tab(2);
                 writer.write(Vocabulary.JSONLD.idTag);
                 serializeJSONLDObject(dt, sn);
                 writer.write(System.lineSeparator());
-                if (DEBUG)tab(1);
+                if (DEBUG) tab(1);
                 writer.write(Vocabulary.JSONLD.objectEnd);
-                if (it.hasNext()){
+                if (it.hasNext()) {
                     writer.write(Vocabulary.JSONLD.separator);
                     writer.write(System.lineSeparator());
                 }
@@ -323,12 +378,24 @@ public class JSONLDSerializer extends StructuredSerializer {
         }
         bufferSecondaryData.clear();
     }
-
+    /**
+     * Filters the existing blank node list to get the only ones related to the given graph
+     * @see this.existingBlankNodeObjectQuads
+     * @param graphNode the given graph
+     * @return the resulting list
+     */
+    private List<Node> getBlankNodesNotFromTheGraph(GraphNode graphNode){
+        List<Node> result = new ArrayList<>();
+        for (Quad quad : existingBlankNodeObjectQuads)
+            if (!quad.getGraph().equals(graphNode))
+                result.add(quad.getObject());
+       return result;
+    }
     /**
      * Serializes a JSON-LD Object
      *
      * @param subject The subject
-     //* @param quads   All the quads for its property
+     *                //* @param quads   All the quads for its property
      * @throws IOException
      * @throws UnsupportedNodeType
      */
@@ -344,19 +411,21 @@ public class JSONLDSerializer extends StructuredSerializer {
             writer.write(Vocabulary.JSONLD.endLabelGoNext);
         }
         writer.write(System.lineSeparator());
-        if (DEBUG)tab(2);
+        if (DEBUG) tab(2);
         serializeProperties(map, quads);
     }
-
     /**
-     * Check whether the list of quads conatins a property redf:rest withan object rdf:Nil
+     * Check whether the list of quads contains a property redf:rest with an object rdf:Nil
+     *
      * @param quads the given list of quads
      * @return true if contains, false otherwise
      */
-    private boolean containsJSONLDLists(List<Quad> quads){
-        return quads.stream().anyMatch(quad -> quad.getObject().isNilType()&&quad.getProperty().isRdfRest());
+    private boolean containsJSONLDLists(List<Quad> quads) {
+        for (Quad quad : quads)
+            if (RDFUtils.isNilType(quad.getObject()) && RDFUtils.isRdfRest(quad.getProperty()))
+                return true;
+        return false;
     }
-
     /**
      * Serializes a property from a node
      *
@@ -368,15 +437,13 @@ public class JSONLDSerializer extends StructuredSerializer {
         for (int i = 0; i != quads.size(); i++) {
             Property property = quads.get(i).getProperty();
             String propertyID = property.toString();
-            if (!bufferPropertyList.containsKey(propertyID)) {
-                List<Quad> l = new ArrayList<>(5);
-                bufferPropertyList.put(propertyID, l);
-            }
+            if (!bufferPropertyList.containsKey(propertyID))
+                bufferPropertyList.put(propertyID,new ArrayList<Quad>(5));
             bufferPropertyList.get(propertyID).add(quads.get(i));
         }
 
-        if (containsJSONLDLists(quads)){
-            if (map.containsPropertiesOtherThanList(quads)){
+        if (containsJSONLDLists(quads)) {
+            if (map.containsPropertiesOtherThanList(quads)) {
                 for (Iterator<Entry<String, List<Quad>>> iterator = bufferPropertyList.entrySet().iterator(); iterator.hasNext(); ) {
                     Entry<String, List<Quad>> propSet = iterator.next();
                     serializePropertySubject(propSet.getValue().get(0));
@@ -387,49 +454,49 @@ public class JSONLDSerializer extends StructuredSerializer {
                     } else {
                         serializePropertyObjects(map, propSet.getValue());
                         writer.write(System.lineSeparator());
-                        if (DEBUG)tab(2);
+                        if (DEBUG) tab(2);
                     }
                     //array closed
                     writer.write(Vocabulary.JSONLD.arrayEnd);
                     if (iterator.hasNext()) {
                         writer.write(Vocabulary.JSONLD.separator);
                         writer.write(System.lineSeparator());
-                        if (DEBUG)tab(2);
+                        if (DEBUG) tab(2);
                     }
                 }
-            }else{
+            } else {
                 for (Iterator<Entry<String, List<Quad>>> iterator = bufferPropertyList.entrySet().iterator(); iterator.hasNext(); ) {
                     Entry<String, List<Quad>> propSet = iterator.next();
                     serializePropertySubject(propSet.getValue().get(0));
                     //Default array
                     writer.write(Vocabulary.JSONLD.arrayBegin);
                     if (propSet.getValue().size() == 1) {
-                        if (propSet.getValue().get(0).getObject().isNilType()&&propSet.getValue().get(0).getProperty().isRdfRest()){
+                        if (RDFUtils.isNilType(propSet.getValue().get(0).getObject()) && RDFUtils.isRdfRest(propSet.getValue().get(0).getProperty())) {
                             //empty list
                             writer.write(Vocabulary.JSONLD.objectBegin);
                             writer.write(System.lineSeparator());
-                            if (DEBUG)tab(3);
+                            if (DEBUG) tab(3);
                             writer.write(Vocabulary.JSONLD.emptyListTag);
                             writer.write(System.lineSeparator());
-                            if (DEBUG)tab(2);
+                            if (DEBUG) tab(2);
                             writer.write(Vocabulary.JSONLD.objectEnd);
-                        }else
+                        } else
                             serializePropertyObject(map, propSet.getValue().get(0));
                     } else {
                         serializePropertyObjects(map, propSet.getValue());
                         writer.write(System.lineSeparator());
-                        if (DEBUG)tab(2);
+                        if (DEBUG) tab(2);
                     }
                     //array closed
                     writer.write(Vocabulary.JSONLD.arrayEnd);
                     if (iterator.hasNext()) {
                         writer.write(Vocabulary.JSONLD.separator);
                         writer.write(System.lineSeparator());
-                        if (DEBUG)tab(2);
+                        if (DEBUG) tab(2);
                     }
                 }
             }
-        }else{
+        } else {
             for (Iterator<Entry<String, List<Quad>>> iterator = bufferPropertyList.entrySet().iterator(); iterator.hasNext(); ) {
                 Entry<String, List<Quad>> propSet = iterator.next();
                 serializePropertySubject(propSet.getValue().get(0));
@@ -440,14 +507,14 @@ public class JSONLDSerializer extends StructuredSerializer {
                 } else {
                     serializePropertyObjects(map, propSet.getValue());
                     writer.write(System.lineSeparator());
-                    if (DEBUG)tab(2);
+                    if (DEBUG) tab(2);
                 }
                 //array closed
                 writer.write(Vocabulary.JSONLD.arrayEnd);
                 if (iterator.hasNext()) {
                     writer.write(Vocabulary.JSONLD.separator);
                     writer.write(System.lineSeparator());
-                    if (DEBUG)tab(2);
+                    if (DEBUG) tab(2);
                 }
             }
         }
@@ -456,8 +523,9 @@ public class JSONLDSerializer extends StructuredSerializer {
 
     /**
      * Serializes many properties
-     * @param map
-     * @param quads
+     *
+     * @param map the current DataMap
+     * @param quads the current quads
      * @throws IOException
      * @throws UnsupportedNodeType
      */
@@ -465,15 +533,16 @@ public class JSONLDSerializer extends StructuredSerializer {
         for (int i = 0; i < quads.size(); i++) {
             Quad quad = quads.get(i);
             serializePropertyObject(map, quad);
-            if ((i + 1 < quads.size()) && (!quads.get(i + 1).getObject().isNilType())) { //has next and next not nil
+            if ((i + 1 < quads.size()) && (!RDFUtils.isNilType(quads.get(i + 1).getObject()))) { //has next and next not nil
                 writer.write(Vocabulary.JSONLD.separator);
                 writer.write(System.lineSeparator());
-                if (DEBUG)tab(1);
-                if (quads.get(i + 1).getProperty().isRdfRest())
-                    if (DEBUG)tab(1);
+                if (DEBUG) tab(1);
+                if (RDFUtils.isRdfRest(quads.get(i + 1).getProperty()))
+                    if (DEBUG) tab(1);
             }
         }
     }
+
     /**
      * Serializes a property from a node (object parts)
      *
@@ -483,22 +552,23 @@ public class JSONLDSerializer extends StructuredSerializer {
      */
     private void serializePropertyObjects(DataMap map, List<Quad> quads) throws IOException, UnsupportedNodeType {
         writer.write(System.lineSeparator());
-        if (DEBUG)tab(1);
-        if (containsJSONLDLists(quads)){
+        if (DEBUG) tab(1);
+        if (containsJSONLDLists(quads)) {
             writer.write(Vocabulary.JSONLD.objectBegin);
             writer.write(System.lineSeparator());
-            if (DEBUG)tab(2);
+            if (DEBUG) tab(2);
             writer.write(Vocabulary.JSONLD.listTag);
             writer.write(System.lineSeparator());
             if (DEBUG) tab(2);
             serializeManyProperties(map, quads);
             writer.write(System.lineSeparator());
-            if (DEBUG)tab(2);
+            if (DEBUG) tab(2);
             writer.write(Vocabulary.JSONLD.objectEnd);
-        }else{
+        } else {
             serializeManyProperties(map, quads);
         }
     }
+
     /**
      * Serializes a property from a node (subject part)
      *
@@ -506,7 +576,7 @@ public class JSONLDSerializer extends StructuredSerializer {
      * @throws IOException
      * @throws UnsupportedNodeType
      */
-    private void serializePropertySubject(Quad quad) throws IOException, UnsupportedNodeType {
+    private void serializePropertySubject(Quad quad) throws IOException {
         String property = ((IRINode) quad.getProperty()).getIRIValue();
         if (Vocabulary.rdfType.equals(property))
             writer.write(Vocabulary.JSONLD.typeTag);
@@ -527,24 +597,24 @@ public class JSONLDSerializer extends StructuredSerializer {
     private void serializePropertyObject(DataMap map, Quad quad) throws IOException, UnsupportedNodeType {
         switch (quad.getObject().getNodeType()) {
             case Node.TYPE_IRI:
-                if (quad.getProperty().isRdfType()) {
+                if (RDFUtils.isRdfType(quad.getProperty())) {
                     writer.write(Vocabulary.JSONLD.labelTag);
                     writer.write(((IRINode) quad.getObject()).getIRIValue());
                     writer.write(Vocabulary.JSONLD.labelTag);
                 } else if (Vocabulary.rdfNil.equals(((IRINode) quad.getObject()).getIRIValue())) {
-                    if (quad.getProperty().isRdfRest()) {  //ends list
+                    if (RDFUtils.isRdfRest(quad.getProperty())) {  //ends list
                         writer.write(System.lineSeparator());
-                        if (DEBUG)tab(3);
+                        if (DEBUG) tab(3);
                         writer.write(Vocabulary.JSONLD.arrayEnd);
                         writer.write(System.lineSeparator());
-                        if (DEBUG)tab(2);
+                        if (DEBUG) tab(2);
                     } else {  //emptylist
                         writer.write(Vocabulary.JSONLD.objectBegin);
                         writer.write(System.lineSeparator());
-                        if (DEBUG)tab(3);
+                        if (DEBUG) tab(3);
                         writer.write(Vocabulary.JSONLD.emptyListTag);
                         writer.write(System.lineSeparator());
-                        if (DEBUG)tab(2);
+                        if (DEBUG) tab(2);
                         writer.write(Vocabulary.JSONLD.objectEnd);
                     }
                 } else {
@@ -554,8 +624,8 @@ public class JSONLDSerializer extends StructuredSerializer {
                 }
                 break;
             case Node.TYPE_BLANK:
-                if (bufferSecondaryData.containsKey(quad.getObject())/*&&(!listOfList.contains(quad.getObject()))*/) { //@list //TODO list and binding
-                   serializePropertyObjects(map, bufferSecondaryData.get(quad.getObject()));
+                if (bufferSecondaryData.containsKey(quad.getObject())){ //@list
+                    serializePropertyObjects(map, bufferSecondaryData.get(quad.getObject()));
                 } else {
                     writer.write(Vocabulary.JSONLD.idTagWithObject);
                     writer.write(quad.getObject().toString());
@@ -590,6 +660,7 @@ public class JSONLDSerializer extends StructuredSerializer {
 
     /**
      * Write nb tabulations into the writer
+     *
      * @param nb : number of tabs
      * @throws IOException
      */
