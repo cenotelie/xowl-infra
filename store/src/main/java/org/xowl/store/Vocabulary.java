@@ -170,6 +170,149 @@ public class Vocabulary {
         public static final String expObjectPropertyChain = "ObjectPropertyChain";
     }
 
+    /**
+     * JSON-LD language elements
+     */
+    public static class JSONLD {
+        /**
+         * Markers that forbids the further expansion
+         */
+        public static final String null_ = "@null";
+        /**
+         * Property which value describes a context
+         */
+        public static final String context = "@context";
+        /**
+         * Property that defines the identifier of a JSON-LD object with an URI or a blank node
+         */
+        public static final String id = "@id";
+        /**
+         * Property that identifies the value of a literal expressed as a JSON object
+         */
+        public static final String value = "@value";
+        /**
+         * Property that identifies the language of a literal expressed as a JSON object
+         */
+        public static final String language = "@language";
+        /**
+         * Property that identifies the type of a datatype property
+         */
+        public static final String type = "@type";
+        /**
+         * Property that defines the type of container of another multi-valued property
+         */
+        public static final String container = "@container";
+        /**
+         * Value that identifies the list type of container for a multi-valued property
+         */
+        public static final String list = "@list";
+        /**
+         * Value that identifies the set type of container for a multi-valued property
+         */
+        public static final String set = "@set";
+        /**
+         * Property that specifies that another property is expressed in a reversed form
+         */
+        public static final String reverse = "@reverse";
+        /**
+         * Property that specifies the indexing of a property values
+         */
+        public static final String index = "@index";
+        /**
+         * Property that specifies the base URI for relative ones
+         */
+        public static final String base = "@base";
+        /**
+         * Property that specifies a common URI radical for a vocabulary
+         */
+        public static final String vocab = "@vocab";
+        /**
+         * Property for the expression of explicit graphs
+         */
+        public static final String graph = "@graph";
+
+        /**
+         * Mark the beginning of a JSON-LD Object
+         */
+        public static final String objectBegin = "{";
+        /**
+         * Mark the end of a JSON-LD Object
+         */
+        public static final String objectEnd = "}";
+        /**
+         * Mark the beginning of a JSON-LD Array (set)
+         */
+        public static final String arrayBegin = "[";
+        /**
+         * Mark the end of a JSON-LD Array (set)
+         */
+        public static final String arrayEnd = "]";
+        /**
+         * Mark a separator between JSON-LD elements
+         */
+        public static final String separator = ",";
+        /**
+         * Mark a separator in a pair key value
+         */
+        public static final String fieldSeparator = ":";
+        /**
+         * Mark the beginning/end of a JSON-LD label
+         */
+        public static final String labelTag = "\"";
+        /**
+         * "@id": "
+         */
+        public static final String idTag = labelTag+id+labelTag+fieldSeparator+" "+labelTag;
+        /**
+         * {"@id": "
+         */
+        public static final String idTagWithObject = objectBegin+idTag;
+        /**
+         * "@type":
+         */
+        public static final String typeTag = labelTag+type+labelTag+fieldSeparator+" ";
+        /**
+         * {"@value": "
+         */
+        public static final String valueTag = objectBegin+labelTag+value+labelTag+fieldSeparator+" "+labelTag;
+        /**
+         * "@language": "
+         */
+        public static final String languageTag = labelTag+language+labelTag+fieldSeparator+" "+labelTag;
+        /**
+         * ,"@language": "
+         */
+        public static final String nextLanguageTag = separator+" "+languageTag;
+        /**
+         * ,"@type": "
+         */
+        public static final String nextTypeTag = separator+" "+typeTag+labelTag;
+        /**
+         * "}
+         */
+        public static final String endLabelAndObject = labelTag+objectEnd;
+        /**
+         * ",
+         */
+        public static final String endLabelGoNext = labelTag+separator;
+        /**
+         * ":
+         */
+        public static final String endLabelGoDesc = labelTag+fieldSeparator+" ";
+        /**
+         * "@graph": [
+         */
+        public static final String graphTag = labelTag+graph+labelTag+fieldSeparator+" "+arrayBegin;
+        /**
+         * "@list": [
+         */
+        public static final String listTag = labelTag+list+labelTag+fieldSeparator+" "+arrayBegin;
+        /**
+         * "@list": []
+         */
+        public static final String emptyListTag = labelTag+list+labelTag+fieldSeparator+" "+arrayBegin+arrayEnd;
+    }
+
     public static final String owl = IRIMapper.IRI_OWL2 + "#";
     public static final String owlOntology = owl + OWL2.ontoOntology;
     public static final String owlClass = owl + OWL2.entityClass;
