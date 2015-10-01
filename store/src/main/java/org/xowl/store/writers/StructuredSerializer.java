@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  *
  * @author Laurent Wouters
  * modified to add DataMap inner class
- * @authors Stephen Creff
+ * @author Stephen Creff
  */
 public abstract class StructuredSerializer implements RDFSerializer {
     /**
@@ -105,7 +105,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * Enqueue a quad into the dataset to serialize
      *
      * @param quad A quad
-     * @throws UnsupportedNodeType
+     * @throws UnsupportedNodeType whenever occurs
      */
     protected void enqueue(Quad quad) throws UnsupportedNodeType {
         // map the nodes
@@ -126,7 +126,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * Maps the specified node
      *
      * @param node The node
-     * @throws UnsupportedNodeType
+     * @throws UnsupportedNodeType whenever occurs
      */
     private void mapNode(Node node) throws UnsupportedNodeType {
         switch (node.getNodeType()) {
@@ -155,7 +155,6 @@ public abstract class StructuredSerializer implements RDFSerializer {
         int index = iri.indexOf("#");
         if (index != -1) {
             mapNamespace(iri.substring(0, index + 1));
-            return;
         }
         //mapNamespace(iri);
         //Modified -> no # means direct mapping
@@ -200,6 +199,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * @param node The containing node
      * @param iri  The IRI to compact
      * @return The corresponding compact IRI as couple (prefix, suffix) where prefix:suffix expands to the original IRI
+     * @throws UnsupportedNodeType whenever occurs
      */
     protected Couple<String, String> getCompactIRI(Node node, String iri) throws UnsupportedNodeType {
         int index = iri.indexOf("#");
@@ -217,6 +217,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
      *
      * @param node A blank node
      * @return The corresponding identifier
+     * @throws IOException whenever occurs
      */
     protected int getBlankID(BlankNode node) throws IOException {
         long id = node.getBlankID();
@@ -243,7 +244,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
         }
         /**
          * Rebuild a data map (list graphs), from the given temporary quads list
-         * @param quads
+         * @param quads the given list
          */
         private DataMap toDataMap(List<Quad> quads){
             DataMap result = new DataMap();
@@ -256,6 +257,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
         }
         /**
          * Check whether the DataMap contains different graphs
+         * @return true whether it does
          */
         public boolean containsManyGraphs(){
             GraphNode gnRef = null;
@@ -282,7 +284,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
         }
         /**
          * Get the default graph node of the DataMap (default unnamed graph)
-         * @see this.isTheDefaultUnnamedGraph
+         * @see <code>this.isTheDefaultUnnamedGraph()</code>
          * @return a grapnode if exists, null otherwise
          */
         public GraphNode getDefaultGraphNode(){
@@ -375,8 +377,9 @@ public abstract class StructuredSerializer implements RDFSerializer {
             return null;
         }
         /**
-         * Check whether the graph contains any list, </br>
+         * Check whether the graph contains any list,
          * (looks for rdf:nil members)
+         * @return true whether it does
          */
         public boolean containsLists(){
             for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
@@ -386,7 +389,9 @@ public abstract class StructuredSerializer implements RDFSerializer {
             return false;
         }
         /**
-         * Check whether quads is a list of list, </br>
+         * Check whether quads is a list of list,
+         * @param quads the given list
+         * @return  true whether it is
          */
         public boolean isAListOfLists (List<Quad> quads){
             List<Node> objects = new ArrayList<>();
@@ -400,8 +405,10 @@ public abstract class StructuredSerializer implements RDFSerializer {
             return false;
         }
         /**
-         * Remove graph objects (defining some lists) from the main data map</br>
-         * @see this.containsListsToBeConverted
+         * Remove graph objects (defining some lists) from the main data map
+         * @param subListNodes the sub-list of nodes
+         * @param existingBNs the existing blank nodes
+         * @see #containsOnlySimpleList(List)
          * @return the removed data
          */
         public DataMap removeSubGraphsFromMainDataMap(List<SubjectNode> subListNodes, List<Node> existingBNs){
@@ -416,7 +423,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
             return subMap;
         }
         /**
-         * Check whether the quads contains only a simple list: <br>
+         * Check whether the quads contains only a simple list:
          *     . properties are either rdf:First or rdf:Rest
          *     . and one quad is a nil object
          * @param quads : the list to be checked
@@ -434,7 +441,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
         }
         /**
          * Check whether the DataMap contains any entry that contains a list node which also contains properties other tha rdf:first and rdf:rest
-         * @see this.containsPropertiesOtherThanList(SubjectNode)
+         * @see #containsPropertiesOtherThanList(SubjectNode)
          * @return true if conditions are verified
          */
         private boolean containsPropertiesOtherThanList(){
@@ -611,7 +618,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
 
         /**
          * correct the DataMap : replace rdf:First followed by rdf:First in lists (error coming from nested lists)
-         * @see this.stepConstructLists()
+         * @see #stepConstructLists(List, List, Quad, Quad)
          */
         private void correctDataMap(){
             for (Iterator<Entry<SubjectNode, List<Quad>>> iterator = this.entrySet().iterator(); iterator.hasNext(); ) {
@@ -633,9 +640,9 @@ public abstract class StructuredSerializer implements RDFSerializer {
         }
         /**
          * Get the ObjectNode (Blank) referring to the given Subject node
-         * @see this.getPreviousSubject(SubjectNode)
+         * @see #getPreviousSubject(SubjectNode)
          * @param node : the given subject node
-         * @param list
+         * @param list : the given list
          * @return the corresponding node, self if not referred
          */
         private SubjectNode getReferringNode(SubjectNode node, List<Quad> list) {
@@ -657,7 +664,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
 
         /**
          * Get the subject of a given object node
-         * @param node
+         * @param node : the given node
          * @return the resulting subject, null otherwise
          */
         private SubjectNode getPreviousSubject(final SubjectNode node) {
