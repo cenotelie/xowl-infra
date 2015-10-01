@@ -16,6 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
+ *     Stephen Creff - stephen.creff@gmail.com
  ******************************************************************************/
 package org.xowl.store;
 
@@ -36,6 +37,8 @@ import java.util.jar.JarFile;
  * Represents the interface of a repository of xOWL ontologies
  *
  * @author Laurent Wouters
+ * Modification
+ * @author Stephen Creff
  */
 public abstract class AbstractRepository {
     /**
@@ -60,38 +63,49 @@ public abstract class AbstractRepository {
      * Supported N-Triples syntax
      */
     public static final String SYNTAX_NTRIPLES = "application/n-triples";
+    public static final String EXT_NTRIPLES = ".nt";
     /**
      * Supported N-Quads syntax
      */
     public static final String SYNTAX_NQUADS = "application/n-quads";
+    public static final String EXT_NQUADS = ".nq";
     /**
      * Supported Turtle syntax
      */
     public static final String SYNTAX_TURTLE = "text/turtle";
+    public static final String EXT_TURTLE = ".ttl";
     /**
      * Supported RDF Transform syntax
      */
     public static final String SYNTAX_RDFT = "application/rdft";
+    public static final String EXT_RDFT = ".rdft";
     /**
      * Supported RDF/XML syntax
      */
     public static final String SYNTAX_RDFXML = "application/rdf+xml";
+    public static final String EXT_RDFXML = ".rdf";
     /**
      * Supported Functional OWL2 syntax
      */
     public static final String SYNTAX_FUNCTIONAL_OWL2 = "text/owl-functional";
+    public static final String EXT_OWL2_A = ".ofn";
+    public static final String EXT_OWL2_B = ".fs";
     /**
      * Supported OWL/XML OWL2 syntax
      */
     public static final String SYNTAX_OWLXML = "application/owl+xml";
+    public static final String EXT_OWLXML_A = ".owx";
+    public static final String EXT_OWLXML_B = ".owl";
     /**
      * Supported Functional xOWL syntax
      */
     public static final String SYNTAX_XOWL = "text/xowl";
+    public static final String EXT_XOWL = ".xowl";
     /**
      * Supported JSON-LD syntax
      */
     public static final String SYNTAX_JSON_LD = "application/ld+json";
+    public static final String EXT_JSON_LD = ".jsonld";
 
 
     /**
@@ -241,6 +255,37 @@ public abstract class AbstractRepository {
         if (syntax == null)
             return;
         exportResource(logger, writer, ontology, iri, syntax);
+        try {
+            writer.close();
+        } catch (IOException e) {
+            logger.error(e);
+        }
+    }
+
+    /**
+     * Exports all stored ontologies into a resource
+     *
+     * @param logger   The current logger
+     * @param iri      The resource's IRI
+     */
+    public void exportAll(Logger logger, String iri) {
+        String resource = mapper.get(iri);
+        if (resource == null) {
+            logger.error("Cannot identify the location of " + iri);
+            return;
+        }
+        Writer writer = getWriterFor(logger, resource);
+        if (writer == null)
+            return;
+        String syntax = getSyntax(logger, resource);
+        if (syntax == null)
+            return;
+        exportResource(logger, writer, iri, syntax);
+        try {
+            writer.close();
+        } catch (IOException e) {
+            logger.error(e);
+        }
     }
 
     /**
@@ -404,6 +449,50 @@ public abstract class AbstractRepository {
     }
 
     /**
+     * Exports the repository to a resource
+     *
+     * @param logger      The current logger
+     * @param writer      The output writer
+     * @param resourceIRI The resource's IRI
+     * @param syntax      The resource's syntax
+     */
+    private void exportResource(Logger logger, Writer writer, String resourceIRI, String syntax) {
+        switch (syntax) {
+            case SYNTAX_NQUADS:
+            case SYNTAX_JSON_LD:{
+                RDFSerializer serializer = newRDFSerializer(syntax, writer);
+                exportResourceRDF(logger, serializer);
+                break;
+            }
+            case SYNTAX_NTRIPLES:
+            case SYNTAX_TURTLE:
+            case SYNTAX_RDFXML:
+            case SYNTAX_RDFT: {
+                RDFSerializer serializer = newRDFSerializer(syntax, writer);
+                exportResourceRDF(logger, this.getOntology(resourceIRI), serializer);
+                break;
+            }
+            case SYNTAX_FUNCTIONAL_OWL2:
+            case SYNTAX_OWLXML:
+            case SYNTAX_XOWL: {
+                //TODO : support multiple ontologies export
+                logger.error("Exporting multiple ontologies not supported yet by the syntax, IRI: " + resourceIRI);
+                OWLSerializer serializer = newOWLSerializer(syntax, writer);
+                exportResourceOWL(logger, this.getOntology(resourceIRI), serializer);
+                break;
+            }
+            default:
+                logger.error("Unsupported syntax: " + syntax);
+                break;
+        }
+        try {
+            writer.close();
+        } catch (IOException ex) {
+            logger.error(ex);
+        }
+    }
+
+    /**
      * Loads an RDF resource
      *
      * @param logger      The current logger
@@ -493,8 +582,9 @@ public abstract class AbstractRepository {
             case SYNTAX_RDFXML:
                 return new RDFXMLSerializer(writer);
             case SYNTAX_RDFT:
-            case SYNTAX_JSON_LD:
                 return null;
+            case SYNTAX_JSON_LD:
+                return new JSONLDSerializer(writer);
         }
         return null;
     }
@@ -544,6 +634,14 @@ public abstract class AbstractRepository {
     protected abstract void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output);
 
     /**
+     * Exports a collection of quads from the whole store
+     *
+     * @param logger   The current logger
+     * @param output   The output
+     */
+    protected abstract void exportResourceRDF(Logger logger, RDFSerializer output);
+
+    /**
      * Exports a collection of quads
      *
      * @param logger   The current logger
@@ -559,23 +657,23 @@ public abstract class AbstractRepository {
      * @return The recognized syntax
      */
     public static String getSyntax(String resource) {
-        if (resource.endsWith(".nt"))
+        if (resource.endsWith(EXT_NTRIPLES))
             return SYNTAX_NTRIPLES;
-        if (resource.endsWith(".nq"))
+        if (resource.endsWith(EXT_NQUADS))
             return SYNTAX_NQUADS;
-        if (resource.endsWith(".ttl"))
+        if (resource.endsWith(EXT_TURTLE))
             return SYNTAX_TURTLE;
-        if (resource.endsWith(".rdft"))
+        if (resource.endsWith(EXT_RDFT))
             return SYNTAX_RDFT;
-        if (resource.endsWith(".rdf"))
+        if (resource.endsWith(EXT_RDFXML))
             return SYNTAX_RDFXML;
-        if (resource.endsWith(".jsonld"))
+        if (resource.endsWith(EXT_JSON_LD))
             return SYNTAX_JSON_LD;
-        if (resource.endsWith(".ofn") || resource.endsWith(".fs"))
+        if (resource.endsWith(EXT_OWL2_A) || resource.endsWith(EXT_OWL2_B))
             return SYNTAX_FUNCTIONAL_OWL2;
-        if (resource.endsWith(".owx") || resource.endsWith(".owl"))
+        if (resource.endsWith(EXT_OWLXML_A) || resource.endsWith(EXT_OWLXML_B))
             return SYNTAX_OWLXML;
-        if (resource.endsWith(".xowl"))
+        if (resource.endsWith(EXT_XOWL))
             return SYNTAX_XOWL;
         // TODO: try to look into the file to determine the syntax
         return null;
