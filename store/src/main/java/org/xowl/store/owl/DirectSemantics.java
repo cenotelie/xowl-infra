@@ -292,6 +292,10 @@ public class DirectSemantics extends AbstractRepository {
         throw new UnsupportedOperationException();
     }
 
+    protected void exportResourceRDF(Logger logger, RDFSerializer output) {
+        throw new UnsupportedOperationException();
+    }
+
     protected void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output) {
         throw new UnsupportedOperationException();
     }
