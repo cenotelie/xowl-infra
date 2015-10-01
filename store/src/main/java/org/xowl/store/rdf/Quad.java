@@ -23,7 +23,7 @@ package org.xowl.store.rdf;
 import org.xowl.store.RDFUtils;
 
 /**
- * Represents a quad in an graph
+ * Represents a quad in a graph
  *
  * @author Laurent Wouters
  */
