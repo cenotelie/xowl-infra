@@ -22,18 +22,6 @@
 package org.xowl.store;
 
 import org.junit.Assert;
-import org.xowl.hime.redist.ParseResult;
-import org.xowl.lang.owl2.Ontology;
-import org.xowl.store.loaders.Loader;
-import org.xowl.store.loaders.RDFLoaderResult;
-import org.xowl.store.rdf.GraphNode;
-import org.xowl.store.rdf.IRINode;
-import org.xowl.store.rdf.Quad;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Base class for the JSON-LD loader tests
