@@ -16,6 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
+ *     Stephen Creff - stephen.creff@gmail.com
  ******************************************************************************/
 
 package org.xowl.store;
@@ -27,8 +28,15 @@ import org.junit.Test;
  * Test suite for JSON-LD
  *
  * @author Laurent Wouters
+ * @author Stephen Creff
  */
 public class JSONLDTest extends BaseJSONLDTest {
+
+    /**
+     * JSON-LD to RDF
+     * toRdf tests have input and expected documents, and may have options.
+     * The expected results can be compared using string comparison with the processor output.
+     */
 
     @Test
     public void test_toRdf_t0055() {
@@ -600,4 +608,122 @@ public class JSONLDTest extends BaseJSONLDTest {
     public void test_toRdf_t0106() {
         toRdfTest("http://json-ld.org/test-suite/tests/toRdf-0106-out.nq", "http://json-ld.org/test-suite/tests/toRdf-0106-in.jsonld");
     }
+
+    /**
+     * JSON-LD from RDF
+     * fromRdf tests have input and expected documents, and may have options.
+     * The expected results can be compared using JSON object comparison with the processor output.
+     */
+    @Test
+    public void test_fromRdf_t0001() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0001-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0001-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0002() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0002-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0002-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0003() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0003-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0003-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0004() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0004-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0004-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0005() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0005-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0005-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0022() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0022-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0022-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0015() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0015-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0015-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0009() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0009-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0009-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0018() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0018-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0018-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0016() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0016-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0016-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0013() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0013-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0013-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0020() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0020-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0020-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0010() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0010-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0010-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0017() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0017-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0017-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0008() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0008-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0008-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0011() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0011-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0011-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0007() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0007-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0007-in.nq");
+    }
+
+
+
+    @Test
+    public void test_fromRdf_t0019() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0019-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0019-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0012() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0012-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0012-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0006() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0006-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0006-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0014() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0014-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0014-in.nq");
+    }
+
+    @Test
+    public void test_fromRdf_t0021() {
+        fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0021-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0021-in.nq");
+    }
+
 }
