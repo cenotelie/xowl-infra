@@ -21,6 +21,7 @@
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
+import org.xowl.store.Vocabulary;
 import org.xowl.utils.collections.Couple;
 
 import java.util.*;
@@ -105,15 +106,15 @@ class JSONLDContextFragment {
         String tVocab = null;
         for (ASTNode member : definition.getChildren()) {
             String key = JSONLDLoader.getValue(member.getChildren().get(0));
-            if (JSONLDLoader.KEYWORD_LANGUAGE.equals(key)) {
+            if (Vocabulary.JSONLD.language.equals(key)) {
                 tLanguage = JSONLDLoader.getValue(member.getChildren().get(1));
-                tLanguage = tLanguage == null ? JSONLDLoader.MARKER_NULL : tLanguage;
-            } else if (JSONLDLoader.KEYWORD_BASE.equals(key)) {
+                tLanguage = tLanguage == null ? Vocabulary.JSONLD.null_ : tLanguage;
+            } else if (Vocabulary.JSONLD.base.equals(key)) {
                 tBase = JSONLDLoader.getValue(member.getChildren().get(1));
-                tBase = tBase == null ? JSONLDLoader.MARKER_NULL : tBase;
-            } else if (JSONLDLoader.KEYWORD_VOCAB.equals(key)) {
+                tBase = tBase == null ? Vocabulary.JSONLD.null_ : tBase;
+            } else if (Vocabulary.JSONLD.vocab.equals(key)) {
                 tVocab = JSONLDLoader.getValue(member.getChildren().get(1));
-                tVocab = tVocab == null ? JSONLDLoader.MARKER_NULL : tVocab;
+                tVocab = tVocab == null ? Vocabulary.JSONLD.null_ : tVocab;
             }
         }
         this.language = tLanguage;
@@ -151,7 +152,7 @@ class JSONLDContextFragment {
                 break;
             case JSONLDLexer.ID.LITERAL_NULL:
                 // explicitly forbids the expansion
-                mappings.put(name, JSONLDLoader.MARKER_NULL);
+                mappings.put(name, Vocabulary.JSONLD.null_);
             case JSONLDParser.ID.object:
                 loadNameFromObject(name, definition);
                 break;
@@ -171,47 +172,47 @@ class JSONLDContextFragment {
         attributes.put(name, list);
         for (ASTNode member : definition.getChildren()) {
             String key = JSONLDLoader.getValue(member.getChildren().get(0));
-            if (JSONLDLoader.KEYWORD_ID.equals(key)) {
+            if (Vocabulary.JSONLD.id.equals(key)) {
                 String value = JSONLDLoader.getValue(member.getChildren().get(1));
-                value = value == null ? JSONLDLoader.MARKER_NULL : value;
+                value = value == null ? Vocabulary.JSONLD.null_ : value;
                 mappings.put(name, value);
-            } else if (JSONLDLoader.KEYWORD_TYPE.equals(key)) {
+            } else if (Vocabulary.JSONLD.type.equals(key)) {
                 String value = JSONLDLoader.getValue(member.getChildren().get(1));
-                list.add(new Couple<String, Object>(JSONLDLoader.KEYWORD_TYPE, value));
-            } else if (JSONLDLoader.KEYWORD_CONTAINER.equals(key)) {
+                list.add(new Couple<String, Object>(Vocabulary.JSONLD.type, value));
+            } else if (Vocabulary.JSONLD.container.equals(key)) {
                 String value = JSONLDLoader.getValue(member.getChildren().get(1));
                 if (value != null) {
                     switch (value) {
-                        case JSONLDLoader.KEYWORD_LIST:
-                            list.add(new Couple<String, Object>(JSONLDLoader.KEYWORD_CONTAINER, JSONLDContainerType.List));
+                        case Vocabulary.JSONLD.list:
+                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JSONLDContainerType.List));
                             break;
-                        case JSONLDLoader.KEYWORD_SET:
-                            list.add(new Couple<String, Object>(JSONLDLoader.KEYWORD_CONTAINER, JSONLDContainerType.Set));
+                        case Vocabulary.JSONLD.set:
+                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JSONLDContainerType.Set));
                             break;
-                        case JSONLDLoader.KEYWORD_INDEX:
-                            list.add(new Couple<String, Object>(JSONLDLoader.KEYWORD_CONTAINER, JSONLDContainerType.Index));
+                        case Vocabulary.JSONLD.index:
+                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JSONLDContainerType.Index));
                             break;
-                        case JSONLDLoader.KEYWORD_LANGUAGE:
-                            list.add(new Couple<String, Object>(JSONLDLoader.KEYWORD_CONTAINER, JSONLDContainerType.Language));
+                        case Vocabulary.JSONLD.language:
+                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JSONLDContainerType.Language));
                             break;
                         default:
-                            list.add(new Couple<String, Object>(JSONLDLoader.KEYWORD_CONTAINER, JSONLDContainerType.Undefined));
+                            list.add(new Couple<String, Object>(Vocabulary.JSONLD.container, JSONLDContainerType.Undefined));
                             break;
                     }
                 }
-            } else if (JSONLDLoader.KEYWORD_LANGUAGE.equals(key)) {
+            } else if (Vocabulary.JSONLD.language.equals(key)) {
                 String value = JSONLDLoader.getValue(member.getChildren().get(1));
-                value = value == null ? JSONLDLoader.MARKER_NULL : value;
-                list.add(new Couple<String, Object>(JSONLDLoader.KEYWORD_LANGUAGE, value));
-            } else if (JSONLDLoader.KEYWORD_REVERSE.equals(key)) {
+                value = value == null ? Vocabulary.JSONLD.null_ : value;
+                list.add(new Couple<String, Object>(Vocabulary.JSONLD.language, value));
+            } else if (Vocabulary.JSONLD.reverse.equals(key)) {
                 String value = JSONLDLoader.getValue(member.getChildren().get(1));
-                list.add(new Couple<String, Object>(JSONLDLoader.KEYWORD_REVERSE, value));
+                list.add(new Couple<String, Object>(Vocabulary.JSONLD.reverse, value));
             }
         }
     }
 
     /**
-     * Tries the expand the specified term with the mappings in this fragment
+     * Tries to expand the specified term with the mappings in this fragment
      *
      * @param term The term to expand
      * @return The expanded term, or null if it cannot be expanded

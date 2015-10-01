@@ -45,80 +45,24 @@ import java.util.*;
  * @author Laurent Wouters
  */
 public abstract class JSONLDLoader implements Loader {
-    /**
-     * Markers that forbids the further expansion
-     */
-    public static final String MARKER_NULL = "@null";
-    /**
-     * Property which value describes a context
-     */
-    public static final String KEYWORD_CONTEXT = "@context";
-    /**
-     * Property that defines the identifier of a JSON-LD object with an URI or a blank node
-     */
-    public static final String KEYWORD_ID = "@id";
-    /**
-     * Property that identifies the value of a literal expressed as a JSON object
-     */
-    public static final String KEYWORD_VALUE = "@value";
-    /**
-     * Property that identifies the language of a literal expressed as a JSON object
-     */
-    public static final String KEYWORD_LANGUAGE = "@language";
-    /**
-     * Property that identifies the type of a datatype property
-     */
-    public static final String KEYWORD_TYPE = "@type";
-    /**
-     * Property that defines the type of container of another multi-valued property
-     */
-    public static final String KEYWORD_CONTAINER = "@container";
-    /**
-     * Value that identifies the list type of container for a multi-valued property
-     */
-    public static final String KEYWORD_LIST = "@list";
-    /**
-     * Value that identifies the set type of container for a multi-valued property
-     */
-    public static final String KEYWORD_SET = "@set";
-    /**
-     * Property that specifies that another property is expressed in a reversed form
-     */
-    public static final String KEYWORD_REVERSE = "@reverse";
-    /**
-     * Property that specifies the indexing of a property values
-     */
-    public static final String KEYWORD_INDEX = "@index";
-    /**
-     * Property that specifies the base URI for relative ones
-     */
-    public static final String KEYWORD_BASE = "@base";
-    /**
-     * Property that specifies a common URI radical for a vocabulary
-     */
-    public static final String KEYWORD_VOCAB = "@vocab";
-    /**
-     * Property for the expression of explicit graphs
-     */
-    public static final String KEYWORD_GRAPH = "@graph";
 
     /**
      * List of the reversed keywords
      */
     public static final List<String> KEYWORDS = Arrays.asList(
-            KEYWORD_CONTEXT,
-            KEYWORD_ID,
-            KEYWORD_VALUE,
-            KEYWORD_LANGUAGE,
-            KEYWORD_TYPE,
-            KEYWORD_CONTAINER,
-            KEYWORD_LIST,
-            KEYWORD_SET,
-            KEYWORD_REVERSE,
-            KEYWORD_INDEX,
-            KEYWORD_BASE,
-            KEYWORD_VOCAB,
-            KEYWORD_GRAPH
+            Vocabulary.JSONLD.context,
+            Vocabulary.JSONLD.id,
+            Vocabulary.JSONLD.value,
+            Vocabulary.JSONLD.language,
+            Vocabulary.JSONLD.type,
+            Vocabulary.JSONLD.container,
+            Vocabulary.JSONLD.list,
+            Vocabulary.JSONLD.set,
+            Vocabulary.JSONLD.reverse,
+            Vocabulary.JSONLD.index,
+            Vocabulary.JSONLD.base,
+            Vocabulary.JSONLD.vocab,
+            Vocabulary.JSONLD.graph
     );
 
     /**
@@ -132,7 +76,7 @@ public abstract class JSONLDLoader implements Loader {
 
     static {
         PROPERTY_TYPE_INFO.fullIRI = Vocabulary.rdfType;
-        PROPERTY_TYPE_INFO.valueType = KEYWORD_VOCAB;
+        PROPERTY_TYPE_INFO.valueType = Vocabulary.JSONLD.vocab;
     }
 
     /**
@@ -294,7 +238,7 @@ public abstract class JSONLDLoader implements Loader {
             return null;
         for (ASTNode member : root.getChildren()) {
             String key = getValue(member.getChildren().get(0));
-            if (KEYWORD_CONTEXT.equals(key))
+            if (Vocabulary.JSONLD.context.equals(key))
                 return member.getChildren().get(1);
         }
         return null;
@@ -342,7 +286,7 @@ public abstract class JSONLDLoader implements Loader {
         ASTNode contextNode = null;
         for (ASTNode child : node.getChildren()) {
             String key = getValue(child.getChildren().get(0));
-            if (KEYWORD_CONTEXT.equals(key)) {
+            if (Vocabulary.JSONLD.context.equals(key)) {
                 contextNode = child.getChildren().get(1);
                 break;
             }
@@ -360,13 +304,13 @@ public abstract class JSONLDLoader implements Loader {
         for (ASTNode child : node.getChildren()) {
             String key = getValue(child.getChildren().get(0));
             String expanded = current.expandName(key);
-            if (KEYWORD_ID.equals(key) || KEYWORD_ID.equals(expanded)) {
+            if (Vocabulary.JSONLD.id.equals(key) || Vocabulary.JSONLD.id.equals(expanded)) {
                 idNode = child.getChildren().get(1);
-            } else if (KEYWORD_GRAPH.equals(key) || KEYWORD_GRAPH.equals(expanded)) {
+            } else if (Vocabulary.JSONLD.graph.equals(key) || Vocabulary.JSONLD.graph.equals(expanded)) {
                 graphNode = child.getChildren().get(1);
-            } else if (KEYWORD_TYPE.equals(key) || KEYWORD_TYPE.equals(expanded)) {
+            } else if (Vocabulary.JSONLD.type.equals(key) || Vocabulary.JSONLD.type.equals(expanded)) {
                 typeNode = child.getChildren().get(1);
-            } else if (KEYWORD_REVERSE.equals(key) || KEYWORD_REVERSE.equals(expanded)) {
+            } else if (Vocabulary.JSONLD.reverse.equals(key) || Vocabulary.JSONLD.reverse.equals(expanded)) {
                 reverseNode = child.getChildren().get(1);
             } else if (!KEYWORDS.contains(key) && !KEYWORDS.contains(expanded)) {
                 members.add(new Couple<>(key, child.getChildren().get(1)));
@@ -510,7 +454,9 @@ public abstract class JSONLDLoader implements Loader {
         for (ASTNode child : node.getChildren()) {
             Object value = loadValue(child, graph, context, info);
             if (value != null) {
-                if (value instanceof List)
+                if (value instanceof JSONLDExplicitList)
+                    result.add(createRDFList(graph, (List<Node>)value));
+                else if (value instanceof List)
                     result.addAll((List<Node>) value);
                 else
                     result.add((Node) value);
@@ -677,14 +623,14 @@ public abstract class JSONLDLoader implements Loader {
         String value = getValue(node);
         if (info != null && info.valueType != null) {
             // coerced type
-            if (KEYWORD_ID.equals(info.valueType) || KEYWORD_VOCAB.equals(info.valueType)) {
+            if (Vocabulary.JSONLD.id.equals(info.valueType) || Vocabulary.JSONLD.vocab.equals(info.valueType)) {
                 if (value == null)
                     // subject is invalid
                     throw new LoaderException("Expected a valid node id", node);
                 if (value.startsWith("_:")) {
                     // this is blank node
                     return resolveBlank(value.substring(2));
-                } else if (KEYWORD_ID.equals(info.valueType)) {
+                } else if (Vocabulary.JSONLD.id.equals(info.valueType)) {
                     // this is an id
                     return store.getIRINode(context.expandID(value));
                 } else {
@@ -696,7 +642,7 @@ public abstract class JSONLDLoader implements Loader {
             return store.getLiteralNode(value, context.expandName(info.valueType), null);
         }
         String language = (info != null && info.language != null) ? info.language : context.getLanguage();
-        if (language != null && MARKER_NULL.equals(language))
+        if (language != null && Vocabulary.JSONLD.null_.equals(language))
             // explicit reset
             language = null;
         return store.getLiteralNode(value, language == null ? Vocabulary.xsdString : Vocabulary.rdfLangString, language);
@@ -725,16 +671,16 @@ public abstract class JSONLDLoader implements Loader {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             String expandedKey = context.expandName(key);
-            if (KEYWORD_TYPE.equals(key) || KEYWORD_TYPE.equals(expandedKey))
+            if (Vocabulary.JSONLD.type.equals(key) || Vocabulary.JSONLD.type.equals(expandedKey))
                 current.valueType = getValue(member.getChildren().get(1));
-            else if (KEYWORD_LANGUAGE.equals(key) || KEYWORD_LANGUAGE.equals(expandedKey))
+            else if (Vocabulary.JSONLD.language.equals(key) || Vocabulary.JSONLD.language.equals(expandedKey))
                 current.language = getValue(member.getChildren().get(1));
         }
         // load the value
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             String expandedKey = context.expandName(key);
-            if (KEYWORD_VALUE.equals(key) || KEYWORD_VALUE.equals(expandedKey))
+            if (Vocabulary.JSONLD.value.equals(key) || Vocabulary.JSONLD.value.equals(expandedKey))
                 return (Node) loadValue(member.getChildren().get(1), graph, context, current);
         }
         return null;
@@ -752,7 +698,7 @@ public abstract class JSONLDLoader implements Loader {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             String expandedKey = context.expandName(key);
-            if (KEYWORD_LIST.equals(key) || KEYWORD_LIST.equals(expandedKey)) {
+            if (Vocabulary.JSONLD.list.equals(key) || Vocabulary.JSONLD.list.equals(expandedKey)) {
                 ASTNode valueNode = member.getChildren().get(1);
                 Object value = loadValue(valueNode, graph, context, info);
                 JSONLDExplicitList result = new JSONLDExplicitList();
@@ -780,7 +726,7 @@ public abstract class JSONLDLoader implements Loader {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             String expandedKey = context.expandName(key);
-            if (KEYWORD_SET.equals(key) || KEYWORD_SET.equals(expandedKey)) {
+            if (Vocabulary.JSONLD.set.equals(key) || Vocabulary.JSONLD.set.equals(expandedKey)) {
                 ASTNode valueNode = member.getChildren().get(1);
                 Object value = loadValue(valueNode, graph, context, info);
                 List<Node> result = new ArrayList<>();
@@ -886,9 +832,9 @@ public abstract class JSONLDLoader implements Loader {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             String expandedKey = context.expandName(key);
-            if (KEYWORD_VALUE.equals(key) || KEYWORD_VALUE.equals(expandedKey))
+            if (Vocabulary.JSONLD.value.equals(key) || Vocabulary.JSONLD.value.equals(expandedKey))
                 return true;
-            if (KEYWORD_LANGUAGE.equals(key) || KEYWORD_LANGUAGE.equals(expandedKey))
+            if (Vocabulary.JSONLD.language.equals(key) || Vocabulary.JSONLD.language.equals(expandedKey))
                 return true;
         }
         return false;
@@ -906,7 +852,7 @@ public abstract class JSONLDLoader implements Loader {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             String expandedKey = context.expandName(key);
-            if (KEYWORD_LIST.equals(key) || KEYWORD_LIST.equals(expandedKey))
+            if (Vocabulary.JSONLD.list.equals(key) || Vocabulary.JSONLD.list.equals(expandedKey))
                 return true;
         }
         return false;
@@ -924,7 +870,7 @@ public abstract class JSONLDLoader implements Loader {
         for (ASTNode member : node.getChildren()) {
             String key = getValue(member.getChildren().get(0));
             String expandedKey = context.expandName(key);
-            if (KEYWORD_SET.equals(key) || KEYWORD_SET.equals(expandedKey))
+            if (Vocabulary.JSONLD.set.equals(key) || Vocabulary.JSONLD.set.equals(expandedKey))
                 return true;
         }
         return false;

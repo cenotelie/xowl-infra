@@ -20,6 +20,7 @@
 
 package org.xowl.store.loaders;
 
+import org.xowl.store.Vocabulary;
 import org.xowl.utils.collections.Couple;
 
 import java.util.Collection;
@@ -70,19 +71,19 @@ class JSONLDNameInfo {
         if (!JSONLDLoader.KEYWORDS.contains(attribute.x))
             return;
         switch (attribute.x) {
-            case JSONLDLoader.KEYWORD_TYPE:
+            case Vocabulary.JSONLD.type:
                 if (valueType == null)
                     valueType = attribute.y.toString();
                 break;
-            case JSONLDLoader.KEYWORD_CONTAINER:
+            case Vocabulary.JSONLD.container:
                 if (containerType == JSONLDContainerType.Undefined)
                     containerType = (JSONLDContainerType) attribute.y;
                 break;
-            case JSONLDLoader.KEYWORD_LANGUAGE:
+            case Vocabulary.JSONLD.language:
                 if (language == null)
                     language = attribute.y.toString();
                 break;
-            case JSONLDLoader.KEYWORD_REVERSE:
+            case Vocabulary.JSONLD.reverse:
                 if (reversed == null)
                     reversed = attribute.y.toString();
                 break;

@@ -8,6 +8,7 @@ package org.xowl.store.loaders;
 import org.xowl.hime.redist.Symbol;
 import org.xowl.hime.redist.lexer.Automaton;
 import org.xowl.hime.redist.lexer.ContextFreeLexer;
+import org.xowl.store.Vocabulary;
 
 import java.io.InputStreamReader;
 
@@ -86,12 +87,12 @@ class JSONLDLexer extends ContextFreeLexer {
     private static final Symbol[] terminals = {
         new Symbol(0x0001, "ε"),
         new Symbol(0x0002, "$"),
-        new Symbol(0x0013, "{"),
-        new Symbol(0x0014, ","),
-        new Symbol(0x0016, "}"),
-        new Symbol(0x0017, ":"),
-        new Symbol(0x0018, "["),
-        new Symbol(0x001A, "]"),
+        new Symbol(0x0013, Vocabulary.JSONLD.objectBegin),
+        new Symbol(0x0014, Vocabulary.JSONLD.separator),
+        new Symbol(0x0016, Vocabulary.JSONLD.objectEnd),
+        new Symbol(0x0017, Vocabulary.JSONLD.fieldSeparator),
+        new Symbol(0x0018, Vocabulary.JSONLD.arrayBegin),
+        new Symbol(0x001A, Vocabulary.JSONLD.arrayEnd),
         new Symbol(0x0006, "BLANK"),
         new Symbol(0x0003, "NEW_LINE"),
         new Symbol(0x0004, "WHITE_SPACE"),

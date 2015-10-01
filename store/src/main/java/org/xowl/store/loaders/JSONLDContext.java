@@ -16,12 +16,14 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
+ *     Stephen Creff - stephen.creff@gmail.com
  ******************************************************************************/
 
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.store.URIUtils;
+import org.xowl.store.Vocabulary;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -161,7 +163,7 @@ class JSONLDContext {
         // if we can use terms, try to match the complete term
         String result = useTerm ? doExpandUsingTerms(name) : null;
         if (result != null && !name.equals(result)) {
-            if (JSONLDLoader.MARKER_NULL.equals(result))
+            if (Vocabulary.JSONLD.null_.equals(result))
                 return name;
             return result;
         }
@@ -170,13 +172,13 @@ class JSONLDContext {
             return result;
         // if we can use the vocabulary, try to look for one
         result = useVocabulary ? doExpandUsingVocabulary(name) : null;
-        if (result != null && !JSONLDLoader.MARKER_NULL.equals(result))
+        if (result != null && !Vocabulary.JSONLD.null_.equals(result))
             return result;
         // now term is supposed to be a relative IRI
         // if we can use the base URI, try to look for one
         result = useBaseURI ? doExpandUsingBaseURI(name) : null;
         if (result != null) {
-            if (JSONLDLoader.MARKER_NULL.equals(result))
+            if (Vocabulary.JSONLD.null_.equals(result))
                 return name;
             return result;
         }
@@ -200,9 +202,9 @@ class JSONLDContext {
                 JSONLDContextFragment fragment = current.fragments.get(i);
                 String result = fragment.expand(name);
                 if (result != null) {
-                    if (JSONLDLoader.MARKER_NULL.equals(result))
+                    if (Vocabulary.JSONLD.null_.equals(result))
                         // explicitly forbids the expansion
-                        return JSONLDLoader.MARKER_NULL;
+                        return Vocabulary.JSONLD.null_;
                     return result;
                 }
             }
@@ -249,9 +251,9 @@ class JSONLDContext {
                 JSONLDContextFragment fragment = current.fragments.get(i);
                 if (fragment.getVocabulary() != null) {
                     // found a vocabulary
-                    if (JSONLDLoader.MARKER_NULL.equals(fragment.getVocabulary()))
+                    if (Vocabulary.JSONLD.null_.equals(fragment.getVocabulary()))
                         // explicitly forbids the expansion
-                        return JSONLDLoader.MARKER_NULL;
+                        return Vocabulary.JSONLD.null_;
                     return fragment.getVocabulary() + name;
                 }
             }
@@ -273,9 +275,9 @@ class JSONLDContext {
                 JSONLDContextFragment fragment = current.fragments.get(i);
                 if (fragment.getBaseURI() != null) {
                     // found a base IRI
-                    if (JSONLDLoader.MARKER_NULL.equals(fragment.getBaseURI()))
+                    if (Vocabulary.JSONLD.null_.equals(fragment.getBaseURI()))
                         // explicitly forbids the expansion
-                        return JSONLDLoader.MARKER_NULL;
+                        return Vocabulary.JSONLD.null_;
                     return URIUtils.resolveRelative(fragment.getBaseURI(), quote(name));
                 }
             }
@@ -297,7 +299,7 @@ class JSONLDContext {
                 JSONLDContextFragment fragment = current.fragments.get(i);
                 String result = fragment.expand(name);
                 if (result != null) {
-                    if (JSONLDLoader.MARKER_NULL.equals(result))
+                    if (Vocabulary.JSONLD.null_.equals(result))
                         // explicitly forbids the expansion
                         return name;
                     return result;
@@ -325,7 +327,7 @@ class JSONLDContext {
             }
             current = current.parent;
         }
-        if (result.valueType != null && !JSONLDLoader.KEYWORD_ID.equals(result.valueType))
+        if (result.valueType != null && !Vocabulary.JSONLD.id.equals(result.valueType))
             result.valueType = expandName(result.valueType);
         if (result.reversed != null)
             result.reversed = expandName(result.reversed);
@@ -343,7 +345,7 @@ class JSONLDContext {
             for (int i = current.fragments.size() - 1; i != -1; i--) {
                 String language = current.fragments.get(i).getLanguage();
                 if (language != null) {
-                    if (JSONLDLoader.MARKER_NULL.equals(language)) {
+                    if (Vocabulary.JSONLD.null_.equals(language)) {
                         // explicit reset
                         return null;
                     } else {
