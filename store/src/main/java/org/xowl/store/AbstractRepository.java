@@ -386,6 +386,8 @@ public abstract class AbstractRepository {
             case SYNTAX_RDFT: {
                 Loader loader = newRDFLoader(syntax);
                 RDFLoaderResult input = loader.loadRDF(logger, reader, resourceIRI, ontologyIRI);
+                if (input == null)
+                    break;
                 ontology = loadResourceRDF(logger, resourceIRI, ontologyIRI, input);
                 break;
             }
@@ -394,6 +396,8 @@ public abstract class AbstractRepository {
             case SYNTAX_XOWL: {
                 Loader loader = newOWLLoader(syntax);
                 OWLLoaderResult input = loader.loadOWL(logger, reader, resourceIRI);
+                if (input == null)
+                    break;
                 ontology = loadResourceOWL(logger, resourceIRI, input);
                 break;
             }

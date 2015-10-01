@@ -31,7 +31,6 @@ import org.xowl.store.rdf.*;
 import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultFailure;
-import org.xowl.store.sparql.ResultSuccess;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.InMemoryStore;
 import org.xowl.store.storage.UnsupportedNodeType;

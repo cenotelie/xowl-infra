@@ -579,9 +579,9 @@ public class ExpressionOperator implements Expression {
         right = primitive(right);
 
         if (left instanceof String) {
-            return String.join(left.toString(), right.toString());
+            return left.toString() + (right == null ? "" : right.toString());
         } else if (right instanceof String) {
-            return String.join(left.toString(), right.toString());
+            return (left == null ? "" : left.toString()) + right.toString();
         }
 
         if (isNumInteger(left)) {

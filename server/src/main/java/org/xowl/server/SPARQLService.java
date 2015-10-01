@@ -21,15 +21,27 @@
 package org.xowl.server;
 
 import org.xowl.store.AbstractRepository;
+import org.xowl.store.IOUtils;
 import org.xowl.store.Repository;
+import org.xowl.store.loaders.NQuadsLoader;
+import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.SPARQLLoader;
-import org.xowl.store.sparql.*;
+import org.xowl.store.rdf.Quad;
+import org.xowl.store.rdf.Rule;
+import org.xowl.store.rdf.RuleExplanation;
+import org.xowl.store.rete.MatchStatus;
+import org.xowl.store.sparql.Command;
+import org.xowl.store.sparql.Result;
+import org.xowl.store.sparql.ResultFailure;
+import org.xowl.store.sparql.ResultQuads;
+import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,6 +67,26 @@ public class SPARQLService extends Service {
      * The content type for a SPARQL update in a message body
      */
     private static final String TYPE_SPARQL_UPDATE = "application/sparql-update";
+    /**
+     * The content type for the explanation of how a quad has been inferred
+     */
+    private static final String TYPE_RULE_EXPLANATION = "application/x-xowl-explanation";
+    /**
+     * The content type for listing the active reasoning rules
+     */
+    private static final String TYPE_RULE_LIST = "application/x-xowl-list-rules";
+    /**
+     * The content type for the matching status of a reasoning rule
+     */
+    private static final String TYPE_RULE_STATUS = "application/x-xowl-rule-status";
+    /**
+     * The content type for adding a new rule
+     */
+    private static final String TYPE_RULE_ADD = "application/x-xowl-rule-add";
+    /**
+     * The content type for removing an active rule
+     */
+    private static final String TYPE_RULE_REMOVE = "application/x-xowl-rule-remove";
 
     /**
      * The logger
@@ -96,7 +128,6 @@ public class SPARQLService extends Service {
                 executeRequest(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
             }
         } else {
-            // expected a query parameter
             // ill-formed request
             logger.error("Ill-formed request, expected a query parameter");
             response.setStatus(400);
@@ -130,11 +161,95 @@ public class SPARQLService extends Service {
                 response.setStatus(501);
                 break;
             }
+            case TYPE_RULE_EXPLANATION: {
+                String quad = getMessageBody(request);
+                enableCORS(response);
+                response.setHeader("Content-Type", Result.SYNTAX_JSON);
+                explainQuad(quad, response);
+                break;
+            }
+            case TYPE_RULE_LIST: {
+                enableCORS(response);
+                response.setHeader("Content-Type", Result.SYNTAX_JSON);
+                ruleList(response);
+                break;
+            }
+            case TYPE_RULE_STATUS: {
+                String rule = getMessageBody(request);
+                enableCORS(response);
+                response.setHeader("Content-Type", Result.SYNTAX_JSON);
+                ruleStatus(rule, response);
+                break;
+            }
             default:
                 // incorrect content types
                 logger.error("Incorrect content type for the request: " + requestType);
                 response.setStatus(400);
                 break;
+        }
+    }
+
+    /**
+     * Retrieve the explanation about a quad
+     *
+     * @param quad     The serialized quad
+     * @param response The response to write to
+     */
+    private void explainQuad(String quad, HttpServletResponse response) {
+        NQuadsLoader loader = new NQuadsLoader(repository.getStore());
+        RDFLoaderResult result = loader.loadRDF(logger, new StringReader(quad), NodeManager.DEFAULT_GRAPH, NodeManager.DEFAULT_GRAPH);
+        if (result == null || result.getQuads().isEmpty()) {
+            response.setStatus(501);
+            return;
+        }
+        Quad first = result.getQuads().get(0);
+        RuleExplanation explanation = repository.getRDFRuleEngine().explain(first);
+        response.setStatus(200);
+        try {
+            explanation.printJSON(response.getWriter());
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
+    }
+
+    /**
+     * Lists the active rules
+     *
+     * @param response The response to write to
+     */
+    private void ruleList(HttpServletResponse response) {
+        Collection<Rule> rules = repository.getRDFRuleEngine().getRules();
+        response.setStatus(200);
+        try (Writer writer = response.getWriter()) {
+            writer.write("{\"rules\": [");
+            boolean first = true;
+            for (Rule rule : rules) {
+                if (!first)
+                    writer.write(", ");
+                first = false;
+                writer.write("\"");
+                writer.write(IOUtils.escapeStringJSON(rule.getIRI()));
+                writer.write("\"");
+            }
+            writer.write("]}");
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
+    }
+
+    /**
+     * Retrieve the matching status of a rule
+     *
+     * @param rule     The IRI of a rule
+     * @param response The response to write to
+     */
+    private void ruleStatus(String rule, HttpServletResponse response) {
+        MatchStatus status = repository.getRDFRuleEngine().getMatchStatus(rule);
+        response.setStatus(200);
+        try {
+            status.printJSON(response.getWriter());
+        } catch (IOException exception) {
+            logger.error(exception);
         }
     }
 

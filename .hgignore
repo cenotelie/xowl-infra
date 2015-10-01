@@ -4,3 +4,4 @@ syntax: glob
 */.idea/*
 *.iml
 .idea/*
+target/*

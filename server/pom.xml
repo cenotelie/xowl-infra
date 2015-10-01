@@ -3,12 +3,12 @@
 	<parent>
 		<groupId>org.xowl.infra</groupId>
 		<artifactId>top</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 	<groupId>org.xowl.infra</groupId>
 	<artifactId>xowl-server</artifactId>
 	<packaging>war</packaging>
-	<version>1.0.0</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>xOWL Server</name>
 	<description>Provides the facilities for serving datasets on a network</description>
 	<dependencies>
@@ -27,13 +27,13 @@
 		<dependency>
 			<groupId>org.xowl.infra</groupId>
 			<artifactId>xowl-store</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.0-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.xowl.infra</groupId>
 			<artifactId>xowl-engine</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.0-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>

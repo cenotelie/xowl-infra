@@ -20,6 +20,14 @@
 
 package org.xowl.store;
 
+import org.xowl.store.rdf.BlankNode;
+import org.xowl.store.rdf.IRINode;
+import org.xowl.store.rdf.LiteralNode;
+import org.xowl.store.rdf.Node;
+
+import java.io.IOException;
+import java.io.Writer;
+
 /**
  * Utility APIs for reading and writing data
  *
@@ -217,5 +225,84 @@ public class IOUtils {
                 builder.append(c);
         }
         return builder.toString();
+    }
+
+    /**
+     * Serializes a RDF node in the JSON format
+     *
+     * @param writer The writer to write to
+     * @param node   The RDF node to serialize
+     * @throws IOException When an IO error occurs
+     */
+    public static void serializeXML(Writer writer, Node node) throws IOException {
+        switch (node.getNodeType()) {
+            case Node.TYPE_IRI:
+                writer.write("<uri>");
+                writer.write(((IRINode) node).getIRIValue());
+                writer.write("</uri>");
+                break;
+            case Node.TYPE_BLANK:
+                writer.write("<bnode>");
+                writer.write(Long.toString(((BlankNode) node).getBlankID()));
+                writer.write("</bnode>");
+                break;
+            case Node.TYPE_LITERAL:
+                writer.write("<literal");
+                LiteralNode lit = (LiteralNode) node;
+                if (lit.getLangTag() != null) {
+                    writer.write(" xml:lang=\"");
+                    writer.write(escapeStringW3C(lit.getLangTag()));
+                    writer.write("\">");
+                } else if (lit.getDatatype() != null) {
+                    writer.write(" datatype=\"");
+                    writer.write(escapeStringW3C(lit.getDatatype()));
+                    writer.write("\">");
+                }
+                writer.write(lit.getLexicalValue());
+                writer.write("</literal>");
+                break;
+        }
+    }
+
+    /**
+     * Serializes a RDF node in the JSON format
+     *
+     * @param writer The writer to write to
+     * @param node   The RDF node to serialize
+     * @throws IOException When an IO error occurs
+     */
+    public static void serializeJSON(Writer writer, Node node) throws IOException {
+        if (node == null) {
+            writer.write("null");
+            return;
+        }
+        switch (node.getNodeType()) {
+            case Node.TYPE_IRI:
+                writer.write("{\"type\": \"uri\", \"value\": \"");
+                writer.write(escapeStringJSON(((IRINode) node).getIRIValue()));
+                writer.write("\"}");
+                break;
+            case Node.TYPE_BLANK:
+                writer.write("{\"type\": \"bnode\", \"value\": \"");
+                writer.write(Long.toString(((BlankNode) node).getBlankID()));
+                writer.write("\"}");
+                break;
+            case Node.TYPE_LITERAL:
+                LiteralNode lit = (LiteralNode) node;
+                writer.write("{\"type\": \"literal\", \"value\": \"");
+                writer.write(escapeStringJSON(lit.getLexicalValue()));
+                writer.write("\"");
+                if (lit.getLangTag() != null) {
+                    writer.write(", \"xml:lang\": \"");
+                    writer.write(escapeStringJSON(lit.getLangTag()));
+                    writer.write("\"");
+                } else if (lit.getDatatype() != null) {
+                    writer.write(", \"datatype\": \"");
+                    writer.write(escapeStringJSON(lit.getDatatype()));
+                    writer.write("\"");
+                }
+                writer.write("}");
+                break;
+        }
     }
 }
