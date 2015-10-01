@@ -16,6 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
+ *     Stephen Creff - stephen.creff@gmail.com
  ******************************************************************************/
 package org.xowl.store;
 
@@ -50,12 +51,14 @@ import java.util.*;
  * Represents a repository of xOWL ontologies
  *
  * @author Laurent Wouters
+ * Modified by
+ * @author Stephen Creff
  */
 public class Repository extends AbstractRepository {
     /**
      * The loader of evaluator services
      */
-    private static ServiceLoader<Evaluator> SERIVCE_EVALUATOR = ServiceLoader.load(Evaluator.class);
+    private static ServiceLoader<Evaluator> SERVICE_EVALUATOR = ServiceLoader.load(Evaluator.class);
 
     /**
      * Gets the default evaluator
@@ -63,7 +66,7 @@ public class Repository extends AbstractRepository {
      * @return The default evaluator
      */
     private static Evaluator getDefaultEvaluator() {
-        Iterator<Evaluator> services = SERIVCE_EVALUATOR.iterator();
+        Iterator<Evaluator> services = SERVICE_EVALUATOR.iterator();
         return services.hasNext() ? services.next() : null;
     }
 
@@ -457,7 +460,7 @@ public class Repository extends AbstractRepository {
     protected void loadResourceRDF(Logger logger, Ontology ontology, RDFLoaderResult input) {
         getGraph(ontology);
         try {
-            backend.insert(new Changeset(input.getQuads(), new ArrayList<Quad>(0)));
+            backend.insert(new Changeset(input.getQuads(), new ArrayList<>(0)));
         } catch (UnsupportedNodeType ex) {
             logger.error(ex);
         }
@@ -472,7 +475,7 @@ public class Repository extends AbstractRepository {
         try {
             Translator translator = new Translator(null, backend, null);
             Collection<Quad> quads = translator.translate(input);
-            backend.insert(new Changeset(quads, new ArrayList<Quad>(0)));
+            backend.insert(new Changeset(quads, new ArrayList<>(0)));
         } catch (TranslationException | UnsupportedNodeType ex) {
             logger.error(ex);
         }
@@ -482,10 +485,17 @@ public class Repository extends AbstractRepository {
         }
     }
 
+    @Override
     protected void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output) {
         output.serialize(logger, backend.getAll(getGraph(ontology)));
     }
 
+    @Override
+    protected void exportResourceRDF(Logger logger, RDFSerializer output) {
+        output.serialize(logger, backend.getAll());
+    }
+
+    @Override
     protected void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output) {
         throw new UnsupportedOperationException();
     }
