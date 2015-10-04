@@ -65,16 +65,16 @@ class Utils {
      * @param solution   The current bindings
      * @param blanks     The current mapping of blank nodes to their instance
      * @param node       The node to instantiate
-     * @return The instantiated node
+     * @return The instantiated node, or null if it cannot be instantiated
      */
-    private static Node instantiate(Repository repository, QuerySolution solution, Map<Node, Node> blanks, Node node) throws EvalException {
+    private static Node instantiate(Repository repository, QuerySolution solution, Map<Node, Node> blanks, Node node) {
         if (node == null)
-            throw new EvalException("The node cannot be null");
+            return null;
         Node result = node;
         if (result.getNodeType() == Node.TYPE_VARIABLE) {
             Node value = solution.get((VariableNode) result);
             if (value == null)
-                throw new EvalException("Unbound variable " + ((VariableNode) result).getName() + " in the template");
+                return null;
             result = value;
         } else if (result.getNodeType() == Node.TYPE_BLANK) {
             Node value = blanks.get(node);
@@ -112,9 +112,17 @@ class Utils {
         Map<Node, Node> blanks = new HashMap<>();
         for (Quad quad : template) {
             GraphNode graph = (GraphNode) instantiate(repository, solution, blanks, quad.getGraph());
+            if (graph == null)
+                continue;
             SubjectNode subject = (SubjectNode) instantiate(repository, solution, blanks, quad.getSubject());
+            if (subject == null)
+                continue;
             Property property = (Property) instantiate(repository, solution, blanks, quad.getProperty());
+            if (property == null)
+                continue;
             Node object = instantiate(repository, solution, blanks, quad.getObject());
+            if (object == null)
+                continue;
             buffer.add(new Quad(graph, subject, property, object));
         }
     }
