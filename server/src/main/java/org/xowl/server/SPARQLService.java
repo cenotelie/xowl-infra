@@ -301,6 +301,7 @@ public class SPARQLService extends Service {
                 case AbstractRepository.SYNTAX_NQUADS:
                 case AbstractRepository.SYNTAX_TURTLE:
                 case AbstractRepository.SYNTAX_RDFXML:
+                case AbstractRepository.SYNTAX_JSON_LD:
                     return type;
                 default:
                     return AbstractRepository.SYNTAX_NQUADS;

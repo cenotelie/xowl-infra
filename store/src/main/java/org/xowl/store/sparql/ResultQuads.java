@@ -85,6 +85,9 @@ public class ResultQuads implements Result {
             case AbstractRepository.SYNTAX_RDFXML:
                 serializer = new RDFXMLSerializer(writer);
                 break;
+            case AbstractRepository.SYNTAX_JSON_LD:
+                serializer = new JSONLDSerializer(writer);
+                break;
             default:
                 throw new IllegalArgumentException("Unsupported format " + syntax);
         }

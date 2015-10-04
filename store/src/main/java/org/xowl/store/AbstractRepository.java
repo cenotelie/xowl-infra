@@ -99,7 +99,7 @@ public abstract class AbstractRepository {
     /**
      * Supported Functional xOWL syntax
      */
-    public static final String SYNTAX_XOWL = "text/xowl";
+    public static final String SYNTAX_XOWL = "application/x-xowl";
     public static final String EXT_XOWL = ".xowl";
     /**
      * Supported JSON-LD syntax
