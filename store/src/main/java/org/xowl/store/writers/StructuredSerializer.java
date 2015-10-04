@@ -240,7 +240,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
          */
         public List<Quad> toList() {
             List<Quad> result = new ArrayList<>();
-            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
+            for (Map.Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 result.addAll(entry.getValue());
             return result;
         }
@@ -267,7 +267,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
          */
         public boolean containsManyGraphs() {
             GraphNode gnRef = null;
-            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
+            for (Map.Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 for (Quad quad : entry.getValue()) {
                     if (gnRef == null)
                         gnRef = quad.getGraph();
@@ -284,7 +284,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
          */
         public List<GraphNode> getGraphGraphNodes() {
             List<GraphNode> result = new ArrayList<>();
-            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
+            for (Map.Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 for (Quad quad : entry.getValue())
                     if (!result.contains(quad.getGraph()))
                         result.add(quad.getGraph());
@@ -298,7 +298,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
          * @see <code>this.isTheDefaultUnnamedGraph()</code>
          */
         public GraphNode getDefaultGraphNode() {
-            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
+            for (Map.Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 for (Quad quad : entry.getValue())
                     if (isTheDefaultUnnamedGraph(quad.getGraph()))
                         return quad.getGraph();
@@ -334,13 +334,13 @@ public abstract class StructuredSerializer implements RDFSerializer {
         public List<DataMap> extractGraphs() {
             List<DataMap> result = new ArrayList<>();
             Map<GraphNode, List<Quad>> tempGraphMap = new HashMap<>();
-            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
+            for (Map.Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 for (Quad quad : entry.getValue()) {
                     if (!tempGraphMap.containsKey(quad.getGraph()))
                         tempGraphMap.put(quad.getGraph(), new LinkedList<Quad>());
                     tempGraphMap.get(quad.getGraph()).add(quad);
                 }
-            for (Entry<GraphNode, List<Quad>> entry : tempGraphMap.entrySet())
+            for (Map.Entry<GraphNode, List<Quad>> entry : tempGraphMap.entrySet())
                 result.add(toDataMap(entry.getValue()));
             return result;
         }
@@ -355,7 +355,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
             List<DataMap> result = new ArrayList<>();
             for (DataMap dm : this.extractGraphs()) {
                 boolean match = false;
-                for (Entry<SubjectNode, List<Quad>> entry : dm.entrySet()) {
+                for (Map.Entry<SubjectNode, List<Quad>> entry : dm.entrySet()) {
                     for (Quad quad : entry.getValue())
                         if (quad.getGraph().equals(graphNode)) {
                             match = true;
@@ -379,7 +379,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
         public DataMap extractGraph(final GraphNode graphNode) {
             for (DataMap dm : this.extractGraphs()) {
                 boolean match = true;
-                for (Entry<SubjectNode, List<Quad>> entry : dm.entrySet()) {
+                for (Map.Entry<SubjectNode, List<Quad>> entry : dm.entrySet()) {
                     for (Quad quad : entry.getValue())
                         if (!quad.getGraph().equals(graphNode)) {
                             match = false;
@@ -401,7 +401,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
          * @return true whether it does
          */
         public boolean containsLists() {
-            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
+            for (Map.Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 for (Quad quad : entry.getValue())
                     if (RDFUtils.isRdfNil(quad.getObject()) && RDFUtils.isRdfRest(quad.getProperty()))
                         return true;
@@ -418,7 +418,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
             List<Node> objects = new ArrayList<>();
             for (Quad quad : quads)
                 objects.add(quad.getObject());
-            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
+            for (Map.Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 if (objects.contains(entry.getKey()))
                     for (Quad quad : entry.getValue())
                         if (RDFUtils.isRdfFirst(quad.getProperty()))
@@ -436,8 +436,8 @@ public abstract class StructuredSerializer implements RDFSerializer {
          */
         public DataMap removeSubGraphsFromMainDataMap(List<SubjectNode> subListNodes, List<Node> existingBNs) {
             DataMap subMap = new DataMap();
-            for (Iterator<Entry<SubjectNode, List<Quad>>> iterator = this.entrySet().iterator(); iterator.hasNext(); ) {
-                Entry<SubjectNode, List<Quad>> entry = iterator.next();
+            for (Iterator<Map.Entry<SubjectNode, List<Quad>>> iterator = this.entrySet().iterator(); iterator.hasNext(); ) {
+                Map.Entry<SubjectNode, List<Quad>> entry = iterator.next();
                 if (RDFUtils.isBlankNode(entry.getKey()) && !subListNodes.contains(entry.getKey()) && containsOnlySimpleList(entry.getValue()) && !existingBNs.contains(entry.getKey())) {
                     subMap.put(entry.getKey(), this.get(entry.getKey()));
                     iterator.remove();
@@ -473,7 +473,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
          */
         private boolean containsPropertiesOtherThanList() {
             boolean doContain = false;
-            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
+            for (Map.Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 if (containsPropertiesOtherThanList(entry.getKey())) {
                     doContain = true;
                     break;
@@ -510,10 +510,10 @@ public abstract class StructuredSerializer implements RDFSerializer {
         }
 
         /**
-         * @see <code>this.reorderDataMapMovingUpPropertiesOtherThanList(Entry<SubjectNode, List<Quad>>)</code>
+         * @see <code>this.reorderDataMapMovingUpPropertiesOtherThanList(Map.Entry<SubjectNode, List<Quad>>)</code>
          */
         private void reorderDataMapMovingUpPropertiesOtherThanList() {
-            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
+            for (Map.Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 if (containsPropertiesOtherThanList(entry.getKey()))
                     reorderDataMapMovingUpPropertiesOtherThanList(entry);
         }
@@ -523,7 +523,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
          *
          * @param entry the given entry
          */
-        private void reorderDataMapMovingUpPropertiesOtherThanList(Entry<SubjectNode, List<Quad>> entry) {
+        private void reorderDataMapMovingUpPropertiesOtherThanList(Map.Entry<SubjectNode, List<Quad>> entry) {
             for (int i = 0; i < entry.getValue().size(); i++) {
                 Quad quad = entry.getValue().get(i);
                 if (!(RDFUtils.isRdfFirst(quad.getProperty()) || RDFUtils.isRdfRest(quad.getProperty())))
@@ -656,7 +656,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
          * @see #stepConstructLists(List, List, Quad, Quad)
          */
         private void correctDataMap() {
-            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet()) {
+            for (Map.Entry<SubjectNode, List<Quad>> entry : this.entrySet()) {
                 boolean hasFirst = false;
                 for (int j = 0; j < entry.getValue().size(); j++) {
                     Quad q = entry.getValue().get(j);
@@ -706,7 +706,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
          */
         private SubjectNode getPreviousSubject(final SubjectNode node) {
             List<Quad> quads = new ArrayList<>();
-            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
+            for (Map.Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 for (Quad quad : entry.getValue())
                     if (quad.getObject().equals(node))
                         quads.add(quad);
