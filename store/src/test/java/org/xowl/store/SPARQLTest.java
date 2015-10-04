@@ -2035,11 +2035,6 @@ public class SPARQLTest extends BaseSPARQLTest {
     }
 
     @Test
-    public void testQueryEvaluation_Medical__temporal_proximity_by_exclusion__MINUS_() {
-        testQueryEvaluation("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/negation/temporalProximity02.rq", new String[]{"http://www.w3.org/2009/sparql/docs/tests/data-sparql11/negation/temporalProximity02.ttl"}, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/negation/temporalProximity02.srx");
-    }
-
-    @Test
     public void testQueryEvaluation_COUNT_1() {
         testQueryEvaluation("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/aggregates/agg01.rq", new String[]{"http://www.w3.org/2009/sparql/docs/tests/data-sparql11/aggregates/agg01.ttl"}, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/aggregates/agg01.srx");
     }
