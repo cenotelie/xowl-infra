@@ -24,10 +24,7 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
-import org.xowl.store.Datatypes;
-import org.xowl.store.IOUtils;
-import org.xowl.store.URIUtils;
-import org.xowl.store.Vocabulary;
+import org.xowl.store.*;
 import org.xowl.store.rdf.*;
 import org.xowl.store.sparql.*;
 import org.xowl.store.storage.NodeManager;
@@ -816,8 +813,6 @@ public class SPARQLLoader {
             context.addDefaultGraph(iri);
         for (String iri : namedIRIs)
             context.addNamedIRI(iri);
-        if (templateTarget != null)
-            context.addNamedIRI(((IRINode) templateTarget).getIRIValue());
         boolean ignore = context.isDatasetDefined();
         while (current.getSymbol().getID() == SPARQLParser.ID.clause_using) {
             if (!ignore) {
@@ -830,7 +825,7 @@ public class SPARQLLoader {
             index++;
             current = node.getChildren().get(index);
         }
-        where = loadGraphPattern(context, null, current);
+        where = loadGraphPattern(context, templateTarget, current);
         return new CommandModify(Collections.unmodifiableCollection(toInsert), Collections.unmodifiableCollection(toDelete), where);
     }
 
@@ -975,12 +970,39 @@ public class SPARQLLoader {
                     break;
                 }
                 case SPARQLParser.ID.graph_pattern_graph: {
+                    GraphNode sub = (GraphNode) getNode(currentContext, child.getChildren().get(0), null, null);
                     GraphPattern inner;
-                    if (currentContext.isDatasetDefined())
-                        inner = loadGraphPattern(currentContext, null, child.getChildren().get(1));
-                    else {
-                        GraphNode sub = (GraphNode) getNode(currentContext, child.getChildren().get(0), null, null);
-                        inner = loadGraphPattern(currentContext, sub, child.getChildren().get(1));
+                    if (sub == null) {
+                        inner = new GraphPatternUnmatchable();
+                    } else if (sub.getNodeType() == Node.TYPE_VARIABLE) {
+                        List<String> targets = new ArrayList<>();
+                        targets.addAll(context.getDefaultGraphs());
+                        targets.addAll(context.getNamedGraphs());
+                        if (targets.isEmpty()) {
+                            // unbounded
+                            inner = loadGraphPattern(currentContext, sub, child.getChildren().get(1));
+                        } else if (targets.size() == 1) {
+                            // the dataset specified exactly 1 graph: use it
+                            inner = loadGraphPattern(currentContext, store.getIRINode(targets.get(0)), child.getChildren().get(1));
+                        } else {
+                            // union of matching the underlying pattern in all the target graphs
+                            Collection<GraphPattern> elements = new ArrayList<>();
+                            for (String target : targets) {
+                                GraphPattern element = loadGraphPattern(currentContext, store.getIRINode(target), child.getChildren().get(1));
+                                elements.add(element);
+                            }
+                            inner = new GraphPatternUnion(elements);
+                        }
+                    } else {
+                        // this is an IRI
+                        String iri = ((IRINode) sub).getIRIValue();
+                        if (context.isDatasetDefined() && !context.getDefaultGraphs().contains(iri) && !context.getNamedGraphs().contains(iri)) {
+                            // the absolute graph is not part of the dataset, should not match anything
+                            inner = new GraphPatternUnmatchable();
+                        } else {
+                            // exactly one graph
+                            inner = loadGraphPattern(currentContext, sub, child.getChildren().get(1));
+                        }
                     }
                     if (inner instanceof GraphPatternQuads) {
                         Query query = ((GraphPatternQuads) inner).getQuery();
@@ -1464,9 +1486,10 @@ public class SPARQLLoader {
         // quads_supp -> quads_not_triples ('.'!)? triples_template?
         // quads_not_triples -> GRAPH! var_or_iri '{'! triples_template? '}'!
         ASTNode quadsNotTriples = node.getChildren().get(0);
-        GraphNode inner = (GraphNode) getNode(context, quadsNotTriples.getChildren().get(0), graph, buffer);
-        if (quadsNotTriples.getChildren().size() >= 2)
+        if (quadsNotTriples.getChildren().size() >= 2) {
+            GraphNode inner = (GraphNode) getNode(context, quadsNotTriples.getChildren().get(0), graph, buffer);
             loadTriples(context, quadsNotTriples.getChildren().get(1), inner, buffer);
+        }
         if (node.getChildren().size() >= 2)
             loadTriples(context, node.getChildren().get(1), graph, buffer);
     }
