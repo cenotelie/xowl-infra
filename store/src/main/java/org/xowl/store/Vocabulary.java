@@ -262,55 +262,55 @@ public class Vocabulary {
         /**
          * "@id": "
          */
-        public static final String idTag = labelTag+id+labelTag+fieldSeparator+" "+labelTag;
+        public static final String idTag = labelTag + id + labelTag + fieldSeparator + " " + labelTag;
         /**
          * {"@id": "
          */
-        public static final String idTagWithObject = objectBegin+idTag;
+        public static final String idTagWithObject = objectBegin + idTag;
         /**
          * "@type":
          */
-        public static final String typeTag = labelTag+type+labelTag+fieldSeparator+" ";
+        public static final String typeTag = labelTag + type + labelTag + fieldSeparator + " ";
         /**
          * {"@value": "
          */
-        public static final String valueTag = objectBegin+labelTag+value+labelTag+fieldSeparator+" "+labelTag;
+        public static final String valueTag = objectBegin + labelTag + value + labelTag + fieldSeparator + " " + labelTag;
         /**
          * "@language": "
          */
-        public static final String languageTag = labelTag+language+labelTag+fieldSeparator+" "+labelTag;
+        public static final String languageTag = labelTag + language + labelTag + fieldSeparator + " " + labelTag;
         /**
          * ,"@language": "
          */
-        public static final String nextLanguageTag = separator+" "+languageTag;
+        public static final String nextLanguageTag = separator + " " + languageTag;
         /**
          * ,"@type": "
          */
-        public static final String nextTypeTag = separator+" "+typeTag+labelTag;
+        public static final String nextTypeTag = separator + " " + typeTag + labelTag;
         /**
          * "}
          */
-        public static final String endLabelAndObject = labelTag+objectEnd;
+        public static final String endLabelAndObject = labelTag + objectEnd;
         /**
          * ",
          */
-        public static final String endLabelGoNext = labelTag+separator;
+        public static final String endLabelGoNext = labelTag + separator;
         /**
          * ":
          */
-        public static final String endLabelGoDesc = labelTag+fieldSeparator+" ";
+        public static final String endLabelGoDesc = labelTag + fieldSeparator + " ";
         /**
          * "@graph": [
          */
-        public static final String graphTag = labelTag+graph+labelTag+fieldSeparator+" "+arrayBegin;
+        public static final String graphTag = labelTag + graph + labelTag + fieldSeparator + " " + arrayBegin;
         /**
          * "@list": [
          */
-        public static final String listTag = labelTag+list+labelTag+fieldSeparator+" "+arrayBegin;
+        public static final String listTag = labelTag + list + labelTag + fieldSeparator + " " + arrayBegin;
         /**
          * "@list": []
          */
-        public static final String emptyListTag = labelTag+list+labelTag+fieldSeparator+" "+arrayBegin+arrayEnd;
+        public static final String emptyListTag = labelTag + list + labelTag + fieldSeparator + " " + arrayBegin + arrayEnd;
     }
 
     public static final String owl = IRIMapper.IRI_OWL2 + "#";

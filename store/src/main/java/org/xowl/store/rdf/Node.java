@@ -16,7 +16,6 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- *     Stephen Creff - stephen.creff@gmail.org
  ******************************************************************************/
 
 package org.xowl.store.rdf;
@@ -25,8 +24,6 @@ package org.xowl.store.rdf;
  * Represents a node in a RDF graph
  *
  * @author Laurent Wouters
- * modified to add default test
- * @author Stephen Creff
  */
 public interface Node {
     /**
@@ -73,5 +70,4 @@ public interface Node {
      * @return The node's type
      */
     int getNodeType();
-
 }

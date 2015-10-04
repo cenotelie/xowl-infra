@@ -16,19 +16,14 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- *     Stephen Creff - stephen.creff@gmail.com
  ******************************************************************************/
 
 package org.xowl.store.rdf;
-
-import org.xowl.store.Vocabulary;
 
 /**
  * Represents a property in a RDF triple
  *
  * @author Laurent Wouters
- * modified to add default tests
- * @author Stephen Creff
  */
 public interface Property extends Node {
 

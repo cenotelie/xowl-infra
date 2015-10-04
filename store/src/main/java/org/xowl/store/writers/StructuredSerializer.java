@@ -32,14 +32,13 @@ import org.xowl.utils.collections.Couple;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 /**
  * Represents a structured serializer of RDF data
  *
  * @author Laurent Wouters
- * modified to add DataMap inner class
+ *         modified to add DataMap inner class
  * @author Stephen Creff
  */
 public abstract class StructuredSerializer implements RDFSerializer {
@@ -226,40 +225,47 @@ public abstract class StructuredSerializer implements RDFSerializer {
                 return i;
         throw new IOException("Unmapped blank node " + id);
     }
+
     /**
      * The data to serialize
+     *
      * @author Stephen Creff
      */
-    protected class DataMap extends HashMap<SubjectNode, List<Quad>>{
+    protected class DataMap extends HashMap<SubjectNode, List<Quad>> {
 
         /**
          * Flatten the DataMap structure
+         *
          * @return the resulting quad list
          */
-        public List<Quad> toList(){
+        public List<Quad> toList() {
             List<Quad> result = new ArrayList<>();
             for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 result.addAll(entry.getValue());
             return result;
         }
+
         /**
          * Rebuild a data map (list graphs), from the given temporary quads list
+         *
          * @param quads the given list
          */
-        private DataMap toDataMap(List<Quad> quads){
+        private DataMap toDataMap(List<Quad> quads) {
             DataMap result = new DataMap();
-            for (Quad q : quads){
+            for (Quad q : quads) {
                 if (!result.containsKey(q.getSubject()))
                     result.put(q.getSubject(), new ArrayList<Quad>());
                 result.get(q.getSubject()).add(q);
             }
             return result;
         }
+
         /**
          * Check whether the DataMap contains different graphs
+         *
          * @return true whether it does
          */
-        public boolean containsManyGraphs(){
+        public boolean containsManyGraphs() {
             GraphNode gnRef = null;
             for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 for (Quad quad : entry.getValue()) {
@@ -270,11 +276,13 @@ public abstract class StructuredSerializer implements RDFSerializer {
                 }
             return true;
         }
+
         /**
          * Get a list of the distinct GraphNodes in the DataMap
+         *
          * @return the resulting list
          */
-        public List<GraphNode> getGraphGraphNodes(){
+        public List<GraphNode> getGraphGraphNodes() {
             List<GraphNode> result = new ArrayList<>();
             for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 for (Quad quad : entry.getValue())
@@ -282,25 +290,29 @@ public abstract class StructuredSerializer implements RDFSerializer {
                         result.add(quad.getGraph());
             return result;
         }
+
         /**
          * Get the default graph node of the DataMap (default unnamed graph)
-         * @see <code>this.isTheDefaultUnnamedGraph()</code>
+         *
          * @return a grapnode if exists, null otherwise
+         * @see <code>this.isTheDefaultUnnamedGraph()</code>
          */
-        public GraphNode getDefaultGraphNode(){
+        public GraphNode getDefaultGraphNode() {
             for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 for (Quad quad : entry.getValue())
                     if (isTheDefaultUnnamedGraph(quad.getGraph()))
                         return quad.getGraph();
             return null;
         }
+
         /**
          * Check whether the given graphNode is a default file one
          * FIXME Very bad way to get the graph name and to test if it correspond to a file
+         *
          * @param graphNode the given node
          * @return true if the name ends with a known file extension
          */
-        private boolean isTheDefaultUnnamedGraph(GraphNode graphNode){
+        private boolean isTheDefaultUnnamedGraph(GraphNode graphNode) {
             return graphNode.toString().endsWith(AbstractRepository.EXT_JSON_LD) ||
                     graphNode.toString().endsWith(AbstractRepository.EXT_OWLXML_B) ||
                     graphNode.toString().endsWith(AbstractRepository.EXT_OWLXML_A) ||
@@ -316,29 +328,32 @@ public abstract class StructuredSerializer implements RDFSerializer {
 
         /**
          * Extract the distinct DataMaps corresponding to different Graphs
+         *
          * @return a list of DataMap(s)
          */
-        public List<DataMap> extractGraphs(){
+        public List<DataMap> extractGraphs() {
             List<DataMap> result = new ArrayList<>();
-            Map<GraphNode,List<Quad>> tempGraphMap = new HashMap<>();
+            Map<GraphNode, List<Quad>> tempGraphMap = new HashMap<>();
             for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 for (Quad quad : entry.getValue()) {
                     if (!tempGraphMap.containsKey(quad.getGraph()))
                         tempGraphMap.put(quad.getGraph(), new LinkedList<Quad>());
                     tempGraphMap.get(quad.getGraph()).add(quad);
                 }
-            for (Entry<GraphNode,List<Quad>> entry : tempGraphMap.entrySet())
+            for (Entry<GraphNode, List<Quad>> entry : tempGraphMap.entrySet())
                 result.add(toDataMap(entry.getValue()));
             return result;
         }
+
         /**
          * Extract a list of DataMaps corresponding to graphs other than a specific one (given by the graph node)
+         *
          * @param graphNode : the graph node
          * @return the resulting list
          */
-        public List<DataMap> extractOtherGraphs(GraphNode graphNode){
+        public List<DataMap> extractOtherGraphs(GraphNode graphNode) {
             List<DataMap> result = new ArrayList<>();
-            for (DataMap dm : this.extractGraphs()){
+            for (DataMap dm : this.extractGraphs()) {
                 boolean match = false;
                 for (Entry<SubjectNode, List<Quad>> entry : dm.entrySet()) {
                     for (Quad quad : entry.getValue())
@@ -354,13 +369,15 @@ public abstract class StructuredSerializer implements RDFSerializer {
             }
             return result;
         }
+
         /**
          * Extract a DataMap corresponding to a specific graph (given by the graph node)
+         *
          * @param graphNode : the graph node
          * @return the resulting DataMap
          */
-        public DataMap extractGraph(final GraphNode graphNode){
-            for (DataMap dm : this.extractGraphs()){
+        public DataMap extractGraph(final GraphNode graphNode) {
+            for (DataMap dm : this.extractGraphs()) {
                 boolean match = true;
                 for (Entry<SubjectNode, List<Quad>> entry : dm.entrySet()) {
                     for (Quad quad : entry.getValue())
@@ -376,24 +393,28 @@ public abstract class StructuredSerializer implements RDFSerializer {
             }
             return null;
         }
+
         /**
          * Check whether the graph contains any list,
          * (looks for rdf:nil members)
+         *
          * @return true whether it does
          */
-        public boolean containsLists(){
+        public boolean containsLists() {
             for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
                 for (Quad quad : entry.getValue())
-                    if (RDFUtils.isNilType(quad.getObject()) && RDFUtils.isRdfRest(quad.getProperty()))
+                    if (RDFUtils.isRdfNil(quad.getObject()) && RDFUtils.isRdfRest(quad.getProperty()))
                         return true;
             return false;
         }
+
         /**
          * Check whether quads is a list of list,
+         *
          * @param quads the given list
-         * @return  true whether it is
+         * @return true whether it is
          */
-        public boolean isAListOfLists (List<Quad> quads){
+        public boolean isAListOfLists(List<Quad> quads) {
             List<Node> objects = new ArrayList<>();
             for (Quad quad : quads)
                 objects.add(quad.getObject());
@@ -404,70 +425,80 @@ public abstract class StructuredSerializer implements RDFSerializer {
                             return true;
             return false;
         }
+
         /**
          * Remove graph objects (defining some lists) from the main data map
+         *
          * @param subListNodes the sub-list of nodes
-         * @param existingBNs the existing blank nodes
-         * @see #containsOnlySimpleList(List)
+         * @param existingBNs  the existing blank nodes
          * @return the removed data
+         * @see #containsOnlySimpleList(List)
          */
-        public DataMap removeSubGraphsFromMainDataMap(List<SubjectNode> subListNodes, List<Node> existingBNs){
+        public DataMap removeSubGraphsFromMainDataMap(List<SubjectNode> subListNodes, List<Node> existingBNs) {
             DataMap subMap = new DataMap();
-            for (Iterator<Entry<SubjectNode, List<Quad>>> iterator = this.entrySet().iterator(); iterator.hasNext();) {
+            for (Iterator<Entry<SubjectNode, List<Quad>>> iterator = this.entrySet().iterator(); iterator.hasNext(); ) {
                 Entry<SubjectNode, List<Quad>> entry = iterator.next();
-                if (RDFUtils.isBlankNode(entry.getKey()) && !subListNodes.contains(entry.getKey()) && containsOnlySimpleList(entry.getValue())&& !existingBNs.contains(entry.getKey())){
+                if (RDFUtils.isBlankNode(entry.getKey()) && !subListNodes.contains(entry.getKey()) && containsOnlySimpleList(entry.getValue()) && !existingBNs.contains(entry.getKey())) {
                     subMap.put(entry.getKey(), this.get(entry.getKey()));
                     iterator.remove();
                 }
             }
             return subMap;
         }
+
         /**
          * Check whether the quads contains only a simple list:
-         *     . properties are either rdf:First or rdf:Rest
-         *     . and one quad is a nil object
+         * . properties are either rdf:First or rdf:Rest
+         * . and one quad is a nil object
+         *
          * @param quads : the list to be checked
          * @return true if conditions are verified
          */
         private boolean containsOnlySimpleList(List<Quad> quads) {
             boolean hasNilProperty = false;
-            for (Quad quad : quads){
+            for (Quad quad : quads) {
                 if (!(RDFUtils.isRdfRest(quad.getProperty()) || RDFUtils.isRdfFirst(quad.getProperty())))
                     return false;
-                if (RDFUtils.isRdfRest(quad.getProperty()) && RDFUtils.isNilType(quad.getObject()))
+                if (RDFUtils.isRdfRest(quad.getProperty()) && RDFUtils.isRdfNil(quad.getObject()))
                     hasNilProperty = true;
             }
             return hasNilProperty;
         }
+
         /**
          * Check whether the DataMap contains any entry that contains a list node which also contains properties other tha rdf:first and rdf:rest
-         * @see #containsPropertiesOtherThanList(SubjectNode)
+         *
          * @return true if conditions are verified
+         * @see #containsPropertiesOtherThanList(SubjectNode)
          */
-        private boolean containsPropertiesOtherThanList(){
+        private boolean containsPropertiesOtherThanList() {
             boolean doContain = false;
             for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
-                if (containsPropertiesOtherThanList(entry.getKey())){
+                if (containsPropertiesOtherThanList(entry.getKey())) {
                     doContain = true;
                     break;
                 }
             return doContain;
         }
+
         /**
          * Check whether the given entry in the DataMap contains a list node which also contains properties other tha rdf:first and rdf:rest
-         * @see <code>this.containsPropertiesOtherThanList(List<Quad>)</code>
+         *
          * @param subjectNode : the given entry key
          * @return true if conditions are verified
+         * @see <code>this.containsPropertiesOtherThanList(List<Quad>)</code>
          */
-        private boolean containsPropertiesOtherThanList(SubjectNode subjectNode){
+        private boolean containsPropertiesOtherThanList(SubjectNode subjectNode) {
             return containsPropertiesOtherThanList(this.get(subjectNode));
         }
+
         /**
          * Check whether the given list of quads in the DataMap contains a list node which also contains properties other tha rdf:first and rdf:rest
+         *
          * @param quads : the given list of quads
          * @return true if conditions are verified
          */
-        public boolean containsPropertiesOtherThanList(List<Quad> quads){
+        public boolean containsPropertiesOtherThanList(List<Quad> quads) {
             boolean hasListProperty = false;
             boolean hasNonListProperty = false;
             for (Quad quad : quads)
@@ -489,12 +520,13 @@ public abstract class StructuredSerializer implements RDFSerializer {
 
         /**
          * For the given entry, reorder the quads values to make the properties other than rdf:first and rdf:rest be the firsts
+         *
          * @param entry the given entry
          */
-        private void reorderDataMapMovingUpPropertiesOtherThanList(Entry<SubjectNode, List<Quad>> entry){
+        private void reorderDataMapMovingUpPropertiesOtherThanList(Entry<SubjectNode, List<Quad>> entry) {
             for (int i = 0; i < entry.getValue().size(); i++) {
                 Quad quad = entry.getValue().get(i);
-                if (!(RDFUtils.isRdfFirst(quad.getProperty())|| RDFUtils.isRdfRest(quad.getProperty())))
+                if (!(RDFUtils.isRdfFirst(quad.getProperty()) || RDFUtils.isRdfRest(quad.getProperty())))
                     for (int j = 0; j < entry.getValue().size(); j++) {
                         Quad q = entry.getValue().get(j);
                         if (!(RDFUtils.isRdfFirst(q.getProperty()) || RDFUtils.isRdfRest(q.getProperty()))) {
@@ -508,21 +540,22 @@ public abstract class StructuredSerializer implements RDFSerializer {
         /**
          * Resolve blanknode dependencies corresponding to lists and imbrication lists and reconstruct a DataMap
          * FIXME : Some dependencies are resolved and shouldn't according to the test bench
+         *
          * @return a new DataMap with resolved dependencies
          */
-        public DataMap constructLists(){
+        public DataMap constructLists() {
             DataMap result;
             List<Quad> tempQuads = new ArrayList<>();
             List<Node> listBlankObjects = new ArrayList<>();
             List<SubjectNode> listRootSubjects = new ArrayList<>();
             List<Quad> rootQuads = new ArrayList<>();
-            for (Quad quad : this.toList()){
+            for (Quad quad : this.toList()) {
                 if (RDFUtils.isRdfRest(quad.getProperty()) || RDFUtils.isRdfFirst(quad.getProperty()))
                     if (RDFUtils.isBlankNode(quad.getObject()))
                         listBlankObjects.add(quad.getObject());
             }
-            for (Quad quad : this.toList()){
-                if(!listBlankObjects.contains(quad.getSubject()))
+            for (Quad quad : this.toList()) {
+                if (!listBlankObjects.contains(quad.getSubject()))
                     if (!listRootSubjects.contains(quad.getSubject()))
                         listRootSubjects.add(quad.getSubject());
             }
@@ -535,9 +568,9 @@ public abstract class StructuredSerializer implements RDFSerializer {
             for (Quad q : rootQuads)
                 if (!tempQuads.contains(q))
                     stepConstructLists(tempQuads, listRootSubjects, q, q);
-            for (int i =0; i<tempQuads.size()-1; i++){ //remove duplicated quads
-                if (tempQuads.get(i).equals(tempQuads.get(i+1))){
-                    tempQuads.remove(i+1);
+            for (int i = 0; i < tempQuads.size() - 1; i++) { //remove duplicated quads
+                if (tempQuads.get(i).equals(tempQuads.get(i + 1))) {
+                    tempQuads.remove(i + 1);
                     i--;
                 }
             }
@@ -549,12 +582,13 @@ public abstract class StructuredSerializer implements RDFSerializer {
         /**
          * Move through first, rest properties and blanknodes to construct the resulting ordered list of quads
          * FIXME @see this.constructLists()
-         * @param result : the resulting list of quads
+         *
+         * @param result           : the resulting list of quads
          * @param listRootSubjects : the initial root SubjectNodes
-         * @param current : the current graph node
-         * @param previous : the previous graph node
+         * @param current          : the current graph node
+         * @param previous         : the previous graph node
          */
-        private void stepConstructLists(List<Quad> result,List<SubjectNode> listRootSubjects, Quad current, Quad previous){
+        private void stepConstructLists(List<Quad> result, List<SubjectNode> listRootSubjects, Quad current, Quad previous) {
         /*    Property cProperty = current.getProperty();
             if (RDFUtils.isBlankNode(current.getObject())){
                 if (!(RDFUtils.isRdfRest(cProperty)|| RDFUtils.isRdfFirst(cProperty))){
@@ -565,7 +599,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
                     if (!result.contains(current))
                         result.add(current);
                 }
-                if (listRootSubjects.contains(current.getSubject())&&(this.get(current.getObject()).stream().anyMatch(quad2 -> RDFUtils.isNilType(quad2.getObject()) && RDFUtils.isRdfRest(quad2.getProperty())))) {//refer to list
+                if (listRootSubjects.contains(current.getSubject())&&(this.get(current.getObject()).stream().anyMatch(quad2 -> RDFUtils.isRdfNil(quad2.getObject()) && RDFUtils.isRdfRest(quad2.getProperty())))) {//refer to list
                     if (!result.contains(current))
                         result.add(current);
                 }
@@ -618,45 +652,47 @@ public abstract class StructuredSerializer implements RDFSerializer {
 
         /**
          * correct the DataMap : replace rdf:First followed by rdf:First in lists (error coming from nested lists)
+         *
          * @see #stepConstructLists(List, List, Quad, Quad)
          */
-        private void correctDataMap(){
-            for (Iterator<Entry<SubjectNode, List<Quad>>> iterator = this.entrySet().iterator(); iterator.hasNext(); ) {
-                Entry<SubjectNode, List<Quad>> entry = iterator.next();
-                boolean hasFirst=false;
+        private void correctDataMap() {
+            for (Entry<SubjectNode, List<Quad>> entry : this.entrySet()) {
+                boolean hasFirst = false;
                 for (int j = 0; j < entry.getValue().size(); j++) {
                     Quad q = entry.getValue().get(j);
                     if (RDFUtils.isRdfFirst(q.getProperty())) {
                         if (hasFirst) {
-                            Quad newQ =new Quad(q.getGraph(), q.getSubject(), new CachedNodes().getIRINode(Vocabulary.rdfRest), q.getObject());
+                            Quad newQ = new Quad(q.getGraph(), q.getSubject(), new CachedNodes().getIRINode(Vocabulary.rdfRest), q.getObject());
                             int i = entry.getValue().indexOf(q);
                             entry.getValue().remove(i);
                             entry.getValue().add(i, newQ);
-                        }else
+                        } else
                             hasFirst = true;
                     }
                 }
             }
         }
+
         /**
          * Get the ObjectNode (Blank) referring to the given Subject node
-         * @see #getPreviousSubject(SubjectNode)
+         *
          * @param node : the given subject node
          * @param list : the given list
          * @return the corresponding node, self if not referred
+         * @see #getPreviousSubject(SubjectNode)
          */
         private SubjectNode getReferringNode(SubjectNode node, List<Quad> list) {
             SubjectNode n = node;
             List<SubjectNode> sNodeList = new ArrayList<>();
             for (Quad quad : list)
                 sNodeList.add(quad.getSubject());
-            List<Node> bNodeList =  new ArrayList<>();
+            List<Node> bNodeList = new ArrayList<>();
             for (Quad quad : list)
                 if (RDFUtils.isBlankNode(quad.getObject()))
                     bNodeList.add(quad.getObject());
-            while (!(sNodeList.contains(n)||bNodeList.contains(n))){
+            while (!(sNodeList.contains(n) || bNodeList.contains(n))) {
                 SubjectNode tempNode = getPreviousSubject(n);
-                if (tempNode !=null ) n = tempNode;
+                if (tempNode != null) n = tempNode;
                 else break;
             }
             return n;
@@ -664,18 +700,17 @@ public abstract class StructuredSerializer implements RDFSerializer {
 
         /**
          * Get the subject of a given object node
+         *
          * @param node : the given node
          * @return the resulting subject, null otherwise
          */
         private SubjectNode getPreviousSubject(final SubjectNode node) {
             List<Quad> quads = new ArrayList<>();
             for (Entry<SubjectNode, List<Quad>> entry : this.entrySet())
-                for (Quad quad :entry.getValue())
+                for (Quad quad : entry.getValue())
                     if (quad.getObject().equals(node))
                         quads.add(quad);
-            return quads.isEmpty()? null : quads.get(0).getSubject();
+            return quads.isEmpty() ? null : quads.get(0).getSubject();
         }
-
-
     }
 }

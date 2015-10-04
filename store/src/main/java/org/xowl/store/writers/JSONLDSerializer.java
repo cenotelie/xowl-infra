@@ -1,3 +1,23 @@
+/*******************************************************************************
+ * Copyright (c) 2015 stephen.creff
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation, either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General
+ * Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contributors:
+ *     Stephen Creff - stephen.creff@gmail.com
+ ******************************************************************************/
+
 package org.xowl.store.writers;
 
 import org.xowl.store.RDFUtils;
@@ -11,30 +31,10 @@ import java.io.Writer;
 import java.util.*;
 import java.util.Map.Entry;
 
-/*******************************************************************************
- * Copyright (c) 2015 stephen.creff
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation, either version 3
- * of the License, or (at your option) any later version.
- * <p/>
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- * <p/>
- * You should have received a copy of the GNU Lesser General
- * Public License along with this program.
- * If not, see <http://www.gnu.org/licenses/>.
- * <p/>
- * Contributors:
- * Stephen Creff - stephen.creff@gmail.com
- ******************************************************************************/
-
 /**
  * Represents a serializer of RDF data in the JSON-LD format
  *
- * @author stephen creff
+ * @author Stephen Creff
  */
 public class JSONLDSerializer extends StructuredSerializer {
 
@@ -43,7 +43,6 @@ public class JSONLDSerializer extends StructuredSerializer {
      * Tabulation value making the output human readable
      */
     private final static boolean DEBUG = true;//java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("-agentlib:jdwp");
-    private final String TAB = "\t";
 
     /**
      * The writer to use
@@ -214,18 +213,19 @@ public class JSONLDSerializer extends StructuredSerializer {
 
     /**
      * Filter the NamedGraph list to return the DataMap whose graph is another subject node
-     * @see this.namedGraphs
+     *
      * @param subjectNode : the given subject node
      * @return the sub list
+     * @see this.namedGraphs
      */
-    private List<DataMap> getSubGraphs(SubjectNode subjectNode){
+    private List<DataMap> getSubGraphs(SubjectNode subjectNode) {
         List<DataMap> subGraphs = new ArrayList<>();
         for (DataMap dataMap : namedGraphs) {
             boolean isFromGraph = false;
             for (Entry<SubjectNode, List<Quad>> entry : dataMap.entrySet())
                 for (Quad quad : entry.getValue())
                     if (quad.getGraph().equals(subjectNode)) {
-                        isFromGraph=true;
+                        isFromGraph = true;
                         break;
                     }
             if (isFromGraph)
@@ -237,16 +237,17 @@ public class JSONLDSerializer extends StructuredSerializer {
     /**
      * Filter the NamedGraph list to return the DataMap whose graph is another subject node
      * than the ones from the given default dATAmAP
-     * @see this.namedGraphs
+     *
      * @param defaultDataMap : the given dataMap containing the subject nodes
      * @return the sub list
+     * @see this.namedGraphs
      */
-    private List<DataMap> getOtherGraphs(DataMap defaultDataMap){
+    private List<DataMap> getOtherGraphs(DataMap defaultDataMap) {
         List<DataMap> otherGraphs = new ArrayList<>();
         for (DataMap dataMap : namedGraphs) {
             boolean graphIsASubjectOfDefault = false;
-            for (Entry<SubjectNode, List<Quad>> entry : dataMap.entrySet()){
-                for (Quad quad : entry.getValue()){
+            for (Entry<SubjectNode, List<Quad>> entry : dataMap.entrySet()) {
+                for (Quad quad : entry.getValue()) {
                     if (defaultDataMap.keySet().contains(quad.getGraph()))
                         graphIsASubjectOfDefault = true;
                 }
@@ -256,6 +257,7 @@ public class JSONLDSerializer extends StructuredSerializer {
         }
         return otherGraphs;
     }
+
     /**
      * Serializes a named graph provided by the DataMap
      *
@@ -331,15 +333,15 @@ public class JSONLDSerializer extends StructuredSerializer {
         if (dt.containsLists()) {
             //dt = data.constructLists(); FIXME
             for (Entry<SubjectNode, List<Quad>> entry : dt.entrySet())
-                if (containsJSONLDLists(entry.getValue())&&dt.isAListOfLists(entry.getValue()))
+                if (containsJSONLDLists(entry.getValue()) && dt.isAListOfLists(entry.getValue()))
                     for (Quad quad : entry.getValue())
                         if (RDFUtils.isBlankNode(quad.getObject()))
                             listOfList.add((SubjectNode) quad.getObject());
-            bufferSecondaryData = dt.removeSubGraphsFromMainDataMap(listOfList,getBlankNodesNotFromTheGraph(dt.entrySet().iterator().next().getValue().get(0).getGraph()));
+            bufferSecondaryData = dt.removeSubGraphsFromMainDataMap(listOfList, getBlankNodesNotFromTheGraph(dt.entrySet().iterator().next().getValue().get(0).getGraph()));
         }
         for (Iterator<Entry<SubjectNode, List<Quad>>> iterator = dt.entrySet().iterator(); iterator.hasNext(); ) {
             Entry<SubjectNode, List<Quad>> entry = iterator.next();
-            if (!listOfList.contains(entry.getKey())&&!entry.getValue().isEmpty()) {
+            if (!listOfList.contains(entry.getKey()) && !entry.getValue().isEmpty()) {
                 if (DEBUG) tab(1);
                 writer.write(Vocabulary.JSONLD.objectBegin);
                 writer.write(System.lineSeparator());
@@ -378,19 +380,22 @@ public class JSONLDSerializer extends StructuredSerializer {
         }
         bufferSecondaryData.clear();
     }
+
     /**
      * Filters the existing blank node list to get the only ones related to the given graph
-     * @see this.existingBlankNodeObjectQuads
+     *
      * @param graphNode the given graph
      * @return the resulting list
+     * @see this.existingBlankNodeObjectQuads
      */
-    private List<Node> getBlankNodesNotFromTheGraph(GraphNode graphNode){
+    private List<Node> getBlankNodesNotFromTheGraph(GraphNode graphNode) {
         List<Node> result = new ArrayList<>();
         for (Quad quad : existingBlankNodeObjectQuads)
             if (!quad.getGraph().equals(graphNode))
                 result.add(quad.getObject());
-       return result;
+        return result;
     }
+
     /**
      * Serializes a JSON-LD Object
      *
@@ -414,6 +419,7 @@ public class JSONLDSerializer extends StructuredSerializer {
         if (DEBUG) tab(2);
         serializeProperties(map, quads);
     }
+
     /**
      * Check whether the list of quads contains a property redf:rest with an object rdf:Nil
      *
@@ -422,10 +428,11 @@ public class JSONLDSerializer extends StructuredSerializer {
      */
     private boolean containsJSONLDLists(List<Quad> quads) {
         for (Quad quad : quads)
-            if (RDFUtils.isNilType(quad.getObject()) && RDFUtils.isRdfRest(quad.getProperty()))
+            if (RDFUtils.isRdfNil(quad.getObject()) && RDFUtils.isRdfRest(quad.getProperty()))
                 return true;
         return false;
     }
+
     /**
      * Serializes a property from a node
      *
@@ -438,7 +445,7 @@ public class JSONLDSerializer extends StructuredSerializer {
             Property property = quads.get(i).getProperty();
             String propertyID = property.toString();
             if (!bufferPropertyList.containsKey(propertyID))
-                bufferPropertyList.put(propertyID,new ArrayList<Quad>(5));
+                bufferPropertyList.put(propertyID, new ArrayList<Quad>(5));
             bufferPropertyList.get(propertyID).add(quads.get(i));
         }
 
@@ -471,7 +478,7 @@ public class JSONLDSerializer extends StructuredSerializer {
                     //Default array
                     writer.write(Vocabulary.JSONLD.arrayBegin);
                     if (propSet.getValue().size() == 1) {
-                        if (RDFUtils.isNilType(propSet.getValue().get(0).getObject()) && RDFUtils.isRdfRest(propSet.getValue().get(0).getProperty())) {
+                        if (RDFUtils.isRdfNil(propSet.getValue().get(0).getObject()) && RDFUtils.isRdfRest(propSet.getValue().get(0).getProperty())) {
                             //empty list
                             writer.write(Vocabulary.JSONLD.objectBegin);
                             writer.write(System.lineSeparator());
@@ -524,7 +531,7 @@ public class JSONLDSerializer extends StructuredSerializer {
     /**
      * Serializes many properties
      *
-     * @param map the current DataMap
+     * @param map   the current DataMap
      * @param quads the current quads
      * @throws IOException
      * @throws UnsupportedNodeType
@@ -533,7 +540,7 @@ public class JSONLDSerializer extends StructuredSerializer {
         for (int i = 0; i < quads.size(); i++) {
             Quad quad = quads.get(i);
             serializePropertyObject(map, quad);
-            if ((i + 1 < quads.size()) && (!RDFUtils.isNilType(quads.get(i + 1).getObject()))) { //has next and next not nil
+            if ((i + 1 < quads.size()) && (!RDFUtils.isRdfNil(quads.get(i + 1).getObject()))) { //has next and next not nil
                 writer.write(Vocabulary.JSONLD.separator);
                 writer.write(System.lineSeparator());
                 if (DEBUG) tab(1);
@@ -624,7 +631,7 @@ public class JSONLDSerializer extends StructuredSerializer {
                 }
                 break;
             case Node.TYPE_BLANK:
-                if (bufferSecondaryData.containsKey(quad.getObject())){ //@list
+                if (bufferSecondaryData.containsKey(quad.getObject())) { //@list
                     serializePropertyObjects(map, bufferSecondaryData.get(quad.getObject()));
                 } else {
                     writer.write(Vocabulary.JSONLD.idTagWithObject);
@@ -666,7 +673,7 @@ public class JSONLDSerializer extends StructuredSerializer {
      */
     private void tab(int nb) throws IOException {
         for (int i = nb; --i >= 0; )
-            writer.write(TAB);
+            writer.write("\t");
     }
 
 }

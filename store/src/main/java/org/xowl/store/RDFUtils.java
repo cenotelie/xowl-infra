@@ -149,42 +149,52 @@ public class RDFUtils {
     }
 
     /**
-     * Test whether the node is a rdf:Nil IRI one
-     * @param node
+     * Tests whether the node is a Blank node
+     *
+     * @param node A RDF node
+     * @return true if the node is a blank node
      */
-    public static boolean isNilType(Node node){
-        return (node.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfNil.equals(((IRINode) node).getIRIValue());
-    }
-
-    /**
-     * Test whether the node is a Blank one
-     * @param node
-     */
-    public static boolean isBlankNode(Node node){
+    public static boolean isBlankNode(Node node) {
         return node.getNodeType() == Node.TYPE_BLANK;
     }
 
     /**
-     * Test whether the property is a rdf:First IRI one
-     * @param property
+     * Tests whether the node is the rdf:nil IRI node
+     *
+     * @param node A RDF node
+     * @return true of the node is the rdf:nil IRI node, false otherwise
      */
-    public static boolean isRdfFirst(Property property){
+    public static boolean isRdfNil(Node node) {
+        return (node.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfNil.equals(((IRINode) node).getIRIValue());
+    }
+
+    /**
+     * Tests whether the property is the rdf:first IRI node
+     *
+     * @param property A RDF property
+     * @return true of the node is the rdf:first IRI node, false otherwise
+     */
+    public static boolean isRdfFirst(Property property) {
         return (property.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfFirst.equals(((IRINode) property).getIRIValue());
     }
 
     /**
-     * Test whether the property is a rdf:Rest IRI one
-     * @param property
+     * Tests whether the property is the rdf:rest IRI node
+     *
+     * @param property A RDF property
+     * @return true of the node is the rdf:rest IRI node, false otherwise
      */
-    public static boolean isRdfRest(Property property){
+    public static boolean isRdfRest(Property property) {
         return (property.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfRest.equals(((IRINode) property).getIRIValue());
     }
 
     /**
-     * Test whether the property is a rdf:Type IRI one
-     * @param property
+     * Tests whether the property is the rdf:type IRI node
+     *
+     * @param property A RDF property
+     * @return true of the node is the rdf:type IRI node, false otherwise
      */
-    public static boolean isRdfType(Property property){
+    public static boolean isRdfType(Property property) {
         return (property.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfType.equals(((IRINode) property).getIRIValue());
     }
 }
