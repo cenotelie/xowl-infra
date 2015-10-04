@@ -771,7 +771,7 @@ public class SPARQLLoader {
             context.addDefaultGraph(iri);
         for (String iri : namedIRIs)
             context.addNamedIRI(iri);
-        List<Quad> quads = loadQuads(context, node.getChildren().get(0), new VariableNode("__graph_"));
+        List<Quad> quads = loadQuads(context, node.getChildren().get(0), null);
         return new CommandDeleteWhere(Collections.unmodifiableCollection(quads));
     }
 
