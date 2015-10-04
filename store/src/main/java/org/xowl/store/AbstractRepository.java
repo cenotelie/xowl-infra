@@ -686,9 +686,9 @@ public abstract class AbstractRepository {
     /**
      * Gets a reader for a resource
      *
-     * @param resource The resource to read
-     * @return The appropriate reader
-     * @throws java.io.IOException When the reader cannot be created
+     * @param resource The resource to read from
+     * @return The appropriate reader, or null if there is none for the resource
+     * @throws IOException When the reader cannot be created
      */
     public static Reader getReaderFor(String resource) throws IOException {
         if (resource.startsWith(SCHEME_HTTP)) {
@@ -707,18 +707,16 @@ public abstract class AbstractRepository {
             FileInputStream stream = new FileInputStream(resource.substring(SCHEME_FILE.length()));
             return new InputStreamReader(stream, RESOURCE_CHARSET);
         } else {
-            // assume a local path
-            FileInputStream stream = new FileInputStream(resource);
-            return new InputStreamReader(stream, RESOURCE_CHARSET);
+            return null;
         }
     }
 
     /**
      * Gets a writer for a resource
      *
-     * @param resource The resource to read
-     * @return The appropriate writer
-     * @throws java.io.IOException When the writer cannot be created
+     * @param resource The resource to write to
+     * @return The appropriate writer, or null if there is none for the resource
+     * @throws IOException When the writer cannot be created
      */
     public static Writer getWriterFor(String resource) throws IOException {
         if (resource.startsWith(SCHEME_HTTP)) {
@@ -735,9 +733,7 @@ public abstract class AbstractRepository {
             FileOutputStream stream = new FileOutputStream(resource.substring(SCHEME_FILE.length()));
             return new OutputStreamWriter(stream, RESOURCE_CHARSET);
         } else {
-            // assume a local path
-            FileOutputStream stream = new FileOutputStream(resource);
-            return new OutputStreamWriter(stream, RESOURCE_CHARSET);
+            return null;
         }
     }
 }

@@ -114,8 +114,17 @@ public abstract class W3CTestSuite {
      * @return The reader
      */
     protected Reader getResourceReader(String resource) {
-        InputStream stream = W3CTestSuite.class.getResourceAsStream(resource);
-        return new InputStreamReader(stream, Charset.forName("UTF-8"));
+        try {
+            Reader reader = AbstractRepository.getReaderFor(resource);
+            if (reader != null)
+                return reader;
+            // expect a local test resource
+            InputStream stream = W3CTestSuite.class.getResourceAsStream(resource);
+            return new InputStreamReader(stream, Charset.forName("UTF-8"));
+        } catch (IOException exception) {
+            Assert.fail(exception.getMessage());
+            return null;
+        }
     }
 
     /**

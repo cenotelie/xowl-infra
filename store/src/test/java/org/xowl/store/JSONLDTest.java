@@ -699,8 +699,6 @@ public class JSONLDTest extends BaseJSONLDTest {
         fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0007-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0007-in.nq");
     }
 
-
-
     @Test
     public void test_fromRdf_t0019() {
         fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0019-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0019-in.nq");
@@ -725,5 +723,4 @@ public class JSONLDTest extends BaseJSONLDTest {
     public void test_fromRdf_t0021() {
         fromRdfTest("http://json-ld.org/test-suite/tests/fromRdf-0021-out.jsonld", "http://json-ld.org/test-suite/tests/fromRdf-0021-in.nq");
     }
-
 }
