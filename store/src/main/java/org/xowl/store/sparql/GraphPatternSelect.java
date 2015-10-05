@@ -99,9 +99,9 @@ public class GraphPatternSelect implements GraphPattern {
     public Solutions match(final Repository repository) throws EvalException {
         Solutions solutions = where.match(repository);
         solutions = modifier != null ? modifier.apply(solutions, repository) : solutions;
-        solutions = (isDistinct || isReduced) ? Utils.distinct(solutions) : solutions;
         solutions = (values != null) ? Utils.join(solutions, values.match(repository)) : solutions;
         solutions = (!projection.isEmpty()) ? Utils.project(solutions, projection, repository) : solutions;
+        solutions = (isDistinct || isReduced) ? Utils.distinct(solutions) : solutions;
         return solutions;
     }
 }

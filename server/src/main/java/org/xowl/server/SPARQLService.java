@@ -25,6 +25,7 @@ import org.xowl.store.IOUtils;
 import org.xowl.store.Repository;
 import org.xowl.store.loaders.NQuadsLoader;
 import org.xowl.store.loaders.RDFLoaderResult;
+import org.xowl.store.loaders.RDFTLoader;
 import org.xowl.store.loaders.SPARQLLoader;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.Rule;
@@ -35,6 +36,8 @@ import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultFailure;
 import org.xowl.store.sparql.ResultQuads;
 import org.xowl.store.storage.NodeManager;
+import org.xowl.utils.BufferedLogger;
+import org.xowl.utils.DispatchLogger;
 import org.xowl.utils.Logger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -125,7 +128,7 @@ public class SPARQLService extends Service {
                 String[] defaults = request.getParameterValues("default-graph-uri");
                 String[] named = request.getParameterValues("named-graph-uri");
                 enableCORS(response);
-                executeRequest(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
+                executeSPARQL(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
             }
         } else {
             // ill-formed request
@@ -153,7 +156,7 @@ public class SPARQLService extends Service {
                 String contentType = negotiateType(contentTypes);
                 enableCORS(response);
                 String query = getMessageBody(request);
-                executeRequest(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
+                executeSPARQL(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
                 break;
             }
             case TYPE_URL_ENCODED: {
@@ -164,21 +167,30 @@ public class SPARQLService extends Service {
             case TYPE_RULE_EXPLANATION: {
                 String quad = getMessageBody(request);
                 enableCORS(response);
-                response.setHeader("Content-Type", Result.SYNTAX_JSON);
                 explainQuad(quad, response);
                 break;
             }
             case TYPE_RULE_LIST: {
                 enableCORS(response);
-                response.setHeader("Content-Type", Result.SYNTAX_JSON);
                 ruleList(response);
                 break;
             }
             case TYPE_RULE_STATUS: {
                 String rule = getMessageBody(request);
                 enableCORS(response);
-                response.setHeader("Content-Type", Result.SYNTAX_JSON);
                 ruleStatus(rule, response);
+                break;
+            }
+            case TYPE_RULE_ADD: {
+                String rule = getMessageBody(request);
+                enableCORS(response);
+                ruleAdd(rule, response);
+                break;
+            }
+            case TYPE_RULE_REMOVE: {
+                String rule = getMessageBody(request);
+                enableCORS(response);
+                ruleRemove(rule, response);
                 break;
             }
             default:
@@ -196,15 +208,20 @@ public class SPARQLService extends Service {
      * @param response The response to write to
      */
     private void explainQuad(String quad, HttpServletResponse response) {
+        BufferedLogger bufferedLogger = new BufferedLogger();
+        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
         NQuadsLoader loader = new NQuadsLoader(repository.getStore());
-        RDFLoaderResult result = loader.loadRDF(logger, new StringReader(quad), NodeManager.DEFAULT_GRAPH, NodeManager.DEFAULT_GRAPH);
+        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(quad), NodeManager.DEFAULT_GRAPH, NodeManager.DEFAULT_GRAPH);
         if (result == null || result.getQuads().isEmpty()) {
-            response.setStatus(501);
+            response.setStatus(500);
+            dispatchLogger.error("Failed to parse and load the request");
+            outputLog(bufferedLogger, response);
             return;
         }
         Quad first = result.getQuads().get(0);
         RuleExplanation explanation = repository.getRDFRuleEngine().explain(first);
         response.setStatus(200);
+        response.setHeader("Content-Type", Result.SYNTAX_JSON);
         try {
             explanation.printJSON(response.getWriter());
         } catch (IOException exception) {
@@ -220,6 +237,7 @@ public class SPARQLService extends Service {
     private void ruleList(HttpServletResponse response) {
         Collection<Rule> rules = repository.getRDFRuleEngine().getRules();
         response.setStatus(200);
+        response.setHeader("Content-Type", Result.SYNTAX_JSON);
         try (Writer writer = response.getWriter()) {
             writer.write("{\"rules\": [");
             boolean first = true;
@@ -246,11 +264,46 @@ public class SPARQLService extends Service {
     private void ruleStatus(String rule, HttpServletResponse response) {
         MatchStatus status = repository.getRDFRuleEngine().getMatchStatus(rule);
         response.setStatus(200);
+        response.setHeader("Content-Type", Result.SYNTAX_JSON);
         try {
             status.printJSON(response.getWriter());
         } catch (IOException exception) {
             logger.error(exception);
         }
+    }
+
+    /**
+     * Adds a new rule
+     *
+     * @param rule     The rule in the RDFT syntax
+     * @param response The response to write to
+     */
+    private void ruleAdd(String rule, HttpServletResponse response) {
+        BufferedLogger bufferedLogger = new BufferedLogger();
+        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
+        RDFTLoader loader = new RDFTLoader(repository.getStore());
+        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(rule), NodeManager.DEFAULT_GRAPH, NodeManager.DEFAULT_GRAPH);
+        if (result == null || result.getRules().isEmpty()) {
+            response.setStatus(500);
+            dispatchLogger.error("Failed to parse and load the rule(s)");
+            outputLog(bufferedLogger, response);
+            return;
+        }
+        for (Rule rdfRule : result.getRules())
+            repository.getRDFRuleEngine().add(rdfRule);
+        repository.getRDFRuleEngine().flush();
+        response.setStatus(200);
+    }
+
+    /**
+     * Removes the rule with the specified IRI
+     *
+     * @param rule     The IRI of a rule
+     * @param response The response to write to
+     */
+    private void ruleRemove(String rule, HttpServletResponse response) {
+        repository.getRDFRuleEngine().remove(rule);
+        response.setStatus(200);
     }
 
     /**
@@ -262,12 +315,15 @@ public class SPARQLService extends Service {
      * @param contentType The negotiated content type for the response
      * @param response    The response to write to
      */
-    private void executeRequest(String request, Collection<String> defaultIRIs, Collection<String> namedIRIs, String contentType, HttpServletResponse response) {
+    private void executeSPARQL(String request, Collection<String> defaultIRIs, Collection<String> namedIRIs, String contentType, HttpServletResponse response) {
+        BufferedLogger bufferedLogger = new BufferedLogger();
+        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
         SPARQLLoader loader = new SPARQLLoader(repository.getStore(), defaultIRIs, namedIRIs);
-        List<Command> commands = loader.load(logger, new StringReader(request));
+        List<Command> commands = loader.load(dispatchLogger, new StringReader(request));
         if (commands == null) {
             // ill-formed request
-            logger.error("Failed to parse and load the request");
+            dispatchLogger.error("Failed to parse and load the request");
+            outputLog(bufferedLogger, response);
             response.setStatus(400);
             return;
         }
@@ -278,12 +334,18 @@ public class SPARQLService extends Service {
                 break;
             }
         }
-        response.setStatus(result.isFailure() ? 500 : 200);
-        response.setHeader("Content-Type", coerceContentType(result, contentType));
-        try {
-            result.print(response.getWriter(), coerceContentType(result, contentType));
-        } catch (IOException exception) {
-            logger.error(exception);
+        if (result.isFailure()) {
+            response.setStatus(500);
+            bufferedLogger.error(((ResultFailure) result).getMessage());
+            outputLog(bufferedLogger, response);
+        } else {
+            response.setStatus(200);
+            response.setHeader("Content-Type", coerceContentType(result, contentType));
+            try {
+                result.print(response.getWriter(), coerceContentType(result, contentType));
+            } catch (IOException exception) {
+                logger.error(exception);
+            }
         }
     }
 
@@ -316,6 +378,24 @@ public class SPARQLService extends Service {
                 default:
                     return Result.SYNTAX_JSON;
             }
+        }
+    }
+
+    /**
+     * Outputs the logger's error in the response
+     *
+     * @param logger   The logger
+     * @param response The response
+     */
+    private void outputLog(BufferedLogger logger, HttpServletResponse response) {
+        try (Writer writer = response.getWriter()) {
+            for (Object error : logger.getErrorMessages()) {
+                writer.write(error.toString());
+                writer.write("\n");
+            }
+            writer.flush();
+        } catch (IOException exception) {
+            exception.printStackTrace();
         }
     }
 }
