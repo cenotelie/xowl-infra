@@ -322,9 +322,9 @@ public class SPARQLService extends Service {
         List<Command> commands = loader.load(dispatchLogger, new StringReader(request));
         if (commands == null) {
             // ill-formed request
+            response.setStatus(400);
             dispatchLogger.error("Failed to parse and load the request");
             outputLog(bufferedLogger, response);
-            response.setStatus(400);
             return;
         }
         Result result = ResultFailure.INSTANCE;
