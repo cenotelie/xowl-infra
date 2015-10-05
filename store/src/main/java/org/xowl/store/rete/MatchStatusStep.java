@@ -118,7 +118,7 @@ public class MatchStatusStep {
                     IOUtils.serializeJSON(writer, value);
                 }
             }
-            writer.write(" }");
+            writer.write("] }");
         }
     }
 }

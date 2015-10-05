@@ -20,10 +20,8 @@
 
 package org.xowl.store;
 
-import org.xowl.store.rdf.BlankNode;
-import org.xowl.store.rdf.IRINode;
-import org.xowl.store.rdf.LiteralNode;
-import org.xowl.store.rdf.Node;
+import org.xowl.store.owl.AnonymousNode;
+import org.xowl.store.rdf.*;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -261,6 +259,19 @@ public class IOUtils {
                 writer.write(lit.getLexicalValue());
                 writer.write("</literal>");
                 break;
+            case Node.TYPE_VARIABLE:
+                writer.write("<variable>");
+                writer.write(escapeStringW3C(((VariableNode) node).getName()));
+                writer.write("</variable>");
+                break;
+            case Node.TYPE_ANONYMOUS:
+                writer.write("<anon>");
+                writer.write(escapeStringW3C(((AnonymousNode) node).getIndividual().getNodeID()));
+                writer.write("</anon>");
+                break;
+            case Node.TYPE_DYNAMIC:
+                writer.write("<dynamic/>");
+                break;
         }
     }
 
@@ -302,6 +313,19 @@ public class IOUtils {
                     writer.write("\"");
                 }
                 writer.write("}");
+                break;
+            case Node.TYPE_VARIABLE:
+                writer.write("{\"type\": \"variable\", \"value\": \"");
+                writer.write(escapeStringJSON(((VariableNode) node).getName()));
+                writer.write("\"}");
+                break;
+            case Node.TYPE_ANONYMOUS:
+                writer.write("{\"type\": \"anon\", \"value\": \"");
+                writer.write(escapeStringJSON(((AnonymousNode) node).getIndividual().getNodeID()));
+                writer.write("\"}");
+                break;
+            case Node.TYPE_DYNAMIC:
+                writer.write("{\"type\": \"dynamic\"}");
                 break;
         }
     }
