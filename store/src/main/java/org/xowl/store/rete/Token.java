@@ -145,4 +145,49 @@ public class Token {
         }
         return result;
     }
+
+    /**
+     * Gets whether this token is the same as the specified one (the mappings are the same)
+     *
+     * @param token A token
+     * @return true if the token is the same
+     */
+    public boolean sameAs(Token token) {
+        Token left = this;
+        Token right = token;
+        while (left != null && right != null) {
+            if (!sameBindings(left, right))
+                return false;
+            left = left.parent;
+            right = right.parent;
+        }
+        return (left == null && right == null);
+    }
+
+    /**
+     * Gets whether the bindings of two tokens are the same
+     *
+     * @param token1 A token
+     * @param token2 A token
+     * @return true if the bindings of two tokens are the same
+     */
+    private static boolean sameBindings(Token token1, Token token2) {
+        if (token1 == token2)
+            return true;
+        if (token1.variables != null) {
+            if (token2.variables != null) {
+                if (token1.variables.length != token2.variables.length)
+                    return false;
+                for (int i = 0; i != token1.variables.length; i++) {
+                    if (!RDFUtils.same(token1.variables[i], token2.variables[i]) || !RDFUtils.same(token1.values[i], token2.values[i]))
+                        return false;
+                }
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return (token2.variables == null);
+        }
+    }
 }

@@ -102,6 +102,7 @@ grammar RDFT
 		
 		PREFIX		-> [Pp] [Rr] [Ee] [Ff] [Ii] [Xx] ;
 		BASE		-> [Bb] [Aa] [Ss] [Ee] ;
+		DISTINCT	-> [Dd] [Ii] [Ss] [Tt] [Ii] [Nn] [Cc] [Tt] ;
 		
 		QVAR				-> '?' [_a-zA-Z] [_a-zA-Z0-9]* ;
 		MARKER_META			-> [Mm] [Ee] [Tt] [Aa] ;
@@ -119,7 +120,8 @@ grammar RDFT
 		sparqlPrefix	-> PREFIX! PNAME_NS IRIREF ;
 
 		rdfrules		-> rule* ;
-		rule			-> 'rule'! iri assertions '=>'! assertions ;
+		rule			-> 'rule'! iri modifiers assertions '=>'! assertions ;
+		modifiers		-> (DISTINCT)? ;
 		assertions		-> '{'! assertion* '}'! ;		
 		assertion		-> triple
 						|  MARKER_META MARKER_NOT? '('! triple+ ')'!

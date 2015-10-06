@@ -17,6 +17,7 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
+
 package org.xowl.store.rdf;
 
 import org.xowl.store.RDFUtils;
@@ -296,6 +297,19 @@ public class RuleEngine implements ChangeListener {
         Map<Token, Rule> requests = new HashMap<>(requestsToFire);
         requestsToFire.clear();
         for (Map.Entry<Token, Rule> entry : requests.entrySet()) {
+            if (entry.getValue().isDistinct()) {
+                // check this is the first solution set for this rule
+                boolean found = false;
+                for (Map.Entry<Token, ExecutedRule> execution : executed.entrySet()) {
+                    if (execution.getValue().rule == entry.getValue() && execution.getKey().sameAs(entry.getKey())) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found)
+                    // a matching token has already triggered the rule
+                    continue;
+            }
             Map<Node, Node> specials = new HashMap<>();
             Changeset changeset = process(entry.getValue(), entry.getKey(), specials);
             if (changeset == null)

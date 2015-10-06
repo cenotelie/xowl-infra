@@ -144,7 +144,7 @@ public class RuleEngine {
         GraphNode graphSource = getGraph(source, true);
         GraphNode graphTarget = getGraph(target, false);
         GraphNode graphMeta = getGraph(meta, false);
-        org.xowl.store.rdf.Rule rdfRule = new org.xowl.store.rdf.Rule(rule.getHasIRI().getHasValue());
+        org.xowl.store.rdf.Rule rdfRule = new org.xowl.store.rdf.Rule(rule.getHasIRI().getHasValue(), false);
         Translator translator = new Translator(translationContext, outputStore, null);
         List<Axiom> positiveNormal = new ArrayList<>();
         List<Axiom> positiveMeta = new ArrayList<>();

@@ -37,6 +37,10 @@ public class Rule {
      */
     private final String iri;
     /**
+     * Flags whether to trigger this rule only on distinct solutions
+     */
+    private final boolean distinct;
+    /**
      * The positive antecedents to match in the source ontology
      */
     private final List<Quad> antecedentSourcePositives;
@@ -76,6 +80,15 @@ public class Rule {
      */
     public String getIRI() {
         return iri;
+    }
+
+    /**
+     * Gets whether to trigger this rule only on distinct solutions
+     *
+     * @return Whether to trigger this rule only on distinct solutions
+     */
+    public boolean isDistinct() {
+        return distinct;
     }
 
     /**
@@ -155,8 +168,9 @@ public class Rule {
      *
      * @param iri The rule's identifying iri
      */
-    public Rule(String iri) {
+    public Rule(String iri, boolean distinct) {
         this.iri = iri;
+        this.distinct = distinct;
         this.antecedentSourcePositives = new ArrayList<>();
         this.antecedentSourceNegatives = new ArrayList<>();
         this.antecedentMetaPositives = new ArrayList<>();

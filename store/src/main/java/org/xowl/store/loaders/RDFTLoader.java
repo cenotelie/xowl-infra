@@ -248,11 +248,18 @@ public class RDFTLoader implements Loader {
                 break;
             }
         }
-        Rule rule = new Rule(name);
+
+        boolean distinct = false;
+        for (ASTNode child : node.getChildren().get(1).getChildren()) {
+            if (child.getSymbol().getID() == RDFTLexer.ID.DISTINCT)
+                distinct = true;
+        }
+
+        Rule rule = new Rule(name, distinct);
         Map<String, VariableNode> variables = new HashMap<>();
 
         // add the antecedents
-        for (ASTNode child : node.getChildren().get(1).getChildren()) {
+        for (ASTNode child : node.getChildren().get(2).getChildren()) {
             boolean positive = true;
             boolean meta = false;
             Collection<Quad> quads = new ArrayList<>();
@@ -288,7 +295,7 @@ public class RDFTLoader implements Loader {
         }
 
         // add the consequents
-        for (ASTNode child : node.getChildren().get(2).getChildren()) {
+        for (ASTNode child : node.getChildren().get(3).getChildren()) {
             boolean positive = true;
             boolean meta = false;
             Collection<Quad> quads = new ArrayList<>();
