@@ -160,6 +160,8 @@ class BetaMemory implements TokenHolder {
      */
     public void activate(Token token, Quad fact) {
         Token newToken = buildChildToken(token, fact);
+        if (newToken == null)
+            return;
         for (int i = children.size() - 1; i != -1; i--)
             children.get(i).activateToken(newToken);
     }
@@ -173,7 +175,9 @@ class BetaMemory implements TokenHolder {
         Collection<Token> result = new ArrayList<>();
         while (buffer.hasNext()) {
             Couple couple = buffer.next();
-            result.add(buildChildToken(couple.token, couple.fact));
+            Token newToken = buildChildToken(couple.token, couple.fact);
+            if (newToken != null)
+                result.add(newToken);
         }
         if (!result.isEmpty())
             for (int i = children.size() - 1; i != -1; i--)
@@ -190,9 +194,22 @@ class BetaMemory implements TokenHolder {
     private Token buildChildToken(Token token, Quad fact) {
         Token[] tChildren = store.get(token);
         if (tChildren == null) {
-            tChildren = new Token[CHILDREN_SIZE];
+            tChildren = new Token[binders.isEmpty() ? 1 : CHILDREN_SIZE];
             store.put(token, tChildren);
         }
+
+        if (binders.isEmpty()) {
+            // no binders, there can be only one child
+            if (tChildren[0] != null) {
+                // already here
+                tChildren[0].multiplicity++;
+                return null;
+            }
+            // not here, build the child
+            tChildren[0] = new Token(token, binders.size());
+            return tChildren[0];
+        }
+
         // create the child token
         Token childToken = new Token(token, binders.size());
         for (Binder binder : binders)
@@ -242,13 +259,21 @@ class BetaMemory implements TokenHolder {
             return;
         Collection<Token> buffer = new ArrayList<>();
         boolean isEmpty = true;
-        for (int i = 0; i != tChildren.length; i++) {
-            if (tChildren[i] != null) {
-                if (matches(tChildren[i], fact)) {
-                    buffer.add(tChildren[i]);
-                    tChildren[i] = null;
-                } else {
-                    isEmpty = false;
+        if (binders.isEmpty()) {
+            tChildren[0].multiplicity--;
+            if (tChildren[0].multiplicity <= 0)
+                buffer.add(tChildren[0]);
+            else
+                isEmpty = false;
+        } else {
+            for (int i = 0; i != tChildren.length; i++) {
+                if (tChildren[i] != null) {
+                    if (matches(tChildren[i], fact)) {
+                        buffer.add(tChildren[i]);
+                        tChildren[i] = null;
+                    } else {
+                        isEmpty = false;
+                    }
                 }
             }
         }
@@ -294,13 +319,21 @@ class BetaMemory implements TokenHolder {
             if (tChildren == null)
                 continue;
             boolean isEmpty = true;
-            for (int i = 0; i != tChildren.length; i++) {
-                if (tChildren[i] != null) {
-                    if (matches(tChildren[i], couple.fact)) {
-                        buffer.add(tChildren[i]);
-                        tChildren[i] = null;
-                    } else {
-                        isEmpty = false;
+            if (binders.isEmpty()) {
+                tChildren[0].multiplicity--;
+                if (tChildren[0].multiplicity <= 0)
+                    buffer.add(tChildren[0]);
+                else
+                    isEmpty = false;
+            } else {
+                for (int i = 0; i != tChildren.length; i++) {
+                    if (tChildren[i] != null) {
+                        if (matches(tChildren[i], couple.fact)) {
+                            buffer.add(tChildren[i]);
+                            tChildren[i] = null;
+                        } else {
+                            isEmpty = false;
+                        }
                     }
                 }
             }

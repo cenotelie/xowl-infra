@@ -46,6 +46,10 @@ public class Token {
      * The values for the bound variables
      */
     private Node[] values;
+    /**
+     * The token's multiplicity
+     */
+    int multiplicity;
 
     /**
      * Initializes a dummy token
@@ -54,6 +58,7 @@ public class Token {
         this.parent = null;
         this.variables = null;
         this.values = null;
+        this.multiplicity = 1;
     }
 
     /**
