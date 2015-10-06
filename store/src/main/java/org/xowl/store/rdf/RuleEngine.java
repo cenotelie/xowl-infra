@@ -84,9 +84,13 @@ public class RuleEngine implements ChangeListener {
      */
     private final RETENetwork rete;
     /**
-     * The new changes since the last application
+     * The new added quads since the last application
      */
-    private final List<Change> newChanges;
+    private final List<Quad> newAdded;
+    /**
+     * The new removed quads since the last application
+     */
+    private final List<Quad> newRemoved;
     /**
      * The new changesets since the last application
      */
@@ -127,7 +131,8 @@ public class RuleEngine implements ChangeListener {
         this.outputStore = outputStore;
         this.rules = new HashMap<>();
         this.rete = new RETENetwork(inputStore);
-        this.newChanges = new ArrayList<>();
+        this.newAdded = new ArrayList<>();
+        this.newRemoved = new ArrayList<>();
         this.newChangesets = new ArrayList<>();
         this.bufferPositives = new ArrayList<>();
         this.bufferNegatives = new ArrayList<>();
@@ -213,8 +218,26 @@ public class RuleEngine implements ChangeListener {
     }
 
     @Override
-    public void onChange(Change change) {
-        newChanges.add(change);
+    public void onIncremented(Quad quad) {
+        // do nothing
+    }
+
+    @Override
+    public void onDecremented(Quad quad) {
+        // re-inject decremented quads as negative
+        newRemoved.add(quad);
+        flush();
+    }
+
+    @Override
+    public void onAdded(Quad quad) {
+        newAdded.remove(quad);
+        flush();
+    }
+
+    @Override
+    public void onRemoved(Quad quad) {
+        newRemoved.add(quad);
         flush();
     }
 
@@ -231,14 +254,14 @@ public class RuleEngine implements ChangeListener {
         if (isFlushing)
             return;
         isFlushing = true;
-        while (!newChanges.isEmpty() || !newChangesets.isEmpty() || !requestsToFire.isEmpty() || !requestsToUnfire.isEmpty()) {
+        while (!newAdded.isEmpty() || !newRemoved.isEmpty() || !newChangesets.isEmpty() || !requestsToFire.isEmpty() || !requestsToUnfire.isEmpty()) {
             injectChanges();
             performUnfire();
             performFire();
             // inject the changes if necessary
             if (!bufferPositives.isEmpty() || !bufferNegatives.isEmpty()) {
                 try {
-                    outputStore.insert(new Changeset(bufferPositives, bufferNegatives));
+                    outputStore.insert(Changeset.fromAddedRemoved(bufferPositives, bufferNegatives));
                 } catch (UnsupportedNodeType ex) {
                     // TODO: report this
                 }
@@ -254,16 +277,16 @@ public class RuleEngine implements ChangeListener {
      */
     private void injectChanges() {
         // build the buffer for the injection in the RETE network
-        for (Change change : newChanges) {
-            if (change.isPositive())
-                bufferPositives.add(change.getValue());
-            else
-                bufferNegatives.add(change.getValue());
-        }
-        newChanges.clear();
+        bufferPositives.addAll(newAdded);
+        bufferNegatives.addAll(newRemoved);
+        newAdded.clear();
+        newRemoved.clear();
         for (Changeset changeset : newChangesets) {
-            bufferPositives.addAll(changeset.getPositives());
-            bufferNegatives.addAll(changeset.getNegatives());
+            // re-inject decremented quads as negative
+            // do nothing with the incremented quads
+            bufferPositives.addAll(changeset.getAdded());
+            bufferNegatives.addAll(changeset.getRemoved());
+            bufferNegatives.addAll(changeset.getDecremented());
         }
         newChangesets.clear();
         // inject in the RETE network
@@ -284,8 +307,12 @@ public class RuleEngine implements ChangeListener {
             if (data != null) {
                 // recreate the changeset
                 Changeset changeset = process(data.rule, data.token, data.specials);
-                bufferPositives.addAll(changeset.getNegatives());
-                bufferNegatives.addAll(changeset.getPositives());
+                if (changeset == null) {
+                    // TODO: report this
+                    continue;
+                }
+                bufferPositives.addAll(changeset.getRemoved());
+                bufferNegatives.addAll(changeset.getAdded());
             }
         }
     }
@@ -312,12 +339,14 @@ public class RuleEngine implements ChangeListener {
             }
             Map<Node, Node> specials = new HashMap<>();
             Changeset changeset = process(entry.getValue(), entry.getKey(), specials);
-            if (changeset == null)
+            if (changeset == null) {
+                // TODO: report this
                 continue;
+            }
             ExecutedRule data = new ExecutedRule(entry.getValue(), entry.getKey(), specials.isEmpty() ? null : specials);
             executed.put(data.token, data);
-            bufferPositives.addAll(changeset.getPositives());
-            bufferNegatives.addAll(changeset.getNegatives());
+            bufferPositives.addAll(changeset.getAdded());
+            bufferNegatives.addAll(changeset.getRemoved());
         }
     }
 
@@ -356,7 +385,7 @@ public class RuleEngine implements ChangeListener {
                 return null;
             negatives.add(result);
         }
-        return new Changeset(positives, negatives);
+        return Changeset.fromAddedRemoved(positives, negatives);
     }
 
     /**

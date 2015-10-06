@@ -98,7 +98,7 @@ public class CommandModify implements Command {
                 Utils.instantiate(repository, solution, insert, toInsert);
                 Utils.instantiate(repository, solution, delete, toRemove);
             }
-            repository.getStore().insert(new Changeset(toInsert, toRemove));
+            repository.getStore().insert(Changeset.fromAddedRemoved(toInsert, toRemove));
         } catch (UnsupportedNodeType | EvalException exception) {
             return new ResultFailure(exception.getMessage());
         }

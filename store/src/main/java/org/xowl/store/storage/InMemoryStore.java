@@ -108,10 +108,6 @@ public class InMemoryStore implements BaseStore {
         return dataset.count(graph, subject, property, object);
     }
 
-    @Override
-    public void insert(Change change) throws UnsupportedNodeType {
-        dataset.insert(change);
-    }
 
     @Override
     public void insert(Changeset changeset) throws UnsupportedNodeType {

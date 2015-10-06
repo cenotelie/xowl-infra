@@ -254,9 +254,13 @@ public class QueryEngine implements ChangeListener {
      */
     private final RETENetwork rete;
     /**
-     * The new changes since the last application
+     * The new added quads since the last application
      */
-    private final List<Change> newChanges;
+    private final List<Quad> newAdded;
+    /**
+     * The new removed quads since the last application
+     */
+    private final List<Quad> newRemoved;
     /**
      * The new changesets since the last application
      */
@@ -289,7 +293,8 @@ public class QueryEngine implements ChangeListener {
      */
     public QueryEngine(Dataset store) {
         this.rete = new RETENetwork(store);
-        this.newChanges = new ArrayList<>();
+        this.newAdded = new ArrayList<>();
+        this.newRemoved = new ArrayList<>();
         this.newChangesets = new ArrayList<>();
         this.bufferPositives = new ArrayList<>();
         this.bufferNegatives = new ArrayList<>();
@@ -395,8 +400,24 @@ public class QueryEngine implements ChangeListener {
     }
 
     @Override
-    public void onChange(Change change) {
-        newChanges.add(change);
+    public void onIncremented(Quad quad) {
+        // do nothing
+    }
+
+    @Override
+    public void onDecremented(Quad quad) {
+        // do nothing
+    }
+
+    @Override
+    public void onAdded(Quad quad) {
+        newAdded.remove(quad);
+        apply();
+    }
+
+    @Override
+    public void onRemoved(Quad quad) {
+        newRemoved.add(quad);
         apply();
     }
 
@@ -413,17 +434,14 @@ public class QueryEngine implements ChangeListener {
         if (isApplying)
             return;
         isApplying = true;
-        while (newChanges.size() > 0 || newChangesets.size() > 0) {
-            for (Change change : newChanges) {
-                if (change.isPositive())
-                    bufferPositives.add(change.getValue());
-                else
-                    bufferNegatives.add(change.getValue());
-            }
-            newChanges.clear();
+        while (!newAdded.isEmpty() || !newRemoved.isEmpty() || !newChangesets.isEmpty()) {
+            bufferPositives.addAll(newAdded);
+            bufferNegatives.addAll(newRemoved);
+            newAdded.clear();
+            newRemoved.clear();
             for (Changeset changeset : newChangesets) {
-                bufferPositives.addAll(changeset.getPositives());
-                bufferNegatives.addAll(changeset.getNegatives());
+                bufferPositives.addAll(changeset.getAdded());
+                bufferNegatives.addAll(changeset.getRemoved());
             }
             newChangesets.clear();
             rete.injectPositives(bufferPositives);

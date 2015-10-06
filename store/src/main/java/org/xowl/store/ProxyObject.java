@@ -307,22 +307,13 @@ public class ProxyObject {
      * Deletes this object from the repository
      */
     public void delete() {
-        List<Quad> toRemove = new ArrayList<>();
         try {
-            // get all triple of the form
+            // remove all triple of the form
             // [entity ? ?]
-            Iterator<Quad> iterator = repository.getStore().getAll(subject, null, null);
-            while (iterator.hasNext()) {
-                toRemove.add(iterator.next());
-            }
-            // get all triple of the form
+            repository.getStore().remove(null, subject, null, null);
+            // remove all triple of the form
             // [? ? entity]
-            iterator = repository.getStore().getAll(null, null, subject);
-            while (iterator.hasNext()) {
-                toRemove.add(iterator.next());
-            }
-            // remove
-            repository.getStore().insert(new Changeset(new ArrayList<Quad>(0), toRemove));
+            repository.getStore().remove(null, null, null, subject);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }
@@ -470,14 +461,9 @@ public class ProxyObject {
      */
     private void removeAllValues(IRINode property) {
         try {
-            // get all triple of the form
+            // remove all triple of the form
             // [entity property ?]
-            Iterator<Quad> iterator = repository.getStore().getAll(subject, property, null);
-            List<Quad> toRemove = new ArrayList<>();
-            while (iterator.hasNext()) {
-                toRemove.add(iterator.next());
-            }
-            repository.getStore().insert(new Changeset(new ArrayList<Quad>(0), toRemove));
+            repository.getStore().remove(null, subject, property, null);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
         }

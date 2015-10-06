@@ -27,11 +27,32 @@ package org.xowl.store.rdf;
  */
 public interface ChangeListener {
     /**
-     * Reacts to the specified change
+     * Reacts to the specified quad being incremented (not a new quad)
      *
-     * @param change A change
+     * @param quad The incremented quad
      */
-    void onChange(Change change);
+    void onIncremented(Quad quad);
+
+    /**
+     * Reacts to the specified quad being decremented (not removed yet)
+     *
+     * @param quad The decremented quad
+     */
+    void onDecremented(Quad quad);
+
+    /**
+     * Reacts to a new quad being added
+     *
+     * @param quad The new quad
+     */
+    void onAdded(Quad quad);
+
+    /**
+     * Reacts to a quad being removed
+     *
+     * @param quad The removed quad
+     */
+    void onRemoved(Quad quad);
 
     /**
      * Reacts to the specified changeset

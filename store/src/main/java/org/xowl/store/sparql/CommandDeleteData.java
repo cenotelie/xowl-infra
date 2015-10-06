@@ -57,7 +57,7 @@ public class CommandDeleteData implements Command {
     @Override
     public Result execute(Repository repository) {
         try {
-            repository.getStore().insert(new Changeset(new ArrayList<Quad>(), quads));
+            repository.getStore().insert(Changeset.fromRemoved(quads));
             return ResultSuccess.INSTANCE;
         } catch (UnsupportedNodeType exception) {
             return new ResultFailure(exception.getMessage());

@@ -82,7 +82,7 @@ public class RDFParser {
         try {
             store = new InMemoryStore();
             graphNode = new VariableNode("__graph__");
-            store.insert(new Changeset(quads, new ArrayList<Quad>(0)));
+            store.insert(Changeset.fromAdded(quads));
         } catch (UnsupportedNodeType ex) {
             // TODO: log this
         }

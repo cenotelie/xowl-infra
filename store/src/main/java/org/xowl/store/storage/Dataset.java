@@ -125,12 +125,6 @@ public interface Dataset {
     long count(GraphNode graph, SubjectNode subject, Property property, Node object);
 
 
-    /**
-     * Applies the specified change to this dataset
-     *
-     * @param change A change
-     */
-    void insert(Change change) throws UnsupportedNodeType;
 
     /**
      * Applies the specified changeset to this dataset

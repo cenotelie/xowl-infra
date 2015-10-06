@@ -20,7 +20,6 @@
 
 package org.xowl.store.rdf;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -31,21 +30,78 @@ import java.util.Collections;
  */
 public class Changeset {
     /**
+     * Create a changeset for added quads
+     *
+     * @param quads The added quads
+     * @return The changeset
+     */
+    public static Changeset fromAdded(Collection<Quad> quads) {
+        return new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, quads, Collections.EMPTY_LIST);
+    }
+
+    /**
+     * Create a changeset for removed quads
+     *
+     * @param quads The removed quads
+     * @return The changeset
+     */
+    public static Changeset fromRemoved(Collection<Quad> quads) {
+        return new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, quads);
+    }
+
+    /**
+     * Creates a changeset for added and removed quads
+     *
+     * @param added   The added quads
+     * @param removed The removed quads
+     * @return The changeset
+     */
+    public static Changeset fromAddedRemoved(Collection<Quad> added, Collection<Quad> removed) {
+        return new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, added, removed);
+    }
+
+    /**
+     * The quads that are incremented
+     */
+    private final Collection<Quad> incremented;
+    /**
+     * The quads that are decremented
+     */
+    private final Collection<Quad> decremented;
+    /**
      * The quads that are added
      */
-    private final Collection<Quad> positives;
+    private final Collection<Quad> added;
     /**
      * The quads that are removed
      */
-    private final Collection<Quad> negatives;
+    private final Collection<Quad> removed;
+
+    /**
+     * Gets the quads that are incremented
+     *
+     * @return The quads that are incremented
+     */
+    public Collection<Quad> getIncremented() {
+        return incremented;
+    }
+
+    /**
+     * Gets the quads that are decremented
+     *
+     * @return The quads that are decremented
+     */
+    public Collection<Quad> getDecremented() {
+        return decremented;
+    }
 
     /**
      * Gets the quads that are added
      *
      * @return The quads that are added
      */
-    public Collection<Quad> getPositives() {
-        return Collections.unmodifiableCollection(positives);
+    public Collection<Quad> getAdded() {
+        return added;
     }
 
     /**
@@ -53,18 +109,22 @@ public class Changeset {
      *
      * @return The quads that are removed
      */
-    public Collection<Quad> getNegatives() {
-        return Collections.unmodifiableCollection(negatives);
+    public Collection<Quad> getRemoved() {
+        return removed;
     }
 
     /**
      * Initializes this changeset
      *
-     * @param positives The quads that are added
-     * @param negatives The quads that are removed
+     * @param incremented The quads that are incremented
+     * @param decremented The quads that are decremented
+     * @param positives   The quads that are added
+     * @param negatives   The quads that are removed
      */
-    public Changeset(Collection<Quad> positives, Collection<Quad> negatives) {
-        this.positives = new ArrayList<>(positives);
-        this.negatives = new ArrayList<>(negatives);
+    public Changeset(Collection<Quad> incremented, Collection<Quad> decremented, Collection<Quad> positives, Collection<Quad> negatives) {
+        this.incremented = Collections.unmodifiableCollection(incremented);
+        this.decremented = Collections.unmodifiableCollection(decremented);
+        this.added = Collections.unmodifiableCollection(positives);
+        this.removed = Collections.unmodifiableCollection(negatives);
     }
 }

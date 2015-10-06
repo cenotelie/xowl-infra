@@ -59,7 +59,7 @@ public class CommandInsertData implements Command {
     @Override
     public Result execute(Repository repository) {
         try {
-            repository.getStore().insert(new Changeset(quads, new ArrayList<Quad>()));
+            repository.getStore().insert(Changeset.fromAdded(quads));
             return ResultSuccess.INSTANCE;
         } catch (UnsupportedNodeType exception) {
             return new ResultFailure(exception.getMessage());

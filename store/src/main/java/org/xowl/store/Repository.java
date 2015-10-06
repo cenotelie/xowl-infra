@@ -459,7 +459,7 @@ public class Repository extends AbstractRepository {
     protected void loadResourceRDF(Logger logger, Ontology ontology, RDFLoaderResult input) {
         getGraph(ontology);
         try {
-            backend.insert(new Changeset(input.getQuads(), new ArrayList<Quad>(0)));
+            backend.insert(Changeset.fromAdded(input.getQuads()));
         } catch (UnsupportedNodeType ex) {
             logger.error(ex);
         }
@@ -474,7 +474,7 @@ public class Repository extends AbstractRepository {
         try {
             Translator translator = new Translator(null, backend, null);
             Collection<Quad> quads = translator.translate(input);
-            backend.insert(new Changeset(quads, new ArrayList<Quad>(0)));
+            backend.insert(Changeset.fromAdded(quads));
         } catch (TranslationException | UnsupportedNodeType ex) {
             logger.error(ex);
         }

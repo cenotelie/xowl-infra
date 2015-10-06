@@ -56,26 +56,13 @@ public class RETENetwork {
     }
 
     /**
-     * Injects a change in this network
-     *
-     * @param change A change
-     */
-    public void inject(Change change) {
-        if (change.isPositive()) {
-            alpha.fire(change.getValue());
-        } else {
-            alpha.unfire(change.getValue());
-        }
-    }
-
-    /**
      * Injects a collection of changes in this network
      *
      * @param changeset A changeset
      */
     public void inject(Changeset changeset) {
-        injectPositives(changeset.getPositives());
-        injectNegatives(changeset.getNegatives());
+        injectPositives(changeset.getAdded());
+        injectNegatives(changeset.getRemoved());
     }
 
     /**

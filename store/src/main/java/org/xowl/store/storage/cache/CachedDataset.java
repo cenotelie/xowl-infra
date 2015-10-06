@@ -90,28 +90,6 @@ public class CachedDataset implements Dataset {
         listeners = new ArrayList<>();
     }
 
-    /**
-     * Broadcasts the information that a new quad was added
-     *
-     * @param quad The quad
-     */
-    private void onQuadAdded(Quad quad) {
-        Change change = new Change(quad, true);
-        for (ChangeListener listener : listeners)
-            listener.onChange(change);
-    }
-
-    /**
-     * Broadcasts the information that a quad was removed
-     *
-     * @param quad The quad
-     */
-    private void onQuadRemoved(Quad quad) {
-        Change change = new Change(quad, false);
-        for (ChangeListener listener : listeners)
-            listener.onChange(change);
-    }
-
     @Override
     public void addListener(ChangeListener listener) {
         listeners.add(listener);
@@ -213,81 +191,73 @@ public class CachedDataset implements Dataset {
     }
 
     @Override
-    public void insert(Change change) throws UnsupportedNodeType {
-        Quad quad = change.getValue();
-        if (change.isPositive()) {
-            int result = doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            if (result == ADD_RESULT_NEW) {
-                for (ChangeListener listener : listeners) {
-                    listener.onChange(change);
-                }
-            }
-        } else {
-            int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            if (result == REMOVE_RESULT_REMOVED) {
-                for (ChangeListener listener : listeners) {
-                    listener.onChange(change);
-                }
-            }
-        }
-    }
-
-    @Override
     public void insert(Changeset changeset) throws UnsupportedNodeType {
-        Collection<Quad> positives = new ArrayList<>();
-        Collection<Quad> negatives = new ArrayList<>();
-        int indexPositive = 0;
-        int indexNegative = 0;
+        Collection<Quad> incremented = new ArrayList<>();
+        Collection<Quad> decremented = new ArrayList<>();
+        Collection<Quad> added = new ArrayList<>();
+        Collection<Quad> removed = new ArrayList<>();
         try {
-            for (Quad quad : changeset.getPositives()) {
+            for (Quad quad : changeset.getAdded()) {
                 int result = doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-                if (result == ADD_RESULT_NEW)
-                    positives.add(quad);
-                indexPositive++;
+                if (result == ADD_RESULT_NEW) {
+                    added.add(quad);
+                } else if (result == ADD_RESULT_INCREMENT) {
+                    incremented.add(quad);
+                }
             }
-            for (Quad quad : changeset.getNegatives()) {
+            for (Quad quad : changeset.getRemoved()) {
                 int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-                if (result == REMOVE_RESULT_REMOVED)
-                    negatives.add(quad);
-                indexNegative++;
+                if (result >= REMOVE_RESULT_REMOVED) {
+                    removed.add(quad);
+                } else if (result == REMOVE_RESULT_DECREMENT) {
+                    decremented.add(quad);
+                }
             }
         } catch (UnsupportedNodeType exception) {
             // rollback the previously inserted quads
-            for (Quad quad : changeset.getPositives()) {
-                if (indexPositive > 0)
-                    break;
+            for (Quad quad : incremented)
                 doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-                indexPositive--;
-            }
-            for (Quad quad : changeset.getNegatives()) {
-                if (indexNegative > 0)
-                    break;
+            for (Quad quad : added)
+                doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            for (Quad quad : decremented)
                 doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-                indexNegative--;
-            }
+            for (Quad quad : removed)
+                doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
             throw exception;
         }
-        if (!positives.isEmpty() || !negatives.isEmpty()) {
+        if (!incremented.isEmpty() || !decremented.isEmpty() || !added.isEmpty() || !removed.isEmpty()) {
             // transmit the changes only if a there are some!
-            Changeset newChangeset = new Changeset(positives, negatives);
-            for (ChangeListener listener : listeners) {
+            Changeset newChangeset = new Changeset(incremented, decremented, added, removed);
+            for (ChangeListener listener : listeners)
                 listener.onChange(newChangeset);
-            }
         }
     }
 
     @Override
     public void add(Quad quad) throws UnsupportedNodeType {
         int result = doAddEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-        if (result == ADD_RESULT_NEW)
-            onQuadAdded(quad);
+        if (result < ADD_RESULT_INCREMENT)
+            return;
+        for (ChangeListener listener : listeners) {
+            if (result >= ADD_RESULT_NEW)
+                listener.onAdded(quad);
+            else
+                listener.onIncremented(quad);
+        }
     }
 
     @Override
     public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         int result = doAddEdge(graph, subject, property, value);
-        if (result == ADD_RESULT_NEW)
-            onQuadAdded(new Quad(graph, subject, property, value));
+        Quad quad = new Quad(graph, subject, property, value);
+        if (result < ADD_RESULT_INCREMENT)
+            return;
+        for (ChangeListener listener : listeners) {
+            if (result >= ADD_RESULT_NEW)
+                listener.onAdded(quad);
+            else
+                listener.onIncremented(quad);
+        }
     }
 
     /**
@@ -375,8 +345,14 @@ public class CachedDataset implements Dataset {
         if (quad.getGraph() != null && quad.getSubject() != null && quad.getProperty() != null && quad.getObject() != null) {
             // remove a single quad
             int result = doRemoveEdge(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            if (result == REMOVE_RESULT_REMOVED)
-                onQuadRemoved(quad);
+            if (result < REMOVE_RESULT_DECREMENT)
+                return;
+            for (ChangeListener listener : listeners) {
+                if (result >= REMOVE_RESULT_REMOVED)
+                    listener.onRemoved(quad);
+                else
+                    listener.onDecremented(quad);
+            }
         } else {
             List<CachedQuad> buffer = new ArrayList<>();
             if (quad.getSubject() == null)
@@ -384,7 +360,7 @@ public class CachedDataset implements Dataset {
             else
                 doRemoveEdges(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject(), buffer);
             if (!buffer.isEmpty()) {
-                Changeset changeset = new Changeset(new ArrayList<Quad>(), (Collection) buffer);
+                Changeset changeset = Changeset.fromRemoved((Collection) buffer);
                 for (ChangeListener listener : listeners) {
                     listener.onChange(changeset);
                 }
@@ -397,8 +373,15 @@ public class CachedDataset implements Dataset {
         if (graph != null && subject != null && property != null && value != null) {
             // remove a single quad
             int result = doRemoveEdge(graph, subject, property, value);
-            if (result == REMOVE_RESULT_REMOVED)
-                onQuadRemoved(new Quad(graph, subject, property, value));
+            if (result < REMOVE_RESULT_DECREMENT)
+                return;
+            Quad quad = new Quad(graph, subject, property, value);
+            for (ChangeListener listener : listeners) {
+                if (result >= REMOVE_RESULT_REMOVED)
+                    listener.onRemoved(quad);
+                else
+                    listener.onDecremented(quad);
+            }
         } else {
             List<CachedQuad> buffer = new ArrayList<>();
             if (subject == null)
@@ -406,7 +389,7 @@ public class CachedDataset implements Dataset {
             else
                 doRemoveEdges(graph, subject, property, value, buffer);
             if (!buffer.isEmpty()) {
-                Changeset changeset = new Changeset(new ArrayList<Quad>(), (Collection) buffer);
+                Changeset changeset = Changeset.fromRemoved((Collection) buffer);
                 for (ChangeListener listener : listeners) {
                     listener.onChange(changeset);
                 }
@@ -688,7 +671,7 @@ public class CachedDataset implements Dataset {
         List<CachedQuad> buffer = new ArrayList<>();
         doClearFromAll(buffer);
         if (!buffer.isEmpty()) {
-            Changeset changeset = new Changeset(new ArrayList<Quad>(), (Collection) buffer);
+            Changeset changeset = Changeset.fromRemoved((Collection) buffer);
             for (ChangeListener listener : listeners) {
                 listener.onChange(changeset);
             }
@@ -704,7 +687,7 @@ public class CachedDataset implements Dataset {
         List<CachedQuad> buffer = new ArrayList<>();
         doClearFromAll(graph, buffer);
         if (!buffer.isEmpty()) {
-            Changeset changeset = new Changeset(new ArrayList<Quad>(), (Collection) buffer);
+            Changeset changeset = Changeset.fromRemoved((Collection) buffer);
             for (ChangeListener listener : listeners) {
                 listener.onChange(changeset);
             }
@@ -859,7 +842,7 @@ public class CachedDataset implements Dataset {
         doCopyFromBlanks(origin, target, bufferOld, bufferNew, overwrite);
         doCopyFromAnons(origin, target, bufferOld, bufferNew, overwrite);
         if (!bufferOld.isEmpty() || !bufferNew.isEmpty()) {
-            Changeset changeset = new Changeset((Collection) bufferNew, (Collection) bufferOld);
+            Changeset changeset = Changeset.fromAddedRemoved((Collection) bufferNew, (Collection) bufferOld);
             for (ChangeListener listener : listeners) {
                 listener.onChange(changeset);
             }
@@ -961,7 +944,7 @@ public class CachedDataset implements Dataset {
         doMoveFromBlanks(origin, target, bufferOld, bufferNew);
         doMoveFromAnons(origin, target, bufferOld, bufferNew);
         if (!bufferOld.isEmpty() || !bufferNew.isEmpty()) {
-            Changeset changeset = new Changeset((Collection) bufferNew, (Collection) bufferOld);
+            Changeset changeset = Changeset.fromAddedRemoved((Collection) bufferNew, (Collection) bufferOld);
             for (ChangeListener listener : listeners) {
                 listener.onChange(changeset);
             }
