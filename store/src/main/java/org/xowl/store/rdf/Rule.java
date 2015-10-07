@@ -166,7 +166,8 @@ public class Rule {
     /**
      * Initializes this rule
      *
-     * @param iri The rule's identifying iri
+     * @param iri      The rule's identifying iri
+     * @param distinct Whether to trigger this rule only on distinct solutions
      */
     public Rule(String iri, boolean distinct) {
         this.iri = iri;

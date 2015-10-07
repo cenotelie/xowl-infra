@@ -54,7 +54,7 @@ public class URIUtils {
     /**
      * Determines whether the specified URI is absolute.
      * An URI is considered absolute if it has a scheme component, as well as either an authority or path component
-     * (See <a href="http://tools.ietf.org/html/rfc3986#section-4.3>RFC 3986 - 4.3</a>)
+     * (See <a href="http://tools.ietf.org/html/rfc3986#section-4.3">RFC 3986 - 4.3</a>)
      *
      * @param uri An URI
      * @return true

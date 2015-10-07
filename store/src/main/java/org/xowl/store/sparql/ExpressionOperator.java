@@ -147,6 +147,7 @@ public class ExpressionOperator implements Expression {
      *
      * @param value An expression's value
      * @return The primitive equivalent
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static Object primitive(Object value) throws EvalException {
         if (value == null)
@@ -185,6 +186,7 @@ public class ExpressionOperator implements Expression {
      *
      * @param value The value to coerce
      * @return The boolean
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static boolean bool(Object value) throws EvalException {
         if (value == null)
@@ -215,6 +217,7 @@ public class ExpressionOperator implements Expression {
      *
      * @param value The value
      * @return The coerced value
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static long integer(Object value) throws EvalException {
         if (value instanceof Byte) {
@@ -246,6 +249,7 @@ public class ExpressionOperator implements Expression {
      *
      * @param value The value
      * @return The coerced value
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static double decimal(Object value) throws EvalException {
         if (value instanceof Float) {
@@ -262,6 +266,7 @@ public class ExpressionOperator implements Expression {
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static boolean boolean_and(Object left, Object right) throws EvalException {
         return bool(primitive(left)) && bool(primitive(right));
@@ -273,6 +278,7 @@ public class ExpressionOperator implements Expression {
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static boolean boolean_or(Object left, Object right) throws EvalException {
         return bool(primitive(left)) || bool(primitive(right));
@@ -283,6 +289,7 @@ public class ExpressionOperator implements Expression {
      *
      * @param operand The operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static boolean boolean_not(Object operand) throws EvalException {
         return !bool(primitive(operand));
@@ -294,6 +301,7 @@ public class ExpressionOperator implements Expression {
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static boolean equals(Object left, Object right) throws EvalException {
         if (left == null && right == null)
@@ -325,17 +333,19 @@ public class ExpressionOperator implements Expression {
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static boolean different(Object left, Object right) throws EvalException {
         return !equals(left, right);
     }
 
     /**
-     * SPARQL < operator
+     * SPARQL &lt; operator
      *
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static boolean lesser_than(Object left, Object right) throws EvalException {
         left = primitive(left);
@@ -387,11 +397,12 @@ public class ExpressionOperator implements Expression {
     }
 
     /**
-     * SPARQL <= operator
+     * SPARQL &lt;= operator
      *
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static boolean lesser_or_equal(Object left, Object right) throws EvalException {
         left = primitive(left);
@@ -443,11 +454,12 @@ public class ExpressionOperator implements Expression {
     }
 
     /**
-     * SPARQL > operator
+     * SPARQL &gt; operator
      *
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static boolean greater_than(Object left, Object right) throws EvalException {
         left = primitive(left);
@@ -499,11 +511,12 @@ public class ExpressionOperator implements Expression {
     }
 
     /**
-     * SPARQL >= operator
+     * SPARQL &gt;= operator
      *
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static boolean greater_or_equal(Object left, Object right) throws EvalException {
         left = primitive(left);
@@ -559,6 +572,7 @@ public class ExpressionOperator implements Expression {
      *
      * @param value The operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static Object plus(Object value) throws EvalException {
         value = primitive(value);
@@ -573,6 +587,7 @@ public class ExpressionOperator implements Expression {
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static Object plus(Object left, Object right) throws EvalException {
         left = primitive(left);
@@ -619,6 +634,7 @@ public class ExpressionOperator implements Expression {
      *
      * @param value The operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static Object minus(Object value) throws EvalException {
         value = primitive(value);
@@ -635,6 +651,7 @@ public class ExpressionOperator implements Expression {
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static Object minus(Object left, Object right) throws EvalException {
         left = primitive(left);
@@ -674,6 +691,7 @@ public class ExpressionOperator implements Expression {
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static Object multiply(Object left, Object right) throws EvalException {
         left = primitive(left);
@@ -713,6 +731,7 @@ public class ExpressionOperator implements Expression {
      * @param left  The left operand
      * @param right The right operand
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     public static Object divide(Object left, Object right) throws EvalException {
         left = primitive(left);

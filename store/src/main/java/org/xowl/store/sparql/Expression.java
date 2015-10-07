@@ -45,6 +45,7 @@ public interface Expression {
      * @param repository The repository to evaluate on
      * @param solutions  The current set of solutions
      * @return The result
+     * @throws EvalException When an error occurs during the evaluation
      */
     Object eval(Repository repository, Solutions solutions) throws EvalException;
 }

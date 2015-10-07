@@ -100,6 +100,7 @@ public abstract class JSONLDLoader implements Loader {
      *
      * @param node An AST node that holds a literal string
      * @return The decoded value of the string
+     * @throws LoaderException On unrecognized input
      */
     public static String getValue(ASTNode node) throws LoaderException {
         switch (node.getSymbol().getID()) {
@@ -225,6 +226,7 @@ public abstract class JSONLDLoader implements Loader {
      *
      * @param iri The IRI of an auxiliary document
      * @return The parsed external document, or null if an error occured
+     * @throws LoaderException On unrecognized input
      */
     protected ASTNode getExternalContextDefinition(String iri) throws LoaderException {
         Reader reader = getReaderFor(logger, iri);

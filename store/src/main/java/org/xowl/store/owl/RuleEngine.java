@@ -123,8 +123,9 @@ public class RuleEngine {
     /**
      * Initializes this engine
      *
-     * @param inputStore The store to operate over
-     * @param evaluator  The evaluator
+     * @param inputStore  The store to operate over
+     * @param outputStore The store to output produced axioms
+     * @param evaluator   The evaluator
      */
     public RuleEngine(BaseStore inputStore, BaseStore outputStore, Evaluator evaluator) {
         this.outputStore = outputStore;
@@ -137,7 +138,10 @@ public class RuleEngine {
     /**
      * Adds the specified rule
      *
-     * @param rule The rule to add
+     * @param rule   The rule to add
+     * @param source The source ontology (where axioms are matched)
+     * @param target the target ontology (where axioms are produced)
+     * @param meta   The meta ontology (where axioms are both matched and produced)
      */
     public void add(Rule rule, Ontology source, Ontology target, Ontology meta) {
         TranslationContext translationContext = new TranslationContext();

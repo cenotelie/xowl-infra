@@ -136,6 +136,7 @@ public class GraphPatternModifier {
      * @param solutions  The solution set
      * @param repository The repository to evaluate on
      * @return The transformed solution set
+     * @throws EvalException When an error occurs during the evaluation
      */
     public Solutions apply(Solutions solutions, Repository repository) throws EvalException {
         Solutions result = solutions;

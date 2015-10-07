@@ -108,8 +108,8 @@ public class IOUtils {
     /**
      * Escapes special characters in the specified absolute URI according to the common W3C requirements for Turtle, N-Triples, N-quads, etc.
      * All characters are copied as-is, except for the following, which are changed for a unicode escape sequence \ u XXXX:
-     * characters in range U+0000 to U+0020 and <, >, ", {, }, |, ^, `, \.
-     * This method assumes that the result will be surrounded with angle brackets (< and >).
+     * characters in range U+0000 to U+0020 and &lt;, &gt;, ", {, }, |, ^, `, \.
+     * This method assumes that the result will be surrounded with angle brackets (&lt; and &gt;).
      *
      * @param value The absolute URI to escape
      * @return The escaped URI
@@ -147,10 +147,10 @@ public class IOUtils {
      * Escapes special characters in the specified string according to the CSV requirements
      * (See <a href="http://www.ietf.org/rfc/rfc4180.txt">CSV</a>)
      * All characters are copied as-is, except the double quote ("), which is doubled:
-     * input    -> output
-     * a        -> a
-     * 'a'      -> 'a'
-     * "b"c     -> ""b""c
+     * input    : output
+     * a        : a
+     * 'a'      : 'a'
+     * "b"c     : ""b""c
      * This method assumes that the result will be quoted with the double quotes characters (").
      *
      * @param value The value to escape

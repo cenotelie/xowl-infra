@@ -65,6 +65,7 @@ public class MatchStatus {
      * Serializes this matching status in the JSON syntax
      *
      * @param writer The writer to write to
+     * @throws IOException When the underlying write operation failed
      */
     public void printJSON(Writer writer) throws IOException {
         writer.write("{ \"steps\": [");

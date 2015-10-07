@@ -889,6 +889,7 @@ public class Translator {
      * Translates the specified axiom
      *
      * @param axiom The OWL axiom to translate
+     * @throws TranslationException When a runtime entity is not named
      */
     protected void translateAxiomFunctionDefinition(FunctionDefinitionAxiom axiom) throws TranslationException {
         SubjectNode function = translateFunctionExpression(axiom.getFunction());
