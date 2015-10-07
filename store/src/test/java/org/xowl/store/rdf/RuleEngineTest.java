@@ -212,4 +212,36 @@ public class RuleEngineTest {
             Assert.fail(exception.getMessage());
         }
     }
+
+    @Test
+    public void testRetractLoop() {
+        Repository repository = new Repository();
+        String rule1 = "rule xowl:test-rule { ?x rdf:type xowl:y } => { ?x rdf:type xowl:z }";
+        String rule2 = "rule xowl:test-rule { ?x rdf:type xowl:z } => { ?x rdf:type xowl:y }";
+        IRINode x = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#x");
+        IRINode y = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#y");
+        IRINode z = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#z");
+        Quad q1 = new Quad(repository.getStore().getIRINode(NodeManager.DEFAULT_GRAPH),
+                x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
+        Quad q2 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+                x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
+        Quad q3 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+                x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
+        try {
+            repository.getStore().add(q1);
+            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule1));
+            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule2));
+            repository.getRDFRuleEngine().flush();
+            Iterator<Quad> iterator = repository.getStore().getAll(x, null, null);
+            List<Quad> content = new ArrayList<>();
+            while (iterator.hasNext())
+                content.add(iterator.next());
+            W3CTestSuite.matchesQuads(new ArrayList<>(Arrays.asList(q1, q2, q3)), content);
+            repository.getStore().remove(q1);
+            iterator = repository.getStore().getAll(x, null, null);
+            Assert.assertFalse("Should not have quads", iterator.hasNext());
+        } catch (UnsupportedNodeType exception) {
+            Assert.fail(exception.getMessage());
+        }
+    }
 }
