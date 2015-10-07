@@ -135,18 +135,22 @@ class Edge implements Iterable<EdgeTarget> {
     /**
      * Removes all the matching edges (or decrement their counter)
      *
-     * @param graph  The graph to match, or null
-     * @param value  The edge's target node to match, or null
-     * @param buffer The buffer for the removed quads
+     * @param graph             The graph to match, or null
+     * @param value             The edge's target node to match, or null
+     * @param bufferDecremented The buffer for the decremented quads
+     * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    public int removeAll(GraphNode graph, Node value, List<CachedQuad> buffer) {
+    public int removeAll(GraphNode graph, Node value, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && (value == null || RDFUtils.same(targets[i].getTarget(), value))) {
-                int originalSize = buffer.size();
-                int result = targets[i].removeAll(graph, buffer);
-                for (int j = originalSize; j != buffer.size(); j++)
-                    buffer.get(j).setObject(targets[i].getTarget());
+                int originalSizeDec = bufferDecremented.size();
+                int originalSizeRem = bufferRemoved.size();
+                int result = targets[i].removeAll(graph, bufferDecremented, bufferRemoved);
+                for (int j = originalSizeDec; j != bufferDecremented.size(); j++)
+                    bufferDecremented.get(j).setObject(targets[i].getTarget());
+                for (int j = originalSizeRem; j != bufferRemoved.size(); j++)
+                    bufferRemoved.get(j).setObject(targets[i].getTarget());
                 if (result == CachedDataset.REMOVE_RESULT_EMPTIED) {
                     targets[i] = null;
                     size--;

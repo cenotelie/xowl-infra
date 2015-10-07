@@ -118,19 +118,23 @@ class EdgeBucket implements Iterable<Edge> {
     /**
      * Removes all the matching edges from this bucket(or decrement their counter)
      *
-     * @param graph    The containing graph to match, or null
-     * @param property The property on this edge to match, or null
-     * @param value    The target value to match, or null
-     * @param buffer   The buffer for the removed quads
+     * @param graph             The containing graph to match, or null
+     * @param property          The property on this edge to match, or null
+     * @param value             The target value to match, or null
+     * @param bufferDecremented The buffer for the decremented quads
+     * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    public int removeAll(GraphNode graph, Property property, Node value, List<CachedQuad> buffer) {
+    public int removeAll(GraphNode graph, Property property, Node value, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
         for (int i = 0; i != edges.length; i++) {
             if (edges[i] != null && (property == null || RDFUtils.same(edges[i].getProperty(), property))) {
-                int originalSize = buffer.size();
-                int result = edges[i].removeAll(graph, value, buffer);
-                for (int j = originalSize; j != buffer.size(); j++)
-                    buffer.get(j).setProperty(edges[i].getProperty());
+                int originalSizeDec = bufferDecremented.size();
+                int originalSizeRem = bufferRemoved.size();
+                int result = edges[i].removeAll(graph, value, bufferDecremented, bufferRemoved);
+                for (int j = originalSizeDec; j != bufferDecremented.size(); j++)
+                    bufferDecremented.get(j).setProperty(edges[i].getProperty());
+                for (int j = originalSizeRem; j != bufferRemoved.size(); j++)
+                    bufferRemoved.get(j).setProperty(edges[i].getProperty());
                 if (result == CachedDataset.REMOVE_RESULT_EMPTIED) {
                     edges[i] = null;
                     size--;

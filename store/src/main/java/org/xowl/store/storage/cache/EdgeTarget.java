@@ -144,18 +144,21 @@ class EdgeTarget implements Iterable<GraphNode> {
     /**
      * Removes all the matching graphs (or decrement their counter)
      *
-     * @param graph  The graph to match, or null
-     * @param buffer The buffer for the removed quads
+     * @param graph             The graph to match, or null
+     * @param bufferDecremented The buffer for the decremented quads
+     * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    public int removeAll(GraphNode graph, List<CachedQuad> buffer) {
+    public int removeAll(GraphNode graph, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] != null && (graph == null || RDFUtils.same(graphs[i], graph))) {
                 multiplicities[i]--;
                 if (multiplicities[i] == 0) {
-                    buffer.add(new CachedQuad(graphs[i], null, null, null));
+                    bufferRemoved.add(new CachedQuad(graphs[i], null, null, null));
                     graphs[i] = null;
                     size--;
+                } else {
+                    bufferDecremented.add(new CachedQuad(graphs[i], null, null, null));
                 }
             }
         }
