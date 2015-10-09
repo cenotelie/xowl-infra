@@ -20,11 +20,11 @@
 
 package org.xowl.store.rdf;
 
+import org.xowl.store.IRIs;
 import org.xowl.store.RDFUtils;
 import org.xowl.store.rete.*;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.Dataset;
-import org.xowl.store.storage.NodeManager;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.collections.Couple;
 
@@ -515,7 +515,7 @@ public class RuleEngine implements ChangeListener {
             if (graph.getNodeType() != Node.TYPE_IRI)
                 continue;
             String iri = ((IRINode) graph).getIRIValue();
-            if (!NodeManager.INFERENCE_GRAPH.equals(iri))
+            if (!IRIs.GRAPH_INFERENCE.equals(iri))
                 continue;
             // this is an inferred quad
             Collection<ExecutedRule> executions = getExecutedRulesFor(current.quad);

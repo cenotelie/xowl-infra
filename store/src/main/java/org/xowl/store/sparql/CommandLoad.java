@@ -20,8 +20,8 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.IRIs;
 import org.xowl.store.Repository;
-import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.SinkLogger;
 
 /**
@@ -71,7 +71,7 @@ public class CommandLoad implements Command {
     @Override
     public Result execute(Repository repository) {
         SinkLogger logger = new SinkLogger();
-        repository.load(logger, iri, target == null ? NodeManager.DEFAULT_GRAPH : target, true);
+        repository.load(logger, iri, target == null ? IRIs.GRAPH_DEFAULT : target, true);
         return !logger.isOnError() || isSilent ? ResultSuccess.INSTANCE : ResultFailure.INSTANCE;
     }
 }

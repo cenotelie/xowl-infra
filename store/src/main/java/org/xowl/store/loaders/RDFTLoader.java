@@ -25,6 +25,7 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.store.IOUtils;
+import org.xowl.store.IRIs;
 import org.xowl.store.URIUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
@@ -136,9 +137,9 @@ public class RDFTLoader implements Loader {
         RDFLoaderResult result = new RDFLoaderResult();
         rules = result.getRules();
         if (graphMeta == null)
-            graphMeta = store.getIRINode(NodeManager.META_GRAPH);
+            graphMeta = store.getIRINode(IRIs.GRAPH_META);
         if (graphTarget == null)
-            graphTarget = store.getIRINode(NodeManager.INFERENCE_GRAPH);
+            graphTarget = store.getIRINode(IRIs.GRAPH_INFERENCE);
         resource = resourceIRI;
         baseURI = resource;
         namespaces = new HashMap<>();

@@ -22,12 +22,12 @@ package org.xowl.store.rdf;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.xowl.store.IRIs;
 import org.xowl.store.Repository;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.W3CTestSuite;
 import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.RDFTLoader;
-import org.xowl.store.storage.NodeManager;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.SinkLogger;
 
@@ -63,7 +63,7 @@ public class RuleEngineTest {
     protected Rule loadRDFTRule(Repository repository, String input) {
         SinkLogger logger = new SinkLogger();
         RDFTLoader loader = new RDFTLoader(repository.getStore());
-        RDFLoaderResult result = loader.loadRDF(logger, new StringReader(DEFAULT_PREFIXES + input), NodeManager.DEFAULT_GRAPH, NodeManager.DEFAULT_GRAPH);
+        RDFLoaderResult result = loader.loadRDF(logger, new StringReader(DEFAULT_PREFIXES + input), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT);
         Assert.assertFalse("Failed to load the rule", logger.isOnError());
         Assert.assertNotNull("No result", result);
         Assert.assertEquals("Expected exactly 1 rule", 1, result.getRules().size());
@@ -77,9 +77,9 @@ public class RuleEngineTest {
         IRINode x = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#z");
-        Quad q1 = new Quad(repository.getStore().getIRINode(NodeManager.DEFAULT_GRAPH),
+        Quad q1 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_DEFAULT),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
-        Quad q2 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+        Quad q2 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_INFERENCE),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
         try {
             repository.getStore().add(q1);
@@ -103,11 +103,11 @@ public class RuleEngineTest {
         IRINode x = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#z");
-        Quad q1 = new Quad(repository.getStore().getIRINode(NodeManager.DEFAULT_GRAPH),
+        Quad q1 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_DEFAULT),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
-        Quad q2 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+        Quad q2 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_INFERENCE),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
-        Quad q3 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+        Quad q3 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_INFERENCE),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), x);
         try {
             repository.getStore().add(q1);
@@ -132,11 +132,11 @@ public class RuleEngineTest {
         IRINode x = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#z");
-        Quad q1 = new Quad(repository.getStore().getIRINode(NodeManager.DEFAULT_GRAPH),
+        Quad q1 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_DEFAULT),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
-        Quad q2 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+        Quad q2 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_INFERENCE),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
-        Quad q3 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+        Quad q3 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_INFERENCE),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
         try {
             repository.getStore().add(q1);
@@ -160,9 +160,9 @@ public class RuleEngineTest {
         IRINode x = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#z");
-        Quad q1 = new Quad(repository.getStore().getIRINode(NodeManager.DEFAULT_GRAPH),
+        Quad q1 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_DEFAULT),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
-        Quad q2 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+        Quad q2 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_INFERENCE),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
         try {
             repository.getStore().add(q1);
@@ -189,11 +189,11 @@ public class RuleEngineTest {
         IRINode x = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#z");
-        Quad q1 = new Quad(repository.getStore().getIRINode(NodeManager.DEFAULT_GRAPH),
+        Quad q1 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_DEFAULT),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
-        Quad q2 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+        Quad q2 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_INFERENCE),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
-        Quad q3 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+        Quad q3 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_INFERENCE),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), x);
         try {
             repository.getStore().add(q1);
@@ -221,11 +221,11 @@ public class RuleEngineTest {
         IRINode x = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#x");
         IRINode y = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#y");
         IRINode z = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#z");
-        Quad q1 = new Quad(repository.getStore().getIRINode(NodeManager.DEFAULT_GRAPH),
+        Quad q1 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_DEFAULT),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
-        Quad q2 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+        Quad q2 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_INFERENCE),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
-        Quad q3 = new Quad(repository.getStore().getIRINode(NodeManager.INFERENCE_GRAPH),
+        Quad q3 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_INFERENCE),
                 x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
         try {
             repository.getStore().add(q1);

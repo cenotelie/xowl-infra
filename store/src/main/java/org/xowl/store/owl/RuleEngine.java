@@ -24,13 +24,13 @@ import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.rules.Assertion;
 import org.xowl.lang.rules.Rule;
 import org.xowl.store.Evaluator;
+import org.xowl.store.IRIs;
 import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.VariableNode;
 import org.xowl.store.rete.Token;
 import org.xowl.store.storage.BaseStore;
-import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.collections.Couple;
 
 import java.util.*;
@@ -241,7 +241,7 @@ public class RuleEngine {
             if (allowsPattern)
                 return null;
             else
-                return outputStore.getIRINode(NodeManager.DEFAULT_GRAPH + "/" + UUID.randomUUID());
+                return outputStore.getIRINode(IRIs.GRAPH_DEFAULT + "/" + UUID.randomUUID());
         }
         return outputStore.getIRINode(ontology.getHasIRI().getHasValue());
     }

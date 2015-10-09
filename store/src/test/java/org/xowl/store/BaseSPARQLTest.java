@@ -31,7 +31,6 @@ import org.xowl.store.rdf.Quad;
 import org.xowl.store.sparql.*;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.InMemoryStore;
-import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.Logger;
 import org.xowl.utils.collections.Couple;
 
@@ -478,7 +477,7 @@ public abstract class BaseSPARQLTest {
         TestLogger logger = new TestLogger();
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
-        repository.load(logger, expected, NodeManager.DEFAULT_GRAPH, true);
+        repository.load(logger, expected, IRIs.GRAPH_DEFAULT, true);
         Assert.assertFalse("Failed to load the expected results", logger.isOnError());
         W3CTestSuite.matchesQuads(getQuads(repository), new ArrayList<>(result.getQuads()));
     }
@@ -508,7 +507,7 @@ public abstract class BaseSPARQLTest {
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
         for (Couple<String, String> input : inputs) {
-            repository.load(logger, input.x, input.y == null ? NodeManager.DEFAULT_GRAPH : input.y, true);
+            repository.load(logger, input.x, input.y == null ? IRIs.GRAPH_DEFAULT : input.y, true);
         }
         return repository;
     }
@@ -524,7 +523,7 @@ public abstract class BaseSPARQLTest {
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
         for (String input : inputs)
-            repository.load(logger, input, NodeManager.DEFAULT_GRAPH, true);
+            repository.load(logger, input, IRIs.GRAPH_DEFAULT, true);
         return repository;
     }
 

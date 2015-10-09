@@ -22,6 +22,7 @@ package org.xowl.server;
 
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.IOUtils;
+import org.xowl.store.IRIs;
 import org.xowl.store.Repository;
 import org.xowl.store.loaders.NQuadsLoader;
 import org.xowl.store.loaders.RDFLoaderResult;
@@ -35,7 +36,6 @@ import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultFailure;
 import org.xowl.store.sparql.ResultQuads;
-import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.BufferedLogger;
 import org.xowl.utils.DispatchLogger;
 import org.xowl.utils.Logger;
@@ -211,7 +211,7 @@ public class SPARQLService extends Service {
         BufferedLogger bufferedLogger = new BufferedLogger();
         DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
         NQuadsLoader loader = new NQuadsLoader(repository.getStore());
-        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(quad), NodeManager.DEFAULT_GRAPH, NodeManager.DEFAULT_GRAPH);
+        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(quad), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT);
         if (result == null || result.getQuads().isEmpty()) {
             response.setStatus(500);
             dispatchLogger.error("Failed to parse and load the request");
@@ -282,7 +282,7 @@ public class SPARQLService extends Service {
         BufferedLogger bufferedLogger = new BufferedLogger();
         DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
         RDFTLoader loader = new RDFTLoader(repository.getStore());
-        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(rule), NodeManager.DEFAULT_GRAPH, NodeManager.DEFAULT_GRAPH);
+        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(rule), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT);
         if (result == null || result.getRules().isEmpty()) {
             response.setStatus(500);
             dispatchLogger.error("Failed to parse and load the rule(s)");

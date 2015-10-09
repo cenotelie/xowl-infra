@@ -267,11 +267,11 @@ public class Repository extends AbstractRepository {
      * @param logger The logger to use
      */
     public void activateEntailmentRules(Logger logger) {
-        load(logger, IRIMapper.IRI_RDF);
-        load(logger, IRIMapper.IRI_RDFS);
-        load(logger, IRIMapper.IRI_OWL2);
-        load(logger, IRIMapper.IRI_XOWL_RULES + "owl2");
-        load(logger, IRIMapper.IRI_XOWL_RULES + "xowl");
+        load(logger, IRIs.RDF);
+        load(logger, IRIs.RDFS);
+        load(logger, IRIs.OWL2);
+        load(logger, IRIs.XOWL_RULES + "owl2");
+        load(logger, IRIs.XOWL_RULES + "xowl");
     }
 
     /**

@@ -26,7 +26,7 @@ package org.xowl.store;
  * @author Laurent Wouters
  */
 public class Vocabulary {
-    public static final String rdf = IRIMapper.IRI_RDF + "#";
+    public static final String rdf = IRIs.RDF + "#";
     public static final String rdfLangString = rdf + "langString";
     public static final String rdfPlainLiteral = rdf + "PlainLiteral";
     public static final String rdfRDF = rdf + "RDF";
@@ -48,14 +48,14 @@ public class Vocabulary {
     public static final String rdfLI = rdf + "li";
     public static final String rdfXMLLiteral = rdf + "XMLLiteral";
 
-    public static final String rdfs = IRIMapper.IRI_RDFS + "#";
+    public static final String rdfs = IRIs.RDFS + "#";
     public static final String rdfsDatatype = rdfs + "Datatype";
     public static final String rdfsSubClassOf = rdfs + "subClassOf";
     public static final String rdfsSubPropertyOf = rdfs + "subPropertyOf";
     public static final String rdfsDomain = rdfs + "domain";
     public static final String rdfsRange = rdfs + "range";
 
-    public static final String xsd = IRIMapper.IRI_XSD + "#";
+    public static final String xsd = IRIs.XSD + "#";
     public static final String xsdTime = xsd + "time";
     public static final String xsdDuration = xsd + "duration";
     public static final String xsdDateTime = xsd + "dateTime";
@@ -313,7 +313,7 @@ public class Vocabulary {
         public static final String emptyListTag = labelTag + list + labelTag + fieldSeparator + " " + arrayBegin + arrayEnd;
     }
 
-    public static final String owl = IRIMapper.IRI_OWL2 + "#";
+    public static final String owl = IRIs.OWL2 + "#";
     public static final String owlOntology = owl + OWL2.ontoOntology;
     public static final String owlClass = owl + OWL2.entityClass;
     public static final String owlNamedIndividual = owl + OWL2.entityNamedIndividual;
@@ -379,6 +379,6 @@ public class Vocabulary {
     public static final String owlReal = owl + "real";
     public static final String owlRational = owl + "rational";
 
-    public static final String xowl = IRIMapper.IRI_XOWL_LANG;
+    public static final String xowl = IRIs.XOWL_LANG;
     public static final String xowlDefinedAs = xowl + "actions#definedAs";
 }

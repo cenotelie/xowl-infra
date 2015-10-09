@@ -412,7 +412,7 @@ public class SPARQLLoader {
                 if (!defaultIRIs.isEmpty())
                     origins.addAll(defaultIRIs);
                 else
-                    origins.add(NodeManager.DEFAULT_GRAPH);
+                    origins.add(IRIs.GRAPH_DEFAULT);
                 break;
         }
         switch (refTarget.x) {
@@ -423,7 +423,7 @@ public class SPARQLLoader {
                 if (!defaultIRIs.isEmpty())
                     targets.addAll(defaultIRIs);
                 else
-                    targets.add(NodeManager.DEFAULT_GRAPH);
+                    targets.add(IRIs.GRAPH_DEFAULT);
                 break;
         }
         return new CommandCopy(origins, targets, isSilent);
@@ -453,7 +453,7 @@ public class SPARQLLoader {
                     else
                         throw new LoaderException("MOVE command is specified more than one DEFAULT graph by the protocol context", node);
                 } else
-                    origin = NodeManager.DEFAULT_GRAPH;
+                    origin = IRIs.GRAPH_DEFAULT;
                 break;
         }
         switch (refTarget.x) {
@@ -467,7 +467,7 @@ public class SPARQLLoader {
                     else
                         throw new LoaderException("MOVE command is specified more than one DEFAULT graph by the protocol context", node);
                 } else
-                    target = NodeManager.DEFAULT_GRAPH;
+                    target = IRIs.GRAPH_DEFAULT;
                 break;
         }
         return new CommandMove(origin, target, isSilent);
@@ -494,7 +494,7 @@ public class SPARQLLoader {
                 if (!defaultIRIs.isEmpty())
                     origins.addAll(defaultIRIs);
                 else
-                    origins.add(NodeManager.DEFAULT_GRAPH);
+                    origins.add(IRIs.GRAPH_DEFAULT);
                 break;
         }
         switch (refTarget.x) {
@@ -505,7 +505,7 @@ public class SPARQLLoader {
                 if (!defaultIRIs.isEmpty())
                     targets.addAll(defaultIRIs);
                 else
-                    targets.add(NodeManager.DEFAULT_GRAPH);
+                    targets.add(IRIs.GRAPH_DEFAULT);
                 break;
         }
         return new CommandAdd(origins, targets, isSilent);
@@ -1371,7 +1371,7 @@ public class SPARQLLoader {
         targets.addAll(context.getDefaultGraphs());
         targets.addAll(context.getNamedGraphs());
         if (targets.isEmpty())
-            targets.add(NodeManager.DEFAULT_GRAPH);
+            targets.add(IRIs.GRAPH_DEFAULT);
 
         if (targets.size() == 1) {
             GraphPatternQuads result = new GraphPatternQuads();
@@ -1405,7 +1405,7 @@ public class SPARQLLoader {
         targets.addAll(context.getDefaultGraphs());
         targets.addAll(context.getNamedGraphs());
         if (targets.isEmpty())
-            targets.add(NodeManager.DEFAULT_GRAPH);
+            targets.add(IRIs.GRAPH_DEFAULT);
 
         if (targets.size() == 1)
             return loadQuadsForTarget(context, node, store.getIRINode(targets.get(0)));

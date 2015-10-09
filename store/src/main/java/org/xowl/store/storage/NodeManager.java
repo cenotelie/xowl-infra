@@ -34,19 +34,6 @@ import org.xowl.store.rdf.LiteralNode;
  */
 public interface NodeManager {
     /**
-     * URI of the default graph
-     */
-    String DEFAULT_GRAPH = "http://xowl.org/store/rdfgraphs/default";
-    /**
-     * URI of the graph used for inferred data
-     */
-    String INFERENCE_GRAPH = "http://xowl.org/store/rdfgraphs/inferred";
-    /**
-     * URI of the graph used for meta-data
-     */
-    String META_GRAPH = "http://xowl.org/store/rdfgraphs/meta";
-
-    /**
      * Creates a new node with the specified graph as a prefix
      *
      * @param graph A graph node

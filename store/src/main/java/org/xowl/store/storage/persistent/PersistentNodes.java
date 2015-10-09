@@ -21,6 +21,7 @@
 package org.xowl.store.storage.persistent;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.store.IRIs;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
@@ -60,7 +61,7 @@ public class PersistentNodes implements NodeManager {
             String value = ((IRINode) graph).getIRIValue();
             return getIRINode(value + "#" + UUID.randomUUID().toString());
         } else {
-            return getIRINode(DEFAULT_GRAPH + "#" + UUID.randomUUID().toString());
+            return getIRINode(IRIs.GRAPH_DEFAULT + "#" + UUID.randomUUID().toString());
         }
     }
 
