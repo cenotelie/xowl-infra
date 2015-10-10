@@ -19,49 +19,25 @@
  ******************************************************************************/
 package org.xowl.store.writers;
 
-import org.xowl.store.IOUtils;
-import org.xowl.store.rdf.*;
+import org.xowl.store.rdf.Quad;
 import org.xowl.store.storage.UnsupportedNodeType;
-import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Iterator;
 
 /**
  * Represents a serializer of RDF data in the N-Triples format
  *
  * @author Laurent Wouters
  */
-public class NTripleSerializer implements RDFSerializer {
-    /**
-     * The writer to use
-     */
-    private final Writer writer;
-
+public class NTripleSerializer extends NXSerializer {
     /**
      * Initializes this serializer
      *
      * @param writer The writer to use
      */
     public NTripleSerializer(Writer writer) {
-        this.writer = writer;
-    }
-
-    /**
-     * Serializes the specified quads
-     *
-     * @param logger The logger to use
-     * @param quads  The quads to serialize
-     */
-    public void serialize(Logger logger, Iterator<Quad> quads) {
-        try {
-            while (quads.hasNext()) {
-                serialize(quads.next());
-            }
-        } catch (IOException | UnsupportedNodeType ex) {
-            logger.error(ex);
-        }
+        super(writer);
     }
 
     /**
@@ -71,7 +47,7 @@ public class NTripleSerializer implements RDFSerializer {
      * @throws IOException         When an IO error occurs
      * @throws UnsupportedNodeType When a node is not supported
      */
-    private void serialize(Quad quad) throws IOException, UnsupportedNodeType {
+    protected void serialize(Quad quad) throws IOException, UnsupportedNodeType {
         serialize(quad.getSubject());
         writer.write(" ");
         serialize(quad.getProperty());
@@ -79,47 +55,5 @@ public class NTripleSerializer implements RDFSerializer {
         serialize(quad.getObject());
         writer.write(" .");
         writer.write(System.lineSeparator());
-    }
-
-    /**
-     * Serialized the specified node
-     *
-     * @param node The node to serialize
-     * @throws IOException         When an IO error occurs
-     * @throws UnsupportedNodeType When the specified node is not supported
-     */
-    private void serialize(Node node) throws IOException, UnsupportedNodeType {
-        switch (node.getNodeType()) {
-            case Node.TYPE_IRI: {
-                writer.write("<");
-                writer.write(IOUtils.escapeAbsoluteURIW3C(((IRINode) node).getIRIValue()));
-                writer.write(">");
-                break;
-            }
-            case Node.TYPE_BLANK: {
-                writer.write("_:");
-                writer.write(Long.toString(((BlankNode) node).getBlankID()));
-                break;
-            }
-            case Node.TYPE_LITERAL: {
-                LiteralNode literalNode = (LiteralNode) node;
-                writer.write("\"");
-                writer.write(IOUtils.escapeStringW3C(literalNode.getLexicalValue()));
-                writer.write("\"");
-                String datatype = literalNode.getDatatype();
-                String langTag = literalNode.getLangTag();
-                if (langTag != null) {
-                    writer.write("@");
-                    writer.write(langTag);
-                } else if (datatype != null) {
-                    writer.write("^^<");
-                    writer.write(IOUtils.escapeAbsoluteURIW3C(datatype));
-                    writer.write(">");
-                }
-                break;
-            }
-            default:
-                throw new UnsupportedNodeType(node, "Unsupported node type. Supported types are IRI nodes, blank nodes and literal nodes");
-        }
     }
 }
