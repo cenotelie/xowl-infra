@@ -117,6 +117,7 @@ public abstract class Service {
                 case AbstractRepository.SYNTAX_NQUADS:
                 case AbstractRepository.SYNTAX_TURTLE:
                 case AbstractRepository.SYNTAX_RDFXML:
+                case AbstractRepository.SYNTAX_JSON_LD:
                     return contentType;
             }
         }
