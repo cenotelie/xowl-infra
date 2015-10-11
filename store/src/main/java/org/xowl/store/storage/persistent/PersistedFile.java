@@ -34,7 +34,7 @@ import java.security.NoSuchAlgorithmException;
  *
  * @author Laurent Wouters
  */
-class PersistedFile {
+class PersistedFile implements AutoCloseable {
     /**
      * The number of bits to use in order to represent an index within a block
      */
