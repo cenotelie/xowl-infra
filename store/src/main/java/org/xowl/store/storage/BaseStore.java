@@ -25,5 +25,5 @@ package org.xowl.store.storage;
  *
  * @author Laurent Wouters
  */
-public interface BaseStore extends Dataset, NodeManager {
+public interface BaseStore extends Dataset, NodeManager, AutoCloseable {
 }

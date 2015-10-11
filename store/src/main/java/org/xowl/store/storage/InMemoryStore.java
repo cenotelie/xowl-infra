@@ -183,4 +183,9 @@ public class InMemoryStore implements BaseStore {
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
         return nodes.getAnonNode(individual);
     }
+
+    @Override
+    public void close() throws Exception {
+        // do nothing
+    }
 }
