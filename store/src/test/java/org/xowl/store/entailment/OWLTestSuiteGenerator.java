@@ -17,7 +17,7 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.store.loaders;
+package org.xowl.store.entailment;
 
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;

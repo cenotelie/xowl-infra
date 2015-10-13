@@ -412,7 +412,7 @@ public class Repository extends AbstractRepository {
      * @param ontology An ontology
      * @return The associated graph node
      */
-    protected GraphNode getGraph(Ontology ontology) {
+    public GraphNode getGraph(Ontology ontology) {
         GraphNode node = graphs.get(ontology);
         if (node != null)
             return node;

@@ -17,7 +17,7 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.store;
+package org.xowl.store.entailment;
 
 import org.junit.Ignore;
 import org.junit.Test;
