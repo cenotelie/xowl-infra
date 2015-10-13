@@ -451,6 +451,8 @@ public class Repository extends AbstractRepository {
                         }
                     }
                 };
+            case SYNTAX_TRIG:
+                return new TriGLoader(backend);
         }
         return null;
     }

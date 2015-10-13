@@ -106,6 +106,11 @@ public abstract class AbstractRepository {
      */
     public static final String SYNTAX_JSON_LD = "application/ld+json";
     public static final String EXT_JSON_LD = ".jsonld";
+    /**
+     * Supported TriG syntax
+     */
+    public static final String SYNTAX_TRIG = "application/trig";
+    public static final String EXT_TRIG = ".trig";
 
 
     /**
@@ -673,6 +678,8 @@ public abstract class AbstractRepository {
             return SYNTAX_RDFXML;
         if (resource.endsWith(EXT_JSON_LD))
             return SYNTAX_JSON_LD;
+        if (resource.endsWith(EXT_TRIG))
+            return SYNTAX_TRIG;
         if (resource.endsWith(EXT_OWL2_A) || resource.endsWith(EXT_OWL2_B))
             return SYNTAX_FUNCTIONAL_OWL2;
         if (resource.endsWith(EXT_OWLXML_A) || resource.endsWith(EXT_OWLXML_B))
