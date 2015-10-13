@@ -46,10 +46,6 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * Initial size of the buffer for the blank node map
      */
     private static final int BLANKS_MAP_INIT_SIZE = 256;
-    /**
-     * Prefix for the generated namespaces
-     */
-    private static final String NAMESPACE_PREFIX = "nm";
 
     /**
      * The namespaces in this document
@@ -68,10 +64,6 @@ public abstract class StructuredSerializer implements RDFSerializer {
      */
     private int nextBlank;
     /**
-     * The index of the next namespace
-     */
-    private int nextNamespace;
-    /**
      * A buffer of serialized property
      */
     protected final List<Property> bufferProperties;
@@ -88,7 +80,6 @@ public abstract class StructuredSerializer implements RDFSerializer {
         this.data = new DataMap();
         this.blanks = new long[BLANKS_MAP_INIT_SIZE];
         this.nextBlank = 0;
-        this.nextNamespace = 0;
         this.bufferProperties = new ArrayList<>(5);
     }
 
@@ -107,11 +98,6 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * @throws UnsupportedNodeType whenever occurs
      */
     protected void enqueue(Quad quad) throws UnsupportedNodeType {
-        // map the nodes
-        mapNode(quad.getGraph());
-        mapNode(quad.getSubject());
-        mapNode(quad.getProperty());
-        mapNode(quad.getObject());
         // register the quad as a property of its subject
         List<Quad> properties = data.get(quad.getSubject());
         if (properties == null) {
@@ -122,74 +108,23 @@ public abstract class StructuredSerializer implements RDFSerializer {
     }
 
     /**
-     * Maps the specified node
+     * Renames the specified blank node
      *
-     * @param node The node
-     * @throws UnsupportedNodeType whenever occurs
+     * @param node A blank node
+     * @return The renamed identifier for the node
      */
-    private void mapNode(Node node) throws UnsupportedNodeType {
-        switch (node.getNodeType()) {
-            case Node.TYPE_IRI:
-                mapIRI(node, ((IRINode) node).getIRIValue());
-                break;
-            case Node.TYPE_BLANK:
-                mapBlank((BlankNode) node);
-                break;
-            case Node.TYPE_LITERAL:
-                String datatype = ((LiteralNode) node).getDatatype();
-                mapIRI(node, datatype);
-                break;
-            default:
-                throw new UnsupportedNodeType(node, "RDF serialization only support IRI, Blank and Literal nodes");
-        }
-    }
-
-    /**
-     * Maps an IRI to its namespace
-     *
-     * @param node The containing node
-     * @param iri  The IRI to map
-     */
-    private void mapIRI(Node node, String iri) throws UnsupportedNodeType {
-        int index = iri.indexOf("#");
-        if (index != -1) {
-            mapNamespace(iri.substring(0, index + 1));
-        }
-        //mapNamespace(iri);
-        //Modified -> no # means direct mapping
-        // FIXME
-        // throw new UnsupportedNodeType(node, "IRI does not contain #");
-    }
-
-    /**
-     * Maps the specified namespace
-     *
-     * @param namespace A namespace
-     */
-    private void mapNamespace(String namespace) {
-        String compact = namespaces.get(namespace);
-        if (compact == null) {
-            compact = NAMESPACE_PREFIX + nextNamespace;
-            nextNamespace++;
-            namespaces.put(namespace, compact);
-        }
-    }
-
-    /**
-     * Maps this blank node for renaming
-     *
-     * @param node The blank node
-     */
-    private void mapBlank(BlankNode node) {
+    protected int rename(BlankNode node) {
         long id = node.getBlankID();
         for (int i = 0; i != nextBlank; i++) {
             if (blanks[i] == id)
-                return;
+                return i;
         }
         if (nextBlank == blanks.length)
             blanks = Arrays.copyOf(blanks, blanks.length + BLANKS_MAP_INIT_SIZE);
         blanks[nextBlank] = id;
+        int result = nextBlank;
         nextBlank++;
+        return result;
     }
 
     /**

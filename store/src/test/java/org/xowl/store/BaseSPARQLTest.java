@@ -27,6 +27,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xowl.store.loaders.SPARQLLoader;
+import org.xowl.store.loaders.W3CTestSuite;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.sparql.*;
 import org.xowl.store.storage.BaseStore;

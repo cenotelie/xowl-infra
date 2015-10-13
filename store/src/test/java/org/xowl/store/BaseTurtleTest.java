@@ -19,6 +19,8 @@
  **********************************************************************/
 package org.xowl.store;
 
+import org.xowl.store.loaders.W3CTestSuite;
+
 /**
  * Base class for the Turtle loader tests
  *

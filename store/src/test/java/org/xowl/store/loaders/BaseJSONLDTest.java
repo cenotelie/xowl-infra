@@ -19,9 +19,11 @@
  *     Stephen Creff - stephen.creff@gmail.com
  ******************************************************************************/
 
-package org.xowl.store;
+package org.xowl.store.loaders;
 
 import org.junit.Assert;
+import org.xowl.store.AbstractRepository;
+import org.xowl.store.Repository;
 
 import java.io.File;
 import java.io.IOException;

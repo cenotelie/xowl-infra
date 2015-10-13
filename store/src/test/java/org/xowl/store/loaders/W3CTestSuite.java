@@ -17,12 +17,15 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
-package org.xowl.store;
+package org.xowl.store.loaders;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.xowl.store.loaders.*;
+import org.xowl.store.AbstractRepository;
+import org.xowl.store.IRIMapper;
+import org.xowl.store.RDFUtils;
+import org.xowl.store.TestLogger;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.InMemoryStore;

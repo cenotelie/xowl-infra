@@ -17,12 +17,12 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.store;
+package org.xowl.store.loaders;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
+import org.xowl.store.Repository;
+import org.xowl.store.TestLogger;
 
 /**
  * Tests for the functional loaders

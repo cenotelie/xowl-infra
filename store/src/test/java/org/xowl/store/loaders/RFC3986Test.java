@@ -18,10 +18,11 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store;
+package org.xowl.store.loaders;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.xowl.store.URIUtils;
 
 /**
  * Test suite for the implementation of RFC 3986

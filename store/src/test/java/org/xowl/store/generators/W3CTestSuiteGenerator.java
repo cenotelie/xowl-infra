@@ -22,7 +22,7 @@ package org.xowl.store.generators;
 import org.junit.Assert;
 import org.xowl.store.TestLogger;
 import org.xowl.store.Vocabulary;
-import org.xowl.store.W3CTestSuite;
+import org.xowl.store.loaders.W3CTestSuite;
 import org.xowl.store.loaders.Loader;
 import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.TurtleLoader;

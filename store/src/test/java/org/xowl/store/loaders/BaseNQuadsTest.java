@@ -17,7 +17,7 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.store;
+package org.xowl.store.loaders;
 
 /**
  * Base class for the NQuads loader tests

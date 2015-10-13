@@ -19,7 +19,7 @@
  *     Stephen Creff - stephen.creff@gmail.com
  ******************************************************************************/
 
-package org.xowl.store;
+package org.xowl.store.loaders;
 
 import org.junit.Ignore;
 import org.junit.Test;

@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.xowl.store.IRIs;
 import org.xowl.store.Repository;
 import org.xowl.store.Vocabulary;
-import org.xowl.store.W3CTestSuite;
+import org.xowl.store.loaders.W3CTestSuite;
 import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.RDFTLoader;
 import org.xowl.store.storage.UnsupportedNodeType;
