@@ -52,23 +52,23 @@ public abstract class BaseTurtleLoader implements Loader {
     /**
      * The loaded triples
      */
-    private List<Quad> quads;
+    protected List<Quad> quads;
     /**
      * The URI of the resource currently being loaded
      */
-    private String resource;
+    protected String resource;
     /**
      * The base URI for relative URIs
      */
-    private String baseURI;
+    protected String baseURI;
     /**
      * Map of the current namespaces
      */
-    private Map<String, String> namespaces;
+    protected Map<String, String> namespaces;
     /**
      * Map of the current blank nodes
      */
-    private Map<String, BlankNode> blanks;
+    protected Map<String, BlankNode> blanks;
     /**
      * The current graph
      */
@@ -76,15 +76,15 @@ public abstract class BaseTurtleLoader implements Loader {
     /**
      * The cached node for the RDF#type property
      */
-    private IRINode cacheIsA;
+    protected IRINode cacheIsA;
     /**
      * The cached node for the literal true node
      */
-    private LiteralNode cacheTrue;
+    protected LiteralNode cacheTrue;
     /**
      * The cached node for the literal false node
      */
-    private LiteralNode cacheFalse;
+    protected LiteralNode cacheFalse;
 
     /**
      * Initializes this loader
@@ -253,7 +253,7 @@ public abstract class BaseTurtleLoader implements Loader {
      *
      * @return The RDF IRI node
      */
-    private IRINode getNodeIsA() {
+    protected IRINode getNodeIsA() {
         if (cacheIsA == null)
             cacheIsA = store.getIRINode(Vocabulary.rdfType);
         return cacheIsA;
@@ -265,7 +265,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF IRI node
      */
-    private IRINode getNodeIRIRef(ASTNode node) {
+    protected IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getValue();
         value = IOUtils.unescape(value.substring(1, value.length() - 1));
         return store.getIRINode(URIUtils.resolveRelative(baseURI, value));
@@ -277,7 +277,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF IRI node
      */
-    private IRINode getNodePNameLN(ASTNode node) throws LoaderException {
+    protected IRINode getNodePNameLN(ASTNode node) throws LoaderException {
         String value = node.getValue();
         return store.getIRINode(getIRIForLocalName(node, value));
     }
@@ -288,7 +288,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF IRI node
      */
-    private IRINode getNodePNameNS(ASTNode node) {
+    protected IRINode getNodePNameNS(ASTNode node) {
         String value = node.getValue();
         value = IOUtils.unescape(value.substring(0, value.length() - 1));
         value = namespaces.get(value);
@@ -301,7 +301,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF blank node
      */
-    private BlankNode getNodeBlank(ASTNode node) {
+    protected BlankNode getNodeBlank(ASTNode node) {
         String value = node.getValue();
         value = IOUtils.unescape(value.substring(2));
         BlankNode blank = blanks.get(value);
@@ -317,7 +317,7 @@ public abstract class BaseTurtleLoader implements Loader {
      *
      * @return A new blank node
      */
-    private BlankNode getNodeAnon() {
+    protected BlankNode getNodeAnon() {
         return store.getBlankNode();
     }
 
@@ -326,7 +326,7 @@ public abstract class BaseTurtleLoader implements Loader {
      *
      * @return The RDF Literal node
      */
-    private LiteralNode getNodeTrue() {
+    protected LiteralNode getNodeTrue() {
         if (cacheTrue == null)
             cacheTrue = store.getLiteralNode("true", Vocabulary.xsdBoolean, null);
         return cacheTrue;
@@ -337,7 +337,7 @@ public abstract class BaseTurtleLoader implements Loader {
      *
      * @return The RDF Literal node
      */
-    private LiteralNode getNodeFalse() {
+    protected LiteralNode getNodeFalse() {
         if (cacheFalse == null)
             cacheFalse = store.getLiteralNode("false", Vocabulary.xsdBoolean, null);
         return cacheFalse;
@@ -349,7 +349,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF Integer Literal node
      */
-    private LiteralNode getNodeInteger(ASTNode node) {
+    protected LiteralNode getNodeInteger(ASTNode node) {
         String value = node.getValue();
         return store.getLiteralNode(value, Vocabulary.xsdInteger, null);
     }
@@ -360,7 +360,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF Decimal Literal node
      */
-    private LiteralNode getNodeDecimal(ASTNode node) {
+    protected LiteralNode getNodeDecimal(ASTNode node) {
         String value = node.getValue();
         return store.getLiteralNode(value, Vocabulary.xsdDecimal, null);
     }
@@ -371,7 +371,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF Double Literal node
      */
-    private LiteralNode getNodeDouble(ASTNode node) {
+    protected LiteralNode getNodeDouble(ASTNode node) {
         String value = node.getValue();
         return store.getLiteralNode(value, Vocabulary.xsdDouble, null);
     }
@@ -382,7 +382,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF Literal node
      */
-    private LiteralNode getNodeLiteral(ASTNode node) throws LoaderException {
+    protected LiteralNode getNodeLiteral(ASTNode node) throws LoaderException {
         // Compute the lexical value
         String value = null;
         ASTNode childString = node.getChildren().get(0);
@@ -435,7 +435,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param node An AST node
      * @return A RDF list node
      */
-    private Node getNodeCollection(ASTNode node) throws LoaderException {
+    protected Node getNodeCollection(ASTNode node) throws LoaderException {
         List<Node> elements = new ArrayList<>();
         for (ASTNode child : node.getChildren())
             elements.add(getNode(child));
@@ -460,7 +460,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param node An AST node
      * @return The equivalent RDF blank node
      */
-    private BlankNode getNodeBlankWithProperties(ASTNode node) throws LoaderException {
+    protected BlankNode getNodeBlankWithProperties(ASTNode node) throws LoaderException {
         BlankNode subject = store.getBlankNode();
         applyProperties(subject, node);
         return subject;
@@ -473,7 +473,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param value An escaped local name
      * @return The equivalent full IRI
      */
-    private String getIRIForLocalName(ASTNode node, String value) throws LoaderException {
+    protected String getIRIForLocalName(ASTNode node, String value) throws LoaderException {
         value = IOUtils.unescape(value);
         int index = 0;
         while (index != value.length()) {
@@ -496,7 +496,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @param subject An RDF subject node
      * @param node    An AST node
      */
-    private void applyProperties(SubjectNode subject, ASTNode node) throws LoaderException {
+    protected void applyProperties(SubjectNode subject, ASTNode node) throws LoaderException {
         int index = 0;
         List<ASTNode> children = node.getChildren();
         while (index != children.size()) {

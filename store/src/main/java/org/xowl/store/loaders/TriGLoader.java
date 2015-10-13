@@ -22,8 +22,10 @@ package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.parsers.BaseLRParser;
-import org.xowl.store.IRIs;
-import org.xowl.store.rdf.GraphNode;
+import org.xowl.store.IOUtils;
+import org.xowl.store.URIUtils;
+import org.xowl.store.Vocabulary;
+import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
 import org.xowl.utils.Files;
 
@@ -101,5 +103,101 @@ public class TriGLoader extends BaseTurtleLoader {
     protected void loadGraphNamed(ASTNode node) throws LoaderException {
         graph = (GraphNode) getNode(node.getChildren().get(0));
         loadGraphContent(node.getChildren().get(1));
+    }
+
+    @Override
+    protected void loadTriples(ASTNode node) throws LoaderException {
+        if (node.getChildren().get(0).getSymbol().getID() == TriGParser.ID.predicateObjectList) {
+            // the subject is a blank node
+            BlankNode subject = getNodeBlankWithProperties(node.getChildren().get(0));
+            if (node.getChildren().size() > 1)
+                applyProperties(subject, node.getChildren().get(1));
+        } else {
+            Node subject = getNode(node.getChildren().get(0));
+            applyProperties((SubjectNode) subject, node.getChildren().get(1));
+        }
+    }
+
+    @Override
+    protected Node getNode(ASTNode node) throws LoaderException {
+        switch (node.getSymbol().getID()) {
+            case 0x0042: // a
+                return getNodeIsA();
+            case TriGLexer.ID.IRIREF:
+                return getNodeIRIRef(node);
+            case TriGLexer.ID.PNAME_LN:
+                return getNodePNameLN(node);
+            case TriGLexer.ID.PNAME_NS:
+                return getNodePNameNS(node);
+            case TriGLexer.ID.BLANK_NODE_LABEL:
+                return getNodeBlank(node);
+            case TriGLexer.ID.ANON:
+                return getNodeAnon();
+            case 0x0048: // true
+                return getNodeTrue();
+            case 0x0049: // false
+                return getNodeFalse();
+            case TriGLexer.ID.INTEGER:
+                return getNodeInteger(node);
+            case TriGLexer.ID.DECIMAL:
+                return getNodeDecimal(node);
+            case TriGLexer.ID.DOUBLE:
+                return getNodeDouble(node);
+            case TriGParser.ID.rdfLiteral:
+                return getNodeLiteral(node);
+            case TriGParser.ID.collection:
+                return getNodeCollection(node);
+            case TriGParser.ID.predicateObjectList:
+                return getNodeBlankWithProperties(node);
+        }
+        throw new LoaderException("Unexpected node " + node.getValue(), node);
+    }
+
+    @Override
+    protected LiteralNode getNodeLiteral(ASTNode node) throws LoaderException {
+        // Compute the lexical value
+        String value = null;
+        ASTNode childString = node.getChildren().get(0);
+        switch (childString.getSymbol().getID()) {
+            case TriGLexer.ID.STRING_LITERAL_SINGLE_QUOTE:
+            case TriGLexer.ID.STRING_LITERAL_QUOTE:
+                value = childString.getValue();
+                value = value.substring(1, value.length() - 1);
+                value = IOUtils.unescape(value);
+                break;
+            case TriGLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
+            case TriGLexer.ID.STRING_LITERAL_LONG_QUOTE:
+                value = childString.getValue();
+                value = value.substring(3, value.length() - 3);
+                value = IOUtils.unescape(value);
+                break;
+        }
+
+        // No suffix, this is a naked string
+        if (node.getChildren().size() <= 1)
+            return store.getLiteralNode(value, Vocabulary.xsdString, null);
+
+        ASTNode suffixChild = node.getChildren().get(1);
+        if (suffixChild.getSymbol().getID() == TriGLexer.ID.LANGTAG) {
+            // This is a language-tagged string
+            String tag = suffixChild.getValue();
+            return store.getLiteralNode(value, Vocabulary.rdfLangString, tag.substring(1));
+        } else if (suffixChild.getSymbol().getID() == TriGLexer.ID.IRIREF) {
+            // Datatype is specified with an IRI
+            String iri = suffixChild.getValue();
+            iri = IOUtils.unescape(iri.substring(1, iri.length() - 1));
+            return store.getLiteralNode(value, URIUtils.resolveRelative(baseURI, iri), null);
+        } else if (suffixChild.getSymbol().getID() == TriGLexer.ID.PNAME_LN) {
+            // Datatype is specified with a local name
+            String local = getIRIForLocalName(suffixChild, suffixChild.getValue());
+            return store.getLiteralNode(value, local, null);
+        } else if (suffixChild.getSymbol().getID() == TriGLexer.ID.PNAME_NS) {
+            // Datatype is specified with a namespace
+            String ns = suffixChild.getValue();
+            ns = IOUtils.unescape(ns.substring(0, ns.length() - 1));
+            ns = namespaces.get(ns);
+            return store.getLiteralNode(value, ns, null);
+        }
+        throw new LoaderException("Unexpected node " + node.getValue(), node);
     }
 }
