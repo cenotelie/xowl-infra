@@ -102,6 +102,10 @@ public class Repository extends AbstractRepository {
      * The rule engine for this repository
      */
     private RuleEngine ruleEngine;
+    /**
+     * The entailment regime
+     */
+    private EntailmentRegime regime;
 
     /**
      * Gets the backend store
@@ -238,6 +242,7 @@ public class Repository extends AbstractRepository {
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
         this.evaluator = evaluator;
+        this.regime = EntailmentRegime.None;
     }
 
     /**
@@ -262,16 +267,50 @@ public class Repository extends AbstractRepository {
     }
 
     /**
+     * Gets the current entailment regime
+     *
+     * @return The current entailment regime
+     */
+    public EntailmentRegime getEntailmentRegime() {
+        return regime;
+    }
+
+    /**
      * Activates the entailment rules
      *
      * @param logger The logger to use
      */
     public void activateEntailmentRules(Logger logger) {
-        load(logger, IRIs.RDF);
-        load(logger, IRIs.RDFS);
-        load(logger, IRIs.OWL2);
-        load(logger, IRIs.XOWL_RULES + "owl2");
-        load(logger, IRIs.XOWL_RULES + "xowl");
+        activateEntailmentRules(logger, EntailmentRegime.OWL2);
+    }
+
+    /**
+     * Activates the entailment rules
+     *
+     * @param logger The logger to use
+     * @param regime The entailment regime to use
+     */
+    public void activateEntailmentRules(Logger logger, EntailmentRegime regime) {
+        if (this.regime != EntailmentRegime.None) {
+            logger.error("Entailment regime is already set");
+            return;
+        }
+        this.regime = regime;
+        switch (this.regime) {
+            case RDF:
+                load(logger, IRIs.RDF);
+                break;
+            case RDFS:
+                load(logger, IRIs.RDFS);
+                break;
+            case OWL2:
+                load(logger, IRIs.RDF);
+                load(logger, IRIs.RDFS);
+                load(logger, IRIs.OWL2);
+                load(logger, IRIs.XOWL_RULES + "owl2");
+                load(logger, IRIs.XOWL_RULES + "xowl");
+                break;
+        }
     }
 
     /**
