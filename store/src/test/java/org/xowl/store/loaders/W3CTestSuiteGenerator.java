@@ -17,15 +17,11 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
-package org.xowl.store.generators;
+package org.xowl.store.loaders;
 
 import org.junit.Assert;
 import org.xowl.store.TestLogger;
 import org.xowl.store.Vocabulary;
-import org.xowl.store.loaders.W3CTestSuite;
-import org.xowl.store.loaders.Loader;
-import org.xowl.store.loaders.RDFLoaderResult;
-import org.xowl.store.loaders.TurtleLoader;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.InMemoryStore;

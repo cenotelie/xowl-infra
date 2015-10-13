@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store;
+package org.xowl.store.sparql;
 
 import org.junit.Test;
 import org.xowl.utils.collections.Couple;

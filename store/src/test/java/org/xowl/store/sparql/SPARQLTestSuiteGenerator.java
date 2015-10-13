@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.generators;
+package org.xowl.store.sparql;
 
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;

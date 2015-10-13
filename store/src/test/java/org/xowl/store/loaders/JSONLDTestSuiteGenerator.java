@@ -18,10 +18,8 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.generators;
+package org.xowl.store.loaders;
 
-import org.junit.Test;
-import org.xowl.store.loaders.BaseJSONLDTest;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;
 import org.xowl.store.TestLogger;
@@ -34,7 +32,6 @@ import org.xowl.store.TestLogger;
  */
 public class JSONLDTestSuiteGenerator {
 
-    @Test
     public void generateToRdfTests() {
         TestLogger logger = new TestLogger();
         Repository repository = new Repository();
@@ -51,7 +48,6 @@ public class JSONLDTestSuiteGenerator {
         }
     }
 
-    @Test
     public void generateFromRdfTests() {
         TestLogger logger = new TestLogger();
         Repository repository  = new Repository();

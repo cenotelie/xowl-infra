@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store;
+package org.xowl.store.sparql;
 
 import org.apache.xerces.parsers.DOMParser;
 import org.junit.Assert;
@@ -26,10 +26,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
+import org.xowl.store.*;
 import org.xowl.store.loaders.SPARQLLoader;
 import org.xowl.store.loaders.W3CTestSuite;
 import org.xowl.store.rdf.Quad;
-import org.xowl.store.sparql.*;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.InMemoryStore;
 import org.xowl.utils.Logger;

@@ -17,9 +17,7 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.store;
-
-import org.xowl.store.loaders.W3CTestSuite;
+package org.xowl.store.loaders;
 
 /**
  * Base class for the Turtle loader tests

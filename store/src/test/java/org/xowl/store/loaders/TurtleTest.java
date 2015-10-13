@@ -20,7 +20,6 @@
 package org.xowl.store.loaders;
 
 import org.junit.Test;
-import org.xowl.store.BaseTurtleTest;
 
 /**
  * All Turtle loading tests
