@@ -105,6 +105,9 @@ public class TriGLoader extends BaseTurtleLoader {
         loadGraphContent(node.getChildren().get(1));
     }
 
+    /*
+    Overridden to use TriGLexer and TriGParser IDs
+     */
     @Override
     protected void loadTriples(ASTNode node) throws LoaderException {
         if (node.getChildren().get(0).getSymbol().getID() == TriGParser.ID.predicateObjectList) {
@@ -118,6 +121,9 @@ public class TriGLoader extends BaseTurtleLoader {
         }
     }
 
+    /*
+    Overridden to use TriGLexer and TriGParser IDs
+     */
     @Override
     protected Node getNode(ASTNode node) throws LoaderException {
         switch (node.getSymbol().getID()) {
@@ -153,6 +159,9 @@ public class TriGLoader extends BaseTurtleLoader {
         throw new LoaderException("Unexpected node " + node.getValue(), node);
     }
 
+    /*
+    Overridden to use TriGLexer and TriGParser IDs
+     */
     @Override
     protected LiteralNode getNodeLiteral(ASTNode node) throws LoaderException {
         // Compute the lexical value
