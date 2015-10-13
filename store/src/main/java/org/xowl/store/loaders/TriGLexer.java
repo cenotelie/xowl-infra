@@ -24,26 +24,6 @@ class TriGLexer extends ContextFreeLexer {
      */
     public static class ID {
         /**
-         * The unique identifier for terminal PN_LOCAL
-         */
-        public static final int PN_LOCAL = 0x000E;
-        /**
-         * The unique identifier for terminal PN_CHARS
-         */
-        public static final int PN_CHARS = 0x000C;
-        /**
-         * The unique identifier for terminal PN_CHARS_U
-         */
-        public static final int PN_CHARS_U = 0x000B;
-        /**
-         * The unique identifier for terminal PN_PREFIX
-         */
-        public static final int PN_PREFIX = 0x000D;
-        /**
-         * The unique identifier for terminal PN_CHARS_BASE
-         */
-        public static final int PN_CHARS_BASE = 0x000A;
-        /**
          * The unique identifier for terminal BLANK
          */
         public static final int BLANK = 0x0006;
@@ -146,12 +126,7 @@ class TriGLexer extends ContextFreeLexer {
     private static final Symbol[] terminals = {
         new Symbol(0x0001, "ε"),
         new Symbol(0x0002, "$"),
-        new Symbol(0x000E, "PN_LOCAL"),
-        new Symbol(0x000C, "PN_CHARS"),
-        new Symbol(0x000B, "PN_CHARS_U"),
         new Symbol(0x0043, "["),
-        new Symbol(0x000D, "PN_PREFIX"),
-        new Symbol(0x000A, "PN_CHARS_BASE"),
         new Symbol(0x0038, "."),
         new Symbol(0x0039, "{"),
         new Symbol(0x003B, "}"),
