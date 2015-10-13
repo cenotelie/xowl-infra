@@ -5,15 +5,19 @@
 
 package org.xowl.store.loaders;
 
+import org.xowl.hime.redist.SemanticAction;
+import org.xowl.hime.redist.SemanticBody;
 import org.xowl.hime.redist.Symbol;
 import org.xowl.hime.redist.parsers.InitializationException;
 import org.xowl.hime.redist.parsers.RNGLRAutomaton;
 import org.xowl.hime.redist.parsers.RNGLRParser;
 
+import java.util.Map;
+
 /**
  * Represents a parser
  */
-public class XOWLParser extends RNGLRParser {
+class XOWLParser extends RNGLRParser {
     /**
      * The automaton for this parser
      */

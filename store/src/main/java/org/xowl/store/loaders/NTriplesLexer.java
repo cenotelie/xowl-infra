@@ -24,14 +24,6 @@ class NTriplesLexer extends ContextFreeLexer {
      */
     public static class ID {
         /**
-         * The unique identifier for terminal PN_CHARS
-         */
-        public static final int PN_CHARS = 0x000C;
-        /**
-         * The unique identifier for terminal PN_CHARS_U
-         */
-        public static final int PN_CHARS_U = 0x000B;
-        /**
          * The unique identifier for terminal BLANK
          */
         public static final int BLANK = 0x0006;
@@ -43,10 +35,6 @@ class NTriplesLexer extends ContextFreeLexer {
          * The unique identifier for terminal WHITE_SPACE
          */
         public static final int WHITE_SPACE = 0x0004;
-        /**
-         * The unique identifier for terminal PN_CHARS_BASE
-         */
-        public static final int PN_CHARS_BASE = 0x000A;
         /**
          * The unique identifier for terminal COMMENT
          */
@@ -86,13 +74,10 @@ class NTriplesLexer extends ContextFreeLexer {
     private static final Symbol[] terminals = {
         new Symbol(0x0001, "ε"),
         new Symbol(0x0002, "$"),
-        new Symbol(0x000C, "PN_CHARS"),
-        new Symbol(0x000B, "PN_CHARS_U"),
         new Symbol(0x0015, "."),
         new Symbol(0x0006, "BLANK"),
         new Symbol(0x0003, "NEW_LINE"),
         new Symbol(0x0004, "WHITE_SPACE"),
-        new Symbol(0x000A, "PN_CHARS_BASE"),
         new Symbol(0x0005, "COMMENT"),
         new Symbol(0x0007, "LANGTAG"),
         new Symbol(0x0008, "IRIREF"),

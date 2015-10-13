@@ -72,10 +72,6 @@ class TriGLexer extends ContextFreeLexer {
          */
         public static final int DECIMAL = 0x0014;
         /**
-         * The unique identifier for terminal PLX
-         */
-        public static final int PLX = 0x0009;
-        /**
          * The unique identifier for terminal PNAME_LN
          */
         public static final int PNAME_LN = 0x0010;
@@ -149,7 +145,6 @@ class TriGLexer extends ContextFreeLexer {
         new Symbol(0x0017, "STRING_LITERAL_SINGLE_QUOTE"),
         new Symbol(0x0014, "DECIMAL"),
         new Symbol(0x004A, "^^"),
-        new Symbol(0x0009, "PLX"),
         new Symbol(0x0010, "PNAME_LN"),
         new Symbol(0x0011, "BLANK_NODE_LABEL"),
         new Symbol(0x0015, "DOUBLE"),

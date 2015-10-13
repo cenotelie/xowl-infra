@@ -44,9 +44,8 @@ grammar TriG
 									| '\\U' [a-fA-F0-9]{8}
 								)* '>' ;
 		
-		PLX						-> '%' [a-fA-F0-9] [a-fA-F0-9]
+		fragment PLX			-> '%' [a-fA-F0-9] [a-fA-F0-9]
 								|  '\\' ( [_~.!$&'()*+,;=/?#@%] | '-') ;
-		
 		fragment PN_CHARS_BASE	-> [A-Za-z] | U+00C0 .. U+00D6 | U+00D8 .. U+00F6 | U+00F8 .. U+02FF | U+0370 .. U+037D
 											| U+037F .. U+1FFF | U+200C .. U+200D | U+2070 .. U+218F | U+2C00 .. U+2FEF
 											| U+3001 .. U+D7FF | U+F900 .. U+FDCF | U+FDF0 .. U+FFFD

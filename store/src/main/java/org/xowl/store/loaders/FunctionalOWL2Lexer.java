@@ -24,26 +24,6 @@ class FunctionalOWL2Lexer extends ContextFreeLexer {
      */
     public static class ID {
         /**
-         * The unique identifier for terminal PN_LOCAL
-         */
-        public static final int PN_LOCAL = 0x000E;
-        /**
-         * The unique identifier for terminal PN_CHARS
-         */
-        public static final int PN_CHARS = 0x000C;
-        /**
-         * The unique identifier for terminal PN_CHARS_U
-         */
-        public static final int PN_CHARS_U = 0x000B;
-        /**
-         * The unique identifier for terminal PN_PREFIX
-         */
-        public static final int PN_PREFIX = 0x000D;
-        /**
-         * The unique identifier for terminal PN_CHARS_BASE
-         */
-        public static final int PN_CHARS_BASE = 0x000A;
-        /**
          * The unique identifier for terminal BLANK
          */
         public static final int BLANK = 0x0006;
@@ -56,13 +36,13 @@ class FunctionalOWL2Lexer extends ContextFreeLexer {
          */
         public static final int WHITE_SPACE = 0x0004;
         /**
-         * The unique identifier for terminal PNAME_NS
-         */
-        public static final int PNAME_NS = 0x000F;
-        /**
          * The unique identifier for terminal INTEGER
          */
         public static final int INTEGER = 0x0012;
+        /**
+         * The unique identifier for terminal PNAME_NS
+         */
+        public static final int PNAME_NS = 0x000F;
         /**
          * The unique identifier for terminal COMMENT
          */
@@ -79,10 +59,6 @@ class FunctionalOWL2Lexer extends ContextFreeLexer {
          * The unique identifier for terminal STRING
          */
         public static final int STRING = 0x0013;
-        /**
-         * The unique identifier for terminal PLX
-         */
-        public static final int PLX = 0x0009;
         /**
          * The unique identifier for terminal PNAME_LN
          */
@@ -110,25 +86,19 @@ class FunctionalOWL2Lexer extends ContextFreeLexer {
     private static final Symbol[] terminals = {
         new Symbol(0x0001, "ε"),
         new Symbol(0x0002, "$"),
-        new Symbol(0x000E, "PN_LOCAL"),
-        new Symbol(0x000C, "PN_CHARS"),
-        new Symbol(0x000B, "PN_CHARS_U"),
-        new Symbol(0x000D, "PN_PREFIX"),
-        new Symbol(0x000A, "PN_CHARS_BASE"),
         new Symbol(0x0077, "("),
         new Symbol(0x0078, "="),
         new Symbol(0x0079, ")"),
         new Symbol(0x0006, "BLANK"),
         new Symbol(0x0003, "NEW_LINE"),
         new Symbol(0x0004, "WHITE_SPACE"),
-        new Symbol(0x000F, "PNAME_NS"),
         new Symbol(0x0012, "INTEGER"),
+        new Symbol(0x000F, "PNAME_NS"),
         new Symbol(0x0005, "COMMENT"),
         new Symbol(0x0007, "LANGTAG"),
         new Symbol(0x0008, "IRIREF"),
         new Symbol(0x0013, "STRING"),
         new Symbol(0x0080, "^^"),
-        new Symbol(0x0009, "PLX"),
         new Symbol(0x0010, "PNAME_LN"),
         new Symbol(0x0011, "BLANK_NODE_LABEL"),
         new Symbol(0x00A4, "Class"),
