@@ -48,8 +48,8 @@ public class TriGLoader extends BaseTurtleLoader {
     @Override
     protected BaseLRParser getParser(Reader reader) throws IOException {
         String content = Files.read(reader);
-        TurtleLexer lexer = new TurtleLexer(content);
-        return new TurtleParser(lexer);
+        TriGLexer lexer = new TriGLexer(content);
+        return new TriGParser(lexer);
     }
 
     @Override

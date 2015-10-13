@@ -61,6 +61,8 @@ public class W3CTestSuiteGenerator {
         generate("/turtle/manifest.ttl");
         System.out.println("==== RDF/XML ====");
         generate("/rdfxml/manifest.ttl");
+        System.out.println("==== TriG ====");
+        generate("/trig/manifest.ttl");
     }
 
     /**

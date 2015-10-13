@@ -106,6 +106,8 @@ public abstract class W3CTestSuite {
                         return getResourceReader(resource);
                     }
                 };
+            case AbstractRepository.SYNTAX_TRIG:
+                return new TriGLoader(store);
         }
         return null;
     }
