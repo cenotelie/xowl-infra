@@ -242,7 +242,7 @@ public class Repository extends AbstractRepository {
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
         this.evaluator = evaluator;
-        this.regime = EntailmentRegime.None;
+        this.regime = EntailmentRegime.none;
     }
 
     /**
@@ -291,7 +291,7 @@ public class Repository extends AbstractRepository {
      * @param regime The entailment regime to use
      */
     public void activateEntailmentRules(Logger logger, EntailmentRegime regime) {
-        if (this.regime != EntailmentRegime.None) {
+        if (this.regime != EntailmentRegime.none) {
             logger.error("Entailment regime is already set");
             return;
         }

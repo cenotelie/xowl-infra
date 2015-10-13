@@ -29,11 +29,11 @@ public enum EntailmentRegime {
     /**
      * Entailment regime: No entailment
      */
-    None,
+    none,
     /**
      * Entailment regime: Simple interpretation
      */
-    Simple,
+    simple,
     /**
      * Entailment regime: RDF interpretation
      */
