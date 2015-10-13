@@ -29,7 +29,7 @@ public abstract class BaseTriGTest extends W3CTestSuite {
     /**
      * Base URI for the Turtle documents
      */
-    protected static final String BASE_LOCATION = "http://www.w3.org/2013/TrigTests/";
+    protected static final String BASE_LOCATION = "http://www.w3.org/2013/TriGTests/";
 
     /**
      * Tests that the specified TriG resource is loaded and evaluated as the specified NQuad resource
