@@ -43,7 +43,11 @@ public enum EntailmentRegime {
      */
     RDFS,
     /**
-     * Entailment regime: OWL2 interpretation
+     * Entailment regime: OWL2-RDF based interpretation
      */
-    OWL2
+    OWL2_RDF,
+    /**
+     * Entailment regime: OWL2 Direct interpretation
+     */
+    OWL2_DIRECT,
 }

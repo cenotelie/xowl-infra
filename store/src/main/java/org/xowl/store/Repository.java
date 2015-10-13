@@ -281,7 +281,7 @@ public class Repository extends AbstractRepository {
      * @param logger The logger to use
      */
     public void activateEntailmentRules(Logger logger) {
-        activateEntailmentRules(logger, EntailmentRegime.OWL2);
+        activateEntailmentRules(logger, EntailmentRegime.OWL2_RDF);
     }
 
     /**
@@ -303,7 +303,8 @@ public class Repository extends AbstractRepository {
             case RDFS:
                 load(logger, IRIs.RDFS);
                 break;
-            case OWL2:
+            case OWL2_RDF:
+            case OWL2_DIRECT:
                 load(logger, IRIs.RDF);
                 load(logger, IRIs.RDFS);
                 load(logger, IRIs.OWL2);
