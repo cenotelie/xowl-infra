@@ -37,6 +37,31 @@ import java.util.Map;
  */
 public class Datatypes {
     /**
+     * Represents an unsupported value
+     */
+    private static class UnsupportedValue {
+        /**
+         * URI of the datatype
+         */
+        private final String datatypeURI;
+        /**
+         * Lexical value
+         */
+        private final String lexical;
+
+        /**
+         * Initializes this value
+         *
+         * @param datatypeURI URI of the datatype
+         * @param lexical     Lexical value
+         */
+        public UnsupportedValue(String datatypeURI, String lexical) {
+            this.datatypeURI = datatypeURI;
+            this.lexical = lexical;
+        }
+    }
+
+    /**
      * Represents the implementation of a datatype in the current runtime
      *
      * @param <T> The native type implementing the datatype
@@ -64,6 +89,40 @@ public class Datatypes {
          * @return The corresponding native value
          */
         public abstract T decode(String lexical);
+    }
+
+    /**
+     * The non-implementation of an unsupported datatype
+     */
+    private static class DatatypeModelUnsupported extends DatatypeImpl<Object> {
+        /**
+         * URI of the datatype
+         */
+        private final String uri;
+
+        /**
+         * Initializes this model
+         *
+         * @param uri URI of the datatype
+         */
+        public DatatypeModelUnsupported(String uri) {
+            this.uri = uri;
+        }
+
+        @Override
+        public String getDatatype() {
+            return uri;
+        }
+
+        @Override
+        public String encode(Object value) {
+            return ((UnsupportedValue) value).lexical;
+        }
+
+        @Override
+        public Object decode(String lexical) {
+            return new UnsupportedValue(uri, lexical);
+        }
     }
 
     /**
@@ -127,7 +186,7 @@ public class Datatypes {
 
         @Override
         public String getDatatype() {
-            return Vocabulary.xsdInt;
+            return Vocabulary.xsdInteger;
         }
 
         @Override
@@ -306,28 +365,45 @@ public class Datatypes {
     private static final Map<Class, DatatypeImpl> REGISTER_CLASS = new HashMap<>();
 
     static {
-        REGISTER_IRI.put(Vocabulary.xsdByte, DatatypeModelByte.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdUnsigedByte, DatatypeModelByte.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdShort, DatatypeModelShort.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdUnsignedShort, DatatypeModelShort.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdInt, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdString, DatatypeModelString.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdBoolean, DatatypeModelBoolean.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdDecimal, DatatypeModelDouble.INSTANCE);
         REGISTER_IRI.put(Vocabulary.xsdInteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdUnsignedInteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdNonNegativeInteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdNonPositiveinteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdPositiveInteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdNegativeInteger, DatatypeModelInteger.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdLong, DatatypeModelLong.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdUnsignedLong, DatatypeModelLong.INSTANCE);
         REGISTER_IRI.put(Vocabulary.xsdDouble, DatatypeModelDouble.INSTANCE);
         REGISTER_IRI.put(Vocabulary.xsdFloat, DatatypeModelFloat.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdDecimal, DatatypeModelDouble.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdBoolean, DatatypeModelBoolean.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdString, DatatypeModelString.INSTANCE);
         REGISTER_IRI.put(Vocabulary.xsdDate, DatatypeModelDate.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdDateTime, DatatypeModelDate.INSTANCE);
-        REGISTER_IRI.put(Vocabulary.xsdDuration, DatatypeModelDate.INSTANCE);
         REGISTER_IRI.put(Vocabulary.xsdTime, DatatypeModelDate.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdDateTime, DatatypeModelDate.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdDateTimeStamp, DatatypeModelDate.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdGYear, new DatatypeModelUnsupported(Vocabulary.xsdGYear));
+        REGISTER_IRI.put(Vocabulary.xsdGMonth, new DatatypeModelUnsupported(Vocabulary.xsdGMonth));
+        REGISTER_IRI.put(Vocabulary.xsdGDay, new DatatypeModelUnsupported(Vocabulary.xsdGDay));
+        REGISTER_IRI.put(Vocabulary.xsdGYearMonth, new DatatypeModelUnsupported(Vocabulary.xsdGYearMonth));
+        REGISTER_IRI.put(Vocabulary.xsdGMonthDay, new DatatypeModelUnsupported(Vocabulary.xsdGMonthDay));
+        REGISTER_IRI.put(Vocabulary.xsdDuration, new DatatypeModelUnsupported(Vocabulary.xsdDuration));
+        REGISTER_IRI.put(Vocabulary.wsdYearMonthDuration, new DatatypeModelUnsupported(Vocabulary.wsdYearMonthDuration));
+        REGISTER_IRI.put(Vocabulary.wsdDayTimeDuration, new DatatypeModelUnsupported(Vocabulary.wsdDayTimeDuration));
+        REGISTER_IRI.put(Vocabulary.xsdByte, DatatypeModelByte.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdShort, DatatypeModelShort.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdInt, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdLong, DatatypeModelLong.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdUnsigedByte, DatatypeModelByte.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdUnsignedShort, DatatypeModelShort.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdUnsignedInteger, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdUnsignedLong, DatatypeModelLong.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdPositiveInteger, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdNonNegativeInteger, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdNegativeInteger, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdNonPositiveinteger, DatatypeModelInteger.INSTANCE);
+        REGISTER_IRI.put(Vocabulary.xsdHexBinary, new DatatypeModelUnsupported(Vocabulary.xsdHexBinary));
+        REGISTER_IRI.put(Vocabulary.xsdBase64Binary, new DatatypeModelUnsupported(Vocabulary.xsdBase64Binary));
+        REGISTER_IRI.put(Vocabulary.xsdAnyURI, new DatatypeModelUnsupported(Vocabulary.xsdAnyURI));
+        REGISTER_IRI.put(Vocabulary.xsdLanguage, new DatatypeModelUnsupported(Vocabulary.xsdLanguage));
+        REGISTER_IRI.put(Vocabulary.xsdNormalizedString, new DatatypeModelUnsupported(Vocabulary.xsdNormalizedString));
+        REGISTER_IRI.put(Vocabulary.xsdToken, new DatatypeModelUnsupported(Vocabulary.xsdToken));
+        REGISTER_IRI.put(Vocabulary.xsdNMTOOKEN, new DatatypeModelUnsupported(Vocabulary.xsdNMTOOKEN));
+        REGISTER_IRI.put(Vocabulary.xsdName, new DatatypeModelUnsupported(Vocabulary.xsdName));
+        REGISTER_IRI.put(Vocabulary.xsdNCNAme, new DatatypeModelUnsupported(Vocabulary.xsdNCNAme));
         REGISTER_IRI.put(Vocabulary.rdfPlainLiteral, DatatypeModelString.INSTANCE);
         REGISTER_IRI.put(Vocabulary.owlRational, DatatypeModelDouble.INSTANCE);
         REGISTER_IRI.put(Vocabulary.owlReal, DatatypeModelDouble.INSTANCE);

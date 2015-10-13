@@ -47,6 +47,7 @@ public class Vocabulary {
     public static final String rdfStatement = rdf + "Statement";
     public static final String rdfLI = rdf + "li";
     public static final String rdfXMLLiteral = rdf + "XMLLiteral";
+    public static final String rdfHTML = rdf + "HTML";
 
     public static final String rdfs = IRIs.RDFS + "#";
     public static final String rdfsDatatype = rdfs + "Datatype";
@@ -56,28 +57,45 @@ public class Vocabulary {
     public static final String rdfsRange = rdfs + "range";
 
     public static final String xsd = IRIs.XSD + "#";
-    public static final String xsdTime = xsd + "time";
-    public static final String xsdDuration = xsd + "duration";
-    public static final String xsdDateTime = xsd + "dateTime";
-    public static final String xsdDate = xsd + "date";
     public static final String xsdString = xsd + "string";
     public static final String xsdBoolean = xsd + "boolean";
     public static final String xsdDecimal = xsd + "decimal";
-    public static final String xsdFloat = xsd + "float";
-    public static final String xsdDouble = xsd + "double";
-    public static final String xsdUnsignedLong = xsd + "unsignedLong";
-    public static final String xsdLong = xsd + "long";
-    public static final String xsdNegativeInteger = xsd + "negativeInteger";
-    public static final String xsdPositiveInteger = xsd + "positiveInteger";
-    public static final String xsdNonPositiveinteger = xsd + "nonPositiveInteger";
-    public static final String xsdNonNegativeInteger = xsd + "nonNegativeInteger";
-    public static final String xsdUnsignedInteger = xsd + "unsignedInt";
     public static final String xsdInteger = xsd + "integer";
-    public static final String xsdInt = xsd + "int";
-    public static final String xsdUnsignedShort = xsd + "unsignedShort";
-    public static final String xsdShort = xsd + "short";
-    public static final String xsdUnsigedByte = xsd + "unsignedByte";
+    public static final String xsdDouble = xsd + "double";
+    public static final String xsdFloat = xsd + "float";
+    public static final String xsdDate = xsd + "date";
+    public static final String xsdTime = xsd + "time";
+    public static final String xsdDateTime = xsd + "dateTime";
+    public static final String xsdDateTimeStamp = xsd + "dateTimeStamp";
+    public static final String xsdGYear = xsd + "gYear";
+    public static final String xsdGMonth = xsd + "gMonth";
+    public static final String xsdGDay = xsd + "gDay";
+    public static final String xsdGYearMonth = xsd + "gYearMonth";
+    public static final String xsdGMonthDay = xsd + "gMonthDay";
+    public static final String xsdDuration = xsd + "duration";
+    public static final String wsdYearMonthDuration = xsd + "yearMonthDuration";
+    public static final String wsdDayTimeDuration = xsd + "dayTimeDuration";
     public static final String xsdByte = xsd + "byte";
+    public static final String xsdShort = xsd + "short";
+    public static final String xsdInt = xsd + "int";
+    public static final String xsdLong = xsd + "long";
+    public static final String xsdUnsigedByte = xsd + "unsignedByte";
+    public static final String xsdUnsignedShort = xsd + "unsignedShort";
+    public static final String xsdUnsignedInteger = xsd + "unsignedInt";
+    public static final String xsdUnsignedLong = xsd + "unsignedLong";
+    public static final String xsdPositiveInteger = xsd + "positiveInteger";
+    public static final String xsdNonNegativeInteger = xsd + "nonNegativeInteger";
+    public static final String xsdNegativeInteger = xsd + "negativeInteger";
+    public static final String xsdNonPositiveinteger = xsd + "nonPositiveInteger";
+    public static final String xsdHexBinary = xsd + "hexBinary";
+    public static final String xsdBase64Binary = xsd + "base64Binary";
+    public static final String xsdAnyURI = xsd + "anyURI";
+    public static final String xsdLanguage = xsd + "language";
+    public static final String xsdNormalizedString = xsd + "normalizedString";
+    public static final String xsdToken = xsd + "token";
+    public static final String xsdNMTOOKEN = xsd + "NMTOKEN";
+    public static final String xsdName = xsd + "Name";
+    public static final String xsdNCNAme = xsd + "NCName";
 
     /**
      * OWL2 language elements
