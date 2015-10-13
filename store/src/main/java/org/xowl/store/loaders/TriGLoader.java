@@ -54,6 +54,7 @@ public class TriGLoader extends BaseTurtleLoader {
 
     @Override
     protected void loadDocument(ASTNode node) throws LoaderException {
+        GraphNode baseGraph = graph;
         for (ASTNode child : node.getChildren()) {
             switch (child.getSymbol().getID()) {
                 case TriGParser.ID.prefixID:
@@ -66,11 +67,11 @@ public class TriGLoader extends BaseTurtleLoader {
                     break;
                 case TriGParser.ID.triples:
                     // reset the current graph
-                    graph = store.getIRINode(IRIs.GRAPH_DEFAULT);
+                    graph = baseGraph;
                     loadTriples(child);
                     break;
                 case TriGParser.ID.graphAnonymous:
-                    graph = store.getIRINode(IRIs.GRAPH_DEFAULT);
+                    graph = baseGraph;
                     loadGraphContent(child);
                     break;
                 case TriGParser.ID.graphNamed:
