@@ -51,6 +51,10 @@ public class IRIs {
      * The base IRI of the XOWL entailment rules
      */
     public static final String XOWL_RULES = "http://xowl.org/store/rules/";
+    /**
+     * The IRI of the XOWL entailment rules
+     */
+    public static final String XOWL_RULES_XOWL = "http://xowl.org/store/rules/xowl";
 
     /**
      * URI of the default graph

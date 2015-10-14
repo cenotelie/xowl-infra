@@ -397,6 +397,8 @@ public class Vocabulary {
     public static final String owlReal = owl + "real";
     public static final String owlRational = owl + "rational";
 
-    public static final String xowl = IRIs.XOWL_LANG;
-    public static final String xowlDefinedAs = xowl + "actions#definedAs";
+    public static final String xowlDefinedAs = IRIs.XOWL_LANG + "actions#definedAs";
+    public static final String xowlStatus = IRIs.XOWL_RULES_XOWL + "#status";
+    public static final String xowlInconsistent = IRIs.XOWL_RULES_XOWL + "#inconsistent";
+    public static final String xowlUnsat = IRIs.XOWL_RULES_XOWL + "#unsat";
 }
