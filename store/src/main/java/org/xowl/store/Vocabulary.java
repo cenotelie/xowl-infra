@@ -48,9 +48,11 @@ public class Vocabulary {
     public static final String rdfLI = rdf + "li";
     public static final String rdfXMLLiteral = rdf + "XMLLiteral";
     public static final String rdfHTML = rdf + "HTML";
+    public static final String rdfProperty = rdf + "Property";
 
     public static final String rdfs = IRIs.RDFS + "#";
     public static final String rdfsDatatype = rdfs + "Datatype";
+    public static final String rdfsResource = rdfs + "Resource";
     public static final String rdfsSubClassOf = rdfs + "subClassOf";
     public static final String rdfsSubPropertyOf = rdfs + "subPropertyOf";
     public static final String rdfsDomain = rdfs + "domain";

@@ -302,6 +302,8 @@ public class Repository extends AbstractRepository {
                 break;
             case RDFS:
                 load(logger, IRIs.RDFS);
+                load(logger, IRIs.XOWL_RULES + "rdfs");
+                backend.addListener(new RDFSEntailment(backend, backend));
                 break;
             case OWL2_RDF:
             case OWL2_DIRECT:

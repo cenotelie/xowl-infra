@@ -1,0 +1,96 @@
+######################################################################
+# Copyright (c) 2015 Laurent Wouters
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General
+# Public License along with this program.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+# Contributors:
+#     Laurent Wouters - lwouters@xowl.org
+######################################################################
+
+@base <http://xowl.org/store/rules/rdfs> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xowl: <http://xowl.org/store/rules/xowl#> .
+
+# Rules in this document are based on those given at http://www.w3.org/TR/2013/WD-rdf11-mt-20130723/#rdfs-entailment
+# Inconsistency is indicated on an entity using:
+#   ?e xowl:status xowl:inconsistent
+
+rule rdfs:rule-domain {
+    ?p rdfs:domain ?d
+    ?x ?p ?y
+} => {
+    ?x rdf:type ?d
+}
+
+rule rdfs:rule-range {
+    ?p rdfs:range ?r
+    ?x ?p ?y
+} => {
+    ?y rdf:type ?r
+}
+
+rule rdfs:rule-type-property {
+    ?x rdf:type rdf:Property
+} => {
+    ?x rdfs:subPropertyOf ?x
+}
+
+rule rdfs:rule-transitive-sub-property {
+    ?x rdfs:subPropertyOf ?y
+    ?y rdfs:subPropertyOf ?z
+} => {
+    ?x rdfs:subPropertyOf ?z
+}
+
+rule rdfs:rule-apply-sub-property {
+    ?a rdfs:subPropertyOf ?b
+    ?x ?a ?y
+} => {
+    ?x ?b ?y
+}
+
+rule rdfs:rule-type-class {
+    ?x rdf:type rdfs:Class
+} => {
+    ?x rdfs:subClassOf rdfs:Resource
+    ?x rdfs:subClassOf ?x
+}
+
+rule rdfs:rule-transitive-sub-class {
+    ?x rdfs:subClassOf ?y
+    ?y rdfs:subClassOf ?z
+} => {
+    ?x rdfs:subClassOf ?z
+}
+
+rule rdfs:rule-apply-sub-class {
+    ?x rdfs:subClassOf ?y
+    ?z rdf:type ?x
+} => {
+    ?z rdf:type ?y
+}
+
+rule rdfs:rule-type-container-membership {
+    ?x rdf:type rdfs:ContainerMembershipProperty
+} => {
+    ?x rdfs:subPropertyOf rdfs:member
+}
+
+rule rdfs:rule-type-datatype {
+    ?x rdf:type rdfs:Datatype
+} => {
+    ?x rdfs:subClassOf rdfs:Literal
+}
