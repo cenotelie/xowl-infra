@@ -18,38 +18,43 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.owl;
+package org.xowl.store.storage.cache;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.store.rdf.SubjectNode;
+import org.xowl.store.owl.AnonymousNode;
 
 /**
- * Represents a RDF store associated to an anonymous individual
+ * Cached implementation of an anonymous node
  *
  * @author Laurent Wouters
  */
-public abstract class AnonymousNode implements SubjectNode {
-    @Override
-    public int getNodeType() {
-        return TYPE_ANONYMOUS;
+class CachedAnonNode extends AnonymousNode {
+    /**
+     * The individual backing this node
+     */
+    private final AnonymousIndividual individual;
+
+    /**
+     * Initializes this node
+     *
+     * @param individual The individual backing this node
+     */
+    public CachedAnonNode(AnonymousIndividual individual) {
+        this.individual = individual;
     }
 
     @Override
-    public String toString() {
-        return "_:" + getNodeID();
+    public String getNodeID() {
+        return individual.getNodeID();
     }
 
-    /**
-     * Gets the identifier of this anonymous node
-     *
-     * @return The identifier of this anonymous node
-     */
-    public abstract String getNodeID();
+    @Override
+    public AnonymousIndividual getIndividual() {
+        return individual;
+    }
 
-    /**
-     * Gets the anonymous individual represented by this node
-     *
-     * @return The anonymous individual represented by this node
-     */
-    public abstract AnonymousIndividual getIndividual();
+    @Override
+    public boolean equals(Object o) {
+        return ((o instanceof AnonymousNode) && (getNodeID().equals(((AnonymousNode) o).getNodeID())));
+    }
 }

@@ -39,7 +39,7 @@ import java.util.UUID;
  *
  * @author Laurent Wouters
  */
-public class PersistedNodes implements NodeManager {
+public class PersistedNodes implements NodeManager, AutoCloseable {
     /**
      * The radical for the files associated to this store
      */
@@ -98,6 +98,33 @@ public class PersistedNodes implements NodeManager {
         return data.hashCode();
     }
 
+    /**
+     * Gets the key for the specified string
+     *
+     * @param data     The string to get a key for
+     * @param doInsert Whether the string shall be inserted in the store if it is not already present
+     * @return The key for the string
+     */
+    private long keyFor(String data, boolean doInsert) {
+        int hash = hash(data);
+        Long bucket = mapStrings.get(hash);
+        if (bucket == null && !doInsert)
+            return StringStoreBackend.KEY_NOT_PRESENT;
+        if (doInsert) {
+            try {
+                return sStore.add(bucket == null ? StringStoreBackend.KEY_NOT_PRESENT : bucket, data);
+            } catch (IOException exception) {
+                return StringStoreBackend.KEY_NOT_PRESENT;
+            }
+        } else {
+            try {
+                return sStore.getKey(bucket, data);
+            } catch (IOException exception) {
+                return StringStoreBackend.KEY_NOT_PRESENT;
+            }
+        }
+    }
+
     @Override
     public IRINode getIRINode(GraphNode graph) {
         if (graph != null && graph.getNodeType() == Node.TYPE_IRI) {
@@ -110,30 +137,14 @@ public class PersistedNodes implements NodeManager {
 
     @Override
     public IRINode getIRINode(String iri) {
-        int hash = hash(iri);
-        Long bucket = mapStrings.get(hash);
-        try {
-            long key = sStore.add(bucket == null ? -1 : bucket, iri);
-            if (bucket == null)
-                mapStrings.put(hash, key);
-            return new PersistedIRINode(sStore, key);
-        } catch (IOException exception) {
-            return null;
-        }
+        long key = keyFor(iri, true);
+        return (key == StringStoreBackend.KEY_NOT_PRESENT ? null : new PersistedIRINode(sStore, key));
     }
 
     @Override
     public IRINode getExistingIRINode(String iri) {
-        int hash = hash(iri);
-        Long bucket = mapStrings.get(hash);
-        if (bucket == null)
-            return null;
-        try {
-            long key = sStore.getKey(bucket, iri);
-            return (key == -1 ? null : new PersistedIRINode(sStore, key));
-        } catch (IOException exception) {
-            return null;
-        }
+        long key = keyFor(iri, false);
+        return (key == StringStoreBackend.KEY_NOT_PRESENT ? null : new PersistedIRINode(sStore, key));
     }
 
     @Override
@@ -149,6 +160,13 @@ public class PersistedNodes implements NodeManager {
 
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
-        return null;
+        long key = keyFor(individual.getNodeID(), true);
+        return (key == StringStoreBackend.KEY_NOT_PRESENT ? null : new PersistedAnonNode(sStore, key, individual));
+    }
+
+    @Override
+    public void close() throws Exception {
+        sStore.close();
+        database.close();
     }
 }

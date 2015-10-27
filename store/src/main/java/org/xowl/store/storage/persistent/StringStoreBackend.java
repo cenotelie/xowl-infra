@@ -47,7 +47,7 @@ import java.util.Arrays;
  *
  * @author Laurent Wouters
  */
-class StringStoreBackend {
+class StringStoreBackend implements AutoCloseable {
     /**
      * Magic identifier of the type of store
      */
@@ -64,6 +64,10 @@ class StringStoreBackend {
      * The number of remaining bytes below which a block is considered full
      */
     private static final int THRESHOLD_BLOCK_FULL = 24;
+    /**
+     * The key for absent values in the store
+     */
+    public static final long KEY_NOT_PRESENT = -1;
 
     /**
      * The file persisting this store
@@ -122,13 +126,13 @@ class StringStoreBackend {
      *
      * @param bucket The key to the bucket for this string
      * @param data   The string to get the key for
-     * @return The key for the string, or -1 if it is not in this store
+     * @return The key for the string, or KEY_NOT_PRESENT if it is not in this store
      * @throws IOException When an IO operation failed
      */
     public long getKey(long bucket, String data) throws IOException {
         byte[] buffer = charset.encode(data).array();
         long candidate = bucket;
-        while (candidate != -1) {
+        while (candidate != KEY_NOT_PRESENT) {
             file.seek(candidate);
             long next = file.readLong();
             int size = file.readInt();
@@ -139,22 +143,22 @@ class StringStoreBackend {
             }
             candidate = next;
         }
-        return -1;
+        return KEY_NOT_PRESENT;
     }
 
     /**
      * Stores the specified string in this backend
      *
-     * @param bucket The key to the bucket for this string, or -1 if it must be created
+     * @param bucket The key to the bucket for this string, or KEY_NOT_PRESENT if it must be created
      * @param data   The string to store
      * @return The key to the stored string
      * @throws IOException When an IO operation failed
      */
     public long add(long bucket, String data) throws IOException {
         byte[] buffer = charset.encode(data).array();
-        long previous = -1;
+        long previous = KEY_NOT_PRESENT;
         long candidate = bucket;
-        while (candidate != -1) {
+        while (candidate != KEY_NOT_PRESENT) {
             file.seek(candidate);
             long next = file.readLong();
             int size = file.readInt();
@@ -167,7 +171,7 @@ class StringStoreBackend {
             candidate = next;
         }
         long result = write(buffer);
-        if (previous != -1) {
+        if (previous != KEY_NOT_PRESENT) {
             file.seek(previous);
             file.writeLong(result);
         }
@@ -256,8 +260,13 @@ class StringStoreBackend {
      */
     private void writeTo(byte[] buffer, long index) throws IOException {
         file.seek(index);
-        file.writeLong(-1);
+        file.writeLong(KEY_NOT_PRESENT);
         file.writeInt(buffer.length);
         file.writeBytes(buffer);
+    }
+
+    @Override
+    public void close() throws IOException {
+        file.close();
     }
 }
