@@ -22,6 +22,8 @@ package org.xowl.store.storage.cache;
 
 import org.xowl.store.rdf.LiteralNode;
 
+import java.util.Objects;
+
 /**
  * Cached implementation of a literal node
  *
@@ -73,9 +75,9 @@ class CachedLiteralNode extends LiteralNode {
     public boolean equals(Object o) {
         if (o instanceof LiteralNode) {
             LiteralNode node = (LiteralNode) o;
-            return (lexical == null && node.getLexicalValue() == null || lexical != null && lexical.equals(node.getLexicalValue()))
-                    && (datatype == null && node.getDatatype() == null || datatype != null && datatype.equals(node.getDatatype()))
-                    && (langTag == null && node.getLangTag() == null || langTag != null && langTag.equals(node.getLangTag()));
+            return (Objects.equals(lexical, node.getLexicalValue())
+                    && Objects.equals(datatype, node.getDatatype())
+                    && Objects.equals(langTag, node.getLexicalValue()));
         }
         return false;
     }

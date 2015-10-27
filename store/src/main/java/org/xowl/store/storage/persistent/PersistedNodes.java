@@ -106,6 +106,8 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      * @return The key for the string
      */
     private long keyFor(String data, boolean doInsert) {
+        if (data == null)
+            return StringStoreBackend.KEY_NOT_PRESENT;
         int hash = hash(data);
         Long bucket = mapStrings.get(hash);
         if (bucket == null && !doInsert)
@@ -155,7 +157,10 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
 
     @Override
     public LiteralNode getLiteralNode(String lex, String datatype, String lang) {
-        return null;
+        long keyLexical = keyFor(lex, true);
+        long keyDatatype = keyFor(datatype, true);
+        long keyLangTag = keyFor(lang, true);
+        return new PersistedLiteralNode(sStore, keyLexical, keyDatatype, keyLangTag);
     }
 
     @Override
