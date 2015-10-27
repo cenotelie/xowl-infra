@@ -20,36 +20,11 @@
 
 package org.xowl.store.storage.persistent;
 
-import java.io.IOException;
-
 /**
- * Represents an object that can be persisted in a binary form
+ * Represents the common API for the persisted node
  *
  * @author Laurent Wouters
  */
-interface Persistable {
-    /**
-     * Gets the length in bytes of the persisted form of this object
-     *
-     * @return The length in bytes
-     */
-    int persistedLength();
+interface PersistedNode {
 
-    /**
-     * Writes the binary form into the specified file.
-     * The file is expected to be correctly positioned.
-     *
-     * @param file The file to persist this object in
-     * @throws IOException When an IO operation failed
-     */
-    void persist(PersistedFile file) throws IOException;
-
-    /**
-     * Determines whether the specified file at its current position contains the persisted form of this object.
-     *
-     * @param file The file to check against
-     * @return true if the data ahead in the specified file correspond to the persistent form of the object
-     * @throws IOException When an IO operation failed
-     */
-    boolean isPersistedIn(PersistedFile file) throws IOException;
 }

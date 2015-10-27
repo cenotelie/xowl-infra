@@ -20,33 +20,20 @@
 
 package org.xowl.store.storage.persistent;
 
-import java.io.IOException;
+import org.xowl.store.rdf.BlankNode;
 
 /**
- * Implements a persistable key into a file.
- * Instances of this class can be reused by changing the backing value (public value field).
- * This avoids the need to instantiate a new object each time a persistable key is required.
+ * Implementation of a persisted Blank node
  *
  * @author Laurent Wouters
  */
-class PersistableFastKey implements Persistable {
+class PersistedBlankNode extends BlankNode implements PersistedNode {
     /**
-     * The value to serialize
+     * Initializes this node
+     *
+     * @param id The unique identifier for this node
      */
-    public long value;
-
-    @Override
-    public int persistedLength() {
-        return 8;
-    }
-
-    @Override
-    public void persist(PersistedFile file) throws IOException {
-        file.writeLong(value);
-    }
-
-    @Override
-    public boolean isPersistedIn(PersistedFile file) throws IOException {
-        return value == file.readLong();
+    public PersistedBlankNode(long id) {
+        super(id);
     }
 }

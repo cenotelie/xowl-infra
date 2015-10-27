@@ -23,27 +23,21 @@ package org.xowl.store.storage.persistent;
 import org.xowl.store.rdf.IRINode;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 
 /**
  * Implementation of a persisted IRI node
  *
  * @author Laurent Wouters
  */
-class PersistedIRINode extends IRINode {
+class PersistedIRINode extends IRINode implements PersistedNode {
     /**
-     * The charset for persisting IRIS
+     * The backend persisting the strings
      */
-    public static final Charset CHARSET = Charset.forName("UTF-8");
-
+    private final StringStoreBackend backend;
     /**
-     * The file that persists the node
+     * The key to the IRI value
      */
-    private final PersistedFile file;
-    /**
-     * The location of the IRI value into the file
-     */
-    private final long location;
+    private final long key;
     /**
      * The cached IRI value, if any
      */
@@ -52,21 +46,19 @@ class PersistedIRINode extends IRINode {
     /**
      * Initializes this node
      *
-     * @param file     The file that persists the node
-     * @param location The location of the IRI value into the file
+     * @param backend The backend persisting the strings
+     * @param key     The key to the IRI value
      */
-    public PersistedIRINode(PersistedFile file, long location) {
-        this.file = file;
-        this.location = location;
+    public PersistedIRINode(StringStoreBackend backend, long key) {
+        this.backend = backend;
+        this.key = key;
     }
 
     @Override
     public String getIRIValue() {
         if (value == null) {
             try {
-                int length = file.seek(location).readInt();
-                byte[] content = file.readBytes(length);
-                value = new String(content, CHARSET);
+                value = backend.read(key);
             } catch (IOException exception) {
                 value = "#error#";
             }
@@ -78,9 +70,8 @@ class PersistedIRINode extends IRINode {
     public boolean equals(Object o) {
         if (o instanceof PersistedIRINode) {
             PersistedIRINode node = (PersistedIRINode) o;
-            if (node.file == this.file)
-                return node.location == this.location;
-            return getIRIValue().equals(node.getIRIValue());
+            if (node.backend == this.backend)
+                return node.key == this.key;
         }
         return (o instanceof IRINode) && (getIRIValue().equals(((IRINode) o).getIRIValue()));
     }
