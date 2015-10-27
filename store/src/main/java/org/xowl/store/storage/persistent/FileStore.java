@@ -54,6 +54,14 @@ class FileStore extends IOBackend {
      * The number of remaining bytes below which a block is considered full
      */
     private static final int THRESHOLD_BLOCK_FULL = 24;
+    /**
+     * The maximum number of open blocks in a file
+     */
+    private static final int MAX_OPEN_BLOCKS = (FileStoreFile.BLOCK_SIZE - 16) / 8;
+    /**
+     * The maximum number of blocks per file
+     */
+    private static final int MAX_BLOCKS_PER_FILE = 1 << 16;
 
     /**
      * The directory containing the backing files
@@ -153,14 +161,33 @@ class FileStore extends IOBackend {
      *
      * @param entrySize The size of the entry to write
      * @return The key for retrieving the data
-     * @throws IOException
-     * @throws StorageException
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
      */
     public long add(int entrySize) throws IOException, StorageException {
         if (entrySize > FileStorePage.MAX_ENTRY_SIZE)
             throw new StorageException("The entry is too large for this store");
         FileStoreFile file = files.get(files.size() - 1);
-        return provision(file, entrySize);
+        long result = provision(file, entrySize);
+        if (result == -1) {
+            file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), getRadicalFor(files.size()));
+            files.add(file);
+            result = provision(file, entrySize);
+        }
+        return result;
+    }
+
+    /**
+     * Removes the entry for the specified key
+     *
+     * @param key The key of the entry to remove
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    public void remove(long key) throws IOException, StorageException {
+        int index = getFileIndexFor(key);
+        FileStoreFile file = files.get(index);
+        clear(file, key);
     }
 
     /**
@@ -181,6 +208,8 @@ class FileStore extends IOBackend {
             int blockRemaining = file.readInt();
             if (blockRemaining >= entrySize + FileStorePage.ENTRY_OVERHEAD) {
                 FileStorePage page = file.getPage(blockIndex);
+                if (!page.canStore(entrySize))
+                    continue;
                 long key = page.registerEntry(entrySize);
                 blockRemaining -= entrySize;
                 blockRemaining -= FileStorePage.ENTRY_OVERHEAD;
@@ -205,7 +234,10 @@ class FileStore extends IOBackend {
             }
         }
         {
+            if (nextFreeBlock >= MAX_BLOCKS_PER_FILE)
+                return -1;
             FileStorePage page = file.getPage(nextFreeBlock);
+            page.setReuseEmptyEntries();
             nextFreeBlock++;
             int remaining = FileStorePage.MAX_ENTRY_SIZE - entrySize - FileStorePage.ENTRY_OVERHEAD;
             if (remaining >= THRESHOLD_BLOCK_FULL) {
@@ -218,6 +250,34 @@ class FileStore extends IOBackend {
             file.writeInt(openBlockCount);
             file.writeInt(nextFreeBlock);
             return page.registerEntry(entrySize);
+        }
+    }
+
+    /**
+     * Clears an entry from a file
+     *
+     * @param file The backend file containing the entry
+     * @param key  The key of the entry to remove
+     * @return The key for retrieving the data
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    private static void clear(FileStoreFile file, long key) throws IOException, StorageException {
+        FileStorePage page = file.getPageFor(key);
+        int length = page.removeEntry(key);
+        file.seek(8);
+        int openBlockCount = file.readInt();
+        int nextFreeBlock = file.readInt();
+        for (int i = 0; i != openBlockCount; i++) {
+            int blockIndex = file.readInt();
+            int blockRemaining = file.readInt();
+            if (blockIndex * FileStoreFile.BLOCK_SIZE == page.getLocation()) {
+                // already open
+                blockRemaining -= length + FileStorePage.ENTRY_OVERHEAD;
+                file.seek(i * 8 + 16 + 4);
+                file.writeInt(blockRemaining);
+                return;
+            }
         }
     }
 

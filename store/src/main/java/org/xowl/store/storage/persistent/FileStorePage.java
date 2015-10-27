@@ -21,24 +21,23 @@
 package org.xowl.store.storage.persistent;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * Represents a page of data in a persisted binary store
- * <p/>
+ * <p>
  * Page general layout:
  * - header
  * - entry array (fill down from just after the header)
  * - ... free space
  * - data content (fill up from the bottom of the page)
- * <p/>
+ * <p>
  * Header layout:
  * - Layout version (2 bytes)
  * - Flags (2 bytes)
  * - Number of entries (2 bytes)
  * - Offset to start of free space (2 bytes)
  * - Offset to start of data content (2 bytes)
- * <p/>
+ * <p>
  * Entry layout:
  * - offset (2 bytes)
  * - length (2 bytes)
@@ -137,6 +136,15 @@ class FileStorePage {
      */
     public void setReuseEmptyEntries() {
         flags = (char) (flags | FLAG_REUSE_EMPTY_ENTRIES);
+    }
+
+    /**
+     * Gets the location of this page
+     *
+     * @return The location of this page
+     */
+    public long getLocation() {
+        return location;
     }
 
     /**
@@ -256,10 +264,11 @@ class FileStorePage {
      * Removes the entry identified by the specified key
      *
      * @param key The key to an entry
+     * @return The length of the removed entry
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the provided key is not within this page
      */
-    public void removeEntry(long key) throws IOException, StorageException {
+    public int removeEntry(long key) throws IOException, StorageException {
         long entryIndex = key - keyRadical;
         if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >>> 2)
             throw new StorageException("The entry for the specified key is not in this page");
@@ -300,6 +309,7 @@ class FileStorePage {
             backend.writeChar('\0');
             entryCount--;
         }
+        return length;
     }
 
     /**
