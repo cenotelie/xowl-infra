@@ -35,7 +35,6 @@ import java.util.Arrays;
  * Header layout:
  * - Layout version (2 bytes)
  * - Flags (2 bytes)
- * - Checksum SHA-1 (20 bytes)
  * - Number of entries (2 bytes)
  * - Offset to start of free space (2 bytes)
  * - Offset to start of data content (2 bytes)
@@ -54,16 +53,25 @@ class FileStorePage {
     /**
      * The size of the page header in bytes
      */
-    private static final int PAGE_HEADER_SIZE = 30;
+    private static final int PAGE_HEADER_SIZE = 10;
     /**
      * The size of an entry in the entry table of a page (in bytes)
      */
-    private static final int PAGE_ENTRY_SIZE = 4;
+    private static final int PAGE_ENTRY_INDEX_SIZE = 4;
 
     /**
      * Flag whether the page shall reuse the space of removed entries
      */
     private static final char FLAG_REUSE_EMPTY_ENTRIES = 0x0001;
+
+    /**
+     * The maximum size of the payload of an entry in a page
+     */
+    public static final int MAX_ENTRY_SIZE = FileStoreFile.BLOCK_SIZE - PAGE_HEADER_SIZE - PAGE_ENTRY_INDEX_SIZE;
+    /**
+     * The number of bytes required in addition to an entry's payload
+     */
+    public static final int ENTRY_OVERHEAD = PAGE_ENTRY_INDEX_SIZE;
 
     /**
      * The backend store
@@ -114,12 +122,6 @@ class FileStorePage {
             if (version != PAGE_LAYOUT_VERSION)
                 throw new StorageException("Invalid page layout version " + version + ", expected " + PAGE_LAYOUT_VERSION);
             flags = backend.readChar();
-            byte[] storedDigest = backend.readBytes(20);
-            backend.seek(location + PAGE_HEADER_SIZE);
-            byte[] computedDigest = backend.digestSHA1(FileStoreFile.BLOCK_SIZE - PAGE_HEADER_SIZE);
-            if (!Arrays.equals(storedDigest, computedDigest))
-                throw new StorageException("Page checksum verification failed on load");
-            backend.seek(location + 24);
             entryCount = backend.readChar();
             startFreeSpace = backend.readChar();
             startData = backend.readChar();
@@ -154,11 +156,13 @@ class FileStorePage {
      * @throws IOException When an IO operation failed
      */
     public boolean canStore(int length) throws IOException {
+        if (length > MAX_ENTRY_SIZE)
+            return false;
         if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
             // we can reuse empty entries and there are at least one
             char entryIndex = 0;
             backend.seek(location + PAGE_HEADER_SIZE);
-            while (entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
+            while (entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
                 char eOffset = backend.readChar();
                 char eLength = backend.readChar();
                 if (eOffset == 0 && eLength >= length) {
@@ -168,7 +172,7 @@ class FileStorePage {
             }
             // no suitable empty entry
         }
-        return (startData - startFreeSpace - length - PAGE_ENTRY_SIZE >= 0);
+        return (startData - startFreeSpace - length - PAGE_ENTRY_INDEX_SIZE >= 0);
     }
 
     /**
@@ -185,7 +189,7 @@ class FileStorePage {
             char entryIndex = 0;
             char dataOffset = (char) FileStoreFile.BLOCK_SIZE;
             backend.seek(location + PAGE_HEADER_SIZE);
-            while (entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
+            while (entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
                 char eOffset = backend.readChar();
                 char eLength = backend.readChar();
                 if (eOffset == 0 && eLength >= length) {
@@ -196,7 +200,7 @@ class FileStorePage {
             }
             // no suitable empty entry
         }
-        if (startData - startFreeSpace - length - PAGE_ENTRY_SIZE < 0)
+        if (startData - startFreeSpace - length - PAGE_ENTRY_INDEX_SIZE < 0)
             throw new StorageException("Cannot store an entry of the specified size");
         return writeNewEntry(length);
     }
@@ -213,7 +217,7 @@ class FileStorePage {
         // compute the entry data
         long key = keyRadical + entryIndex;
         // write the entry
-        backend.seek(location + entryIndex * PAGE_ENTRY_SIZE);
+        backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE);
         backend.writeChar(dataOffset);
         // update the header data
         entryCount++;
@@ -240,7 +244,7 @@ class FileStorePage {
         backend.writeChar((char) length);
         // update the header data
         entryCount++;
-        startFreeSpace += PAGE_ENTRY_SIZE;
+        startFreeSpace += PAGE_ENTRY_INDEX_SIZE;
         startData -= length;
         // position on to the data location
         backend.seek(dataLocation);
@@ -259,25 +263,25 @@ class FileStorePage {
         long entryIndex = key - keyRadical;
         if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >>> 2)
             throw new StorageException("The entry for the specified key is not in this page");
-        backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
+        backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
         char offset = backend.readChar();
         char length = backend.readChar();
         if (offset == 0)
             throw new StorageException("The entry for the specified key has already been removed");
         if (offset == startData) {
             // this is the last entry in this page
-            startFreeSpace -= PAGE_ENTRY_SIZE;
+            startFreeSpace -= PAGE_ENTRY_INDEX_SIZE;
             startData += length;
             entryCount--;
             // go to the previous entry en get its info
             entryIndex--;
-            backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
+            backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
             offset = backend.readChar();
             length = backend.readChar();
             // while the entry is empty (and this is an actual entry)
             while (offset == 0 && entryIndex >= 0) {
                 // remove it completely because this is the last one
-                startFreeSpace -= PAGE_ENTRY_SIZE;
+                startFreeSpace -= PAGE_ENTRY_INDEX_SIZE;
                 startData += length;
                 entryCount--;
                 // go to the previous entry
@@ -285,14 +289,14 @@ class FileStorePage {
                 // is is a valid entry?
                 if (entryIndex >= 0) {
                     // get its info
-                    backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
+                    backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
                     offset = backend.readChar();
                     length = backend.readChar();
                 }
             }
         } else {
             // simply marks this entry as empty by erasing the offset
-            backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
+            backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
             backend.writeChar('\0');
             entryCount--;
         }
@@ -310,7 +314,7 @@ class FileStorePage {
         long entryIndex = key - keyRadical;
         if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >>> 2)
             throw new StorageException("The entry for the specified key is not in this page");
-        backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
+        backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
         char offset = backend.readChar();
         char length = backend.readChar();
         if (offset == 0)
@@ -326,12 +330,9 @@ class FileStorePage {
      * @throws IOException When an IO operation failed
      */
     public void onCommit() throws IOException {
-        backend.seek(location + PAGE_HEADER_SIZE);
-        byte[] digest = backend.digestSHA1(FileStoreFile.BLOCK_SIZE - PAGE_HEADER_SIZE);
         backend.seek(location);
         backend.writeChar(PAGE_LAYOUT_VERSION);
         backend.writeChar(flags);
-        backend.writeBytes(digest);
         backend.writeChar(entryCount);
         backend.writeChar(startFreeSpace);
         backend.writeChar(startData);

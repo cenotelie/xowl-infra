@@ -20,6 +20,8 @@
 
 package org.xowl.store.storage.persistent;
 
+import java.io.IOException;
+
 /**
  * An entity that acts as a proxy to a backing element that can be read from and written to.
  * This entity can enforce boundaries on the underlying element.
@@ -30,34 +32,160 @@ abstract class IOProxy implements IOElement {
     /**
      * The backing IO element
      */
-    protected final IOElement backend;
+    protected IOElement backend;
+    /**
+     * The location in the backend of the proxy
+     */
+    protected long location;
+    /**
+     * The length of the proxy in the backend
+     */
+    protected long length;
 
     /**
-     * Initializes this proxy
+     * Gets whether the specified number of bytes at the current index are within the proxy bounds
      *
-     * @param backend The backing IO element
+     * @param length A number of bytes
+     * @return true if the bytes are within the bounds
      */
-    protected IOProxy(IOElement backend) {
-        this.backend = backend;
+    private boolean withinBounds(int length) {
+        return (backend.getIndex() >= location && backend.getIndex() + length <= location + this.length);
     }
 
-    /**
-     * Resets the index to the beginning
-     */
-    public abstract void reset();
+    @Override
+    public long getIndex() {
+        return backend.getIndex() - location;
+    }
 
-    /**
-     * Positions the index to the specified position
-     *
-     * @param index The position for the index
-     * @return The proxy
-     */
-    public abstract IOProxy seek(long index);
+    @Override
+    public long getSize() throws IOException {
+        return length;
+    }
 
-    /**
-     * Gets the number of accessible bytes
-     *
-     * @return The number of accessible bytes
-     */
-    public abstract long length();
+    @Override
+    public IOElement seek(long index) {
+        return backend.seek(location + index);
+    }
+
+    @Override
+    public IOElement reset() {
+        return backend.seek(location);
+    }
+
+    @Override
+    public boolean canRead(int length) throws IOException {
+        return (withinBounds(length) && backend.canRead(length));
+    }
+
+    @Override
+    public byte readByte() throws IOException {
+        if (!canRead(1))
+            throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        return backend.readByte();
+    }
+
+    @Override
+    public byte[] readBytes(int length) throws IOException {
+        if (!canRead(length))
+            throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        return backend.readBytes(length);
+    }
+
+    @Override
+    public void readBytes(byte[] buffer, int index, int length) throws IOException {
+        if (!canRead(length))
+            throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        backend.readBytes(buffer, index, length);
+    }
+
+    @Override
+    public char readChar() throws IOException {
+        if (!canRead(2))
+            throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        return backend.readChar();
+    }
+
+    @Override
+    public int readInt() throws IOException {
+        if (!canRead(4))
+            throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        return backend.readInt();
+    }
+
+    @Override
+    public long readLong() throws IOException {
+        if (!canRead(8))
+            throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        return backend.readLong();
+    }
+
+    @Override
+    public float readFloat() throws IOException {
+        if (!canRead(4))
+            throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        return backend.readFloat();
+    }
+
+    @Override
+    public double readDouble() throws IOException {
+        if (!canRead(8))
+            throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        return backend.readDouble();
+    }
+
+    @Override
+    public void writeByte(byte value) throws IOException {
+        if (!withinBounds(1))
+            throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
+        backend.writeByte(value);
+    }
+
+    @Override
+    public void writeBytes(byte[] value) throws IOException {
+        if (!withinBounds(value.length))
+            throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
+        backend.writeBytes(value);
+    }
+
+    @Override
+    public void writeBytes(byte[] buffer, int index, int length) throws IOException {
+        if (!withinBounds(length))
+            throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
+        backend.writeBytes(buffer, index, length);
+    }
+
+    @Override
+    public void writeChar(char value) throws IOException {
+        if (!withinBounds(2))
+            throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
+        backend.writeChar(value);
+    }
+
+    @Override
+    public void writeInt(int value) throws IOException {
+        if (!withinBounds(4))
+            throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
+        backend.writeInt(value);
+    }
+
+    @Override
+    public void writeLong(long value) throws IOException {
+        if (!withinBounds(8))
+            throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
+        backend.writeLong(value);
+    }
+
+    @Override
+    public void writeFloat(float value) throws IOException {
+        if (!withinBounds(4))
+            throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
+        backend.writeFloat(value);
+    }
+
+    @Override
+    public void writeDouble(double value) throws IOException {
+        if (!withinBounds(8))
+            throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
+        backend.writeDouble(value);
+    }
 }

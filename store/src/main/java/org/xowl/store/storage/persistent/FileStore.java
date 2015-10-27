@@ -27,8 +27,8 @@ import java.util.List;
 
 /**
  * A store of binary data backed by files
- *
- *
+ * <p>
+ * <p>
  * Each data file is composed of blocks (or pages)
  * - First block:
  * - int32: Magic identifier for the store
@@ -38,9 +38,10 @@ import java.util.List;
  * - array of block entries:
  * - int32: index of the block
  * - int32: remaining free space
+ *
  * @author Laurent Wouters
  */
-class FileStore implements AutoCloseable {
+class FileStore extends IOBackend {
     /**
      * Magic identifier of the type of store
      */
@@ -69,8 +70,9 @@ class FileStore implements AutoCloseable {
 
     /**
      * Initializes this store
+     *
      * @param directory The directory containing the backing files
-     * @param name The common name of the files backing this store
+     * @param name      The common name of the files backing this store
      */
     public FileStore(File directory, String name) throws IOException, StorageException {
         this.directory = directory;
@@ -99,10 +101,131 @@ class FileStore implements AutoCloseable {
         }
     }
 
+    @Override
+    public void close() throws IOException {
+        finalizeAllTransactions();
+        for (FileStoreFile child : files)
+            child.close();
+    }
+
+    /**
+     * Gets an access to the entry for the specified key
+     *
+     * @param key The key to an entry
+     * @return The IO element that can be used for reading and writing
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    public IOElement access(long key) throws IOException, StorageException {
+        return access(key, FLAG_READ | FLAG_WRITE);
+    }
+
+    /**
+     * Gets a reading access to the entry for the specified key
+     *
+     * @param key The key to an entry
+     * @return The IO element that can be used for reading
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    public IOElement read(long key) throws IOException, StorageException {
+        return access(key, FLAG_READ);
+    }
+
+    /**
+     * Gets an access to the entry for the specified key
+     *
+     * @param key The key to an entry
+     * @return The IO element that can be used for reading and writing
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    protected IOElement access(long key, int flags) throws IOException, StorageException {
+        int index = getFileIndexFor(key);
+        FileStoreFile file = files.get(index);
+        FileStorePage page = file.getPageFor(key);
+        int length = page.positionFor(key);
+        return transaction(file, file.getIndex(), length, flags);
+    }
+
+    /**
+     * Adds a new entry of the specified size
+     *
+     * @param entrySize The size of the entry to write
+     * @return The key for retrieving the data
+     * @throws IOException
+     * @throws StorageException
+     */
+    public long add(int entrySize) throws IOException, StorageException {
+        if (entrySize > FileStorePage.MAX_ENTRY_SIZE)
+            throw new StorageException("The entry is too large for this store");
+        FileStoreFile file = files.get(files.size() - 1);
+        return provision(file, entrySize);
+    }
+
+    /**
+     * Provisions an entry of the specified size in a file
+     *
+     * @param file      The backend file to write to
+     * @param entrySize The size of the entry to write
+     * @return The key for retrieving the data
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    private static long provision(FileStoreFile file, int entrySize) throws IOException, StorageException {
+        file.seek(8);
+        int openBlockCount = file.readInt();
+        int nextFreeBlock = file.readInt();
+        for (int i = 0; i != openBlockCount; i++) {
+            int blockIndex = file.readInt();
+            int blockRemaining = file.readInt();
+            if (blockRemaining >= entrySize + FileStorePage.ENTRY_OVERHEAD) {
+                FileStorePage page = file.getPage(blockIndex);
+                long key = page.registerEntry(entrySize);
+                blockRemaining -= entrySize;
+                blockRemaining -= FileStorePage.ENTRY_OVERHEAD;
+                if (blockRemaining >= THRESHOLD_BLOCK_FULL) {
+                    file.seek(i * 8 + 16 + 4);
+                    file.writeInt(blockRemaining);
+                } else {
+                    // the block is full
+                    for (int j = i + 1; j != openBlockCount; j++) {
+                        file.seek(j * 8 + 16);
+                        blockIndex = file.readInt();
+                        blockRemaining = file.readInt();
+                        file.seek((j - 1) * 8 + 16);
+                        file.writeInt(blockIndex);
+                        file.writeInt(blockRemaining);
+                    }
+                    openBlockCount--;
+                    file.seek(8);
+                    file.writeInt(openBlockCount);
+                }
+                return key;
+            }
+        }
+        {
+            FileStorePage page = file.getPage(nextFreeBlock);
+            nextFreeBlock++;
+            int remaining = FileStorePage.MAX_ENTRY_SIZE - entrySize - FileStorePage.ENTRY_OVERHEAD;
+            if (remaining >= THRESHOLD_BLOCK_FULL) {
+                file.seek(openBlockCount * 8 + 16);
+                file.writeInt(nextFreeBlock - 1);
+                file.writeInt(remaining);
+                openBlockCount++;
+            }
+            file.seek(8);
+            file.writeInt(openBlockCount);
+            file.writeInt(nextFreeBlock);
+            return page.registerEntry(entrySize);
+        }
+    }
+
     /**
      * Gets the name of the i-th file
+     *
      * @param radical The name radical
-     * @param index The index
+     * @param index   The index
      * @return The name of the file
      */
     private static String getNameFor(String radical, int index) {
@@ -114,15 +237,27 @@ class FileStore implements AutoCloseable {
 
     /**
      * Gets the key radical for entries in the i-th file
+     *
      * @param index The index
      * @return The key radical
      */
     private static long getRadicalFor(int index) {
-        return ((long)index) << 32;
+        return ((long) index) << 32;
+    }
+
+    /**
+     * Gets the file index for the specified key
+     *
+     * @param key A key to an entry
+     * @return The index of the corresponding file
+     */
+    private static int getFileIndexFor(long key) {
+        return (int) (key >>> 32);
     }
 
     /**
      * Initializes a backing file
+     *
      * @param file The file to initialize
      * @throws IOException When an IO error occurred
      */
@@ -132,11 +267,5 @@ class FileStore implements AutoCloseable {
         file.writeInt(LAYOUT_VERSION);
         file.writeInt(0);
         file.writeInt(1);
-    }
-
-    @Override
-    public void close() throws IOException {
-        for (FileStoreFile child : files)
-            child.close();
     }
 }

@@ -20,6 +20,7 @@
 
 package org.xowl.store.storage.persistent;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
@@ -27,7 +28,7 @@ import java.io.IOException;
  *
  * @author Laurent Wouters
  */
-interface IOElement {
+interface IOElement extends Closeable {
     /**
      * Gets the current index in this element
      *

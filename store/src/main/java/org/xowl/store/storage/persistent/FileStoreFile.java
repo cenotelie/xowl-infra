@@ -34,7 +34,7 @@ import java.security.NoSuchAlgorithmException;
  *
  * @author Laurent Wouters
  */
-class FileStoreFile implements IOElement, AutoCloseable {
+class FileStoreFile implements IOElement {
     /**
      * The number of bits to use in order to represent an index within a block
      */
@@ -214,29 +214,12 @@ class FileStoreFile implements IOElement, AutoCloseable {
         return seek(0);
     }
 
-
-
-
-
-
-
-    /**
-     * Gets whether the specified amount of bytes can be read at the current index
-     *
-     * @param length The number of bytes to read
-     * @return true if this is legal to read
-     * @throws IOException When an IO operation failed
-     */
+    @Override
     public boolean canRead(int length) throws IOException {
         return (index + length <= getSize());
     }
 
-    /**
-     * Reads a single byte at the current index
-     *
-     * @return The byte
-     * @throws IOException When an IO operation failed
-     */
+    @Override
     public byte readByte() throws IOException {
         if (!canRead(1))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
@@ -246,13 +229,7 @@ class FileStoreFile implements IOElement, AutoCloseable {
         return value;
     }
 
-    /**
-     * Reads a specified number of bytes a the current index
-     *
-     * @param length The number of bytes to read
-     * @return The bytes
-     * @throws IOException When an IO operation failed
-     */
+    @Override
     public byte[] readBytes(int length) throws IOException {
         if (!canRead(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
@@ -261,14 +238,7 @@ class FileStoreFile implements IOElement, AutoCloseable {
         return result;
     }
 
-    /**
-     * Reads a specified number of bytes a the current index
-     *
-     * @param buffer The buffer to fill
-     * @param index  The index in the buffer to start filling at
-     * @param length The number of bytes to read
-     * @throws IOException When an IO operation failed
-     */
+    @Override
     public void readBytes(byte[] buffer, int index, int length) throws IOException {
         if (!canRead(1))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
@@ -290,12 +260,7 @@ class FileStoreFile implements IOElement, AutoCloseable {
         this.index += remainingLength;
     }
 
-    /**
-     * Reads a single char at the current index
-     *
-     * @return The char
-     * @throws IOException When an IO operation failed
-     */
+    @Override
     public char readChar() throws IOException {
         if (!canRead(2))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
@@ -316,12 +281,7 @@ class FileStoreFile implements IOElement, AutoCloseable {
         return buffer.getChar(0);
     }
 
-    /**
-     * Reads a single int at the current index
-     *
-     * @return The int
-     * @throws IOException When an IO operation failed
-     */
+    @Override
     public int readInt() throws IOException {
         if (!canRead(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
@@ -343,12 +303,7 @@ class FileStoreFile implements IOElement, AutoCloseable {
         return buffer.getInt(0);
     }
 
-    /**
-     * Reads a single long at the current index
-     *
-     * @return The long
-     * @throws IOException When an IO operation failed
-     */
+    @Override
     public long readLong() throws IOException {
         if (!canRead(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
@@ -370,12 +325,7 @@ class FileStoreFile implements IOElement, AutoCloseable {
         return buffer.getLong(0);
     }
 
-    /**
-     * Reads a single float at the current index
-     *
-     * @return The float
-     * @throws IOException When an IO operation failed
-     */
+    @Override
     public float readFloat() throws IOException {
         if (!canRead(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
@@ -397,12 +347,7 @@ class FileStoreFile implements IOElement, AutoCloseable {
         return buffer.getFloat(0);
     }
 
-    /**
-     * Reads a single double at the current index
-     *
-     * @return The double
-     * @throws IOException When an IO operation failed
-     */
+    @Override
     public double readDouble() throws IOException {
         if (!canRead(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
@@ -422,6 +367,146 @@ class FileStoreFile implements IOElement, AutoCloseable {
             }
         }
         return buffer.getDouble(0);
+    }
+
+    @Override
+    public void writeByte(byte value) throws IOException {
+        prepareIOAt();
+        blockBuffers[currentBlock].put((int) (index & INDEX_MASK_LOWER), value);
+        blockIsDirty[currentBlock] = true;
+        index++;
+    }
+
+    @Override
+    public void writeBytes(byte[] value) throws IOException {
+        writeBytes(value, 0, value.length);
+    }
+
+    @Override
+    public void writeBytes(byte[] buffer, int index, int length) throws IOException {
+        if (index < 0 || index + length > buffer.length)
+            throw new IndexOutOfBoundsException("Out of bounds index and length for the specified buffer");
+        int remainingInBlock = BLOCK_SIZE - (int) (this.index & INDEX_MASK_LOWER);
+        int remainingLength = length;
+        int targetIndex = index;
+        while (remainingLength > remainingInBlock) {
+            prepareIOAt();
+            blockBuffers[currentBlock].put(buffer, targetIndex, remainingInBlock);
+            blockIsDirty[currentBlock] = true;
+            remainingLength -= remainingInBlock;
+            targetIndex += remainingInBlock;
+            this.index += remainingInBlock;
+            remainingInBlock = BLOCK_SIZE;
+        }
+        prepareIOAt();
+        blockBuffers[currentBlock].put(buffer, targetIndex, remainingLength);
+        blockIsDirty[currentBlock] = true;
+        this.index += remainingLength;
+    }
+
+    @Override
+    public void writeChar(char value) throws IOException {
+        prepareIOAt();
+        if ((int) (this.index & INDEX_MASK_LOWER) + 2 <= BLOCK_SIZE) {
+            // within the same block
+            blockBuffers[currentBlock].putChar(value);
+            blockIsDirty[currentBlock] = true;
+            index += 2;
+        } else {
+            buffer.putChar(0, value);
+            blockBuffers[currentBlock].put(buffer.get(0));
+            blockIsDirty[currentBlock] = true;
+            index++;
+            // next block
+            prepareIOAt();
+            blockBuffers[currentBlock].put(buffer.get(1));
+            blockIsDirty[currentBlock] = true;
+            index++;
+        }
+    }
+
+    @Override
+    public void writeInt(int value) throws IOException {
+        prepareIOAt();
+        blockIsDirty[currentBlock] = true;
+        if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
+            // within the same block
+            blockBuffers[currentBlock].putInt(value);
+            index += 4;
+        } else {
+            buffer.putInt(0, value);
+            for (int i = 0; i != 4; i++) {
+                blockBuffers[currentBlock].put(buffer.get(i));
+                index++;
+                if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
+                    prepareIOAt();
+                    blockIsDirty[currentBlock] = true;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void writeLong(long value) throws IOException {
+        prepareIOAt();
+        blockIsDirty[currentBlock] = true;
+        if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
+            // within the same block
+            blockBuffers[currentBlock].putLong(value);
+            index += 8;
+        } else {
+            buffer.putLong(0, value);
+            for (int i = 0; i != 8; i++) {
+                blockBuffers[currentBlock].put(buffer.get(i));
+                index++;
+                if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
+                    prepareIOAt();
+                    blockIsDirty[currentBlock] = true;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void writeFloat(float value) throws IOException {
+        prepareIOAt();
+        blockIsDirty[currentBlock] = true;
+        if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
+            // within the same block
+            blockBuffers[currentBlock].putFloat(value);
+            index += 4;
+        } else {
+            buffer.putFloat(0, value);
+            for (int i = 0; i != 4; i++) {
+                blockBuffers[currentBlock].put(buffer.get(i));
+                index++;
+                if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
+                    prepareIOAt();
+                    blockIsDirty[currentBlock] = true;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void writeDouble(double value) throws IOException {
+        prepareIOAt();
+        blockIsDirty[currentBlock] = true;
+        if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
+            // within the same block
+            blockBuffers[currentBlock].putDouble(value);
+            index += 8;
+        } else {
+            buffer.putDouble(0, value);
+            for (int i = 0; i != 8; i++) {
+                blockBuffers[currentBlock].put(buffer.get(i));
+                index++;
+                if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
+                    prepareIOAt();
+                    blockIsDirty[currentBlock] = true;
+                }
+            }
+        }
     }
 
     /**
@@ -454,196 +539,6 @@ class FileStoreFile implements IOElement, AutoCloseable {
             return null;
         }
     }
-
-    /**
-     * Writes a single byte at the current index
-     *
-     * @param value The byte to write
-     * @throws IOException When an IO operation failed
-     */
-    public void writeByte(byte value) throws IOException {
-        prepareIOAt();
-        blockBuffers[currentBlock].put((int) (index & INDEX_MASK_LOWER), value);
-        blockIsDirty[currentBlock] = true;
-        index++;
-    }
-
-    /**
-     * Writes bytes at the current index
-     *
-     * @param value The bytes to write
-     * @throws IOException When an IO operation failed
-     */
-    public void writeBytes(byte[] value) throws IOException {
-        writeBytes(value, 0, value.length);
-    }
-
-    /**
-     * Writes bytes at the current index
-     *
-     * @param buffer The buffer with the bytes to write
-     * @param index  The index in the buffer to start writing from
-     * @param length The number of bytes to write
-     * @throws IOException When an IO operation failed
-     */
-    public void writeBytes(byte[] buffer, int index, int length) throws IOException {
-        if (index < 0 || index + length > buffer.length)
-            throw new IndexOutOfBoundsException("Out of bounds index and length for the specified buffer");
-        int remainingInBlock = BLOCK_SIZE - (int) (this.index & INDEX_MASK_LOWER);
-        int remainingLength = length;
-        int targetIndex = index;
-        while (remainingLength > remainingInBlock) {
-            prepareIOAt();
-            blockBuffers[currentBlock].put(buffer, targetIndex, remainingInBlock);
-            blockIsDirty[currentBlock] = true;
-            remainingLength -= remainingInBlock;
-            targetIndex += remainingInBlock;
-            this.index += remainingInBlock;
-            remainingInBlock = BLOCK_SIZE;
-        }
-        prepareIOAt();
-        blockBuffers[currentBlock].put(buffer, targetIndex, remainingLength);
-        blockIsDirty[currentBlock] = true;
-        this.index += remainingLength;
-    }
-
-    /**
-     * Writes a single char at the current index
-     *
-     * @param value The char to write
-     * @throws IOException When an IO operation failed
-     */
-    public void writeChar(char value) throws IOException {
-        prepareIOAt();
-        if ((int) (this.index & INDEX_MASK_LOWER) + 2 <= BLOCK_SIZE) {
-            // within the same block
-            blockBuffers[currentBlock].putChar(value);
-            blockIsDirty[currentBlock] = true;
-            index += 2;
-        } else {
-            buffer.putChar(0, value);
-            blockBuffers[currentBlock].put(buffer.get(0));
-            blockIsDirty[currentBlock] = true;
-            index++;
-            // next block
-            prepareIOAt();
-            blockBuffers[currentBlock].put(buffer.get(1));
-            blockIsDirty[currentBlock] = true;
-            index++;
-        }
-    }
-
-    /**
-     * Writes a single int at the current index
-     *
-     * @param value The int to write
-     * @throws IOException When an IO operation failed
-     */
-    public void writeInt(int value) throws IOException {
-        prepareIOAt();
-        blockIsDirty[currentBlock] = true;
-        if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
-            // within the same block
-            blockBuffers[currentBlock].putInt(value);
-            index += 4;
-        } else {
-            buffer.putInt(0, value);
-            for (int i = 0; i != 4; i++) {
-                blockBuffers[currentBlock].put(buffer.get(i));
-                index++;
-                if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
-                    prepareIOAt();
-                    blockIsDirty[currentBlock] = true;
-                }
-            }
-        }
-    }
-
-    /**
-     * Writes a single long at the current index
-     *
-     * @param value The long to write
-     * @throws IOException When an IO operation failed
-     */
-    public void writeLong(long value) throws IOException {
-        prepareIOAt();
-        blockIsDirty[currentBlock] = true;
-        if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
-            // within the same block
-            blockBuffers[currentBlock].putLong(value);
-            index += 8;
-        } else {
-            buffer.putLong(0, value);
-            for (int i = 0; i != 8; i++) {
-                blockBuffers[currentBlock].put(buffer.get(i));
-                index++;
-                if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
-                    prepareIOAt();
-                    blockIsDirty[currentBlock] = true;
-                }
-            }
-        }
-    }
-
-    /**
-     * Writes a single float at the current index
-     *
-     * @param value The float to write
-     * @throws IOException When an IO operation failed
-     */
-    public void writeFloat(float value) throws IOException {
-        prepareIOAt();
-        blockIsDirty[currentBlock] = true;
-        if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
-            // within the same block
-            blockBuffers[currentBlock].putFloat(value);
-            index += 4;
-        } else {
-            buffer.putFloat(0, value);
-            for (int i = 0; i != 4; i++) {
-                blockBuffers[currentBlock].put(buffer.get(i));
-                index++;
-                if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
-                    prepareIOAt();
-                    blockIsDirty[currentBlock] = true;
-                }
-            }
-        }
-    }
-
-    /**
-     * Writes a single double at the current index
-     *
-     * @param value The double to write
-     * @throws IOException When an IO operation failed
-     */
-    public void writeDouble(double value) throws IOException {
-        prepareIOAt();
-        blockIsDirty[currentBlock] = true;
-        if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
-            // within the same block
-            blockBuffers[currentBlock].putDouble(value);
-            index += 8;
-        } else {
-            buffer.putDouble(0, value);
-            for (int i = 0; i != 8; i++) {
-                blockBuffers[currentBlock].put(buffer.get(i));
-                index++;
-                if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
-                    prepareIOAt();
-                    blockIsDirty[currentBlock] = true;
-                }
-            }
-        }
-    }
-
-
-
-
-
-
-
-
 
     /**
      * Gets the page that contains the current index
@@ -716,9 +611,6 @@ class FileStoreFile implements IOElement, AutoCloseable {
         return getPage((int) ((key - keyRadical) >>> 16));
     }
 
-
-
-
     /**
      * Positions the index of this file onto the next free block
      *
@@ -731,14 +623,6 @@ class FileStoreFile implements IOElement, AutoCloseable {
             return seek(size);
         return seek((index & INDEX_MASK_UPPER) + BLOCK_SIZE);
     }
-
-
-
-
-
-
-
-
 
     /**
      * Prepares the blocks for IO operations at the current index
