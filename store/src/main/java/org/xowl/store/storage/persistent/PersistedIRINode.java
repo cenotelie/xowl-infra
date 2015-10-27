@@ -33,7 +33,7 @@ class PersistedIRINode extends IRINode implements PersistedNode {
     /**
      * The backend persisting the strings
      */
-    private final BackendStringStore backend;
+    private final PersistedNodes backend;
     /**
      * The key to the IRI value
      */
@@ -49,7 +49,7 @@ class PersistedIRINode extends IRINode implements PersistedNode {
      * @param backend The backend persisting the strings
      * @param key     The key to the IRI value
      */
-    public PersistedIRINode(BackendStringStore backend, long key) {
+    public PersistedIRINode(PersistedNodes backend, long key) {
         this.backend = backend;
         this.key = key;
     }
@@ -58,8 +58,8 @@ class PersistedIRINode extends IRINode implements PersistedNode {
     public String getIRIValue() {
         if (value == null) {
             try {
-                value = backend.read(key);
-            } catch (IOException exception) {
+                value = backend.retrieveString(key);
+            } catch (IOException | StorageException exception) {
                 value = "#error#";
             }
         }
