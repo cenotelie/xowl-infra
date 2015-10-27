@@ -60,7 +60,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
     /**
      * The string store backend
      */
-    private final StringStoreBackend sStore;
+    private final BackendStringStore sStore;
     /**
      * The database backing the index
      */
@@ -82,7 +82,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      * @throws StorageException When the storage is in a bad state
      */
     public PersistedNodes(File directory) throws IOException, StorageException {
-        this.sStore = new StringStoreBackend(directory, FILE_RADICAL);
+        this.sStore = new BackendStringStore(directory, FILE_RADICAL);
         this.database = DBMaker.fileDB(new File(directory, FILE_INDEX)).make();
         this.mapStrings = database.hashMap(NAME_STRING_MAP);
         this.nextBlank = database.atomicLong(NAME_NEXT_BLANK);
@@ -107,22 +107,22 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      */
     private long keyFor(String data, boolean doInsert) {
         if (data == null)
-            return StringStoreBackend.KEY_NOT_PRESENT;
+            return PersistedNode.KEY_NOT_PRESENT;
         int hash = hash(data);
         Long bucket = mapStrings.get(hash);
         if (bucket == null && !doInsert)
-            return StringStoreBackend.KEY_NOT_PRESENT;
+            return PersistedNode.KEY_NOT_PRESENT;
         if (doInsert) {
             try {
-                return sStore.add(bucket == null ? StringStoreBackend.KEY_NOT_PRESENT : bucket, data);
+                return sStore.add(bucket == null ? PersistedNode.KEY_NOT_PRESENT : bucket, data);
             } catch (IOException exception) {
-                return StringStoreBackend.KEY_NOT_PRESENT;
+                return PersistedNode.KEY_NOT_PRESENT;
             }
         } else {
             try {
                 return sStore.getKey(bucket, data);
             } catch (IOException exception) {
-                return StringStoreBackend.KEY_NOT_PRESENT;
+                return PersistedNode.KEY_NOT_PRESENT;
             }
         }
     }
@@ -140,13 +140,13 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
     @Override
     public IRINode getIRINode(String iri) {
         long key = keyFor(iri, true);
-        return (key == StringStoreBackend.KEY_NOT_PRESENT ? null : new PersistedIRINode(sStore, key));
+        return (key == PersistedNode.KEY_NOT_PRESENT ? null : new PersistedIRINode(sStore, key));
     }
 
     @Override
     public IRINode getExistingIRINode(String iri) {
         long key = keyFor(iri, false);
-        return (key == StringStoreBackend.KEY_NOT_PRESENT ? null : new PersistedIRINode(sStore, key));
+        return (key == PersistedNode.KEY_NOT_PRESENT ? null : new PersistedIRINode(sStore, key));
     }
 
     @Override
@@ -166,7 +166,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
         long key = keyFor(individual.getNodeID(), true);
-        return (key == StringStoreBackend.KEY_NOT_PRESENT ? null : new PersistedAnonNode(sStore, key, individual));
+        return (key == PersistedNode.KEY_NOT_PRESENT ? null : new PersistedAnonNode(sStore, key, individual));
     }
 
     @Override

@@ -30,7 +30,7 @@ import java.util.Arrays;
  * How the strings are affected to buckets is outside the scope of this entity.
  * The strings are stored in an individual file.
  * The layout of the file is as follow:
- * <p/>
+ *
  * - First block:
  * - int32: Magic identifier for the store
  * - int32: Layout version
@@ -39,6 +39,7 @@ import java.util.Arrays;
  * - array of block entries:
  * - int32: index of the block
  * - int32: remaining free space
+ *
  * - Second blocks and others contains string entries of the form:
  * - String entry:
  * - int64: index of the next entry, if any
@@ -47,7 +48,7 @@ import java.util.Arrays;
  *
  * @author Laurent Wouters
  */
-class StringStoreBackend implements AutoCloseable {
+class BackendStringStore implements AutoCloseable {
     /**
      * Magic identifier of the type of store
      */
@@ -64,15 +65,11 @@ class StringStoreBackend implements AutoCloseable {
      * The number of remaining bytes below which a block is considered full
      */
     private static final int THRESHOLD_BLOCK_FULL = 24;
-    /**
-     * The key for absent values in the store
-     */
-    public static final long KEY_NOT_PRESENT = -1;
 
     /**
      * The file persisting this store
      */
-    private final PersistedFile file;
+    private final FileStoreFile file;
     /**
      * The charset to use for reading and writing the strings
      */
@@ -86,8 +83,8 @@ class StringStoreBackend implements AutoCloseable {
      * @throws IOException      When the backing file cannot be accessed
      * @throws StorageException When the storage is in a bad state
      */
-    public StringStoreBackend(File directory, String prefix) throws IOException, StorageException {
-        file = new PersistedFile(new File(directory, prefix + FILE_SUFFIX));
+    public BackendStringStore(File directory, String prefix) throws IOException, StorageException {
+        file = new FileStoreFile(new File(directory, prefix + FILE_SUFFIX));
         charset = Charset.forName("UTF-8");
         if (file.getSize() > 16) {
             file.seek(0);
@@ -132,7 +129,7 @@ class StringStoreBackend implements AutoCloseable {
     public long getKey(long bucket, String data) throws IOException {
         byte[] buffer = charset.encode(data).array();
         long candidate = bucket;
-        while (candidate != KEY_NOT_PRESENT) {
+        while (candidate != PersistedNode.KEY_NOT_PRESENT) {
             file.seek(candidate);
             long next = file.readLong();
             int size = file.readInt();
@@ -143,7 +140,7 @@ class StringStoreBackend implements AutoCloseable {
             }
             candidate = next;
         }
-        return KEY_NOT_PRESENT;
+        return PersistedNode.KEY_NOT_PRESENT;
     }
 
     /**
@@ -156,9 +153,9 @@ class StringStoreBackend implements AutoCloseable {
      */
     public long add(long bucket, String data) throws IOException {
         byte[] buffer = charset.encode(data).array();
-        long previous = KEY_NOT_PRESENT;
+        long previous = PersistedNode.KEY_NOT_PRESENT;
         long candidate = bucket;
-        while (candidate != KEY_NOT_PRESENT) {
+        while (candidate != PersistedNode.KEY_NOT_PRESENT) {
             file.seek(candidate);
             long next = file.readLong();
             int size = file.readInt();
@@ -171,7 +168,7 @@ class StringStoreBackend implements AutoCloseable {
             candidate = next;
         }
         long result = write(buffer);
-        if (previous != KEY_NOT_PRESENT) {
+        if (previous != PersistedNode.KEY_NOT_PRESENT) {
             file.seek(previous);
             file.writeLong(result);
         }
@@ -194,7 +191,7 @@ class StringStoreBackend implements AutoCloseable {
             int blockIndex = file.readInt();
             int blockRemaining = file.readInt();
             if (blockRemaining >= entrySize) {
-                long index = blockIndex * PersistedFile.BLOCK_SIZE + PersistedFile.BLOCK_SIZE - blockRemaining;
+                long index = blockIndex * FileStoreFile.BLOCK_SIZE + FileStoreFile.BLOCK_SIZE - blockRemaining;
                 writeTo(buffer, index);
                 blockRemaining -= entrySize;
                 if (blockRemaining >= THRESHOLD_BLOCK_FULL) {
@@ -232,17 +229,17 @@ class StringStoreBackend implements AutoCloseable {
      * @throws IOException When an IO operation failed
      */
     private long writeNewBlock(byte[] buffer, int entrySize, int openBlockCount, int nextFreeBlock) throws IOException {
-        long index = nextFreeBlock * PersistedFile.BLOCK_SIZE;
+        long index = nextFreeBlock * FileStoreFile.BLOCK_SIZE;
         writeTo(buffer, index);
         nextFreeBlock++;
-        while (entrySize < PersistedFile.BLOCK_SIZE) {
+        while (entrySize < FileStoreFile.BLOCK_SIZE) {
             nextFreeBlock++;
-            entrySize -= PersistedFile.BLOCK_SIZE;
+            entrySize -= FileStoreFile.BLOCK_SIZE;
         }
         if (entrySize >= THRESHOLD_BLOCK_FULL) {
             file.seek(openBlockCount * 8 + 16);
             file.writeInt(nextFreeBlock - 1);
-            file.writeInt(PersistedFile.BLOCK_SIZE - entrySize);
+            file.writeInt(FileStoreFile.BLOCK_SIZE - entrySize);
             openBlockCount++;
         }
         file.seek(8);
@@ -260,7 +257,7 @@ class StringStoreBackend implements AutoCloseable {
      */
     private void writeTo(byte[] buffer, long index) throws IOException {
         file.seek(index);
-        file.writeLong(KEY_NOT_PRESENT);
+        file.writeLong(PersistedNode.KEY_NOT_PRESENT);
         file.writeInt(buffer.length);
         file.writeBytes(buffer);
     }

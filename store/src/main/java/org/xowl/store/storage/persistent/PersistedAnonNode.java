@@ -34,7 +34,7 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     /**
      * The backend persisting the strings
      */
-    private final StringStoreBackend backend;
+    private final BackendStringStore backend;
     /**
      * The key to the anonymous id
      */
@@ -51,7 +51,7 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
      * @param key        The key to the anonymous id
      * @param individual The cached individual, if any
      */
-    public PersistedAnonNode(StringStoreBackend backend, long key, AnonymousIndividual individual) {
+    public PersistedAnonNode(BackendStringStore backend, long key, AnonymousIndividual individual) {
         this.backend = backend;
         this.key = key;
         this.individual = individual;
@@ -63,7 +63,7 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
      * @param backend The backend persisting the strings
      * @param key     The key to the anonymous id
      */
-    public PersistedAnonNode(StringStoreBackend backend, long key) {
+    public PersistedAnonNode(BackendStringStore backend, long key) {
         this.backend = backend;
         this.key = key;
     }

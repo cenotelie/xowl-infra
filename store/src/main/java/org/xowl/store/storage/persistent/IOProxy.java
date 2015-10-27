@@ -21,14 +21,43 @@
 package org.xowl.store.storage.persistent;
 
 /**
- * Represents the common API for the persisted node
+ * An entity that acts as a proxy to a backing element that can be read from and written to.
+ * This entity can enforce boundaries on the underlying element.
  *
  * @author Laurent Wouters
  */
-interface PersistedNode {
+abstract class IOProxy implements IOElement {
+    /**
+     * The backing IO element
+     */
+    protected final IOElement backend;
 
     /**
-     * The key for absent values in a store
+     * Initializes this proxy
+     *
+     * @param backend The backing IO element
      */
-    long KEY_NOT_PRESENT = -1;
+    protected IOProxy(IOElement backend) {
+        this.backend = backend;
+    }
+
+    /**
+     * Resets the index to the beginning
+     */
+    public abstract void reset();
+
+    /**
+     * Positions the index to the specified position
+     *
+     * @param index The position for the index
+     * @return The proxy
+     */
+    public abstract IOProxy seek(long index);
+
+    /**
+     * Gets the number of accessible bytes
+     *
+     * @return The number of accessible bytes
+     */
+    public abstract long length();
 }

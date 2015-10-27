@@ -34,7 +34,7 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     /**
      * The backend persisting the strings
      */
-    private final StringStoreBackend backend;
+    private final BackendStringStore backend;
     /**
      * The key for the lexical value of this literal
      */
@@ -68,7 +68,7 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
      * @param keyDatatype The key for the IRI of the datatype of this literal
      * @param keyLangTag  The key for the language tag of this literal
      */
-    public PersistedLiteralNode(StringStoreBackend backend, long keyLexical, long keyDatatype, long keyLangTag) {
+    public PersistedLiteralNode(BackendStringStore backend, long keyLexical, long keyDatatype, long keyLangTag) {
         this.backend = backend;
         this.keyLexical = keyLexical;
         this.keyDatatype = keyDatatype;
@@ -89,7 +89,7 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
 
     @Override
     public String getDatatype() {
-        if (datatype == null && keyDatatype != StringStoreBackend.KEY_NOT_PRESENT) {
+        if (datatype == null && keyDatatype != KEY_NOT_PRESENT) {
             try {
                 datatype = backend.read(keyDatatype);
             } catch (IOException exception) {
@@ -101,7 +101,7 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
 
     @Override
     public String getLangTag() {
-        if (langTag == null && keyLangTag != StringStoreBackend.KEY_NOT_PRESENT) {
+        if (langTag == null && keyLangTag != KEY_NOT_PRESENT) {
             try {
                 langTag = backend.read(keyLangTag);
             } catch (IOException exception) {

@@ -78,7 +78,7 @@ package org.xowl.store.storage.persistent;
  */
 class PersistedBackend {
 
-    private PersistedFile backendHeader;
+    private FileStoreFile backendHeader;
 
-    private PersistedFile backendIndex;
+    private FileStoreFile backendIndex;
 }

@@ -34,7 +34,7 @@ import java.security.NoSuchAlgorithmException;
  *
  * @author Laurent Wouters
  */
-class PersistedFile implements AutoCloseable {
+class FileStoreFile implements IOElement, AutoCloseable {
     /**
      * The number of bits to use in order to represent an index within a block
      */
@@ -44,11 +44,11 @@ class PersistedFile implements AutoCloseable {
      */
     public static final int BLOCK_SIZE = 1 << BLOCK_INDEX_LENGTH;
     /**
-     * The upper index mask
+     * The mask for the index within a block
      */
     private static final long INDEX_MASK_LOWER = BLOCK_SIZE - 1;
     /**
-     * The lower index mask
+     * The mask for the index of a block
      */
     private static final long INDEX_MASK_UPPER = ~INDEX_MASK_LOWER;
 
@@ -88,7 +88,7 @@ class PersistedFile implements AutoCloseable {
     /**
      * The page accesses for the respective blocks
      */
-    private final PersistedFilePage[] blockPages;
+    private final FileStorePage[] blockPages;
     /**
      * The number of currently loaded blocks
      */
@@ -107,25 +107,6 @@ class PersistedFile implements AutoCloseable {
     private long time;
 
     /**
-     * Gets the current index in this file
-     *
-     * @return The current index in this file
-     */
-    public long getIndex() {
-        return index;
-    }
-
-    /**
-     * Gets the size of this file
-     *
-     * @return The size of this file
-     * @throws IOException When an IO operation failed
-     */
-    public long getSize() throws IOException {
-        return channel.size();
-    }
-
-    /**
      * Gets the remaining amount of data in the current block
      *
      * @return The remaining amount of data
@@ -140,7 +121,7 @@ class PersistedFile implements AutoCloseable {
      * @param file The file location
      * @throws IOException When the backing file cannot be accessed
      */
-    public PersistedFile(File file) throws IOException {
+    public FileStoreFile(File file) throws IOException {
         this(file, 0);
     }
 
@@ -151,7 +132,7 @@ class PersistedFile implements AutoCloseable {
      * @param keyRadical The key radical for this file
      * @throws IOException When the backing file cannot be accessed
      */
-    public PersistedFile(File file, long keyRadical) throws IOException {
+    public FileStoreFile(File file, long keyRadical) throws IOException {
         this.channel = FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
         this.keyRadical = keyRadical;
         this.buffer = ByteBuffer.allocate(8);
@@ -159,7 +140,7 @@ class PersistedFile implements AutoCloseable {
         this.blockLocations = new long[MAX_LOADED_BLOCKS];
         this.blockLastHits = new long[MAX_LOADED_BLOCKS];
         this.blockIsDirty = new boolean[MAX_LOADED_BLOCKS];
-        this.blockPages = new PersistedFilePage[MAX_LOADED_BLOCKS];
+        this.blockPages = new FileStorePage[MAX_LOADED_BLOCKS];
         this.blockCount = 0;
         this.currentBlock = -1;
         this.index = 0;
@@ -172,7 +153,7 @@ class PersistedFile implements AutoCloseable {
      * @return The persistent file
      * @throws IOException When an IO operation failed
      */
-    public PersistedFile commit() throws IOException {
+    public FileStoreFile commit() throws IOException {
         for (int i = 0; i != blockCount; i++) {
             if (blockIsDirty[i]) {
                 if (blockPages[i] != null)
@@ -197,84 +178,18 @@ class PersistedFile implements AutoCloseable {
         channel.close();
     }
 
-    /**
-     * Gets the page that contains the current index
-     *
-     * @return The page that contains the current index
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
-     */
-    public PersistedFilePage getPage() throws IOException, StorageException {
-        return getPageAt(index);
+    @Override
+    public long getIndex() {
+        return index;
     }
 
-    /**
-     * Gets the n-th page in this file
-     *
-     * @param index The index of a page
-     * @return The n-th page
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
-     */
-    public PersistedFilePage getPage(int index) throws IOException, StorageException {
-        long originalIndex = this.index;
-        long targetLocation = index * BLOCK_SIZE;
-        if (targetLocation < getSize()) {
-            // is the block loaded
-            for (int i = 0; i != blockCount; i++) {
-                if (blockLocations[i] == targetLocation) {
-                    if (blockPages[i] == null)
-                        blockPages[i] = new PersistedFilePage(this, targetLocation, keyRadical + (index << 16));
-                    seek(originalIndex);
-                    return blockPages[i];
-                }
-            }
-            // creating the page data will force the block to be loaded
-        } else {
-            // the page does not exist in the backend
-            // force the block to be allocated
-            seek(targetLocation);
-            prepareIOAt();
-        }
-        PersistedFilePage result = new PersistedFilePage(this, targetLocation, keyRadical + (index << 16));
-        if (blockLocations[currentBlock] != targetLocation)
-            throw new StorageException("Failed to allocate the page");
-        blockPages[currentBlock] = result;
-        seek(originalIndex);
-        return result;
+    @Override
+    public long getSize() throws IOException {
+        return channel.size();
     }
 
-    /**
-     * Gets the page that contains the specified location
-     *
-     * @param location A location
-     * @return The page that contains the specified location
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
-     */
-    public PersistedFilePage getPageAt(long location) throws IOException, StorageException {
-        return getPage((int) ((location & INDEX_MASK_UPPER) / BLOCK_SIZE));
-    }
-
-    /**
-     * Gets the page that contains the specified key
-     *
-     * @param key A key
-     * @return The page that contains the specified key
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
-     */
-    public PersistedFilePage getPageFor(long key) throws IOException, StorageException {
-        return getPage((int) ((key - keyRadical) >>> 16));
-    }
-
-    /**
-     * Positions the index of this file
-     *
-     * @param index The new index
-     * @return The persistent file
-     */
-    public PersistedFile seek(long index) {
+    @Override
+    public FileStoreFile seek(long index) {
         if (index < 0)
             throw new IndexOutOfBoundsException("The index must be within the file");
         if (this.index == index)
@@ -294,18 +209,16 @@ class PersistedFile implements AutoCloseable {
         return this;
     }
 
-    /**
-     * Positions the index of this file onto the next free block
-     *
-     * @return The persistent file
-     */
-    public PersistedFile seekNextBlock() throws IOException {
-        long size = getSize();
-        if ((size & INDEX_MASK_UPPER) == size)
-            // the size is a multiple of BLOCK_SIZE
-            return seek(size);
-        return seek((index & INDEX_MASK_UPPER) + BLOCK_SIZE);
+    @Override
+    public FileStoreFile reset() {
+        return seek(0);
     }
+
+
+
+
+
+
 
     /**
      * Gets whether the specified amount of bytes can be read at the current index
@@ -723,6 +636,109 @@ class PersistedFile implements AutoCloseable {
             }
         }
     }
+
+
+
+
+
+
+
+
+
+    /**
+     * Gets the page that contains the current index
+     *
+     * @return The page that contains the current index
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    public FileStorePage getPage() throws IOException, StorageException {
+        return getPageAt(index);
+    }
+
+    /**
+     * Gets the n-th page in this file
+     *
+     * @param index The index of a page
+     * @return The n-th page
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    public FileStorePage getPage(int index) throws IOException, StorageException {
+        long originalIndex = this.index;
+        long targetLocation = index * BLOCK_SIZE;
+        if (targetLocation < getSize()) {
+            // is the block loaded
+            for (int i = 0; i != blockCount; i++) {
+                if (blockLocations[i] == targetLocation) {
+                    if (blockPages[i] == null)
+                        blockPages[i] = new FileStorePage(this, targetLocation, keyRadical + (index << 16));
+                    seek(originalIndex);
+                    return blockPages[i];
+                }
+            }
+            // creating the page data will force the block to be loaded
+        } else {
+            // the page does not exist in the backend
+            // force the block to be allocated
+            seek(targetLocation);
+            prepareIOAt();
+        }
+        FileStorePage result = new FileStorePage(this, targetLocation, keyRadical + (index << 16));
+        if (blockLocations[currentBlock] != targetLocation)
+            throw new StorageException("Failed to allocate the page");
+        blockPages[currentBlock] = result;
+        seek(originalIndex);
+        return result;
+    }
+
+    /**
+     * Gets the page that contains the specified location
+     *
+     * @param location A location
+     * @return The page that contains the specified location
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    public FileStorePage getPageAt(long location) throws IOException, StorageException {
+        return getPage((int) ((location & INDEX_MASK_UPPER) / BLOCK_SIZE));
+    }
+
+    /**
+     * Gets the page that contains the specified key
+     *
+     * @param key A key
+     * @return The page that contains the specified key
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    public FileStorePage getPageFor(long key) throws IOException, StorageException {
+        return getPage((int) ((key - keyRadical) >>> 16));
+    }
+
+
+
+
+    /**
+     * Positions the index of this file onto the next free block
+     *
+     * @return The persistent file
+     */
+    public FileStoreFile seekNextBlock() throws IOException {
+        long size = getSize();
+        if ((size & INDEX_MASK_UPPER) == size)
+            // the size is a multiple of BLOCK_SIZE
+            return seek(size);
+        return seek((index & INDEX_MASK_UPPER) + BLOCK_SIZE);
+    }
+
+
+
+
+
+
+
+
 
     /**
      * Prepares the blocks for IO operations at the current index
