@@ -28,48 +28,15 @@ import java.util.Arrays;
 /**
  * Entity that manages the physical storage of strings in organized buckets.
  * How the strings are affected to buckets is outside the scope of this entity.
- * The strings are stored in an individual file.
- * The layout of the file is as follow:
- *
- * - First block:
- * - int32: Magic identifier for the store
- * - int32: Layout version
- * - int32: number of open blocks (blocks that contain data but are not full)
- * - int32: index of the next block to open (in number of block)
- * - array of block entries:
- * - int32: index of the block
- * - int32: remaining free space
- *
- * - Second blocks and others contains string entries of the form:
- * - String entry:
- * - int64: index of the next entry, if any
- * - int32: serialized size in bytes
- * - The UTF-8 encoded string bytes
  *
  * @author Laurent Wouters
  */
-class BackendStringStore implements AutoCloseable {
-    /**
-     * Magic identifier of the type of store
-     */
-    private static final int MAGIC_ID = 0x0000FF00;
-    /**
-     * The layout version
-     */
-    private static final int LAYOUT_VERSION = 1;
+class BackendStringStore extends FileStore {
     /**
      * The suffix of the file backing the store
      */
     private static final String FILE_SUFFIX = "_data.bin";
-    /**
-     * The number of remaining bytes below which a block is considered full
-     */
-    private static final int THRESHOLD_BLOCK_FULL = 24;
 
-    /**
-     * The file persisting this store
-     */
-    private final FileStoreFile file;
     /**
      * The charset to use for reading and writing the strings
      */
@@ -84,24 +51,8 @@ class BackendStringStore implements AutoCloseable {
      * @throws StorageException When the storage is in a bad state
      */
     public BackendStringStore(File directory, String prefix) throws IOException, StorageException {
-        file = new FileStoreFile(new File(directory, prefix + FILE_SUFFIX));
+        super(directory, prefix + FILE_SUFFIX);
         charset = Charset.forName("UTF-8");
-        if (file.getSize() > 16) {
-            file.seek(0);
-            int temp = file.readInt();
-            if (temp != MAGIC_ID)
-                throw new StorageException("Unsupported backing file (" + Integer.toHexString(temp) + "), expected " + Integer.toHexString(MAGIC_ID));
-            temp = file.readInt();
-            if (temp != LAYOUT_VERSION)
-                throw new StorageException("Unsupported layout version (" + Integer.toHexString(temp) + "), expected " + Integer.toHexString(LAYOUT_VERSION));
-        } else {
-            // initialize the file
-            file.seek(0);
-            file.writeInt(MAGIC_ID);
-            file.writeInt(LAYOUT_VERSION);
-            file.writeInt(0);
-            file.writeInt(1);
-        }
     }
 
     /**
@@ -109,13 +60,16 @@ class BackendStringStore implements AutoCloseable {
      *
      * @param key The key to the string
      * @return The string
-     * @throws IOException When an IO operation failed
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
      */
-    public String read(long key) throws IOException {
-        file.seek(key + 8);
-        int size = file.readInt();
-        byte[] buffer = file.readBytes(size);
-        return new String(buffer, charset);
+    public String retrieve(long key) throws IOException, StorageException {
+        try (IOElement element = read(key)) {
+            element.readLong();
+            int length = element.readInt();
+            byte[] data = element.readBytes(length);
+            return new String(data, charset);
+        }
     }
 
     /**
@@ -124,21 +78,23 @@ class BackendStringStore implements AutoCloseable {
      * @param bucket The key to the bucket for this string
      * @param data   The string to get the key for
      * @return The key for the string, or KEY_NOT_PRESENT if it is not in this store
-     * @throws IOException When an IO operation failed
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
      */
-    public long getKey(long bucket, String data) throws IOException {
+    public long getKey(long bucket, String data) throws IOException, StorageException {
         byte[] buffer = charset.encode(data).array();
         long candidate = bucket;
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
-            file.seek(candidate);
-            long next = file.readLong();
-            int size = file.readInt();
-            if (size == buffer.length) {
-                if (Arrays.equals(buffer, file.readBytes(buffer.length)))
-                    // the string is already there, return its key
-                    return candidate;
+            try (IOElement entry = read(candidate)) {
+                long next = entry.readLong();
+                int size = entry.readInt();
+                if (size == buffer.length) {
+                    if (Arrays.equals(buffer, entry.readBytes(buffer.length)))
+                        // the string is already there, return its key
+                        return candidate;
+                }
+                candidate = next;
             }
-            candidate = next;
         }
         return PersistedNode.KEY_NOT_PRESENT;
     }
@@ -149,121 +105,35 @@ class BackendStringStore implements AutoCloseable {
      * @param bucket The key to the bucket for this string, or KEY_NOT_PRESENT if it must be created
      * @param data   The string to store
      * @return The key to the stored string
-     * @throws IOException When an IO operation failed
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
      */
-    public long add(long bucket, String data) throws IOException {
+    public long add(long bucket, String data) throws IOException, StorageException {
         byte[] buffer = charset.encode(data).array();
         long previous = PersistedNode.KEY_NOT_PRESENT;
         long candidate = bucket;
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
-            file.seek(candidate);
-            long next = file.readLong();
-            int size = file.readInt();
-            if (size == buffer.length) {
-                if (Arrays.equals(buffer, file.readBytes(buffer.length)))
-                    // the string is already there, return its key
-                    return candidate;
+            try (IOElement entry = read(candidate)) {
+                long next = entry.readLong();
+                int size = entry.readInt();
+                if (size == buffer.length) {
+                    if (Arrays.equals(buffer, entry.readBytes(buffer.length)))
+                        // the string is already there, return its key
+                        return candidate;
+                }
+                previous = candidate;
+                candidate = next;
             }
-            previous = candidate;
-            candidate = next;
         }
-        long result = write(buffer);
-        if (previous != PersistedNode.KEY_NOT_PRESENT) {
-            file.seek(previous);
-            file.writeLong(result);
+        long result = add(buffer.length + 12);
+        try (IOElement previousEntry = access(previous)) {
+            previousEntry.writeLong(result);
+        }
+        try (IOElement entry = access(result)) {
+            entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+            entry.writeInt(buffer.length);
+            entry.writeBytes(buffer);
         }
         return result;
-    }
-
-    /**
-     * Writes the specified data in this store
-     *
-     * @param buffer the buffer of data
-     * @return The index for retrieving the data
-     * @throws IOException When an IO operation failed
-     */
-    private long write(byte[] buffer) throws IOException {
-        int entrySize = buffer.length + 8 + 4;
-        file.seek(8);
-        int openBlockCount = file.readInt();
-        int nextFreeBlock = file.readInt();
-        for (int i = 0; i != openBlockCount; i++) {
-            int blockIndex = file.readInt();
-            int blockRemaining = file.readInt();
-            if (blockRemaining >= entrySize) {
-                long index = blockIndex * FileStoreFile.BLOCK_SIZE + FileStoreFile.BLOCK_SIZE - blockRemaining;
-                writeTo(buffer, index);
-                blockRemaining -= entrySize;
-                if (blockRemaining >= THRESHOLD_BLOCK_FULL) {
-                    file.seek(i * 8 + 16 + 4);
-                    file.writeInt(blockRemaining);
-                } else {
-                    // the block is full
-                    for (int j = i + 1; j != openBlockCount; j++) {
-                        file.seek(j * 8 + 16);
-                        blockIndex = file.readInt();
-                        blockRemaining = file.readInt();
-                        file.seek((j - 1) * 8 + 16);
-                        file.writeInt(blockIndex);
-                        file.writeInt(blockRemaining);
-                    }
-                    openBlockCount--;
-                    file.seek(8);
-                    file.writeInt(openBlockCount);
-                }
-                return index;
-            }
-        }
-        // no available block
-        return writeNewBlock(buffer, entrySize, openBlockCount, nextFreeBlock);
-    }
-
-    /**
-     * Writes a new entry onto a new block
-     *
-     * @param buffer         The buffer of data to write
-     * @param entrySize      The size of the entry to write
-     * @param openBlockCount The number of open blocks
-     * @param nextFreeBlock  the index of the next free block
-     * @return The index of the stored data
-     * @throws IOException When an IO operation failed
-     */
-    private long writeNewBlock(byte[] buffer, int entrySize, int openBlockCount, int nextFreeBlock) throws IOException {
-        long index = nextFreeBlock * FileStoreFile.BLOCK_SIZE;
-        writeTo(buffer, index);
-        nextFreeBlock++;
-        while (entrySize < FileStoreFile.BLOCK_SIZE) {
-            nextFreeBlock++;
-            entrySize -= FileStoreFile.BLOCK_SIZE;
-        }
-        if (entrySize >= THRESHOLD_BLOCK_FULL) {
-            file.seek(openBlockCount * 8 + 16);
-            file.writeInt(nextFreeBlock - 1);
-            file.writeInt(FileStoreFile.BLOCK_SIZE - entrySize);
-            openBlockCount++;
-        }
-        file.seek(8);
-        file.writeInt(openBlockCount);
-        file.writeInt(nextFreeBlock);
-        return index;
-    }
-
-    /**
-     * Writes the buffer to the specified index
-     *
-     * @param buffer The buffer to write
-     * @param index  The index to write to
-     * @throws IOException When an IO operation failed
-     */
-    private void writeTo(byte[] buffer, long index) throws IOException {
-        file.seek(index);
-        file.writeLong(PersistedNode.KEY_NOT_PRESENT);
-        file.writeInt(buffer.length);
-        file.writeBytes(buffer);
-    }
-
-    @Override
-    public void close() throws IOException {
-        file.close();
     }
 }
