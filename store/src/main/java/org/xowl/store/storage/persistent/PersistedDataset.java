@@ -131,8 +131,9 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     /**
      * Initializes this dataset
      *
-     * @param nodes     The persisted nodes associated to this dataset
-     * @param directory The parent directory containing the backing files
+     * @param nodes      The persisted nodes associated to this dataset
+     * @param directory  The parent directory containing the backing files
+     * @param isReadonly Whether this store is in readonly mode
      * @throws IOException      When the backing files cannot be accessed
      * @throws StorageException When the storage is in a bad state
      */
