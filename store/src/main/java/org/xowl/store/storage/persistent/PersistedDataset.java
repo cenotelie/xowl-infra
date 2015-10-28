@@ -158,25 +158,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @return The result of the insertion
      * @throws UnsupportedNodeType When the subject node is not recognized
      */
-    private int doAdd(Node subject, Node property, Node object, Node graph) throws UnsupportedNodeType {
-        return doAdd(nodes.persist(subject),
-                nodes.persist(property),
-                nodes.persist(object),
-                nodes.persist(graph)
-        );
-    }
-
-    /**
-     * Inserts a quad into the backend
-     *
-     * @param subject  The subject
-     * @param property The property
-     * @param object   The object
-     * @param graph    The graph
-     * @return The result of the insertion
-     * @throws UnsupportedNodeType When the subject node is not recognized
-     */
-    private int doAdd(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) throws UnsupportedNodeType {
+    private int doQuadAdd(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) throws UnsupportedNodeType {
         try {
             Map<Long, Long> map = mapFor(subject);
             Long bucket = map.get(subject.getKey());
@@ -184,9 +166,9 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 bucket = newEntry(subject);
                 map.put(subject.getKey(), bucket);
             }
-            long target = lookup(bucket, property, true);
-            target = lookup(target, object, true);
-            target = lookup(target, graph, true);
+            long target = lookupQNode(bucket, property, true);
+            target = lookupQNode(target, object, true);
+            target = lookupQNode(target, graph, true);
             try (IOElement entry = backend.access(target)) {
                 long value = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
                 if (value == PersistedNode.KEY_NOT_PRESENT) {
@@ -205,22 +187,34 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     }
 
     /**
-     * Removes a quad into the backend
+     * Indexes a quad into the backend
      *
      * @param subject  The subject
      * @param property The property
      * @param object   The object
      * @param graph    The graph
-     * @return The result of the removal
-     * @throws UnsupportedNodeType When the subject node is not recognized
+     * @return The result of the insertion
      */
-    private int doRemove(Node subject, Node property, Node object, Node graph) throws UnsupportedNodeType {
-        return doRemove(nodes.persist(subject),
-                nodes.persist(property),
-                nodes.persist(object),
-                nodes.persist(graph)
-        );
+    private void doQuadIndex(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) {
+
     }
+
+    /**
+     * When a quad is removed, the key to the subject quad node
+     */
+    private long removedSubject;
+    /**
+     * When a quad is removed, the key to the property quad node
+     */
+    private long removedProperty;
+    /**
+     * When a quad is removed, the key to the object quad node
+     */
+    private long removedObject;
+    /**
+     * When a quad is removed, the key to the graph quad node
+     */
+    private long removedGraph;
 
     /**
      * Removes a quad into the backend
@@ -232,37 +226,135 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @return The result of the removal
      * @throws UnsupportedNodeType When the subject node is not recognized
      */
-    private int doRemove(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) throws UnsupportedNodeType {
+    private int doQuadRemove(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) throws UnsupportedNodeType {
         try {
             Map<Long, Long> map = mapFor(subject);
             Long bucket = map.get(subject.getKey());
             if (bucket == null) {
                 return REMOVE_RESULT_NOT_FOUND;
             }
-            long target = lookup(bucket, property, false);
-            if (target == PersistedNode.KEY_NOT_PRESENT)
+            removedSubject = bucket;
+            removedProperty = lookupQNode(removedSubject, property, false);
+            if (removedProperty == PersistedNode.KEY_NOT_PRESENT)
                 return REMOVE_RESULT_NOT_FOUND;
-            target = lookup(target, object, false);
-            if (target == PersistedNode.KEY_NOT_PRESENT)
+            long keyPropertyPrevious = previous;
+            removedObject = lookupQNode(removedProperty, object, false);
+            if (removedObject == PersistedNode.KEY_NOT_PRESENT)
                 return REMOVE_RESULT_NOT_FOUND;
-            target = lookup(target, graph, false);
-            if (target == PersistedNode.KEY_NOT_PRESENT)
+            long keyObjectPrevious = previous;
+            removedGraph = lookupQNode(removedObject, graph, false);
+            if (removedGraph == PersistedNode.KEY_NOT_PRESENT)
                 return REMOVE_RESULT_NOT_FOUND;
-            try (IOElement entry = backend.access(target)) {
+            long keyGraphPrevious = previous;
+            try (IOElement entry = backend.access(removedGraph)) {
                 long value = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
                 value--;
                 if (value > 0) {
                     entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(value);
                     return REMOVE_RESULT_DECREMENT;
                 }
-                // TODO: remove the parent nodes
+            }
+
+            // remove the graph node
+            long next;
+            try (IOElement entry = backend.read(removedGraph)) {
+                next = entry.readLong();
+            }
+            if (keyGraphPrevious == removedObject) {
+                // the previous of the graph is the object
+                if (next == PersistedNode.KEY_NOT_PRESENT) {
+                    // the last one
+                    backend.remove(removedGraph);
+                } else {
+                    try (IOElement entry = backend.access(removedObject)) {
+                        entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
+                    }
+                    backend.remove(removedGraph);
+                    return REMOVE_RESULT_REMOVED;
+                }
+            } else {
+                try (IOElement entry = backend.access(keyGraphPrevious)) {
+                    entry.writeLong(next);
+                }
+                backend.remove(removedGraph);
                 return REMOVE_RESULT_REMOVED;
             }
+
+            // remove the object node
+            try (IOElement entry = backend.read(removedObject)) {
+                next = entry.readLong();
+            }
+            if (keyObjectPrevious == removedProperty) {
+                // the previous of the object is the property
+                if (next == PersistedNode.KEY_NOT_PRESENT) {
+                    // the last one
+                    backend.remove(removedObject);
+                } else {
+                    try (IOElement entry = backend.access(removedProperty)) {
+                        entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
+                    }
+                    backend.remove(removedObject);
+                    return REMOVE_RESULT_REMOVED;
+                }
+            } else {
+                try (IOElement entry = backend.access(keyObjectPrevious)) {
+                    entry.writeLong(next);
+                }
+                backend.remove(removedObject);
+                return REMOVE_RESULT_REMOVED;
+            }
+
+            // remove the property node
+            try (IOElement entry = backend.read(removedProperty)) {
+                next = entry.readLong();
+            }
+            if (keyPropertyPrevious == removedSubject) {
+                // the previous of the property is the subject
+                if (next == PersistedNode.KEY_NOT_PRESENT) {
+                    // the last one
+                    backend.remove(removedProperty);
+                } else {
+                    try (IOElement entry = backend.access(removedSubject)) {
+                        entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
+                    }
+                    backend.remove(removedProperty);
+                    return REMOVE_RESULT_REMOVED;
+                }
+            } else {
+                try (IOElement entry = backend.access(keyPropertyPrevious)) {
+                    entry.writeLong(next);
+                }
+                backend.remove(removedProperty);
+                return REMOVE_RESULT_REMOVED;
+            }
+
+            // remove the subject node
+            backend.remove(removedSubject);
+            map.remove(subject.getKey());
+            return REMOVE_RESULT_EMPTIED;
         } catch (IOException | StorageException exception) {
             // do nothing
             return REMOVE_RESULT_NOT_FOUND;
         }
     }
+
+    /**
+     * De-indexes a quad into the backend
+     *
+     * @param subject  The subject
+     * @param property The property
+     * @param object   The object
+     * @param graph    The graph
+     * @return The result of the insertion
+     */
+    private void doQuadDeindex(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) {
+
+    }
+
+    /**
+     * Previous entry for the looked up entry
+     */
+    private long previous;
 
     /**
      * Lookup the target entry for a quad node
@@ -274,7 +366,8 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    private long lookup(long from, PersistedNode node, boolean resolve) throws IOException, StorageException {
+    private long lookupQNode(long from, PersistedNode node, boolean resolve) throws IOException, StorageException {
+        previous = from;
         long current;
         try (IOElement entry = backend.read(from)) {
             current = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
@@ -290,7 +383,6 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             return current;
         }
         // follow the chain
-        long previous = PersistedNode.KEY_NOT_PRESENT;
         while (current != PersistedNode.KEY_NOT_PRESENT) {
             try (IOElement entry = backend.read(current)) {
                 long next = entry.readLong();
@@ -393,8 +485,17 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public void add(Quad quad) throws UnsupportedNodeType {
-        int result = doAdd(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+        PersistedNode pSubject = nodes.persist(quad.getSubject());
+        PersistedNode pProperty = nodes.persist(quad.getProperty());
+        PersistedNode pObject = nodes.persist(quad.getObject());
+        PersistedNode pGraph = nodes.persist(quad.getGraph());
+        int result = doQuadAdd(pSubject, pProperty, pObject, pGraph);
         if (result == ADD_RESULT_NEW) {
+            doQuadIndex(pSubject, pProperty, pObject, pGraph);
+            pSubject.incrementRefCount();
+            pProperty.incrementRefCount();
+            pObject.incrementRefCount();
+            pGraph.incrementRefCount();
             for (ChangeListener listener : listeners)
                 listener.onAdded(quad);
         } else if (result == ADD_RESULT_INCREMENT) {
@@ -405,13 +506,22 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        int result = doAdd(subject, property, value, graph);
+        PersistedNode pSubject = nodes.persist(subject);
+        PersistedNode pProperty = nodes.persist(property);
+        PersistedNode pObject = nodes.persist(value);
+        PersistedNode pGraph = nodes.persist(graph);
+        int result = doQuadAdd(pSubject, pProperty, pObject, pGraph);
         if (result == ADD_RESULT_NEW) {
-            Quad quad = new Quad(graph, subject, property, value);
+            doQuadIndex(pSubject, pProperty, pObject, pGraph);
+            pSubject.incrementRefCount();
+            pProperty.incrementRefCount();
+            pObject.incrementRefCount();
+            pGraph.incrementRefCount();
+            Quad quad = new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject);
             for (ChangeListener listener : listeners)
                 listener.onAdded(quad);
         } else if (result == ADD_RESULT_INCREMENT) {
-            Quad quad = new Quad(graph, subject, property, value);
+            Quad quad = new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject);
             for (ChangeListener listener : listeners)
                 listener.onIncremented(quad);
         }
@@ -419,16 +529,22 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public void remove(Quad quad) throws UnsupportedNodeType {
-        if (quad.getGraph() != null && quad.getGraph().getNodeType() != Node.TYPE_VARIABLE
-                && quad.getSubject() != null && quad.getSubject().getNodeType() != Node.TYPE_VARIABLE
-                && quad.getProperty() != null && quad.getProperty().getNodeType() != Node.TYPE_VARIABLE
-                && quad.getObject() != null && quad.getObject().getNodeType() != Node.TYPE_VARIABLE) {
+        if (quad.getGraph() != null && quad.getSubject() != null && quad.getProperty() != null && quad.getObject() != null) {
             // this is a ground quad
-            int result = doRemove(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            PersistedNode pSubject = nodes.persist(quad.getSubject());
+            PersistedNode pProperty = nodes.persist(quad.getProperty());
+            PersistedNode pObject = nodes.persist(quad.getObject());
+            PersistedNode pGraph = nodes.persist(quad.getGraph());
+            int result = doQuadRemove(pGraph, pSubject, pProperty, pObject);
             if (result == REMOVE_RESULT_DECREMENT) {
                 for (ChangeListener listener : listeners)
                     listener.onDecremented(quad);
             } else if (result >= REMOVE_RESULT_REMOVED) {
+                doQuadDeindex(pGraph, pSubject, pProperty, pObject);
+                pSubject.decrementRefCount();
+                pProperty.decrementRefCount();
+                pObject.decrementRefCount();
+                pGraph.decrementRefCount();
                 for (ChangeListener listener : listeners)
                     listener.onRemoved(quad);
             }
@@ -439,17 +555,23 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE
-                && subject != null && subject.getNodeType() != Node.TYPE_VARIABLE
-                && property != null && property.getNodeType() != Node.TYPE_VARIABLE
-                && value != null && value.getNodeType() != Node.TYPE_VARIABLE) {
+        if (graph != null && subject != null && property != null && value != null) {
             // this is a ground quad
-            int result = doRemove(graph, subject, property, value);
+            PersistedNode pSubject = nodes.persist(subject);
+            PersistedNode pProperty = nodes.persist(property);
+            PersistedNode pObject = nodes.persist(value);
+            PersistedNode pGraph = nodes.persist(graph);
+            int result = doQuadRemove(pGraph, pSubject, pProperty, pObject);
             if (result == REMOVE_RESULT_DECREMENT) {
                 Quad quad = new Quad(graph, subject, property, value);
                 for (ChangeListener listener : listeners)
                     listener.onDecremented(quad);
             } else if (result >= REMOVE_RESULT_REMOVED) {
+                doQuadDeindex(pGraph, pSubject, pProperty, pObject);
+                pSubject.decrementRefCount();
+                pProperty.decrementRefCount();
+                pObject.decrementRefCount();
+                pGraph.decrementRefCount();
                 Quad quad = new Quad(graph, subject, property, value);
                 for (ChangeListener listener : listeners)
                     listener.onRemoved(quad);

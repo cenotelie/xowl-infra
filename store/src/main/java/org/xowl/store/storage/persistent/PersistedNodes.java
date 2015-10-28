@@ -65,6 +65,15 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
     private static final String NAME_NEXT_BLANK = "blank-next";
 
     /**
+     * The size of the overhead for a string entry
+     */
+    private static final int ENTRY_STRING_OVERHEAD = 20;
+    /**
+     * The size of an entry for a literal
+     */
+    private static final int ENTRY_LITERAL_SIZE = 40;
+
+    /**
      * The backing storing the nodes' data
      */
     private final FileStore backend;
@@ -125,10 +134,61 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      */
     public String retrieveString(long key) throws IOException, StorageException {
         try (IOElement element = backend.read(key)) {
-            element.readLong();
-            int length = element.readInt();
+            int length = element.seek(16).readInt();
             byte[] data = element.readBytes(length);
             return new String(data, charset);
+        }
+    }
+
+    /**
+     * Updates the reference counter of a string entry
+     *
+     * @param key      The key to the string
+     * @param modifier The modifier for the reference counter
+     */
+    public void onRefCountString(long key, int modifier) {
+        try (IOElement element = backend.access(key)) {
+            long counter = element.seek(8).readLong();
+            counter += modifier;
+            if (counter <= 0) {
+                // removes the entry
+                // resolve the bucket
+                int length = element.seek(16).readInt();
+                byte[] data = element.readBytes(length);
+                int hash = hash(new String(data, charset));
+                long bucket = mapStrings.get(hash);
+                // resolve the previous item in the linked list
+                long previous = PersistedNode.KEY_NOT_PRESENT;
+                long candidate = bucket;
+                while (candidate != key) {
+                    try (IOElement entry = backend.read(candidate)) {
+                        previous = candidate;
+                        candidate = entry.readLong();
+                    }
+                }
+                long next = element.seek(0).readLong();
+                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                    // this is the first element
+                    if (next == PersistedNode.KEY_NOT_PRESENT) {
+                        // sole element of the list
+                        mapStrings.remove(hash);
+                    } else {
+                        // point the next element
+                        mapStrings.put(hash, next);
+                    }
+                } else {
+                    // remove the element from the list
+                    try (IOElement entry = backend.access(previous)) {
+                        entry.writeLong(element.seek(0).readLong());
+                    }
+                }
+                // delete the entry
+                backend.remove(key);
+            } else {
+                element.seek(8).writeLong(counter);
+            }
+        } catch (IOException | StorageException exception) {
+            // do nothing
         }
     }
 
@@ -147,7 +207,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
             try (IOElement entry = backend.read(candidate)) {
                 long next = entry.readLong();
-                int size = entry.readInt();
+                int size = entry.seek(16).readInt();
                 if (size == buffer.length) {
                     if (Arrays.equals(buffer, entry.readBytes(buffer.length)))
                         // the string is already there, return its key
@@ -175,7 +235,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
             try (IOElement entry = backend.read(candidate)) {
                 long next = entry.readLong();
-                int size = entry.readInt();
+                int size = entry.seek(16).readInt();
                 if (size == buffer.length) {
                     if (Arrays.equals(buffer, entry.readBytes(buffer.length)))
                         // the string is already there, return its key
@@ -185,14 +245,17 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
                 candidate = next;
             }
         }
-        long result = backend.add(buffer.length + 12);
-        try (IOElement previousEntry = backend.access(previous)) {
-            previousEntry.writeLong(result);
-        }
+        long result = backend.add(buffer.length + ENTRY_STRING_OVERHEAD);
         try (IOElement entry = backend.access(result)) {
             entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+            entry.writeLong(0);
             entry.writeInt(buffer.length);
             entry.writeBytes(buffer);
+        }
+        if (previous != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement previousEntry = backend.access(previous)) {
+                previousEntry.writeLong(result);
+            }
         }
         return result;
     }
@@ -213,7 +276,10 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
             return PersistedNode.KEY_NOT_PRESENT;
         if (doInsert) {
             try {
-                return addString(bucket == null ? PersistedNode.KEY_NOT_PRESENT : bucket, data);
+                long result = addString(bucket == null ? PersistedNode.KEY_NOT_PRESENT : bucket, data);
+                if (bucket == null)
+                    mapStrings.put(hash, result);
+                return result;
             } catch (IOException | StorageException exception) {
                 return PersistedNode.KEY_NOT_PRESENT;
             }
@@ -239,7 +305,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         long keyDatatype;
         long keyLangTag;
         try (IOElement entry = backend.read(key)) {
-            entry.readLong();
+            entry.seek(16);
             keyLexical = entry.readLong();
             keyDatatype = entry.readLong();
             keyLangTag = entry.readLong();
@@ -249,6 +315,56 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
                 keyDatatype == PersistedNode.KEY_NOT_PRESENT ? null : retrieveString(keyDatatype),
                 keyLangTag == PersistedNode.KEY_NOT_PRESENT ? null : retrieveString(keyLangTag)
         };
+    }
+
+    /**
+     * Updates the reference counter of a literal entry
+     *
+     * @param key      The key to the literal
+     * @param modifier The modifier for the reference counter
+     */
+    public void onRefCountLiteral(long key, int modifier) {
+        try (IOElement element = backend.access(key)) {
+            long counter = element.seek(8).readLong();
+            counter += modifier;
+            if (counter <= 0) {
+                // removes the entry
+                // resolve the bucket
+                long bucketKey = element.seek(16).readLong();
+                long bucket = mapLiterals.get(bucketKey);
+                // resolve the previous item in the linked list
+                long previous = PersistedNode.KEY_NOT_PRESENT;
+                long candidate = bucket;
+                while (candidate != key) {
+                    try (IOElement entry = backend.read(candidate)) {
+                        previous = candidate;
+                        candidate = entry.readLong();
+                    }
+                }
+                long next = element.seek(0).readLong();
+                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                    // this is the first element
+                    if (next == PersistedNode.KEY_NOT_PRESENT) {
+                        // sole element of the list
+                        mapLiterals.remove(bucketKey);
+                    } else {
+                        // point the next element
+                        mapLiterals.put(bucketKey, next);
+                    }
+                } else {
+                    // remove the element from the list
+                    try (IOElement entry = backend.access(previous)) {
+                        entry.writeLong(element.seek(0).readLong());
+                    }
+                }
+                // delete the entry
+                backend.remove(key);
+            } else {
+                element.seek(8).writeLong(counter);
+            }
+        } catch (IOException | StorageException exception) {
+            // do nothing
+        }
     }
 
     /**
@@ -269,13 +385,15 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         if (bucket == null) {
             // this is the first literal with this lexem
             try {
-                long result = backend.add(32);
+                long result = backend.add(ENTRY_LITERAL_SIZE);
                 try (IOElement entry = backend.access(result)) {
                     entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+                    entry.writeLong(0);
                     entry.writeLong(keyLexical);
                     entry.writeLong(keyDatatype);
                     entry.writeLong(keyLangTag);
                 }
+                mapLiterals.put(keyLexical, result);
                 return result;
             } catch (IOException | StorageException exception) {
                 return PersistedNode.KEY_NOT_PRESENT;
@@ -286,7 +404,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
             while (candidate != PersistedNode.KEY_NOT_PRESENT) {
                 try (IOElement entry = backend.access(candidate)) {
                     long next = entry.readLong();
-                    entry.readLong();
+                    entry.seek(24);
                     long candidateDatatype = entry.readLong();
                     long candidateLangTag = entry.readLong();
                     if (keyDatatype == candidateDatatype && keyLangTag == candidateLangTag)
@@ -299,12 +417,13 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
             }
             // did not found an existing literal
             try {
-                long result = backend.add(32);
+                long result = backend.add(ENTRY_LITERAL_SIZE);
                 try (IOElement entry = backend.access(previous)) {
                     entry.writeLong(result);
                 }
                 try (IOElement entry = backend.access(result)) {
                     entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+                    entry.writeLong(0);
                     entry.writeLong(keyLexical);
                     entry.writeLong(keyDatatype);
                     entry.writeLong(keyLangTag);

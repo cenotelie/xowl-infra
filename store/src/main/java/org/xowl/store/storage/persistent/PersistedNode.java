@@ -22,8 +22,6 @@ package org.xowl.store.storage.persistent;
 
 import org.xowl.store.rdf.Node;
 
-import java.io.IOException;
-
 /**
  * Represents the common API for the persisted node
  *
@@ -48,10 +46,12 @@ interface PersistedNode extends Node {
     long getKey();
 
     /**
-     * Serializes this node with the specified IO element
-     *
-     * @param ioElement An IO element for the serialization of this node
-     * @throws IOException When an IO error occurs
+     * Increments the reference count for this node
      */
-    void serialize(IOElement ioElement) throws IOException;
+    void incrementRefCount();
+
+    /**
+     * Decrements the reference count for this node
+     */
+    void decrementRefCount();
 }

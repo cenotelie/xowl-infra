@@ -72,9 +72,13 @@ class PersistedIRINode extends IRINode implements PersistedNode {
     }
 
     @Override
-    public void serialize(IOElement ioElement) throws IOException {
-        ioElement.writeInt(IRINode.TYPE_IRI);
-        ioElement.writeLong(key);
+    public void incrementRefCount() {
+        backend.onRefCountString(key, 1);
+    }
+
+    @Override
+    public void decrementRefCount() {
+        backend.onRefCountString(key, -1);
     }
 
     @Override

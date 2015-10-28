@@ -20,7 +20,6 @@
 
 package org.xowl.store.storage.persistent;
 
-import org.xowl.store.rdf.IRINode;
 import org.xowl.store.rdf.LiteralNode;
 
 import java.io.IOException;
@@ -94,9 +93,13 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     }
 
     @Override
-    public void serialize(IOElement ioElement) throws IOException {
-        ioElement.writeInt(IRINode.TYPE_LITERAL);
-        ioElement.writeLong(key);
+    public void incrementRefCount() {
+        backend.onRefCountLiteral(key, 1);
+    }
+
+    @Override
+    public void decrementRefCount() {
+        backend.onRefCountLiteral(key, -1);
     }
 
     @Override
