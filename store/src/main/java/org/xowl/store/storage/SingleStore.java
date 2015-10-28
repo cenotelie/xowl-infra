@@ -49,7 +49,7 @@ public class SingleStore implements BaseStore {
      * @param directory The parent directory containing the backing files
      */
     public SingleStore(File directory) {
-        backend = new OnDiskStore(directory);
+        backend = new OnDiskStore(directory, false);
         cache = new InMemoryStore();
     }
 
