@@ -79,8 +79,11 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     private static final String FILE_INDEX = "quads_index.bin";
     /**
      * The size in bytes of a quad entry
+     * long: next node in list
+     * long+int: persisted node data
+     * long: first node of child list
      */
-    private static final int QUAD_ENTRY_SIZE = 28;
+    private static final int QUAD_ENTRY_SIZE =  8 + PersistedNode.SERIALIZED_SIZE + 8;
 
     /**
      * The current listeners on this store

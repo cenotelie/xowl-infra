@@ -66,12 +66,20 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
 
     /**
      * The size of the overhead for a string entry
+     * long: next entry
+     * long: ref count
+     * int: data length
      */
-    private static final int ENTRY_STRING_OVERHEAD = 20;
+    private static final int ENTRY_STRING_OVERHEAD = 8 + 8 + 4;
     /**
      * The size of an entry for a literal
+     * long: next entry
+     * long: ref count
+     * long: key to lexical value
+     * long: key to datatype
+     * long: key to lang tag
      */
-    private static final int ENTRY_LITERAL_SIZE = 40;
+    private static final int ENTRY_LITERAL_SIZE = 8 + 8 + 8 + 8 + 8;
 
     /**
      * The backing storing the nodes' data

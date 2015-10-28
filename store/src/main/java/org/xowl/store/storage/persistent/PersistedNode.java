@@ -35,8 +35,10 @@ interface PersistedNode extends Node {
 
     /**
      * The size in bytes of the serialized form of a node
+     * int: node type
+     * long: key to node data
      */
-    int SERIALIZED_SIZE = 12;
+    int SERIALIZED_SIZE = 8 + 4;
 
     /**
      * Gets the key identifying this node

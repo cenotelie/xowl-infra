@@ -32,11 +32,11 @@ import java.util.List;
  * - First block:
  * - int32: Magic identifier for the store
  * - int32: Layout version
- * - int32: number of open blocks (blocks that contain data but are not full)
- * - int32: index of the next block to open (in number of block)
+ * - int32: Number of open blocks (blocks that contain data but are not full)
+ * - int32: Index of the next block to open (in number of block)
  * - array of block entries:
- * - int32: index of the block
- * - int32: remaining free space
+ * - int32: Index of the block
+ * - int32: Remaining free space
  *
  * @author Laurent Wouters
  */
@@ -63,12 +63,18 @@ class FileStore extends IOBackend {
     private static final int MAX_BLOCKS_PER_FILE = 1 << 16;
     /**
      * The size of the preamble in the header
+     * int: Magic identifier for the store
+     * int: Layout version
+     * int: Number of open blocks (blocks that contain data but are not full)
+     * int: Index of the next block to open (in number of block)
      */
-    private static final int HEADER_PREAMBLE_SIZE = 16;
+    private static final int HEADER_PREAMBLE_SIZE = 4 + 4 + 4 + 4;
     /**
-     * the size of an open block entry in the header
+     * The size of an open block entry in the header
+     * int: Index of the block
+     * int: Remaining free space
      */
-    private static final int HEADER_OPEN_BLOCK_ENTRY_SIZE = 8;
+    private static final int HEADER_OPEN_BLOCK_ENTRY_SIZE = 4 + 4;
 
 
     /**

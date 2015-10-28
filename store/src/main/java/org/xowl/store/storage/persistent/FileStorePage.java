@@ -51,12 +51,19 @@ class FileStorePage {
     private static final char PAGE_LAYOUT_VERSION = 1;
     /**
      * The size of the page header in bytes
+     * char: Layout version (2 bytes)
+     * char: Flags (2 bytes)
+     * char: Number of entries (2 bytes)
+     * char: Offset to start of free space (2 bytes)
+     * char: Offset to start of data content (2 bytes)
      */
-    private static final int PAGE_HEADER_SIZE = 10;
+    private static final int PAGE_HEADER_SIZE = 2 + 2 + 2 + 2 + 2;
     /**
      * The size of an entry in the entry table of a page (in bytes)
+     * char: offset (2 bytes)
+     * char: length (2 bytes)
      */
-    private static final int PAGE_ENTRY_INDEX_SIZE = 4;
+    private static final int PAGE_ENTRY_INDEX_SIZE = 2 + 2;
 
     /**
      * Flag whether the page shall reuse the space of removed entries
