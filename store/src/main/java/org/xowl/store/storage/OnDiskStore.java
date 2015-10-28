@@ -38,7 +38,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-class PersistedStore implements BaseStore {
+class OnDiskStore implements BaseStore {
     /**
      * The store for the nodes
      */
@@ -53,7 +53,7 @@ class PersistedStore implements BaseStore {
      *
      * @param directory The parent directory containing the backing files
      */
-    public PersistedStore(File directory) {
+    public OnDiskStore(File directory) {
         PersistedNodes tempNodes = null;
         PersistedDataset tempDataset = null;
         try {
