@@ -65,7 +65,7 @@ class IOBackend implements AutoCloseable {
     /**
      * Represents a transaction within this store
      */
-    private static class Transaction extends IOProxy {
+    protected static class Transaction extends IOProxy {
         /**
          * The parent IO element
          */

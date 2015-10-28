@@ -24,20 +24,20 @@ import java.io.IOException;
 
 /**
  * Represents a page of data in a persisted binary store
- * <p>
+ * <p/>
  * Page general layout:
  * - header
  * - entry array (fill down from just after the header)
  * - ... free space
  * - data content (fill up from the bottom of the page)
- * <p>
+ * <p/>
  * Header layout:
  * - Layout version (2 bytes)
  * - Flags (2 bytes)
  * - Number of entries (2 bytes)
  * - Offset to start of free space (2 bytes)
  * - Offset to start of data content (2 bytes)
- * <p>
+ * <p/>
  * Entry layout:
  * - offset (2 bytes)
  * - length (2 bytes)
@@ -148,12 +148,46 @@ class FileStorePage {
     }
 
     /**
+     * Gets the index of this page within its parent file
+     *
+     * @return The index of this page
+     */
+    public int getIndex() {
+        return ((int)(location >>> FileStoreFile.BLOCK_INDEX_LENGTH));
+    }
+
+    /**
      * Gets the number of entries in this page
      *
      * @return The number of entries in this page
      */
     public int getEntryCount() {
         return entryCount;
+    }
+
+    /**
+     * Gets the amount of free space for entry payloads in this page
+     *
+     * @return The amount of free space
+     * @throws IOException When an IO operation failed
+     */
+    public int getFreeSpace() throws IOException {
+        int result = 0;
+        if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
+            // we can reuse empty entries and there are at least one
+            char entryIndex = 0;
+            backend.seek(location + PAGE_HEADER_SIZE);
+            while (entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
+                char eOffset = backend.readChar();
+                char eLength = backend.readChar();
+                if (eOffset == 0) {
+                    result += eLength;
+                }
+            }
+            return result;
+        }
+        result += startData - startFreeSpace - PAGE_ENTRY_INDEX_SIZE;
+        return result;
     }
 
     /**
