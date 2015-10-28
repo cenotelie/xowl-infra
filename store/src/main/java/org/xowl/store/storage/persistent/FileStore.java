@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  * A store of binary data backed by files
- * <p/>
+ * <p>
  * Each data file is composed of blocks (or pages)
  * - First block:
  * - int32: Magic identifier for the store
@@ -139,7 +139,7 @@ class FileStore extends IOBackend {
      * @throws StorageException When the page version does not match the expected one
      */
     public IOElement access(long key) throws IOException, StorageException {
-        return access(key, FLAG_READ | FLAG_WRITE);
+        return access(key, true);
     }
 
     /**
@@ -151,23 +151,24 @@ class FileStore extends IOBackend {
      * @throws StorageException When the page version does not match the expected one
      */
     public IOElement read(long key) throws IOException, StorageException {
-        return access(key, FLAG_READ);
+        return access(key, false);
     }
 
     /**
      * Gets an access to the entry for the specified key
      *
-     * @param key The key to an entry
+     * @param key      The key to an entry
+     * @param writable Whether the transaction allows writing to the backend
      * @return The IO element that can be used for reading and writing
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    protected IOElement access(long key, int flags) throws IOException, StorageException {
+    protected IOElement access(long key, boolean writable) throws IOException, StorageException {
         int index = getFileIndexFor(key);
         FileStoreFile file = files.get(index);
         FileStorePage page = file.getPageFor(key);
         int length = page.positionFor(key);
-        return transaction(file, file.getIndex(), length, flags);
+        return transaction(file, file.getIndex(), length, writable);
     }
 
     /**
@@ -215,7 +216,7 @@ class FileStore extends IOBackend {
      * @throws StorageException When the page version does not match the expected one
      */
     private long provision(FileStoreFile file, int entrySize) throws IOException, StorageException {
-        try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, IOBackend.FLAG_READ | IOBackend.FLAG_WRITE)) {
+        try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, true)) {
             header.seek(8);
             int openBlockCount = header.readInt();
             int nextFreeBlock = header.readInt();
@@ -289,7 +290,7 @@ class FileStore extends IOBackend {
      * @throws StorageException When the page version does not match the expected one
      */
     private void clear(FileStoreFile file, long key) throws IOException, StorageException {
-        try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, IOBackend.FLAG_READ | IOBackend.FLAG_WRITE)) {
+        try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, true)) {
             FileStorePage page = file.getPageFor(key);
             int length = page.removeEntry(key);
             header.seek(8);

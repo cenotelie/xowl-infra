@@ -74,10 +74,6 @@ class IOBackend implements AutoCloseable {
          * The thread executing the transaction
          */
         protected Thread thread;
-        /**
-         * The flags for this transaction
-         */
-        protected int flags;
 
         /**
          * Gets the thread executing this transaction
@@ -100,17 +96,17 @@ class IOBackend implements AutoCloseable {
         /**
          * Setups this transaction
          *
-         * @param flags    The flags
          * @param backend  The backend
          * @param location The location in the backend
          * @param length   The length in the backend
+         * @param writable Whether the transaction allows writing to the backend
          */
-        public void setup(int flags, IOElement backend, long location, long length) {
+        public void setup(IOElement backend, long location, long length, boolean writable) {
             this.thread = Thread.currentThread();
-            this.flags = flags;
             this.backend = backend;
             this.location = location;
             this.length = length;
+            this.writable = writable;
         }
 
         /**
@@ -124,7 +120,7 @@ class IOBackend implements AutoCloseable {
                     || transaction.location >= this.location + this.length
                     || transaction.location + transaction.length <= this.location)
                 return false;
-            return ((transaction.flags & FLAG_WRITE) != 0 || (this.flags & FLAG_WRITE) != 0);
+            return (transaction.writable || writable);
         }
 
         @Override
@@ -144,10 +140,10 @@ class IOBackend implements AutoCloseable {
             }
             parent.transactionEnd(this);
             this.thread = null;
-            this.flags = 0;
             this.backend = null;
             this.location = 0;
             this.length = 0;
+            this.writable = false;
         }
     }
 
@@ -188,10 +184,10 @@ class IOBackend implements AutoCloseable {
      * @param backend  The backend element for the IO
      * @param location The location in the backend
      * @param length   The length in the backend
-     * @param flags    The transaction flags
+     * @param writable Whether the transaction allows writing to the backend
      * @return The transaction object
      */
-    protected Transaction transaction(IOElement backend, long location, long length, int flags) {
+    protected Transaction transaction(IOElement backend, long location, long length, boolean writable) {
         if (state.get() != STATE_READY)
             return null;
         Transaction transaction = null;
@@ -206,7 +202,7 @@ class IOBackend implements AutoCloseable {
         }
         if (transaction == null)
             transaction = new Transaction(this);
-        transaction.setup(flags, backend, location, length);
+        transaction.setup(backend, location, length, writable);
         synchronized (transactions) {
             transactions.add(transaction);
         }

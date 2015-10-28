@@ -41,6 +41,10 @@ abstract class IOProxy implements IOElement {
      * The length of the proxy in the backend
      */
     protected long length;
+    /**
+     * Whether the proxy allows writing
+     */
+    protected boolean writable;
 
     /**
      * Gets whether the specified number of bytes at the current index are within the proxy bounds
@@ -135,56 +139,56 @@ abstract class IOProxy implements IOElement {
 
     @Override
     public void writeByte(byte value) throws IOException {
-        if (!withinBounds(1))
+        if (!writable || !withinBounds(1))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeByte(value);
     }
 
     @Override
     public void writeBytes(byte[] value) throws IOException {
-        if (!withinBounds(value.length))
+        if (!writable || !withinBounds(value.length))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeBytes(value);
     }
 
     @Override
     public void writeBytes(byte[] buffer, int index, int length) throws IOException {
-        if (!withinBounds(length))
+        if (!writable || !withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeBytes(buffer, index, length);
     }
 
     @Override
     public void writeChar(char value) throws IOException {
-        if (!withinBounds(2))
+        if (!writable || !withinBounds(2))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeChar(value);
     }
 
     @Override
     public void writeInt(int value) throws IOException {
-        if (!withinBounds(4))
+        if (!writable || !withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeInt(value);
     }
 
     @Override
     public void writeLong(long value) throws IOException {
-        if (!withinBounds(8))
+        if (!writable || !withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeLong(value);
     }
 
     @Override
     public void writeFloat(float value) throws IOException {
-        if (!withinBounds(4))
+        if (!writable || !withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeFloat(value);
     }
 
     @Override
     public void writeDouble(double value) throws IOException {
-        if (!withinBounds(8))
+        if (!writable || !withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeDouble(value);
     }
