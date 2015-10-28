@@ -47,6 +47,11 @@ class PersistedBlankNode extends BlankNode implements PersistedNode {
     }
 
     @Override
+    public long getKey() {
+        return getBlankID();
+    }
+
+    @Override
     public boolean equals(Object o) {
         return (o instanceof BlankNode) && (getBlankID() == ((BlankNode) o).getBlankID());
     }

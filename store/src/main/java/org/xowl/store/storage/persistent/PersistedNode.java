@@ -20,6 +20,8 @@
 
 package org.xowl.store.storage.persistent;
 
+import org.xowl.store.rdf.Node;
+
 import java.io.IOException;
 
 /**
@@ -27,7 +29,7 @@ import java.io.IOException;
  *
  * @author Laurent Wouters
  */
-interface PersistedNode {
+interface PersistedNode extends Node {
     /**
      * The key for absent values in a store
      */
@@ -37,6 +39,13 @@ interface PersistedNode {
      * The size in bytes of the serialized form of a node
      */
     int SERIALIZED_SIZE = 12;
+
+    /**
+     * Gets the key identifying this node
+     *
+     * @return The key identifying this node
+     */
+    long getKey();
 
     /**
      * Serializes this node with the specified IO element

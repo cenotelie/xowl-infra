@@ -88,6 +88,11 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     }
 
     @Override
+    public long getKey() {
+        return key;
+    }
+
+    @Override
     public void serialize(IOElement ioElement) throws IOException {
         ioElement.writeInt(IRINode.TYPE_ANONYMOUS);
         ioElement.writeLong(key);
