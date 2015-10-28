@@ -109,17 +109,32 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
     /**
      * Initializes this store of nodes
      *
-     * @param directory The parent directory containing the backing files
+     * @param directory  The parent directory containing the backing files
+     * @param isReadonly Whether this store is in readonly mode
      * @throws IOException      When the backing files cannot be accessed
      * @throws StorageException When the storage is in a bad state
      */
-    public PersistedNodes(File directory) throws IOException, StorageException {
-        backend = new FileStore(directory, FILE_DATA);
+    public PersistedNodes(File directory, boolean isReadonly) throws IOException, StorageException {
+        backend = new FileStore(directory, FILE_DATA, isReadonly);
         charset = Charset.forName("UTF-8");
-        database = DBMaker.fileDB(new File(directory, FILE_INDEX)).make();
+        database = dbMaker(directory, isReadonly).make();
         mapStrings = database.hashMap(NAME_STRING_MAP);
         mapLiterals = database.hashMap(NAME_LITERAL_MAP);
         nextBlank = database.atomicLong(NAME_NEXT_BLANK);
+    }
+
+    /**
+     * Gets the mapDB database maker for this store
+     *
+     * @param directory  The parent directory containing the backing files
+     * @param isReadonly Whether this store is in readonly mode
+     * @return The DB maker
+     */
+    private static DBMaker.Maker dbMaker(File directory, boolean isReadonly) {
+        DBMaker.Maker maker = DBMaker.fileDB(new File(directory, FILE_INDEX));
+        if (isReadonly)
+            maker = maker.readOnly();
+        return maker;
     }
 
     /**

@@ -89,17 +89,23 @@ class FileStore extends IOBackend {
      * The files backing this store
      */
     private final List<FileStoreFile> files;
+    /**
+     * Whether this store is in readonly mode
+     */
+    private final boolean isReadonly;
 
     /**
      * Initializes this store
      *
-     * @param directory The directory containing the backing files
-     * @param name      The common name of the files backing this store
+     * @param directory  The directory containing the backing files
+     * @param name       The common name of the files backing this store
+     * @param isReadonly Whether this store is in readonly mode
      */
-    public FileStore(File directory, String name) throws IOException, StorageException {
+    public FileStore(File directory, String name, boolean isReadonly) throws IOException, StorageException {
         this.directory = directory;
         this.name = name;
         this.files = new ArrayList<>();
+        this.isReadonly = isReadonly;
         int index = 0;
         File candidate = new File(directory, getNameFor(name, index));
         while (candidate.exists()) {
@@ -115,7 +121,7 @@ class FileStore extends IOBackend {
             index++;
             candidate = new File(directory, getNameFor(name, index));
         }
-        if (files.isEmpty()) {
+        if (files.isEmpty() && !isReadonly) {
             // initializes
             FileStoreFile first = new FileStoreFile(candidate, getRadicalFor(0));
             initializeFile(first);
@@ -126,8 +132,10 @@ class FileStore extends IOBackend {
     @Override
     public void close() throws IOException {
         finalizeAllTransactions();
-        for (FileStoreFile child : files)
-            child.close();
+        if (!isReadonly) {
+            for (FileStoreFile child : files)
+                child.close();
+        }
     }
 
     /**
@@ -168,7 +176,7 @@ class FileStore extends IOBackend {
         FileStoreFile file = files.get(index);
         FileStorePage page = file.getPageFor(key);
         int length = page.positionFor(key);
-        return transaction(file, file.getIndex(), length, writable);
+        return transaction(file, file.getIndex(), length, !isReadonly && writable);
     }
 
     /**
@@ -180,6 +188,8 @@ class FileStore extends IOBackend {
      * @throws StorageException When the page version does not match the expected one
      */
     public long add(int entrySize) throws IOException, StorageException {
+        if (isReadonly)
+            throw new StorageException("The store is read only");
         if (entrySize > FileStorePage.MAX_ENTRY_SIZE)
             throw new StorageException("The entry is too large for this store");
         FileStoreFile file = files.get(files.size() - 1);
@@ -201,6 +211,8 @@ class FileStore extends IOBackend {
      * @throws StorageException When the page version does not match the expected one
      */
     public void remove(long key) throws IOException, StorageException {
+        if (isReadonly)
+            throw new StorageException("The store is read only");
         int index = getFileIndexFor(key);
         FileStoreFile file = files.get(index);
         clear(file, key);

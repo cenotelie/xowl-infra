@@ -83,7 +83,21 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * long+int: persisted node data
      * long: first node of child list
      */
-    private static final int QUAD_ENTRY_SIZE =  8 + PersistedNode.SERIALIZED_SIZE + 8;
+    private static final int QUAD_ENTRY_SIZE = 8 + PersistedNode.SERIALIZED_SIZE + 8;
+    /**
+     * The maximum number of items in an entry for an index on a graph
+     */
+    private static final int GINDEX_ENTRY_MAX_ITEM_COUNT = 256;
+    /**
+     * The size in bytes of an entry for an index on a graph
+     * long: next index entry
+     * int: key radical for items in this entry
+     * char: number of items in this index entry
+     * int: key to the subject quad node for item 1
+     * int: ...
+     * int: key to the subject quad node for item n
+     */
+    private static final int GINDEX_ENTRY_SIZE = 8 + 4 + 2 + GINDEX_ENTRY_MAX_ITEM_COUNT * 4;
 
     /**
      * The current listeners on this store
@@ -122,14 +136,28 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @throws IOException      When the backing files cannot be accessed
      * @throws StorageException When the storage is in a bad state
      */
-    public PersistedDataset(PersistedNodes nodes, File directory) throws IOException, StorageException {
+    public PersistedDataset(PersistedNodes nodes, File directory, boolean isReadonly) throws IOException, StorageException {
         this.listeners = new ArrayList<>();
         this.nodes = nodes;
-        this.backend = new FileStore(directory, FILE_DATA);
-        this.database = DBMaker.fileDB(new File(directory, FILE_INDEX)).make();
+        this.backend = new FileStore(directory, FILE_DATA, isReadonly);
+        this.database = dbMaker(directory, isReadonly).make();
         this.mapSubjectIRI = database.hashMap("subject-iris");
         this.mapSubjectBlank = database.hashMap("subject-blanks");
         this.mapSubjectAnon = database.hashMap("subject-anons");
+    }
+
+    /**
+     * Gets the mapDB database maker for this store
+     *
+     * @param directory  The parent directory containing the backing files
+     * @param isReadonly Whether this store is in readonly mode
+     * @return The DB maker
+     */
+    private static DBMaker.Maker dbMaker(File directory, boolean isReadonly) {
+        DBMaker.Maker maker = DBMaker.fileDB(new File(directory, FILE_INDEX));
+        if (isReadonly)
+            maker = maker.readOnly();
+        return maker;
     }
 
     /**
