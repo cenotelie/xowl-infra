@@ -28,6 +28,7 @@ import org.xowl.store.IRIs;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
+import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.io.File;
 import java.io.IOException;
@@ -313,6 +314,30 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
                 return PersistedNode.KEY_NOT_PRESENT;
             }
         }
+    }
+
+    /**
+     * Persists a node in this store
+     *
+     * @param node A node
+     * @return The persisted equivalent
+     * @throws UnsupportedNodeType When the node cannot be persisted
+     */
+    public PersistedNode persist(Node node) throws UnsupportedNodeType {
+        if (node instanceof PersistedNode)
+            return ((PersistedNode) node);
+        switch (node.getNodeType()) {
+            case Node.TYPE_IRI:
+                return (PersistedIRINode) getIRINode(((IRINode) node).getIRIValue());
+            case Node.TYPE_BLANK:
+                return new PersistedBlankNode(((BlankNode) node).getBlankID());
+            case Node.TYPE_ANONYMOUS:
+                return (PersistedAnonNode) getAnonNode(((AnonymousNode) node).getIndividual());
+            case Node.TYPE_LITERAL:
+                LiteralNode literal = (LiteralNode) node;
+                return (PersistedLiteralNode) getLiteralNode(literal.getLexicalValue(), literal.getDatatype(), literal.getLangTag());
+        }
+        throw new UnsupportedNodeType(node, "Persistable nodes are IRI, Blank, Anonymous and Literal");
     }
 
     @Override

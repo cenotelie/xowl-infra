@@ -179,6 +179,7 @@ class FileStore extends IOBackend {
         long result = provision(file, entrySize);
         if (result == -1) {
             file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), getRadicalFor(files.size()));
+            initializeFile(file);
             files.add(file);
             result = provision(file, entrySize);
         }
