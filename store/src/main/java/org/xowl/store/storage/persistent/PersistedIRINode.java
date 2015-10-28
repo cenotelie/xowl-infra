@@ -67,6 +67,12 @@ class PersistedIRINode extends IRINode implements PersistedNode {
     }
 
     @Override
+    public void serialize(IOElement ioElement) throws IOException {
+        ioElement.writeInt(IRINode.TYPE_IRI);
+        ioElement.writeLong(key);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o instanceof PersistedIRINode) {
             PersistedIRINode node = (PersistedIRINode) o;

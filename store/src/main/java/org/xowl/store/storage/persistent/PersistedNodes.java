@@ -43,21 +43,21 @@ import java.util.UUID;
  */
 public class PersistedNodes implements NodeManager, AutoCloseable {
     /**
-     * The radical for the files associated to this store
+     * The suffix for the index file
      */
-    private static final String FILE_RADICAL = "nodes";
+    private static final String FILE_DATA = "nodes_data.bin";
     /**
      * The suffix for the index file
      */
-    private static final String FILE_DATA = FILE_RADICAL + "_data.bin";
-    /**
-     * The suffix for the index file
-     */
-    private static final String FILE_INDEX = FILE_RADICAL + "_index.bin";
+    private static final String FILE_INDEX = "nodes_index.bin";
     /**
      * Name of the hash map for the strings
      */
     private static final String NAME_STRING_MAP = "string-buckets";
+    /**
+     * Name of the hash map for the literals
+     */
+    private static final String NAME_LITERAL_MAP = "literal-buckets";
     /**
      * Name of the data for the next blank value
      */
@@ -80,6 +80,10 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      */
     private final Map<Integer, Long> mapStrings;
     /**
+     * The hash map associating the key to the lexical value of a literals to the bucket of literals with the same lexical value
+     */
+    private final Map<Long, Long> mapLiterals;
+    /**
      * The next blank value
      */
     private final Atomic.Long nextBlank;
@@ -96,6 +100,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         charset = Charset.forName("UTF-8");
         database = DBMaker.fileDB(new File(directory, FILE_INDEX)).make();
         mapStrings = database.hashMap(NAME_STRING_MAP);
+        mapLiterals = database.hashMap(NAME_LITERAL_MAP);
         nextBlank = database.atomicLong(NAME_NEXT_BLANK);
     }
 
@@ -135,7 +140,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    private long getKeyForString(long bucket, String data) throws IOException, StorageException {
+    private long lookupString(long bucket, String data) throws IOException, StorageException {
         byte[] buffer = charset.encode(data).array();
         long candidate = bucket;
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
@@ -162,7 +167,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    public long addString(long bucket, String data) throws IOException, StorageException {
+    private long addString(long bucket, String data) throws IOException, StorageException {
         byte[] buffer = charset.encode(data).array();
         long previous = PersistedNode.KEY_NOT_PRESENT;
         long candidate = bucket;
@@ -213,7 +218,97 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
             }
         } else {
             try {
-                return getKeyForString(bucket, data);
+                return lookupString(bucket, data);
+            } catch (IOException | StorageException exception) {
+                return PersistedNode.KEY_NOT_PRESENT;
+            }
+        }
+    }
+
+    /**
+     * Reads the literal at the specified index
+     *
+     * @param key The key to the string
+     * @return The literal data
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    public String[] retrieveLiteral(long key) throws IOException, StorageException {
+        long keyLexical;
+        long keyDatatype;
+        long keyLangTag;
+        try (IOElement entry = backend.read(key)) {
+            entry.readLong();
+            keyLexical = entry.readLong();
+            keyDatatype = entry.readLong();
+            keyLangTag = entry.readLong();
+        }
+        return new String[]{
+                keyLexical == PersistedNode.KEY_NOT_PRESENT ? "" : retrieveString(keyLexical),
+                keyDatatype == PersistedNode.KEY_NOT_PRESENT ? null : retrieveString(keyDatatype),
+                keyLangTag == PersistedNode.KEY_NOT_PRESENT ? null : retrieveString(keyLangTag)
+        };
+    }
+
+    /**
+     * Gets the key for the specified literal
+     * The literal is inserted if it is not already present
+     *
+     * @param lexical  The lexical part of the literal
+     * @param datatype The literal's data-type
+     * @param langTag  The literals' language tag
+     * @return The key for the specified literal
+     */
+    private long getKeyForLiteral(String lexical, String datatype, String langTag) {
+        lexical = lexical == null ? "" : lexical;
+        long keyLexical = getKeyForString(lexical, true);
+        long keyDatatype = datatype == null ? PersistedNode.KEY_NOT_PRESENT : getKeyForString(datatype, true);
+        long keyLangTag = langTag == null ? PersistedNode.KEY_NOT_PRESENT : getKeyForString(langTag, true);
+        Long bucket = mapLiterals.get(keyLexical);
+        if (bucket == null) {
+            // this is the first literal with this lexem
+            try {
+                long result = backend.add(32);
+                try (IOElement entry = backend.access(result)) {
+                    entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+                    entry.writeLong(keyLexical);
+                    entry.writeLong(keyDatatype);
+                    entry.writeLong(keyLangTag);
+                }
+                return result;
+            } catch (IOException | StorageException exception) {
+                return PersistedNode.KEY_NOT_PRESENT;
+            }
+        } else {
+            long previous = PersistedNode.KEY_NOT_PRESENT;
+            long candidate = bucket;
+            while (candidate != PersistedNode.KEY_NOT_PRESENT) {
+                try (IOElement entry = backend.access(candidate)) {
+                    long next = entry.readLong();
+                    entry.readLong();
+                    long candidateDatatype = entry.readLong();
+                    long candidateLangTag = entry.readLong();
+                    if (keyDatatype == candidateDatatype && keyLangTag == candidateLangTag)
+                        return candidate;
+                    previous = candidate;
+                    candidate = next;
+                } catch (IOException | StorageException exception) {
+                    return PersistedNode.KEY_NOT_PRESENT;
+                }
+            }
+            // did not found an existing literal
+            try {
+                long result = backend.add(32);
+                try (IOElement entry = backend.access(previous)) {
+                    entry.writeLong(result);
+                }
+                try (IOElement entry = backend.access(result)) {
+                    entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+                    entry.writeLong(keyLexical);
+                    entry.writeLong(keyDatatype);
+                    entry.writeLong(keyLangTag);
+                }
+                return result;
             } catch (IOException | StorageException exception) {
                 return PersistedNode.KEY_NOT_PRESENT;
             }
@@ -250,16 +345,14 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
 
     @Override
     public LiteralNode getLiteralNode(String lex, String datatype, String lang) {
-        long keyLexical = getKeyForString(lex, true);
-        long keyDatatype = getKeyForString(datatype, true);
-        long keyLangTag = getKeyForString(lang, true);
-        return new PersistedLiteralNode(sStore, keyLexical, keyDatatype, keyLangTag);
+        long key = getKeyForLiteral(lex, datatype, lang);
+        return new PersistedLiteralNode(this, key);
     }
 
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
         long key = getKeyForString(individual.getNodeID(), true);
-        return (key == PersistedNode.KEY_NOT_PRESENT ? null : new PersistedAnonNode(sStore, key, individual));
+        return (key == PersistedNode.KEY_NOT_PRESENT ? null : new PersistedAnonNode(this, key, individual));
     }
 
     @Override

@@ -22,6 +22,7 @@ package org.xowl.store.storage.persistent;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.owl.AnonymousNode;
+import org.xowl.store.rdf.IRINode;
 
 import java.io.IOException;
 
@@ -34,7 +35,7 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     /**
      * The backend persisting the strings
      */
-    private final BackendStringStore backend;
+    private final PersistedNodes backend;
     /**
      * The key to the anonymous id
      */
@@ -51,7 +52,7 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
      * @param key        The key to the anonymous id
      * @param individual The cached individual, if any
      */
-    public PersistedAnonNode(BackendStringStore backend, long key, AnonymousIndividual individual) {
+    public PersistedAnonNode(PersistedNodes backend, long key, AnonymousIndividual individual) {
         this.backend = backend;
         this.key = key;
         this.individual = individual;
@@ -63,7 +64,7 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
      * @param backend The backend persisting the strings
      * @param key     The key to the anonymous id
      */
-    public PersistedAnonNode(BackendStringStore backend, long key) {
+    public PersistedAnonNode(PersistedNodes backend, long key) {
         this.backend = backend;
         this.key = key;
     }
@@ -78,12 +79,18 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
         if (individual == null) {
             individual = new AnonymousIndividual();
             try {
-                individual.setNodeID(backend.read(key));
-            } catch (IOException exception) {
+                individual.setNodeID(backend.retrieveString(key));
+            } catch (IOException | StorageException exception) {
                 individual.setNodeID("#error#");
             }
         }
         return individual;
+    }
+
+    @Override
+    public void serialize(IOElement ioElement) throws IOException {
+        ioElement.writeInt(IRINode.TYPE_ANONYMOUS);
+        ioElement.writeLong(key);
     }
 
     @Override

@@ -20,15 +20,29 @@
 
 package org.xowl.store.storage.persistent;
 
+import java.io.IOException;
+
 /**
  * Represents the common API for the persisted node
  *
  * @author Laurent Wouters
  */
 interface PersistedNode {
-
     /**
      * The key for absent values in a store
      */
     long KEY_NOT_PRESENT = -1;
+
+    /**
+     * The size in bytes of the serialized form of a node
+     */
+    int SERIALIZED_SIZE = 12;
+
+    /**
+     * Serializes this node with the specified IO element
+     *
+     * @param ioElement An IO element for the serialization of this node
+     * @throws IOException When an IO error occurs
+     */
+    void serialize(IOElement ioElement) throws IOException;
 }

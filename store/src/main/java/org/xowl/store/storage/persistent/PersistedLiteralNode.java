@@ -20,6 +20,7 @@
 
 package org.xowl.store.storage.persistent;
 
+import org.xowl.store.rdf.IRINode;
 import org.xowl.store.rdf.LiteralNode;
 
 import java.io.IOException;
@@ -32,90 +33,72 @@ import java.util.Objects;
  */
 class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     /**
-     * The backend persisting the strings
+     * The backend persisting the literals
      */
-    private final BackendStringStore backend;
+    private final PersistedNodes backend;
     /**
-     * The key for the lexical value of this literal
+     * The key for this literal
      */
-    private final long keyLexical;
+    private final long key;
     /**
-     * The key for the IRI of the datatype of this literal
+     * The cached content
      */
-    private final long keyDatatype;
-    /**
-     * The key for the language tag of this literal
-     */
-    private final long keyLangTag;
-    /**
-     * The cached lexical value of this literal
-     */
-    private String lexical;
-    /**
-     * The cached IRI of the datatype of this literal
-     */
-    private String datatype;
-    /**
-     * The cached language tag of this literal
-     */
-    private String langTag;
+    private String[] cache;
 
     /**
      * Initializes this node
      *
-     * @param backend     The backend persisting the strings
-     * @param keyLexical  The key for the lexical value of this literal
-     * @param keyDatatype The key for the IRI of the datatype of this literal
-     * @param keyLangTag  The key for the language tag of this literal
+     * @param backend The backend persisting the literals
+     * @param key     The key for this literal
      */
-    public PersistedLiteralNode(BackendStringStore backend, long keyLexical, long keyDatatype, long keyLangTag) {
+    public PersistedLiteralNode(PersistedNodes backend, long key) {
         this.backend = backend;
-        this.keyLexical = keyLexical;
-        this.keyDatatype = keyDatatype;
-        this.keyLangTag = keyLangTag;
+        this.key = key;
+    }
+
+    /**
+     * Caches the content of the literal
+     */
+    private void doCache() {
+        try {
+            cache = backend.retrieveLiteral(key);
+        } catch (IOException | StorageException exception) {
+            cache = new String[]{"", null, null};
+        }
     }
 
     @Override
     public String getLexicalValue() {
-        if (lexical == null) {
-            try {
-                lexical = backend.read(keyLexical);
-            } catch (IOException exception) {
-                lexical = "#error#";
-            }
-        }
-        return lexical;
+        if (cache == null)
+            doCache();
+        return cache[0];
     }
 
     @Override
     public String getDatatype() {
-        if (datatype == null && keyDatatype != KEY_NOT_PRESENT) {
-            try {
-                datatype = backend.read(keyDatatype);
-            } catch (IOException exception) {
-                datatype = "#error#";
-            }
-        }
-        return datatype;
+        if (cache == null)
+            doCache();
+        return cache[1];
     }
 
     @Override
     public String getLangTag() {
-        if (langTag == null && keyLangTag != KEY_NOT_PRESENT) {
-            try {
-                langTag = backend.read(keyLangTag);
-            } catch (IOException exception) {
-                langTag = "#error#";
-            }
-        }
-        return langTag;
+        if (cache == null)
+            doCache();
+        return cache[2];
+    }
+
+    @Override
+    public void serialize(IOElement ioElement) throws IOException {
+        ioElement.writeInt(IRINode.TYPE_LITERAL);
+        ioElement.writeLong(key);
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof PersistedLiteralNode) {
             PersistedLiteralNode node = (PersistedLiteralNode) o;
-            return (node.backend == backend && node.keyLexical == keyLexical && node.keyDatatype == keyDatatype && node.keyLangTag == keyLangTag);
+            return (node.backend == backend && node.key == key);
         }
         if (o instanceof LiteralNode) {
             LiteralNode node = (LiteralNode) o;

@@ -210,6 +210,7 @@ class IOBackend implements AutoCloseable {
         synchronized (transactions) {
             transactions.add(transaction);
         }
+        transaction.reset();
         return transaction;
     }
 

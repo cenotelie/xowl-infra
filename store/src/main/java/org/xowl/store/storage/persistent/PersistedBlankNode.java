@@ -21,6 +21,9 @@
 package org.xowl.store.storage.persistent;
 
 import org.xowl.store.rdf.BlankNode;
+import org.xowl.store.rdf.IRINode;
+
+import java.io.IOException;
 
 /**
  * Implementation of a persisted Blank node
@@ -35,5 +38,16 @@ class PersistedBlankNode extends BlankNode implements PersistedNode {
      */
     public PersistedBlankNode(long id) {
         super(id);
+    }
+
+    @Override
+    public void serialize(IOElement ioElement) throws IOException {
+        ioElement.writeInt(IRINode.TYPE_BLANK);
+        ioElement.writeLong(getBlankID());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof BlankNode) && (getBlankID() == ((BlankNode) o).getBlankID());
     }
 }
