@@ -25,6 +25,7 @@ import org.mapdb.DBMaker;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.Dataset;
 import org.xowl.store.storage.UnsupportedNodeType;
+import org.xowl.utils.collections.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -100,6 +101,169 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * int: multiplicity for item n
      */
     private static final int GINDEX_ENTRY_SIZE = 8 + 4 + 4 + GINDEX_ENTRY_MAX_ITEM_COUNT * (4 + 4);
+
+    /**
+     * Encapsulates a key to a quad node
+     */
+    private static abstract class QNode {
+        /**
+         * Gets the key
+         *
+         * @return The key
+         */
+        public abstract long key();
+    }
+
+    /**
+     * Iterator over the quad node in a bucket
+     */
+    private static class QNodeIterator extends QNode implements Iterator<QNode> {
+        /**
+         * The backend
+         */
+        private final FileStore backend;
+        /**
+         * The next key to iterate over
+         */
+        private long next;
+        /**
+         * The current value
+         */
+        private long value;
+
+        /**
+         * Initializes the iterator
+         *
+         * @param backend The backend
+         * @param entry   The first entry
+         */
+        public QNodeIterator(FileStore backend, long entry) {
+            this.backend = backend;
+            next = entry;
+            value = PersistedNode.KEY_NOT_PRESENT;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != PersistedNode.KEY_NOT_PRESENT;
+        }
+
+        @Override
+        public QNode next() {
+            try (IOElement entry = backend.read(next)) {
+                value = next;
+                next = entry.readLong();
+            } catch (IOException | StorageException exception) {
+                // do nothing
+            }
+            return this;
+        }
+
+        @Override
+        public long key() {
+            return value;
+        }
+    }
+
+    /**
+     * Iterator over the subject nodes in a graph index
+     */
+    private static class GraphQNodeIterator extends QNode implements Iterator<QNode> {
+        /**
+         * The backend
+         */
+        private final FileStore backend;
+        /**
+         * The key to the current graph index entry
+         */
+        private long keyEntry;
+        /**
+         * The current radical for the current entry
+         */
+        private int radical;
+        /**
+         * The current entry index
+         */
+        private int index;
+        /**
+         * The next value to return
+         */
+        private long next;
+        /**
+         * The current value to return
+         */
+        private long value;
+
+        /**
+         * Initializes the iterator
+         *
+         * @param backend The backend
+         * @param entry   The first entry of the graph index
+         */
+        public GraphQNodeIterator(FileStore backend, long entry) {
+            this.backend = backend;
+            this.keyEntry = entry;
+            this.index = -1;
+            try {
+                this.next = findNext();
+            } catch (IOException | StorageException exception) {
+                this.next = PersistedNode.KEY_NOT_PRESENT;
+            }
+            this.value = PersistedNode.KEY_NOT_PRESENT;
+        }
+
+        /**
+         * Finds the next quad node
+         *
+         * @return The next quad node
+         * @throws IOException      When an IO operation failed
+         * @throws StorageException When the page version does not match the expected one
+         */
+        private long findNext() throws IOException, StorageException {
+            while (true) {
+                index++;
+                if (index == GINDEX_ENTRY_MAX_ITEM_COUNT) {
+                    try (IOElement entry = backend.read(keyEntry)) {
+                        keyEntry = entry.readLong();
+                    }
+                    if (keyEntry == PersistedNode.KEY_NOT_PRESENT)
+                        return PersistedNode.KEY_NOT_PRESENT;
+                    index = 0;
+                }
+                try (IOElement entry = backend.read(keyEntry)) {
+                    radical = entry.seek(8).readInt();
+                    for (int i = index; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
+                        int ek = entry.seek(8 + 4 + 4 + i * 8).readInt();
+                        if (ek != PersistedNode.SERIALIZED_SIZE) {
+                            index = i;
+                            return FileStore.getFullKey(radical, ek);
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != PersistedNode.KEY_NOT_PRESENT;
+        }
+
+        @Override
+        public QNode next() {
+            try {
+                value = next;
+                next = findNext();
+            } catch (IOException | StorageException exception) {
+                // do nothing
+            }
+            return this;
+        }
+
+        @Override
+        public long key() {
+            return value;
+        }
+    }
 
     /**
      * The current listeners on this store
@@ -247,7 +411,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param graph   The graph
      */
     private void doQuadIndex(PersistedNode subject, PersistedNode graph) {
-        int radical = ((int) (subject.getKey() >>> 32));
+        int radical = FileStore.getKeyRadical(subject.getKey());
         Map<Long, Long> map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
         Long bucket = map.get(graph.getKey());
         if (bucket == null) {
@@ -270,11 +434,11 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 if (emptyEntry == PersistedNode.KEY_NOT_PRESENT && count < GINDEX_ENTRY_MAX_ITEM_COUNT)
                     emptyEntry = current;
                 for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
-                    long qnode = entry.readLong();
-                    long multiplicity = entry.readLong();
-                    if (qnode == bufferQNSubject) {
+                    int qnode = entry.readInt();
+                    int multiplicity = entry.readInt();
+                    if (qnode == FileStore.getShortKey(bufferQNSubject)) {
                         multiplicity++;
-                        entry.seek(i * 8 + 8 + 4 + 4 + 4).writeLong(multiplicity);
+                        entry.seek(i * 8 + 8 + 4 + 4 + 4).writeInt(multiplicity);
                         return;
                     }
                 }
@@ -290,11 +454,11 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             try (IOElement entry = backend.access(emptyEntry)) {
                 int count = entry.seek(12).readInt();
                 for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
-                    long qnode = entry.readLong();
-                    entry.readLong();
+                    int qnode = entry.readInt();
+                    entry.readInt();
                     if (qnode == PersistedNode.KEY_NOT_PRESENT) {
                         entry.seek(i * 8 + 8 + 4 + 4);
-                        entry.writeInt((int) (bufferQNSubject - radical));
+                        entry.writeInt(FileStore.getShortKey(bufferQNSubject));
                         entry.writeInt(1);
                         break;
                     }
@@ -485,9 +649,9 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                     continue;
                 int count = entry.readInt();
                 for (int i = 0; i != count; i++) {
-                    long qnode = entry.readLong();
-                    long multiplicity = entry.readLong();
-                    if (qnode == bufferQNSubject) {
+                    int qnode = entry.readInt();
+                    int multiplicity = entry.readInt();
+                    if (qnode == FileStore.getShortKey(bufferQNSubject)) {
                         multiplicity--;
                         if (multiplicity > 0) {
                             entry.seek(i * 8 + 8 + 4 + 4 + 4).writeLong(multiplicity);
@@ -496,8 +660,8 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                         count--;
                         if (count > 0) {
                             entry.seek(i * 8 + 8 + 4 + 4);
-                            entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
-                            entry.writeLong(0);
+                            entry.writeInt(-1);
+                            entry.writeInt(0);
                             entry.seek(8 + 4).writeInt(count);
                             return;
                         }
@@ -593,6 +757,26 @@ public class PersistedDataset implements Dataset, AutoCloseable {
         return key;
     }
 
+    /**
+     * Gets the persisted node
+     *
+     * @param type The type of node
+     * @param key  The key for the node
+     * @return The persisted node
+     */
+    private PersistedNode getNode(int type, long key) {
+        switch (type) {
+            case Node.TYPE_IRI:
+                return nodes.getIRINodeFor(key);
+            case Node.TYPE_BLANK:
+                return nodes.getBlankNodeFor(key);
+            case Node.TYPE_ANONYMOUS:
+                return nodes.getAnonNodeFor(key);
+            case Node.TYPE_LITERAL:
+                return nodes.getLiteralNodeFor(key);
+        }
+        return null;
+    }
 
     @Override
     public void addListener(ChangeListener listener) {
@@ -621,7 +805,343 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return null;
+        if (subject != null)
+            return getAllOnSingleSubject(graph, subject, property, object);
+        if (graph != null)
+            return getAllOnSingleGraph(graph, property, object);
+        return getAllDefault(property, object);
+    }
+
+    /**
+     * Gets an iterator over all quads from a single subject
+     *
+     * @param graph    A containing graph to match, or null
+     * @param subject  A subject node to match, or null
+     * @param property A property to match, or null
+     * @param object   An object node to match, or null
+     * @return An iterator over the results
+     */
+    private Iterator<Quad> getAllOnSingleSubject(GraphNode graph, final SubjectNode subject, Property property, Node object) {
+        try {
+            PersistedNode pSubject = nodes.getPersistent(subject, false);
+            if (pSubject == null)
+                return new SingleIterator<>(null);
+            long current = mapFor(pSubject).get(pSubject.getKey());
+            try (IOElement entry = backend.read(current)) {
+                long bucket = entry.seek(8 + 4 + 8).readLong();
+                return new AdaptingIterator<>(getAllOnProperty(bucket, property, object, graph), new Adapter<Quad>() {
+                    @Override
+                    public <X> Quad adapt(X element) {
+                        PersistedQuad quad = (PersistedQuad) element;
+                        quad.setSubject(subject);
+                        return quad;
+                    }
+                });
+            }
+        } catch (UnsupportedNodeType | IOException | StorageException exception) {
+            return new SingleIterator<>(null);
+        }
+    }
+
+    /**
+     * Gets an iterator over all quads from a single graph
+     *
+     * @param graph    A containing graph to match, or null
+     * @param property A property to match, or null
+     * @param object   An object node to match, or null
+     * @return An iterator over the results
+     */
+    private Iterator<Quad> getAllOnSingleGraph(GraphNode graph, final Property property, final Node object) {
+        final PersistedNode pGraph;
+        try {
+            pGraph = nodes.getPersistent(graph, false);
+        } catch (UnsupportedNodeType exception) {
+            return new SingleIterator<>(null);
+        }
+        if (pGraph == null)
+            return new SingleIterator<>(null);
+        Map<Long, Long> map = pGraph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
+        Long bucket = map.get(pGraph.getKey());
+        if (graph == null)
+            return new SingleIterator<>(null);
+        Iterator<QNode> iteratorSubjects = new GraphQNodeIterator(backend, bucket);
+        return new AdaptingIterator<>(new CombiningIterator<>(iteratorSubjects, new Adapter<Iterator<PersistedQuad>>() {
+            @Override
+            public <X> Iterator<PersistedQuad> adapt(X element) {
+                long subjectKey = ((QNode) element).key();
+                try (IOElement entry = backend.read(subjectKey)) {
+                    long propertyBucket = entry.seek(8 + 4 + 8).readLong();
+                    return getAllOnProperty(propertyBucket, property, object, (GraphNode) pGraph);
+                } catch (IOException | StorageException exception) {
+                    return null;
+                }
+            }
+        }), new Adapter<Quad>() {
+            @Override
+            public <X> Quad adapt(X element) {
+                Couple<QNode, PersistedQuad> couple = (Couple<QNode, PersistedQuad>) element;
+                long subjectKey = couple.x.key();
+                try (IOElement entry = backend.read(subjectKey)) {
+                    couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
+                } catch (IOException | StorageException exception) {
+                    return null;
+                }
+                return couple.y;
+            }
+        });
+    }
+
+    /**
+     * Gets an iterator over all quads
+     *
+     * @param property A property to match, or null
+     * @param object   An object node to match, or null
+     * @return An iterator over the results
+     */
+    private Iterator<Quad> getAllDefault(final Property property, final Node object) {
+        return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<PersistedQuad>>() {
+            @Override
+            public <X> Iterator<PersistedQuad> adapt(X element) {
+                long subjectKey = (Long) element;
+                try (IOElement entry = backend.read(subjectKey)) {
+                    long propertyBucket = entry.seek(8 + 4 + 8).readLong();
+                    return getAllOnProperty(propertyBucket, property, object, null);
+                } catch (IOException | StorageException exception) {
+                    return null;
+                }
+            }
+        }), new Adapter<Quad>() {
+            @Override
+            public <X> Quad adapt(X element) {
+                Couple<Long, PersistedQuad> couple = (Couple<Long, PersistedQuad>) element;
+                long subjectKey = couple.x;
+                try (IOElement entry = backend.read(subjectKey)) {
+                    couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
+                    return couple.y;
+                } catch (IOException | StorageException exception) {
+                    return null;
+                }
+            }
+        });
+    }
+
+    /**
+     * Gets an iterator over all the subjects
+     *
+     * @return The iterator
+     */
+    private Iterator<Long> getAllSubjects() {
+        return new ConcatenatedIterator<>(new Iterator[]{
+                getSubjectIterator(mapSubjectIRI),
+                getSubjectIterator(mapSubjectBlank),
+                getSubjectIterator(mapSubjectAnon)
+        });
+    }
+
+    /**
+     * Gets an iterator over the subjects in an index
+     *
+     * @param map The indexing map
+     * @return The iterator
+     */
+    private Iterator<Long> getSubjectIterator(Map<Long, Long> map) {
+        return new AdaptingIterator<>(map.entrySet().iterator(), new Adapter<Long>() {
+            @Override
+            public <X> Long adapt(X element) {
+                Map.Entry<Long, Long> mapEntry = (Map.Entry<Long, Long>) element;
+                return mapEntry.getValue();
+            }
+        });
+    }
+
+    /**
+     * Gets an iterator over all quads in a bucket of properties
+     *
+     * @param bucket   The bucket of properties
+     * @param graph    A containing graph to match, or null
+     * @param property A property to match, or null
+     * @param object   An object node to match, or null
+     * @return An iterator over the results
+     */
+    private Iterator<PersistedQuad> getAllOnProperty(long bucket, final Property property, final Node object, final GraphNode graph) {
+        if (property == null || property.getNodeType() == Node.TYPE_VARIABLE) {
+            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(backend, bucket), new Adapter<Iterator<PersistedQuad>>() {
+                @Override
+                public <X> Iterator<PersistedQuad> adapt(X element) {
+                    long key = ((QNode) element).key();
+                    try (IOElement entry = backend.read(key)) {
+                        entry.seek(8 + 4 + 8);
+                        long objectKey = entry.readLong();
+                        return getAllOnObject(objectKey, object, graph);
+                    } catch (IOException | StorageException exception) {
+                        return null;
+                    }
+                }
+            }), new Adapter<PersistedQuad>() {
+                @Override
+                public <X> PersistedQuad adapt(X element) {
+                    Couple<QNode, PersistedQuad> couple = (Couple<QNode, PersistedQuad>) element;
+                    long key = couple.x.key();
+                    try (IOElement entry = backend.read(key)) {
+                        entry.seek(8);
+                        PersistedNode node = getNode(entry.readInt(), entry.readLong());
+                        couple.y.setProperty((Property) node);
+                    } catch (IOException | StorageException exception) {
+                        return null;
+                    }
+                    return couple.y;
+                }
+            });
+        }
+        PersistedNode pProperty;
+        try {
+            pProperty = nodes.getPersistent(property, false);
+        } catch (UnsupportedNodeType exception) {
+            return new SingleIterator<>(null);
+        }
+        if (pProperty == null)
+            return new SingleIterator<>(null);
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement entry = backend.read(current)) {
+                current = entry.readLong();
+                int type = entry.readInt();
+                long key = entry.readLong();
+                long child = entry.readLong();
+                if (type == pProperty.getNodeType() && key == pProperty.getKey()) {
+                    return new AdaptingIterator<>(getAllOnObject(child, object, graph), new Adapter<PersistedQuad>() {
+                        @Override
+                        public <X> PersistedQuad adapt(X element) {
+                            PersistedQuad quad = (PersistedQuad) element;
+                            quad.setProperty(property);
+                            return quad;
+                        }
+                    });
+                }
+            } catch (IOException | StorageException exception) {
+                return new SingleIterator<>(null);
+            }
+        }
+        return new SingleIterator<>(null);
+    }
+
+    /**
+     * Gets an iterator over all quads in a bucket of objects
+     *
+     * @param bucket The bucket of properties
+     * @param graph  A containing graph to match, or null
+     * @param object An object node to match, or null
+     * @return An iterator over the results
+     */
+    private Iterator<PersistedQuad> getAllOnObject(long bucket, final Node object, final GraphNode graph) {
+        if (object == null || object.getNodeType() == Node.TYPE_VARIABLE) {
+            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(backend, bucket), new Adapter<Iterator<PersistedQuad>>() {
+                @Override
+                public <X> Iterator<PersistedQuad> adapt(X element) {
+                    long key = ((QNode) element).key();
+                    try (IOElement entry = backend.read(key)) {
+                        entry.seek(8 + 4 + 8);
+                        long graphKey = entry.readLong();
+                        return getAllOnGraph(graphKey, graph);
+                    } catch (IOException | StorageException exception) {
+                        return null;
+                    }
+                }
+            }), new Adapter<PersistedQuad>() {
+                @Override
+                public <X> PersistedQuad adapt(X element) {
+                    Couple<QNode, PersistedQuad> couple = (Couple<QNode, PersistedQuad>) element;
+                    long key = couple.x.key();
+                    try (IOElement entry = backend.read(key)) {
+                        entry.seek(8);
+                        PersistedNode node = getNode(entry.readInt(), entry.readLong());
+                        couple.y.setObject(node);
+                    } catch (IOException | StorageException exception) {
+                        return null;
+                    }
+                    return couple.y;
+                }
+            });
+        }
+        PersistedNode pObject;
+        try {
+            pObject = nodes.getPersistent(object, false);
+        } catch (UnsupportedNodeType exception) {
+            return new SingleIterator<>(null);
+        }
+        if (pObject == null)
+            return new SingleIterator<>(null);
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement entry = backend.read(current)) {
+                current = entry.readLong();
+                int type = entry.readInt();
+                long key = entry.readLong();
+                long child = entry.readLong();
+                if (type == pObject.getNodeType() && key == pObject.getKey()) {
+                    return new AdaptingIterator<>(getAllOnGraph(child, graph), new Adapter<PersistedQuad>() {
+                        @Override
+                        public <X> PersistedQuad adapt(X element) {
+                            PersistedQuad quad = (PersistedQuad) element;
+                            quad.setObject(object);
+                            return quad;
+                        }
+                    });
+                }
+            } catch (IOException | StorageException exception) {
+                return new SingleIterator<>(null);
+            }
+        }
+        return new SingleIterator<>(null);
+    }
+
+    /**
+     * Gets an iterator over all quads in a bucket of graphs
+     *
+     * @param bucket The bucket of properties
+     * @param graph  A containing graph to match, or null
+     * @return An iterator over the results
+     */
+    private Iterator<PersistedQuad> getAllOnGraph(long bucket, GraphNode graph) {
+        if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE) {
+            return new AdaptingIterator<>(new QNodeIterator(backend, bucket), new Adapter<PersistedQuad>() {
+                @Override
+                public <X> PersistedQuad adapt(X element) {
+                    long key = ((QNode) element).key();
+                    try (IOElement entry = backend.read(key)) {
+                        entry.seek(8);
+                        PersistedNode node = getNode(entry.readInt(), entry.readLong());
+                        long multiplicity = entry.readLong();
+                        return new PersistedQuad((GraphNode) node, multiplicity);
+                    } catch (IOException | StorageException exception) {
+                        return null;
+                    }
+                }
+            });
+        }
+        PersistedNode pGraph;
+        try {
+            pGraph = nodes.getPersistent(graph, false);
+        } catch (UnsupportedNodeType exception) {
+            return new SingleIterator<>(null);
+        }
+        if (pGraph == null)
+            return new SingleIterator<>(null);
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement entry = backend.read(current)) {
+                current = entry.readLong();
+                int type = entry.readInt();
+                long key = entry.readLong();
+                long multiplicity = entry.readLong();
+                if (type == pGraph.getNodeType() && key == pGraph.getKey()) {
+                    return new SingleIterator<>(new PersistedQuad(graph, multiplicity));
+                }
+            } catch (IOException | StorageException exception) {
+                return new SingleIterator<>(null);
+            }
+        }
+        return new SingleIterator<>(null);
     }
 
     @Override

@@ -380,7 +380,7 @@ class FileStore extends IOBackend {
      * @return The short key
      */
     public static int getShortKey(long key) {
-        return (int) (key - (key >>> 32));
+        return (int) (key & 0xFFFFFFFFl);
     }
 
     /**
