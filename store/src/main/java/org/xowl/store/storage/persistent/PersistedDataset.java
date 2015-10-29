@@ -626,22 +626,78 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public Collection<GraphNode> getGraphs() {
-        return null;
+        Collection<GraphNode> result = new ArrayList<>();
+        for (Long key : mapIndexGraphIRI.keySet()) {
+            result.add(nodes.getIRINodeFor(key));
+        }
+        for (Long key : mapIndexGraphBlank.keySet()) {
+            result.add(nodes.getBlankNodeFor(key));
+        }
+        return result;
     }
 
     @Override
     public long count() {
-        return 0;
+        long result = 0;
+        for (Long key : mapIndexGraphIRI.keySet()) {
+            result += count(mapIndexGraphIRI, key);
+        }
+        for (Long key : mapIndexGraphBlank.keySet()) {
+            result += count(mapIndexGraphBlank, key);
+        }
+        return result;
     }
 
     @Override
     public long count(GraphNode graph) {
-        return 0;
+        PersistedNode pGraph;
+        try {
+            pGraph = nodes.getPersistent(graph, false);
+        } catch (UnsupportedNodeType exception) {
+            return 0;
+        }
+        Map<Long, Long> map = pGraph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
+        return count(map, pGraph.getKey());
+    }
+
+    /**
+     * Counts the number of quads in a graph
+     *
+     * @param map The corresponding graph index map
+     * @param key The graph key
+     * @return The number of quads
+     */
+    private long count(Map<Long, Long> map, long key) {
+        Long bucket = map.get(key);
+        if (bucket == null)
+            return 0;
+        long result = 0;
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement entry = backend.read(current)) {
+                long next = entry.readLong();
+                int count = entry.seek(8 + 4).readInt();
+                for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
+                    int eK = entry.readInt();
+                    int mult = entry.readInt();
+                    if (eK != PersistedNode.KEY_NOT_PRESENT) {
+                        result += mult;
+                        count--;
+                        if (count <= 0)
+                            break;
+                    }
+                }
+                current = next;
+            } catch (IOException | StorageException exception) {
+                return 0;
+            }
+        }
+        return result;
     }
 
     @Override
     public long count(SubjectNode subject, Property property, Node object) {
-        return 0;
+        return count(null, subject, property, object);
     }
 
     @Override
