@@ -100,6 +100,8 @@ class FileStore extends IOBackend {
      * @param directory  The directory containing the backing files
      * @param name       The common name of the files backing this store
      * @param isReadonly Whether this store is in readonly mode
+     * @throws IOException When the backing file cannot be accessed
+     * @throws StorageException When the storage is unsupported
      */
     public FileStore(File directory, String name, boolean isReadonly) throws IOException, StorageException {
         this.directory = directory;
@@ -109,7 +111,7 @@ class FileStore extends IOBackend {
         int index = 0;
         File candidate = new File(directory, getNameFor(name, index));
         while (candidate.exists()) {
-            FileStoreFile child = new FileStoreFile(candidate, getRadicalFor(index));
+            FileStoreFile child = new FileStoreFile(candidate, getRadicalFor(index), isReadonly);
             child.seek(0);
             int temp = child.readInt();
             if (temp != MAGIC_ID)
@@ -123,7 +125,7 @@ class FileStore extends IOBackend {
         }
         if (files.isEmpty() && !isReadonly) {
             // initializes
-            FileStoreFile first = new FileStoreFile(candidate, getRadicalFor(0));
+            FileStoreFile first = new FileStoreFile(candidate, getRadicalFor(0), false);
             initializeFile(first);
             files.add(first);
         }
@@ -195,7 +197,7 @@ class FileStore extends IOBackend {
         FileStoreFile file = files.get(files.size() - 1);
         long result = provision(file, entrySize);
         if (result == -1) {
-            file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), getRadicalFor(files.size()));
+            file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), getRadicalFor(files.size()), false);
             initializeFile(file);
             files.add(file);
             result = provision(file, entrySize);

@@ -122,7 +122,7 @@ class FileStoreFile implements IOElement {
      * @throws IOException When the backing file cannot be accessed
      */
     public FileStoreFile(File file) throws IOException {
-        this(file, 0);
+        this(file, 0, false);
     }
 
     /**
@@ -130,10 +130,11 @@ class FileStoreFile implements IOElement {
      *
      * @param file       The file location
      * @param keyRadical The key radical for this file
+     * @param isReadonly Whether this store is in readonly mode
      * @throws IOException When the backing file cannot be accessed
      */
-    public FileStoreFile(File file, long keyRadical) throws IOException {
-        this.channel = FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
+    public FileStoreFile(File file, long keyRadical, boolean isReadonly) throws IOException {
+        this.channel = newChannel(file, isReadonly);
         this.keyRadical = keyRadical;
         this.buffer = ByteBuffer.allocate(8);
         this.blockBuffers = new MappedByteBuffer[MAX_LOADED_BLOCKS];
@@ -145,6 +146,22 @@ class FileStoreFile implements IOElement {
         this.currentBlock = -1;
         this.index = 0;
         this.time = 0;
+    }
+
+    /**
+     * Get the file channel for this file
+     *
+     * @param file       The file location
+     * @param isReadonly Whether this store is in readonly mode
+     * @return The file channel
+     * @throws IOException IOException When the backing file cannot be accessed
+     */
+    private static FileChannel newChannel(File file, boolean isReadonly) throws IOException {
+        if (!file.canWrite())
+            isReadonly = true;
+        return isReadonly
+                ? FileChannel.open(file.toPath(), StandardOpenOption.READ)
+                : FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
     }
 
     /**
