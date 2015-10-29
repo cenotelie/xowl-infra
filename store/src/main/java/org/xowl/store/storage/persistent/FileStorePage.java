@@ -90,7 +90,7 @@ class FileStorePage {
     /**
      * The radical of keys emitted by this page
      */
-    private final long keyRadical;
+    private final int keyRadical;
     /**
      * The current flags
      */
@@ -117,7 +117,7 @@ class FileStorePage {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    public FileStorePage(FileStoreFile backend, long location, long keyRadical) throws IOException, StorageException {
+    public FileStorePage(FileStoreFile backend, long location, int keyRadical) throws IOException, StorageException {
         this.backend = backend;
         this.location = location;
         this.keyRadical = keyRadical;
@@ -160,7 +160,7 @@ class FileStorePage {
      * @return The index of this page
      */
     public int getIndex() {
-        return ((int)(location >>> FileStoreFile.BLOCK_INDEX_LENGTH));
+        return ((int) (location >>> FileStoreFile.BLOCK_INDEX_LENGTH));
     }
 
     /**
@@ -232,7 +232,7 @@ class FileStorePage {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When an entry of the specified length cannot be stored
      */
-    public long registerEntry(int length) throws IOException, StorageException {
+    public int registerEntry(int length) throws IOException, StorageException {
         if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
             // we can reuse empty entries and there are at least one
             char entryIndex = 0;
@@ -262,9 +262,9 @@ class FileStorePage {
      * @return The key to be used to retrieve the data
      * @throws IOException When an IO operation failed
      */
-    private long overwriteEmptyEntry(int entryIndex, char dataOffset) throws IOException {
+    private int overwriteEmptyEntry(int entryIndex, char dataOffset) throws IOException {
         // compute the entry data
-        long key = keyRadical + entryIndex;
+        int key = keyRadical + entryIndex;
         // write the entry
         backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE);
         backend.writeChar(dataOffset);
@@ -283,9 +283,9 @@ class FileStorePage {
      * @return The key to be used to retrieve the data
      * @throws IOException When an IO operation failed
      */
-    private long writeNewEntry(int length) throws IOException {
+    private int writeNewEntry(int length) throws IOException {
         // compute the entry data
-        long key = keyRadical + entryCount;
+        int key = keyRadical + entryCount;
         long dataLocation = location + startData - length;
         // write the entry
         backend.seek(location + startFreeSpace);
@@ -309,8 +309,8 @@ class FileStorePage {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the provided key is not within this page
      */
-    public int removeEntry(long key) throws IOException, StorageException {
-        long entryIndex = key - keyRadical;
+    public int removeEntry(int key) throws IOException, StorageException {
+        int entryIndex = key - keyRadical;
         if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >>> 2)
             throw new StorageException("The entry for the specified key is not in this page");
         backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
@@ -361,8 +361,8 @@ class FileStorePage {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the provided key is not within this page
      */
-    public int positionFor(long key) throws IOException, StorageException {
-        long entryIndex = key - keyRadical;
+    public int positionFor(int key) throws IOException, StorageException {
+        int entryIndex = key - keyRadical;
         if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >>> 2)
             throw new StorageException("The entry for the specified key is not in this page");
         backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);

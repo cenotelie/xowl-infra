@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  * A store of binary data backed by files
- * <p>
+ * <p/>
  * Each data file is composed of blocks (or pages)
  * - First block:
  * - int32: Magic identifier for the store
@@ -100,7 +100,7 @@ class FileStore extends IOBackend {
      * @param directory  The directory containing the backing files
      * @param name       The common name of the files backing this store
      * @param isReadonly Whether this store is in readonly mode
-     * @throws IOException When the backing file cannot be accessed
+     * @throws IOException      When the backing file cannot be accessed
      * @throws StorageException When the storage is unsupported
      */
     public FileStore(File directory, String name, boolean isReadonly) throws IOException, StorageException {
@@ -111,7 +111,7 @@ class FileStore extends IOBackend {
         int index = 0;
         File candidate = new File(directory, getNameFor(name, index));
         while (candidate.exists()) {
-            FileStoreFile child = new FileStoreFile(candidate, getRadicalFor(index), isReadonly);
+            FileStoreFile child = new FileStoreFile(candidate, isReadonly);
             child.seek(0);
             int temp = child.readInt();
             if (temp != MAGIC_ID)
@@ -125,7 +125,7 @@ class FileStore extends IOBackend {
         }
         if (files.isEmpty() && !isReadonly) {
             // initializes
-            FileStoreFile first = new FileStoreFile(candidate, getRadicalFor(0), false);
+            FileStoreFile first = new FileStoreFile(candidate, false);
             initializeFile(first);
             files.add(first);
         }
@@ -175,9 +175,10 @@ class FileStore extends IOBackend {
      */
     protected IOElement access(long key, boolean writable) throws IOException, StorageException {
         int index = getFileIndexFor(key);
+        int sk = getShortKey(key);
         FileStoreFile file = files.get(index);
-        FileStorePage page = file.getPageFor(key);
-        int length = page.positionFor(key);
+        FileStorePage page = file.getPageFor(sk);
+        int length = page.positionFor(sk);
         return transaction(file, file.getIndex(), length, !isReadonly && writable);
     }
 
@@ -195,12 +196,12 @@ class FileStore extends IOBackend {
         if (entrySize > FileStorePage.MAX_ENTRY_SIZE)
             throw new StorageException("The entry is too large for this store");
         FileStoreFile file = files.get(files.size() - 1);
-        long result = provision(file, entrySize);
+        long result = provision(files.size() - 1, file, entrySize);
         if (result == -1) {
-            file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), getRadicalFor(files.size()), false);
+            file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false);
             initializeFile(file);
             files.add(file);
-            result = provision(file, entrySize);
+            result = provision(files.size() - 1, file, entrySize);
         }
         return result;
     }
@@ -217,19 +218,20 @@ class FileStore extends IOBackend {
             throw new StorageException("The store is read only");
         int index = getFileIndexFor(key);
         FileStoreFile file = files.get(index);
-        clear(file, key);
+        clear(file, getShortKey(key));
     }
 
     /**
      * Provisions an entry of the specified size in a file
      *
+     * @param fileIndex The index of the backend file to write to
      * @param file      The backend file to write to
      * @param entrySize The size of the entry to write
      * @return The key for retrieving the data
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    private long provision(FileStoreFile file, int entrySize) throws IOException, StorageException {
+    private long provision(int fileIndex, FileStoreFile file, int entrySize) throws IOException, StorageException {
         try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, true)) {
             header.seek(8);
             int openBlockCount = header.readInt();
@@ -245,7 +247,7 @@ class FileStore extends IOBackend {
                     FileStorePage page = file.getPage(blockIndex);
                     if (!page.canStore(entrySize))
                         continue;
-                    long key = page.registerEntry(entrySize);
+                    long key = getFullKey(fileIndex, page.registerEntry(entrySize));
                     blockRemaining -= entrySize;
                     blockRemaining -= FileStorePage.ENTRY_OVERHEAD;
                     if (blockRemaining >= THRESHOLD_BLOCK_FULL) {
@@ -262,7 +264,7 @@ class FileStore extends IOBackend {
 
             // cannot fit in an open block
             if (nextFreeBlock >= MAX_BLOCKS_PER_FILE)
-                return -1;
+                return PersistedNode.KEY_NOT_PRESENT;
             FileStorePage page = file.getPage(nextFreeBlock);
             page.setReuseEmptyEntries();
             nextFreeBlock++;
@@ -291,7 +293,7 @@ class FileStore extends IOBackend {
             header.seek(8);
             header.writeInt(openBlockCount);
             header.writeInt(nextFreeBlock);
-            return page.registerEntry(entrySize);
+            return getFullKey(fileIndex, page.registerEntry(entrySize));
         }
     }
 
@@ -303,7 +305,7 @@ class FileStore extends IOBackend {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    private void clear(FileStoreFile file, long key) throws IOException, StorageException {
+    private void clear(FileStoreFile file, int key) throws IOException, StorageException {
         try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, true)) {
             FileStorePage page = file.getPageFor(key);
             int length = page.removeEntry(key);
@@ -352,16 +354,6 @@ class FileStore extends IOBackend {
     }
 
     /**
-     * Gets the key radical for entries in the i-th file
-     *
-     * @param index The index
-     * @return The key radical
-     */
-    private static long getRadicalFor(int index) {
-        return ((long) index) << 32;
-    }
-
-    /**
      * Gets the file index for the specified key
      *
      * @param key A key to an entry
@@ -369,6 +361,37 @@ class FileStore extends IOBackend {
      */
     private static int getFileIndexFor(long key) {
         return (int) (key >>> 32);
+    }
+
+    /**
+     * Gets the key radical for the specified key
+     *
+     * @param key A key
+     * @return The radical
+     */
+    public static int getKeyRadical(long key) {
+        return getFileIndexFor(key);
+    }
+
+    /**
+     * Gets the short key for the specified one
+     *
+     * @param key A key
+     * @return The short key
+     */
+    public static int getShortKey(long key) {
+        return (int) (key - (key >>> 32));
+    }
+
+    /**
+     * Gets the full key a radical and a short key
+     *
+     * @param radical  The radical
+     * @param shortKey The short key
+     * @return The full key
+     */
+    public static long getFullKey(int radical, int shortKey) {
+        return (((long) radical << 32) | (long) shortKey);
     }
 
     /**

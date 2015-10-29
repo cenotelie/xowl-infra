@@ -62,10 +62,6 @@ class FileStoreFile implements IOElement {
      */
     private final FileChannel channel;
     /**
-     * The key radical for this file
-     */
-    private final long keyRadical;
-    /**
      * A buffer for reading and writing
      */
     private final ByteBuffer buffer;
@@ -122,20 +118,18 @@ class FileStoreFile implements IOElement {
      * @throws IOException When the backing file cannot be accessed
      */
     public FileStoreFile(File file) throws IOException {
-        this(file, 0, false);
+        this(file, false);
     }
 
     /**
      * Initializes this data file
      *
      * @param file       The file location
-     * @param keyRadical The key radical for this file
      * @param isReadonly Whether this store is in readonly mode
      * @throws IOException When the backing file cannot be accessed
      */
-    public FileStoreFile(File file, long keyRadical, boolean isReadonly) throws IOException {
+    public FileStoreFile(File file, boolean isReadonly) throws IOException {
         this.channel = newChannel(file, isReadonly);
-        this.keyRadical = keyRadical;
         this.buffer = ByteBuffer.allocate(8);
         this.blockBuffers = new MappedByteBuffer[MAX_LOADED_BLOCKS];
         this.blockLocations = new long[MAX_LOADED_BLOCKS];
@@ -584,7 +578,7 @@ class FileStoreFile implements IOElement {
             for (int i = 0; i != blockCount; i++) {
                 if (blockLocations[i] == targetLocation) {
                     if (blockPages[i] == null)
-                        blockPages[i] = new FileStorePage(this, targetLocation, keyRadical + (index << 16));
+                        blockPages[i] = new FileStorePage(this, targetLocation, index << 16);
                     seek(originalIndex);
                     return blockPages[i];
                 }
@@ -596,7 +590,7 @@ class FileStoreFile implements IOElement {
             seek(targetLocation);
             prepareIOAt();
         }
-        FileStorePage result = new FileStorePage(this, targetLocation, keyRadical + (index << 16));
+        FileStorePage result = new FileStorePage(this, targetLocation, index << 16);
         if (blockLocations[currentBlock] != targetLocation)
             throw new StorageException("Failed to allocate the page");
         blockPages[currentBlock] = result;
@@ -624,8 +618,8 @@ class FileStoreFile implements IOElement {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    public FileStorePage getPageFor(long key) throws IOException, StorageException {
-        return getPage((int) ((key - keyRadical) >>> 16));
+    public FileStorePage getPageFor(int key) throws IOException, StorageException {
+        return getPage(key >>> 16);
     }
 
     /**
