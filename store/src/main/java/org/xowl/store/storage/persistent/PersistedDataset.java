@@ -656,6 +656,8 @@ public class PersistedDataset implements Dataset, AutoCloseable {
         } catch (UnsupportedNodeType exception) {
             return 0;
         }
+        if (pGraph == null)
+            return 0;
         Map<Long, Long> map = pGraph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
         return count(map, pGraph.getKey());
     }

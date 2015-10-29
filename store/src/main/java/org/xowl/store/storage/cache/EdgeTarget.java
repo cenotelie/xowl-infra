@@ -154,11 +154,11 @@ class EdgeTarget implements Iterable<GraphNode> {
             if (graphs[i] != null && (graph == null || RDFUtils.same(graphs[i], graph))) {
                 multiplicities[i]--;
                 if (multiplicities[i] == 0) {
-                    bufferRemoved.add(new CachedQuad(graphs[i], null, null, null));
+                    bufferRemoved.add(new CachedQuad(graphs[i]));
                     graphs[i] = null;
                     size--;
                 } else {
-                    bufferDecremented.add(new CachedQuad(graphs[i], null, null, null));
+                    bufferDecremented.add(new CachedQuad(graphs[i]));
                 }
             }
         }
@@ -173,7 +173,7 @@ class EdgeTarget implements Iterable<GraphNode> {
     public void clear(List<CachedQuad> buffer) {
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] != null) {
-                buffer.add(new CachedQuad(graphs[i], null, null, null));
+                buffer.add(new CachedQuad(graphs[i]));
             }
         }
     }
@@ -188,7 +188,7 @@ class EdgeTarget implements Iterable<GraphNode> {
     public boolean clear(GraphNode graph, List<CachedQuad> buffer) {
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] != null && RDFUtils.same(graphs[i], graph)) {
-                buffer.add(new CachedQuad(graphs[i], null, null, null));
+                buffer.add(new CachedQuad(graphs[i]));
                 graphs[i] = null;
                 size--;
             }
@@ -239,7 +239,7 @@ class EdgeTarget implements Iterable<GraphNode> {
                 graphs[indexEmpty] = target;
                 multiplicities[indexEmpty] = 1;
                 size++;
-                bufferNew.add(new CachedQuad(target, null, null, null));
+                bufferNew.add(new CachedQuad(target));
             }
         } else if (overwrite && indexNew != -1) {
             // the target graph is there but not the old one and we must overwrite
@@ -247,7 +247,7 @@ class EdgeTarget implements Iterable<GraphNode> {
             graphs[indexNew] = null;
             multiplicities[indexNew] = 0;
             size--;
-            bufferOld.add(new CachedQuad(target, null, null, null));
+            bufferOld.add(new CachedQuad(target));
         }
         return (size == 0);
     }
@@ -288,16 +288,16 @@ class EdgeTarget implements Iterable<GraphNode> {
                 // reset the multiplicity
                 graphs[indexOld] = target;
                 multiplicities[indexOld] = 1;
-                bufferNew.add(new CachedQuad(target, null, null, null));
+                bufferNew.add(new CachedQuad(target));
             }
-            bufferOld.add(new CachedQuad(origin, null, null, null));
+            bufferOld.add(new CachedQuad(origin));
         } else if (indexNew != -1) {
             // the target graph is there but not the old one
             // we need to remove this
             graphs[indexNew] = null;
             multiplicities[indexNew] = 0;
             size--;
-            bufferOld.add(new CachedQuad(target, null, null, null));
+            bufferOld.add(new CachedQuad(target));
         }
         return (size == 0);
     }
@@ -318,7 +318,7 @@ class EdgeTarget implements Iterable<GraphNode> {
             return new AdaptingIterator<>(iterator(), new Adapter<CachedQuad>() {
                 @Override
                 public <X> CachedQuad adapt(X element) {
-                    return new CachedQuad((GraphNode) element, null, null, null);
+                    return new CachedQuad((GraphNode) element);
                 }
             });
         }
@@ -328,7 +328,7 @@ class EdgeTarget implements Iterable<GraphNode> {
                 return new AdaptingIterator<>(new SingleIterator<>(graph), new Adapter<CachedQuad>() {
                     @Override
                     public <X> CachedQuad adapt(X element) {
-                        return new CachedQuad((GraphNode) element, null, null, null);
+                        return new CachedQuad((GraphNode) element);
                     }
                 });
             }
