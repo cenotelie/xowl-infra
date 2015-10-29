@@ -160,7 +160,7 @@ class FileStorePage {
      * @return The index of this page
      */
     public int getIndex() {
-        return ((int) (location >>> FileStoreFile.BLOCK_INDEX_LENGTH));
+        return (keyRadical >> 16);
     }
 
     /**
