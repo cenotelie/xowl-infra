@@ -656,10 +656,10 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public void add(Quad quad) throws UnsupportedNodeType {
-        PersistedNode pSubject = nodes.persist(quad.getSubject());
-        PersistedNode pProperty = nodes.persist(quad.getProperty());
-        PersistedNode pObject = nodes.persist(quad.getObject());
-        PersistedNode pGraph = nodes.persist(quad.getGraph());
+        PersistedNode pSubject = nodes.getPersistent(quad.getSubject(), true);
+        PersistedNode pProperty = nodes.getPersistent(quad.getProperty(), true);
+        PersistedNode pObject = nodes.getPersistent(quad.getObject(), true);
+        PersistedNode pGraph = nodes.getPersistent(quad.getGraph(), true);
         int result = doQuadAdd(pSubject, pProperty, pObject, pGraph);
         if (result == ADD_RESULT_NEW) {
             doQuadIndex(pSubject, pGraph);
@@ -677,10 +677,10 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        PersistedNode pSubject = nodes.persist(subject);
-        PersistedNode pProperty = nodes.persist(property);
-        PersistedNode pObject = nodes.persist(value);
-        PersistedNode pGraph = nodes.persist(graph);
+        PersistedNode pSubject = nodes.getPersistent(subject, true);
+        PersistedNode pProperty = nodes.getPersistent(property, true);
+        PersistedNode pObject = nodes.getPersistent(value, true);
+        PersistedNode pGraph = nodes.getPersistent(graph, true);
         int result = doQuadAdd(pSubject, pProperty, pObject, pGraph);
         if (result == ADD_RESULT_NEW) {
             doQuadIndex(pSubject, pGraph);
@@ -702,10 +702,13 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     public void remove(Quad quad) throws UnsupportedNodeType {
         if (quad.getGraph() != null && quad.getSubject() != null && quad.getProperty() != null && quad.getObject() != null) {
             // this is a ground quad
-            PersistedNode pSubject = nodes.persist(quad.getSubject());
-            PersistedNode pProperty = nodes.persist(quad.getProperty());
-            PersistedNode pObject = nodes.persist(quad.getObject());
-            PersistedNode pGraph = nodes.persist(quad.getGraph());
+            PersistedNode pSubject = nodes.getPersistent(quad.getSubject(), false);
+            PersistedNode pProperty = nodes.getPersistent(quad.getProperty(), false);
+            PersistedNode pObject = nodes.getPersistent(quad.getObject(), false);
+            PersistedNode pGraph = nodes.getPersistent(quad.getGraph(), false);
+            if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
+                // the quad cannot be in this store
+                return;
             int result = doQuadRemove(pGraph, pSubject, pProperty, pObject);
             if (result == REMOVE_RESULT_DECREMENT) {
                 for (ChangeListener listener : listeners)
@@ -728,10 +731,13 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         if (graph != null && subject != null && property != null && value != null) {
             // this is a ground quad
-            PersistedNode pSubject = nodes.persist(subject);
-            PersistedNode pProperty = nodes.persist(property);
-            PersistedNode pObject = nodes.persist(value);
-            PersistedNode pGraph = nodes.persist(graph);
+            PersistedNode pSubject = nodes.getPersistent(subject, false);
+            PersistedNode pProperty = nodes.getPersistent(property, false);
+            PersistedNode pObject = nodes.getPersistent(value, false);
+            PersistedNode pGraph = nodes.getPersistent(graph, false);
+            if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
+                // the quad cannot be in this store
+                return;
             int result = doQuadRemove(pGraph, pSubject, pProperty, pObject);
             if (result == REMOVE_RESULT_DECREMENT) {
                 Quad quad = new Quad(graph, subject, property, value);

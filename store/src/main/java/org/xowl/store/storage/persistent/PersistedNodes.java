@@ -105,6 +105,22 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      * The next blank value
      */
     private final Atomic.Long nextBlank;
+    /**
+     * Cache of instantiated IRI nodes
+     */
+    private final PersistedNodeCache<PersistedIRINode> cacheNodeIRIs;
+    /**
+     * Cache of instantiated Blank nodes
+     */
+    private final PersistedNodeCache<PersistedBlankNode> cacheNodeBlanks;
+    /**
+     * Cache of instantiated Anonymous nodes
+     */
+    private final PersistedNodeCache<PersistedAnonNode> cacheNodeAnons;
+    /**
+     * Cache of instantiated Literal nodes
+     */
+    private final PersistedNodeCache<PersistedLiteralNode> cacheNodeLiterals;
 
     /**
      * Initializes this store of nodes
@@ -121,6 +137,10 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         mapStrings = database.hashMap(NAME_STRING_MAP);
         mapLiterals = database.hashMap(NAME_LITERAL_MAP);
         nextBlank = database.atomicLong(NAME_NEXT_BLANK);
+        cacheNodeIRIs = new PersistedNodeCache<>();
+        cacheNodeBlanks = new PersistedNodeCache<>();
+        cacheNodeAnons = new PersistedNodeCache<>();
+        cacheNodeLiterals = new PersistedNodeCache<>();
     }
 
     /**
@@ -397,16 +417,24 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      * @param lexical  The lexical part of the literal
      * @param datatype The literal's data-type
      * @param langTag  The literals' language tag
+     * @param doInsert Whether the string shall be inserted in the store if it is not already present
      * @return The key for the specified literal
      */
-    private long getKeyForLiteral(String lexical, String datatype, String langTag) {
+    private long getKeyForLiteral(String lexical, String datatype, String langTag, boolean doInsert) {
         lexical = lexical == null ? "" : lexical;
-        long keyLexical = getKeyForString(lexical, true);
-        long keyDatatype = datatype == null ? PersistedNode.KEY_NOT_PRESENT : getKeyForString(datatype, true);
-        long keyLangTag = langTag == null ? PersistedNode.KEY_NOT_PRESENT : getKeyForString(langTag, true);
+        long keyLexical = getKeyForString(lexical, doInsert);
+        long keyDatatype = datatype == null ? PersistedNode.KEY_NOT_PRESENT : getKeyForString(datatype, doInsert);
+        long keyLangTag = langTag == null ? PersistedNode.KEY_NOT_PRESENT : getKeyForString(langTag, doInsert);
+        if (!doInsert
+                && (keyLexical == PersistedNode.KEY_NOT_PRESENT
+                || (datatype != null && keyDatatype == PersistedNode.KEY_NOT_PRESENT)
+                || (langTag != null && keyLangTag == PersistedNode.KEY_NOT_PRESENT)))
+            return PersistedNode.KEY_NOT_PRESENT;
         Long bucket = mapLiterals.get(keyLexical);
         if (bucket == null) {
             // this is the first literal with this lexem
+            if (!doInsert)
+                return PersistedNode.KEY_NOT_PRESENT;
             try {
                 long result = backend.add(ENTRY_LITERAL_SIZE);
                 try (IOElement entry = backend.access(result)) {
@@ -439,6 +467,8 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
                 }
             }
             // did not found an existing literal
+            if (!doInsert)
+                return PersistedNode.KEY_NOT_PRESENT;
             try {
                 long result = backend.add(ENTRY_LITERAL_SIZE);
                 try (IOElement entry = backend.access(previous)) {
@@ -459,27 +489,102 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
     }
 
     /**
-     * Persists a node in this store
+     * Gets the persistent version of a specified node
      *
-     * @param node A node
+     * @param node   A node
+     * @param create Whether to create the node if it is node present in the store
      * @return The persisted equivalent
      * @throws UnsupportedNodeType When the node cannot be persisted
      */
-    public PersistedNode persist(Node node) throws UnsupportedNodeType {
+    public PersistedNode getPersistent(Node node, boolean create) throws UnsupportedNodeType {
         if (node instanceof PersistedNode)
             return ((PersistedNode) node);
         switch (node.getNodeType()) {
             case Node.TYPE_IRI:
-                return (PersistedIRINode) getIRINode(((IRINode) node).getIRIValue());
+                if (create)
+                    return (PersistedIRINode) getIRINode(((IRINode) node).getIRIValue());
+                return (PersistedIRINode) getExistingIRINode(((IRINode) node).getIRIValue());
             case Node.TYPE_BLANK:
-                return new PersistedBlankNode(((BlankNode) node).getBlankID());
+                return getBlankNodeFor(((BlankNode) node).getBlankID());
             case Node.TYPE_ANONYMOUS:
-                return (PersistedAnonNode) getAnonNode(((AnonymousNode) node).getIndividual());
+                if (create)
+                    return (PersistedAnonNode) getAnonNode(((AnonymousNode) node).getIndividual());
+                return (PersistedAnonNode) getExistingAnonNode(((AnonymousNode) node).getIndividual());
             case Node.TYPE_LITERAL:
                 LiteralNode literal = (LiteralNode) node;
-                return (PersistedLiteralNode) getLiteralNode(literal.getLexicalValue(), literal.getDatatype(), literal.getLangTag());
+                if (create)
+                    return (PersistedLiteralNode) getLiteralNode(literal.getLexicalValue(), literal.getDatatype(), literal.getLangTag());
+                return (PersistedLiteralNode) getExistingLiteralNode(literal.getLexicalValue(), literal.getDatatype(), literal.getLangTag());
         }
         throw new UnsupportedNodeType(node, "Persistable nodes are IRI, Blank, Anonymous and Literal");
+    }
+
+    /**
+     * Gets the IRI node for the specified key
+     *
+     * @param key The IRI node for the specified key
+     * @return The IRI node for the specified key
+     */
+    public PersistedIRINode getIRINodeFor(long key) {
+        if (key == PersistedNode.KEY_NOT_PRESENT)
+            return null;
+        PersistedIRINode result = cacheNodeIRIs.get(key);
+        if (result == null) {
+            result = new PersistedIRINode(this, key);
+            cacheNodeIRIs.cache(result);
+        }
+        return result;
+    }
+
+    /**
+     * Gets the Blank node for the specified key
+     *
+     * @param key The Blank node for the specified key
+     * @return The Blank node for the specified key
+     */
+    public PersistedBlankNode getBlankNodeFor(long key) {
+        if (key == PersistedNode.KEY_NOT_PRESENT)
+            return null;
+        PersistedBlankNode result = cacheNodeBlanks.get(key);
+        if (result == null) {
+            result = new PersistedBlankNode(key);
+            cacheNodeBlanks.cache(result);
+        }
+        return result;
+    }
+
+    /**
+     * Gets the Anonymous node for the specified key
+     *
+     * @param key The Anonymous node for the specified key
+     * @return The Anonymous node for the specified key
+     */
+    public PersistedAnonNode getAnonNodeFor(long key) {
+        if (key == PersistedNode.KEY_NOT_PRESENT)
+            return null;
+        PersistedAnonNode result = cacheNodeAnons.get(key);
+        if (result == null) {
+            result = new PersistedAnonNode(this, key);
+            cacheNodeAnons.cache(result);
+        }
+        return result;
+    }
+
+    /**
+     * Gets the Literal node for the specified key
+     *
+     * @param key The Literal node for the specified key
+     * @return The Literal node for the specified key
+     */
+    public PersistedLiteralNode getLiteralNodeFor(long key) {
+        if (key == PersistedNode.KEY_NOT_PRESENT)
+            return null;
+        PersistedLiteralNode result = cacheNodeLiterals.get(key);
+        if (result == null) {
+            result = new PersistedLiteralNode(this, key);
+            cacheNodeLiterals.cache(result);
+        }
+        return result;
     }
 
     @Override
@@ -494,32 +599,35 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
 
     @Override
     public IRINode getIRINode(String iri) {
-        long key = getKeyForString(iri, true);
-        return (key == PersistedNode.KEY_NOT_PRESENT ? null : new PersistedIRINode(this, key));
+        return getIRINodeFor(getKeyForString(iri, true));
     }
 
     @Override
     public IRINode getExistingIRINode(String iri) {
-        long key = getKeyForString(iri, false);
-        return (key == PersistedNode.KEY_NOT_PRESENT ? null : new PersistedIRINode(this, key));
+        return getIRINodeFor(getKeyForString(iri, false));
     }
 
     @Override
     public BlankNode getBlankNode() {
-        long id = nextBlank.getAndIncrement();
-        return new PersistedBlankNode(id);
+        return getBlankNodeFor(nextBlank.getAndIncrement());
     }
 
     @Override
     public LiteralNode getLiteralNode(String lex, String datatype, String lang) {
-        long key = getKeyForLiteral(lex, datatype, lang);
-        return new PersistedLiteralNode(this, key);
+        return getLiteralNodeFor(getKeyForLiteral(lex, datatype, lang, true));
+    }
+
+    public LiteralNode getExistingLiteralNode(String lex, String datatype, String lang) {
+        return getLiteralNodeFor(getKeyForLiteral(lex, datatype, lang, false));
     }
 
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
-        long key = getKeyForString(individual.getNodeID(), true);
-        return (key == PersistedNode.KEY_NOT_PRESENT ? null : new PersistedAnonNode(this, key, individual));
+        return getAnonNodeFor(getKeyForString(individual.getNodeID(), true));
+    }
+
+    public AnonymousNode getExistingAnonNode(AnonymousIndividual individual) {
+        return getAnonNodeFor(getKeyForString(individual.getNodeID(), false));
     }
 
     @Override
