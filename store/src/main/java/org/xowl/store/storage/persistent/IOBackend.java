@@ -45,15 +45,6 @@ class IOBackend implements AutoCloseable {
     public static final int STATE_CLOSED = 2;
 
     /**
-     * Flag a transaction for reading data
-     */
-    public static final int FLAG_READ = 1;
-    /**
-     * Flat a transaction of writing data
-     */
-    public static final int FLAG_WRITE = 1 << 1;
-
-    /**
      * The maximum number of ms to wait for finalizing a transaction
      */
     private static final int WAIT_TIMEOUT = 1000;

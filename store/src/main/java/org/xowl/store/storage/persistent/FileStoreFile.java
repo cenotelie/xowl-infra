@@ -58,6 +58,10 @@ class FileStoreFile implements IOElement {
     private static final int MAX_LOADED_BLOCKS = 256;
 
     /**
+     * Whether the file is in readonly mode
+     */
+    private final boolean isReadonly;
+    /**
      * The file channel
      */
     private final FileChannel channel;
@@ -129,6 +133,7 @@ class FileStoreFile implements IOElement {
      * @throws IOException When the backing file cannot be accessed
      */
     public FileStoreFile(File file, boolean isReadonly) throws IOException {
+        this.isReadonly = isReadonly;
         this.channel = newChannel(file, isReadonly);
         this.buffer = ByteBuffer.allocate(8);
         this.blockBuffers = new MappedByteBuffer[MAX_LOADED_BLOCKS];
@@ -161,22 +166,28 @@ class FileStoreFile implements IOElement {
     /**
      * Commits any outstanding changes
      *
-     * @return The persistent file
-     * @throws IOException When an IO operation failed
+     * @return Whether the operation fully succeeded
      */
-    public FileStoreFile commit() throws IOException {
+    public boolean commit() {
+        boolean success = true;
         for (int i = 0; i != blockCount; i++) {
             if (blockIsDirty[i]) {
-                if (blockPages[i] != null)
-                    blockPages[i].onCommit();
+                boolean successBlock = true;
+                if (blockPages[i] != null) {
+                    successBlock = blockPages[i].onCommit();
+                }
                 blockBuffers[i].force();
+                if (successBlock)
+                    blockIsDirty[i] = false;
+                success &= successBlock;
             }
         }
-        channel.force(true);
-        for (int i = 0; i != blockCount; i++) {
-            blockIsDirty[i] = false;
+        try {
+            channel.force(true);
+        } catch (IOException exception) {
+            success = false;
         }
-        return this;
+        return success;
     }
 
     /**
@@ -195,14 +206,18 @@ class FileStoreFile implements IOElement {
     }
 
     @Override
-    public long getSize() throws IOException {
-        return channel.size();
+    public long getSize() {
+        try {
+            return channel.size();
+        } catch (IOException exception) {
+            return -1;
+        }
     }
 
     @Override
     public FileStoreFile seek(long index) {
         if (index < 0)
-            throw new IndexOutOfBoundsException("The index must be within the file");
+            throw new IndexOutOfBoundsException("The index must be positive");
         if (this.index == index)
             // do nothing
             return this;
@@ -226,7 +241,7 @@ class FileStoreFile implements IOElement {
     }
 
     @Override
-    public boolean canRead(int length) throws IOException {
+    public boolean canRead(int length) {
         return (index + length <= getSize());
     }
 
@@ -234,7 +249,8 @@ class FileStoreFile implements IOElement {
     public byte readByte() throws IOException {
         if (!canRead(1))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         byte value = blockBuffers[currentBlock].get((int) (index & INDEX_MASK_LOWER));
         index++;
         return value;
@@ -259,14 +275,16 @@ class FileStoreFile implements IOElement {
         int remainingLength = length;
         int targetIndex = index;
         while (remainingLength > remainingInBlock) {
-            prepareIOAt();
+            if (!prepareIOAt())
+                throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
             blockBuffers[currentBlock].get(buffer, targetIndex, remainingInBlock);
             remainingLength -= remainingInBlock;
             targetIndex += remainingInBlock;
             this.index += remainingInBlock;
             remainingInBlock = BLOCK_SIZE;
         }
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockBuffers[currentBlock].get(buffer, targetIndex, remainingLength);
         this.index += remainingLength;
     }
@@ -275,7 +293,8 @@ class FileStoreFile implements IOElement {
     public char readChar() throws IOException {
         if (!canRead(2))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         if ((int) (this.index & INDEX_MASK_LOWER) + 2 <= BLOCK_SIZE) {
             // within the same block
             char value = blockBuffers[currentBlock].getChar();
@@ -286,7 +305,8 @@ class FileStoreFile implements IOElement {
         buffer.put(blockBuffers[currentBlock].get());
         index++;
         // next block
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         buffer.put(blockBuffers[currentBlock].get());
         index++;
         return buffer.getChar(0);
@@ -296,7 +316,8 @@ class FileStoreFile implements IOElement {
     public int readInt() throws IOException {
         if (!canRead(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
             // within the same block
             int value = blockBuffers[currentBlock].getInt();
@@ -308,7 +329,8 @@ class FileStoreFile implements IOElement {
             buffer.put(blockBuffers[currentBlock].get());
             index++;
             if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
-                prepareIOAt();
+                if (!prepareIOAt())
+                    throw new IOException("Failed to access the data at this index");
             }
         }
         return buffer.getInt(0);
@@ -318,7 +340,8 @@ class FileStoreFile implements IOElement {
     public long readLong() throws IOException {
         if (!canRead(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
             // within the same block
             long value = blockBuffers[currentBlock].getLong();
@@ -330,7 +353,8 @@ class FileStoreFile implements IOElement {
             buffer.put(blockBuffers[currentBlock].get());
             index++;
             if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
-                prepareIOAt();
+                if (!prepareIOAt())
+                    throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
             }
         }
         return buffer.getLong(0);
@@ -340,7 +364,8 @@ class FileStoreFile implements IOElement {
     public float readFloat() throws IOException {
         if (!canRead(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
             // within the same block
             float value = blockBuffers[currentBlock].getFloat();
@@ -352,7 +377,8 @@ class FileStoreFile implements IOElement {
             buffer.put(blockBuffers[currentBlock].get());
             index++;
             if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
-                prepareIOAt();
+                if (!prepareIOAt())
+                    throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
             }
         }
         return buffer.getFloat(0);
@@ -362,7 +388,8 @@ class FileStoreFile implements IOElement {
     public double readDouble() throws IOException {
         if (!canRead(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
             // within the same block
             double value = blockBuffers[currentBlock].getDouble();
@@ -374,7 +401,8 @@ class FileStoreFile implements IOElement {
             buffer.put(blockBuffers[currentBlock].get());
             index++;
             if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
-                prepareIOAt();
+                if (!prepareIOAt())
+                    throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
             }
         }
         return buffer.getDouble(0);
@@ -382,7 +410,8 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeByte(byte value) throws IOException {
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockBuffers[currentBlock].put((int) (index & INDEX_MASK_LOWER), value);
         blockIsDirty[currentBlock] = true;
         index++;
@@ -401,7 +430,8 @@ class FileStoreFile implements IOElement {
         int remainingLength = length;
         int targetIndex = index;
         while (remainingLength > remainingInBlock) {
-            prepareIOAt();
+            if (!prepareIOAt())
+                throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
             blockBuffers[currentBlock].put(buffer, targetIndex, remainingInBlock);
             blockIsDirty[currentBlock] = true;
             remainingLength -= remainingInBlock;
@@ -409,7 +439,8 @@ class FileStoreFile implements IOElement {
             this.index += remainingInBlock;
             remainingInBlock = BLOCK_SIZE;
         }
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockBuffers[currentBlock].put(buffer, targetIndex, remainingLength);
         blockIsDirty[currentBlock] = true;
         this.index += remainingLength;
@@ -417,7 +448,8 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeChar(char value) throws IOException {
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         if ((int) (this.index & INDEX_MASK_LOWER) + 2 <= BLOCK_SIZE) {
             // within the same block
             blockBuffers[currentBlock].putChar(value);
@@ -429,7 +461,8 @@ class FileStoreFile implements IOElement {
             blockIsDirty[currentBlock] = true;
             index++;
             // next block
-            prepareIOAt();
+            if (!prepareIOAt())
+                throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
             blockBuffers[currentBlock].put(buffer.get(1));
             blockIsDirty[currentBlock] = true;
             index++;
@@ -438,7 +471,8 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeInt(int value) throws IOException {
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
         if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
             // within the same block
@@ -450,7 +484,8 @@ class FileStoreFile implements IOElement {
                 blockBuffers[currentBlock].put(buffer.get(i));
                 index++;
                 if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
-                    prepareIOAt();
+                    if (!prepareIOAt())
+                        throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
                     blockIsDirty[currentBlock] = true;
                 }
             }
@@ -459,7 +494,8 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeLong(long value) throws IOException {
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
         if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
             // within the same block
@@ -471,7 +507,8 @@ class FileStoreFile implements IOElement {
                 blockBuffers[currentBlock].put(buffer.get(i));
                 index++;
                 if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
-                    prepareIOAt();
+                    if (!prepareIOAt())
+                        throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
                     blockIsDirty[currentBlock] = true;
                 }
             }
@@ -480,7 +517,8 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeFloat(float value) throws IOException {
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
         if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
             // within the same block
@@ -492,7 +530,8 @@ class FileStoreFile implements IOElement {
                 blockBuffers[currentBlock].put(buffer.get(i));
                 index++;
                 if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
-                    prepareIOAt();
+                    if (!prepareIOAt())
+                        throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
                     blockIsDirty[currentBlock] = true;
                 }
             }
@@ -501,7 +540,8 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeDouble(double value) throws IOException {
-        prepareIOAt();
+        if (!prepareIOAt())
+            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
         if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
             // within the same block
@@ -513,7 +553,8 @@ class FileStoreFile implements IOElement {
                 blockBuffers[currentBlock].put(buffer.get(i));
                 index++;
                 if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
-                    prepareIOAt();
+                    if (!prepareIOAt())
+                        throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
                     blockIsDirty[currentBlock] = true;
                 }
             }
@@ -535,13 +576,15 @@ class FileStoreFile implements IOElement {
             int remainingInBlock = BLOCK_SIZE - (int) (this.index & INDEX_MASK_LOWER);
             int remainingLength = length;
             while (remainingLength > remainingInBlock) {
-                prepareIOAt();
+                if (!prepareIOAt())
+                    throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
                 md.update(blockBuffers[currentBlock].array(), blockBuffers[currentBlock].position(), remainingInBlock);
                 remainingLength -= remainingInBlock;
                 this.index += remainingInBlock;
                 remainingInBlock = BLOCK_SIZE;
             }
-            prepareIOAt();
+            if (!prepareIOAt())
+                throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
             md.update(blockBuffers[currentBlock].array(), blockBuffers[currentBlock].position(), remainingLength);
             this.index += remainingLength;
             return md.digest();
@@ -588,7 +631,8 @@ class FileStoreFile implements IOElement {
             // the page does not exist in the backend
             // force the block to be allocated
             seek(targetLocation);
-            prepareIOAt();
+            if (!prepareIOAt())
+                throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         }
         FileStorePage result = new FileStorePage(this, targetLocation, index << 16);
         if (blockLocations[currentBlock] != targetLocation)
@@ -627,7 +671,7 @@ class FileStoreFile implements IOElement {
      *
      * @return The persistent file
      */
-    public FileStoreFile seekNextBlock() throws IOException {
+    public FileStoreFile seekNextBlock() {
         long size = getSize();
         if ((size & INDEX_MASK_UPPER) == size)
             // the size is a multiple of BLOCK_SIZE
@@ -637,14 +681,16 @@ class FileStoreFile implements IOElement {
 
     /**
      * Prepares the blocks for IO operations at the current index
+     *
+     * @return Whether the operation succeeded
      */
-    private void prepareIOAt() throws IOException {
+    private boolean prepareIOAt() {
         time++;
         if (currentBlock >= 0 && index >= blockLocations[currentBlock] && index < blockLocations[currentBlock] + BLOCK_SIZE) {
             // this is the current block
             blockBuffers[currentBlock].position((int) (index & INDEX_MASK_LOWER));
             blockLastHits[currentBlock] = time;
-            return;
+            return true;
         }
         // is the block loaded
         long targetLocation = index & INDEX_MASK_UPPER;
@@ -653,26 +699,31 @@ class FileStoreFile implements IOElement {
                 currentBlock = i;
                 blockBuffers[currentBlock].position((int) (index & INDEX_MASK_LOWER));
                 blockLastHits[currentBlock] = time;
-                return;
+                return true;
             }
         }
         currentBlock = blockCount;
         // we need to load a block
         if (currentBlock == MAX_LOADED_BLOCKS) {
             currentBlock = makeSlotAvailable();
+            if (currentBlock == -1)
+                return false;
         } else {
             blockCount++;
         }
-        loadBlock(targetLocation);
-        blockBuffers[currentBlock].position((int) (index & INDEX_MASK_LOWER));
+        if (loadBlock(targetLocation)) {
+            blockBuffers[currentBlock].position((int) (index & INDEX_MASK_LOWER));
+            return true;
+        }
+        return false;
     }
 
     /**
      * Makes a slot available for loading a block
      *
-     * @return The block index to use
+     * @return The block index to use, or -1 if no block can be made available
      */
-    private int makeSlotAvailable() throws IOException {
+    private int makeSlotAvailable() {
         // look for a clean block with the lowest hit count
         int minCleanIndex = -1;
         long minCleanTime = Long.MAX_VALUE;
@@ -692,8 +743,22 @@ class FileStoreFile implements IOElement {
         }
         if (minCleanIndex == -1) {
             // all blocks are dirty ... commit
-            commit();
-            minCleanIndex = minDirtyIndex;
+            if (commit()) {
+                // commit is a success
+                minCleanIndex = minDirtyIndex;
+            } else {
+                // failed to commit at least one block
+                minCleanIndex = -1;
+                minCleanTime = Long.MAX_VALUE;
+                for (int i = MAX_LOADED_BLOCKS - 1; i != -1; i--) {
+                    if (!blockIsDirty[i]) {
+                        if (blockLastHits[i] < minCleanTime) {
+                            minCleanIndex = i;
+                            minCleanTime = blockLastHits[i];
+                        }
+                    }
+                }
+            }
         }
         return minCleanIndex;
     }
@@ -702,15 +767,26 @@ class FileStoreFile implements IOElement {
      * Loads the block at the specified location
      *
      * @param location The location of the block to load
+     * @return Whether the operation succeeded
      */
-    private void loadBlock(long location) throws IOException {
-        blockBuffers[currentBlock] = channel.map(FileChannel.MapMode.READ_WRITE, location, BLOCK_SIZE);
-        blockBuffers[currentBlock].position(0);
+    private boolean loadBlock(long location) {
+        boolean success = true;
+        try {
+            if (isReadonly)
+                blockBuffers[currentBlock] = channel.map(FileChannel.MapMode.READ_WRITE, location, BLOCK_SIZE);
+            else
+                blockBuffers[currentBlock] = channel.map(FileChannel.MapMode.READ_ONLY, location, BLOCK_SIZE);
+            blockBuffers[currentBlock].position(0);
+        } catch (IOException exception) {
+            blockBuffers[currentBlock] = null;
+            success = false;
+        }
         blockLocations[currentBlock] = location;
         blockLastHits[currentBlock] = time;
         blockIsDirty[currentBlock] = false;
         blockPages[currentBlock] = null;
-        if (location < getSize())
+        if (success && location < getSize())
             blockBuffers[currentBlock].load();
+        return success;
     }
 }

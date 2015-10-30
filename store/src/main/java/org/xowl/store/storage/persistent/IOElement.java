@@ -39,10 +39,9 @@ interface IOElement extends Closeable {
     /**
      * Gets the size of this element
      *
-     * @return The size of this element
-     * @throws IOException When an IO operation failed
+     * @return The size of this element, or -1 if the operation failed
      */
-    long getSize() throws IOException;
+    long getSize();
 
     /**
      * Positions the index of this element
@@ -64,9 +63,8 @@ interface IOElement extends Closeable {
      *
      * @param length The number of bytes to read
      * @return true if this is legal to read
-     * @throws IOException When an IO operation failed
      */
-    boolean canRead(int length) throws IOException;
+    boolean canRead(int length);
 
     /**
      * Reads a single byte at the current index

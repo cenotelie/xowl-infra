@@ -95,6 +95,15 @@ class FileStore extends IOBackend {
     private final boolean isReadonly;
 
     /**
+     * Gets whether this store is in readonly mode
+     *
+     * @return Whether this store is in readonly mode
+     */
+    public boolean isReadonly() {
+        return isReadonly;
+    }
+
+    /**
      * Initializes this store
      *
      * @param directory  The directory containing the backing files

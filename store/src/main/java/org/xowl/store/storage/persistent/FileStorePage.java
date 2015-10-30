@@ -378,14 +378,19 @@ class FileStorePage {
      * When this page is going to be committed
      * Writes the page's header to the backend
      *
-     * @throws IOException When an IO operation failed
+     * @return true if the cached data was successfully written back to the file
      */
-    public void onCommit() throws IOException {
-        backend.seek(location);
-        backend.writeChar(PAGE_LAYOUT_VERSION);
-        backend.writeChar(flags);
-        backend.writeChar(entryCount);
-        backend.writeChar(startFreeSpace);
-        backend.writeChar(startData);
+    public boolean onCommit() {
+        try {
+            backend.seek(location);
+            backend.writeChar(PAGE_LAYOUT_VERSION);
+            backend.writeChar(flags);
+            backend.writeChar(entryCount);
+            backend.writeChar(startFreeSpace);
+            backend.writeChar(startData);
+            return true;
+        } catch (IOException exception) {
+            return false;
+        }
     }
 }

@@ -62,7 +62,7 @@ abstract class IOProxy implements IOElement {
     }
 
     @Override
-    public long getSize() throws IOException {
+    public long getSize() {
         return length;
     }
 
@@ -77,7 +77,7 @@ abstract class IOProxy implements IOElement {
     }
 
     @Override
-    public boolean canRead(int length) throws IOException {
+    public boolean canRead(int length) {
         return (withinBounds(length) && backend.canRead(length));
     }
 
