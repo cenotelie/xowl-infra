@@ -773,9 +773,9 @@ class FileStoreFile implements IOElement {
         boolean success = true;
         try {
             if (isReadonly)
-                blockBuffers[currentBlock] = channel.map(FileChannel.MapMode.READ_WRITE, location, BLOCK_SIZE);
-            else
                 blockBuffers[currentBlock] = channel.map(FileChannel.MapMode.READ_ONLY, location, BLOCK_SIZE);
+            else
+                blockBuffers[currentBlock] = channel.map(FileChannel.MapMode.READ_WRITE, location, BLOCK_SIZE);
             blockBuffers[currentBlock].position(0);
         } catch (IOException exception) {
             blockBuffers[currentBlock] = null;
