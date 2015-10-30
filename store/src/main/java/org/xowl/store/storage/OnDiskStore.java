@@ -53,18 +53,12 @@ class OnDiskStore implements BaseStore {
      *
      * @param directory  The parent directory containing the backing files
      * @param isReadonly Whether this store is in readonly mode
+     * @throws IOException      When the backing files cannot be accessed
+     * @throws StorageException When the storage is in a bad state
      */
-    public OnDiskStore(File directory, boolean isReadonly) {
-        PersistedNodes tempNodes = null;
-        PersistedDataset tempDataset = null;
-        try {
-            tempNodes = new PersistedNodes(directory, isReadonly);
-            tempDataset = new PersistedDataset(tempNodes, directory, isReadonly);
-        } catch (IOException | StorageException exception) {
-            // do nothing
-        }
-        nodes = tempNodes;
-        dataset = tempDataset;
+    public OnDiskStore(File directory, boolean isReadonly) throws IOException, StorageException {
+        nodes = new PersistedNodes(directory, isReadonly);
+        dataset = new PersistedDataset(nodes, directory, isReadonly);
     }
 
     @Override

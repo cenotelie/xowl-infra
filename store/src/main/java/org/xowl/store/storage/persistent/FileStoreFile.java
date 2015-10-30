@@ -156,7 +156,7 @@ class FileStoreFile implements IOElement {
      * @throws IOException IOException When the backing file cannot be accessed
      */
     private static FileChannel newChannel(File file, boolean isReadonly) throws IOException {
-        if (!file.canWrite())
+        if (file.exists() && !file.canWrite())
             isReadonly = true;
         return isReadonly
                 ? FileChannel.open(file.toPath(), StandardOpenOption.READ)

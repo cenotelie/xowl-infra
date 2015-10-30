@@ -23,8 +23,10 @@ package org.xowl.store.storage;
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.persistent.StorageException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -42,13 +44,15 @@ public class SingleStore implements BaseStore {
      * The cache
      */
     private final InMemoryStore cache;
-    
+
     /**
      * Initializes this store
-     * 
+     *
      * @param directory The parent directory containing the backing files
+     * @throws IOException      When the backing files cannot be accessed
+     * @throws StorageException When the storage is in a bad state
      */
-    public SingleStore(File directory) {
+    public SingleStore(File directory) throws IOException, StorageException {
         backend = new OnDiskStore(directory, false);
         cache = new InMemoryStore();
     }
