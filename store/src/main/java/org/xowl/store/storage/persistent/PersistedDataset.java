@@ -1365,7 +1365,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
 
     /**
-     * Counts the quads from a single subject entry
+     * Counts the quads from a bucket of properties
      *
      * @param bucket   The bucket of properties
      * @param graph    The graph to match
@@ -1393,7 +1393,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     }
 
     /**
-     * Counts the quads from a single subject entry
+     * Counts the quads from a bucket of objects
      *
      * @param bucket The bucket of objects
      * @param graph  The graph to match
@@ -1420,7 +1420,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     }
 
     /**
-     * Counts the quads from a single subject entry
+     * Counts the quads from a bucket of graphs
      *
      * @param bucket The bucket of graphs
      * @param graph  The graph to match
@@ -2450,12 +2450,12 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
-
+        // TODO: implement this
     }
 
     @Override
     public void move(GraphNode origin, GraphNode target) {
-
+        // TODO: implement this
     }
 
     @Override
