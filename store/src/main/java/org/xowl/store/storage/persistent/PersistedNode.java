@@ -56,4 +56,11 @@ interface PersistedNode extends Node {
      * Decrements the reference count for this node
      */
     void decrementRefCount();
+
+    /**
+     * Modifies the reference count for this node
+     *
+     * @param modifier The modifier for the count
+     */
+    void modifyRefCount(int modifier);
 }

@@ -103,6 +103,11 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     }
 
     @Override
+    public void modifyRefCount(int modifier) {
+        backend.onRefCountLiteral(key, modifier);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o instanceof PersistedLiteralNode) {
             PersistedLiteralNode node = (PersistedLiteralNode) o;

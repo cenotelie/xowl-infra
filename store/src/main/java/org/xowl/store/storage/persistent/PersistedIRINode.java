@@ -82,6 +82,11 @@ class PersistedIRINode extends IRINode implements PersistedNode {
     }
 
     @Override
+    public void modifyRefCount(int modifier) {
+        backend.onRefCountString(key, modifier);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o instanceof PersistedIRINode) {
             PersistedIRINode node = (PersistedIRINode) o;

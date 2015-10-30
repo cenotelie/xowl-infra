@@ -102,6 +102,11 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     }
 
     @Override
+    public void modifyRefCount(int modifier) {
+        backend.onRefCountString(key, modifier);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o instanceof PersistedAnonNode) {
             PersistedAnonNode node = (PersistedAnonNode) o;
