@@ -1446,7 +1446,75 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public void insert(Changeset changeset) throws UnsupportedNodeType {
-
+        Collection<Quad> incremented = new ArrayList<>();
+        Collection<Quad> decremented = new ArrayList<>();
+        Collection<Quad> added = new ArrayList<>();
+        Collection<Quad> removed = new ArrayList<>();
+        try {
+            for (Quad quad : changeset.getAdded()) {
+                PersistedNode pSubject = nodes.getPersistent(quad.getSubject(), true);
+                PersistedNode pProperty = nodes.getPersistent(quad.getProperty(), true);
+                PersistedNode pObject = nodes.getPersistent(quad.getObject(), true);
+                PersistedNode pGraph = nodes.getPersistent(quad.getGraph(), true);
+                int result = doQuadAdd(pSubject, pProperty, pObject, pGraph);
+                if (result == ADD_RESULT_NEW) {
+                    doQuadIndex(pSubject, pGraph);
+                    pSubject.incrementRefCount();
+                    pProperty.incrementRefCount();
+                    pObject.incrementRefCount();
+                    pGraph.incrementRefCount();
+                    added.add(new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject));
+                } else if (result == ADD_RESULT_INCREMENT) {
+                    incremented.add(new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject));
+                }
+            }
+            for (Quad quad : changeset.getRemoved()) {
+                PersistedNode pSubject = nodes.getPersistent(quad.getSubject(), false);
+                PersistedNode pProperty = nodes.getPersistent(quad.getProperty(), false);
+                PersistedNode pObject = nodes.getPersistent(quad.getObject(), false);
+                PersistedNode pGraph = nodes.getPersistent(quad.getGraph(), false);
+                if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
+                    continue;
+                int result = doQuadRemove(pSubject, pProperty, pObject, pGraph);
+                if (result >= REMOVE_RESULT_REMOVED) {
+                    doQuadDeindex(pSubject, pGraph);
+                    pSubject.decrementRefCount();
+                    pProperty.decrementRefCount();
+                    pObject.decrementRefCount();
+                    pGraph.decrementRefCount();
+                    removed.add(new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject));
+                } else if (result == REMOVE_RESULT_DECREMENT) {
+                    decremented.add(new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject));
+                }
+            }
+        } catch (UnsupportedNodeType exception) {
+            // rollback the previously inserted quads
+            for (Quad quad : incremented)
+                doQuadRemove((PersistedNode) quad.getGraph(), (PersistedNode) quad.getSubject(), (PersistedNode) quad.getProperty(), (PersistedNode) quad.getObject());
+            for (Quad quad : added) {
+                doQuadRemove((PersistedNode) quad.getGraph(), (PersistedNode) quad.getSubject(), (PersistedNode) quad.getProperty(), (PersistedNode) quad.getObject());
+                ((PersistedNode) quad.getGraph()).decrementRefCount();
+                ((PersistedNode) quad.getSubject()).decrementRefCount();
+                ((PersistedNode) quad.getProperty()).decrementRefCount();
+                ((PersistedNode) quad.getObject()).decrementRefCount();
+            }
+            for (Quad quad : decremented)
+                doQuadAdd((PersistedNode) quad.getGraph(), (PersistedNode) quad.getSubject(), (PersistedNode) quad.getProperty(), (PersistedNode) quad.getObject());
+            for (Quad quad : removed) {
+                doQuadAdd((PersistedNode) quad.getGraph(), (PersistedNode) quad.getSubject(), (PersistedNode) quad.getProperty(), (PersistedNode) quad.getObject());
+                ((PersistedNode) quad.getGraph()).incrementRefCount();
+                ((PersistedNode) quad.getSubject()).incrementRefCount();
+                ((PersistedNode) quad.getProperty()).incrementRefCount();
+                ((PersistedNode) quad.getObject()).incrementRefCount();
+            }
+            throw exception;
+        }
+        if (!incremented.isEmpty() || !decremented.isEmpty() || !added.isEmpty() || !removed.isEmpty()) {
+            // transmit the changes only if a there are some!
+            Changeset newChangeset = new Changeset(incremented, decremented, added, removed);
+            for (ChangeListener listener : listeners)
+                listener.onChange(newChangeset);
+        }
     }
 
     @Override
@@ -1518,7 +1586,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                     listener.onRemoved(quad);
             }
         } else {
-            // this is a remove all operation
+            // TODO: this is a remove all operation
         }
     }
 
@@ -1549,7 +1617,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                     listener.onRemoved(quad);
             }
         } else {
-            // this is a remove all operation
+            // TODO: this is a remove all operation
         }
     }
 

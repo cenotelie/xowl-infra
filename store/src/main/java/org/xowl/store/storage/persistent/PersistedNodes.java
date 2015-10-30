@@ -193,43 +193,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         try (IOElement element = backend.access(key)) {
             long counter = element.seek(8).readLong();
             counter += modifier;
-            if (counter <= 0) {
-                // removes the entry
-                // resolve the bucket
-                int length = element.seek(16).readInt();
-                byte[] data = element.readBytes(length);
-                int hash = hash(new String(data, charset));
-                long bucket = mapStrings.get(hash);
-                // resolve the previous item in the linked list
-                long previous = PersistedNode.KEY_NOT_PRESENT;
-                long candidate = bucket;
-                while (candidate != key) {
-                    try (IOElement entry = backend.read(candidate)) {
-                        previous = candidate;
-                        candidate = entry.readLong();
-                    }
-                }
-                long next = element.seek(0).readLong();
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
-                    // this is the first element
-                    if (next == PersistedNode.KEY_NOT_PRESENT) {
-                        // sole element of the list
-                        mapStrings.remove(hash);
-                    } else {
-                        // point the next element
-                        mapStrings.put(hash, next);
-                    }
-                } else {
-                    // remove the element from the list
-                    try (IOElement entry = backend.access(previous)) {
-                        entry.writeLong(element.seek(0).readLong());
-                    }
-                }
-                // delete the entry
-                backend.remove(key);
-            } else {
-                element.seek(8).writeLong(counter);
-            }
+            element.seek(8).writeLong(counter);
         } catch (IOException | StorageException exception) {
             // do nothing
         }
@@ -370,41 +334,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         try (IOElement element = backend.access(key)) {
             long counter = element.seek(8).readLong();
             counter += modifier;
-            if (counter <= 0) {
-                // removes the entry
-                // resolve the bucket
-                long bucketKey = element.seek(16).readLong();
-                long bucket = mapLiterals.get(bucketKey);
-                // resolve the previous item in the linked list
-                long previous = PersistedNode.KEY_NOT_PRESENT;
-                long candidate = bucket;
-                while (candidate != key) {
-                    try (IOElement entry = backend.read(candidate)) {
-                        previous = candidate;
-                        candidate = entry.readLong();
-                    }
-                }
-                long next = element.seek(0).readLong();
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
-                    // this is the first element
-                    if (next == PersistedNode.KEY_NOT_PRESENT) {
-                        // sole element of the list
-                        mapLiterals.remove(bucketKey);
-                    } else {
-                        // point the next element
-                        mapLiterals.put(bucketKey, next);
-                    }
-                } else {
-                    // remove the element from the list
-                    try (IOElement entry = backend.access(previous)) {
-                        entry.writeLong(element.seek(0).readLong());
-                    }
-                }
-                // delete the entry
-                backend.remove(key);
-            } else {
-                element.seek(8).writeLong(counter);
-            }
+            element.seek(8).writeLong(counter);
         } catch (IOException | StorageException exception) {
             // do nothing
         }

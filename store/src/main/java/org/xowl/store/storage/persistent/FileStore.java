@@ -143,9 +143,38 @@ class FileStore extends IOBackend {
     @Override
     public void close() throws IOException {
         finalizeAllTransactions();
-        if (!isReadonly) {
-            for (FileStoreFile child : files)
+        for (FileStoreFile child : files) {
+            try {
                 child.close();
+            } catch (IOException exception) {
+                // do nothing
+            }
+        }
+    }
+
+    /**
+     * Removes all data from this store
+     */
+    public void clear() {
+        if (isReadonly)
+            return;
+        finalizeAllTransactions();
+        for (int i = 0; i != files.size(); i++) {
+            try {
+                files.get(i).close();
+            } catch (IOException exception) {
+                // do nothing
+            }
+            File target = new File(directory, getNameFor(name, i));
+            target.delete();
+        }
+        files.clear();
+        try {
+            FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false);
+            initializeFile(first);
+            files.add(first);
+        } catch (IOException exception) {
+            // do nothing
         }
     }
 
