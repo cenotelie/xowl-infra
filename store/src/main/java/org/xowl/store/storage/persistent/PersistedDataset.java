@@ -29,10 +29,7 @@ import org.xowl.utils.collections.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a persisted RDF dataset
@@ -1623,12 +1620,168 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public void clear() {
-
+        List<PersistedQuad> buffer = new ArrayList<>();
+        for (Long entry : mapSubjectIRI.values())
+            clearOnSubject(entry, null, buffer);
+        for (Long entry : mapSubjectBlank.values())
+            clearOnSubject(entry, null, buffer);
+        for (Long entry : mapSubjectAnon.values())
+            clearOnSubject(entry, null, buffer);
+        if (!buffer.isEmpty()) {
+            Changeset changeset = Changeset.fromRemoved((Collection) buffer);
+            for (ChangeListener listener : listeners) {
+                listener.onChange(changeset);
+            }
+        }
     }
 
     @Override
     public void clear(GraphNode graph) {
+        if (graph == null) {
+            clear();
+            return;
+        }
+        PersistedNode pGraph;
+        try {
+            pGraph = nodes.getPersistent(graph, false);
+        } catch (UnsupportedNodeType exception) {
+            return;
+        }
+        if (pGraph == null)
+            return;
+        Map<Long, Long> map = pGraph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
+        Long bucket = map.get(pGraph.getKey());
+        if (bucket == null)
+            return;
+        long current = bucket;
+        List<PersistedQuad> buffer = new ArrayList<>();
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement element = backend.read(current)) {
+                current = element.readLong();
+                int radical = element.readInt();
+                int count = element.readInt();
+                for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
+                    int sk = element.readInt();
+                    element.readInt();
+                    if (sk != PersistedNode.SERIALIZED_SIZE) {
+                        long child = FileStore.getFullKey(radical, sk);
+                        clearOnSubject(child, pGraph, buffer);
+                        count--;
+                        if (count == 0)
+                            break;
+                    }
+                }
+            } catch (IOException | StorageException exception) {
+                // do nothing
+            }
+        }
+        if (!buffer.isEmpty()) {
+            Changeset changeset = Changeset.fromRemoved((Collection) buffer);
+            for (ChangeListener listener : listeners) {
+                listener.onChange(changeset);
+            }
+        }
+    }
 
+    /**
+     * Clears quad for a subject
+     *
+     * @param bucket The subject
+     * @param graph  The graph to match
+     * @param buffer The buffer of quads
+     */
+    private void clearOnSubject(long bucket, PersistedNode graph, List<PersistedQuad> buffer) {
+        long child;
+        SubjectNode subject;
+        try (IOElement element = backend.read(bucket)) {
+            element.seek(8);
+            subject = (SubjectNode) getNode(element.readInt(), element.readLong());
+            child = element.readLong();
+        } catch (IOException | StorageException exception) {
+            return;
+        }
+        int size = buffer.size();
+        clearOnProperty(child, graph, buffer);
+        for (int i = size; i != buffer.size(); i++)
+            buffer.get(i).setSubject(subject);
+    }
+
+    /**
+     * Clears quad for a bucket of properties
+     *
+     * @param bucket The bucket of properties
+     * @param graph  The graph to match
+     * @param buffer The buffer of quads
+     */
+    private void clearOnProperty(long bucket, PersistedNode graph, List<PersistedQuad> buffer) {
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            long child;
+            Property property;
+            try (IOElement element = backend.read(current)) {
+                current = element.readLong();
+                property = (Property) getNode(element.readInt(), element.readLong());
+                child = element.readLong();
+            } catch (IOException | StorageException exception) {
+                return;
+            }
+            int size = buffer.size();
+            clearOnObject(child, graph, buffer);
+            for (int i = size; i != buffer.size(); i++)
+                buffer.get(i).setProperty(property);
+        }
+    }
+
+    /**
+     * Clears quad for a bucket of objects
+     *
+     * @param bucket The bucket of objects
+     * @param graph  The graph to match
+     * @param buffer The buffer of quads
+     */
+    private void clearOnObject(long bucket, PersistedNode graph, List<PersistedQuad> buffer) {
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            long child;
+            Node object;
+            try (IOElement element = backend.read(current)) {
+                current = element.readLong();
+                object = getNode(element.readInt(), element.readLong());
+                child = element.readLong();
+            } catch (IOException | StorageException exception) {
+                return;
+            }
+            int size = buffer.size();
+            clearOnGraph(child, graph, buffer);
+            for (int i = size; i != buffer.size(); i++)
+                buffer.get(i).setObject(object);
+        }
+    }
+
+    /**
+     * Clears quad for a bucket of graphs
+     *
+     * @param bucket The bucket of graphs
+     * @param graph  The graph to match
+     * @param buffer The buffer of quads
+     */
+    private void clearOnGraph(long bucket, PersistedNode graph, List<PersistedQuad> buffer) {
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement element = backend.read(current)) {
+                current = element.readLong();
+                int type = element.readInt();
+                long key = element.readLong();
+                if (graph == null) {
+                    buffer.add(new PersistedQuad((GraphNode) getNode(type, key), element.readLong()));
+                } else if (graph.getNodeType() == type && graph.getKey() == key) {
+                    buffer.add(new PersistedQuad((GraphNode) graph, element.readLong()));
+                    return;
+                }
+            } catch (IOException | StorageException exception) {
+                return;
+            }
+        }
     }
 
     @Override
