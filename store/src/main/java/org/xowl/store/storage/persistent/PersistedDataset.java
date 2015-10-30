@@ -826,7 +826,9 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             PersistedNode pSubject = nodes.getPersistent(subject, false);
             if (pSubject == null)
                 return new SingleIterator<>(null);
-            long current = mapFor(pSubject).get(pSubject.getKey());
+            Long current = mapFor(pSubject).get(pSubject.getKey());
+            if (current == null)
+                return new SingleIterator<>(null);
             try (IOElement entry = backend.read(current)) {
                 long bucket = entry.seek(8 + 4 + 8).readLong();
                 return new AdaptingIterator<>(getAllOnProperty(bucket, property, object, graph), new Adapter<Quad>() {
@@ -1224,8 +1226,223 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return 0;
+        try {
+            PersistedNode pSubject = null;
+            if (subject != null && subject.getNodeType() != VariableNode.TYPE_VARIABLE) {
+                pSubject = nodes.getPersistent(subject, false);
+                if (pSubject == null)
+                    return 0;
+            }
+            PersistedNode pProperty = null;
+            if (property != null && property.getNodeType() != VariableNode.TYPE_VARIABLE) {
+                pProperty = nodes.getPersistent(property, false);
+                if (pProperty == null)
+                    return 0;
+            }
+            PersistedNode pObject = null;
+            if (object != null && object.getNodeType() != VariableNode.TYPE_VARIABLE) {
+                pObject = nodes.getPersistent(object, false);
+                if (pObject == null)
+                    return 0;
+            }
+            PersistedNode pGraph = null;
+            if (graph != null && graph.getNodeType() != VariableNode.TYPE_VARIABLE) {
+                pGraph = nodes.getPersistent(graph, false);
+                if (pGraph == null)
+                    return 0;
+            }
+            if (subject != null)
+                return countOnSingleSubject(pGraph, pSubject, pProperty, pObject);
+            if (graph != null)
+                return countOnSingleGraph(pGraph, pProperty, pObject);
+            return countDefault(pProperty, pObject);
+        } catch (UnsupportedNodeType exception) {
+            return 0;
+        }
     }
+
+    /**
+     * Counts the quads from a single subject entry
+     *
+     * @param graph    The graph to match
+     * @param subject  The subject
+     * @param property The property to match
+     * @param object   The object to match
+     * @return The number of matching quads
+     */
+    private long countOnSingleSubject(PersistedNode graph, PersistedNode subject, PersistedNode property, PersistedNode object) {
+        try {
+            Long current = mapFor(subject).get(subject.getKey());
+            if (current == null)
+                return 0;
+            long child;
+            try (IOElement entry = backend.read(current)) {
+                child = entry.seek(8 + 4 + 8).readLong();
+            }
+            return countOnProperty(child, graph, property, object);
+        } catch (UnsupportedNodeType | IOException | StorageException exception) {
+            return 0;
+        }
+    }
+
+    /**
+     * Counts the quads from a single graph entry
+     *
+     * @param graph    The graph to match
+     * @param property The property to match
+     * @param object   The object to match
+     * @return The number of matching quads
+     */
+    private long countOnSingleGraph(PersistedNode graph, PersistedNode property, PersistedNode object) {
+        try {
+            Map<Long, Long> map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
+            Long bucket = map.get(graph.getKey());
+            if (bucket == null)
+                return 0;
+            long result = 0;
+            long current = bucket;
+            while (current != PersistedNode.KEY_NOT_PRESENT) {
+                try (IOElement entry = backend.read(current)) {
+                    current = entry.readLong();
+                    int radical = entry.readInt();
+                    int count = entry.readInt();
+                    for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
+                        int sk = entry.readInt();
+                        entry.readInt();
+                        if (sk != PersistedNode.KEY_NOT_PRESENT) {
+                            long child = FileStore.getFullKey(radical, sk);
+                            try (IOElement subjectEntry = backend.read(child)) {
+                                child = subjectEntry.seek(8 + 4 + 8).readLong();
+                            }
+                            result += countOnProperty(child, graph, property, object);
+                            count--;
+                            if (count == 0)
+                                break;
+                        }
+                    }
+                }
+            }
+            return result;
+        } catch (IOException | StorageException exception) {
+            return 0;
+        }
+    }
+
+    /**
+     * Counts the all the quads
+     *
+     * @param property The property to match
+     * @param object   The object to match
+     * @return The number of matching quads
+     */
+    private long countDefault(PersistedNode property, PersistedNode object) {
+        long result = 0;
+        result += countDefault(mapSubjectIRI, property, object);
+        result += countDefault(mapSubjectBlank, property, object);
+        result += countDefault(mapSubjectAnon, property, object);
+        return result;
+    }
+
+    /**
+     * Counts the all the quads
+     *
+     * @param map      The subject index to use
+     * @param property The property to match
+     * @param object   The object to match
+     * @return The number of matching quads
+     */
+    private long countDefault(Map<Long, Long> map, PersistedNode property, PersistedNode object) {
+        long result = 0;
+        for (Long subject : map.values()) {
+            long bucket;
+            try (IOElement entry = backend.access(subject)) {
+                bucket = entry.seek(8 + 4 + 8).readLong();
+            } catch (IOException | StorageException exception) {
+                return result;
+            }
+            result += countOnProperty(bucket, null, property, object);
+        }
+        return result;
+    }
+
+
+    /**
+     * Counts the quads from a single subject entry
+     *
+     * @param bucket   The bucket of properties
+     * @param graph    The graph to match
+     * @param property The property to match
+     * @param object   The object to match
+     * @return The number of matching quads
+     */
+    private long countOnProperty(long bucket, PersistedNode graph, PersistedNode property, PersistedNode object) {
+        long result = 0;
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            long child = PersistedNode.KEY_NOT_PRESENT;
+            try (IOElement element = backend.read(current)) {
+                current = element.readLong();
+                if (property == null || (property.getNodeType() == element.readInt() && property.getKey() == element.readLong())) {
+                    child = element.seek(8 + 4 + 8).readLong();
+                }
+            } catch (IOException | StorageException exception) {
+                return result;
+            }
+            if (child != PersistedNode.KEY_NOT_PRESENT)
+                result += countOnObject(child, graph, object);
+        }
+        return result;
+    }
+
+    /**
+     * Counts the quads from a single subject entry
+     *
+     * @param bucket The bucket of objects
+     * @param graph  The graph to match
+     * @param object The object to match
+     * @return The number of matching quads
+     */
+    private long countOnObject(long bucket, PersistedNode graph, PersistedNode object) {
+        long result = 0;
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            long child = PersistedNode.KEY_NOT_PRESENT;
+            try (IOElement element = backend.read(current)) {
+                current = element.readLong();
+                if (object == null || (object.getNodeType() == element.readInt() && object.getKey() == element.readLong())) {
+                    child = element.seek(8 + 4 + 8).readLong();
+                }
+            } catch (IOException | StorageException exception) {
+                return result;
+            }
+            if (child != PersistedNode.KEY_NOT_PRESENT)
+                result += countOnGraph(child, graph);
+        }
+        return result;
+    }
+
+    /**
+     * Counts the quads from a single subject entry
+     *
+     * @param bucket The bucket of graphs
+     * @param graph  The graph to match
+     * @return The number of matching quads
+     */
+    private long countOnGraph(long bucket, PersistedNode graph) {
+        long result = 0;
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement element = backend.read(current)) {
+                current = element.readLong();
+                if (graph == null || (graph.getNodeType() == element.readInt() && graph.getKey() == element.readLong()))
+                    result++;
+            } catch (IOException | StorageException exception) {
+                return result;
+            }
+        }
+        return result;
+    }
+
 
     @Override
     public void insert(Changeset changeset) throws UnsupportedNodeType {
