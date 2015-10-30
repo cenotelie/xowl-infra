@@ -25,12 +25,15 @@ import org.junit.Test;
 import org.xowl.store.IRIs;
 import org.xowl.store.Repository;
 import org.xowl.store.TestLogger;
+import org.xowl.store.rdf.Quad;
 import org.xowl.store.storage.persistent.StorageException;
 import org.xowl.utils.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Iterator;
 
 /**
  * Basic tests for the on-disk store
@@ -47,11 +50,19 @@ public class OnDiskStoreTest {
     }
 
     @Test
-    public void testInsert() throws IOException, StorageException {
+    public void testInsert() throws Exception {
         Path p = Files.createTempDirectory("testInsert");
-        OnDiskStore store = new OnDiskStore(p.toFile(), false);
+        OnDiskStore store = new OnDiskStore(new File("/home/laurent/dev"), false);
         Logger logger = new TestLogger();
         Repository repo = new Repository(store);
         repo.load(logger, IRIs.RDF);
+        store.close();
+
+        store = new OnDiskStore(new File("/home/laurent/dev"), false);
+        Iterator<Quad> iterator = store.getAll();
+        while (iterator.hasNext()) {
+            Quad quad = iterator.next();
+            System.out.println(quad);
+        }
     }
 }

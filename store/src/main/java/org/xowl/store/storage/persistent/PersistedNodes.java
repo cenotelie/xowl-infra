@@ -563,6 +563,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
     @Override
     public void close() throws Exception {
         backend.close();
+        database.commit();
         database.close();
     }
 }

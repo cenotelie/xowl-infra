@@ -2461,6 +2461,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     @Override
     public void close() throws Exception {
         backend.close();
+        database.commit();
         database.close();
     }
 }
