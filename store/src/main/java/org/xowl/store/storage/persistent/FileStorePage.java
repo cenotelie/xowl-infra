@@ -24,20 +24,20 @@ import java.io.IOException;
 
 /**
  * Represents a page of data in a persisted binary store
- * <p/>
+ * <p>
  * Page general layout:
  * - header
  * - entry array (fill down from just after the header)
  * - ... free space
  * - data content (fill up from the bottom of the page)
- * <p/>
+ * <p>
  * Header layout:
  * - Layout version (2 bytes)
  * - Flags (2 bytes)
  * - Number of entries (2 bytes)
  * - Offset to start of free space (2 bytes)
  * - Offset to start of data content (2 bytes)
- * <p/>
+ * <p>
  * Entry layout:
  * - offset (2 bytes)
  * - length (2 bytes)
@@ -121,20 +121,20 @@ class FileStorePage {
         this.backend = backend;
         this.location = location;
         this.keyRadical = keyRadical;
-        if (location < backend.getSize()) {
-            // this is an existing page, load the data
-            backend.seek(location);
-            char version = backend.readChar();
-            if (version != PAGE_LAYOUT_VERSION)
-                throw new StorageException("Invalid page layout version " + version + ", expected " + PAGE_LAYOUT_VERSION);
+        backend.seek(location);
+        char version = backend.readChar();
+        if (version == 0) {
+            // this is a new page
+            flags = 0;
+            startFreeSpace = PAGE_HEADER_SIZE;
+            startData = (char) FileStoreFile.BLOCK_SIZE;
+        } else if (version != PAGE_LAYOUT_VERSION) {
+            throw new StorageException("Invalid page layout version " + Integer.toHexString(version) + ", expected " + Integer.toHexString(PAGE_LAYOUT_VERSION));
+        } else {
             flags = backend.readChar();
             entryCount = backend.readChar();
             startFreeSpace = backend.readChar();
             startData = backend.readChar();
-        } else {
-            flags = 0;
-            startFreeSpace = PAGE_HEADER_SIZE;
-            startData = (char) FileStoreFile.BLOCK_SIZE;
         }
     }
 

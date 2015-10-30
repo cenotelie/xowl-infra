@@ -22,7 +22,11 @@ package org.xowl.store.storage;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.xowl.store.IRIs;
+import org.xowl.store.Repository;
+import org.xowl.store.TestLogger;
 import org.xowl.store.storage.persistent.StorageException;
+import org.xowl.utils.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,5 +44,14 @@ public class OnDiskStoreTest {
         Path p = Files.createTempDirectory("testCreation");
         OnDiskStore store = new OnDiskStore(p.toFile(), false);
         Assert.assertNotNull(store);
+    }
+
+    @Test
+    public void testInsert() throws IOException, StorageException {
+        Path p = Files.createTempDirectory("testInsert");
+        OnDiskStore store = new OnDiskStore(p.toFile(), false);
+        Logger logger = new TestLogger();
+        Repository repo = new Repository(store);
+        repo.load(logger, IRIs.RDF);
     }
 }
