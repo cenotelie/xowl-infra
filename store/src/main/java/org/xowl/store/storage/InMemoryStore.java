@@ -54,6 +54,16 @@ public class InMemoryStore implements BaseStore {
     }
 
     @Override
+    public boolean commit() {
+        throw new UnsupportedOperationException("This store does not support commit/rollback operations");
+    }
+
+    @Override
+    public boolean rollback() {
+        throw new UnsupportedOperationException("This store does not support commit/rollback operations");
+    }
+
+    @Override
     public void addListener(ChangeListener listener) {
         dataset.addListener(listener);
     }

@@ -354,6 +354,17 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     }
 
     /**
+     * Rollback the outstanding changes to this store
+     *
+     * @return Whether the operation succeeded
+     */
+    public boolean rollback() {
+        boolean success = backend.rollback();
+        database.rollback();
+        return success;
+    }
+
+    /**
      * Gets the subject map for the specified subject
      *
      * @param subject A quad subject

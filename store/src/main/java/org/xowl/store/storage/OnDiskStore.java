@@ -61,14 +61,17 @@ class OnDiskStore implements BaseStore {
         dataset = new PersistedDataset(nodes, directory, isReadonly);
     }
 
-    /**
-     * Commits the outstanding changes to this store
-     *
-     * @return Whether the operation succeeded
-     */
+    @Override
     public boolean commit() {
         boolean success = nodes.commit();
         success &= dataset.commit();
+        return success;
+    }
+
+    @Override
+    public boolean rollback() {
+        boolean success = nodes.rollback();
+        success &= dataset.rollback();
         return success;
     }
 

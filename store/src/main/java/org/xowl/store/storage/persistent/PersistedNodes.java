@@ -533,6 +533,17 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         return success;
     }
 
+    /**
+     * Rollback the outstanding changes to this store
+     *
+     * @return Whether the operation succeeded
+     */
+    public boolean rollback() {
+        boolean success = backend.rollback();
+        database.rollback();
+        return success;
+    }
+
     @Override
     public IRINode getIRINode(GraphNode graph) {
         if (graph != null && graph.getNodeType() == Node.TYPE_IRI) {
