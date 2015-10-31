@@ -343,6 +343,17 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     }
 
     /**
+     * Commits the outstanding changes to this store
+     *
+     * @return Whether the operation succeeded
+     */
+    public boolean commit() {
+        boolean success = backend.commit();
+        database.commit();
+        return success;
+    }
+
+    /**
      * Gets the subject map for the specified subject
      *
      * @param subject A quad subject
@@ -2461,7 +2472,6 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     @Override
     public void close() throws Exception {
         backend.close();
-        database.commit();
         database.close();
     }
 }

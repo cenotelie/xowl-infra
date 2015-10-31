@@ -517,6 +517,17 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         return result;
     }
 
+    /**
+     * Commits the outstanding changes to this store
+     *
+     * @return Whether the operation succeeded
+     */
+    public boolean commit() {
+        boolean success = backend.commit();
+        database.commit();
+        return success;
+    }
+
     @Override
     public IRINode getIRINode(GraphNode graph) {
         if (graph != null && graph.getNodeType() == Node.TYPE_IRI) {
@@ -563,7 +574,6 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
     @Override
     public void close() throws Exception {
         backend.close();
-        database.commit();
         database.close();
     }
 }

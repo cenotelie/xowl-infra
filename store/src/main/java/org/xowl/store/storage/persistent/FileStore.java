@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  * A store of binary data backed by files
- * <p/>
+ * <p>
  * Each data file is composed of blocks (or pages)
  * - First block:
  * - int32: Magic identifier for the store
@@ -140,8 +140,30 @@ class FileStore extends IOBackend {
         }
     }
 
+    /**
+     * Commits the outstanding data
+     *
+     * @return Whether the operation succeeded
+     */
+    public boolean commit() {
+        globalLock.lock();
+        if (!state.compareAndSet(STATE_READY, STATE_FINALIZING))
+            throw new IllegalStateException("The store is not in a ready state");
+        finalizeAllTransactions();
+        boolean success = true;
+        for (FileStoreFile child : files) {
+            success &= child.commit();
+        }
+        state.compareAndSet(STATE_FINALIZING, STATE_READY);
+        globalLock.unlock();
+        return success;
+    }
+
     @Override
     public void close() throws IOException {
+        globalLock.lock();
+        if (!state.compareAndSet(STATE_READY, STATE_CLOSING))
+            throw new IllegalStateException("The store is not in a ready state");
         finalizeAllTransactions();
         for (FileStoreFile child : files) {
             try {
@@ -150,6 +172,8 @@ class FileStore extends IOBackend {
                 // do nothing
             }
         }
+        state.compareAndSet(STATE_CLOSING, STATE_CLOSED);
+        globalLock.unlock();
     }
 
     /**

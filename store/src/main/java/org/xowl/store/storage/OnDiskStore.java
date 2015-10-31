@@ -61,6 +61,17 @@ class OnDiskStore implements BaseStore {
         dataset = new PersistedDataset(nodes, directory, isReadonly);
     }
 
+    /**
+     * Commits the outstanding changes to this store
+     *
+     * @return Whether the operation succeeded
+     */
+    public boolean commit() {
+        boolean success = nodes.commit();
+        success &= dataset.commit();
+        return success;
+    }
+
     @Override
     public void addListener(ChangeListener listener) {
         dataset.addListener(listener);

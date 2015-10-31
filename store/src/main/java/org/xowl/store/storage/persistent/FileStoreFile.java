@@ -191,12 +191,19 @@ class FileStoreFile implements IOElement {
     }
 
     /**
-     * Flushes any outstanding changes and closes this file
+     * Closes the file.
+     * Any outstanding changes will be lost
      *
      * @throws IOException When an IO operation failed
      */
     public void close() throws IOException {
-        commit();
+        for (int i = 0; i != MAX_LOADED_BLOCKS; i++) {
+            blockBuffers[i] = null;
+            blockLocations[i] = -1;
+            blockLastHits[i] = 0;
+            blockIsDirty[i] = false;
+            blockPages[i] = null;
+        }
         channel.close();
     }
 
