@@ -23,10 +23,8 @@ package org.xowl.store.storage.cache;
 import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Node;
-import org.xowl.utils.collections.Adapter;
-import org.xowl.utils.collections.AdaptingIterator;
-import org.xowl.utils.collections.SingleIterator;
-import org.xowl.utils.collections.SparseIterator;
+import org.xowl.store.storage.MQuad;
+import org.xowl.utils.collections.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -149,16 +147,16 @@ class EdgeTarget implements Iterable<GraphNode> {
      * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    public int removeAll(GraphNode graph, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
+    public int removeAll(GraphNode graph, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] != null && (graph == null || RDFUtils.same(graphs[i], graph))) {
                 multiplicities[i]--;
                 if (multiplicities[i] == 0) {
-                    bufferRemoved.add(new CachedQuad(graphs[i]));
+                    bufferRemoved.add(new MQuad(graphs[i], 0));
                     graphs[i] = null;
                     size--;
                 } else {
-                    bufferDecremented.add(new CachedQuad(graphs[i]));
+                    bufferDecremented.add(new MQuad(graphs[i], multiplicities[i]));
                 }
             }
         }
@@ -170,10 +168,10 @@ class EdgeTarget implements Iterable<GraphNode> {
      *
      * @param buffer The buffer for the removed quads
      */
-    public void clear(List<CachedQuad> buffer) {
+    public void clear(List<MQuad> buffer) {
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] != null) {
-                buffer.add(new CachedQuad(graphs[i]));
+                buffer.add(new MQuad(graphs[i], multiplicities[i]));
             }
         }
     }
@@ -185,10 +183,10 @@ class EdgeTarget implements Iterable<GraphNode> {
      * @param buffer The buffer for the removed quads
      * @return true if the object is now empty
      */
-    public boolean clear(GraphNode graph, List<CachedQuad> buffer) {
+    public boolean clear(GraphNode graph, List<MQuad> buffer) {
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] != null && RDFUtils.same(graphs[i], graph)) {
-                buffer.add(new CachedQuad(graphs[i]));
+                buffer.add(new MQuad(graphs[i], multiplicities[i]));
                 graphs[i] = null;
                 size--;
             }
@@ -209,7 +207,7 @@ class EdgeTarget implements Iterable<GraphNode> {
      * @param overwrite Whether to overwrite quads from the target graph
      * @return true if the object is now empty
      */
-    public boolean copy(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+    public boolean copy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
         int indexOld = -1;
         int indexNew = -1;
         int indexEmpty = -1;
@@ -239,15 +237,15 @@ class EdgeTarget implements Iterable<GraphNode> {
                 graphs[indexEmpty] = target;
                 multiplicities[indexEmpty] = 1;
                 size++;
-                bufferNew.add(new CachedQuad(target));
+                bufferNew.add(new MQuad(target, 1));
             }
         } else if (overwrite && indexNew != -1) {
             // the target graph is there but not the old one and we must overwrite
             // we need to remove this
+            bufferOld.add(new MQuad(target, multiplicities[indexNew]));
             graphs[indexNew] = null;
             multiplicities[indexNew] = 0;
             size--;
-            bufferOld.add(new CachedQuad(target));
         }
         return (size == 0);
     }
@@ -264,7 +262,7 @@ class EdgeTarget implements Iterable<GraphNode> {
      * @param bufferNew The buffer of the new quads
      * @return true if the object is now empty
      */
-    public boolean move(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+    public boolean move(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
         int indexOld = -1;
         int indexNew = -1;
         for (int i = 0; i != graphs.length; i++) {
@@ -277,6 +275,7 @@ class EdgeTarget implements Iterable<GraphNode> {
         }
         if (indexOld != -1) {
             // if the origin graph is present, copy
+            bufferOld.add(new MQuad(origin, multiplicities[indexOld]));
             if (indexNew != -1) {
                 // the target graph is also here, increment it
                 multiplicities[indexNew]++;
@@ -288,16 +287,15 @@ class EdgeTarget implements Iterable<GraphNode> {
                 // reset the multiplicity
                 graphs[indexOld] = target;
                 multiplicities[indexOld] = 1;
-                bufferNew.add(new CachedQuad(target));
+                bufferNew.add(new MQuad(target, 1));
             }
-            bufferOld.add(new CachedQuad(origin));
         } else if (indexNew != -1) {
             // the target graph is there but not the old one
             // we need to remove this
+            bufferOld.add(new MQuad(target, multiplicities[indexNew]));
             graphs[indexNew] = null;
             multiplicities[indexNew] = 0;
             size--;
-            bufferOld.add(new CachedQuad(target));
         }
         return (size == 0);
     }
@@ -308,29 +306,39 @@ class EdgeTarget implements Iterable<GraphNode> {
     }
 
     /**
+     * Gets the multiplicity for the quad
+     *
+     * @param graph The graph
+     * @return The multiplicity
+     */
+    public long getMultiplicity(GraphNode graph) {
+        for (int i = 0; i != graphs.length; i++) {
+            if (graphs[i] != null && RDFUtils.same(graphs[i], graph))
+                return multiplicities[i];
+        }
+        return 0;
+    }
+
+    /**
      * Gets all the quads with the specified data
      *
      * @param graph The filtering graph
      * @return An iterator over the quads
      */
-    public Iterator<CachedQuad> getAll(GraphNode graph) {
+    public Iterator<MQuad> getAll(GraphNode graph) {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(iterator(), new Adapter<CachedQuad>() {
+            return new AdaptingIterator<>(new IndexIterator<>(graphs), new Adapter<MQuad>() {
                 @Override
-                public <X> CachedQuad adapt(X element) {
-                    return new CachedQuad((GraphNode) element);
+                public <X> MQuad adapt(X element) {
+                    int i = (Integer) element;
+                    return new MQuad(graphs[i], multiplicities[i]);
                 }
             });
         }
 
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] != null && RDFUtils.same(graphs[i], graph)) {
-                return new AdaptingIterator<>(new SingleIterator<>(graph), new Adapter<CachedQuad>() {
-                    @Override
-                    public <X> CachedQuad adapt(X element) {
-                        return new CachedQuad((GraphNode) element);
-                    }
-                });
+                return new SingleIterator<>(new MQuad(graphs[i], multiplicities[i]));
             }
         }
 

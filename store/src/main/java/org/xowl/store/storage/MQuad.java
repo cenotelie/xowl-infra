@@ -18,24 +18,50 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage.cache;
+package org.xowl.store.storage;
 
 import org.xowl.store.rdf.*;
 
 /**
- * Represents a cached quad
+ * A quad supplemented by a multiplicity information
  *
  * @author Laurent Wouters
  */
-class CachedQuad extends Quad {
+public class MQuad extends Quad {
+    /**
+     * The quad multiplicity
+     */
+    private long multiplicity;
 
     /**
      * Initializes this quad
      *
-     * @param graph The containing graph
+     * @param graph        The containing graph
+     * @param multiplicity The quad 'smultiplicity
      */
-    public CachedQuad(GraphNode graph) {
+    public MQuad(GraphNode graph, long multiplicity) {
         super(graph, null, null, null);
+        this.multiplicity = multiplicity;
+    }
+
+    /**
+     * Gets the multiplicity of this quad
+     *
+     * @return The multiplicity of this quad
+     */
+    public long getMultiplicity() {
+        return multiplicity;
+    }
+
+    /**
+     * Updates the multiplicity of this quad
+     *
+     * @param offset The modifier
+     * @return The multiplicity of this quad
+     */
+    public long modifyMultiplicity(long offset) {
+        multiplicity += offset;
+        return multiplicity;
     }
 
     /**

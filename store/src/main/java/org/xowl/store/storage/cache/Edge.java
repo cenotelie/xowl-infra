@@ -24,6 +24,7 @@ import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Property;
+import org.xowl.store.storage.MQuad;
 import org.xowl.utils.collections.*;
 
 import java.util.Arrays;
@@ -141,7 +142,7 @@ class Edge implements Iterable<EdgeTarget> {
      * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    public int removeAll(GraphNode graph, Node value, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
+    public int removeAll(GraphNode graph, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && (value == null || RDFUtils.same(targets[i].getTarget(), value))) {
                 int originalSizeDec = bufferDecremented.size();
@@ -165,7 +166,7 @@ class Edge implements Iterable<EdgeTarget> {
      *
      * @param buffer The buffer for the removed quads
      */
-    public void clear(List<CachedQuad> buffer) {
+    public void clear(List<MQuad> buffer) {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null) {
                 int originalSize = buffer.size();
@@ -183,7 +184,7 @@ class Edge implements Iterable<EdgeTarget> {
      * @param buffer The buffer for the removed quads
      * @return true if the object is now empty
      */
-    public boolean clear(GraphNode graph, List<CachedQuad> buffer) {
+    public boolean clear(GraphNode graph, List<MQuad> buffer) {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null) {
                 int originalSize = buffer.size();
@@ -212,7 +213,7 @@ class Edge implements Iterable<EdgeTarget> {
      * @param overwrite Whether to overwrite quads from the target graph
      * @return true if the object is now empty
      */
-    public boolean copy(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+    public boolean copy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null) {
                 int originalSizeOld = bufferOld.size();
@@ -243,7 +244,7 @@ class Edge implements Iterable<EdgeTarget> {
      * @param bufferNew The buffer of the new quads
      * @return true if the object is now empty
      */
-    public boolean move(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+    public boolean move(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null) {
                 int originalSizeOld = bufferOld.size();
@@ -268,24 +269,40 @@ class Edge implements Iterable<EdgeTarget> {
     }
 
     /**
+     * Gets the multiplicity for the quad
+     *
+     * @param graph The graph
+     * @param value The edge's target node
+     * @return The multiplicity
+     */
+    public long getMultiplicity(GraphNode graph, Node value) {
+        for (int i = 0; i != targets.length; i++) {
+            if (targets[i] != null && RDFUtils.same(targets[i].getTarget(), value)) {
+                return targets[i].getMultiplicity(graph);
+            }
+        }
+        return 0;
+    }
+
+    /**
      * Gets all the quads with the specified data
      *
      * @param graph The filtering graph
      * @param value The filtering object value
      * @return An iterator over the quads
      */
-    public Iterator<CachedQuad> getAll(final GraphNode graph, final Node value) {
+    public Iterator<MQuad> getAll(final GraphNode graph, final Node value) {
         if (value == null || value.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(targets), new Adapter<Iterator<CachedQuad>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(targets), new Adapter<Iterator<MQuad>>() {
                 @Override
-                public <X> Iterator<CachedQuad> adapt(X element) {
+                public <X> Iterator<MQuad> adapt(X element) {
                     Integer index = (Integer) element;
                     return targets[index].getAll(graph);
                 }
-            }), new Adapter<CachedQuad>() {
+            }), new Adapter<MQuad>() {
                 @Override
-                public <X> CachedQuad adapt(X element) {
-                    Couple<Integer, CachedQuad> result = (Couple<Integer, CachedQuad>) element;
+                public <X> MQuad adapt(X element) {
+                    Couple<Integer, MQuad> result = (Couple<Integer, MQuad>) element;
                     result.y.setObject(targets[result.x].getTarget());
                     return result.y;
                 }
@@ -294,10 +311,10 @@ class Edge implements Iterable<EdgeTarget> {
 
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && RDFUtils.same(targets[i].getTarget(), value)) {
-                return new AdaptingIterator<>(targets[i].getAll(graph), new Adapter<CachedQuad>() {
+                return new AdaptingIterator<>(targets[i].getAll(graph), new Adapter<MQuad>() {
                     @Override
-                    public <X> CachedQuad adapt(X element) {
-                        CachedQuad result = (CachedQuad) element;
+                    public <X> MQuad adapt(X element) {
+                        MQuad result = (MQuad) element;
                         result.setObject(value);
                         return result;
                     }

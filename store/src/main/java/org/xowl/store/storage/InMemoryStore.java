@@ -74,6 +74,16 @@ public class InMemoryStore implements BaseStore {
     }
 
     @Override
+    public long getMultiplicity(Quad quad) {
+        return dataset.getMultiplicity(quad);
+    }
+
+    @Override
+    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+        return dataset.getMultiplicity(graph, subject, property, object);
+    }
+
+    @Override
     public Iterator<Quad> getAll() {
         return dataset.getAll();
     }

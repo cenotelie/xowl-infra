@@ -24,6 +24,7 @@ import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.Dataset;
+import org.xowl.store.storage.MQuad;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.collections.*;
 
@@ -809,6 +810,66 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     }
 
     @Override
+    public long getMultiplicity(Quad quad) {
+        return getMultiplicity(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+    }
+
+    @Override
+    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+        try {
+            PersistedNode pGraph = nodes.getPersistent(graph, false);
+            if (pGraph == null)
+                return 0;
+            PersistedNode pSubject = nodes.getPersistent(subject, false);
+            if (pSubject == null)
+                return 0;
+            PersistedNode pProperty = nodes.getPersistent(property, false);
+            if (pProperty == null)
+                return 0;
+            PersistedNode pObject = nodes.getPersistent(object, false);
+            if (pObject == null)
+                return 0;
+            return getMultiplicity(pGraph, pSubject, pProperty, pObject);
+        } catch (UnsupportedNodeType exception) {
+            return 0;
+        }
+    }
+
+    /**
+     * Gets the multiplicity of a quad
+     *
+     * @param graph    The graph
+     * @param subject  The subject
+     * @param property The property
+     * @param object   The object
+     * @return The multiplicity in this store
+     */
+    private long getMultiplicity(PersistedNode graph, PersistedNode subject, PersistedNode property, PersistedNode object) {
+        try {
+            Map<Long, Long> map = mapFor(subject);
+            Long bucket = map.get(subject.getKey());
+            if (bucket == null)
+                return 0;
+            bufferQNSubject = bucket;
+            long target = lookupQNode(bufferQNSubject, property, false);
+            if (target == PersistedNode.KEY_NOT_PRESENT)
+                return 0;
+            target = lookupQNode(target, object, false);
+            if (target == PersistedNode.KEY_NOT_PRESENT)
+                return 0;
+            target = lookupQNode(target, graph, false);
+            if (target == PersistedNode.KEY_NOT_PRESENT)
+                return 0;
+            try (IOElement entry = backend.access(target)) {
+                return entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
+            }
+        } catch (IOException | StorageException | UnsupportedNodeType exception) {
+            // do nothing
+            return 0;
+        }
+    }
+
+    @Override
     public Iterator<Quad> getAll() {
         return getAll(null, null, null, null);
     }
@@ -854,7 +915,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 return new AdaptingIterator<>(getAllOnProperty(bucket, property, object, graph), new Adapter<Quad>() {
                     @Override
                     public <X> Quad adapt(X element) {
-                        PersistedQuad quad = (PersistedQuad) element;
+                        MQuad quad = (MQuad) element;
                         quad.setSubject(subject);
                         return quad;
                     }
@@ -887,9 +948,9 @@ public class PersistedDataset implements Dataset, AutoCloseable {
         if (graph == null)
             return new SingleIterator<>(null);
         Iterator<QNode> iteratorSubjects = new GraphQNodeIterator(backend, bucket);
-        return new AdaptingIterator<>(new CombiningIterator<>(iteratorSubjects, new Adapter<Iterator<PersistedQuad>>() {
+        return new AdaptingIterator<>(new CombiningIterator<>(iteratorSubjects, new Adapter<Iterator<MQuad>>() {
             @Override
-            public <X> Iterator<PersistedQuad> adapt(X element) {
+            public <X> Iterator<MQuad> adapt(X element) {
                 long subjectKey = ((QNode) element).key();
                 try (IOElement entry = backend.read(subjectKey)) {
                     long propertyBucket = entry.seek(8 + 4 + 8).readLong();
@@ -901,7 +962,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
         }), new Adapter<Quad>() {
             @Override
             public <X> Quad adapt(X element) {
-                Couple<QNode, PersistedQuad> couple = (Couple<QNode, PersistedQuad>) element;
+                Couple<QNode, MQuad> couple = (Couple<QNode, MQuad>) element;
                 long subjectKey = couple.x.key();
                 try (IOElement entry = backend.read(subjectKey)) {
                     couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
@@ -921,9 +982,9 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @return An iterator over the results
      */
     private Iterator<Quad> getAllDefault(final Property property, final Node object) {
-        return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<PersistedQuad>>() {
+        return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<MQuad>>() {
             @Override
-            public <X> Iterator<PersistedQuad> adapt(X element) {
+            public <X> Iterator<MQuad> adapt(X element) {
                 long subjectKey = (Long) element;
                 try (IOElement entry = backend.read(subjectKey)) {
                     long propertyBucket = entry.seek(8 + 4 + 8).readLong();
@@ -935,7 +996,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
         }), new Adapter<Quad>() {
             @Override
             public <X> Quad adapt(X element) {
-                Couple<Long, PersistedQuad> couple = (Couple<Long, PersistedQuad>) element;
+                Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
                 long subjectKey = couple.x;
                 try (IOElement entry = backend.read(subjectKey)) {
                     couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
@@ -985,11 +1046,11 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param object   An object node to match, or null
      * @return An iterator over the results
      */
-    private Iterator<PersistedQuad> getAllOnProperty(long bucket, final Property property, final Node object, final GraphNode graph) {
+    private Iterator<MQuad> getAllOnProperty(long bucket, final Property property, final Node object, final GraphNode graph) {
         if (property == null || property.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(backend, bucket), new Adapter<Iterator<PersistedQuad>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(backend, bucket), new Adapter<Iterator<MQuad>>() {
                 @Override
-                public <X> Iterator<PersistedQuad> adapt(X element) {
+                public <X> Iterator<MQuad> adapt(X element) {
                     long key = ((QNode) element).key();
                     try (IOElement entry = backend.read(key)) {
                         entry.seek(8 + 4 + 8);
@@ -999,10 +1060,10 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                         return null;
                     }
                 }
-            }), new Adapter<PersistedQuad>() {
+            }), new Adapter<MQuad>() {
                 @Override
-                public <X> PersistedQuad adapt(X element) {
-                    Couple<QNode, PersistedQuad> couple = (Couple<QNode, PersistedQuad>) element;
+                public <X> MQuad adapt(X element) {
+                    Couple<QNode, MQuad> couple = (Couple<QNode, MQuad>) element;
                     long key = couple.x.key();
                     try (IOElement entry = backend.read(key)) {
                         entry.seek(8);
@@ -1031,10 +1092,10 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 long key = entry.readLong();
                 long child = entry.readLong();
                 if (type == pProperty.getNodeType() && key == pProperty.getKey()) {
-                    return new AdaptingIterator<>(getAllOnObject(child, object, graph), new Adapter<PersistedQuad>() {
+                    return new AdaptingIterator<>(getAllOnObject(child, object, graph), new Adapter<MQuad>() {
                         @Override
-                        public <X> PersistedQuad adapt(X element) {
-                            PersistedQuad quad = (PersistedQuad) element;
+                        public <X> MQuad adapt(X element) {
+                            MQuad quad = (MQuad) element;
                             quad.setProperty(property);
                             return quad;
                         }
@@ -1055,11 +1116,11 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param object An object node to match, or null
      * @return An iterator over the results
      */
-    private Iterator<PersistedQuad> getAllOnObject(long bucket, final Node object, final GraphNode graph) {
+    private Iterator<MQuad> getAllOnObject(long bucket, final Node object, final GraphNode graph) {
         if (object == null || object.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(backend, bucket), new Adapter<Iterator<PersistedQuad>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(backend, bucket), new Adapter<Iterator<MQuad>>() {
                 @Override
-                public <X> Iterator<PersistedQuad> adapt(X element) {
+                public <X> Iterator<MQuad> adapt(X element) {
                     long key = ((QNode) element).key();
                     try (IOElement entry = backend.read(key)) {
                         entry.seek(8 + 4 + 8);
@@ -1069,10 +1130,10 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                         return null;
                     }
                 }
-            }), new Adapter<PersistedQuad>() {
+            }), new Adapter<MQuad>() {
                 @Override
-                public <X> PersistedQuad adapt(X element) {
-                    Couple<QNode, PersistedQuad> couple = (Couple<QNode, PersistedQuad>) element;
+                public <X> MQuad adapt(X element) {
+                    Couple<QNode, MQuad> couple = (Couple<QNode, MQuad>) element;
                     long key = couple.x.key();
                     try (IOElement entry = backend.read(key)) {
                         entry.seek(8);
@@ -1101,10 +1162,10 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 long key = entry.readLong();
                 long child = entry.readLong();
                 if (type == pObject.getNodeType() && key == pObject.getKey()) {
-                    return new AdaptingIterator<>(getAllOnGraph(child, graph), new Adapter<PersistedQuad>() {
+                    return new AdaptingIterator<>(getAllOnGraph(child, graph), new Adapter<MQuad>() {
                         @Override
-                        public <X> PersistedQuad adapt(X element) {
-                            PersistedQuad quad = (PersistedQuad) element;
+                        public <X> MQuad adapt(X element) {
+                            MQuad quad = (MQuad) element;
                             quad.setObject(object);
                             return quad;
                         }
@@ -1124,17 +1185,17 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param graph  A containing graph to match, or null
      * @return An iterator over the results
      */
-    private Iterator<PersistedQuad> getAllOnGraph(long bucket, GraphNode graph) {
+    private Iterator<MQuad> getAllOnGraph(long bucket, GraphNode graph) {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new QNodeIterator(backend, bucket), new Adapter<PersistedQuad>() {
+            return new AdaptingIterator<>(new QNodeIterator(backend, bucket), new Adapter<MQuad>() {
                 @Override
-                public <X> PersistedQuad adapt(X element) {
+                public <X> MQuad adapt(X element) {
                     long key = ((QNode) element).key();
                     try (IOElement entry = backend.read(key)) {
                         entry.seek(8);
                         PersistedNode node = getNode(entry.readInt(), entry.readLong());
                         long multiplicity = entry.readLong();
-                        return new PersistedQuad((GraphNode) node, multiplicity);
+                        return new MQuad((GraphNode) node, multiplicity);
                     } catch (IOException | StorageException exception) {
                         return null;
                     }
@@ -1157,7 +1218,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 long key = entry.readLong();
                 long multiplicity = entry.readLong();
                 if (type == pGraph.getNodeType() && key == pGraph.getKey()) {
-                    return new SingleIterator<>(new PersistedQuad(graph, multiplicity));
+                    return new SingleIterator<>(new MQuad(graph, multiplicity));
                 }
             } catch (IOException | StorageException exception) {
                 return new SingleIterator<>(null);
@@ -1663,8 +1724,8 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param object   The object to match
      */
     private void removeAll(PersistedNode graph, PersistedNode subject, PersistedNode property, PersistedNode object) {
-        List<PersistedQuad> bufferDecremented = new ArrayList<>();
-        List<PersistedQuad> bufferRemoved = new ArrayList<>();
+        List<MQuad> bufferDecremented = new ArrayList<>();
+        List<MQuad> bufferRemoved = new ArrayList<>();
         if (subject != null)
             removeAllOnSingleSubject(graph, subject, property, object, bufferDecremented, bufferRemoved);
         else if (graph != null)
@@ -1689,7 +1750,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param bufferDecremented The buffer of decremented quads
      * @param bufferRemoved     The buffer of removed quads
      */
-    private void removeAllOnSingleSubject(PersistedNode graph, PersistedNode subject, PersistedNode property, PersistedNode object, List<PersistedQuad> bufferDecremented, List<PersistedQuad> bufferRemoved) {
+    private void removeAllOnSingleSubject(PersistedNode graph, PersistedNode subject, PersistedNode property, PersistedNode object, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         try {
             Map<Long, Long> map = mapFor(subject);
             Long key = map.get(subject.getKey());
@@ -1698,7 +1759,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             int size = bufferRemoved.size();
             boolean isEmpty = removeAllOnSubject(key, property, object, graph, bufferDecremented, bufferRemoved);
             for (int i = size; i != bufferRemoved.size(); i++) {
-                PersistedQuad quad = bufferRemoved.get(i);
+                MQuad quad = bufferRemoved.get(i);
                 doQuadDeindex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
             }
             if (isEmpty)
@@ -1717,7 +1778,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param bufferDecremented The buffer of decremented quads
      * @param bufferRemoved     The buffer of removed quads
      */
-    private void removeAllOnSingleGraph(PersistedNode graph, PersistedNode property, PersistedNode object, List<PersistedQuad> bufferDecremented, List<PersistedQuad> bufferRemoved) {
+    private void removeAllOnSingleGraph(PersistedNode graph, PersistedNode property, PersistedNode object, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         Map<Long, Long> map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
         Long bucket = map.get(graph.getKey());
         if (bucket == null)
@@ -1803,7 +1864,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param bufferDecremented The buffer of decremented quads
      * @param bufferRemoved     The buffer of removed quads
      */
-    private void removeAllDefault(PersistedNode property, PersistedNode object, List<PersistedQuad> bufferDecremented, List<PersistedQuad> bufferRemoved) {
+    private void removeAllDefault(PersistedNode property, PersistedNode object, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         removeAllDefault(mapSubjectIRI, property, object, bufferDecremented, bufferRemoved);
         removeAllDefault(mapSubjectBlank, property, object, bufferDecremented, bufferRemoved);
         removeAllDefault(mapSubjectAnon, property, object, bufferDecremented, bufferRemoved);
@@ -1818,13 +1879,13 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param bufferDecremented The buffer of decremented quads
      * @param bufferRemoved     The buffer of removed quads
      */
-    private void removeAllDefault(Map<Long, Long> map, PersistedNode property, PersistedNode object, List<PersistedQuad> bufferDecremented, List<PersistedQuad> bufferRemoved) {
+    private void removeAllDefault(Map<Long, Long> map, PersistedNode property, PersistedNode object, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         List<Long> toRemove = new ArrayList<>();
         for (Map.Entry<Long, Long> entry : map.entrySet()) {
             int size = bufferRemoved.size();
             boolean isEmpty = removeAllOnSubject(entry.getValue(), property, object, null, bufferDecremented, bufferRemoved);
             for (int i = size; i != bufferRemoved.size(); i++) {
-                PersistedQuad quad = bufferRemoved.get(i);
+                MQuad quad = bufferRemoved.get(i);
                 doQuadDeindex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
             }
             if (isEmpty)
@@ -1845,7 +1906,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param bufferRemoved     The buffer of removed quads
      * @return Whether the subject has been emptied
      */
-    private boolean removeAllOnSubject(long subjectKey, PersistedNode property, PersistedNode object, PersistedNode graph, List<PersistedQuad> bufferDecremented, List<PersistedQuad> bufferRemoved) {
+    private boolean removeAllOnSubject(long subjectKey, PersistedNode property, PersistedNode object, PersistedNode graph, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         long child;
         int type;
         long key;
@@ -1902,7 +1963,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param bufferRemoved     The buffer of removed quads
      * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
      */
-    private long removeAllOnProperty(long bucket, PersistedNode property, PersistedNode object, PersistedNode graph, List<PersistedQuad> bufferDecremented, List<PersistedQuad> bufferRemoved) {
+    private long removeAllOnProperty(long bucket, PersistedNode property, PersistedNode object, PersistedNode graph, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         long previous = PersistedNode.KEY_NOT_PRESENT;
         long current = bucket;
         long next;
@@ -1985,7 +2046,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param bufferRemoved     The buffer of removed quads
      * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
      */
-    private long removeAllOnObject(long bucket, PersistedNode object, PersistedNode graph, List<PersistedQuad> bufferDecremented, List<PersistedQuad> bufferRemoved) {
+    private long removeAllOnObject(long bucket, PersistedNode object, PersistedNode graph, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         long previous = PersistedNode.KEY_NOT_PRESENT;
         long current = bucket;
         long next;
@@ -2067,7 +2128,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param bufferRemoved     The buffer of removed quads
      * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
      */
-    private long removeAllOnGraph(long bucket, PersistedNode graph, List<PersistedQuad> bufferDecremented, List<PersistedQuad> bufferRemoved) {
+    private long removeAllOnGraph(long bucket, PersistedNode graph, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         long previous = PersistedNode.KEY_NOT_PRESENT;
         long current = bucket;
         long next;
@@ -2082,18 +2143,18 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                     multiplicity--;
                     PersistedNode g = getNode(type, key);
                     if (multiplicity <= 0) {
-                        bufferRemoved.add(new PersistedQuad((GraphNode) g, multiplicity));
+                        bufferRemoved.add(new MQuad((GraphNode) g, multiplicity));
                         removedGraph = g;
                     } else {
-                        bufferDecremented.add(new PersistedQuad((GraphNode) g, multiplicity));
+                        bufferDecremented.add(new MQuad((GraphNode) g, multiplicity));
                     }
                 } else if (graph.getNodeType() == type && graph.getKey() == key) {
                     multiplicity--;
                     if (multiplicity <= 0) {
-                        bufferRemoved.add(new PersistedQuad((GraphNode) graph, multiplicity));
+                        bufferRemoved.add(new MQuad((GraphNode) graph, multiplicity));
                         removedGraph = graph;
                     } else {
-                        bufferDecremented.add(new PersistedQuad((GraphNode) graph, multiplicity));
+                        bufferDecremented.add(new MQuad((GraphNode) graph, multiplicity));
                     }
                 }
             } catch (IOException | StorageException exception) {
@@ -2142,7 +2203,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
 
     @Override
     public void clear() {
-        List<PersistedQuad> buffer = new ArrayList<>();
+        List<MQuad> buffer = new ArrayList<>();
         for (Long entry : mapSubjectIRI.values())
             clearOnSubject(entry, null, buffer);
         mapSubjectIRI.clear();
@@ -2183,7 +2244,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             return;
         long current = bucket;
         long next;
-        List<PersistedQuad> buffer = new ArrayList<>();
+        List<MQuad> buffer = new ArrayList<>();
         while (current != PersistedNode.KEY_NOT_PRESENT) {
             next = PersistedNode.KEY_NOT_PRESENT;
             try (IOElement element = backend.read(current)) {
@@ -2228,7 +2289,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param buffer The buffer of quads
      * @return Whether the subject is emptied
      */
-    private boolean clearOnSubject(long key, PersistedNode graph, List<PersistedQuad> buffer) {
+    private boolean clearOnSubject(long key, PersistedNode graph, List<MQuad> buffer) {
         long child;
         SubjectNode subject;
         try (IOElement element = backend.read(key)) {
@@ -2276,7 +2337,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param buffer The buffer of quads
      * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
      */
-    private long clearOnProperty(long bucket, PersistedNode graph, List<PersistedQuad> buffer) {
+    private long clearOnProperty(long bucket, PersistedNode graph, List<MQuad> buffer) {
         long previous = PersistedNode.KEY_NOT_PRESENT;
         long current = bucket;
         long next;
@@ -2344,7 +2405,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param buffer The buffer of quads
      * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
      */
-    private long clearOnObject(long bucket, PersistedNode graph, List<PersistedQuad> buffer) {
+    private long clearOnObject(long bucket, PersistedNode graph, List<MQuad> buffer) {
         long previous = PersistedNode.KEY_NOT_PRESENT;
         long current = bucket;
         long next;
@@ -2412,7 +2473,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @param buffer The buffer of quads
      * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
      */
-    private long clearOnGraph(long bucket, PersistedNode graph, List<PersistedQuad> buffer) {
+    private long clearOnGraph(long bucket, PersistedNode graph, List<MQuad> buffer) {
         long previous = PersistedNode.KEY_NOT_PRESENT;
         long current = bucket;
         long next;
@@ -2425,10 +2486,10 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 if (graph == null) {
                     PersistedNode g = getNode(type, key);
                     g.decrementRefCount();
-                    buffer.add(new PersistedQuad((GraphNode) g, element.readLong()));
+                    buffer.add(new MQuad((GraphNode) g, element.readLong()));
                 } else if (graph.getNodeType() == type && graph.getKey() == key) {
                     graph.decrementRefCount();
-                    buffer.add(new PersistedQuad((GraphNode) graph, element.readLong()));
+                    buffer.add(new MQuad((GraphNode) graph, element.readLong()));
                     found = true;
                 }
             } catch (IOException | StorageException exception) {

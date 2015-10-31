@@ -26,11 +26,9 @@ import org.xowl.store.IRIs;
 import org.xowl.store.Repository;
 import org.xowl.store.TestLogger;
 import org.xowl.store.rdf.Quad;
-import org.xowl.store.storage.persistent.StorageException;
 import org.xowl.utils.Logger;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
@@ -43,10 +41,11 @@ import java.util.Iterator;
 public class OnDiskStoreTest {
 
     @Test
-    public void testCreation() throws IOException, StorageException {
+    public void testCreation() throws Exception {
         Path p = Files.createTempDirectory("testCreation");
         OnDiskStore store = new OnDiskStore(p.toFile(), false);
         Assert.assertNotNull(store);
+        store.close();
     }
 
     @Test
@@ -56,13 +55,15 @@ public class OnDiskStoreTest {
         Logger logger = new TestLogger();
         Repository repo = new Repository(store);
         repo.load(logger, IRIs.RDF);
+        store.commit();
         store.close();
 
-        store = new OnDiskStore(new File("/home/laurent/dev"), false);
+        store = new OnDiskStore(new File("/home/laurent/dev"), true);
         Iterator<Quad> iterator = store.getAll();
         while (iterator.hasNext()) {
             Quad quad = iterator.next();
             System.out.println(quad);
         }
+        store.close();
     }
 }

@@ -46,6 +46,25 @@ public interface Dataset {
     void removeListener(ChangeListener listener);
 
     /**
+     * Gets the multiplicity of a quad
+     *
+     * @param quad The quad
+     * @return The multiplicity in this store
+     */
+    long getMultiplicity(Quad quad);
+
+    /**
+     * Gets the multiplicity of a quad
+     *
+     * @param graph    The graph
+     * @param subject  The subject
+     * @param property The property
+     * @param object   The object
+     * @return The multiplicity in this store
+     */
+    long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object);
+
+    /**
      * Gets an iterator over all the quads in this dataset
      *
      * @return An iterator over the results
@@ -123,7 +142,6 @@ public interface Dataset {
      * @return The number of different quads
      */
     long count(GraphNode graph, SubjectNode subject, Property property, Node object);
-
 
 
     /**
