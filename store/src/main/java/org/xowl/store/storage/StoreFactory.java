@@ -20,6 +20,13 @@
 
 package org.xowl.store.storage;
 
+import org.xowl.store.storage.persistent.StorageException;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.UUID;
+
 /**
  * Represents a factory of stores with different capabilities
  *
@@ -33,5 +40,47 @@ public class StoreFactory {
      */
     public static BaseStore newInMemoryStore() {
         return new InMemoryStore();
+    }
+
+    /**
+     * Creates a new store backed by disk files in a temporary folder
+     *
+     * @return The store
+     */
+    public static BaseStore newFileStore() {
+        try {
+            File directory = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
+            return new OnDiskStore(directory, false);
+        } catch (IOException | StorageException exception) {
+            return null;
+        }
+    }
+
+    /**
+     * Creates a new store backed by disk files
+     *
+     * @param directory The directory containing the data files
+     * @return The store
+     */
+    public static BaseStore newFileStore(File directory) {
+        try {
+            return new OnDiskStore(directory, false);
+        } catch (IOException | StorageException exception) {
+            return null;
+        }
+    }
+
+    /**
+     * Creates a new store backed by disk files in read-only mode
+     *
+     * @param directory The directory containing the data files
+     * @return The store
+     */
+    public static BaseStore newReadOnlyFileStore(File directory) {
+        try {
+            return new OnDiskStore(directory, true);
+        } catch (IOException | StorageException exception) {
+            return null;
+        }
     }
 }
