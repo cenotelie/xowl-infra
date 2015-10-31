@@ -648,4 +648,15 @@ public class FileStoreFileTest {
         Assert.assertEquals("Unexpected content", 66, pf.readInt());
         pf.close();
     }
+
+    @Test
+    public void testRollback() throws IOException {
+        File file = File.createTempFile("test", ".bin");
+        FileStoreFile pf = new FileStoreFile(file);
+        pf.writeInt(55);
+        pf.rollback();
+        pf.seek(0);
+        Assert.assertEquals("Unexpected content", 55, pf.readInt());
+        pf.close();
+    }
 }

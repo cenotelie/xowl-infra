@@ -161,6 +161,27 @@ class FileStore extends IOBackend {
         return success;
     }
 
+    /**
+     * Rollback outstanding changes
+     *
+     * @return Whether the operation fully succeeded
+     */
+    public boolean rollback() {
+        globalLock.lock();
+        if (!state.compareAndSet(STATE_READY, STATE_FINALIZING)) {
+            globalLock.unlock();
+            throw new IllegalStateException("The store is not in a ready state");
+        }
+        finalizeAllTransactions();
+        boolean success = true;
+        for (FileStoreFile child : files) {
+            success &= child.rollback();
+        }
+        state.set(success ? STATE_READY : STATE_ERROR);
+        globalLock.unlock();
+        return success;
+    }
+
     @Override
     public void close() throws IOException {
         globalLock.lock();
