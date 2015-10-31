@@ -147,8 +147,10 @@ class FileStore extends IOBackend {
      */
     public boolean commit() {
         globalLock.lock();
-        if (!state.compareAndSet(STATE_READY, STATE_FINALIZING))
+        if (!state.compareAndSet(STATE_READY, STATE_FINALIZING)) {
+            globalLock.unlock();
             throw new IllegalStateException("The store is not in a ready state");
+        }
         finalizeAllTransactions();
         boolean success = true;
         for (FileStoreFile child : files) {
@@ -162,8 +164,10 @@ class FileStore extends IOBackend {
     @Override
     public void close() throws IOException {
         globalLock.lock();
-        if (!state.compareAndSet(STATE_READY, STATE_CLOSING))
+        if (!state.compareAndSet(STATE_READY, STATE_CLOSING)) {
+            globalLock.unlock();
             throw new IllegalStateException("The store is not in a ready state");
+        }
         finalizeAllTransactions();
         for (FileStoreFile child : files) {
             try {
@@ -182,6 +186,11 @@ class FileStore extends IOBackend {
     public void clear() {
         if (isReadonly)
             return;
+        globalLock.lock();
+        if (!state.compareAndSet(STATE_READY, STATE_FINALIZING)) {
+            globalLock.unlock();
+            throw new IllegalStateException("The store is not in a ready state");
+        }
         finalizeAllTransactions();
         for (int i = 0; i != files.size(); i++) {
             try {
@@ -200,6 +209,8 @@ class FileStore extends IOBackend {
         } catch (IOException exception) {
             // do nothing
         }
+        state.compareAndSet(STATE_FINALIZING, STATE_READY);
+        globalLock.unlock();
     }
 
     /**

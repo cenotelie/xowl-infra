@@ -366,8 +366,10 @@ class IOBackend implements AutoCloseable {
     @Override
     public void close() throws Exception {
         globalLock.lock();
-        if (!state.compareAndSet(STATE_READY, STATE_CLOSING))
+        if (!state.compareAndSet(STATE_READY, STATE_CLOSING)) {
+            globalLock.unlock();
             throw new IllegalStateException("The store is not in a ready state");
+        }
         finalizeAllTransactions();
         state.compareAndSet(STATE_CLOSING, STATE_CLOSED);
         globalLock.unlock();
