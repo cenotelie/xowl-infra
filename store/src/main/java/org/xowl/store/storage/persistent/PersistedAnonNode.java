@@ -87,6 +87,11 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     }
 
     @Override
+    public PersistedNodes getStore() {
+        return backend;
+    }
+
+    @Override
     public long getKey() {
         return key;
     }

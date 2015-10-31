@@ -41,6 +41,13 @@ interface PersistedNode extends Node {
     int SERIALIZED_SIZE = 8 + 4;
 
     /**
+     * Gets the store that maintains this node
+     *
+     * @return The store that maintains this node
+     */
+    PersistedNodes getStore();
+
+    /**
      * Gets the key identifying this node
      *
      * @return The key identifying this node

@@ -88,6 +88,11 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     }
 
     @Override
+    public PersistedNodes getStore() {
+        return backend;
+    }
+
+    @Override
     public long getKey() {
         return key;
     }

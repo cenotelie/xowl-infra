@@ -427,8 +427,13 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      * @throws UnsupportedNodeType When the node cannot be persisted
      */
     public PersistedNode getPersistent(Node node, boolean create) throws UnsupportedNodeType {
-        if (node instanceof PersistedNode)
-            return ((PersistedNode) node);
+        if (node instanceof PersistedNode) {
+            PersistedNode persistedNode = ((PersistedNode) node);
+            if (persistedNode.getStore() == this || persistedNode.getStore() == null)
+                // it is persisted here
+                return persistedNode;
+            // not persisted here, we should resolve it here
+        }
         switch (node.getNodeType()) {
             case Node.TYPE_IRI:
                 if (create)

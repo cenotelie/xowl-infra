@@ -38,6 +38,11 @@ class PersistedBlankNode extends BlankNode implements PersistedNode {
     }
 
     @Override
+    public PersistedNodes getStore() {
+        return null;
+    }
+
+    @Override
     public long getKey() {
         return getBlankID();
     }
