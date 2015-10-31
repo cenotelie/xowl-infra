@@ -209,7 +209,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      * @throws StorageException When the page version does not match the expected one
      */
     private long lookupString(long bucket, String data) throws IOException, StorageException {
-        byte[] buffer = charset.encode(data).array();
+        byte[] buffer = data.getBytes(charset);
         long candidate = bucket;
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
             try (IOElement entry = backend.read(candidate)) {
@@ -236,7 +236,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      * @throws StorageException When the page version does not match the expected one
      */
     private long addString(long bucket, String data) throws IOException, StorageException {
-        byte[] buffer = charset.encode(data).array();
+        byte[] buffer = data.getBytes(charset);
         long previous = PersistedNode.KEY_NOT_PRESENT;
         long candidate = bucket;
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
