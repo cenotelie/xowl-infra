@@ -156,7 +156,7 @@ class FileStore extends IOBackend {
         for (FileStoreFile child : files) {
             success &= child.commit();
         }
-        state.compareAndSet(STATE_FINALIZING, STATE_READY);
+        state.set(success ? STATE_READY : STATE_ERROR);
         globalLock.unlock();
         return success;
     }

@@ -48,6 +48,10 @@ class IOBackend implements AutoCloseable {
      * The backend is closed, no transaction can be performed
      */
     public static final int STATE_CLOSED = 3;
+    /**
+     * The backend is in error, probably due to an IO error
+     */
+    public static final int STATE_ERROR = 4;
 
     /**
      * The maximum number of ms to wait for finalizing a transaction
