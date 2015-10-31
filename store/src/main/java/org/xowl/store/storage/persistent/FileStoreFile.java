@@ -112,15 +112,6 @@ class FileStoreFile implements IOElement {
     private long time;
 
     /**
-     * Gets the remaining amount of data in the current block
-     *
-     * @return The remaining amount of data
-     */
-    public int getRemainingInBlock() {
-        return BLOCK_SIZE - (int) (index & INDEX_MASK_LOWER);
-    }
-
-    /**
      * Initializes this data file
      *
      * @param file The file location
@@ -768,36 +759,11 @@ class FileStoreFile implements IOElement {
         // look for a clean block with the lowest hit count
         int minCleanIndex = -1;
         long minCleanTime = Long.MAX_VALUE;
-        int minDirtyIndex = -1;
-        long minDirtyTime = Long.MAX_VALUE;
         for (int i = MAX_LOADED_BLOCKS - 1; i != -1; i--) {
             if (!blockIsDirty[i]) {
                 if (blockLastHits[i] < minCleanTime) {
                     minCleanIndex = i;
                     minCleanTime = blockLastHits[i];
-                }
-            }
-            if (blockLastHits[i] < minDirtyTime) {
-                minDirtyIndex = i;
-                minDirtyTime = blockLastHits[i];
-            }
-        }
-        if (minCleanIndex == -1) {
-            // all blocks are dirty ... commit
-            if (commit()) {
-                // commit is a success
-                minCleanIndex = minDirtyIndex;
-            } else {
-                // failed to commit at least one block
-                minCleanIndex = -1;
-                minCleanTime = Long.MAX_VALUE;
-                for (int i = MAX_LOADED_BLOCKS - 1; i != -1; i--) {
-                    if (!blockIsDirty[i]) {
-                        if (blockLastHits[i] < minCleanTime) {
-                            minCleanIndex = i;
-                            minCleanTime = blockLastHits[i];
-                        }
-                    }
                 }
             }
         }
