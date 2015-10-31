@@ -28,7 +28,7 @@ import org.xowl.store.RDFUtils;
 import org.xowl.store.TestLogger;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.BaseStore;
-import org.xowl.store.storage.InMemoryStore;
+import org.xowl.store.storage.StoreFactory;
 import org.xowl.utils.Logger;
 
 import java.io.IOException;
@@ -63,13 +63,13 @@ public abstract class W3CTestSuite {
     @Before
     public void setup() throws IOException {
         logger = new TestLogger();
-        store = new InMemoryStore();
+        store = StoreFactory.newInMemoryStore();
         mapper = IRIMapper.getDefault();
     }
 
     @After
     public void cleanup() {
-        store = new InMemoryStore();
+        store = StoreFactory.newInMemoryStore();
         logger.reset();
     }
 

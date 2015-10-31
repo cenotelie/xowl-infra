@@ -31,7 +31,7 @@ import org.xowl.store.loaders.SPARQLLoader;
 import org.xowl.store.loaders.W3CTestSuite;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.storage.BaseStore;
-import org.xowl.store.storage.InMemoryStore;
+import org.xowl.store.storage.StoreFactory;
 import org.xowl.utils.Logger;
 import org.xowl.utils.collections.Couple;
 
@@ -113,7 +113,7 @@ public abstract class BaseSPARQLTest {
      */
     protected void testPositiveSyntax(String resource) {
         TestLogger logger = new TestLogger();
-        BaseStore store = new InMemoryStore();
+        BaseStore store = StoreFactory.newInMemoryStore();
         IRIMapper mapper = new IRIMapper();
         mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/sparql/\\1");
         SPARQLLoader loader = new SPARQLLoader(store);
@@ -135,7 +135,7 @@ public abstract class BaseSPARQLTest {
      */
     protected void testNegativeSyntax(String resource) {
         TestLogger logger = new TestLogger();
-        BaseStore store = new InMemoryStore();
+        BaseStore store = StoreFactory.newInMemoryStore();
         IRIMapper mapper = new IRIMapper();
         mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/sparql/\\1");
         SPARQLLoader loader = new SPARQLLoader(store);
