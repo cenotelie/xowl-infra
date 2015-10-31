@@ -35,7 +35,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public class InMemoryStore implements BaseStore {
+class InMemoryStore implements BaseStore {
     /**
      * The store for the nodes
      */

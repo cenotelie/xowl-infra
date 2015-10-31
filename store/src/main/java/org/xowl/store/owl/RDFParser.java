@@ -28,7 +28,7 @@ import org.xowl.store.rete.RETERule;
 import org.xowl.store.rete.Token;
 import org.xowl.store.rete.TokenActivable;
 import org.xowl.store.storage.BaseStore;
-import org.xowl.store.storage.InMemoryStore;
+import org.xowl.store.storage.StoreFactory;
 import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.util.*;
@@ -80,7 +80,7 @@ public class RDFParser {
      */
     public Collection<Axiom> translate(Collection<Quad> quads) {
         try {
-            store = new InMemoryStore();
+            store = StoreFactory.newInMemoryStore();
             graphNode = new VariableNode("__graph__");
             store.insert(Changeset.fromAdded(quads));
         } catch (UnsupportedNodeType ex) {

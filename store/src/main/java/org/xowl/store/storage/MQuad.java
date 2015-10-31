@@ -37,7 +37,7 @@ public class MQuad extends Quad {
      * Initializes this quad
      *
      * @param graph        The containing graph
-     * @param multiplicity The quad 'smultiplicity
+     * @param multiplicity The quad's multiplicity
      */
     public MQuad(GraphNode graph, long multiplicity) {
         super(graph, null, null, null);
