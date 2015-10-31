@@ -28,6 +28,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 /**
  * Represents a persisted binary file
@@ -72,7 +73,7 @@ class FileStoreFile implements IOElement {
     /**
      * The block buffers
      */
-    private final MappedByteBuffer[] blockBuffers;
+    private final ByteBuffer[] blockBuffers;
     /**
      * The location of the respective blocks
      */
@@ -101,6 +102,10 @@ class FileStoreFile implements IOElement {
      * The current index in this file
      */
     private long index;
+    /**
+     * The total size of this file
+     */
+    private long size;
     /**
      * The current time (for hitting blocks)
      */
@@ -144,6 +149,7 @@ class FileStoreFile implements IOElement {
         this.blockCount = 0;
         this.currentBlock = -1;
         this.index = 0;
+        this.size = channel.size();
         this.time = 0;
     }
 
@@ -176,7 +182,13 @@ class FileStoreFile implements IOElement {
                 if (blockPages[i] != null) {
                     successBlock = blockPages[i].onCommit();
                 }
-                blockBuffers[i].force();
+                try {
+                    blockBuffers[i].position(0);
+                    channel.position(blockLocations[i]);
+                    channel.write(blockBuffers[i]);
+                } catch (IOException exception) {
+                    successBlock = false;
+                }
                 if (successBlock)
                     blockIsDirty[i] = false;
                 success &= successBlock;
@@ -186,6 +198,32 @@ class FileStoreFile implements IOElement {
             channel.force(true);
         } catch (IOException exception) {
             success = false;
+        }
+        return success;
+    }
+
+    /**
+     * Rollback outstanding changes
+     *
+     * @return Whether the operation fully succeeded
+     */
+    public boolean rollback() {
+        boolean success = true;
+        for (int i = 0; i != blockCount; i++) {
+            if (blockIsDirty[i]) {
+                boolean successBlock = true;
+                // reload the block
+                if (blockLocations[i] < getSize()) {
+                    try {
+                        blockBuffers[i].position(0);
+                        channel.position(blockLocations[i]);
+                        channel.read(blockBuffers[i]);
+                    } catch (IOException exception) {
+                        successBlock = false;
+                    }
+                }
+                success &= successBlock;
+            }
         }
         return success;
     }
@@ -214,11 +252,7 @@ class FileStoreFile implements IOElement {
 
     @Override
     public long getSize() {
-        try {
-            return channel.size();
-        } catch (IOException exception) {
-            return -1;
-        }
+        return size;
     }
 
     @Override
@@ -417,7 +451,7 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeByte(byte value) throws IOException {
-        if (!prepareIOAt())
+        if (isReadonly || !prepareIOAt())
             throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockBuffers[currentBlock].put((int) (index & INDEX_MASK_LOWER), value);
         blockIsDirty[currentBlock] = true;
@@ -437,7 +471,7 @@ class FileStoreFile implements IOElement {
         int remainingLength = length;
         int targetIndex = index;
         while (remainingLength > remainingInBlock) {
-            if (!prepareIOAt())
+            if (isReadonly || !prepareIOAt())
                 throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
             blockBuffers[currentBlock].put(buffer, targetIndex, remainingInBlock);
             blockIsDirty[currentBlock] = true;
@@ -446,7 +480,7 @@ class FileStoreFile implements IOElement {
             this.index += remainingInBlock;
             remainingInBlock = BLOCK_SIZE;
         }
-        if (!prepareIOAt())
+        if (isReadonly || !prepareIOAt())
             throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockBuffers[currentBlock].put(buffer, targetIndex, remainingLength);
         blockIsDirty[currentBlock] = true;
@@ -455,7 +489,7 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeChar(char value) throws IOException {
-        if (!prepareIOAt())
+        if (isReadonly || !prepareIOAt())
             throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         if ((int) (this.index & INDEX_MASK_LOWER) + 2 <= BLOCK_SIZE) {
             // within the same block
@@ -478,7 +512,7 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeInt(int value) throws IOException {
-        if (!prepareIOAt())
+        if (isReadonly || !prepareIOAt())
             throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
         if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
@@ -501,7 +535,7 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeLong(long value) throws IOException {
-        if (!prepareIOAt())
+        if (isReadonly || !prepareIOAt())
             throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
         if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
@@ -524,7 +558,7 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeFloat(float value) throws IOException {
-        if (!prepareIOAt())
+        if (isReadonly || !prepareIOAt())
             throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
         if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
@@ -547,7 +581,7 @@ class FileStoreFile implements IOElement {
 
     @Override
     public void writeDouble(double value) throws IOException {
-        if (!prepareIOAt())
+        if (isReadonly || !prepareIOAt())
             throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
         if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
@@ -777,23 +811,49 @@ class FileStoreFile implements IOElement {
      * @return Whether the operation succeeded
      */
     private boolean loadBlock(long location) {
-        boolean success = true;
-        try {
-            if (isReadonly)
-                blockBuffers[currentBlock] = channel.map(FileChannel.MapMode.READ_ONLY, location, BLOCK_SIZE);
-            else
-                blockBuffers[currentBlock] = channel.map(FileChannel.MapMode.READ_WRITE, location, BLOCK_SIZE);
-            blockBuffers[currentBlock].position(0);
-        } catch (IOException exception) {
-            blockBuffers[currentBlock] = null;
-            success = false;
-        }
+        if (blockBuffers[currentBlock] == null)
+            blockBuffers[currentBlock] = ByteBuffer.allocateDirect(BLOCK_SIZE);
+        blockBuffers[currentBlock].position(0);
         blockLocations[currentBlock] = location;
         blockLastHits[currentBlock] = time;
         blockIsDirty[currentBlock] = false;
         blockPages[currentBlock] = null;
-        if (success && location < getSize())
-            blockBuffers[currentBlock].load();
-        return success;
+        size = Math.max(size, location + BLOCK_SIZE);
+        if (location < getSize()) {
+            try {
+                channel.position(location);
+                channel.read(blockBuffers[currentBlock]);
+                return true;
+            } catch (IOException exception) {
+                // zeroes the buffer
+                zeroes(blockBuffers[currentBlock]);
+                return false;
+            }
+        } else {
+            // zeroes the buffer
+            zeroes(blockBuffers[currentBlock]);
+            return true;
+        }
+    }
+
+    /**
+     * Arrays of empty data used for zeroing the content of a buffer
+     */
+    private static final byte[] ZEROES = new byte[256];
+
+    /**
+     * Zeroes the content of the buffer
+     *
+     * @param buffer The buffer to clear
+     */
+    private static void zeroes(ByteBuffer buffer) {
+        if (buffer.hasArray()) {
+            Arrays.fill(buffer.array(), (byte) 0);
+            return;
+        }
+        buffer.position(0);
+        for (int i = 0; i != BLOCK_SIZE; i += ZEROES.length) {
+            buffer.put(ZEROES);
+        }
     }
 }
