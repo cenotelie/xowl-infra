@@ -23,6 +23,7 @@ package org.xowl.store.storage.cache;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.Dataset;
+import org.xowl.store.storage.MQuad;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.collections.*;
 
@@ -101,6 +102,19 @@ public class CachedDataset implements Dataset {
     }
 
     @Override
+    public long getMultiplicity(Quad quad) {
+        return getMultiplicity(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+    }
+
+    @Override
+    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+        EdgeBucket bucket = getBucketFor(subject);
+        if (bucket == null)
+            return 0;
+        return bucket.getMultiplicity(graph, property, object);
+    }
+
+    @Override
     public Iterator<Quad> getAll() {
         return getAll(null, null, null, null);
     }
@@ -118,16 +132,16 @@ public class CachedDataset implements Dataset {
     @Override
     public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) {
         if (subject == null || subject.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<CachedQuad>>() {
+            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<MQuad>>() {
                 @Override
-                public <X> Iterator<CachedQuad> adapt(X element) {
+                public <X> Iterator<MQuad> adapt(X element) {
                     Couple<SubjectNode, EdgeBucket> subject = (Couple<SubjectNode, EdgeBucket>) element;
                     return subject.y.getAll(graph, property, object);
                 }
             }), new Adapter<Quad>() {
                 @Override
                 public <X> Quad adapt(X element) {
-                    Couple<Couple<SubjectNode, EdgeBucket>, CachedQuad> result = (Couple<Couple<SubjectNode, EdgeBucket>, CachedQuad>) element;
+                    Couple<Couple<SubjectNode, EdgeBucket>, MQuad> result = (Couple<Couple<SubjectNode, EdgeBucket>, MQuad>) element;
                     result.y.setSubject(result.x.x);
                     return result.y;
                 }
@@ -139,7 +153,7 @@ public class CachedDataset implements Dataset {
             return new AdaptingIterator<>(bucket.getAll(graph, property, object), new Adapter<Quad>() {
                 @Override
                 public <X> Quad adapt(X element) {
-                    CachedQuad quad = (CachedQuad) element;
+                    MQuad quad = (MQuad) element;
                     quad.setSubject(subject);
                     return quad;
                 }
@@ -354,8 +368,8 @@ public class CachedDataset implements Dataset {
                     listener.onDecremented(quad);
             }
         } else {
-            List<CachedQuad> bufferDecremented = new ArrayList<>();
-            List<CachedQuad> bufferRemoved = new ArrayList<>();
+            List<MQuad> bufferDecremented = new ArrayList<>();
+            List<MQuad> bufferRemoved = new ArrayList<>();
             if (quad.getSubject() == null)
                 doRemoveEdgesFromAll(quad.getGraph(), quad.getProperty(), quad.getObject(), bufferDecremented, bufferRemoved);
             else
@@ -384,8 +398,8 @@ public class CachedDataset implements Dataset {
                     listener.onDecremented(quad);
             }
         } else {
-            List<CachedQuad> bufferDecremented = new ArrayList<>();
-            List<CachedQuad> bufferRemoved = new ArrayList<>();
+            List<MQuad> bufferDecremented = new ArrayList<>();
+            List<MQuad> bufferRemoved = new ArrayList<>();
             if (subject == null)
                 doRemoveEdgesFromAll(graph, property, value, bufferDecremented, bufferRemoved);
             else
@@ -433,7 +447,7 @@ public class CachedDataset implements Dataset {
      * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    private int doRemoveEdges(GraphNode graph, SubjectNode subject, Property property, Node value, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) throws UnsupportedNodeType {
+    private int doRemoveEdges(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws UnsupportedNodeType {
         switch (subject.getNodeType()) {
             case Node.TYPE_IRI:
                 return doRemoveEdgesFromIRI(graph, (IRINode) subject, property, value, bufferDecremented, bufferRemoved);
@@ -456,7 +470,7 @@ public class CachedDataset implements Dataset {
      * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    private int doRemoveEdgesFromAll(GraphNode graph, Property property, Node value, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
+    private int doRemoveEdgesFromAll(GraphNode graph, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         doRemoveEdgesFromIRIs(graph, property, value, bufferDecremented, bufferRemoved);
         doRemoveEdgesFromBlanks(graph, property, value, bufferDecremented, bufferRemoved);
         doRemoveEdgesFromAnons(graph, property, value, bufferDecremented, bufferRemoved);
@@ -495,7 +509,7 @@ public class CachedDataset implements Dataset {
      * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    private int doRemoveEdgesFromIRI(GraphNode graph, IRINode subject, Property property, Node value, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
+    private int doRemoveEdgesFromIRI(GraphNode graph, IRINode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         EdgeBucket bucket = edgesIRI.get(subject);
         if (bucket == null)
             return REMOVE_RESULT_NOT_FOUND;
@@ -521,7 +535,7 @@ public class CachedDataset implements Dataset {
      * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    private int doRemoveEdgesFromIRIs(GraphNode graph, Property property, Node value, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
+    private int doRemoveEdgesFromIRIs(GraphNode graph, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         Iterator<Map.Entry<IRINode, EdgeBucket>> iterator = edgesIRI.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<IRINode, EdgeBucket> entry = iterator.next();
@@ -570,7 +584,7 @@ public class CachedDataset implements Dataset {
      * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    private int doRemoveEdgesFromBlank(GraphNode graph, BlankNode subject, Property property, Node value, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
+    private int doRemoveEdgesFromBlank(GraphNode graph, BlankNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         EdgeBucket bucket = edgesBlank.get(subject);
         if (bucket == null)
             return REMOVE_RESULT_NOT_FOUND;
@@ -596,7 +610,7 @@ public class CachedDataset implements Dataset {
      * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    private int doRemoveEdgesFromBlanks(GraphNode graph, Property property, Node value, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
+    private int doRemoveEdgesFromBlanks(GraphNode graph, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         Iterator<Map.Entry<BlankNode, EdgeBucket>> iterator = edgesBlank.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<BlankNode, EdgeBucket> entry = iterator.next();
@@ -645,7 +659,7 @@ public class CachedDataset implements Dataset {
      * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    private int doRemoveEdgesFromAnon(GraphNode graph, AnonymousNode subject, Property property, Node value, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
+    private int doRemoveEdgesFromAnon(GraphNode graph, AnonymousNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         EdgeBucket bucket = edgesAnon.get(subject);
         if (bucket == null)
             return REMOVE_RESULT_NOT_FOUND;
@@ -671,7 +685,7 @@ public class CachedDataset implements Dataset {
      * @param bufferRemoved     The buffer for the removed quads
      * @return The operation result
      */
-    private int doRemoveEdgesFromAnons(GraphNode graph, Property property, Node value, List<CachedQuad> bufferDecremented, List<CachedQuad> bufferRemoved) {
+    private int doRemoveEdgesFromAnons(GraphNode graph, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         Iterator<Map.Entry<AnonymousNode, EdgeBucket>> iterator = edgesAnon.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<AnonymousNode, EdgeBucket> entry = iterator.next();
@@ -690,7 +704,7 @@ public class CachedDataset implements Dataset {
 
     @Override
     public void clear() {
-        List<CachedQuad> buffer = new ArrayList<>();
+        List<MQuad> buffer = new ArrayList<>();
         doClearFromAll(buffer);
         if (!buffer.isEmpty()) {
             Changeset changeset = Changeset.fromRemoved((Collection) buffer);
@@ -706,7 +720,7 @@ public class CachedDataset implements Dataset {
             clear();
             return;
         }
-        List<CachedQuad> buffer = new ArrayList<>();
+        List<MQuad> buffer = new ArrayList<>();
         doClearFromAll(graph, buffer);
         if (!buffer.isEmpty()) {
             Changeset changeset = Changeset.fromRemoved((Collection) buffer);
@@ -721,7 +735,7 @@ public class CachedDataset implements Dataset {
      *
      * @param buffer The buffer for the removed quads
      */
-    private void doClearFromAll(List<CachedQuad> buffer) {
+    private void doClearFromAll(List<MQuad> buffer) {
         doClearFromIRIs(buffer);
         doClearFromBlanks(buffer);
         doClearFromAnons(buffer);
@@ -733,7 +747,7 @@ public class CachedDataset implements Dataset {
      * @param graph  The graph to clear
      * @param buffer The buffer for the removed quads
      */
-    private void doClearFromAll(GraphNode graph, List<CachedQuad> buffer) {
+    private void doClearFromAll(GraphNode graph, List<MQuad> buffer) {
         doClearFromIRIs(graph, buffer);
         doClearFromBlanks(graph, buffer);
         doClearFromAnons(graph, buffer);
@@ -744,7 +758,7 @@ public class CachedDataset implements Dataset {
      *
      * @param buffer The buffer for the removed quads
      */
-    private void doClearFromIRIs(List<CachedQuad> buffer) {
+    private void doClearFromIRIs(List<MQuad> buffer) {
         for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
             int originalSize = buffer.size();
             entry.getValue().clear(buffer);
@@ -762,7 +776,7 @@ public class CachedDataset implements Dataset {
      * @param graph  The graph to clear
      * @param buffer The buffer for the removed quads
      */
-    private void doClearFromIRIs(GraphNode graph, List<CachedQuad> buffer) {
+    private void doClearFromIRIs(GraphNode graph, List<MQuad> buffer) {
         List<IRINode> toDelete = new ArrayList<>();
         for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
             int originalSize = buffer.size();
@@ -783,7 +797,7 @@ public class CachedDataset implements Dataset {
      *
      * @param buffer The buffer for the removed quads
      */
-    private void doClearFromBlanks(List<CachedQuad> buffer) {
+    private void doClearFromBlanks(List<MQuad> buffer) {
         for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
             int originalSize = buffer.size();
             entry.getValue().clear(buffer);
@@ -801,7 +815,7 @@ public class CachedDataset implements Dataset {
      * @param graph  The graph to clear
      * @param buffer The buffer for the removed quads
      */
-    private void doClearFromBlanks(GraphNode graph, List<CachedQuad> buffer) {
+    private void doClearFromBlanks(GraphNode graph, List<MQuad> buffer) {
         List<BlankNode> toDelete = new ArrayList<>();
         for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
             int originalSize = buffer.size();
@@ -822,7 +836,7 @@ public class CachedDataset implements Dataset {
      *
      * @param buffer The buffer for the removed quads
      */
-    private void doClearFromAnons(List<CachedQuad> buffer) {
+    private void doClearFromAnons(List<MQuad> buffer) {
         for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
             int originalSize = buffer.size();
             entry.getValue().clear(buffer);
@@ -840,7 +854,7 @@ public class CachedDataset implements Dataset {
      * @param graph  The graph to clear
      * @param buffer The buffer for the removed quads
      */
-    private void doClearFromAnons(GraphNode graph, List<CachedQuad> buffer) {
+    private void doClearFromAnons(GraphNode graph, List<MQuad> buffer) {
         List<AnonymousNode> toDelete = new ArrayList<>();
         for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
             int originalSize = buffer.size();
@@ -858,8 +872,8 @@ public class CachedDataset implements Dataset {
 
     @Override
     public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
-        List<CachedQuad> bufferOld = new ArrayList<>();
-        List<CachedQuad> bufferNew = new ArrayList<>();
+        List<MQuad> bufferOld = new ArrayList<>();
+        List<MQuad> bufferNew = new ArrayList<>();
         doCopyFromIRIs(origin, target, bufferOld, bufferNew, overwrite);
         doCopyFromBlanks(origin, target, bufferOld, bufferNew, overwrite);
         doCopyFromAnons(origin, target, bufferOld, bufferNew, overwrite);
@@ -883,7 +897,7 @@ public class CachedDataset implements Dataset {
      * @param bufferNew The buffer of the new quads
      * @param overwrite Whether to overwrite quads from the target graph
      */
-    private void doCopyFromIRIs(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+    private void doCopyFromIRIs(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
         List<IRINode> toDelete = new ArrayList<>();
         for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
             int originalSizeOld = bufferOld.size();
@@ -912,7 +926,7 @@ public class CachedDataset implements Dataset {
      * @param bufferNew The buffer of the new quads
      * @param overwrite Whether to overwrite quads from the target graph
      */
-    private void doCopyFromBlanks(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+    private void doCopyFromBlanks(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
         List<BlankNode> toDelete = new ArrayList<>();
         for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
             int originalSizeOld = bufferOld.size();
@@ -941,7 +955,7 @@ public class CachedDataset implements Dataset {
      * @param bufferNew The buffer of the new quads
      * @param overwrite Whether to overwrite quads from the target graph
      */
-    private void doCopyFromAnons(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew, boolean overwrite) {
+    private void doCopyFromAnons(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
         List<AnonymousNode> toDelete = new ArrayList<>();
         for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
             int originalSizeOld = bufferOld.size();
@@ -960,8 +974,8 @@ public class CachedDataset implements Dataset {
 
     @Override
     public void move(GraphNode origin, GraphNode target) {
-        List<CachedQuad> bufferOld = new ArrayList<>();
-        List<CachedQuad> bufferNew = new ArrayList<>();
+        List<MQuad> bufferOld = new ArrayList<>();
+        List<MQuad> bufferNew = new ArrayList<>();
         doMoveFromIRIs(origin, target, bufferOld, bufferNew);
         doMoveFromBlanks(origin, target, bufferOld, bufferNew);
         doMoveFromAnons(origin, target, bufferOld, bufferNew);
@@ -984,7 +998,7 @@ public class CachedDataset implements Dataset {
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
      */
-    private void doMoveFromIRIs(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+    private void doMoveFromIRIs(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
         List<IRINode> toDelete = new ArrayList<>();
         for (Map.Entry<IRINode, EdgeBucket> entry : edgesIRI.entrySet()) {
             int originalSizeOld = bufferOld.size();
@@ -1012,7 +1026,7 @@ public class CachedDataset implements Dataset {
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
      */
-    private void doMoveFromBlanks(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+    private void doMoveFromBlanks(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
         List<BlankNode> toDelete = new ArrayList<>();
         for (Map.Entry<BlankNode, EdgeBucket> entry : edgesBlank.entrySet()) {
             int originalSizeOld = bufferOld.size();
@@ -1040,7 +1054,7 @@ public class CachedDataset implements Dataset {
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
      */
-    private void doMoveFromAnons(GraphNode origin, GraphNode target, List<CachedQuad> bufferOld, List<CachedQuad> bufferNew) {
+    private void doMoveFromAnons(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
         List<AnonymousNode> toDelete = new ArrayList<>();
         for (Map.Entry<AnonymousNode, EdgeBucket> entry : edgesAnon.entrySet()) {
             int originalSizeOld = bufferOld.size();

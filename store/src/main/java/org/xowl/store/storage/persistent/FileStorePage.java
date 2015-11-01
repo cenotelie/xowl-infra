@@ -21,44 +21,49 @@
 package org.xowl.store.storage.persistent;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * Represents a page of data in a persisted binary store
- * <p/>
+ * <p>
  * Page general layout:
  * - header
  * - entry array (fill down from just after the header)
  * - ... free space
  * - data content (fill up from the bottom of the page)
- * <p/>
+ * <p>
  * Header layout:
  * - Layout version (2 bytes)
  * - Flags (2 bytes)
- * - Checksum SHA-1 (20 bytes)
  * - Number of entries (2 bytes)
  * - Offset to start of free space (2 bytes)
  * - Offset to start of data content (2 bytes)
- * <p/>
+ * <p>
  * Entry layout:
  * - offset (2 bytes)
  * - length (2 bytes)
  *
  * @author Laurent Wouters
  */
-class PersistedFilePage {
+class FileStorePage {
     /**
      * The version of the page layout to use
      */
     private static final char PAGE_LAYOUT_VERSION = 1;
     /**
      * The size of the page header in bytes
+     * char: Layout version (2 bytes)
+     * char: Flags (2 bytes)
+     * char: Number of entries (2 bytes)
+     * char: Offset to start of free space (2 bytes)
+     * char: Offset to start of data content (2 bytes)
      */
-    private static final int PAGE_HEADER_SIZE = 30;
+    private static final int PAGE_HEADER_SIZE = 2 + 2 + 2 + 2 + 2;
     /**
      * The size of an entry in the entry table of a page (in bytes)
+     * char: offset (2 bytes)
+     * char: length (2 bytes)
      */
-    private static final int PAGE_ENTRY_SIZE = 4;
+    private static final int PAGE_ENTRY_INDEX_SIZE = 2 + 2;
 
     /**
      * Flag whether the page shall reuse the space of removed entries
@@ -66,9 +71,18 @@ class PersistedFilePage {
     private static final char FLAG_REUSE_EMPTY_ENTRIES = 0x0001;
 
     /**
+     * The maximum size of the payload of an entry in a page
+     */
+    public static final int MAX_ENTRY_SIZE = FileStoreFile.BLOCK_SIZE - PAGE_HEADER_SIZE - PAGE_ENTRY_INDEX_SIZE;
+    /**
+     * The number of bytes required in addition to an entry's payload
+     */
+    public static final int ENTRY_OVERHEAD = PAGE_ENTRY_INDEX_SIZE;
+
+    /**
      * The backend store
      */
-    private final PersistedFile backend;
+    private final FileStoreFile backend;
     /**
      * The location in the backend
      */
@@ -76,7 +90,7 @@ class PersistedFilePage {
     /**
      * The radical of keys emitted by this page
      */
-    private final long keyRadical;
+    private final int keyRadical;
     /**
      * The current flags
      */
@@ -103,30 +117,24 @@ class PersistedFilePage {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    public PersistedFilePage(PersistedFile backend, long location, long keyRadical) throws IOException, StorageException {
+    public FileStorePage(FileStoreFile backend, long location, int keyRadical) throws IOException, StorageException {
         this.backend = backend;
         this.location = location;
         this.keyRadical = keyRadical;
-        if (location < backend.getSize()) {
-            // this is an existing page, load the data
-            backend.seek(location);
-            char version = backend.readChar();
-            if (version != PAGE_LAYOUT_VERSION)
-                throw new StorageException("Invalid page layout version " + version + ", expected " + PAGE_LAYOUT_VERSION);
+        backend.seek(location);
+        char version = backend.readChar();
+        if (version == 0) {
+            // this is a new page
+            flags = 0;
+            startFreeSpace = PAGE_HEADER_SIZE;
+            startData = (char) FileStoreFile.BLOCK_SIZE;
+        } else if (version != PAGE_LAYOUT_VERSION) {
+            throw new StorageException("Invalid page layout version " + Integer.toHexString(version) + ", expected " + Integer.toHexString(PAGE_LAYOUT_VERSION));
+        } else {
             flags = backend.readChar();
-            byte[] storedDigest = backend.readBytes(20);
-            backend.seek(location + PAGE_HEADER_SIZE);
-            byte[] computedDigest = backend.digestSHA1(PersistedFile.BLOCK_SIZE - PAGE_HEADER_SIZE);
-            if (!Arrays.equals(storedDigest, computedDigest))
-                throw new StorageException("Page checksum verification failed on load");
-            backend.seek(location + 24);
             entryCount = backend.readChar();
             startFreeSpace = backend.readChar();
             startData = backend.readChar();
-        } else {
-            flags = 0;
-            startFreeSpace = PAGE_HEADER_SIZE;
-            startData = (char) PersistedFile.BLOCK_SIZE;
         }
     }
 
@@ -135,6 +143,24 @@ class PersistedFilePage {
      */
     public void setReuseEmptyEntries() {
         flags = (char) (flags | FLAG_REUSE_EMPTY_ENTRIES);
+    }
+
+    /**
+     * Gets the location of this page
+     *
+     * @return The location of this page
+     */
+    public long getLocation() {
+        return location;
+    }
+
+    /**
+     * Gets the index of this page within its parent file
+     *
+     * @return The index of this page
+     */
+    public int getIndex() {
+        return (keyRadical >> 16);
     }
 
     /**
@@ -147,6 +173,31 @@ class PersistedFilePage {
     }
 
     /**
+     * Gets the amount of free space for entry payloads in this page
+     *
+     * @return The amount of free space
+     * @throws IOException When an IO operation failed
+     */
+    public int getFreeSpace() throws IOException {
+        int result = 0;
+        if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
+            // we can reuse empty entries and there are at least one
+            char entryIndex = 0;
+            backend.seek(location + PAGE_HEADER_SIZE);
+            while (entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
+                char eOffset = backend.readChar();
+                char eLength = backend.readChar();
+                if (eOffset == 0) {
+                    result += eLength;
+                }
+            }
+            return result;
+        }
+        result += startData - startFreeSpace - PAGE_ENTRY_INDEX_SIZE;
+        return result;
+    }
+
+    /**
      * Gets whether this page can store a content of the specified size
      *
      * @param length The length of the content to store
@@ -154,11 +205,13 @@ class PersistedFilePage {
      * @throws IOException When an IO operation failed
      */
     public boolean canStore(int length) throws IOException {
+        if (length > MAX_ENTRY_SIZE)
+            return false;
         if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
             // we can reuse empty entries and there are at least one
             char entryIndex = 0;
             backend.seek(location + PAGE_HEADER_SIZE);
-            while (entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
+            while (entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
                 char eOffset = backend.readChar();
                 char eLength = backend.readChar();
                 if (eOffset == 0 && eLength >= length) {
@@ -168,7 +221,7 @@ class PersistedFilePage {
             }
             // no suitable empty entry
         }
-        return (startData - startFreeSpace - length - PAGE_ENTRY_SIZE >= 0);
+        return (startData - startFreeSpace - length - PAGE_ENTRY_INDEX_SIZE >= 0);
     }
 
     /**
@@ -179,13 +232,13 @@ class PersistedFilePage {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When an entry of the specified length cannot be stored
      */
-    public long registerEntry(int length) throws IOException, StorageException {
+    public int registerEntry(int length) throws IOException, StorageException {
         if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
             // we can reuse empty entries and there are at least one
             char entryIndex = 0;
-            char dataOffset = (char) PersistedFile.BLOCK_SIZE;
+            char dataOffset = (char) FileStoreFile.BLOCK_SIZE;
             backend.seek(location + PAGE_HEADER_SIZE);
-            while (entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
+            while (entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
                 char eOffset = backend.readChar();
                 char eLength = backend.readChar();
                 if (eOffset == 0 && eLength >= length) {
@@ -196,7 +249,7 @@ class PersistedFilePage {
             }
             // no suitable empty entry
         }
-        if (startData - startFreeSpace - length - PAGE_ENTRY_SIZE < 0)
+        if (startData - startFreeSpace - length - PAGE_ENTRY_INDEX_SIZE < 0)
             throw new StorageException("Cannot store an entry of the specified size");
         return writeNewEntry(length);
     }
@@ -209,11 +262,11 @@ class PersistedFilePage {
      * @return The key to be used to retrieve the data
      * @throws IOException When an IO operation failed
      */
-    private long overwriteEmptyEntry(int entryIndex, char dataOffset) throws IOException {
+    private int overwriteEmptyEntry(int entryIndex, char dataOffset) throws IOException {
         // compute the entry data
-        long key = keyRadical + entryIndex;
+        int key = keyRadical + entryIndex;
         // write the entry
-        backend.seek(location + entryIndex * PAGE_ENTRY_SIZE);
+        backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE);
         backend.writeChar(dataOffset);
         // update the header data
         entryCount++;
@@ -230,9 +283,9 @@ class PersistedFilePage {
      * @return The key to be used to retrieve the data
      * @throws IOException When an IO operation failed
      */
-    private long writeNewEntry(int length) throws IOException {
+    private int writeNewEntry(int length) throws IOException {
         // compute the entry data
-        long key = keyRadical + entryCount;
+        int key = keyRadical + entryCount;
         long dataLocation = location + startData - length;
         // write the entry
         backend.seek(location + startFreeSpace);
@@ -240,7 +293,7 @@ class PersistedFilePage {
         backend.writeChar((char) length);
         // update the header data
         entryCount++;
-        startFreeSpace += PAGE_ENTRY_SIZE;
+        startFreeSpace += PAGE_ENTRY_INDEX_SIZE;
         startData -= length;
         // position on to the data location
         backend.seek(dataLocation);
@@ -252,32 +305,33 @@ class PersistedFilePage {
      * Removes the entry identified by the specified key
      *
      * @param key The key to an entry
+     * @return The length of the removed entry
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the provided key is not within this page
      */
-    public void removeEntry(long key) throws IOException, StorageException {
-        long entryIndex = key - keyRadical;
+    public int removeEntry(int key) throws IOException, StorageException {
+        int entryIndex = key - keyRadical;
         if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >>> 2)
             throw new StorageException("The entry for the specified key is not in this page");
-        backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
+        backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
         char offset = backend.readChar();
         char length = backend.readChar();
         if (offset == 0)
             throw new StorageException("The entry for the specified key has already been removed");
         if (offset == startData) {
             // this is the last entry in this page
-            startFreeSpace -= PAGE_ENTRY_SIZE;
+            startFreeSpace -= PAGE_ENTRY_INDEX_SIZE;
             startData += length;
             entryCount--;
             // go to the previous entry en get its info
             entryIndex--;
-            backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
+            backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
             offset = backend.readChar();
             length = backend.readChar();
             // while the entry is empty (and this is an actual entry)
             while (offset == 0 && entryIndex >= 0) {
                 // remove it completely because this is the last one
-                startFreeSpace -= PAGE_ENTRY_SIZE;
+                startFreeSpace -= PAGE_ENTRY_INDEX_SIZE;
                 startData += length;
                 entryCount--;
                 // go to the previous entry
@@ -285,17 +339,18 @@ class PersistedFilePage {
                 // is is a valid entry?
                 if (entryIndex >= 0) {
                     // get its info
-                    backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
+                    backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
                     offset = backend.readChar();
                     length = backend.readChar();
                 }
             }
         } else {
             // simply marks this entry as empty by erasing the offset
-            backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
+            backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
             backend.writeChar('\0');
             entryCount--;
         }
+        return length;
     }
 
     /**
@@ -306,11 +361,11 @@ class PersistedFilePage {
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the provided key is not within this page
      */
-    public int positionFor(long key) throws IOException, StorageException {
-        long entryIndex = key - keyRadical;
+    public int positionFor(int key) throws IOException, StorageException {
+        int entryIndex = key - keyRadical;
         if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >>> 2)
             throw new StorageException("The entry for the specified key is not in this page");
-        backend.seek(location + entryIndex * PAGE_ENTRY_SIZE + PAGE_HEADER_SIZE);
+        backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
         char offset = backend.readChar();
         char length = backend.readChar();
         if (offset == 0)
@@ -323,17 +378,19 @@ class PersistedFilePage {
      * When this page is going to be committed
      * Writes the page's header to the backend
      *
-     * @throws IOException When an IO operation failed
+     * @return true if the cached data was successfully written back to the file
      */
-    public void onCommit() throws IOException {
-        backend.seek(location + PAGE_HEADER_SIZE);
-        byte[] digest = backend.digestSHA1(PersistedFile.BLOCK_SIZE - PAGE_HEADER_SIZE);
-        backend.seek(location);
-        backend.writeChar(PAGE_LAYOUT_VERSION);
-        backend.writeChar(flags);
-        backend.writeBytes(digest);
-        backend.writeChar(entryCount);
-        backend.writeChar(startFreeSpace);
-        backend.writeChar(startData);
+    public boolean onCommit() {
+        try {
+            backend.seek(location);
+            backend.writeChar(PAGE_LAYOUT_VERSION);
+            backend.writeChar(flags);
+            backend.writeChar(entryCount);
+            backend.writeChar(startFreeSpace);
+            backend.writeChar(startData);
+            return true;
+        } catch (IOException exception) {
+            return false;
+        }
     }
 }

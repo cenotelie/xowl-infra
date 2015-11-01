@@ -23,44 +23,56 @@ package org.xowl.store.storage;
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.*;
-import org.xowl.store.storage.cache.CachedDataset;
-import org.xowl.store.storage.cache.CachedNodes;
+import org.xowl.store.storage.persistent.PersistedDataset;
+import org.xowl.store.storage.persistent.PersistedNodes;
+import org.xowl.store.storage.persistent.StorageException;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * Concrete implementation of an in-memory data store
- * This implementation delegates all its behavior to caching stores
+ * Concrete implementation of a persisted data store
+ * This implementation delegates all its behavior to persisted stores
  *
  * @author Laurent Wouters
  */
-class InMemoryStore implements BaseStore {
+class OnDiskStore implements BaseStore {
     /**
      * The store for the nodes
      */
-    private final CachedNodes nodes;
+    private final PersistedNodes nodes;
     /**
      * The store for the dataset
      */
-    private final CachedDataset dataset;
+    private final PersistedDataset dataset;
 
     /**
      * Initializes this store
+     *
+     * @param directory  The parent directory containing the backing files
+     * @param isReadonly Whether this store is in readonly mode
+     * @throws IOException      When the backing files cannot be accessed
+     * @throws StorageException When the storage is in a bad state
      */
-    public InMemoryStore() {
-        nodes = new CachedNodes();
-        dataset = new CachedDataset();
+    public OnDiskStore(File directory, boolean isReadonly) throws IOException, StorageException {
+        nodes = new PersistedNodes(directory, isReadonly);
+        dataset = new PersistedDataset(nodes, directory, isReadonly);
     }
 
     @Override
     public boolean commit() {
-        throw new UnsupportedOperationException("This store does not support commit/rollback operations");
+        boolean success = nodes.commit();
+        success &= dataset.commit();
+        return success;
     }
 
     @Override
     public boolean rollback() {
-        throw new UnsupportedOperationException("This store does not support commit/rollback operations");
+        boolean success = nodes.rollback();
+        success &= dataset.rollback();
+        return success;
     }
 
     @Override
@@ -206,6 +218,7 @@ class InMemoryStore implements BaseStore {
 
     @Override
     public void close() throws Exception {
-        // do nothing
+        dataset.close();
+        nodes.close();
     }
 }

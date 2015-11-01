@@ -32,7 +32,7 @@ import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultFailure;
 import org.xowl.store.storage.BaseStore;
-import org.xowl.store.storage.InMemoryStore;
+import org.xowl.store.storage.StoreFactory;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.store.writers.OWLSerializer;
 import org.xowl.store.writers.RDFSerializer;
@@ -75,7 +75,7 @@ public class Repository extends AbstractRepository {
      * @return A new default store
      */
     private static BaseStore getDefaultStore() {
-        return new InMemoryStore();
+        return StoreFactory.newInMemoryStore();
     }
 
     /**

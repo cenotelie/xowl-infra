@@ -20,50 +20,70 @@
 
 package org.xowl.store.storage.persistent;
 
-import org.xowl.store.rdf.IRINode;
+import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.store.owl.AnonymousNode;
 
 import java.io.IOException;
 
 /**
- * Implementation of a persisted IRI node
+ * Implementation of a persisted anonymous node
  *
  * @author Laurent Wouters
  */
-class PersistedIRINode extends IRINode implements PersistedNode {
+class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     /**
      * The backend persisting the strings
      */
     private final PersistedNodes backend;
     /**
-     * The key to the IRI value
+     * The key to the anonymous id
      */
     private final long key;
     /**
-     * The cached IRI value, if any
+     * The cached individual, if any
      */
-    private String value;
+    private AnonymousIndividual individual;
+
+    /**
+     * Initializes this node
+     *
+     * @param backend    The backend persisting the strings
+     * @param key        The key to the anonymous id
+     * @param individual The cached individual, if any
+     */
+    public PersistedAnonNode(PersistedNodes backend, long key, AnonymousIndividual individual) {
+        this.backend = backend;
+        this.key = key;
+        this.individual = individual;
+    }
 
     /**
      * Initializes this node
      *
      * @param backend The backend persisting the strings
-     * @param key     The key to the IRI value
+     * @param key     The key to the anonymous id
      */
-    public PersistedIRINode(PersistedNodes backend, long key) {
+    public PersistedAnonNode(PersistedNodes backend, long key) {
         this.backend = backend;
         this.key = key;
     }
 
     @Override
-    public String getIRIValue() {
-        if (value == null) {
+    public String getNodeID() {
+        return getIndividual().getNodeID();
+    }
+
+    @Override
+    public AnonymousIndividual getIndividual() {
+        if (individual == null) {
+            individual = new AnonymousIndividual();
             try {
-                value = backend.retrieveString(key);
+                individual.setNodeID(backend.retrieveString(key));
             } catch (IOException | StorageException exception) {
-                value = "#error#";
+                individual.setNodeID("#error#");
             }
         }
-        return value;
+        return individual;
     }
 
     @Override
@@ -93,11 +113,11 @@ class PersistedIRINode extends IRINode implements PersistedNode {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof PersistedIRINode) {
-            PersistedIRINode node = (PersistedIRINode) o;
+        if (o instanceof PersistedAnonNode) {
+            PersistedAnonNode node = (PersistedAnonNode) o;
             if (node.backend == this.backend)
                 return node.key == this.key;
         }
-        return (o instanceof IRINode) && (getIRIValue().equals(((IRINode) o).getIRIValue()));
+        return ((o instanceof AnonymousNode) && (getNodeID().equals(((AnonymousNode) o).getNodeID())));
     }
 }

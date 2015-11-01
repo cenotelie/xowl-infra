@@ -28,51 +28,28 @@ import org.xowl.store.rdf.SubjectNode;
  *
  * @author Laurent Wouters
  */
-public class AnonymousNode implements SubjectNode {
-    /**
-     * The associated anonymous individual
-     */
-    private final AnonymousIndividual anonInd;
-
-    /**
-     * Initializes this node
-     *
-     * @param anon The represented anonymous individual
-     */
-    public AnonymousNode(AnonymousIndividual anon) {
-        anonInd = anon;
-    }
-
+public abstract class AnonymousNode implements SubjectNode {
     @Override
     public int getNodeType() {
         return TYPE_ANONYMOUS;
     }
+
+    @Override
+    public String toString() {
+        return "_:" + getNodeID();
+    }
+
+    /**
+     * Gets the identifier of this anonymous node
+     *
+     * @return The identifier of this anonymous node
+     */
+    public abstract String getNodeID();
 
     /**
      * Gets the anonymous individual represented by this node
      *
      * @return The anonymous individual represented by this node
      */
-    public AnonymousIndividual getIndividual() {
-        return anonInd;
-    }
-
-    @Override
-    public int hashCode() {
-        return anonInd.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof AnonymousNode) {
-            AnonymousNode node = (AnonymousNode) obj;
-            return (anonInd == node.anonInd);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return "_:" + anonInd.getNodeID();
-    }
+    public abstract AnonymousIndividual getIndividual();
 }

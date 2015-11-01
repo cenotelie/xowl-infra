@@ -25,7 +25,7 @@ package org.xowl.store.storage.persistent;
  *
  * @author Laurent Wouters
  */
-class StorageException extends Exception {
+public class StorageException extends Exception {
     /**
      * Initializes this exception
      *

@@ -20,33 +20,54 @@
 
 package org.xowl.store.storage.persistent;
 
-import java.io.IOException;
+import org.xowl.store.rdf.Node;
 
 /**
- * Implements a persistable key into a file.
- * Instances of this class can be reused by changing the backing value (public value field).
- * This avoids the need to instantiate a new object each time a persistable key is required.
+ * Represents the common API for the persisted node
  *
  * @author Laurent Wouters
  */
-class PersistableFastKey implements Persistable {
+interface PersistedNode extends Node {
     /**
-     * The value to serialize
+     * The key for absent values in a store
      */
-    public long value;
+    long KEY_NOT_PRESENT = -1;
 
-    @Override
-    public int persistedLength() {
-        return 8;
-    }
+    /**
+     * The size in bytes of the serialized form of a node
+     * int: node type
+     * long: key to node data
+     */
+    int SERIALIZED_SIZE = 8 + 4;
 
-    @Override
-    public void persist(PersistedFile file) throws IOException {
-        file.writeLong(value);
-    }
+    /**
+     * Gets the store that maintains this node
+     *
+     * @return The store that maintains this node
+     */
+    PersistedNodes getStore();
 
-    @Override
-    public boolean isPersistedIn(PersistedFile file) throws IOException {
-        return value == file.readLong();
-    }
+    /**
+     * Gets the key identifying this node
+     *
+     * @return The key identifying this node
+     */
+    long getKey();
+
+    /**
+     * Increments the reference count for this node
+     */
+    void incrementRefCount();
+
+    /**
+     * Decrements the reference count for this node
+     */
+    void decrementRefCount();
+
+    /**
+     * Modifies the reference count for this node
+     *
+     * @param modifier The modifier for the count
+     */
+    void modifyRefCount(int modifier);
 }

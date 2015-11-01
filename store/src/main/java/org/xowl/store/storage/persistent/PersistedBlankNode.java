@@ -20,36 +20,47 @@
 
 package org.xowl.store.storage.persistent;
 
-import java.io.IOException;
+import org.xowl.store.rdf.BlankNode;
 
 /**
- * Represents an object that can be persisted in a binary form
+ * Implementation of a persisted Blank node
  *
  * @author Laurent Wouters
  */
-interface Persistable {
+class PersistedBlankNode extends BlankNode implements PersistedNode {
     /**
-     * Gets the length in bytes of the persisted form of this object
+     * Initializes this node
      *
-     * @return The length in bytes
+     * @param id The unique identifier for this node
      */
-    int persistedLength();
+    public PersistedBlankNode(long id) {
+        super(id);
+    }
 
-    /**
-     * Writes the binary form into the specified file.
-     * The file is expected to be correctly positioned.
-     *
-     * @param file The file to persist this object in
-     * @throws IOException When an IO operation failed
-     */
-    void persist(PersistedFile file) throws IOException;
+    @Override
+    public PersistedNodes getStore() {
+        return null;
+    }
 
-    /**
-     * Determines whether the specified file at its current position contains the persisted form of this object.
-     *
-     * @param file The file to check against
-     * @return true if the data ahead in the specified file correspond to the persistent form of the object
-     * @throws IOException When an IO operation failed
-     */
-    boolean isPersistedIn(PersistedFile file) throws IOException;
+    @Override
+    public long getKey() {
+        return getBlankID();
+    }
+
+    @Override
+    public void incrementRefCount() {
+    }
+
+    @Override
+    public void decrementRefCount() {
+    }
+
+    @Override
+    public void modifyRefCount(int modifier) {
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof BlankNode) && (getBlankID() == ((BlankNode) o).getBlankID());
+    }
 }

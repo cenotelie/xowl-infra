@@ -116,14 +116,14 @@ public class CachedNodes implements NodeManager {
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
         WeakReference<AnonymousNode> ref = anonymous.get(individual.getNodeID());
         if (ref == null) {
-            AnonymousNode result = new AnonymousNode(individual);
+            AnonymousNode result = new CachedAnonNode(individual);
             anonymous.put(individual.getNodeID(), new WeakReference<>(result));
             return result;
         } else {
             AnonymousNode result = ref.get();
             if (result != null)
                 return result;
-            result = new AnonymousNode(individual);
+            result = new CachedAnonNode(individual);
             anonymous.put(individual.getNodeID(), new WeakReference<>(result));
             return result;
         }

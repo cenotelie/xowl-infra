@@ -24,7 +24,7 @@ import org.xowl.store.TestLogger;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.BaseStore;
-import org.xowl.store.storage.InMemoryStore;
+import org.xowl.store.storage.StoreFactory;
 import org.xowl.store.storage.UnsupportedNodeType;
 
 import java.io.*;
@@ -71,7 +71,7 @@ public class W3CTestSuiteGenerator {
      * @param manifest The path to a manifest
      */
     public void generate(String manifest) {
-        BaseStore store = new InMemoryStore();
+        BaseStore store = StoreFactory.newInMemoryStore();
         TestLogger logger = new TestLogger();
 
         InputStream stream = W3CTestSuite.class.getResourceAsStream(manifest);

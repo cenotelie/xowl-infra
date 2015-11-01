@@ -18,50 +18,43 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage.persistent;
+package org.xowl.store.storage.cache;
 
-import java.io.IOException;
+import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.store.owl.AnonymousNode;
 
 /**
- * Implements an empty value that can be persisted
+ * Cached implementation of an anonymous node
  *
  * @author Laurent Wouters
  */
-class PersistableEmptyValue implements Persistable {
+class CachedAnonNode extends AnonymousNode {
     /**
-     * The singleton instance
+     * The individual backing this node
      */
-    private static PersistableEmptyValue INSTANCE = null;
+    private final AnonymousIndividual individual;
 
     /**
-     * Gets the instance for this value
+     * Initializes this node
      *
-     * @return The instance for this value
+     * @param individual The individual backing this node
      */
-    public static synchronized Persistable instance() {
-        if (INSTANCE == null)
-            INSTANCE = new PersistableEmptyValue();
-        return INSTANCE;
-    }
-
-    /**
-     * Initializes this value
-     */
-    private PersistableEmptyValue() {
+    public CachedAnonNode(AnonymousIndividual individual) {
+        this.individual = individual;
     }
 
     @Override
-    public int persistedLength() {
-        return 0;
+    public String getNodeID() {
+        return individual.getNodeID();
     }
 
     @Override
-    public void persist(PersistedFile file) throws IOException {
-
+    public AnonymousIndividual getIndividual() {
+        return individual;
     }
 
     @Override
-    public boolean isPersistedIn(PersistedFile file) throws IOException {
-        return true;
+    public boolean equals(Object o) {
+        return ((o instanceof AnonymousNode) && (getNodeID().equals(((AnonymousNode) o).getNodeID())));
     }
 }
