@@ -21,7 +21,6 @@
 package org.xowl.store.storage.persistent;
 
 import java.io.Closeable;
-import java.io.IOException;
 
 /**
  * API for elements that can be read form and written to
@@ -70,18 +69,18 @@ interface IOElement extends Closeable {
      * Reads a single byte at the current index
      *
      * @return The byte
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    byte readByte() throws IOException;
+    byte readByte() throws StorageException;
 
     /**
      * Reads a specified number of bytes a the current index
      *
      * @param length The number of bytes to read
      * @return The bytes
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    byte[] readBytes(int length) throws IOException;
+    byte[] readBytes(int length) throws StorageException;
 
     /**
      * Reads a specified number of bytes a the current index
@@ -89,65 +88,65 @@ interface IOElement extends Closeable {
      * @param buffer The buffer to fill
      * @param index  The index in the buffer to start filling at
      * @param length The number of bytes to read
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    void readBytes(byte[] buffer, int index, int length) throws IOException;
+    void readBytes(byte[] buffer, int index, int length) throws StorageException;
 
     /**
      * Reads a single char at the current index
      *
      * @return The char
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    char readChar() throws IOException;
+    char readChar() throws StorageException;
 
     /**
      * Reads a single int at the current index
      *
      * @return The int
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    int readInt() throws IOException;
+    int readInt() throws StorageException;
 
     /**
      * Reads a single long at the current index
      *
      * @return The long
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    long readLong() throws IOException;
+    long readLong() throws StorageException;
 
     /**
      * Reads a single float at the current index
      *
      * @return The float
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    float readFloat() throws IOException;
+    float readFloat() throws StorageException;
 
     /**
      * Reads a single double at the current index
      *
      * @return The double
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    double readDouble() throws IOException;
+    double readDouble() throws StorageException;
 
     /**
      * Writes a single byte at the current index
      *
      * @param value The byte to write
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    void writeByte(byte value) throws IOException;
+    void writeByte(byte value) throws StorageException;
 
     /**
      * Writes bytes at the current index
      *
      * @param value The bytes to write
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    void writeBytes(byte[] value) throws IOException;
+    void writeBytes(byte[] value) throws StorageException;
 
     /**
      * Writes bytes at the current index
@@ -155,47 +154,47 @@ interface IOElement extends Closeable {
      * @param buffer The buffer with the bytes to write
      * @param index  The index in the buffer to start writing from
      * @param length The number of bytes to write
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    void writeBytes(byte[] buffer, int index, int length) throws IOException;
+    void writeBytes(byte[] buffer, int index, int length) throws StorageException;
 
     /**
      * Writes a single char at the current index
      *
      * @param value The char to write
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    void writeChar(char value) throws IOException;
+    void writeChar(char value) throws StorageException;
 
     /**
      * Writes a single int at the current index
      *
      * @param value The int to write
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    void writeInt(int value) throws IOException;
+    void writeInt(int value) throws StorageException;
 
     /**
      * Writes a single long at the current index
      *
      * @param value The long to write
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    void writeLong(long value) throws IOException;
+    void writeLong(long value) throws StorageException;
 
     /**
      * Writes a single float at the current index
      *
      * @param value The float to write
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    void writeFloat(float value) throws IOException;
+    void writeFloat(float value) throws StorageException;
 
     /**
      * Writes a single double at the current index
      *
      * @param value The double to write
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    void writeDouble(double value) throws IOException;
+    void writeDouble(double value) throws StorageException;
 }

@@ -20,11 +20,8 @@
 
 package org.xowl.store.storage.persistent;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The base implementation of an IO backend
@@ -37,9 +34,9 @@ class IOBackend implements AutoCloseable {
      */
     public static final int STATE_READY = 0;
     /**
-     * The backend is finalizing current transactions, new one will wait
+     * The backend is currently committing the outstanding changes
      */
-    public static final int STATE_FINALIZING = 1;
+    public static final int STATE_COMMITTING = 1;
     /**
      * The backend is closing, pending transactions are being terminated and new one will be refused
      */
@@ -54,17 +51,9 @@ class IOBackend implements AutoCloseable {
     public static final int STATE_ERROR = 4;
 
     /**
-     * The maximum number of ms to wait for finalizing a transaction
-     */
-    private static final int WAIT_TIMEOUT = 1000;
-    /**
      * The maximum number of transactions
      */
     private static final int MAX_TRANSACTION_COUNT = 16;
-    /**
-     * The maximum number of locks
-     */
-    private static final int MAX_LOCK_COUNT = 32;
 
     /**
      * Represents a transaction within this store
@@ -74,22 +63,6 @@ class IOBackend implements AutoCloseable {
          * The parent IO element
          */
         protected final IOBackend parent;
-        /**
-         * The thread executing the transaction
-         */
-        protected Thread thread;
-        /**
-         * The lock for the overlapping preceding block, if any
-         */
-        protected ReentrantLock lockBefore;
-        /**
-         * The lock for this block
-         */
-        protected ReentrantLock lockBlock;
-        /**
-         * The lock for the overlapping following block, if any
-         */
-        protected ReentrantLock lockAfter;
 
         /**
          * Initializes this transaction
@@ -115,40 +88,9 @@ class IOBackend implements AutoCloseable {
             this.writable = writable;
         }
 
-        /**
-         * Gets whether this transaction is in conflict with the specified one
-         *
-         * @param transaction A transaction
-         * @return true of there is a conflict, false otherwise
-         */
-        public boolean isInConflict(Transaction transaction) {
-            if (transaction.backend != this.backend
-                    || transaction.location >= this.location + this.length
-                    || transaction.location + transaction.length <= this.location)
-                return false;
-            return (transaction.writable || writable);
-        }
-
         @Override
-        public void close() throws IOException {
-            if (thread == null)
-                return;
-            if (thread != Thread.currentThread()) {
-                try {
-                    thread.join(WAIT_TIMEOUT);
-                } catch (InterruptedException exception) {
-                    // do nothing
-                }
-                if (thread.isAlive()) {
-                    // force interrupt
-                    thread.interrupt();
-                }
-            }
+        public void close() {
             parent.transactionEnd(this);
-            this.thread = null;
-            this.lockBefore = null;
-            this.lockBlock = null;
-            this.lockAfter = null;
             this.backend = null;
             this.location = 0;
             this.length = 0;
@@ -156,10 +98,6 @@ class IOBackend implements AutoCloseable {
         }
     }
 
-    /**
-     * A global lock for this backend
-     */
-    protected final ReentrantLock globalLock;
     /**
      * The pool of free transaction objects
      */
@@ -169,23 +107,17 @@ class IOBackend implements AutoCloseable {
      */
     private final List<Transaction> transactions;
     /**
-     * The pool of free lock objects
-     */
-    private final ReentrantLock[] poolLocks;
-    /**
      * The current state of the backend
      */
-    protected AtomicInteger state;
+    protected int state;
 
     /**
      * Initializes this backend
      */
     protected IOBackend() {
-        this.globalLock = new ReentrantLock();
         this.poolTransactions = new Transaction[MAX_TRANSACTION_COUNT];
         this.transactions = new ArrayList<>(MAX_TRANSACTION_COUNT);
-        this.poolLocks = new ReentrantLock[MAX_LOCK_COUNT];
-        this.state = new AtomicInteger(STATE_READY);
+        this.state = STATE_READY;
     }
 
     /**
@@ -194,7 +126,7 @@ class IOBackend implements AutoCloseable {
      * @return The current state of the backend
      */
     public int getState() {
-        return state.get();
+        return state;
     }
 
     /**
@@ -216,24 +148,6 @@ class IOBackend implements AutoCloseable {
     }
 
     /**
-     * Gets a free lock object
-     *
-     * @return A free lock object
-     */
-    private ReentrantLock newLock() {
-        synchronized (poolLocks) {
-            for (int i = 0; i != poolLocks.length; i++) {
-                if (poolLocks[i] != null) {
-                    ReentrantLock result = poolLocks[i];
-                    poolLocks[i] = null;
-                    return result;
-                }
-            }
-        }
-        return new ReentrantLock();
-    }
-
-    /**
      * Returns a transaction object to the pool
      *
      * @param transaction The transaction object
@@ -250,22 +164,6 @@ class IOBackend implements AutoCloseable {
     }
 
     /**
-     * Returns a lock object to the pool
-     *
-     * @param lock The lock object
-     */
-    private void returnLock(ReentrantLock lock) {
-        synchronized (poolLocks) {
-            for (int i = 0; i != poolLocks.length; i++) {
-                if (poolLocks[i] == null) {
-                    poolLocks[i] = lock;
-                    return;
-                }
-            }
-        }
-    }
-
-    /**
      * Begins a transaction
      *
      * @param backend  The backend element for the IO
@@ -275,62 +173,15 @@ class IOBackend implements AutoCloseable {
      * @return The transaction object
      */
     protected Transaction transaction(IOElement backend, long location, long length, boolean writable) {
-        int s = state.get();
-        if (s == STATE_FINALIZING) {
-            // wait for the end of the commit process
-            globalLock.lock();
-            globalLock.unlock();
-        } else if (s >= STATE_CLOSING) {
+        if (state != STATE_READY)
             throw new IllegalStateException("The store is not in a ready state");
-        }
         Transaction transaction = newTransaction();
         transaction.setupIO(backend, location, length, writable);
-        transaction.thread = Thread.currentThread();
-        transaction.lockBefore = null;
-        transaction.lockBlock = newLock();
-        transaction.lockAfter = null;
-        synchronized (transactions) {
-            for (Transaction executing : transactions) {
-                if (executing.isInConflict(transaction)) {
-                    if (executing.location <= transaction.location) {
-                        transaction.lockBefore = executing.lockBlock;
-                        if (transaction.lockAfter != null)
-                            break;
-                    } else {
-                        transaction.lockAfter = executing.lockBlock;
-                        if (transaction.lockBefore != null)
-                            break;
-                    }
-                }
-            }
-        }
-        // obtain the locks
-        transaction.lockBlock.lock();
-        if (transaction.lockBefore != null)
-            transaction.lockBefore.lock();
-        if (transaction.lockAfter != null)
-            transaction.lockAfter.lock();
         // register the transaction
-        synchronized (transactions) {
-            transactions.add(transaction);
-        }
+        transactions.add(transaction);
         // go ahead
         transaction.reset();
         return transaction;
-    }
-
-    /**
-     * Frees the specified lock
-     *
-     * @param lock A lock
-     */
-    private void freeLock(ReentrantLock lock) {
-        if (lock == null)
-            return;
-        boolean queued = lock.hasQueuedThreads();
-        lock.unlock();
-        if (!queued)
-            returnLock(lock);
     }
 
     /**
@@ -340,42 +191,12 @@ class IOBackend implements AutoCloseable {
      */
     private void transactionEnd(Transaction transaction) {
         // unregister the transaction
-        synchronized (transactions) {
-            transactions.remove(transaction);
-        }
-        // free all the locks
-        freeLock(transaction.lockAfter);
-        freeLock(transaction.lockBefore);
-        freeLock(transaction.lockBlock);
+        transactions.remove(transaction);
         returnTransaction(transaction);
-    }
-
-    /**
-     * Waits for all transactions to finish
-     */
-    protected void finalizeAllTransactions() {
-        List<Transaction> currentTransactions;
-        synchronized (transactions) {
-            currentTransactions = new ArrayList<>(transactions);
-        }
-        for (Transaction transaction : currentTransactions) {
-            try {
-                transaction.close();
-            } catch (IOException exception) {
-                // do nothing
-            }
-        }
     }
 
     @Override
     public void close() throws Exception {
-        globalLock.lock();
-        if (!state.compareAndSet(STATE_READY, STATE_CLOSING)) {
-            globalLock.unlock();
-            throw new IllegalStateException("The store is not in a ready state");
-        }
-        finalizeAllTransactions();
-        state.compareAndSet(STATE_CLOSING, STATE_CLOSED);
-        globalLock.unlock();
+        state = STATE_CLOSED;
     }
 }
