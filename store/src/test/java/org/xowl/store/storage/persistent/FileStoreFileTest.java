@@ -43,7 +43,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testGetSizeSingleBlock() throws IOException {
+    public void testGetSizeSingleBlock() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeByte((byte) 5);
@@ -52,7 +52,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testGetSizeDoubleBlock() throws IOException {
+    public void testGetSizeDoubleBlock() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeByte((byte) 5);
@@ -63,7 +63,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testGetSizeAfterSeekAndNoWrite() throws IOException {
+    public void testGetSizeAfterSeekAndNoWrite() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.seek(FileStoreFile.BLOCK_SIZE);
@@ -72,7 +72,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testGetSizeAfterReload() throws IOException {
+    public void testGetSizeAfterReload() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeByte((byte) 5);
@@ -115,7 +115,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testGetIndexAfterWriteByte() throws IOException {
+    public void testGetIndexAfterWriteByte() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.seek(4);
@@ -125,7 +125,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testGetIndexAfterWriteBytes() throws IOException {
+    public void testGetIndexAfterWriteBytes() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.seek(4);
@@ -135,7 +135,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testGetIndexAfterWriteChar() throws IOException {
+    public void testGetIndexAfterWriteChar() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.seek(4);
@@ -145,7 +145,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testGetIndexAfterWriteInt() throws IOException {
+    public void testGetIndexAfterWriteInt() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.seek(4);
@@ -155,17 +155,17 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testGetIndexAfterWriteLong() throws IOException {
+    public void testGetIndexAfterWriteLong() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.seek(4);
-        pf.writeLong(0x00BB00AA00FF00EEl);
+        pf.writeLong(0x00BB00AA00FF00EEL);
         Assert.assertEquals("Unexpected index", 12, pf.getIndex());
         pf.close();
     }
 
     @Test
-    public void testGetIndexAfterWriteFloat() throws IOException {
+    public void testGetIndexAfterWriteFloat() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.seek(4);
@@ -175,7 +175,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testGetIndexAfterWriteDouble() throws IOException {
+    public void testGetIndexAfterWriteDouble() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.seek(4);
@@ -186,7 +186,7 @@ public class FileStoreFileTest {
 
 
     @Test
-    public void testWriteSimpleByte() throws IOException {
+    public void testWriteSimpleByte() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeByte((byte) 5);
@@ -200,7 +200,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testReadSimpleByte() throws IOException {
+    public void testReadSimpleByte() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeByte((byte) 5);
@@ -213,7 +213,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testWriteSimpleBytes() throws IOException {
+    public void testWriteSimpleBytes() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeBytes(new byte[]{0x5, 0x6, 0x7});
@@ -229,7 +229,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testReadSimpleBytes() throws IOException {
+    public void testReadSimpleBytes() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeBytes(new byte[]{0x5, 0x6, 0x7});
@@ -244,43 +244,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testWriteBoundaryBytes() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 2);
-        pf.writeBytes(new byte[]{0x5, 0x6, 0x7});
-        pf.commit();
-        pf.close();
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE * 2, file.length());
-        byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFile.BLOCK_SIZE * 2, content.length);
-        Assert.assertEquals("Unexpected content", 5, content[FileStoreFile.BLOCK_SIZE - 2]);
-        Assert.assertEquals("Unexpected content", 6, content[FileStoreFile.BLOCK_SIZE - 1]);
-        Assert.assertEquals("Unexpected content", 7, content[FileStoreFile.BLOCK_SIZE]);
-    }
-
-    @Test
-    public void testReadBoundaryBytes() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 2);
-        pf.writeBytes(new byte[]{0x5, 0x6, 0x7});
-        pf.commit();
-        pf.close();
-
-        pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 2);
-        byte[] content = pf.readBytes(3);
-        pf.close();
-        Assert.assertEquals("Unexpected content length", 3, content.length);
-        Assert.assertEquals("Unexpected content", 5, content[0]);
-        Assert.assertEquals("Unexpected content", 6, content[1]);
-        Assert.assertEquals("Unexpected content", 7, content[2]);
-    }
-
-    @Test
-    public void testWriteSimpleChar() throws IOException {
+    public void testWriteSimpleChar() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeChar((char) 0xBBCC);
@@ -295,7 +259,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testReadSimpleChar() throws IOException {
+    public void testReadSimpleChar() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeChar((char) 0xBBCC);
@@ -308,39 +272,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testWriteBoundaryChar() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 1);
-        pf.writeChar((char) 0xBBCC);
-        pf.commit();
-        pf.close();
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE * 2, file.length());
-        byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFile.BLOCK_SIZE * 2, content.length);
-        ByteBuffer buffer = ByteBuffer.wrap(content);
-        buffer.position(FileStoreFile.BLOCK_SIZE - 1);
-        Assert.assertEquals("Unexpected content", (char) 0xBBCC, buffer.getChar());
-    }
-
-    @Test
-    public void testReadBoundaryChar() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 1);
-        pf.writeChar((char) 0xBBCC);
-        pf.commit();
-        pf.close();
-
-        pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 1);
-        Assert.assertEquals("Unexpected content", (char) 0xBBCC, pf.readChar());
-        pf.close();
-    }
-
-    @Test
-    public void testWriteSimpleInt() throws IOException {
+    public void testWriteSimpleInt() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeInt(55);
@@ -355,7 +287,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testReadSimpleInt() throws IOException {
+    public void testReadSimpleInt() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeInt(55);
@@ -368,42 +300,10 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testWriteBoundaryInt() throws IOException {
+    public void testWriteSimpleLong() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 2);
-        pf.writeInt(55);
-        pf.commit();
-        pf.close();
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE * 2, file.length());
-        byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFile.BLOCK_SIZE * 2, content.length);
-        ByteBuffer buffer = ByteBuffer.wrap(content);
-        buffer.position(FileStoreFile.BLOCK_SIZE - 2);
-        Assert.assertEquals("Unexpected content", 55, buffer.getInt());
-    }
-
-    @Test
-    public void testReadBoundaryInt() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 2);
-        pf.writeInt(55);
-        pf.commit();
-        pf.close();
-
-        pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 2);
-        Assert.assertEquals("Unexpected content", 55, pf.readInt());
-        pf.close();
-    }
-
-    @Test
-    public void testWriteSimpleLong() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.writeLong(0x00BB00AA00FF00EEl);
+        pf.writeLong(0x00BB00AA00FF00EEL);
         pf.commit();
         pf.close();
         Assert.assertTrue("File has not been created", file.exists());
@@ -411,56 +311,24 @@ public class FileStoreFileTest {
         byte[] content = Files.readAllBytes(file.toPath());
         Assert.assertEquals("Unexpected content length", FileStoreFile.BLOCK_SIZE, content.length);
         ByteBuffer buffer = ByteBuffer.wrap(content);
-        Assert.assertEquals("Unexpected content", 0x00BB00AA00FF00EEl, buffer.getLong());
+        Assert.assertEquals("Unexpected content", 0x00BB00AA00FF00EEL, buffer.getLong());
     }
 
     @Test
-    public void testReadSimpleLong() throws IOException {
+    public void testReadSimpleLong() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
-        pf.writeLong(0x00BB00AA00FF00EEl);
+        pf.writeLong(0x00BB00AA00FF00EEL);
         pf.commit();
         pf.close();
 
         pf = new FileStoreFile(file);
-        Assert.assertEquals("Unexpected content", 0x00BB00AA00FF00EEl, pf.readLong());
+        Assert.assertEquals("Unexpected content", 0x00BB00AA00FF00EEL, pf.readLong());
         pf.close();
     }
 
     @Test
-    public void testWriteBoundaryLong() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 4);
-        pf.writeLong(0x00BB00AA00FF00EEl);
-        pf.commit();
-        pf.close();
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE * 2, file.length());
-        byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFile.BLOCK_SIZE * 2, content.length);
-        ByteBuffer buffer = ByteBuffer.wrap(content);
-        buffer.position(FileStoreFile.BLOCK_SIZE - 4);
-        Assert.assertEquals("Unexpected content", 0x00BB00AA00FF00EEl, buffer.getLong());
-    }
-
-    @Test
-    public void testReadBoundaryLong() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 4);
-        pf.writeLong(0x00BB00AA00FF00EEl);
-        pf.commit();
-        pf.close();
-
-        pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 4);
-        Assert.assertEquals("Unexpected content", 0x00BB00AA00FF00EEl, pf.readLong());
-        pf.close();
-    }
-
-    @Test
-    public void testWriteSimpleFloat() throws IOException {
+    public void testWriteSimpleFloat() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeFloat(5.5f);
@@ -475,7 +343,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testReadSimpleFloat() throws IOException {
+    public void testReadSimpleFloat() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeFloat(5.5f);
@@ -488,39 +356,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testWriteBoundaryFloat() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 2);
-        pf.writeFloat(5.5f);
-        pf.commit();
-        pf.close();
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE * 2, file.length());
-        byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFile.BLOCK_SIZE * 2, content.length);
-        ByteBuffer buffer = ByteBuffer.wrap(content);
-        buffer.position(FileStoreFile.BLOCK_SIZE - 2);
-        Assert.assertTrue("Unexpected content", 5.5f == buffer.getFloat());
-    }
-
-    @Test
-    public void testReadBoundaryFloat() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 2);
-        pf.writeFloat(5.5f);
-        pf.commit();
-        pf.close();
-
-        pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 2);
-        Assert.assertTrue("Unexpected content", 5.5f == pf.readFloat());
-        pf.close();
-    }
-
-    @Test
-    public void testWriteSimpleDouble() throws IOException {
+    public void testWriteSimpleDouble() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeDouble(5.5d);
@@ -535,7 +371,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testReadSimpleDouble() throws IOException {
+    public void testReadSimpleDouble() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeDouble(5.5d);
@@ -548,39 +384,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testWriteBoundaryDouble() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 4);
-        pf.writeDouble(5.5f);
-        pf.commit();
-        pf.close();
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE * 2, file.length());
-        byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFile.BLOCK_SIZE * 2, content.length);
-        ByteBuffer buffer = ByteBuffer.wrap(content);
-        buffer.position(FileStoreFile.BLOCK_SIZE - 4);
-        Assert.assertTrue("Unexpected content", 5.5d == buffer.getDouble());
-    }
-
-    @Test
-    public void testReadBoundaryDouble() throws IOException {
-        File file = File.createTempFile("test", ".bin");
-        FileStoreFile pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 4);
-        pf.writeDouble(5.5d);
-        pf.commit();
-        pf.close();
-
-        pf = new FileStoreFile(file);
-        pf.seek(FileStoreFile.BLOCK_SIZE - 4);
-        Assert.assertTrue("Unexpected content", 5.5d == pf.readDouble());
-        pf.close();
-    }
-
-    @Test
-    public void testWriteWithinBlock() throws IOException {
+    public void testWriteWithinBlock() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeInt(55);
@@ -599,7 +403,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testWriteTwoBlock() throws IOException {
+    public void testWriteTwoBlock() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeInt(55);
@@ -618,7 +422,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testReadWrittenData() throws IOException {
+    public void testReadWrittenData() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeInt(55);
@@ -632,7 +436,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testReload() throws IOException {
+    public void testReload() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeInt(55);
@@ -650,7 +454,7 @@ public class FileStoreFileTest {
     }
 
     @Test
-    public void testRollback() throws IOException {
+    public void testRollback() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeInt(55);

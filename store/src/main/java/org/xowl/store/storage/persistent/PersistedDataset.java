@@ -1828,7 +1828,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             if (count == 0) {
                 try {
                     backend.remove(current);
-                } catch (IOException | StorageException exception) {
+                } catch (StorageException exception) {
                     // TODO: handle this
                 }
                 if (previous == PersistedNode.KEY_NOT_PRESENT) {
@@ -1936,7 +1936,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             // the child bucket is empty
             try {
                 backend.remove(subjectKey);
-            } catch (IOException | StorageException exception) {
+            } catch (StorageException exception) {
                 // TODO: handle this
             }
             return true;
@@ -2004,7 +2004,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 // the child bucket is empty
                 try {
                     backend.remove(current);
-                } catch (IOException | StorageException exception) {
+                } catch (StorageException exception) {
                     // TODO: handle this
                 }
                 if (previous == PersistedNode.KEY_NOT_PRESENT) {
@@ -2087,7 +2087,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 // the child bucket is empty
                 try {
                     backend.remove(current);
-                } catch (IOException | StorageException exception) {
+                } catch (StorageException exception) {
                     // TODO: handle this
                 }
                 if (previous == PersistedNode.KEY_NOT_PRESENT) {
@@ -2168,14 +2168,14 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                     // remove all graphs
                     try {
                         backend.remove(current);
-                    } catch (IOException | StorageException exception) {
+                    } catch (StorageException exception) {
                         // TODO: handle this
                     }
                 } else {
                     // remove this element from the linked list
                     try {
                         backend.remove(current);
-                    } catch (IOException | StorageException exception) {
+                    } catch (StorageException exception) {
                         // TODO: handle this
                     }
                     if (previous == PersistedNode.KEY_NOT_PRESENT) {
@@ -2267,7 +2267,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             }
             try {
                 backend.remove(current);
-            } catch (IOException | StorageException exception) {
+            } catch (StorageException exception) {
                 // TODO: handle this
             }
             current = next;
@@ -2313,7 +2313,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             // the child bucket is empty
             try {
                 backend.remove(key);
-            } catch (IOException | StorageException exception) {
+            } catch (StorageException exception) {
                 // TODO: handle this
             }
             return true;
@@ -2365,7 +2365,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 // the child bucket is empty
                 try {
                     backend.remove(current);
-                } catch (IOException | StorageException exception) {
+                } catch (StorageException exception) {
                     // TODO: handle this
                 }
                 if (previous == PersistedNode.KEY_NOT_PRESENT) {
@@ -2433,7 +2433,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 // the child bucket is empty
                 try {
                     backend.remove(current);
-                } catch (IOException | StorageException exception) {
+                } catch (StorageException exception) {
                     // TODO: handle this
                 }
                 if (previous == PersistedNode.KEY_NOT_PRESENT) {
@@ -2500,14 +2500,14 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 // remove all quads
                 try {
                     backend.remove(current);
-                } catch (IOException | StorageException exception) {
+                } catch (StorageException exception) {
                     // TODO: handle this
                 }
             } else if (found) {
                 // remove this element from the linked list
                 try {
                     backend.remove(current);
-                } catch (IOException | StorageException exception) {
+                } catch (StorageException exception) {
                     // TODO: handle this
                 }
                 if (previous == PersistedNode.KEY_NOT_PRESENT) {
