@@ -33,8 +33,9 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * Concrete implementation of a persisted data store
- * This implementation delegates all its behavior to persisted stores
+ * Concrete implementation of a persisted data store.
+ * This implementation delegates all its behavior to persisted stores.
+ * This class is NOT thread safe.
  *
  * @author Laurent Wouters
  */
