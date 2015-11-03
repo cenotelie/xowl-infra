@@ -24,7 +24,8 @@ import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Property;
-import org.xowl.store.storage.MQuad;
+import org.xowl.store.storage.impl.DatasetImpl;
+import org.xowl.store.storage.impl.MQuad;
 import org.xowl.utils.collections.*;
 
 import java.util.Arrays;
@@ -80,17 +81,17 @@ class EdgeBucket implements Iterable<Edge> {
             edges = Arrays.copyOf(edges, edges.length + INIT_SIZE);
             edges[size] = new Edge(graph, property, value);
             size++;
-            return CachedDataset.ADD_RESULT_NEW;
+            return DatasetImpl.ADD_RESULT_NEW;
         }
         for (int i = 0; i != edges.length; i++) {
             if (edges[i] == null) {
                 edges[i] = new Edge(graph, property, value);
                 size++;
-                return CachedDataset.ADD_RESULT_NEW;
+                return DatasetImpl.ADD_RESULT_NEW;
             }
         }
         // cannot happen
-        return CachedDataset.ADD_RESULT_UNKNOWN;
+        return DatasetImpl.ADD_RESULT_UNKNOWN;
     }
 
     /**
@@ -105,15 +106,15 @@ class EdgeBucket implements Iterable<Edge> {
         for (int i = 0; i != edges.length; i++) {
             if (edges[i] != null && RDFUtils.same(edges[i].getProperty(), property)) {
                 int result = edges[i].remove(graph, value);
-                if (result == CachedDataset.REMOVE_RESULT_EMPTIED) {
+                if (result == DatasetImpl.REMOVE_RESULT_EMPTIED) {
                     edges[i] = null;
                     size--;
-                    return (size == 0) ? CachedDataset.REMOVE_RESULT_EMPTIED : CachedDataset.REMOVE_RESULT_REMOVED;
+                    return (size == 0) ? DatasetImpl.REMOVE_RESULT_EMPTIED : DatasetImpl.REMOVE_RESULT_REMOVED;
                 }
                 return result;
             }
         }
-        return CachedDataset.REMOVE_RESULT_NOT_FOUND;
+        return DatasetImpl.REMOVE_RESULT_NOT_FOUND;
     }
 
     /**
@@ -136,13 +137,13 @@ class EdgeBucket implements Iterable<Edge> {
                     bufferDecremented.get(j).setProperty(edges[i].getProperty());
                 for (int j = originalSizeRem; j != bufferRemoved.size(); j++)
                     bufferRemoved.get(j).setProperty(edges[i].getProperty());
-                if (result == CachedDataset.REMOVE_RESULT_EMPTIED) {
+                if (result == DatasetImpl.REMOVE_RESULT_EMPTIED) {
                     edges[i] = null;
                     size--;
                 }
             }
         }
-        return (size == 0) ? CachedDataset.REMOVE_RESULT_EMPTIED : CachedDataset.REMOVE_RESULT_REMOVED;
+        return (size == 0) ? DatasetImpl.REMOVE_RESULT_EMPTIED : DatasetImpl.REMOVE_RESULT_REMOVED;
     }
 
     /**

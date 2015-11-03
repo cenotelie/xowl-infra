@@ -23,9 +23,9 @@ package org.xowl.store.storage.persistent;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.xowl.store.rdf.*;
-import org.xowl.store.storage.Dataset;
-import org.xowl.store.storage.MQuad;
 import org.xowl.store.storage.UnsupportedNodeType;
+import org.xowl.store.storage.impl.DatasetImpl;
+import org.xowl.store.storage.impl.MQuad;
 import org.xowl.utils.collections.*;
 
 import java.io.File;
@@ -37,37 +37,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class PersistedDataset implements Dataset, AutoCloseable {
-    /**
-     * When adding a quad, something weird happened
-     */
-    public static final int ADD_RESULT_UNKNOWN = 0;
-    /**
-     * When adding a quad, it was already present and its multiplicity incremented
-     */
-    public static final int ADD_RESULT_INCREMENT = 1;
-    /**
-     * When adding a quad, it was not already present and was therefore new
-     */
-    public static final int ADD_RESULT_NEW = 2;
-    /**
-     * When removing a quad, it was not found in the store
-     */
-    public static final int REMOVE_RESULT_NOT_FOUND = 0;
-    /**
-     * When removing a quad, it was decremented and the multiplicity did not reached 0 yet
-     */
-    public static final int REMOVE_RESULT_DECREMENT = 1;
-    /**
-     * When removing a quad, its multiplicity reached 0
-     */
-    public static final int REMOVE_RESULT_REMOVED = 2;
-    /**
-     * When removing a quad, its multiplicity reached 0 and the child dataset is now empty
-     */
-    public static final int REMOVE_RESULT_EMPTIED = 6;
-
-
+public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     /**
      * The suffix for the index file
      */
@@ -264,10 +234,6 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     }
 
     /**
-     * The current listeners on this store
-     */
-    private final Collection<ChangeListener> listeners;
-    /**
      * The persisted nodes associated to this dataset
      */
     private final PersistedNodes nodes;
@@ -318,7 +284,6 @@ public class PersistedDataset implements Dataset, AutoCloseable {
      * @throws StorageException When the storage is in a bad state
      */
     public PersistedDataset(PersistedNodes nodes, File directory, boolean isReadonly) throws IOException, StorageException {
-        this.listeners = new ArrayList<>();
         this.nodes = nodes;
         this.backend = new FileStore(directory, FILE_DATA, isReadonly);
         this.database = dbMaker(directory, isReadonly).make();
@@ -363,455 +328,6 @@ public class PersistedDataset implements Dataset, AutoCloseable {
         boolean success = backend.rollback();
         database.rollback();
         return success;
-    }
-
-    /**
-     * Gets the subject map for the specified subject
-     *
-     * @param subject A quad subject
-     * @return The appropriate map
-     * @throws UnsupportedNodeType When the subject node is not recognized
-     */
-    private Map<Long, Long> mapFor(PersistedNode subject) throws UnsupportedNodeType {
-        switch (subject.getNodeType()) {
-            case Node.TYPE_IRI:
-                return mapSubjectIRI;
-            case Node.TYPE_BLANK:
-                return mapSubjectBlank;
-            case Node.TYPE_ANONYMOUS:
-                return mapSubjectAnon;
-        }
-        throw new UnsupportedOperationException("Subject node must be IRI, Blank or Anonymous");
-    }
-
-    /**
-     * Inserts a quad into the backend
-     *
-     * @param subject  The subject
-     * @param property The property
-     * @param object   The object
-     * @param graph    The graph
-     * @return The result of the insertion
-     * @throws UnsupportedNodeType When the subject node is not recognized
-     */
-    private int doQuadAdd(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) throws UnsupportedNodeType {
-        try {
-            Map<Long, Long> map = mapFor(subject);
-            Long bucket = map.get(subject.getKey());
-            if (bucket == null) {
-                bufferQNSubject = newEntry(subject);
-                map.put(subject.getKey(), bufferQNSubject);
-            } else {
-                bufferQNSubject = bucket;
-            }
-            long target = lookupQNode(bufferQNSubject, property, true);
-            target = lookupQNode(target, object, true);
-            target = lookupQNode(target, graph, true);
-            try (IOElement entry = backend.access(target)) {
-                long value = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
-                if (value == PersistedNode.KEY_NOT_PRESENT) {
-                    entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(1);
-                    return ADD_RESULT_NEW;
-                } else {
-                    value++;
-                    entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(value);
-                    return ADD_RESULT_INCREMENT;
-                }
-            }
-        } catch (IOException | StorageException exception) {
-            // do nothing
-            return ADD_RESULT_UNKNOWN;
-        }
-    }
-
-    /**
-     * Indexes a quad into the backend
-     *
-     * @param subject The subject
-     * @param graph   The graph
-     */
-    private void doQuadIndex(PersistedNode subject, PersistedNode graph) {
-        int radical = FileStore.getKeyRadical(subject.getKey());
-        Map<Long, Long> map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
-        Long bucket = map.get(graph.getKey());
-        if (bucket == null) {
-            // this is the first quad for this graph
-            long key = writeNewGraphIndex(radical, bufferQNSubject);
-            map.put(graph.getKey(), key);
-            return;
-        }
-        // look for an appropriate entry
-        long emptyEntry = PersistedNode.KEY_NOT_PRESENT;
-        bufferQNPrevious = PersistedNode.KEY_NOT_PRESENT;
-        long current = bucket;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
-            try (IOElement entry = backend.access(current)) {
-                long next = entry.readLong();
-                int eRadical = entry.readInt();
-                if (eRadical != radical)
-                    continue;
-                int count = entry.readInt();
-                if (emptyEntry == PersistedNode.KEY_NOT_PRESENT && count < GINDEX_ENTRY_MAX_ITEM_COUNT)
-                    emptyEntry = current;
-                for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
-                    int qnode = entry.readInt();
-                    int multiplicity = entry.readInt();
-                    if (qnode == FileStore.getShortKey(bufferQNSubject)) {
-                        multiplicity++;
-                        entry.seek(i * 8 + 8 + 4 + 4 + 4).writeInt(multiplicity);
-                        return;
-                    }
-                }
-                bufferQNPrevious = current;
-                current = next;
-            } catch (IOException | StorageException exception) {
-                // do nothing
-                return;
-            }
-        }
-        // not found in an entry
-        if (emptyEntry != PersistedNode.KEY_NOT_PRESENT) {
-            try (IOElement entry = backend.access(emptyEntry)) {
-                int count = entry.seek(12).readInt();
-                for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
-                    int qnode = entry.readInt();
-                    entry.readInt();
-                    if (qnode == PersistedNode.KEY_NOT_PRESENT) {
-                        entry.seek(i * 8 + 8 + 4 + 4);
-                        entry.writeInt(FileStore.getShortKey(bufferQNSubject));
-                        entry.writeInt(1);
-                        break;
-                    }
-                }
-                entry.seek(8 + 4).writeInt(count + 1);
-            } catch (IOException | StorageException exception) {
-                // do nothing
-            }
-        } else {
-            // requires a new entry
-            long key = writeNewGraphIndex(radical, bufferQNSubject);
-            try (IOElement entry = backend.access(bufferQNPrevious)) {
-                entry.writeLong(key);
-            } catch (IOException | StorageException exception) {
-                // do nothing
-            }
-        }
-    }
-
-    /**
-     * Writes a new graph index entry
-     *
-     * @param radical The key radical for this entry
-     * @param qnode   The key to the subject quad node
-     * @return The key to this entry
-     */
-    private long writeNewGraphIndex(int radical, long qnode) {
-        try {
-            long key = backend.add(GINDEX_ENTRY_SIZE);
-            try (IOElement entry = backend.access(key)) {
-                entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
-                entry.writeInt(radical);
-                entry.writeInt(1);
-                entry.writeInt((int) (qnode - radical));
-                entry.writeInt(1);
-            }
-            return key;
-        } catch (IOException | StorageException exception) {
-            // do nothing
-            return PersistedNode.KEY_NOT_PRESENT;
-        }
-    }
-
-    /**
-     * Removes a quad into the backend
-     *
-     * @param subject  The subject
-     * @param property The property
-     * @param object   The object
-     * @param graph    The graph
-     * @return The result of the removal
-     * @throws UnsupportedNodeType When the subject node is not recognized
-     */
-    private int doQuadRemove(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) throws UnsupportedNodeType {
-        try {
-            Map<Long, Long> map = mapFor(subject);
-            Long bucket = map.get(subject.getKey());
-            if (bucket == null) {
-                return REMOVE_RESULT_NOT_FOUND;
-            }
-            bufferQNSubject = bucket;
-            long bufferQNProperty = lookupQNode(bufferQNSubject, property, false);
-            if (bufferQNProperty == PersistedNode.KEY_NOT_PRESENT)
-                return REMOVE_RESULT_NOT_FOUND;
-            long keyPropertyPrevious = bufferQNPrevious;
-            long bufferQNObject = lookupQNode(bufferQNProperty, object, false);
-            if (bufferQNObject == PersistedNode.KEY_NOT_PRESENT)
-                return REMOVE_RESULT_NOT_FOUND;
-            long keyObjectPrevious = bufferQNPrevious;
-            long bufferQNGraph = lookupQNode(bufferQNObject, graph, false);
-            if (bufferQNGraph == PersistedNode.KEY_NOT_PRESENT)
-                return REMOVE_RESULT_NOT_FOUND;
-            long keyGraphPrevious = bufferQNPrevious;
-            try (IOElement entry = backend.access(bufferQNGraph)) {
-                long value = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
-                value--;
-                if (value > 0) {
-                    entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(value);
-                    return REMOVE_RESULT_DECREMENT;
-                }
-            }
-
-            // remove the graph node
-            long next;
-            try (IOElement entry = backend.read(bufferQNGraph)) {
-                next = entry.readLong();
-            }
-            if (keyGraphPrevious == bufferQNObject) {
-                // the previous of the graph is the object
-                if (next == PersistedNode.KEY_NOT_PRESENT) {
-                    // the last one
-                    backend.remove(bufferQNGraph);
-                } else {
-                    try (IOElement entry = backend.access(bufferQNObject)) {
-                        entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
-                    }
-                    backend.remove(bufferQNGraph);
-                    return REMOVE_RESULT_REMOVED;
-                }
-            } else {
-                try (IOElement entry = backend.access(keyGraphPrevious)) {
-                    entry.writeLong(next);
-                }
-                backend.remove(bufferQNGraph);
-                return REMOVE_RESULT_REMOVED;
-            }
-
-            // remove the object node
-            try (IOElement entry = backend.read(bufferQNObject)) {
-                next = entry.readLong();
-            }
-            if (keyObjectPrevious == bufferQNProperty) {
-                // the previous of the object is the property
-                if (next == PersistedNode.KEY_NOT_PRESENT) {
-                    // the last one
-                    backend.remove(bufferQNObject);
-                } else {
-                    try (IOElement entry = backend.access(bufferQNProperty)) {
-                        entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
-                    }
-                    backend.remove(bufferQNObject);
-                    return REMOVE_RESULT_REMOVED;
-                }
-            } else {
-                try (IOElement entry = backend.access(keyObjectPrevious)) {
-                    entry.writeLong(next);
-                }
-                backend.remove(bufferQNObject);
-                return REMOVE_RESULT_REMOVED;
-            }
-
-            // remove the property node
-            try (IOElement entry = backend.read(bufferQNProperty)) {
-                next = entry.readLong();
-            }
-            if (keyPropertyPrevious == bufferQNSubject) {
-                // the previous of the property is the subject
-                if (next == PersistedNode.KEY_NOT_PRESENT) {
-                    // the last one
-                    backend.remove(bufferQNProperty);
-                } else {
-                    try (IOElement entry = backend.access(bufferQNSubject)) {
-                        entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
-                    }
-                    backend.remove(bufferQNProperty);
-                    return REMOVE_RESULT_REMOVED;
-                }
-            } else {
-                try (IOElement entry = backend.access(keyPropertyPrevious)) {
-                    entry.writeLong(next);
-                }
-                backend.remove(bufferQNProperty);
-                return REMOVE_RESULT_REMOVED;
-            }
-
-            // remove the subject node
-            backend.remove(bufferQNSubject);
-            map.remove(subject.getKey());
-            return REMOVE_RESULT_EMPTIED;
-        } catch (IOException | StorageException exception) {
-            // do nothing
-            return REMOVE_RESULT_NOT_FOUND;
-        }
-    }
-
-    /**
-     * De-indexes a quad into the backend
-     *
-     * @param subject The subject
-     * @param graph   The graph
-     */
-    private void doQuadDeindex(PersistedNode subject, PersistedNode graph) {
-        int radical = ((int) (subject.getKey() >>> 32));
-        Map<Long, Long> map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
-        Long bucket = map.get(graph.getKey());
-        if (bucket == null) {
-            // this is the first quad for this graph
-            return;
-        }
-        // look for an appropriate entry
-        bufferQNPrevious = PersistedNode.KEY_NOT_PRESENT;
-        long current = bucket;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
-            try (IOElement entry = backend.access(current)) {
-                long next = entry.readLong();
-                int eRadical = entry.readInt();
-                if (eRadical != radical)
-                    continue;
-                int count = entry.readInt();
-                for (int i = 0; i != count; i++) {
-                    int qnode = entry.readInt();
-                    int multiplicity = entry.readInt();
-                    if (qnode == FileStore.getShortKey(bufferQNSubject)) {
-                        multiplicity--;
-                        if (multiplicity > 0) {
-                            entry.seek(i * 8 + 8 + 4 + 4 + 4).writeLong(multiplicity);
-                            return;
-                        }
-                        count--;
-                        if (count > 0) {
-                            entry.seek(i * 8 + 8 + 4 + 4);
-                            entry.writeInt(-1);
-                            entry.writeInt(0);
-                            entry.seek(8 + 4).writeInt(count);
-                            return;
-                        }
-                        if (bufferQNPrevious == PersistedNode.KEY_NOT_PRESENT) {
-                            // this is the first entry for this index
-                            if (next == PersistedNode.KEY_NOT_PRESENT) {
-                                // this is the sole entry
-                                map.remove(graph.getKey());
-                            } else {
-                                map.put(graph.getKey(), next);
-                            }
-                        } else {
-                            try (IOElement pe = backend.access(bufferQNPrevious)) {
-                                pe.writeLong(next);
-                            }
-                        }
-                        backend.remove(current);
-                        return;
-                    }
-                }
-                bufferQNPrevious = current;
-                current = next;
-            } catch (IOException | StorageException exception) {
-                // do nothing
-                return;
-            }
-        }
-    }
-
-    /**
-     * Lookup the target entry for a quad node
-     *
-     * @param from    Key to the parent entry
-     * @param node    The node quad node to resolve
-     * @param resolve Whether to create the entry if it does not exist
-     * @return The key to the resolved quad node
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
-     */
-    private long lookupQNode(long from, PersistedNode node, boolean resolve) throws IOException, StorageException {
-        bufferQNPrevious = from;
-        long current;
-        try (IOElement entry = backend.read(from)) {
-            current = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
-        }
-        if (current == PersistedNode.KEY_NOT_PRESENT) {
-            if (!resolve)
-                return PersistedNode.KEY_NOT_PRESENT;
-            // not here
-            current = newEntry(node);
-            try (IOElement entry = backend.access(from)) {
-                entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(current);
-            }
-            return current;
-        }
-        // follow the chain
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
-            try (IOElement entry = backend.read(current)) {
-                long next = entry.readLong();
-                if (node.getNodeType() == entry.readInt() && node.getKey() == entry.readLong()) {
-                    return current;
-                }
-                bufferQNPrevious = current;
-                current = next;
-            }
-        }
-        // not present => new entry
-        if (!resolve)
-            return PersistedNode.KEY_NOT_PRESENT;
-        current = newEntry(node);
-        try (IOElement entry = backend.access(bufferQNPrevious)) {
-            entry.writeLong(current);
-        }
-        return current;
-    }
-
-    /**
-     * Writes the new quad node entry for the specified node
-     *
-     * @param node A quad node
-     * @return The key to the entry
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
-     */
-    private long newEntry(PersistedNode node) throws IOException, StorageException {
-        long key = backend.add(QUAD_ENTRY_SIZE);
-        try (IOElement entry = backend.access(key)) {
-            entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
-            entry.writeInt(node.getNodeType());
-            entry.writeLong(node.getKey());
-            entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
-        }
-        return key;
-    }
-
-    /**
-     * Gets the persisted node
-     *
-     * @param type The type of node
-     * @param key  The key for the node
-     * @return The persisted node
-     */
-    private PersistedNode getNode(int type, long key) {
-        switch (type) {
-            case Node.TYPE_IRI:
-                return nodes.getIRINodeFor(key);
-            case Node.TYPE_BLANK:
-                return nodes.getBlankNodeFor(key);
-            case Node.TYPE_ANONYMOUS:
-                return nodes.getAnonNodeFor(key);
-            case Node.TYPE_LITERAL:
-                return nodes.getLiteralNodeFor(key);
-        }
-        // cannot happen, avoids being nullable
-        return nodes.getBlankNodeFor(-1);
-    }
-
-    @Override
-    public void addListener(ChangeListener listener) {
-        listeners.add(listener);
-    }
-
-    @Override
-    public void removeListener(ChangeListener listener) {
-        listeners.remove(listener);
-    }
-
-    @Override
-    public long getMultiplicity(Quad quad) {
-        return getMultiplicity(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
     }
 
     @Override
@@ -867,21 +383,6 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             // do nothing
             return 0;
         }
-    }
-
-    @Override
-    public Iterator<Quad> getAll() {
-        return getAll(null, null, null, null);
-    }
-
-    @Override
-    public Iterator<Quad> getAll(GraphNode graph) {
-        return getAll(graph, null, null, null);
-    }
-
-    @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
-        return getAll(null, subject, property, object);
     }
 
     @Override
@@ -1004,35 +505,6 @@ public class PersistedDataset implements Dataset, AutoCloseable {
                 } catch (IOException | StorageException exception) {
                     return null;
                 }
-            }
-        });
-    }
-
-    /**
-     * Gets an iterator over all the subjects
-     *
-     * @return The iterator
-     */
-    private Iterator<Long> getAllSubjects() {
-        return new ConcatenatedIterator<>(new Iterator[]{
-                getSubjectIterator(mapSubjectIRI),
-                getSubjectIterator(mapSubjectBlank),
-                getSubjectIterator(mapSubjectAnon)
-        });
-    }
-
-    /**
-     * Gets an iterator over the subjects in an index
-     *
-     * @param map The indexing map
-     * @return The iterator
-     */
-    private Iterator<Long> getSubjectIterator(Map<Long, Long> map) {
-        return new AdaptingIterator<>(map.entrySet().iterator(), new Adapter<Long>() {
-            @Override
-            public <X> Long adapt(X element) {
-                Map.Entry<Long, Long> mapEntry = (Map.Entry<Long, Long>) element;
-                return mapEntry.getValue();
             }
         });
     }
@@ -1301,11 +773,6 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     }
 
     @Override
-    public long count(SubjectNode subject, Property property, Node object) {
-        return count(null, subject, property, object);
-    }
-
-    @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
         try {
             PersistedNode pSubject = null;
@@ -1525,101 +992,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     }
 
     @Override
-    public void insert(Changeset changeset) throws UnsupportedNodeType {
-        Collection<Quad> incremented = new ArrayList<>();
-        Collection<Quad> decremented = new ArrayList<>();
-        Collection<Quad> added = new ArrayList<>();
-        Collection<Quad> removed = new ArrayList<>();
-        try {
-            for (Quad quad : changeset.getAdded()) {
-                PersistedNode pSubject = nodes.getPersistent(quad.getSubject(), true);
-                PersistedNode pProperty = nodes.getPersistent(quad.getProperty(), true);
-                PersistedNode pObject = nodes.getPersistent(quad.getObject(), true);
-                PersistedNode pGraph = nodes.getPersistent(quad.getGraph(), true);
-                int result = doQuadAdd(pSubject, pProperty, pObject, pGraph);
-                if (result == ADD_RESULT_NEW) {
-                    doQuadIndex(pSubject, pGraph);
-                    pSubject.incrementRefCount();
-                    pProperty.incrementRefCount();
-                    pObject.incrementRefCount();
-                    pGraph.incrementRefCount();
-                    added.add(new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject));
-                } else if (result == ADD_RESULT_INCREMENT) {
-                    incremented.add(new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject));
-                }
-            }
-            for (Quad quad : changeset.getRemoved()) {
-                PersistedNode pSubject = nodes.getPersistent(quad.getSubject(), false);
-                PersistedNode pProperty = nodes.getPersistent(quad.getProperty(), false);
-                PersistedNode pObject = nodes.getPersistent(quad.getObject(), false);
-                PersistedNode pGraph = nodes.getPersistent(quad.getGraph(), false);
-                if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
-                    continue;
-                int result = doQuadRemove(pSubject, pProperty, pObject, pGraph);
-                if (result >= REMOVE_RESULT_REMOVED) {
-                    doQuadDeindex(pSubject, pGraph);
-                    pSubject.decrementRefCount();
-                    pProperty.decrementRefCount();
-                    pObject.decrementRefCount();
-                    pGraph.decrementRefCount();
-                    removed.add(new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject));
-                } else if (result == REMOVE_RESULT_DECREMENT) {
-                    decremented.add(new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject));
-                }
-            }
-        } catch (UnsupportedNodeType exception) {
-            // rollback the previously inserted quads
-            for (Quad quad : incremented)
-                doQuadRemove((PersistedNode) quad.getGraph(), (PersistedNode) quad.getSubject(), (PersistedNode) quad.getProperty(), (PersistedNode) quad.getObject());
-            for (Quad quad : added) {
-                doQuadRemove((PersistedNode) quad.getGraph(), (PersistedNode) quad.getSubject(), (PersistedNode) quad.getProperty(), (PersistedNode) quad.getObject());
-                ((PersistedNode) quad.getGraph()).decrementRefCount();
-                ((PersistedNode) quad.getSubject()).decrementRefCount();
-                ((PersistedNode) quad.getProperty()).decrementRefCount();
-                ((PersistedNode) quad.getObject()).decrementRefCount();
-            }
-            for (Quad quad : decremented)
-                doQuadAdd((PersistedNode) quad.getGraph(), (PersistedNode) quad.getSubject(), (PersistedNode) quad.getProperty(), (PersistedNode) quad.getObject());
-            for (Quad quad : removed) {
-                doQuadAdd((PersistedNode) quad.getGraph(), (PersistedNode) quad.getSubject(), (PersistedNode) quad.getProperty(), (PersistedNode) quad.getObject());
-                ((PersistedNode) quad.getGraph()).incrementRefCount();
-                ((PersistedNode) quad.getSubject()).incrementRefCount();
-                ((PersistedNode) quad.getProperty()).incrementRefCount();
-                ((PersistedNode) quad.getObject()).incrementRefCount();
-            }
-            throw exception;
-        }
-        if (!incremented.isEmpty() || !decremented.isEmpty() || !added.isEmpty() || !removed.isEmpty()) {
-            // transmit the changes only if a there are some!
-            Changeset newChangeset = new Changeset(incremented, decremented, added, removed);
-            for (ChangeListener listener : listeners)
-                listener.onChange(newChangeset);
-        }
-    }
-
-    @Override
-    public void add(Quad quad) throws UnsupportedNodeType {
-        PersistedNode pSubject = nodes.getPersistent(quad.getSubject(), true);
-        PersistedNode pProperty = nodes.getPersistent(quad.getProperty(), true);
-        PersistedNode pObject = nodes.getPersistent(quad.getObject(), true);
-        PersistedNode pGraph = nodes.getPersistent(quad.getGraph(), true);
-        int result = doQuadAdd(pSubject, pProperty, pObject, pGraph);
-        if (result == ADD_RESULT_NEW) {
-            doQuadIndex(pSubject, pGraph);
-            pSubject.incrementRefCount();
-            pProperty.incrementRefCount();
-            pObject.incrementRefCount();
-            pGraph.incrementRefCount();
-            for (ChangeListener listener : listeners)
-                listener.onAdded(quad);
-        } else if (result == ADD_RESULT_INCREMENT) {
-            for (ChangeListener listener : listeners)
-                listener.onIncremented(quad);
-        }
-    }
-
-    @Override
-    public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+    public int doAddQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         PersistedNode pSubject = nodes.getPersistent(subject, true);
         PersistedNode pProperty = nodes.getPersistent(property, true);
         PersistedNode pObject = nodes.getPersistent(value, true);
@@ -1631,107 +1004,372 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             pProperty.incrementRefCount();
             pObject.incrementRefCount();
             pGraph.incrementRefCount();
-            Quad quad = new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject);
-            for (ChangeListener listener : listeners)
-                listener.onAdded(quad);
-        } else if (result == ADD_RESULT_INCREMENT) {
-            Quad quad = new Quad((GraphNode) pGraph, (SubjectNode) pSubject, (Property) pProperty, pObject);
-            for (ChangeListener listener : listeners)
-                listener.onIncremented(quad);
         }
+        return result;
     }
 
-    @Override
-    public void remove(Quad quad) throws UnsupportedNodeType {
-        if (quad.getGraph() != null && quad.getSubject() != null && quad.getProperty() != null && quad.getObject() != null) {
-            // this is a ground quad
-            PersistedNode pSubject = nodes.getPersistent(quad.getSubject(), false);
-            PersistedNode pProperty = nodes.getPersistent(quad.getProperty(), false);
-            PersistedNode pObject = nodes.getPersistent(quad.getObject(), false);
-            PersistedNode pGraph = nodes.getPersistent(quad.getGraph(), false);
-            if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
-                // the quad cannot be in this store
-                return;
-            int result = doQuadRemove(pGraph, pSubject, pProperty, pObject);
-            if (result == REMOVE_RESULT_DECREMENT) {
-                for (ChangeListener listener : listeners)
-                    listener.onDecremented(quad);
-            } else if (result >= REMOVE_RESULT_REMOVED) {
-                doQuadDeindex(pSubject, pGraph);
-                pSubject.decrementRefCount();
-                pProperty.decrementRefCount();
-                pObject.decrementRefCount();
-                pGraph.decrementRefCount();
-                for (ChangeListener listener : listeners)
-                    listener.onRemoved(quad);
+    /**
+     * Inserts a quad into the backend
+     *
+     * @param subject  The subject
+     * @param property The property
+     * @param object   The object
+     * @param graph    The graph
+     * @return The result of the insertion
+     * @throws UnsupportedNodeType When the subject node is not recognized
+     */
+    private int doQuadAdd(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) throws UnsupportedNodeType {
+        try {
+            Map<Long, Long> map = mapFor(subject);
+            Long bucket = map.get(subject.getKey());
+            if (bucket == null) {
+                bufferQNSubject = newEntry(subject);
+                map.put(subject.getKey(), bufferQNSubject);
+            } else {
+                bufferQNSubject = bucket;
             }
-        } else {
-            PersistedNode pSubject = nodes.getPersistent(quad.getSubject(), false);
-            PersistedNode pProperty = nodes.getPersistent(quad.getProperty(), false);
-            PersistedNode pObject = nodes.getPersistent(quad.getObject(), false);
-            PersistedNode pGraph = nodes.getPersistent(quad.getGraph(), false);
-            if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
-                // the quad cannot be in this store
-                return;
-            removeAll(pGraph, pSubject, pProperty, pObject);
-        }
-    }
-
-    @Override
-    public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        if (graph != null && subject != null && property != null && value != null) {
-            // this is a ground quad
-            PersistedNode pSubject = nodes.getPersistent(subject, false);
-            PersistedNode pProperty = nodes.getPersistent(property, false);
-            PersistedNode pObject = nodes.getPersistent(value, false);
-            PersistedNode pGraph = nodes.getPersistent(graph, false);
-            if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
-                // the quad cannot be in this store
-                return;
-            int result = doQuadRemove(pGraph, pSubject, pProperty, pObject);
-            if (result == REMOVE_RESULT_DECREMENT) {
-                Quad quad = new Quad(graph, subject, property, value);
-                for (ChangeListener listener : listeners)
-                    listener.onDecremented(quad);
-            } else if (result >= REMOVE_RESULT_REMOVED) {
-                doQuadDeindex(pSubject, pGraph);
-                pSubject.decrementRefCount();
-                pProperty.decrementRefCount();
-                pObject.decrementRefCount();
-                pGraph.decrementRefCount();
-                Quad quad = new Quad(graph, subject, property, value);
-                for (ChangeListener listener : listeners)
-                    listener.onRemoved(quad);
+            long target = lookupQNode(bufferQNSubject, property, true);
+            target = lookupQNode(target, object, true);
+            target = lookupQNode(target, graph, true);
+            try (IOElement entry = backend.access(target)) {
+                long value = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
+                if (value == PersistedNode.KEY_NOT_PRESENT) {
+                    entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(1);
+                    return ADD_RESULT_NEW;
+                } else {
+                    value++;
+                    entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(value);
+                    return ADD_RESULT_INCREMENT;
+                }
             }
-        } else {
-            PersistedNode pSubject = nodes.getPersistent(subject, false);
-            PersistedNode pProperty = nodes.getPersistent(property, false);
-            PersistedNode pObject = nodes.getPersistent(value, false);
-            PersistedNode pGraph = nodes.getPersistent(graph, false);
-            if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
-                // the quad cannot be in this store
-                return;
-            removeAll(pGraph, pSubject, pProperty, pObject);
+        } catch (IOException | StorageException exception) {
+            // do nothing
+            return ADD_RESULT_UNKNOWN;
         }
     }
 
     /**
-     * Removes all the quads matching the specified data
+     * Indexes a quad into the backend
      *
-     * @param graph    The graph to match
-     * @param subject  The subject to match
-     * @param property The property to match
-     * @param object   The object to match
+     * @param subject The subject
+     * @param graph   The graph
      */
-    private void removeAll(PersistedNode graph, PersistedNode subject, PersistedNode property, PersistedNode object) {
-        List<MQuad> bufferDecremented = new ArrayList<>();
-        List<MQuad> bufferRemoved = new ArrayList<>();
+    private void doQuadIndex(PersistedNode subject, PersistedNode graph) {
+        int radical = FileStore.getKeyRadical(subject.getKey());
+        Map<Long, Long> map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
+        Long bucket = map.get(graph.getKey());
+        if (bucket == null) {
+            // this is the first quad for this graph
+            long key = writeNewGraphIndex(radical, bufferQNSubject);
+            map.put(graph.getKey(), key);
+            return;
+        }
+        // look for an appropriate entry
+        long emptyEntry = PersistedNode.KEY_NOT_PRESENT;
+        bufferQNPrevious = PersistedNode.KEY_NOT_PRESENT;
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement entry = backend.access(current)) {
+                long next = entry.readLong();
+                int eRadical = entry.readInt();
+                if (eRadical != radical)
+                    continue;
+                int count = entry.readInt();
+                if (emptyEntry == PersistedNode.KEY_NOT_PRESENT && count < GINDEX_ENTRY_MAX_ITEM_COUNT)
+                    emptyEntry = current;
+                for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
+                    int qnode = entry.readInt();
+                    int multiplicity = entry.readInt();
+                    if (qnode == FileStore.getShortKey(bufferQNSubject)) {
+                        multiplicity++;
+                        entry.seek(i * 8 + 8 + 4 + 4 + 4).writeInt(multiplicity);
+                        return;
+                    }
+                }
+                bufferQNPrevious = current;
+                current = next;
+            } catch (IOException | StorageException exception) {
+                // do nothing
+                return;
+            }
+        }
+        // not found in an entry
+        if (emptyEntry != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement entry = backend.access(emptyEntry)) {
+                int count = entry.seek(12).readInt();
+                for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
+                    int qnode = entry.readInt();
+                    entry.readInt();
+                    if (qnode == PersistedNode.KEY_NOT_PRESENT) {
+                        entry.seek(i * 8 + 8 + 4 + 4);
+                        entry.writeInt(FileStore.getShortKey(bufferQNSubject));
+                        entry.writeInt(1);
+                        break;
+                    }
+                }
+                entry.seek(8 + 4).writeInt(count + 1);
+            } catch (IOException | StorageException exception) {
+                // do nothing
+            }
+        } else {
+            // requires a new entry
+            long key = writeNewGraphIndex(radical, bufferQNSubject);
+            try (IOElement entry = backend.access(bufferQNPrevious)) {
+                entry.writeLong(key);
+            } catch (IOException | StorageException exception) {
+                // do nothing
+            }
+        }
+    }
+
+    /**
+     * Writes a new graph index entry
+     *
+     * @param radical The key radical for this entry
+     * @param qnode   The key to the subject quad node
+     * @return The key to this entry
+     */
+    private long writeNewGraphIndex(int radical, long qnode) {
+        try {
+            long key = backend.add(GINDEX_ENTRY_SIZE);
+            try (IOElement entry = backend.access(key)) {
+                entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+                entry.writeInt(radical);
+                entry.writeInt(1);
+                entry.writeInt((int) (qnode - radical));
+                entry.writeInt(1);
+            }
+            return key;
+        } catch (IOException | StorageException exception) {
+            // do nothing
+            return PersistedNode.KEY_NOT_PRESENT;
+        }
+    }
+
+    @Override
+    public int doRemoveQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+        PersistedNode pSubject = nodes.getPersistent(subject, false);
+        PersistedNode pProperty = nodes.getPersistent(property, false);
+        PersistedNode pObject = nodes.getPersistent(value, false);
+        PersistedNode pGraph = nodes.getPersistent(graph, false);
+        if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
+            // the quad cannot be in this store
+            return REMOVE_RESULT_NOT_FOUND;
+        int result = doQuadRemove(pGraph, pSubject, pProperty, pObject);
+        if (result >= REMOVE_RESULT_REMOVED) {
+            doQuadDeindex(pSubject, pGraph);
+            pSubject.decrementRefCount();
+            pProperty.decrementRefCount();
+            pObject.decrementRefCount();
+            pGraph.decrementRefCount();
+        }
+        return result;
+    }
+
+    /**
+     * Removes a quad into the backend
+     *
+     * @param subject  The subject
+     * @param property The property
+     * @param object   The object
+     * @param graph    The graph
+     * @return The result of the removal
+     * @throws UnsupportedNodeType When the subject node is not recognized
+     */
+    private int doQuadRemove(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) throws UnsupportedNodeType {
+        try {
+            Map<Long, Long> map = mapFor(subject);
+            Long bucket = map.get(subject.getKey());
+            if (bucket == null) {
+                return REMOVE_RESULT_NOT_FOUND;
+            }
+            bufferQNSubject = bucket;
+            long bufferQNProperty = lookupQNode(bufferQNSubject, property, false);
+            if (bufferQNProperty == PersistedNode.KEY_NOT_PRESENT)
+                return REMOVE_RESULT_NOT_FOUND;
+            long keyPropertyPrevious = bufferQNPrevious;
+            long bufferQNObject = lookupQNode(bufferQNProperty, object, false);
+            if (bufferQNObject == PersistedNode.KEY_NOT_PRESENT)
+                return REMOVE_RESULT_NOT_FOUND;
+            long keyObjectPrevious = bufferQNPrevious;
+            long bufferQNGraph = lookupQNode(bufferQNObject, graph, false);
+            if (bufferQNGraph == PersistedNode.KEY_NOT_PRESENT)
+                return REMOVE_RESULT_NOT_FOUND;
+            long keyGraphPrevious = bufferQNPrevious;
+            try (IOElement entry = backend.access(bufferQNGraph)) {
+                long value = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
+                value--;
+                if (value > 0) {
+                    entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(value);
+                    return REMOVE_RESULT_DECREMENT;
+                }
+            }
+
+            // remove the graph node
+            long next;
+            try (IOElement entry = backend.read(bufferQNGraph)) {
+                next = entry.readLong();
+            }
+            if (keyGraphPrevious == bufferQNObject) {
+                // the previous of the graph is the object
+                if (next == PersistedNode.KEY_NOT_PRESENT) {
+                    // the last one
+                    backend.remove(bufferQNGraph);
+                } else {
+                    try (IOElement entry = backend.access(bufferQNObject)) {
+                        entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
+                    }
+                    backend.remove(bufferQNGraph);
+                    return REMOVE_RESULT_REMOVED;
+                }
+            } else {
+                try (IOElement entry = backend.access(keyGraphPrevious)) {
+                    entry.writeLong(next);
+                }
+                backend.remove(bufferQNGraph);
+                return REMOVE_RESULT_REMOVED;
+            }
+
+            // remove the object node
+            try (IOElement entry = backend.read(bufferQNObject)) {
+                next = entry.readLong();
+            }
+            if (keyObjectPrevious == bufferQNProperty) {
+                // the previous of the object is the property
+                if (next == PersistedNode.KEY_NOT_PRESENT) {
+                    // the last one
+                    backend.remove(bufferQNObject);
+                } else {
+                    try (IOElement entry = backend.access(bufferQNProperty)) {
+                        entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
+                    }
+                    backend.remove(bufferQNObject);
+                    return REMOVE_RESULT_REMOVED;
+                }
+            } else {
+                try (IOElement entry = backend.access(keyObjectPrevious)) {
+                    entry.writeLong(next);
+                }
+                backend.remove(bufferQNObject);
+                return REMOVE_RESULT_REMOVED;
+            }
+
+            // remove the property node
+            try (IOElement entry = backend.read(bufferQNProperty)) {
+                next = entry.readLong();
+            }
+            if (keyPropertyPrevious == bufferQNSubject) {
+                // the previous of the property is the subject
+                if (next == PersistedNode.KEY_NOT_PRESENT) {
+                    // the last one
+                    backend.remove(bufferQNProperty);
+                } else {
+                    try (IOElement entry = backend.access(bufferQNSubject)) {
+                        entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
+                    }
+                    backend.remove(bufferQNProperty);
+                    return REMOVE_RESULT_REMOVED;
+                }
+            } else {
+                try (IOElement entry = backend.access(keyPropertyPrevious)) {
+                    entry.writeLong(next);
+                }
+                backend.remove(bufferQNProperty);
+                return REMOVE_RESULT_REMOVED;
+            }
+
+            // remove the subject node
+            backend.remove(bufferQNSubject);
+            map.remove(subject.getKey());
+            return REMOVE_RESULT_EMPTIED;
+        } catch (IOException | StorageException exception) {
+            // do nothing
+            return REMOVE_RESULT_NOT_FOUND;
+        }
+    }
+
+    /**
+     * De-indexes a quad into the backend
+     *
+     * @param subject The subject
+     * @param graph   The graph
+     */
+    private void doQuadDeindex(PersistedNode subject, PersistedNode graph) {
+        int radical = ((int) (subject.getKey() >>> 32));
+        Map<Long, Long> map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
+        Long bucket = map.get(graph.getKey());
+        if (bucket == null) {
+            // this is the first quad for this graph
+            return;
+        }
+        // look for an appropriate entry
+        bufferQNPrevious = PersistedNode.KEY_NOT_PRESENT;
+        long current = bucket;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement entry = backend.access(current)) {
+                long next = entry.readLong();
+                int eRadical = entry.readInt();
+                if (eRadical != radical)
+                    continue;
+                int count = entry.readInt();
+                for (int i = 0; i != count; i++) {
+                    int qnode = entry.readInt();
+                    int multiplicity = entry.readInt();
+                    if (qnode == FileStore.getShortKey(bufferQNSubject)) {
+                        multiplicity--;
+                        if (multiplicity > 0) {
+                            entry.seek(i * 8 + 8 + 4 + 4 + 4).writeLong(multiplicity);
+                            return;
+                        }
+                        count--;
+                        if (count > 0) {
+                            entry.seek(i * 8 + 8 + 4 + 4);
+                            entry.writeInt(-1);
+                            entry.writeInt(0);
+                            entry.seek(8 + 4).writeInt(count);
+                            return;
+                        }
+                        if (bufferQNPrevious == PersistedNode.KEY_NOT_PRESENT) {
+                            // this is the first entry for this index
+                            if (next == PersistedNode.KEY_NOT_PRESENT) {
+                                // this is the sole entry
+                                map.remove(graph.getKey());
+                            } else {
+                                map.put(graph.getKey(), next);
+                            }
+                        } else {
+                            try (IOElement pe = backend.access(bufferQNPrevious)) {
+                                pe.writeLong(next);
+                            }
+                        }
+                        backend.remove(current);
+                        return;
+                    }
+                }
+                bufferQNPrevious = current;
+                current = next;
+            } catch (IOException | StorageException exception) {
+                // do nothing
+                return;
+            }
+        }
+    }
+
+    @Override
+    public void doRemoveQuads(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws UnsupportedNodeType {
+        PersistedNode pSubject = nodes.getPersistent(subject, false);
+        PersistedNode pProperty = nodes.getPersistent(property, false);
+        PersistedNode pObject = nodes.getPersistent(value, false);
+        PersistedNode pGraph = nodes.getPersistent(graph, false);
+        if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
+            // the quad cannot be in this store
+            return;
         if (subject != null)
-            removeAllOnSingleSubject(graph, subject, property, object, bufferDecremented, bufferRemoved);
+            removeAllOnSingleSubject(pGraph, pSubject, pProperty, pObject, bufferDecremented, bufferRemoved);
         else if (graph != null)
-            removeAllOnSingleGraph(graph, property, object, bufferDecremented, bufferRemoved);
+            removeAllOnSingleGraph(pGraph, pProperty, pObject, bufferDecremented, bufferRemoved);
         else
-            removeAllDefault(property, object, bufferDecremented, bufferRemoved);
+            removeAllDefault(pProperty, pObject, bufferDecremented, bufferRemoved);
         if (!bufferDecremented.isEmpty() || !bufferRemoved.isEmpty()) {
             Changeset changeset = new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, (Collection) bufferDecremented, (Collection) bufferRemoved);
             for (ChangeListener listener : listeners) {
@@ -2200,10 +1838,8 @@ public class PersistedDataset implements Dataset, AutoCloseable {
         return bucket;
     }
 
-
     @Override
-    public void clear() {
-        List<MQuad> buffer = new ArrayList<>();
+    public void doClear(List<MQuad> buffer) {
         for (Long entry : mapSubjectIRI.values())
             clearOnSubject(entry, null, buffer);
         mapSubjectIRI.clear();
@@ -2225,11 +1861,7 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     }
 
     @Override
-    public void clear(GraphNode graph) {
-        if (graph == null) {
-            clear();
-            return;
-        }
+    public void doClear(GraphNode graph, List<MQuad> buffer) {
         PersistedNode pGraph;
         try {
             pGraph = nodes.getPersistent(graph, false);
@@ -2244,7 +1876,6 @@ public class PersistedDataset implements Dataset, AutoCloseable {
             return;
         long current = bucket;
         long next;
-        List<MQuad> buffer = new ArrayList<>();
         while (current != PersistedNode.KEY_NOT_PRESENT) {
             next = PersistedNode.KEY_NOT_PRESENT;
             try (IOElement element = backend.read(current)) {
@@ -2532,18 +2163,160 @@ public class PersistedDataset implements Dataset, AutoCloseable {
     }
 
     @Override
-    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+    public void doCopy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
         // TODO: implement this
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
-    public void move(GraphNode origin, GraphNode target) {
+    public void doMove(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
         // TODO: implement this
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
     public void close() throws Exception {
         backend.close();
         database.close();
+    }
+
+    /*
+    Utility API
+     */
+
+    /**
+     * Gets the subject map for the specified subject
+     *
+     * @param subject A quad subject
+     * @return The appropriate map
+     * @throws UnsupportedNodeType When the subject node is not recognized
+     */
+    private Map<Long, Long> mapFor(PersistedNode subject) throws UnsupportedNodeType {
+        switch (subject.getNodeType()) {
+            case Node.TYPE_IRI:
+                return mapSubjectIRI;
+            case Node.TYPE_BLANK:
+                return mapSubjectBlank;
+            case Node.TYPE_ANONYMOUS:
+                return mapSubjectAnon;
+        }
+        throw new UnsupportedOperationException("Subject node must be IRI, Blank or Anonymous");
+    }
+
+    /**
+     * Lookup the target entry for a quad node
+     *
+     * @param from    Key to the parent entry
+     * @param node    The node quad node to resolve
+     * @param resolve Whether to create the entry if it does not exist
+     * @return The key to the resolved quad node
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    private long lookupQNode(long from, PersistedNode node, boolean resolve) throws IOException, StorageException {
+        bufferQNPrevious = from;
+        long current;
+        try (IOElement entry = backend.read(from)) {
+            current = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
+        }
+        if (current == PersistedNode.KEY_NOT_PRESENT) {
+            if (!resolve)
+                return PersistedNode.KEY_NOT_PRESENT;
+            // not here
+            current = newEntry(node);
+            try (IOElement entry = backend.access(from)) {
+                entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(current);
+            }
+            return current;
+        }
+        // follow the chain
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement entry = backend.read(current)) {
+                long next = entry.readLong();
+                if (node.getNodeType() == entry.readInt() && node.getKey() == entry.readLong()) {
+                    return current;
+                }
+                bufferQNPrevious = current;
+                current = next;
+            }
+        }
+        // not present => new entry
+        if (!resolve)
+            return PersistedNode.KEY_NOT_PRESENT;
+        current = newEntry(node);
+        try (IOElement entry = backend.access(bufferQNPrevious)) {
+            entry.writeLong(current);
+        }
+        return current;
+    }
+
+    /**
+     * Writes the new quad node entry for the specified node
+     *
+     * @param node A quad node
+     * @return The key to the entry
+     * @throws IOException      When an IO operation failed
+     * @throws StorageException When the page version does not match the expected one
+     */
+    private long newEntry(PersistedNode node) throws IOException, StorageException {
+        long key = backend.add(QUAD_ENTRY_SIZE);
+        try (IOElement entry = backend.access(key)) {
+            entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+            entry.writeInt(node.getNodeType());
+            entry.writeLong(node.getKey());
+            entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+        }
+        return key;
+    }
+
+    /**
+     * Gets the persisted node
+     *
+     * @param type The type of node
+     * @param key  The key for the node
+     * @return The persisted node
+     */
+    private PersistedNode getNode(int type, long key) {
+        switch (type) {
+            case Node.TYPE_IRI:
+                return nodes.getIRINodeFor(key);
+            case Node.TYPE_BLANK:
+                return nodes.getBlankNodeFor(key);
+            case Node.TYPE_ANONYMOUS:
+                return nodes.getAnonNodeFor(key);
+            case Node.TYPE_LITERAL:
+                return nodes.getLiteralNodeFor(key);
+        }
+        // cannot happen, avoids being nullable
+        return nodes.getBlankNodeFor(-1);
+    }
+
+    /**
+     * Gets an iterator over all the subjects
+     *
+     * @return The iterator
+     */
+    private Iterator<Long> getAllSubjects() {
+        return new ConcatenatedIterator<>(new Iterator[]{
+                getSubjectIterator(mapSubjectIRI),
+                getSubjectIterator(mapSubjectBlank),
+                getSubjectIterator(mapSubjectAnon)
+        });
+    }
+
+    /**
+     * Gets an iterator over the subjects in an index
+     *
+     * @param map The indexing map
+     * @return The iterator
+     */
+    private Iterator<Long> getSubjectIterator(Map<Long, Long> map) {
+        return new AdaptingIterator<>(map.entrySet().iterator(), new Adapter<Long>() {
+            @Override
+            public <X> Long adapt(X element) {
+                Map.Entry<Long, Long> mapEntry = (Map.Entry<Long, Long>) element;
+                return mapEntry.getValue();
+            }
+        });
     }
 }

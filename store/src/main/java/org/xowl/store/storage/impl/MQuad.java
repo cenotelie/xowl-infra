@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage;
+package org.xowl.store.storage.impl;
 
 import org.xowl.store.rdf.*;
 
