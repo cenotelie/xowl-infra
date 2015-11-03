@@ -24,25 +24,26 @@ import org.mapdb.Atomic;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.store.IRIs;
 import org.xowl.store.owl.AnonymousNode;
-import org.xowl.store.rdf.*;
-import org.xowl.store.storage.NodeManager;
+import org.xowl.store.rdf.BlankNode;
+import org.xowl.store.rdf.IRINode;
+import org.xowl.store.rdf.LiteralNode;
+import org.xowl.store.rdf.Node;
 import org.xowl.store.storage.UnsupportedNodeType;
+import org.xowl.store.storage.impl.NodeManagerImpl;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Represents a persistent store of nodes
  *
  * @author Laurent Wouters
  */
-public class PersistedNodes implements NodeManager, AutoCloseable {
+public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     /**
      * The suffix for the index file
      */
@@ -542,16 +543,6 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         boolean success = backend.rollback();
         database.rollback();
         return success;
-    }
-
-    @Override
-    public IRINode getIRINode(GraphNode graph) {
-        if (graph != null && graph.getNodeType() == Node.TYPE_IRI) {
-            String value = ((IRINode) graph).getIRIValue();
-            return getIRINode(value + "#" + UUID.randomUUID().toString());
-        } else {
-            return getIRINode(IRIs.GRAPH_DEFAULT + "#" + UUID.randomUUID().toString());
-        }
     }
 
     @Override

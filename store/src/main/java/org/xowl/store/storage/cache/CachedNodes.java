@@ -21,20 +21,24 @@
 package org.xowl.store.storage.cache;
 
 import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.store.IRIs;
 import org.xowl.store.owl.AnonymousNode;
-import org.xowl.store.rdf.*;
-import org.xowl.store.storage.NodeManager;
+import org.xowl.store.rdf.BlankNode;
+import org.xowl.store.rdf.IRINode;
+import org.xowl.store.rdf.LiteralNode;
+import org.xowl.store.storage.impl.NodeManagerImpl;
 
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represented a cached store of nodes
  *
  * @author Laurent Wouters
  */
-public class CachedNodes implements NodeManager {
+public class CachedNodes extends NodeManagerImpl {
     /**
      * The map of cached IRI nodes
      */
@@ -60,16 +64,6 @@ public class CachedNodes implements NodeManager {
         literals = new HashMap<>();
         anonymous = new HashMap<>();
         nextBlank = 0;
-    }
-
-    @Override
-    public IRINode getIRINode(GraphNode graph) {
-        if (graph != null && graph.getNodeType() == Node.TYPE_IRI) {
-            String value = ((IRINode) graph).getIRIValue();
-            return getIRINode(value + "#" + UUID.randomUUID().toString());
-        } else {
-            return getIRINode(IRIs.GRAPH_DEFAULT + "#" + UUID.randomUUID().toString());
-        }
     }
 
     @Override
