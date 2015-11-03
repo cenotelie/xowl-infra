@@ -1370,12 +1370,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             removeAllOnSingleGraph(pGraph, pProperty, pObject, bufferDecremented, bufferRemoved);
         else
             removeAllDefault(pProperty, pObject, bufferDecremented, bufferRemoved);
-        if (!bufferDecremented.isEmpty() || !bufferRemoved.isEmpty()) {
-            Changeset changeset = new Changeset(Collections.EMPTY_LIST, Collections.EMPTY_LIST, (Collection) bufferDecremented, (Collection) bufferRemoved);
-            for (ChangeListener listener : listeners) {
-                listener.onChange(changeset);
-            }
-        }
     }
 
     /**
@@ -1426,44 +1420,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         long current = bucket;
         long next;
         while (current != PersistedNode.KEY_NOT_PRESENT) {
-            next = PersistedNode.KEY_NOT_PRESENT;
-            int count = -1;
-            try (IOElement element = backend.read(current)) {
-                next = element.readLong();
-                int radical = element.readInt();
-                count = element.readInt();
-                for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
-                    int sk = element.readInt();
-                    int multiplicity = element.readInt();
-                    if (sk != PersistedNode.SERIALIZED_SIZE) {
-                        long child = FileStore.getFullKey(radical, sk);
-                        int size = bufferRemoved.size();
-                        boolean isEmpty = removeAllOnSubject(child, property, object, graph, bufferDecremented, bufferRemoved);
-                        if (isEmpty) {
-                            try (IOElement subjectEntry = backend.read(child)) {
-                                PersistedNode subject = getNode(subjectEntry.seek(8).readInt(), subjectEntry.readLong());
-                                Map<Long, Long> mapSubjects = mapFor(subject);
-                                mapSubjects.remove(subject.getKey());
-                            } catch (IOException | StorageException | UnsupportedNodeType exception) {
-                                // TODO: handle this
-                            }
-                        }
-                        multiplicity -= bufferRemoved.size() - size;
-                        if (multiplicity <= 0) {
-                            element.seek(i * GINDEX_ENTRY_SIZE + 8 + 4 + 4);
-                            element.writeInt(-1);
-                            element.writeInt(0);
-                            count--;
-                        } else {
-                            element.seek(i * GINDEX_ENTRY_SIZE + 8 + 4 + 4 + 4).writeInt(multiplicity);
-                        }
-                    }
-                }
-                element.seek(8 + 4).writeInt(count);
-            } catch (IOException | StorageException exception) {
-                // TODO: handle this
-            }
-            if (count == 0) {
+            boolean empty = removeAllOnSingleGraphPage(current, graph, property, object, bufferDecremented, bufferRemoved);
+            next = bufferQNPrevious;
+            if (empty) {
                 try {
                     backend.remove(current);
                 } catch (StorageException exception) {
@@ -1491,6 +1450,57 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             map.remove(graph.getKey());
         } else if (newBucket != bucket) {
             map.put(graph.getKey(), newBucket);
+        }
+    }
+
+    /**
+     * Removes matching quads from a single graph - inspecting the specified page of graph index
+     *
+     * @param pageKey           The key to the page to inspect
+     * @param graph             The graph to match
+     * @param property          The property to match
+     * @param object            The object to match
+     * @param bufferDecremented The buffer of decremented quads
+     * @param bufferRemoved     The buffer of removed quads
+     * @return Whether the page is now empty
+     */
+    private boolean removeAllOnSingleGraphPage(long pageKey, PersistedNode graph, PersistedNode property, PersistedNode object, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
+        try (IOElement element = backend.read(pageKey)) {
+            bufferQNPrevious = element.readLong();
+            int radical = element.readInt();
+            int count = element.readInt();
+            for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
+                int sk = element.readInt();
+                int multiplicity = element.readInt();
+                if (sk != PersistedNode.SERIALIZED_SIZE) {
+                    long child = FileStore.getFullKey(radical, sk);
+                    int size = bufferRemoved.size();
+                    boolean isEmpty = removeAllOnSubject(child, property, object, graph, bufferDecremented, bufferRemoved);
+                    if (isEmpty) {
+                        try (IOElement subjectEntry = backend.read(child)) {
+                            PersistedNode subject = getNode(subjectEntry.seek(8).readInt(), subjectEntry.readLong());
+                            Map<Long, Long> mapSubjects = mapFor(subject);
+                            mapSubjects.remove(subject.getKey());
+                        } catch (StorageException | UnsupportedNodeType exception) {
+                            // TODO: handle this
+                        }
+                    }
+                    multiplicity -= bufferRemoved.size() - size;
+                    if (multiplicity <= 0) {
+                        element.seek(i * GINDEX_ENTRY_SIZE + 8 + 4 + 4);
+                        element.writeInt(-1);
+                        element.writeInt(0);
+                        count--;
+                    } else {
+                        element.seek(i * GINDEX_ENTRY_SIZE + 8 + 4 + 4 + 4).writeInt(multiplicity);
+                    }
+                }
+            }
+            element.seek(8 + 4).writeInt(count);
+            return count == 0;
+        } catch (IOException | StorageException exception) {
+            // TODO: handle this
+            return false;
         }
     }
 
@@ -1849,12 +1859,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         for (Long entry : mapSubjectAnon.values())
             clearOnSubject(entry, null, buffer);
         mapSubjectAnon.clear();
-        if (!buffer.isEmpty()) {
-            Changeset changeset = Changeset.fromRemoved((Collection) buffer);
-            for (ChangeListener listener : listeners) {
-                listener.onChange(changeset);
-            }
-        }
         mapIndexGraphIRI.clear();
         mapIndexGraphBlank.clear();
         backend.clear();
@@ -1902,12 +1906,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 // TODO: handle this
             }
             current = next;
-        }
-        if (!buffer.isEmpty()) {
-            Changeset changeset = Changeset.fromRemoved((Collection) buffer);
-            for (ChangeListener listener : listeners) {
-                listener.onChange(changeset);
-            }
         }
         map.remove(pGraph.getKey());
     }
@@ -2164,14 +2162,725 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
 
     @Override
     public void doCopy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
-        // TODO: implement this
-        throw new UnsupportedOperationException("Not implemented yet");
+        PersistedNode pOrigin;
+        PersistedNode pTarget;
+        try {
+            pOrigin = nodes.getPersistent(origin, false);
+            pTarget = nodes.getPersistent(target, false);
+        } catch (UnsupportedNodeType exception) {
+            return;
+        }
+        if (pOrigin == null) {
+            if (overwrite && pTarget != null) {
+                doClear((GraphNode) pTarget, bufferOld);
+            }
+            return;
+        }
+        if (pTarget == null) {
+            try {
+                pTarget = nodes.getPersistent(target, true);
+            } catch (UnsupportedNodeType exception) {
+                return;
+            }
+        }
+
+        copyOnSubject(mapSubjectIRI, pOrigin, pTarget, bufferOld, bufferNew, overwrite);
+        copyOnSubject(mapSubjectAnon, pOrigin, pTarget, bufferOld, bufferNew, overwrite);
+        copyOnSubject(mapSubjectAnon, pOrigin, pTarget, bufferOld, bufferNew, overwrite);
+    }
+
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     *
+     * @param map       The map of subjects
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
+     */
+    private void copyOnSubject(Map<Long, Long> map, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
+        List<Long> toRemove = new ArrayList<>();
+        for (Map.Entry<Long, Long> entry : map.entrySet()) {
+            int sizeOld = bufferOld.size();
+            int sizeNew = bufferNew.size();
+            boolean isEmpty = copyOnSubject(entry.getValue(), origin, target, bufferOld, bufferNew, overwrite);
+            for (int i = sizeOld; i != bufferOld.size(); i++) {
+                MQuad quad = bufferOld.get(i);
+                doQuadDeindex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
+            }
+            for (int i = sizeNew; i != bufferNew.size(); i++) {
+                MQuad quad = bufferOld.get(i);
+                doQuadIndex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
+            }
+            if (isEmpty)
+                toRemove.add(entry.getKey());
+        }
+        for (Long key : toRemove)
+            map.remove(key);
+    }
+
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     *
+     * @param key       The key to the subject
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
+     * @return Whether the subject is emptied
+     */
+    private boolean copyOnSubject(long key, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
+        long child;
+        SubjectNode subject;
+        try (IOElement element = backend.read(key)) {
+            element.seek(8);
+            subject = (SubjectNode) getNode(element.readInt(), element.readLong());
+            child = element.readLong();
+        } catch (IOException | StorageException exception) {
+            // skip this
+            return false;
+        }
+
+        int sizeOld = bufferOld.size();
+        int sizeNew = bufferNew.size();
+        long newChild = copyOnProperty(child, origin, target, bufferOld, bufferNew, overwrite);
+        for (int i = sizeOld; i != bufferOld.size(); i++)
+            bufferOld.get(i).setSubject(subject);
+        for (int i = sizeNew; i != bufferNew.size(); i++)
+            bufferNew.get(i).setSubject(subject);
+        int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
+        if (modifier != 0)
+            ((PersistedNode) subject).modifyRefCount(modifier);
+
+        if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+            // the child bucket is empty
+            try {
+                backend.remove(key);
+            } catch (StorageException exception) {
+                // TODO: handle this
+            }
+            return true;
+        } else if (newChild != child) {
+            // the head of the bucket of graphs changed
+            try (IOElement element = backend.access(key)) {
+                element.seek(8 + 4 + 8).writeLong(newChild);
+            } catch (IOException | StorageException exception) {
+                // skip this
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     *
+     * @param bucket    The bucket of properties
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
+     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     */
+    private long copyOnProperty(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
+        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long current = bucket;
+        long next;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            long child;
+            Property property;
+            try (IOElement element = backend.read(current)) {
+                next = element.readLong();
+                property = (Property) getNode(element.readInt(), element.readLong());
+                child = element.readLong();
+            } catch (IOException | StorageException exception) {
+                // skip this
+                return bucket;
+            }
+
+            int sizeOld = bufferOld.size();
+            int sizeNew = bufferNew.size();
+            long newChild = copyOnObject(child, origin, target, bufferOld, bufferNew, overwrite);
+            for (int i = sizeOld; i != bufferOld.size(); i++)
+                bufferOld.get(i).setProperty(property);
+            for (int i = sizeNew; i != bufferNew.size(); i++)
+                bufferNew.get(i).setProperty(property);
+            int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
+            if (modifier != 0)
+                ((PersistedNode) property).modifyRefCount(modifier);
+
+            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+                // the child bucket is empty
+                try {
+                    backend.remove(current);
+                } catch (StorageException exception) {
+                    // TODO: handle this
+                }
+                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                    // this is the first one
+                    bucket = next;
+                    current = PersistedNode.KEY_NOT_PRESENT;
+                } else {
+                    try (IOElement element = backend.access(previous)) {
+                        element.writeLong(next);
+                    } catch (IOException | StorageException exception) {
+                        // TODO: handle this
+                    }
+                    current = previous;
+                }
+            } else if (newChild != child) {
+                // the head of the bucket of graphs changed
+                try (IOElement element = backend.access(current)) {
+                    element.seek(8 + 4 + 8).writeLong(newChild);
+                } catch (IOException | StorageException exception) {
+                    // skip this
+                    return bucket;
+                }
+            }
+
+            previous = current;
+            current = next;
+        }
+
+        return bucket;
+    }
+
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     *
+     * @param bucket    The bucket of objects
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
+     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     */
+    private long copyOnObject(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
+        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long current = bucket;
+        long next;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            long child;
+            Node object;
+            try (IOElement element = backend.read(current)) {
+                next = element.readLong();
+                object = getNode(element.readInt(), element.readLong());
+                child = element.readLong();
+            } catch (IOException | StorageException exception) {
+                // skip this
+                return bucket;
+            }
+
+            int sizeOld = bufferOld.size();
+            int sizeNew = bufferNew.size();
+            long newChild = copyOnGraph(child, origin, target, bufferOld, bufferNew, overwrite);
+            for (int i = sizeOld; i != bufferOld.size(); i++)
+                bufferOld.get(i).setObject(object);
+            for (int i = sizeNew; i != bufferNew.size(); i++)
+                bufferNew.get(i).setObject(object);
+            int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
+            if (modifier != 0)
+                ((PersistedNode) object).modifyRefCount(modifier);
+
+            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+                // the child bucket is empty
+                try {
+                    backend.remove(current);
+                } catch (StorageException exception) {
+                    // TODO: handle this
+                }
+                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                    // this is the first one
+                    bucket = next;
+                    current = PersistedNode.KEY_NOT_PRESENT;
+                } else {
+                    try (IOElement element = backend.access(previous)) {
+                        element.writeLong(next);
+                    } catch (IOException | StorageException exception) {
+                        // TODO: handle this
+                    }
+                    current = previous;
+                }
+            } else if (newChild != child) {
+                // the head of the bucket of graphs changed
+                try (IOElement element = backend.access(current)) {
+                    element.seek(8 + 4 + 8).writeLong(newChild);
+                } catch (IOException | StorageException exception) {
+                    // skip this
+                    return bucket;
+                }
+            }
+
+            previous = current;
+            current = next;
+        }
+
+        return bucket;
+    }
+
+    /**
+     * Copies all the quads with the specified origin graph, to quads with the target graph.
+     *
+     * @param bucket    The bucket of graphs
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @param overwrite Whether to overwrite quads from the target graph
+     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     */
+    private long copyOnGraph(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
+        long keyOrigin = PersistedNode.KEY_NOT_PRESENT;
+        long keyTargetPrevious = PersistedNode.KEY_NOT_PRESENT;
+        long keyTarget = PersistedNode.KEY_NOT_PRESENT;
+        long keyTargetNext = PersistedNode.KEY_NOT_PRESENT;
+        long targetMultiplicity = 0;
+
+        // traverse the bucket
+        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long current = bucket;
+        long next;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement element = backend.read(current)) {
+                next = element.readLong();
+                int type = element.readInt();
+                long key = element.readLong();
+                if (type == origin.getNodeType() && key == origin.getKey()) {
+                    keyOrigin = current;
+                    if (keyTarget != PersistedNode.KEY_NOT_PRESENT)
+                        break;
+                } else if (type == target.getNodeType() && key == target.getKey()) {
+                    keyTarget = current;
+                    keyTargetPrevious = previous;
+                    keyTargetNext = next;
+                    targetMultiplicity = element.readLong();
+                    if (keyOrigin != PersistedNode.KEY_NOT_PRESENT)
+                        break;
+                }
+            } catch (IOException | StorageException exception) {
+                return bucket;
+            }
+            previous = current;
+            current = next;
+        }
+
+        if (keyOrigin != PersistedNode.KEY_NOT_PRESENT) {
+            // if the origin graph is present, copy
+            if (keyTarget == PersistedNode.KEY_NOT_PRESENT) {
+                // insert the target graph
+                try {
+                    keyTarget = newEntry(target);
+                    try (IOElement element = backend.access(previous)) {
+                        element.writeLong(keyTarget);
+                    }
+                } catch (IOException | StorageException exception) {
+                    return bucket;
+                }
+                bufferNew.add(new MQuad((GraphNode) target, 1));
+            }
+            // write the multiplicity
+            try (IOElement element = backend.access(keyTarget)) {
+                element.seek(8 + 4 + 8).writeLong(targetMultiplicity + 1);
+            } catch (IOException | StorageException exception) {
+                return bucket;
+            }
+        } else if (overwrite && keyTarget != PersistedNode.KEY_NOT_PRESENT) {
+            // the target graph is there but not the old one and we must overwrite
+            // we need to remove this
+            bufferOld.add(new MQuad((GraphNode) target, targetMultiplicity));
+            try {
+                backend.remove(keyTarget);
+            } catch (StorageException exception) {
+                return bucket;
+            }
+            if (keyTargetPrevious == PersistedNode.KEY_NOT_PRESENT) {
+                // target is the first node
+                return keyTargetNext;
+            } else {
+                try (IOElement element = backend.access(keyTargetPrevious)) {
+                    element.writeLong(keyTargetNext);
+                } catch (IOException | StorageException exception) {
+                    return bucket;
+                }
+            }
+        }
+        return bucket;
     }
 
     @Override
     public void doMove(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
-        // TODO: implement this
-        throw new UnsupportedOperationException("Not implemented yet");
+        PersistedNode pOrigin;
+        PersistedNode pTarget;
+        try {
+            pOrigin = nodes.getPersistent(origin, false);
+            pTarget = nodes.getPersistent(target, false);
+        } catch (UnsupportedNodeType exception) {
+            return;
+        }
+        if (pOrigin == null) {
+            if (pTarget != null) {
+                doClear((GraphNode) pTarget, bufferOld);
+            }
+            return;
+        }
+        if (pTarget == null) {
+            try {
+                pTarget = nodes.getPersistent(target, true);
+            } catch (UnsupportedNodeType exception) {
+                return;
+            }
+        }
+
+        moveOnSubject(mapSubjectIRI, pOrigin, pTarget, bufferOld, bufferNew);
+        moveOnSubject(mapSubjectAnon, pOrigin, pTarget, bufferOld, bufferNew);
+        moveOnSubject(mapSubjectAnon, pOrigin, pTarget, bufferOld, bufferNew);
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     *
+     * @param map       The map of subjects
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     */
+    private void moveOnSubject(Map<Long, Long> map, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
+        List<Long> toRemove = new ArrayList<>();
+        for (Map.Entry<Long, Long> entry : map.entrySet()) {
+            int sizeOld = bufferOld.size();
+            int sizeNew = bufferNew.size();
+            boolean isEmpty = moveOnSubject(entry.getValue(), origin, target, bufferOld, bufferNew);
+            for (int i = sizeOld; i != bufferOld.size(); i++) {
+                MQuad quad = bufferOld.get(i);
+                doQuadDeindex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
+            }
+            for (int i = sizeNew; i != bufferNew.size(); i++) {
+                MQuad quad = bufferOld.get(i);
+                doQuadIndex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
+            }
+            if (isEmpty)
+                toRemove.add(entry.getKey());
+        }
+        for (Long key : toRemove)
+            map.remove(key);
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     *
+     * @param key       The key to the subject
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @return Whether the subject is emptied
+     */
+    private boolean moveOnSubject(long key, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
+        long child;
+        SubjectNode subject;
+        try (IOElement element = backend.read(key)) {
+            element.seek(8);
+            subject = (SubjectNode) getNode(element.readInt(), element.readLong());
+            child = element.readLong();
+        } catch (IOException | StorageException exception) {
+            // skip this
+            return false;
+        }
+
+        int sizeOld = bufferOld.size();
+        int sizeNew = bufferNew.size();
+        long newChild = moveOnProperty(child, origin, target, bufferOld, bufferNew);
+        for (int i = sizeOld; i != bufferOld.size(); i++)
+            bufferOld.get(i).setSubject(subject);
+        for (int i = sizeNew; i != bufferNew.size(); i++)
+            bufferNew.get(i).setSubject(subject);
+        int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
+        if (modifier != 0)
+            ((PersistedNode) subject).modifyRefCount(modifier);
+
+        if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+            // the child bucket is empty
+            try {
+                backend.remove(key);
+            } catch (StorageException exception) {
+                // TODO: handle this
+            }
+            return true;
+        } else if (newChild != child) {
+            // the head of the bucket of graphs changed
+            try (IOElement element = backend.access(key)) {
+                element.seek(8 + 4 + 8).writeLong(newChild);
+            } catch (IOException | StorageException exception) {
+                // skip this
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     *
+     * @param bucket    The bucket of properties
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     */
+    private long moveOnProperty(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
+        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long current = bucket;
+        long next;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            long child;
+            Property property;
+            try (IOElement element = backend.read(current)) {
+                next = element.readLong();
+                property = (Property) getNode(element.readInt(), element.readLong());
+                child = element.readLong();
+            } catch (IOException | StorageException exception) {
+                // skip this
+                return bucket;
+            }
+
+            int sizeOld = bufferOld.size();
+            int sizeNew = bufferNew.size();
+            long newChild = moveOnObject(child, origin, target, bufferOld, bufferNew);
+            for (int i = sizeOld; i != bufferOld.size(); i++)
+                bufferOld.get(i).setProperty(property);
+            for (int i = sizeNew; i != bufferNew.size(); i++)
+                bufferNew.get(i).setProperty(property);
+            int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
+            if (modifier != 0)
+                ((PersistedNode) property).modifyRefCount(modifier);
+
+            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+                // the child bucket is empty
+                try {
+                    backend.remove(current);
+                } catch (StorageException exception) {
+                    // TODO: handle this
+                }
+                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                    // this is the first one
+                    bucket = next;
+                    current = PersistedNode.KEY_NOT_PRESENT;
+                } else {
+                    try (IOElement element = backend.access(previous)) {
+                        element.writeLong(next);
+                    } catch (IOException | StorageException exception) {
+                        // TODO: handle this
+                    }
+                    current = previous;
+                }
+            } else if (newChild != child) {
+                // the head of the bucket of graphs changed
+                try (IOElement element = backend.access(current)) {
+                    element.seek(8 + 4 + 8).writeLong(newChild);
+                } catch (IOException | StorageException exception) {
+                    // skip this
+                    return bucket;
+                }
+            }
+
+            previous = current;
+            current = next;
+        }
+
+        return bucket;
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     *
+     * @param bucket    The bucket of objects
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     */
+    private long moveOnObject(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
+        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long current = bucket;
+        long next;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            long child;
+            Node object;
+            try (IOElement element = backend.read(current)) {
+                next = element.readLong();
+                object = getNode(element.readInt(), element.readLong());
+                child = element.readLong();
+            } catch (IOException | StorageException exception) {
+                // skip this
+                return bucket;
+            }
+
+            int sizeOld = bufferOld.size();
+            int sizeNew = bufferNew.size();
+            long newChild = moveOnGraph(child, origin, target, bufferOld, bufferNew);
+            for (int i = sizeOld; i != bufferOld.size(); i++)
+                bufferOld.get(i).setObject(object);
+            for (int i = sizeNew; i != bufferNew.size(); i++)
+                bufferNew.get(i).setObject(object);
+            int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
+            if (modifier != 0)
+                ((PersistedNode) object).modifyRefCount(modifier);
+
+            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+                // the child bucket is empty
+                try {
+                    backend.remove(current);
+                } catch (StorageException exception) {
+                    // TODO: handle this
+                }
+                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                    // this is the first one
+                    bucket = next;
+                    current = PersistedNode.KEY_NOT_PRESENT;
+                } else {
+                    try (IOElement element = backend.access(previous)) {
+                        element.writeLong(next);
+                    } catch (IOException | StorageException exception) {
+                        // TODO: handle this
+                    }
+                    current = previous;
+                }
+            } else if (newChild != child) {
+                // the head of the bucket of graphs changed
+                try (IOElement element = backend.access(current)) {
+                    element.seek(8 + 4 + 8).writeLong(newChild);
+                } catch (IOException | StorageException exception) {
+                    // skip this
+                    return bucket;
+                }
+            }
+
+            previous = current;
+            current = next;
+        }
+
+        return bucket;
+    }
+
+    /**
+     * Moves all the quads with the specified origin graph, to quads with the target graph.
+     *
+     * @param bucket    The bucket of graphs
+     * @param origin    The origin graph
+     * @param target    The target graph
+     * @param bufferOld The buffer of the removed quads
+     * @param bufferNew The buffer of the new quads
+     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     */
+    private long moveOnGraph(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
+        long keyOriginPrevious = PersistedNode.KEY_NOT_PRESENT;
+        long keyOrigin = PersistedNode.KEY_NOT_PRESENT;
+        long keyOriginNext = PersistedNode.KEY_NOT_PRESENT;
+        long originMultiplicity = 0;
+        long keyTargetPrevious = PersistedNode.KEY_NOT_PRESENT;
+        long keyTarget = PersistedNode.KEY_NOT_PRESENT;
+        long keyTargetNext = PersistedNode.KEY_NOT_PRESENT;
+        long targetMultiplicity = 0;
+
+        // traverse the bucket
+        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long current = bucket;
+        long next;
+        while (current != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement element = backend.read(current)) {
+                next = element.readLong();
+                int type = element.readInt();
+                long key = element.readLong();
+                if (type == origin.getNodeType() && key == origin.getKey()) {
+                    keyOrigin = current;
+                    keyOriginPrevious = previous;
+                    keyOriginNext = next;
+                    originMultiplicity = element.readLong();
+                    if (keyTarget != PersistedNode.KEY_NOT_PRESENT)
+                        break;
+                } else if (type == target.getNodeType() && key == target.getKey()) {
+                    keyTarget = current;
+                    keyTargetPrevious = previous;
+                    keyTargetNext = next;
+                    targetMultiplicity = element.readLong();
+                    if (keyOrigin != PersistedNode.KEY_NOT_PRESENT)
+                        break;
+                }
+            } catch (IOException | StorageException exception) {
+                return bucket;
+            }
+            previous = current;
+            current = next;
+        }
+
+        if (keyOrigin != PersistedNode.KEY_NOT_PRESENT) {
+            // if the origin graph is present, move
+            // remove the origin
+            bufferOld.add(new MQuad((GraphNode) origin, originMultiplicity));
+            if (keyTarget != PersistedNode.KEY_NOT_PRESENT) {
+                // the target graph is also here, increment it
+                try (IOElement element = backend.access(keyTarget)) {
+                    element.seek(8 + 4 + 8).writeLong(targetMultiplicity + 1);
+                } catch (IOException | StorageException exception) {
+                    return bucket;
+                }
+                // remove the origin
+                try {
+                    backend.remove(keyOrigin);
+                } catch (StorageException exception) {
+                    return bucket;
+                }
+                if (keyOriginPrevious == PersistedNode.KEY_NOT_PRESENT) {
+                    // target is the first node
+                    return keyOriginNext;
+                } else {
+                    try (IOElement element = backend.access(keyOriginPrevious)) {
+                        element.writeLong(keyOriginNext);
+                    } catch (IOException | StorageException exception) {
+                        return bucket;
+                    }
+                }
+            } else {
+                // replace the origin graph by the target one
+                // reset the multiplicity
+                bufferNew.add(new MQuad((GraphNode) target, 1));
+                try (IOElement element = backend.access(keyOrigin)) {
+                    element.seek(8);
+                    element.writeInt(target.getNodeType());
+                    element.writeLong(target.getKey());
+                    element.writeLong(1);
+                } catch (IOException | StorageException exception) {
+                    return bucket;
+                }
+            }
+        } else if (keyTarget != PersistedNode.KEY_NOT_PRESENT) {
+            // the target graph is there but not the old one
+            // we need to remove this
+            bufferOld.add(new MQuad((GraphNode) target, targetMultiplicity));
+            try {
+                backend.remove(keyTarget);
+            } catch (StorageException exception) {
+                return bucket;
+            }
+            if (keyTargetPrevious == PersistedNode.KEY_NOT_PRESENT) {
+                // target is the first node
+                return keyTargetNext;
+            } else {
+                try (IOElement element = backend.access(keyTargetPrevious)) {
+                    element.writeLong(keyTargetNext);
+                } catch (IOException | StorageException exception) {
+                    return bucket;
+                }
+            }
+        }
+        return bucket;
     }
 
     @Override

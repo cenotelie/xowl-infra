@@ -20,6 +20,7 @@
 
 package org.xowl.store.storage.impl;
 
+import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.Dataset;
 import org.xowl.store.storage.UnsupportedNodeType;
@@ -271,6 +272,8 @@ public abstract class DatasetImpl implements Dataset {
 
     @Override
     public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+        if (RDFUtils.same(origin, target))
+            return;
         List<MQuad> bufferOld = new ArrayList<>();
         List<MQuad> bufferNew = new ArrayList<>();
         doCopy(origin, target, bufferOld, bufferNew, overwrite);
@@ -284,6 +287,8 @@ public abstract class DatasetImpl implements Dataset {
 
     @Override
     public void move(GraphNode origin, GraphNode target) {
+        if (RDFUtils.same(origin, target))
+            return;
         List<MQuad> bufferOld = new ArrayList<>();
         List<MQuad> bufferNew = new ArrayList<>();
         doMove(origin, target, bufferOld, bufferNew);
