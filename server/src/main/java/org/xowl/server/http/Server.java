@@ -27,17 +27,16 @@ import com.sun.net.httpserver.HttpsServer;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.server.db.Controller;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.io.Closeable;
-import java.io.IOException;
+import javax.net.ssl.*;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
@@ -89,7 +88,28 @@ public class Server implements Closeable, Executor {
         this.configuration = configuration;
         SSLContext sslContext = null;
         try {
-            sslContext = SSLContext.getInstance("SSL");
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            InputStream is = new FileInputStream("server.crt");
+            InputStream caInput = new BufferedInputStream(is);
+            Certificate ca = cf.generateCertificate(caInput);
+            caInput.close();
+
+            // Create a KeyStore containing our trusted CAs
+            String keyStoreType = KeyStore.getDefaultType();
+            KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+            keyStore.load(null, null);
+            keyStore.setCertificateEntry("ca", ca);
+
+            // Create a TrustManager that trusts the CAs in our KeyStore
+            String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+            tmf.init(keyStore);
+
+            // Create an SSLContext that uses our TrustManager
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(null, tmf.getTrustManagers(), null);
+
+            sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, new TrustManager[]{
                     new X509TrustManager() {
                         @Override

@@ -24,12 +24,10 @@ import com.sun.net.httpserver.HttpExchange;
 import org.xowl.server.db.Controller;
 import org.xowl.server.db.Database;
 import org.xowl.server.db.User;
-import org.xowl.store.AbstractRepository;
 import org.xowl.store.loaders.SPARQLLoader;
 import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultFailure;
-import org.xowl.store.sparql.ResultQuads;
 import org.xowl.utils.BufferedLogger;
 import org.xowl.utils.DispatchLogger;
 
@@ -184,19 +182,16 @@ class SPARQLHandler extends HandlerPart {
                 break;
             }
         }
-        if (result.isFailure()) {
-            response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, Utils.getLog(bufferedLogger));
-        } else {
-            StringWriter writer = new StringWriter();
-            try {
-                result.print(writer, Utils.coerceContentType(result, contentType));
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
-            httpExchange.getResponseHeaders().add("Content-Type", Utils.coerceContentType(result, contentType));
-            response(httpExchange, Utils.HTTP_CODE_OK, writer.toString());
+        StringWriter writer = new StringWriter();
+        try {
+            result.print(writer, Utils.coerceContentType(result, contentType));
+        } catch (IOException exception) {
+            exception.printStackTrace();
         }
+        httpExchange.getResponseHeaders().add("Content-Type", Utils.coerceContentType(result, contentType));
+        response(
+                httpExchange,
+                result.isFailure() ? Utils.HTTP_CODE_INTERNAL_ERROR : Utils.HTTP_CODE_OK,
+                writer.toString());
     }
-
-
 }
