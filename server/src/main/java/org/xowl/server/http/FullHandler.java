@@ -74,9 +74,23 @@ class FullHandler implements HttpHandler {
         String method = httpExchange.getRequestMethod();
         Headers rHeaders = httpExchange.getRequestHeaders();
         UserSession session = getSession(rHeaders);
+        if (session == null) {
+            endOnError(httpExchange, 403, "Failed to login");
+        }
         Database database = getDatabase(rHeaders);
 
 
+    }
+
+    /**
+     * Ends the current exchange on error
+     * @param httpExchange The current exchange
+     * @param code The error code
+     * @param message The error message
+     */
+    private void endOnError(HttpExchange httpExchange, int code, String message) {
+        Headers headers = httpExchange.getResponseHeaders();
+        Utils.enableCORS(httpExchange);
     }
 
 

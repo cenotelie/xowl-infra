@@ -20,11 +20,11 @@
 
 package org.xowl.server.http;
 
+import com.sun.net.httpserver.HttpExchange;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.sparql.Result;
 import org.xowl.utils.collections.Couple;
 
-import javax.xml.ws.spi.http.HttpExchange;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
