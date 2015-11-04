@@ -20,6 +20,11 @@
 
 package org.xowl.server;
 
+import org.xowl.server.db.Controller;
+import org.xowl.server.http.Server;
+
+import java.io.IOException;
+
 /**
  * The main program for this server
  *
@@ -28,9 +33,68 @@ package org.xowl.server;
 public class Program {
     /**
      * The main entry point
+     *
      * @param args The arguments
      */
     public static void main(String[] args) {
-        ServerConfiguration.init(args);
+        Program instance = new Program(args);
+        instance.run();
+    }
+
+    /**
+     * The current configuration
+     */
+    private final ServerConfiguration configuration;
+    /**
+     * The main controller for the databases
+     */
+    private Controller controller;
+    /**
+     * The HTTP server
+     */
+    private Server httpServer;
+    /**
+     * Marker whether the program should stop
+     */
+    private boolean shouldStop;
+
+    /**
+     * Initializes this program
+     *
+     * @param args The arguments
+     */
+    public Program(String[] args) {
+        this.configuration = new ServerConfiguration(args);
+        this.shouldStop = false;
+    }
+
+    /**
+     * Runs this program
+     */
+    public void run() {
+        // setup and start
+        try {
+            controller = new Controller(configuration);
+        } catch (IOException exception) {
+            exception.printStackTrace();
+            return;
+        }
+        httpServer = new Server(configuration, controller);
+        httpServer.start();
+
+        while (!shouldStop) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException exception) {
+                break;
+            }
+        }
+
+        // cleanup
+        try {
+            httpServer.close();
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
     }
 }

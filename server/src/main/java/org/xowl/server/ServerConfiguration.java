@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.security.SecureRandom;
 
 /**
  * Represents the configuration of the server
@@ -41,20 +42,10 @@ public class ServerConfiguration {
      * Name of the configuration file in a root folder
      */
     private static final String FILE_NAME = "conf.ini";
-
     /**
-     * The singleton instance
+     * The number of bytes the password pepper
      */
-    private static ServerConfiguration INSTANCE;
-
-    /**
-     * Initializes the configuration
-     *
-     * @param args The startup arguments
-     */
-    public static void init(String[] args) {
-        INSTANCE = new ServerConfiguration(args);
-    }
+    private static final int PEPPER_LENGTH = 20;
 
     /**
      * The default configuration
@@ -64,13 +55,17 @@ public class ServerConfiguration {
      * The current configuration file
      */
     private Configuration confFile;
+    /**
+     * The root folder for this server
+     */
+    private File root;
 
     /**
      * Initializes this configuration
      *
      * @param args The startup arguments
      */
-    private ServerConfiguration(String[] args) {
+    public ServerConfiguration(String[] args) {
         confDefault = new Configuration();
         confFile = new Configuration();
         InputStream stream = Program.class.getResourceAsStream(FILE_DEFAULT);
@@ -79,10 +74,12 @@ public class ServerConfiguration {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
-        File rootFolder = (args.length > 0) ? new File(args[0]) : new File(System.getProperty("user.dir"));
-        File file = new File(rootFolder, FILE_NAME);
+        root = (args.length > 0) ? new File(args[0]) : new File(System.getProperty("user.dir"));
+        File file = new File(root, FILE_NAME);
         try {
-            confFile.load(file.getAbsolutePath(), Charset.forName("UTF-8"));
+            if (file.exists()) {
+                confFile.load(file.getAbsolutePath(), Charset.forName("UTF-8"));
+            }
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -103,10 +100,67 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets the root folder for this server
+     *
+     * @return The root folder
+     */
+    public File getRoot() {
+        return root;
+    }
+
+    /**
+     * Gets the minimum length of a user password
+     *
+     * @return The minimum length of a user password
+     */
+    public int getSecurityMinPasswordLength() {
+        return Integer.parseInt(getValue("security", "minPasswordLength"));
+    }
+
+    /**
+     * Gets the number of cycles for the bcrpyt hash function
+     *
+     * @return The number of cycles
+     */
+    public int getSecurityBCryptCycleCount() {
+        return Integer.parseInt(getValue("security", "bcryptCycle"));
+    }
+
+    /**
      * Gets the address to bind for the HTTP server
+     *
      * @return The address to bind
      */
-    public static String getHttpAddress() {
-        return INSTANCE.getValue("http", "address");
+    public String getHttpAddress() {
+        return getValue("http", "address");
+    }
+
+    /**
+     * Gets the port to bind for the HTTP server
+     *
+     * @return The port to bind
+     */
+    public int getHttpPort() {
+        return Integer.parseInt(getValue("http", "port"));
+    }
+
+    /**
+     * Gets the maximum backlog for the HTTP server
+     * This is the maximum number of queued incoming connections to allow on the listening socket.
+     * 0 or less indicates a system-specific value.
+     *
+     * @return The maximum backlog for the HTTP server
+     */
+    public int getHttpBacklog() {
+        return Integer.parseInt(getValue("http", "backlog"));
+    }
+
+    /**
+     * Gets the timeout when stopping the HTTP server
+     *
+     * @return The timeout when stopping the HTTP server
+     */
+    public int getHttpStopTimeout() {
+        return Integer.parseInt(getValue("http", "stopTimeout"));
     }
 }

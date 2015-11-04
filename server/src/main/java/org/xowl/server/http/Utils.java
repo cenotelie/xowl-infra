@@ -18,47 +18,44 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server;
+package org.xowl.server.http;
 
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.sparql.Result;
 import org.xowl.utils.collections.Couple;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
+import javax.xml.ws.spi.http.HttpExchange;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.io.InputStream;
+import java.util.*;
 
 /**
- * Represents a service for the server
+ * Utility APIs for the HTTP server
  *
  * @author Laurent Wouters
  */
-public abstract class Service {
-
+class Utils {
     /**
-     * Gets the message body of the specified request
+     * Gets the request body of the specified request
      *
-     * @param request A request
-     * @return The message body
+     * @param exchange The exchange
+     * @return The request body
      */
-    protected String getMessageBody(HttpServletRequest request) {
-        if (request.getContentLength() <= 0)
-            return "";
-        try (BufferedReader reader = request.getReader()) {
-            char[] buffer = new char[1024];
-            StringBuilder builder = new StringBuilder();
-            int read = reader.read(buffer);
+    public static String getRequestBody(HttpExchange exchange) {
+        try (InputStream stream = exchange.getRequestBody()) {
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int read = stream.read(buffer);
             while (read > 0) {
-                builder.append(buffer, 0, read);
-                read = reader.read(buffer);
+                output.write(buffer, 0, read);
+                read = stream.read(buffer);
             }
-            return builder.toString();
+            buffer = output.toByteArray();
+            output.close();
+            return new String(buffer, "UTF-8");
         } catch (IOException exception) {
+            exception.printStackTrace();
             return "";
         }
     }
@@ -66,11 +63,11 @@ public abstract class Service {
     /**
      * Retrieves the requested content types by order of preference
      *
-     * @param request The request
+     * @param exchange The exchange
      * @return The content types by order of preference
      */
-    protected List<String> getContentTypes(HttpServletRequest request) {
-        String header = request.getHeader("Accept");
+    public static List<String> getContentTypes(HttpExchange exchange) {
+        String header = exchange.getRequestHeader("Accept");
         if (header == null || header.isEmpty())
             return Collections.emptyList();
         List<Couple<String, Float>> contentTypes = new ArrayList<>();
@@ -104,7 +101,7 @@ public abstract class Service {
      * @param contentTypes The requested content types by order of preference
      * @return The accepted content type
      */
-    protected String negotiateType(List<String> contentTypes) {
+    public static String negotiateType(List<String> contentTypes) {
         for (String contentType : contentTypes) {
             switch (contentType) {
                 // The SPARQL result syntaxes
@@ -127,41 +124,13 @@ public abstract class Service {
     /**
      * Setups the headers of the specified HTTP response in order to enable Cross-Origin Resource Sharing
      *
-     * @param response The response to setup
+     * @param exchange The exchange
      */
-    protected void enableCORS(HttpServletResponse response) {
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Cache-Control");
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setHeader("Access-Control-Allow-Credentials", "false");
-        response.setHeader("Cache-Control", "no-cache");
-    }
-
-    /**
-     * Responds to a GET request
-     *
-     * @param request  The request
-     * @param response The response to build
-     */
-    public void onGet(HttpServletRequest request, HttpServletResponse response) {
-    }
-
-    /**
-     * Responds to a POST request
-     *
-     * @param request  The request
-     * @param response The response to build
-     */
-    public void onPost(HttpServletRequest request, HttpServletResponse response) {
-    }
-
-    /**
-     * Responds to an OPTIONS request
-     *
-     * @param request  The request
-     * @param response The response to build
-     */
-    public void onOptions(HttpServletRequest request, HttpServletResponse response) {
-        enableCORS(response);
+    public static void enableCORS(HttpExchange exchange) {
+        exchange.getResponseHeaders().put("Access-Control-Allow-Methods", Arrays.asList("GET", "POST", "OPTIONS"));
+        exchange.getResponseHeaders().put("Access-Control-Allow-Headers", Arrays.asList("Accept", "Content-Type", "Cache-Control"));
+        exchange.getResponseHeaders().put("Access-Control-Allow-Origin", Arrays.asList("*"));
+        exchange.getResponseHeaders().put("Access-Control-Allow-Credentials", Arrays.asList("false"));
+        exchange.getResponseHeaders().put("Cache-Control", Arrays.asList("no-cache"));
     }
 }

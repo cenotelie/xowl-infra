@@ -18,8 +18,10 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server;
+package org.xowl.server.http;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.IOUtils;
 import org.xowl.store.IRIs;
@@ -57,7 +59,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class SPARQLService extends Service {
+class SPARQLHandler implements HttpHandler {
     /**
      * The content type for a URL encoded message body
      */
@@ -106,7 +108,7 @@ public class SPARQLService extends Service {
      * @param logger     The logger
      * @param repository The served repository
      */
-    public SPARQLService(Logger logger, Repository repository) {
+    public SPARQLHandler(Logger logger, Repository repository) {
         this.logger = logger;
         this.repository = repository;
     }
@@ -397,5 +399,10 @@ public class SPARQLService extends Service {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+    }
+
+    @Override
+    public void handle(HttpExchange httpExchange) throws IOException {
+
     }
 }
