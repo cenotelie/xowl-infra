@@ -21,29 +21,17 @@
 package org.xowl.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
+import org.xowl.server.db.Controller;
+import org.xowl.server.db.UserSession;
 import org.xowl.store.AbstractRepository;
-import org.xowl.store.IOUtils;
-import org.xowl.store.IRIs;
-import org.xowl.store.Repository;
-import org.xowl.store.loaders.NQuadsLoader;
-import org.xowl.store.loaders.RDFLoaderResult;
-import org.xowl.store.loaders.RDFTLoader;
 import org.xowl.store.loaders.SPARQLLoader;
-import org.xowl.store.rdf.Quad;
-import org.xowl.store.rdf.Rule;
-import org.xowl.store.rdf.RuleExplanation;
-import org.xowl.store.rete.MatchStatus;
 import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultFailure;
 import org.xowl.store.sparql.ResultQuads;
 import org.xowl.utils.BufferedLogger;
 import org.xowl.utils.DispatchLogger;
-import org.xowl.utils.Logger;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.Writer;
@@ -59,62 +47,45 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-class SPARQLHandler implements HttpHandler {
+class SPARQLHandler implements HandlerPart {
     /**
      * The content type for a URL encoded message body
      */
-    private static final String TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
+    public static final String TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
     /**
      * The content type for a SPARQL query in a message body
      */
-    private static final String TYPE_SPARQL_QUERY = "application/sparql-query";
+    public static final String TYPE_SPARQL_QUERY = "application/sparql-query";
     /**
      * The content type for a SPARQL update in a message body
      */
-    private static final String TYPE_SPARQL_UPDATE = "application/sparql-update";
-    /**
-     * The content type for the explanation of how a quad has been inferred
-     */
-    private static final String TYPE_RULE_EXPLANATION = "application/x-xowl-explanation";
-    /**
-     * The content type for listing the active reasoning rules
-     */
-    private static final String TYPE_RULE_LIST = "application/x-xowl-list-rules";
-    /**
-     * The content type for the matching status of a reasoning rule
-     */
-    private static final String TYPE_RULE_STATUS = "application/x-xowl-rule-status";
-    /**
-     * The content type for adding a new rule
-     */
-    private static final String TYPE_RULE_ADD = "application/x-xowl-rule-add";
-    /**
-     * The content type for removing an active rule
-     */
-    private static final String TYPE_RULE_REMOVE = "application/x-xowl-rule-remove";
+    public static final String TYPE_SPARQL_UPDATE = "application/sparql-update";
 
     /**
-     * The logger
+     * The top controller
      */
-    private final Logger logger;
-    /**
-     * The served repository
-     */
-    private final Repository repository;
+    private final Controller controller;
 
     /**
-     * Initializes this service
+     * Initializes this handler
      *
-     * @param logger     The logger
-     * @param repository The served repository
+     * @param controller The top controller
      */
-    public SPARQLHandler(Logger logger, Repository repository) {
-        this.logger = logger;
-        this.repository = repository;
+    public SPARQLHandler(Controller controller) {
+        this.controller = controller;
     }
 
     @Override
-    public void onGet(HttpServletRequest request, HttpServletResponse response) {
+    public void handle(HttpExchange httpExchange) throws IOException {
+        UserSession session = getSession(httpExchange);
+        if (session == null) {
+            httpExchange.getRes
+            return;
+        }
+    }
+
+
+    private void onGet(HttpExchange httpExchange, UserSession session) {
         // common response configuration
         response.setCharacterEncoding("UTF-8");
 
@@ -203,110 +174,6 @@ class SPARQLHandler implements HttpHandler {
         }
     }
 
-    /**
-     * Retrieve the explanation about a quad
-     *
-     * @param quad     The serialized quad
-     * @param response The response to write to
-     */
-    private void explainQuad(String quad, HttpServletResponse response) {
-        BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
-        NQuadsLoader loader = new NQuadsLoader(repository.getStore());
-        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(quad), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT);
-        if (result == null || result.getQuads().isEmpty()) {
-            response.setStatus(500);
-            dispatchLogger.error("Failed to parse and load the request");
-            outputLog(bufferedLogger, response);
-            return;
-        }
-        Quad first = result.getQuads().get(0);
-        RuleExplanation explanation = repository.getRDFRuleEngine().explain(first);
-        response.setStatus(200);
-        response.setHeader("Content-Type", Result.SYNTAX_JSON);
-        try {
-            explanation.printJSON(response.getWriter());
-        } catch (IOException exception) {
-            logger.error(exception);
-        }
-    }
-
-    /**
-     * Lists the active rules
-     *
-     * @param response The response to write to
-     */
-    private void ruleList(HttpServletResponse response) {
-        Collection<Rule> rules = repository.getRDFRuleEngine().getRules();
-        response.setStatus(200);
-        response.setHeader("Content-Type", Result.SYNTAX_JSON);
-        try (Writer writer = response.getWriter()) {
-            writer.write("{\"rules\": [");
-            boolean first = true;
-            for (Rule rule : rules) {
-                if (!first)
-                    writer.write(", ");
-                first = false;
-                writer.write("\"");
-                writer.write(IOUtils.escapeStringJSON(rule.getIRI()));
-                writer.write("\"");
-            }
-            writer.write("]}");
-        } catch (IOException exception) {
-            logger.error(exception);
-        }
-    }
-
-    /**
-     * Retrieve the matching status of a rule
-     *
-     * @param rule     The IRI of a rule
-     * @param response The response to write to
-     */
-    private void ruleStatus(String rule, HttpServletResponse response) {
-        MatchStatus status = repository.getRDFRuleEngine().getMatchStatus(rule);
-        response.setStatus(200);
-        response.setHeader("Content-Type", Result.SYNTAX_JSON);
-        try {
-            status.printJSON(response.getWriter());
-        } catch (IOException exception) {
-            logger.error(exception);
-        }
-    }
-
-    /**
-     * Adds a new rule
-     *
-     * @param rule     The rule in the RDFT syntax
-     * @param response The response to write to
-     */
-    private void ruleAdd(String rule, HttpServletResponse response) {
-        BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
-        RDFTLoader loader = new RDFTLoader(repository.getStore());
-        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(rule), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT);
-        if (result == null || result.getRules().isEmpty()) {
-            response.setStatus(500);
-            dispatchLogger.error("Failed to parse and load the rule(s)");
-            outputLog(bufferedLogger, response);
-            return;
-        }
-        for (Rule rdfRule : result.getRules())
-            repository.getRDFRuleEngine().add(rdfRule);
-        repository.getRDFRuleEngine().flush();
-        response.setStatus(200);
-    }
-
-    /**
-     * Removes the rule with the specified IRI
-     *
-     * @param rule     The IRI of a rule
-     * @param response The response to write to
-     */
-    private void ruleRemove(String rule, HttpServletResponse response) {
-        repository.getRDFRuleEngine().remove(rule);
-        response.setStatus(200);
-    }
 
     /**
      * Executes a SPARQL request
@@ -401,8 +268,5 @@ class SPARQLHandler implements HttpHandler {
         }
     }
 
-    @Override
-    public void handle(HttpExchange httpExchange) throws IOException {
 
-    }
 }

@@ -4,18 +4,18 @@
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- * <p/>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * <p/>
+ *
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- * <p/>
+ *
  * Contributors:
- * Laurent Wouters - lwouters@xowl.org
+ *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
 package org.xowl.server.db;
@@ -26,8 +26,10 @@ import org.xowl.store.ProxyObject;
 import org.xowl.utils.ConsoleLogger;
 import org.xowl.utils.Logger;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +38,7 @@ import java.util.Map;
  *
  * @author Laurent Wouters
  */
-public class Controller {
+public class Controller implements Closeable {
     /**
      * The User concept in the administration database
      */
@@ -58,9 +60,13 @@ public class Controller {
      */
     public static final String SCHEMA_ADMIN_PASSWORD = "http://xowl.org/server/admin#password";
     /**
-     * The User concept in the administration database
+     * The User graph in the administration database
      */
     public static final String SCHEMA_ADMIN_USERS = "http://xowl.org/server/users#";
+    /**
+     * The Database graph in the administration database
+     */
+    public static final String SCHEMA_ADMIN_DBS = "http://xowl.org/server/db#";
 
     /**
      * The current configuration
@@ -78,6 +84,10 @@ public class Controller {
      * The administration database
      */
     private final Database adminDB;
+    /**
+     * The active sessions
+     */
+    private final Map<String, UserSession> sessions;
 
     /**
      * Gets the main logger
@@ -99,6 +109,7 @@ public class Controller {
         this.logger = new ConsoleLogger();
         this.databases = new HashMap<>();
         this.adminDB = new Database(configuration, configuration.getRoot());
+        this.sessions = new HashMap<>();
         init();
     }
 
@@ -117,6 +128,29 @@ public class Controller {
                 // do nothing, this exception is reported by the db logger
             }
         }
+    }
+
+    /**
+     * Characters for session tokens
+     */
+    private static final char[] TOKEN_CHARS = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+    /**
+     * Generates a new session token
+     *
+     * @return A new session token
+     */
+    private static String newToken() {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[20];
+        random.nextBytes(bytes);
+        char[] chars = new char[bytes.length * 2];
+        int j = 0;
+        for (int i = 0; i != bytes.length; i++) {
+            chars[j++] = TOKEN_CHARS[(bytes[i] & 0xF0) >>> 4];
+            chars[j++] = TOKEN_CHARS[bytes[i] & 0x0F];
+        }
+        return new String(chars);
     }
 
     /**
@@ -142,6 +176,10 @@ public class Controller {
         File folder = new File(configuration.getRoot(), name);
         try {
             result = new Database(configuration, folder);
+            ProxyObject proxy = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DBS + name);
+            proxy.setValue(SCHEMA_ADMIN_NAME, name);
+            proxy.setValue(SCHEMA_ADMIN_LOCATION, folder.getAbsolutePath());
+            adminDB.getRepository().getStore().commit();
         } catch (IOException exception) {
             // do nothing, this exception is reported by the db logger
         }
@@ -157,25 +195,39 @@ public class Controller {
      * @param password The user password
      * @return The user if the operation is successful, null otherwise
      */
-    public User login(String login, String password) {
+    public UserSession login(String login, String password) {
+        if (login == null || login.isEmpty() || password == null || password.isEmpty())
+            return null;
         String userIRI = SCHEMA_ADMIN_USERS + login;
         ProxyObject proxy = adminDB.getRepository().getProxy(userIRI);
         if (proxy == null)
             return null;
         String hash = (String) proxy.getDataValue(SCHEMA_ADMIN_PASSWORD);
-        return BCrypt.checkpw(password, hash) ? new User(proxy) : null;
+        if (!BCrypt.checkpw(password, hash))
+            return null;
+        String token = newToken();
+        UserSession session = new UserSession(proxy, token);
+        sessions.put(token, session);
+        return session;
     }
 
     /**
-     * Gets a user
+     * Logout a user
      *
-     * @param login The user's login
-     * @return The user
+     * @param token The session token
      */
-    public User getUser(String login) {
-        String userIRI = SCHEMA_ADMIN_USERS + login;
-        ProxyObject proxy = adminDB.getRepository().getProxy(userIRI);
-        return proxy != null ? new User(proxy) : null;
+    public void logout(String token) {
+        sessions.remove(token);
+    }
+
+    /**
+     * Gets the open session for the specified token
+     *
+     * @param token A token
+     * @return The corresponding session
+     */
+    public UserSession getSession(String token) {
+        return sessions.get(token);
     }
 
     /**
@@ -183,23 +235,37 @@ public class Controller {
      *
      * @param login    The login
      * @param password The password
-     * @return The new user
+     * @return Whether the operation succeeded
      */
-    public User newUser(String login, String password) {
+    public boolean newUser(String login, String password) {
         if (password.length() < configuration.getSecurityMinPasswordLength()) {
             logger.error("Failed to create user: password does not meet expectations");
-            return null;
+            return false;
         }
         String userIRI = SCHEMA_ADMIN_USERS + login;
         ProxyObject proxy = adminDB.getRepository().getProxy(userIRI);
         if (proxy != null) {
             // user already exist
             logger.error("Failed to create user: user already exist");
-            return null;
+            return false;
         }
         proxy = adminDB.getRepository().resolveProxy(userIRI);
         proxy.setValue(SCHEMA_ADMIN_NAME, login);
         proxy.setValue(SCHEMA_ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
-        return new User(proxy);
+        adminDB.getRepository().getStore().commit();
+        return true;
+    }
+
+    @Override
+    public void close() throws IOException {
+        adminDB.close();
+        for (Map.Entry<String, Database> entry : databases.entrySet()) {
+            try {
+                entry.getValue().close();
+            } catch (IOException exception) {
+                logger.error(exception);
+            }
+        }
+        databases.clear();
     }
 }

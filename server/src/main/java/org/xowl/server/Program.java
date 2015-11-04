@@ -96,5 +96,10 @@ public class Program {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+        try {
+            controller.close();
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
     }
 }

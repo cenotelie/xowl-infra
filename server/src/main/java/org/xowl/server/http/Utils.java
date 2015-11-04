@@ -37,6 +37,23 @@ import java.util.*;
  */
 class Utils {
     /**
+     * HTTP header for a user token
+     */
+    public static final String HEADER_USER_TOKEN = "X-XOWL-Token";
+    /**
+     * HTTP header for a user login
+     */
+    public static final String HEADER_USER_LOGIN = "X-XOWL-Login";
+    /**
+     * HTTP header for a user password
+     */
+    public static final String HEADER_USER_PASSWORD = "X-XOWL-Password";
+    /**
+     * HTTP header for a user token
+     */
+    public static final String HEADER_DATABASE = "X-XOWL-Database";
+
+    /**
      * Gets the request body of the specified request
      *
      * @param exchange The exchange
