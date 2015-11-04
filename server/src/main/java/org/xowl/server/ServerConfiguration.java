@@ -40,11 +40,7 @@ public class ServerConfiguration {
     /**
      * Name of the configuration file in a root folder
      */
-    private static final String FILE_NAME = "conf.ini";
-    /**
-     * The number of bytes the password pepper
-     */
-    private static final int PEPPER_LENGTH = 20;
+    private static final String FILE_NAME = "config.ini";
 
     /**
      * The default configuration
@@ -108,6 +104,15 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets the name of the administration database
+     *
+     * @return The name of the administration database
+     */
+    public String getAdminDBName() {
+        return getValue("admin", "dbName");
+    }
+
+    /**
      * Gets the minimum length of a user password
      *
      * @return The minimum length of a user password
@@ -123,6 +128,33 @@ public class ServerConfiguration {
      */
     public int getSecurityBCryptCycleCount() {
         return Integer.parseInt(getValue("security", "bcryptCycle"));
+    }
+
+    /**
+     * Gets the maximal number of login attempt before banning a client
+     *
+     * @return The maximal number of login attempt
+     */
+    public int getSecurityMaxLoginAttempt() {
+        return Integer.parseInt(getValue("security", "maxLoginAttempt"));
+    }
+
+    /**
+     * Gets the length of client ban in seconds
+     *
+     * @return The length of client ban in seconds
+     */
+    public int getSecurityBanLength() {
+        return Integer.parseInt(getValue("security", "banLength"));
+    }
+
+    /**
+     * Gets the security realm for this server
+     *
+     * @return The security realm for this server
+     */
+    public String getsecurityRealm() {
+        return getValue("security", "realm");
     }
 
     /**

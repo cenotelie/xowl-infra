@@ -20,13 +20,25 @@
 
 package org.xowl.server.http;
 
-import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.BasicAuthenticator;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.server.db.Controller;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
 
@@ -57,7 +69,7 @@ public class Server implements Closeable, Executor {
     /**
      * The backing HTTP server
      */
-    private final HttpServer server;
+    private final HttpsServer server;
     /**
      * The daemon thread executing the tasks for the server
      */
@@ -73,21 +85,62 @@ public class Server implements Closeable, Executor {
      * @param configuration The current configuration
      * @param controller    The current controller
      */
-    public Server(ServerConfiguration configuration, Controller controller) {
+    public Server(ServerConfiguration configuration, final Controller controller) {
         this.configuration = configuration;
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, new TrustManager[]{
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                            // TODO: check the certificate
+                        }
+
+                        @Override
+                        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                            // TODO: check the certificate
+                        }
+
+                        @Override
+                        public X509Certificate[] getAcceptedIssuers() {
+                            // TODO: check the certificate
+                            return new X509Certificate[0];
+                        }
+                    }
+            }, new SecureRandom());
+        } catch (NoSuchAlgorithmException | KeyManagementException exception) {
+            exception.printStackTrace();
+        }
         InetSocketAddress address = new InetSocketAddress(
                 configuration.getHttpAddress(),
                 configuration.getHttpPort());
-        HttpServer temp = null;
+        HttpsServer temp = null;
         try {
-            temp = HttpServer.create(address, configuration.getHttpBacklog());
+            temp = HttpsServer.create(address, configuration.getHttpBacklog());
         } catch (IOException exception) {
             exception.printStackTrace();
         }
-        server = temp;
-        if (server != null) {
-            server.createContext("/", new FullHandler(controller));
+        if (temp != null && sslContext != null) {
+            server = temp;
+            server.createContext("/", new FullHandler(controller)).setAuthenticator(new BasicAuthenticator(configuration.getsecurityRealm()) {
+                @Override
+                public boolean checkCredentials(String login, String password) {
+                    return controller.login(login, password);
+                }
+            });
+            server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+                @Override
+                public void configure(HttpsParameters params) {
+                    SSLContext context = getSSLContext();
+                    SSLParameters newParams = context.getDefaultSSLParameters();
+                    newParams.setNeedClientAuth(true);
+                    params.setSSLParameters(newParams);
+                }
+            });
             server.setExecutor(this);
+        } else {
+            server = null;
         }
         executorQueue = new ArrayBlockingQueue<>(EXECUTOR_QUEUE_BOUND);
         executorThread = new Thread(new Runnable() {

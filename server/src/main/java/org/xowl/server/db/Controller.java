@@ -84,10 +84,15 @@ public class Controller implements Closeable {
      * The administration database
      */
     private final Database adminDB;
+
     /**
-     * The active sessions
+     * Gets current configuration
+     *
+     * @return The current configuration
      */
-    private final Map<String, UserSession> sessions;
+    public ServerConfiguration getConfiguration() {
+        return configuration;
+    }
 
     /**
      * Gets the main logger
@@ -109,7 +114,7 @@ public class Controller implements Closeable {
         this.logger = new ConsoleLogger();
         this.databases = new HashMap<>();
         this.adminDB = new Database(configuration, configuration.getRoot());
-        this.sessions = new HashMap<>();
+        this.databases.put(configuration.getAdminDBName(), adminDB);
         init();
     }
 
@@ -117,15 +122,19 @@ public class Controller implements Closeable {
      * Initializes this controller
      */
     private void init() {
+        logger.info("Initializing the controller");
         ProxyObject classDB = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE);
         for (ProxyObject poDB : classDB.getInstances()) {
+            logger.info("Found database " + poDB.getIRIString());
             String name = (String) poDB.getDataValue(SCHEMA_ADMIN_NAME);
             String location = (String) poDB.getDataValue(SCHEMA_ADMIN_LOCATION);
             try {
                 Database db = new Database(configuration, new File(configuration.getRoot(), location));
                 databases.put(name, db);
+                logger.error("Loaded database " + poDB.getIRIString() + " as " + name);
             } catch (IOException exception) {
                 // do nothing, this exception is reported by the db logger
+                logger.error("Failed to load database " + poDB.getIRIString() + " as " + name);
             }
         }
     }
@@ -170,9 +179,16 @@ public class Controller implements Closeable {
      * @return The created database
      */
     public Database newDatabase(String name) {
+        logger.info("Creating new database \"" + name + "\" ...");
+        if (!name.matches("[_a-zA-Z0-9]+")) {
+            logger.error("Failed to create database \"" + name + "\": name does not meet expectations");
+            return null;
+        }
         Database result = databases.get(name);
-        if (result != null)
+        if (result != null) {
+            logger.warning("Database already exist: \"" + name + "\"");
             return result;
+        }
         File folder = new File(configuration.getRoot(), name);
         try {
             result = new Database(configuration, folder);
@@ -182,9 +198,11 @@ public class Controller implements Closeable {
             adminDB.getRepository().getStore().commit();
         } catch (IOException exception) {
             // do nothing, this exception is reported by the db logger
+            logger.error("Failed to create database \"" + name + "\"");
+            return null;
         }
-        if (result != null)
-            databases.put(name, result);
+        databases.put(name, result);
+        logger.info("Created new database \"" + name + "\"");
         return result;
     }
 
@@ -193,41 +211,40 @@ public class Controller implements Closeable {
      *
      * @param login    The user to log in
      * @param password The user password
-     * @return The user if the operation is successful, null otherwise
+     * @return Whether the login/password is acceptable
      */
-    public UserSession login(String login, String password) {
-        if (login == null || login.isEmpty() || password == null || password.isEmpty())
-            return null;
+    public boolean login(String login, String password) {
+        logger.info("Login attempt for " + login);
+        if (login == null || login.isEmpty() || password == null || password.isEmpty()) {
+            logger.info("Login failure for " + login);
+            return false;
+        }
         String userIRI = SCHEMA_ADMIN_USERS + login;
         ProxyObject proxy = adminDB.getRepository().getProxy(userIRI);
-        if (proxy == null)
-            return null;
+        if (proxy == null) {
+            logger.info("Login failure for " + login);
+            return false;
+        }
         String hash = (String) proxy.getDataValue(SCHEMA_ADMIN_PASSWORD);
-        if (!BCrypt.checkpw(password, hash))
-            return null;
-        String token = newToken();
-        UserSession session = new UserSession(proxy, token);
-        sessions.put(token, session);
-        return session;
+        if (!BCrypt.checkpw(password, hash)) {
+            logger.info("Login failure for " + login);
+            return false;
+        } else {
+            logger.info("Login success for " + login);
+            return true;
+        }
     }
 
     /**
-     * Logout a user
+     * Gets the user for the specified login
      *
-     * @param token The session token
+     * @param login The user's login
+     * @return The user
      */
-    public void logout(String token) {
-        sessions.remove(token);
-    }
-
-    /**
-     * Gets the open session for the specified token
-     *
-     * @param token A token
-     * @return The corresponding session
-     */
-    public UserSession getSession(String token) {
-        return sessions.get(token);
+    public User getUser(String login) {
+        String userIRI = SCHEMA_ADMIN_USERS + login;
+        ProxyObject proxy = adminDB.getRepository().getProxy(userIRI);
+        return proxy == null ? null : new User(proxy);
     }
 
     /**
@@ -238,34 +255,44 @@ public class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean newUser(String login, String password) {
+        logger.info("Creating new user \"" + login + "\" ...");
+        if (!login.matches("[_a-zA-Z0-9]+")) {
+            logger.error("Failed to create user \"" + login + "\": login does not meet expectations");
+            return false;
+        }
         if (password.length() < configuration.getSecurityMinPasswordLength()) {
-            logger.error("Failed to create user: password does not meet expectations");
+            logger.error("Failed to create user \"" + login + "\": password does not meet expectations");
             return false;
         }
         String userIRI = SCHEMA_ADMIN_USERS + login;
         ProxyObject proxy = adminDB.getRepository().getProxy(userIRI);
         if (proxy != null) {
             // user already exist
-            logger.error("Failed to create user: user already exist");
+            logger.error("Failed to create user \"" + login + "\": user already exist");
             return false;
         }
         proxy = adminDB.getRepository().resolveProxy(userIRI);
         proxy.setValue(SCHEMA_ADMIN_NAME, login);
         proxy.setValue(SCHEMA_ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
         adminDB.getRepository().getStore().commit();
+        logger.info("Created new user \"" + login + "\"");
         return true;
     }
 
     @Override
     public void close() throws IOException {
+        logger.info("Closing all databases ...");
         adminDB.close();
         for (Map.Entry<String, Database> entry : databases.entrySet()) {
+            logger.info("Closing database " + entry.getKey());
             try {
                 entry.getValue().close();
             } catch (IOException exception) {
                 logger.error(exception);
             }
+            logger.info("Closed database " + entry.getKey());
         }
         databases.clear();
+        logger.info("All databases closed");
     }
 }

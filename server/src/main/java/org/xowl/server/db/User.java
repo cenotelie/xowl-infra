@@ -23,28 +23,22 @@ package org.xowl.server.db;
 import org.xowl.store.ProxyObject;
 
 /**
- * Represents a user session on this server
+ * Represents a user on this server
  *
  * @author Laurent Wouters
  */
-public class UserSession {
+public class User {
     /**
      * The proxy object representing this user
      */
     private final ProxyObject proxy;
-    /**
-     * Token for the session
-     */
-    private final String token;
 
     /**
      * Initializes this user
      *
      * @param proxy The proxy object representing this user
-     * @param token Token for the session
      */
-    public UserSession(ProxyObject proxy, String token) {
+    public User(ProxyObject proxy) {
         this.proxy = proxy;
-        this.token = token;
     }
 }

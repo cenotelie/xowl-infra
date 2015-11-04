@@ -22,7 +22,8 @@ package org.xowl.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.server.db.Controller;
-import org.xowl.server.db.UserSession;
+import org.xowl.server.db.Database;
+import org.xowl.server.db.User;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.loaders.SPARQLLoader;
 import org.xowl.store.sparql.Command;
@@ -76,16 +77,11 @@ class SPARQLHandler implements HandlerPart {
     }
 
     @Override
-    public void handle(HttpExchange httpExchange) throws IOException {
-        UserSession session = getSession(httpExchange);
-        if (session == null) {
-            httpExchange.getRes
-            return;
-        }
+    public void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database) {
+
     }
 
-
-    private void onGet(HttpExchange httpExchange, UserSession session) {
+    private void onGet(HttpExchange httpExchange, User session) {
         // common response configuration
         response.setCharacterEncoding("UTF-8");
 
@@ -267,6 +263,7 @@ class SPARQLHandler implements HandlerPart {
             exception.printStackTrace();
         }
     }
+
 
 
 }

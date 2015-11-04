@@ -20,11 +20,25 @@
 
 package org.xowl.server.http;
 
+import com.sun.net.httpserver.HttpExchange;
+import org.xowl.server.db.Database;
+import org.xowl.server.db.User;
+
 /**
  * A part of a HTTP handler
  *
  * @author Laurent Wouters
  */
 interface HandlerPart {
-
+    /**
+     * Handles an HTTP exchange
+     *
+     * @param httpExchange The HTTP exchange
+     * @param method       The HTTP method
+     * @param contentType  The content type for the request body
+     * @param body         The request body
+     * @param user         The current user
+     * @param database     The current database
+     */
+    void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database);
 }

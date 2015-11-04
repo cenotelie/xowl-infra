@@ -25,11 +25,14 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.xowl.server.db.Controller;
 import org.xowl.server.db.Database;
-import org.xowl.server.db.UserSession;
+import org.xowl.server.db.User;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The aggregated HTTP handler that supports pure SPARQL and xOWL extensions
@@ -64,58 +67,80 @@ class FullHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
-        // getRequestMethod() to determine the command
-        // getRequestHeaders() to examine the request headers (if needed)
-        // getRequestBody() returns a InputStream for reading the request body. After reading the request body, the stream is close.
-        // getResponseHeaders() to set any response headers, except content-length
-        // sendResponseHeaders(int,long) to send the response headers. Must be called before next step.
-        // getResponseBody() to get a OutputStream to send the response body. When the response body has been written, the stream must be closed to terminate the exchange.
-
         String method = httpExchange.getRequestMethod();
         Headers rHeaders = httpExchange.getRequestHeaders();
-        UserSession session = getSession(rHeaders);
-        if (session == null) {
-            endOnError(httpExchange, 403, "Failed to login");
+        User user = controller.getUser(httpExchange.getPrincipal().getUsername());
+        if (user == null) {
+            httpExchange.getResponseHeaders().add("WWW-Authenticate", "Basic realm=\"" + controller.getConfiguration().getsecurityRealm() + "\"");
+            endOnError(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, "Failed to login");
+            return;
         }
-        Database database = getDatabase(rHeaders);
+        Database database = controller.getDatabase(rHeaders.getFirst(Utils.HEADER_DATABASE));
+        if (database == null) {
+            endOnError(httpExchange, Utils.HTTP_CODE_NOT_FOUND, "Database not found");
+            return;
+        }
+        String contentType = rHeaders.getFirst("Content-Type");
+        String body;
+        try {
+            body = Utils.getRequestBody(httpExchange);
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+            endOnError(httpExchange, Utils.HTTP_CODE_PROTOCOL_ERROR, "Failed to read the body");
+            return;
+        }
 
+        if (Objects.equals(method, "OPTIONS")) {
+            // always respond with CORS capabilities
+            Utils.enableCORS(httpExchange.getResponseHeaders());
+            try {
+                httpExchange.sendResponseHeaders(Utils.HTTP_CODE_OK, 0);
+            } catch (IOException exception) {
+                controller.getLogger().error(exception);
+            }
+            try {
+                httpExchange.getResponseBody().close();
+            } catch (IOException exception) {
+                controller.getLogger().error(exception);
+            }
+            return;
+        }
 
+        Map<String, HandlerPart> subs = parts.get(method);
+        if (subs == null) {
+            endOnError(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Cannot handle this request");
+            return;
+        }
+        HandlerPart target = subs.get(contentType);
+        if (target == null)
+            target = subs.get(null);
+        if (target == null) {
+            endOnError(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Cannot handle this request");
+            return;
+        }
+        target.handle(httpExchange, method, contentType, body, user, database);
     }
 
     /**
      * Ends the current exchange on error
+     *
      * @param httpExchange The current exchange
-     * @param code The error code
-     * @param message The error message
+     * @param code         The error code
+     * @param message      The error message
      */
-    private void endOnError(HttpExchange httpExchange, int code, String message) {
+    public void endOnError(HttpExchange httpExchange, int code, String message) {
+        byte[] buffer = message.getBytes(Charset.forName("UTF-8"));
         Headers headers = httpExchange.getResponseHeaders();
-        Utils.enableCORS(httpExchange);
-    }
-
-
-    /**
-     * Gets a user session for the specified exchange
-     *
-     * @param headers The request headers
-     * @return The user session
-     */
-    private UserSession getSession(Headers headers) {
-        if (headers.containsKey(Utils.HEADER_USER_TOKEN)) {
-            return controller.getSession(headers.getFirst(Utils.HEADER_USER_TOKEN));
+        Utils.enableCORS(headers);
+        try {
+            httpExchange.sendResponseHeaders(code, buffer.length);
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
         }
-        return controller.login(
-                headers.getFirst(Utils.HEADER_USER_LOGIN),
-                headers.getFirst(Utils.HEADER_USER_PASSWORD));
-    }
-
-    /**
-     * Gets the database for the specified exchange
-     *
-     * @param headers The request headers
-     * @return The database
-     */
-    private Database getDatabase(Headers headers) {
-        return controller.getDatabase(headers.getFirst(Utils.HEADER_DATABASE));
+        try (OutputStream stream = httpExchange.getResponseBody()) {
+            stream.write(buffer);
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+        }
     }
 }

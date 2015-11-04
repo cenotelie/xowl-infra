@@ -20,6 +20,7 @@
 
 package org.xowl.server.http;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.sparql.Result;
@@ -39,27 +40,36 @@ class Utils {
     /**
      * HTTP header for a user token
      */
-    public static final String HEADER_USER_TOKEN = "X-XOWL-Token";
-    /**
-     * HTTP header for a user login
-     */
-    public static final String HEADER_USER_LOGIN = "X-XOWL-Login";
-    /**
-     * HTTP header for a user password
-     */
-    public static final String HEADER_USER_PASSWORD = "X-XOWL-Password";
-    /**
-     * HTTP header for a user token
-     */
     public static final String HEADER_DATABASE = "X-XOWL-Database";
+    /**
+     * HTTP response code on OK
+     */
+    public static final int HTTP_CODE_OK = 200;
+    /**
+     * HTTP response code on unauthorized access
+     */
+    public static final int HTTP_CODE_UNAUTHORIZED = 401;
+    /**
+     * HTTP response code on resource not found
+     */
+    public static final int HTTP_CODE_NOT_FOUND = 404;
+    /**
+     * HTTP response code on a protocol error
+     */
+    public static final int HTTP_CODE_PROTOCOL_ERROR = 400;
+    /**
+     * HTTP response code on an internal error
+     */
+    public static final int HTTP_CODE_INTERNAL_ERROR = 500;
 
     /**
      * Gets the request body of the specified request
      *
      * @param exchange The exchange
      * @return The request body
+     * @throws IOException When reading failed
      */
-    public static String getRequestBody(HttpExchange exchange) {
+    public static String getRequestBody(HttpExchange exchange) throws IOException {
         try (InputStream stream = exchange.getRequestBody()) {
             ByteArrayOutputStream output = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
@@ -71,20 +81,17 @@ class Utils {
             buffer = output.toByteArray();
             output.close();
             return new String(buffer, "UTF-8");
-        } catch (IOException exception) {
-            exception.printStackTrace();
-            return "";
         }
     }
 
     /**
      * Retrieves the requested content types by order of preference
      *
-     * @param exchange The exchange
+     * @param headers The request headers
      * @return The content types by order of preference
      */
-    public static List<String> getContentTypes(HttpExchange exchange) {
-        String header = exchange.getRequestHeader("Accept");
+    public static List<String> getContentTypes(Headers headers) {
+        String header = headers.getFirst("Accept");
         if (header == null || header.isEmpty())
             return Collections.emptyList();
         List<Couple<String, Float>> contentTypes = new ArrayList<>();
@@ -141,13 +148,13 @@ class Utils {
     /**
      * Setups the headers of the specified HTTP response in order to enable Cross-Origin Resource Sharing
      *
-     * @param exchange The exchange
+     * @param headers The response headers
      */
-    public static void enableCORS(HttpExchange exchange) {
-        exchange.getResponseHeaders().put("Access-Control-Allow-Methods", Arrays.asList("GET", "POST", "OPTIONS"));
-        exchange.getResponseHeaders().put("Access-Control-Allow-Headers", Arrays.asList("Accept", "Content-Type", "Cache-Control"));
-        exchange.getResponseHeaders().put("Access-Control-Allow-Origin", Arrays.asList("*"));
-        exchange.getResponseHeaders().put("Access-Control-Allow-Credentials", Arrays.asList("false"));
-        exchange.getResponseHeaders().put("Cache-Control", Arrays.asList("no-cache"));
+    public static void enableCORS(Headers headers) {
+        headers.put("Access-Control-Allow-Methods", Arrays.asList("GET", "POST", "OPTIONS"));
+        headers.put("Access-Control-Allow-Headers", Arrays.asList("Accept", "Content-Type", "Cache-Control"));
+        headers.put("Access-Control-Allow-Origin", Arrays.asList("*"));
+        headers.put("Access-Control-Allow-Credentials", Arrays.asList("true"));
+        headers.put("Cache-Control", Arrays.asList("no-cache"));
     }
 }
