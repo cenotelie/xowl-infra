@@ -189,7 +189,7 @@ public class Configuration {
      */
     public void load(InputStream stream, Charset charset) throws IOException {
         String content = org.xowl.utils.Files.read(stream, charset);
-        String[] lines = content.split("\r\n");
+        String[] lines = content.split("(\r\n?)|(\r?\n)");
         Section current = global;
         for (String line : lines) {
             if (line.startsWith("#") || line.startsWith(";"))
