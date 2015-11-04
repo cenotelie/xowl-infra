@@ -54,10 +54,16 @@ class TopHandler extends HandlerPart implements HttpHandler {
         this.parts.put("GET", new HashMap<String, HandlerPart>());
         this.parts.put("POST", new HashMap<String, HandlerPart>());
         SPARQLHandler sparql = new SPARQLHandler(controller);
+        XOWLHandler xowl = new XOWLHandler(controller);
         this.parts.get("GET").put(null, sparql);
         this.parts.get("POST").put(SPARQLHandler.TYPE_SPARQL_QUERY, sparql);
         this.parts.get("POST").put(SPARQLHandler.TYPE_SPARQL_UPDATE, sparql);
         this.parts.get("POST").put(SPARQLHandler.TYPE_URL_ENCODED, sparql);
+        this.parts.get("POST").put(XOWLHandler.TYPE_RULE_ADD, xowl);
+        this.parts.get("POST").put(XOWLHandler.TYPE_RULE_REMOVE, xowl);
+        this.parts.get("POST").put(XOWLHandler.TYPE_RULE_LIST, xowl);
+        this.parts.get("POST").put(XOWLHandler.TYPE_RULE_EXPLANATION, xowl);
+        this.parts.get("POST").put(XOWLHandler.TYPE_RULE_STATUS, xowl);
     }
 
     @Override

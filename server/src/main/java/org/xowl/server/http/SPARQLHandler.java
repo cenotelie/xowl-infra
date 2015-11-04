@@ -174,7 +174,7 @@ class SPARQLHandler extends HandlerPart {
         if (commands == null) {
             // ill-formed request
             dispatchLogger.error("Failed to parse and load the request");
-            response(httpExchange, Utils.HTTP_CODE_PROTOCOL_ERROR, getLog(bufferedLogger));
+            response(httpExchange, Utils.HTTP_CODE_PROTOCOL_ERROR, Utils.getLog(bufferedLogger));
             return;
         }
         Result result = ResultFailure.INSTANCE;
@@ -185,63 +185,18 @@ class SPARQLHandler extends HandlerPart {
             }
         }
         if (result.isFailure()) {
-            response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, getLog(bufferedLogger));
+            response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, Utils.getLog(bufferedLogger));
         } else {
             StringWriter writer = new StringWriter();
             try {
-                result.print(writer, coerceContentType(result, contentType));
+                result.print(writer, Utils.coerceContentType(result, contentType));
             } catch (IOException exception) {
                 exception.printStackTrace();
             }
-            httpExchange.getResponseHeaders().add("Content-Type", coerceContentType(result, contentType));
+            httpExchange.getResponseHeaders().add("Content-Type", Utils.coerceContentType(result, contentType));
             response(httpExchange, Utils.HTTP_CODE_OK, writer.toString());
         }
     }
 
-    /**
-     * Coerce the content type of a SPARQL response depending on the result type
-     *
-     * @param result The SPARQL result
-     * @param type   The negotiated content type
-     * @return The coerced content type
-     */
-    private static String coerceContentType(Result result, String type) {
-        if (result instanceof ResultQuads) {
-            switch (type) {
-                case AbstractRepository.SYNTAX_NTRIPLES:
-                case AbstractRepository.SYNTAX_NQUADS:
-                case AbstractRepository.SYNTAX_TURTLE:
-                case AbstractRepository.SYNTAX_RDFXML:
-                case AbstractRepository.SYNTAX_JSON_LD:
-                    return type;
-                default:
-                    return AbstractRepository.SYNTAX_NQUADS;
-            }
-        } else {
-            switch (type) {
-                case Result.SYNTAX_CSV:
-                case Result.SYNTAX_TSV:
-                case Result.SYNTAX_XML:
-                case Result.SYNTAX_JSON:
-                    return type;
-                default:
-                    return Result.SYNTAX_JSON;
-            }
-        }
-    }
 
-    /**
-     * Gets the content of the log
-     *
-     * @param logger The logger
-     * @return The content of the log
-     */
-    private static String getLog(BufferedLogger logger) {
-        StringBuilder builder = new StringBuilder();
-        for (Object error : logger.getErrorMessages()) {
-            builder.append(error.toString());
-            builder.append("\n");
-        }
-        return builder.toString();
-    }
 }

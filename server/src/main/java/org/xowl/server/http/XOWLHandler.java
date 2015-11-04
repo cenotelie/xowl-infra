@@ -20,6 +20,10 @@
 
 package org.xowl.server.http;
 
+import com.sun.net.httpserver.HttpExchange;
+import org.xowl.server.db.Controller;
+import org.xowl.server.db.Database;
+import org.xowl.server.db.User;
 import org.xowl.store.IOUtils;
 import org.xowl.store.IRIs;
 import org.xowl.store.loaders.NQuadsLoader;
@@ -35,7 +39,7 @@ import org.xowl.utils.DispatchLogger;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.Writer;
+import java.io.StringWriter;
 import java.util.Collection;
 
 /**
@@ -43,131 +47,160 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-class XOWLHandler {
+class XOWLHandler extends HandlerPart {
     /**
      * The content type for the explanation of how a quad has been inferred
      */
-    private static final String TYPE_RULE_EXPLANATION = "application/x-xowl-explanation";
+    public static final String TYPE_RULE_EXPLANATION = "application/x-xowl-explanation";
     /**
      * The content type for listing the active reasoning rules
      */
-    private static final String TYPE_RULE_LIST = "application/x-xowl-list-rules";
+    public static final String TYPE_RULE_LIST = "application/x-xowl-list-rules";
     /**
      * The content type for the matching status of a reasoning rule
      */
-    private static final String TYPE_RULE_STATUS = "application/x-xowl-rule-status";
+    public static final String TYPE_RULE_STATUS = "application/x-xowl-rule-status";
     /**
      * The content type for adding a new rule
      */
-    private static final String TYPE_RULE_ADD = "application/x-xowl-rule-add";
+    public static final String TYPE_RULE_ADD = "application/x-xowl-rule-add";
     /**
      * The content type for removing an active rule
      */
-    private static final String TYPE_RULE_REMOVE = "application/x-xowl-rule-remove";
+    public static final String TYPE_RULE_REMOVE = "application/x-xowl-rule-remove";
 
+    /**
+     * Initializes this handler
+     *
+     * @param controller The top controller
+     */
+    public XOWLHandler(Controller controller) {
+        super(controller);
+    }
+
+    @Override
+    public void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database) {
+        switch (contentType) {
+            case TYPE_RULE_EXPLANATION:
+                explainQuad(httpExchange, database, body);
+                break;
+            case TYPE_RULE_LIST:
+                ruleList(httpExchange, database);
+                break;
+            case TYPE_RULE_STATUS:
+                ruleStatus(httpExchange, database, body);
+                break;
+            case TYPE_RULE_ADD:
+                ruleAdd(httpExchange, database, body);
+                break;
+            case TYPE_RULE_REMOVE:
+                ruleRemove(httpExchange, database, body);
+                break;
+        }
+    }
 
     /**
      * Retrieve the explanation about a quad
      *
-     * @param quad     The serialized quad
-     * @param response The response to write to
+     * @param httpExchange The HTTP exchange
+     * @param database     The current database
+     * @param quad         The serialized quad
      */
-    private void explainQuad(String quad, HttpServletResponse response) {
+    private void explainQuad(HttpExchange httpExchange, Database database, String quad) {
         BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
-        NQuadsLoader loader = new NQuadsLoader(repository.getStore());
+        DispatchLogger dispatchLogger = new DispatchLogger(database.getLogger(), bufferedLogger);
+        NQuadsLoader loader = new NQuadsLoader(database.getRepository().getStore());
         RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(quad), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT);
         if (result == null || result.getQuads().isEmpty()) {
-            response.setStatus(500);
             dispatchLogger.error("Failed to parse and load the request");
-            outputLog(bufferedLogger, response);
+            response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, Utils.getLog(bufferedLogger));
             return;
         }
         Quad first = result.getQuads().get(0);
-        RuleExplanation explanation = repository.getRDFRuleEngine().explain(first);
-        response.setStatus(200);
-        response.setHeader("Content-Type", Result.SYNTAX_JSON);
+        RuleExplanation explanation = database.getRepository().getRDFRuleEngine().explain(first);
+        StringWriter writer = new StringWriter();
         try {
-            explanation.printJSON(response.getWriter());
+            explanation.printJSON(writer);
         } catch (IOException exception) {
-            logger.error(exception);
+            exception.printStackTrace();
         }
     }
 
     /**
      * Lists the active rules
      *
-     * @param response The response to write to
+     * @param httpExchange The HTTP exchange
+     * @param database     The current database
      */
-    private void ruleList(HttpServletResponse response) {
-        Collection<Rule> rules = repository.getRDFRuleEngine().getRules();
-        response.setStatus(200);
-        response.setHeader("Content-Type", Result.SYNTAX_JSON);
-        try (Writer writer = response.getWriter()) {
-            writer.write("{\"rules\": [");
-            boolean first = true;
-            for (Rule rule : rules) {
-                if (!first)
-                    writer.write(", ");
-                first = false;
-                writer.write("\"");
-                writer.write(IOUtils.escapeStringJSON(rule.getIRI()));
-                writer.write("\"");
-            }
-            writer.write("]}");
-        } catch (IOException exception) {
-            logger.error(exception);
+    private void ruleList(HttpExchange httpExchange, Database database) {
+        Collection<Rule> rules = database.getRepository().getRDFRuleEngine().getRules();
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"rules\": [");
+        boolean first = true;
+        for (Rule rule : rules) {
+            if (!first)
+                builder.append(", ");
+            first = false;
+            builder.append("\"");
+            builder.append(IOUtils.escapeStringJSON(rule.getIRI()));
+            builder.append("\"");
         }
+        builder.append("]}");
+        httpExchange.getResponseHeaders().add("Content-Type", Result.SYNTAX_JSON);
+        response(httpExchange, Utils.HTTP_CODE_OK, builder.toString());
     }
 
     /**
      * Retrieve the matching status of a rule
      *
-     * @param rule     The IRI of a rule
-     * @param response The response to write to
+     * @param httpExchange The HTTP exchange
+     * @param database     The current database
+     * @param rule         The IRI of a rule
      */
-    private void ruleStatus(String rule, HttpServletResponse response) {
-        MatchStatus status = repository.getRDFRuleEngine().getMatchStatus(rule);
-        response.setStatus(200);
-        response.setHeader("Content-Type", Result.SYNTAX_JSON);
+    private void ruleStatus(HttpExchange httpExchange, Database database, String rule) {
+        MatchStatus status = database.getRepository().getRDFRuleEngine().getMatchStatus(rule);
+        StringWriter writer = new StringWriter();
         try {
-            status.printJSON(response.getWriter());
+            status.printJSON(writer);
         } catch (IOException exception) {
-            logger.error(exception);
+            exception.printStackTrace();
         }
+        httpExchange.getResponseHeaders().add("Content-Type", Result.SYNTAX_JSON);
+        response(httpExchange, Utils.HTTP_CODE_OK, writer.toString());
     }
 
     /**
      * Adds a new rule
      *
-     * @param rule     The rule in the RDFT syntax
-     * @param response The response to write to
+     * @param httpExchange The HTTP exchange
+     * @param database     The current database
+     * @param rule         The rule in the RDFT syntax
      */
-    private void ruleAdd(String rule, HttpServletResponse response) {
+    private void ruleAdd(HttpExchange httpExchange, Database database, String rule) {
         BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
-        RDFTLoader loader = new RDFTLoader(repository.getStore());
+        DispatchLogger dispatchLogger = new DispatchLogger(database.getLogger(), bufferedLogger);
+        RDFTLoader loader = new RDFTLoader(database.getRepository().getStore());
         RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(rule), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT);
         if (result == null || result.getRules().isEmpty()) {
-            response.setStatus(500);
-            dispatchLogger.error("Failed to parse and load the rule(s)");
-            outputLog(bufferedLogger, response);
+            dispatchLogger.error("Failed to parse and load the request");
+            response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, Utils.getLog(bufferedLogger));
             return;
         }
         for (Rule rdfRule : result.getRules())
-            repository.getRDFRuleEngine().add(rdfRule);
-        repository.getRDFRuleEngine().flush();
-        response.setStatus(200);
+            database.getRepository().getRDFRuleEngine().add(rdfRule);
+        database.getRepository().getRDFRuleEngine().flush();
+        response(httpExchange, Utils.HTTP_CODE_OK, null);
     }
 
     /**
      * Removes the rule with the specified IRI
      *
-     * @param rule     The IRI of a rule
-     * @param response The response to write to
+     * @param httpExchange The HTTP exchange
+     * @param database     The current database
+     * @param rule         The IRI of a rule
      */
-    private void ruleRemove(String rule, HttpServletResponse response) {
-        repository.getRDFRuleEngine().remove(rule);
-        response.setStatus(200);
+    private void ruleRemove(HttpExchange httpExchange, Database database, String rule) {
+        database.getRepository().getRDFRuleEngine().remove(rule);
+        response(httpExchange, Utils.HTTP_CODE_OK, null);
     }
 }

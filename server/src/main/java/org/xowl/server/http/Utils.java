@@ -24,6 +24,8 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.sparql.Result;
+import org.xowl.store.sparql.ResultQuads;
+import org.xowl.utils.BufferedLogger;
 import org.xowl.utils.collections.Couple;
 
 import java.io.ByteArrayOutputStream;
@@ -219,5 +221,52 @@ class Utils {
         headers.put("Access-Control-Allow-Origin", Arrays.asList("*"));
         headers.put("Access-Control-Allow-Credentials", Arrays.asList("true"));
         headers.put("Cache-Control", Arrays.asList("no-cache"));
+    }
+
+    /**
+     * Coerce the content type of a SPARQL response depending on the result type
+     *
+     * @param result The SPARQL result
+     * @param type   The negotiated content type
+     * @return The coerced content type
+     */
+    public static String coerceContentType(Result result, String type) {
+        if (result instanceof ResultQuads) {
+            switch (type) {
+                case AbstractRepository.SYNTAX_NTRIPLES:
+                case AbstractRepository.SYNTAX_NQUADS:
+                case AbstractRepository.SYNTAX_TURTLE:
+                case AbstractRepository.SYNTAX_RDFXML:
+                case AbstractRepository.SYNTAX_JSON_LD:
+                    return type;
+                default:
+                    return AbstractRepository.SYNTAX_NQUADS;
+            }
+        } else {
+            switch (type) {
+                case Result.SYNTAX_CSV:
+                case Result.SYNTAX_TSV:
+                case Result.SYNTAX_XML:
+                case Result.SYNTAX_JSON:
+                    return type;
+                default:
+                    return Result.SYNTAX_JSON;
+            }
+        }
+    }
+
+    /**
+     * Gets the content of the log
+     *
+     * @param logger The logger
+     * @return The content of the log
+     */
+    public static String getLog(BufferedLogger logger) {
+        StringBuilder builder = new StringBuilder();
+        for (Object error : logger.getErrorMessages()) {
+            builder.append(error.toString());
+            builder.append("\n");
+        }
+        return builder.toString();
     }
 }
