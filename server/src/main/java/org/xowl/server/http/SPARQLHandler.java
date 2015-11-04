@@ -35,11 +35,11 @@ import org.xowl.utils.DispatchLogger;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.Writer;
+import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Implements the SPARQL protocol
@@ -48,7 +48,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-class SPARQLHandler implements HandlerPart {
+class SPARQLHandler extends HandlerPart {
     /**
      * The content type for a URL encoded message body
      */
@@ -63,154 +63,138 @@ class SPARQLHandler implements HandlerPart {
     public static final String TYPE_SPARQL_UPDATE = "application/sparql-update";
 
     /**
-     * The top controller
-     */
-    private final Controller controller;
-
-    /**
      * Initializes this handler
      *
      * @param controller The top controller
      */
     public SPARQLHandler(Controller controller) {
-        this.controller = controller;
+        super(controller);
     }
 
     @Override
     public void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database) {
-
-    }
-
-    private void onGet(HttpExchange httpExchange, User session) {
-        // common response configuration
-        response.setCharacterEncoding("UTF-8");
-
-        String query = request.getParameter("query");
-        if (query != null) {
-            if (request.getContentLength() > 0) {
-                // should be empty
-                // ill-formed request
-                logger.error("Ill-formed request, content is not empty");
-                response.setStatus(400);
-            } else {
-                String contentType = negotiateType(getContentTypes(request));
-                String[] defaults = request.getParameterValues("default-graph-uri");
-                String[] named = request.getParameterValues("named-graph-uri");
-                enableCORS(response);
-                executeSPARQL(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
-            }
-        } else {
-            // ill-formed request
-            logger.error("Ill-formed request, expected a query parameter");
-            response.setStatus(400);
+        switch (method) {
+            case "GET":
+                onGet(httpExchange, contentType, body, user, database);
+                break;
+            case "POST":
+                onPost(httpExchange, contentType, body, user, database);
+                break;
+            default:
+                response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Cannot handle this request");
+                break;
         }
     }
 
-    @Override
-    public void onPost(HttpServletRequest request, HttpServletResponse response) {
-        // common response configuration
-        response.setCharacterEncoding("UTF-8");
+    /**
+     * Handles a GET request on a SPARQL endpoint
+     *
+     * @param httpExchange The HTTP exchange
+     * @param contentType  The content type for the request body
+     * @param body         The request body
+     * @param user         The current user
+     * @param database     The current database
+     */
+    private void onGet(HttpExchange httpExchange, String contentType, String body, User user, Database database) {
+        Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+        List<String> vQuery = params.get("query");
+        String query = vQuery == null ? null : vQuery.get(0);
+        if (query != null) {
+            if (body != null && !body.isEmpty()) {
+                // should be empty
+                // ill-formed request
+                response(httpExchange, Utils.HTTP_CODE_PROTOCOL_ERROR, "Ill-formed request, content is not empty");
+            } else {
+                List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
+                List<String> defaults = params.get("default-graph-uri");
+                List<String> named = params.get("named-graph-uri");
+                String resultType = Utils.negotiateType(acceptTypes);
+                executeSPARQL(
+                        httpExchange,
+                        query,
+                        defaults == null ? new ArrayList<String>() : defaults,
+                        named == null ? new ArrayList<String>() : named,
+                        resultType, database);
+            }
+        } else {
+            // ill-formed request
+            response(httpExchange, Utils.HTTP_CODE_PROTOCOL_ERROR, "Ill-formed request, expected a query parameter");
+        }
+    }
 
-        List<String> contentTypes = getContentTypes(request);
-        String requestType = request.getContentType();
-        int index = requestType.indexOf(";");
-        if (index != -1)
-            requestType = requestType.substring(0, index);
-        requestType = requestType.trim();
-        switch (requestType) {
+    /**
+     * Handles a POST request on a SPARQL endpoint
+     *
+     * @param httpExchange The HTTP exchange
+     * @param contentType  The content type for the request body
+     * @param body         The request body
+     * @param user         The current user
+     * @param database     The current database
+     */
+    private void onPost(HttpExchange httpExchange, String contentType, String body, User user, Database database) {
+        Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+        List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
+        switch (contentType) {
             case TYPE_SPARQL_QUERY:
             case TYPE_SPARQL_UPDATE: {
-                String[] defaults = request.getParameterValues("default-graph-uri");
-                String[] named = request.getParameterValues("named-graph-uri");
-                String contentType = negotiateType(contentTypes);
-                enableCORS(response);
-                String query = getMessageBody(request);
-                executeSPARQL(query, defaults == null ? new ArrayList<String>() : Arrays.asList(defaults), named == null ? new ArrayList<String>() : Arrays.asList(named), contentType, response);
+                List<String> defaults = params.get("default-graph-uri");
+                List<String> named = params.get("named-graph-uri");
+                String resultType = Utils.negotiateType(acceptTypes);
+                executeSPARQL(
+                        httpExchange,
+                        body,
+                        defaults == null ? new ArrayList<String>() : defaults,
+                        named == null ? new ArrayList<String>() : named,
+                        resultType, database);
                 break;
             }
             case TYPE_URL_ENCODED: {
                 // TODO: decode and implement this
-                response.setStatus(501);
+                response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Not implemented");
                 break;
             }
-            case TYPE_RULE_EXPLANATION: {
-                String quad = getMessageBody(request);
-                enableCORS(response);
-                explainQuad(quad, response);
-                break;
-            }
-            case TYPE_RULE_LIST: {
-                enableCORS(response);
-                ruleList(response);
-                break;
-            }
-            case TYPE_RULE_STATUS: {
-                String rule = getMessageBody(request);
-                enableCORS(response);
-                ruleStatus(rule, response);
-                break;
-            }
-            case TYPE_RULE_ADD: {
-                String rule = getMessageBody(request);
-                enableCORS(response);
-                ruleAdd(rule, response);
-                break;
-            }
-            case TYPE_RULE_REMOVE: {
-                String rule = getMessageBody(request);
-                enableCORS(response);
-                ruleRemove(rule, response);
-                break;
-            }
-            default:
-                // incorrect content types
-                logger.error("Incorrect content type for the request: " + requestType);
-                response.setStatus(400);
-                break;
         }
     }
-
 
     /**
      * Executes a SPARQL request
      *
-     * @param request     The request
-     * @param defaultIRIs The context's default IRIs
-     * @param namedIRIs   The context's named IRIs
-     * @param contentType The negotiated content type for the response
-     * @param response    The response to write to
+     * @param httpExchange The response to write to
+     * @param body         The request body
+     * @param defaultIRIs  The context's default IRIs
+     * @param namedIRIs    The context's named IRIs
+     * @param contentType  The negotiated content type for the response
+     * @param database     The active database
      */
-    private void executeSPARQL(String request, Collection<String> defaultIRIs, Collection<String> namedIRIs, String contentType, HttpServletResponse response) {
+    private void executeSPARQL(HttpExchange httpExchange, String body, Collection<String> defaultIRIs, Collection<String> namedIRIs, String contentType, Database database) {
         BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
-        SPARQLLoader loader = new SPARQLLoader(repository.getStore(), defaultIRIs, namedIRIs);
-        List<Command> commands = loader.load(dispatchLogger, new StringReader(request));
+        DispatchLogger dispatchLogger = new DispatchLogger(database.getLogger(), bufferedLogger);
+        SPARQLLoader loader = new SPARQLLoader(database.getRepository().getStore(), defaultIRIs, namedIRIs);
+        List<Command> commands = loader.load(dispatchLogger, new StringReader(body));
         if (commands == null) {
             // ill-formed request
-            response.setStatus(400);
             dispatchLogger.error("Failed to parse and load the request");
-            outputLog(bufferedLogger, response);
+            response(httpExchange, Utils.HTTP_CODE_PROTOCOL_ERROR, getLog(bufferedLogger));
             return;
         }
         Result result = ResultFailure.INSTANCE;
         for (Command command : commands) {
-            result = command.execute(repository);
+            result = command.execute(database.getRepository());
             if (result.isFailure()) {
                 break;
             }
         }
         if (result.isFailure()) {
-            response.setStatus(500);
-            bufferedLogger.error(((ResultFailure) result).getMessage());
-            outputLog(bufferedLogger, response);
+            response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, getLog(bufferedLogger));
         } else {
-            response.setStatus(200);
-            response.setHeader("Content-Type", coerceContentType(result, contentType));
+            StringWriter writer = new StringWriter();
             try {
-                result.print(response.getWriter(), coerceContentType(result, contentType));
+                result.print(writer, coerceContentType(result, contentType));
             } catch (IOException exception) {
-                logger.error(exception);
+                exception.printStackTrace();
             }
+            httpExchange.getResponseHeaders().add("Content-Type", coerceContentType(result, contentType));
+            response(httpExchange, Utils.HTTP_CODE_OK, writer.toString());
         }
     }
 
@@ -221,7 +205,7 @@ class SPARQLHandler implements HandlerPart {
      * @param type   The negotiated content type
      * @return The coerced content type
      */
-    private String coerceContentType(Result result, String type) {
+    private static String coerceContentType(Result result, String type) {
         if (result instanceof ResultQuads) {
             switch (type) {
                 case AbstractRepository.SYNTAX_NTRIPLES:
@@ -247,23 +231,17 @@ class SPARQLHandler implements HandlerPart {
     }
 
     /**
-     * Outputs the logger's error in the response
+     * Gets the content of the log
      *
-     * @param logger   The logger
-     * @param response The response
+     * @param logger The logger
+     * @return The content of the log
      */
-    private void outputLog(BufferedLogger logger, HttpServletResponse response) {
-        try (Writer writer = response.getWriter()) {
-            for (Object error : logger.getErrorMessages()) {
-                writer.write(error.toString());
-                writer.write("\n");
-            }
-            writer.flush();
-        } catch (IOException exception) {
-            exception.printStackTrace();
+    private static String getLog(BufferedLogger logger) {
+        StringBuilder builder = new StringBuilder();
+        for (Object error : logger.getErrorMessages()) {
+            builder.append(error.toString());
+            builder.append("\n");
         }
+        return builder.toString();
     }
-
-
-
 }

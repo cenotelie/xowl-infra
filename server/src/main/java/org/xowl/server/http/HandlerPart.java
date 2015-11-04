@@ -66,11 +66,11 @@ public abstract class HandlerPart {
      * Ends the current exchange on error
      *
      * @param httpExchange The current exchange
-     * @param code         The error code
-     * @param message      The error message
+     * @param code         The http code
+     * @param message      The response body message
      */
-    protected void endOnError(HttpExchange httpExchange, int code, String message) {
-        byte[] buffer = message.getBytes(Charset.forName("UTF-8"));
+    protected void response(HttpExchange httpExchange, int code, String message) {
+        byte[] buffer = message != null ? message.getBytes(Charset.forName("UTF-8")) : new byte[0];
         Headers headers = httpExchange.getResponseHeaders();
         Utils.enableCORS(headers);
         try {

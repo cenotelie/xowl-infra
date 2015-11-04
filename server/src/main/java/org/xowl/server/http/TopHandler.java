@@ -57,6 +57,7 @@ class TopHandler extends HandlerPart implements HttpHandler {
         this.parts.get("GET").put(null, sparql);
         this.parts.get("POST").put(SPARQLHandler.TYPE_SPARQL_QUERY, sparql);
         this.parts.get("POST").put(SPARQLHandler.TYPE_SPARQL_UPDATE, sparql);
+        this.parts.get("POST").put(SPARQLHandler.TYPE_URL_ENCODED, sparql);
     }
 
     @Override
@@ -66,21 +67,21 @@ class TopHandler extends HandlerPart implements HttpHandler {
         User user = controller.getUser(httpExchange.getPrincipal().getUsername());
         if (user == null) {
             httpExchange.getResponseHeaders().add("WWW-Authenticate", "Basic realm=\"" + controller.getConfiguration().getsecurityRealm() + "\"");
-            endOnError(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, "Failed to login");
+            response(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, "Failed to login");
             return;
         }
         Database database = controller.getDatabase(rHeaders.getFirst(Utils.HEADER_DATABASE));
         if (database == null) {
-            endOnError(httpExchange, Utils.HTTP_CODE_NOT_FOUND, "Database not found");
+            response(httpExchange, Utils.HTTP_CODE_NOT_FOUND, "Database not found");
             return;
         }
-        String contentType = rHeaders.getFirst("Content-Type");
+        String contentType = Utils.getRequestContentType(rHeaders);
         String body;
         try {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
             controller.getLogger().error(exception);
-            endOnError(httpExchange, Utils.HTTP_CODE_PROTOCOL_ERROR, "Failed to read the body");
+            response(httpExchange, Utils.HTTP_CODE_PROTOCOL_ERROR, "Failed to read the body");
             return;
         }
 
@@ -114,6 +115,6 @@ class TopHandler extends HandlerPart implements HttpHandler {
 
     @Override
     public void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database) {
-        endOnError(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Cannot handle this request");
+        response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Cannot handle this request");
     }
 }

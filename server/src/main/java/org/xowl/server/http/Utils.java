@@ -29,6 +29,9 @@ import org.xowl.utils.collections.Couple;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
 import java.util.*;
 
 /**
@@ -85,12 +88,72 @@ class Utils {
     }
 
     /**
-     * Retrieves the requested content types by order of preference
+     * Gets the content type of a request
+     *
+     * @param headers The request headers
+     * @return The content type of a request
+     */
+    public static String getRequestContentType(Headers headers) {
+        String type = headers.getFirst("Content-Type");
+        if (type == null || type.isEmpty())
+            return null;
+        int index = type.indexOf(";");
+        if (index != -1)
+            type = type.substring(0, index);
+        type = type.trim();
+        return type;
+    }
+
+    /**
+     * Gets the parameters of a request
+     *
+     * @param uri The requested URI
+     * @return The parameters
+     */
+    public static Map<String, List<String>> getRequestParameters(URI uri) {
+        Map<String, List<java.lang.String>> result = new HashMap<>();
+        String query = uri.getRawQuery();
+        if (query == null || query.isEmpty())
+            return result;
+
+        String pairs[] = query.split("[&]");
+        for (String pair : pairs) {
+            String param[] = pair.split("[=]");
+            String key = null;
+            String value = null;
+            if (param.length > 0) {
+                try {
+                    key = URLDecoder.decode(param[0], "UTF-8");
+                } catch (UnsupportedEncodingException exception) {
+                    exception.printStackTrace();
+                }
+            }
+            if (param.length > 1) {
+                try {
+                    value = URLDecoder.decode(param[1], "UTF-8");
+                } catch (UnsupportedEncodingException exception) {
+                    exception.printStackTrace();
+                }
+            }
+            if (key != null && !key.isEmpty() && value != null && !value.isEmpty()) {
+                List<String> sub = result.get(key);
+                if (sub == null) {
+                    sub = new ArrayList<>(1);
+                    result.put(key, sub);
+                }
+                sub.add(value);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Retrieves the accepted content types by order of preference
      *
      * @param headers The request headers
      * @return The content types by order of preference
      */
-    public static List<String> getContentTypes(Headers headers) {
+    public static List<String> getAcceptTypes(Headers headers) {
         String header = headers.getFirst("Accept");
         if (header == null || header.isEmpty())
             return Collections.emptyList();
