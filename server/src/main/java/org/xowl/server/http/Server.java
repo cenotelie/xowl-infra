@@ -123,7 +123,7 @@ public class Server implements Closeable, Executor {
         }
         if (temp != null && sslContext != null) {
             server = temp;
-            server.createContext("/", new FullHandler(controller)).setAuthenticator(new BasicAuthenticator(configuration.getsecurityRealm()) {
+            server.createContext("/", new TopHandler(controller)).setAuthenticator(new BasicAuthenticator(configuration.getsecurityRealm()) {
                 @Override
                 public boolean checkCredentials(String login, String password) {
                     return controller.login(login, password);

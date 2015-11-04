@@ -4,18 +4,18 @@
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
+ * <p>
  * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
+ * Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
 package org.xowl.server.http;
@@ -28,8 +28,6 @@ import org.xowl.server.db.Database;
 import org.xowl.server.db.User;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -39,11 +37,7 @@ import java.util.Objects;
  *
  * @author Laurent Wouters
  */
-class FullHandler implements HttpHandler {
-    /**
-     * The top controller
-     */
-    private final Controller controller;
+class TopHandler extends HandlerPart implements HttpHandler {
     /**
      * The handler parts
      */
@@ -54,8 +48,8 @@ class FullHandler implements HttpHandler {
      *
      * @param controller The current controller
      */
-    public FullHandler(Controller controller) {
-        this.controller = controller;
+    public TopHandler(Controller controller) {
+        super(controller);
         this.parts = new HashMap<>();
         this.parts.put("GET", new HashMap<String, HandlerPart>());
         this.parts.put("POST", new HashMap<String, HandlerPart>());
@@ -106,41 +100,20 @@ class FullHandler implements HttpHandler {
             return;
         }
 
+        HandlerPart target = null;
         Map<String, HandlerPart> subs = parts.get(method);
-        if (subs == null) {
-            endOnError(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Cannot handle this request");
-            return;
+        if (subs != null) {
+            target = subs.get(contentType);
+            if (target == null)
+                target = subs.get(null);
         }
-        HandlerPart target = subs.get(contentType);
         if (target == null)
-            target = subs.get(null);
-        if (target == null) {
-            endOnError(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Cannot handle this request");
-            return;
-        }
+            target = this;
         target.handle(httpExchange, method, contentType, body, user, database);
     }
 
-    /**
-     * Ends the current exchange on error
-     *
-     * @param httpExchange The current exchange
-     * @param code         The error code
-     * @param message      The error message
-     */
-    public void endOnError(HttpExchange httpExchange, int code, String message) {
-        byte[] buffer = message.getBytes(Charset.forName("UTF-8"));
-        Headers headers = httpExchange.getResponseHeaders();
-        Utils.enableCORS(headers);
-        try {
-            httpExchange.sendResponseHeaders(code, buffer.length);
-        } catch (IOException exception) {
-            controller.getLogger().error(exception);
-        }
-        try (OutputStream stream = httpExchange.getResponseBody()) {
-            stream.write(buffer);
-        } catch (IOException exception) {
-            controller.getLogger().error(exception);
-        }
+    @Override
+    public void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database) {
+        endOnError(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Cannot handle this request");
     }
 }

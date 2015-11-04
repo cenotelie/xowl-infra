@@ -20,16 +20,36 @@
 
 package org.xowl.server.http;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
+import org.xowl.server.db.Controller;
 import org.xowl.server.db.Database;
 import org.xowl.server.db.User;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 /**
  * A part of a HTTP handler
  *
  * @author Laurent Wouters
  */
-interface HandlerPart {
+public abstract class HandlerPart {
+    /**
+     * The top controller
+     */
+    protected final Controller controller;
+
+    /**
+     * Initializes this handler
+     *
+     * @param controller The current controller
+     */
+    public HandlerPart(Controller controller) {
+        this.controller = controller;
+    }
+
     /**
      * Handles an HTTP exchange
      *
@@ -40,5 +60,28 @@ interface HandlerPart {
      * @param user         The current user
      * @param database     The current database
      */
-    void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database);
+    public abstract void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database);
+
+    /**
+     * Ends the current exchange on error
+     *
+     * @param httpExchange The current exchange
+     * @param code         The error code
+     * @param message      The error message
+     */
+    protected void endOnError(HttpExchange httpExchange, int code, String message) {
+        byte[] buffer = message.getBytes(Charset.forName("UTF-8"));
+        Headers headers = httpExchange.getResponseHeaders();
+        Utils.enableCORS(headers);
+        try {
+            httpExchange.sendResponseHeaders(code, buffer.length);
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+        }
+        try (OutputStream stream = httpExchange.getResponseBody()) {
+            stream.write(buffer);
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+        }
+    }
 }
