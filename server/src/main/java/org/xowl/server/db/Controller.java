@@ -145,6 +145,7 @@ public abstract class Controller implements Closeable {
                 logger.error("Failed to load database " + poDB.getIRIString() + " as " + name);
             }
         }
+        logger.info("Controller is ready");
     }
 
     /**
