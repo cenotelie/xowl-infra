@@ -29,7 +29,6 @@ import org.xowl.utils.Logger;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +37,7 @@ import java.util.Map;
  *
  * @author Laurent Wouters
  */
-public class Controller implements Closeable {
+public abstract class Controller implements Closeable {
     /**
      * The User concept in the administration database
      */
@@ -113,9 +112,18 @@ public class Controller implements Closeable {
         this.configuration = configuration;
         this.logger = new ConsoleLogger();
         this.databases = new HashMap<>();
+        boolean isEmpty = true;
+        if (configuration.getRoot().exists()) {
+            String[] children = configuration.getRoot().list();
+            isEmpty = children == null || children.length == 0;
+        }
         this.adminDB = new Database(configuration, configuration.getRoot());
         this.databases.put(configuration.getAdminDBName(), adminDB);
         init();
+        if (isEmpty) {
+            // add the default admin account
+            newUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
+        }
     }
 
     /**
@@ -137,29 +145,6 @@ public class Controller implements Closeable {
                 logger.error("Failed to load database " + poDB.getIRIString() + " as " + name);
             }
         }
-    }
-
-    /**
-     * Characters for session tokens
-     */
-    private static final char[] TOKEN_CHARS = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
-    /**
-     * Generates a new session token
-     *
-     * @return A new session token
-     */
-    private static String newToken() {
-        SecureRandom random = new SecureRandom();
-        byte[] bytes = new byte[20];
-        random.nextBytes(bytes);
-        char[] chars = new char[bytes.length * 2];
-        int j = 0;
-        for (int i = 0; i != bytes.length; i++) {
-            chars[j++] = TOKEN_CHARS[(bytes[i] & 0xF0) >>> 4];
-            chars[j++] = TOKEN_CHARS[bytes[i] & 0x0F];
-        }
-        return new String(chars);
     }
 
     /**
@@ -295,4 +280,14 @@ public class Controller implements Closeable {
         databases.clear();
         logger.info("All databases closed");
     }
+
+    /**
+     * Request the server to shutdown
+     */
+    public abstract void requestShutdown();
+
+    /**
+     * Request the server to restart
+     */
+    public abstract void requestRestart();
 }

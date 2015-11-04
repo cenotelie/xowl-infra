@@ -55,6 +55,7 @@ class TopHandler extends HandlerPart implements HttpHandler {
         this.parts.put("POST", new HashMap<String, HandlerPart>());
         SPARQLHandler sparql = new SPARQLHandler(controller);
         XOWLHandler xowl = new XOWLHandler(controller);
+        AdminHandler admin = new AdminHandler(controller);
         this.parts.get("GET").put(null, sparql);
         this.parts.get("POST").put(SPARQLHandler.TYPE_SPARQL_QUERY, sparql);
         this.parts.get("POST").put(SPARQLHandler.TYPE_SPARQL_UPDATE, sparql);
@@ -64,6 +65,10 @@ class TopHandler extends HandlerPart implements HttpHandler {
         this.parts.get("POST").put(XOWLHandler.TYPE_RULE_LIST, xowl);
         this.parts.get("POST").put(XOWLHandler.TYPE_RULE_EXPLANATION, xowl);
         this.parts.get("POST").put(XOWLHandler.TYPE_RULE_STATUS, xowl);
+        this.parts.get("POST").put(AdminHandler.TYPE_ADMIN_SHUTDOWN, admin);
+        this.parts.get("POST").put(AdminHandler.TYPE_ADMIN_RESTART, admin);
+        this.parts.get("POST").put(AdminHandler.TYPE_ADMIN_CREATE_USER, admin);
+        this.parts.get("POST").put(AdminHandler.TYPE_ADMIN_CREATE_DATABASE, admin);
     }
 
     @Override

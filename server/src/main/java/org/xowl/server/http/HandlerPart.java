@@ -35,7 +35,7 @@ import java.nio.charset.Charset;
  *
  * @author Laurent Wouters
  */
-public abstract class HandlerPart {
+abstract class HandlerPart {
     /**
      * The top controller
      */

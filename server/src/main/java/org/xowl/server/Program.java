@@ -74,7 +74,18 @@ public class Program {
     public void run() {
         // setup and start
         try {
-            controller = new Controller(configuration);
+            controller = new Controller(configuration) {
+
+                @Override
+                public void requestShutdown() {
+                    shouldStop = true;
+                }
+
+                @Override
+                public void requestRestart() {
+                    shouldStop = true;
+                }
+            };
         } catch (IOException exception) {
             exception.printStackTrace();
             return;

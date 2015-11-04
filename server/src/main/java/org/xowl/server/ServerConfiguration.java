@@ -113,6 +113,24 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets the name of the default administrator account
+     *
+     * @return The name of the default administrator account
+     */
+    public String getAdminDefaultUser() {
+        return getValue("admin", "defaultUser");
+    }
+
+    /**
+     * Gets the password of the default administrator account
+     *
+     * @return The password of the default administrator account
+     */
+    public String getAdminDefaultPassword() {
+        return getValue("admin", "defaultPassword");
+    }
+
+    /**
      * Gets the minimum length of a user password
      *
      * @return The minimum length of a user password

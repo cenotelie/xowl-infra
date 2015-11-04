@@ -51,11 +51,11 @@ class XOWLHandler extends HandlerPart {
     /**
      * The content type for the explanation of how a quad has been inferred
      */
-    public static final String TYPE_RULE_EXPLANATION = "application/x-xowl-explanation";
+    public static final String TYPE_RULE_EXPLANATION = "application/x-xowl-rule-explanation";
     /**
      * The content type for listing the active reasoning rules
      */
-    public static final String TYPE_RULE_LIST = "application/x-xowl-list-rules";
+    public static final String TYPE_RULE_LIST = "application/x-xowl-rule-list";
     /**
      * The content type for the matching status of a reasoning rule
      */
