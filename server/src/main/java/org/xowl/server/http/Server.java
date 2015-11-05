@@ -88,7 +88,7 @@ public class Server implements Closeable, Executor {
         this.configuration = configuration;
         SSLContext sslContext = null;
         try {
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            /*CertificateFactory cf = CertificateFactory.getInstance("X.509");
             InputStream is = new FileInputStream("server.crt");
             InputStream caInput = new BufferedInputStream(is);
             Certificate ca = cf.generateCertificate(caInput);
@@ -107,7 +107,7 @@ public class Server implements Closeable, Executor {
 
             // Create an SSLContext that uses our TrustManager
             SSLContext context = SSLContext.getInstance("TLS");
-            context.init(null, tmf.getTrustManagers(), null);
+            context.init(null, tmf.getTrustManagers(), null);*/
 
             sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, new TrustManager[]{

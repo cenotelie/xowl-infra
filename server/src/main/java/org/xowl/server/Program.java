@@ -22,6 +22,7 @@ package org.xowl.server;
 
 import org.xowl.server.db.Controller;
 import org.xowl.server.http.Server;
+import org.xowl.server.ssl.SSLManager;
 
 import java.io.IOException;
 
@@ -37,8 +38,9 @@ public class Program {
      * @param args The arguments
      */
     public static void main(String[] args) {
-        Program instance = new Program(args);
-        instance.run();
+        SSLManager.generateKeyStore();
+        //Program instance = new Program(args);
+        //instance.run();
     }
 
     /**
