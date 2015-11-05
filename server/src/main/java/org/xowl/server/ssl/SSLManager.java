@@ -99,7 +99,6 @@ public class SSLManager {
         String password = new String(chars);
 
         try {
-
             if (target.exists() && !target.delete()) {
                 // failed to delete
                 return null;

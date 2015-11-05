@@ -23,6 +23,7 @@ package org.xowl.server.db;
 import org.mindrot.jbcrypt.BCrypt;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.store.ProxyObject;
+import org.xowl.store.Vocabulary;
 import org.xowl.utils.ConsoleLogger;
 import org.xowl.utils.Logger;
 
@@ -258,6 +259,7 @@ public abstract class Controller implements Closeable {
             return false;
         }
         proxy = adminDB.getRepository().resolveProxy(userIRI);
+        proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_USER));
         proxy.setValue(SCHEMA_ADMIN_NAME, login);
         proxy.setValue(SCHEMA_ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
         adminDB.getRepository().getStore().commit();
