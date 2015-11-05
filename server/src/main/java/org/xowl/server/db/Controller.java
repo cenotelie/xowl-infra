@@ -131,32 +131,34 @@ public abstract class Controller implements Closeable {
             String[] children = configuration.getRoot().list();
             isEmpty = children == null || children.length == 0;
         }
-        this.adminDB = new Database(configuration, configuration.getRoot());
-        this.databases.put(configuration.getAdminDBName(), adminDB);
-        init();
-        if (isEmpty) {
-            // add the default admin account
-            newUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
-        }
-    }
-
-    /**
-     * Initializes this controller
-     */
-    private void init() {
         logger.info("Initializing the controller");
-        ProxyObject classDB = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE);
-        for (ProxyObject poDB : classDB.getInstances()) {
-            logger.info("Found database " + poDB.getIRIString());
-            String name = (String) poDB.getDataValue(SCHEMA_ADMIN_NAME);
-            String location = (String) poDB.getDataValue(SCHEMA_ADMIN_LOCATION);
-            try {
-                Database db = new Database(configuration, new File(configuration.getRoot(), location));
-                databases.put(name, db);
-                logger.error("Loaded database " + poDB.getIRIString() + " as " + name);
-            } catch (IOException exception) {
-                // do nothing, this exception is reported by the db logger
-                logger.error("Failed to load database " + poDB.getIRIString() + " as " + name);
+        adminDB = new Database(configuration, configuration.getRoot());
+        databases.put(configuration.getAdminDBName(), adminDB);
+        if (isEmpty) {
+            adminDB.proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE));
+            adminDB.proxy.setValue(SCHEMA_ADMIN_NAME, configuration.getAdminDBName());
+            adminDB.proxy.setValue(SCHEMA_ADMIN_LOCATION, ".");
+            newUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
+            User admin = getUser(configuration.getAdminDefaultUser());
+            admin.proxy.setValue(SCHEMA_ADMIN_ADMINOF, adminDB.proxy);
+            admin.proxy.setValue(SCHEMA_ADMIN_CANREAD, adminDB.proxy);
+            admin.proxy.setValue(SCHEMA_ADMIN_CANWRITE, adminDB.proxy);
+        } else {
+            ProxyObject classDB = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE);
+            for (ProxyObject poDB : classDB.getInstances()) {
+                if (poDB == adminDB.proxy)
+                    continue;
+                logger.info("Found database " + poDB.getIRIString());
+                String name = (String) poDB.getDataValue(SCHEMA_ADMIN_NAME);
+                String location = (String) poDB.getDataValue(SCHEMA_ADMIN_LOCATION);
+                try {
+                    Database db = new Database(new File(configuration.getRoot(), location), poDB);
+                    databases.put(name, db);
+                    logger.error("Loaded database " + poDB.getIRIString() + " as " + name);
+                } catch (IOException exception) {
+                    // do nothing, this exception is reported by the db logger
+                    logger.error("Failed to load database " + poDB.getIRIString() + " as " + name);
+                }
             }
         }
         logger.info("Controller is ready");
@@ -191,11 +193,11 @@ public abstract class Controller implements Closeable {
         }
         File folder = new File(configuration.getRoot(), name);
         try {
-            result = new Database(configuration, folder);
             ProxyObject proxy = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DBS + name);
             proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE));
             proxy.setValue(SCHEMA_ADMIN_NAME, name);
             proxy.setValue(SCHEMA_ADMIN_LOCATION, folder.getAbsolutePath());
+            result = new Database(folder, proxy);
             adminDB.getRepository().getStore().commit();
         } catch (IOException exception) {
             // do nothing, this exception is reported by the db logger

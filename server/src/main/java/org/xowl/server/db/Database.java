@@ -21,6 +21,7 @@
 package org.xowl.server.db;
 
 import org.xowl.server.ServerConfiguration;
+import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.StoreFactory;
@@ -46,10 +47,6 @@ public class Database implements Closeable {
     private static final String REPO_CONF_NAME = "config.ini";
 
     /**
-     * The current server configuration
-     */
-    private final ServerConfiguration confServer;
-    /**
      * The logger
      */
     private final Logger logger;
@@ -62,21 +59,20 @@ public class Database implements Closeable {
      */
     private final Configuration configuration;
     /**
-     * The location of this database
+     * The proxy object representing this database
      */
-    private final File location;
+    final ProxyObject proxy;
 
     /**
-     * Initializes this database
+     * Initializes this database (as the admin database)
      *
-     * @param location The database's location
+     * @param confServer The server configuration
+     * @param location   The database's location
      * @throws IOException When the location cannot be accessed
      */
     public Database(ServerConfiguration confServer, File location) throws IOException {
-        this.confServer = confServer;
         this.logger = new ConsoleLogger();
         this.configuration = new Configuration();
-        this.location = location;
         if (!location.exists()) {
             if (!location.mkdirs()) {
                 throw error(logger, "Failed to create the directory for repository at " + location.getPath());
@@ -88,7 +84,33 @@ public class Database implements Closeable {
         }
         String cBackend = configuration.getValue("storage");
         BaseStore store = Objects.equals(cBackend, "memory") ? StoreFactory.newInMemoryStore() : StoreFactory.newFileStore(location);
-        repository = new Repository(store);
+        this.repository = new Repository(store);
+        this.proxy = repository.resolveProxy(Controller.SCHEMA_ADMIN_DBS + confServer.getAdminDBName());
+    }
+
+    /**
+     * Initializes this database
+     *
+     * @param location The database's location
+     * @param proxy    The proxy object representing this database
+     * @throws IOException When the location cannot be accessed
+     */
+    public Database(File location, ProxyObject proxy) throws IOException {
+        this.logger = new ConsoleLogger();
+        this.configuration = new Configuration();
+        if (!location.exists()) {
+            if (!location.mkdirs()) {
+                throw error(logger, "Failed to create the directory for repository at " + location.getPath());
+            }
+        }
+        File configFile = new File(location, REPO_CONF_NAME);
+        if (configFile.exists()) {
+            configuration.load(configFile.getAbsolutePath(), Charset.forName("UTF-8"));
+        }
+        String cBackend = configuration.getValue("storage");
+        BaseStore store = Objects.equals(cBackend, "memory") ? StoreFactory.newInMemoryStore() : StoreFactory.newFileStore(location);
+        this.repository = new Repository(store);
+        this.proxy = proxy;
     }
 
     /**

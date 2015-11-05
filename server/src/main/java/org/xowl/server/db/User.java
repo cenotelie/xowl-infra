@@ -31,7 +31,7 @@ public class User {
     /**
      * The proxy object representing this user
      */
-    private final ProxyObject proxy;
+    final ProxyObject proxy;
 
     /**
      * Initializes this user
