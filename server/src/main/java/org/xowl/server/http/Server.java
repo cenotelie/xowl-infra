@@ -38,27 +38,27 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.*;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implementation of the HTTP server for xOWL
  *
  * @author Laurent Wouters
  */
-public class Server implements Closeable, Executor {
+public class Server implements Closeable {
     /**
      * The bound of the executor queue
      */
     private static final int EXECUTOR_QUEUE_BOUND = 128;
     /**
-     * The executor marker for stopping
+     * The executor core pool size
      */
-    private static final Runnable EXECUTOR_STOP_MARKER = new Runnable() {
-        @Override
-        public void run() {
-            // do nothing
-        }
-    };
+    private static final int EXECUTOR_POOL_MIN = 8;
+    /**
+     * The executor max pool size
+     */
+    private static final int EXECUTOR_POOL_MAX = 16;
 
     /**
      * The current configuration
@@ -69,13 +69,9 @@ public class Server implements Closeable, Executor {
      */
     private final HttpsServer server;
     /**
-     * The daemon thread executing the tasks for the server
+     * The pool of executor threads
      */
-    private final Thread executorThread;
-    /**
-     * The queue for the executor
-     */
-    private final ArrayBlockingQueue<Runnable> executorQueue;
+    private final ThreadPoolExecutor executorPool;
 
     /**
      * Initializes this server
@@ -134,18 +130,17 @@ public class Server implements Closeable, Executor {
                     }
                 }
             });
-            server.setExecutor(this);
             controller.getLogger().info("HTTPS server is ready");
         } else {
             server = null;
         }
-        executorQueue = new ArrayBlockingQueue<>(EXECUTOR_QUEUE_BOUND);
-        executorThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                execute();
-            }
-        }, Server.class.getCanonicalName());
+        if (server != null) {
+            ArrayBlockingQueue<Runnable> executorQueue = new ArrayBlockingQueue<>(EXECUTOR_QUEUE_BOUND);
+            executorPool = new ThreadPoolExecutor(EXECUTOR_POOL_MIN, EXECUTOR_POOL_MAX, 0, TimeUnit.SECONDS, executorQueue);
+            server.setExecutor(executorPool);
+        } else {
+            executorPool = null;
+        }
     }
 
     /**
@@ -154,7 +149,6 @@ public class Server implements Closeable, Executor {
     public void start() {
         if (server != null) {
             server.start();
-            executorThread.start();
         }
     }
 
@@ -162,39 +156,8 @@ public class Server implements Closeable, Executor {
     public void close() throws IOException {
         if (server != null) {
             server.stop(configuration.getHttpStopTimeout());
+            executorPool.shutdown();
         }
-        if (executorThread.isAlive()) {
-            executorQueue.clear();
-            executorQueue.offer(EXECUTOR_STOP_MARKER);
-            try {
-                executorThread.join(configuration.getHttpStopTimeout());
-            } catch (InterruptedException exception) {
-                // do nothing
-            }
-            if (executorThread.isAlive()) {
-                executorThread.interrupt();
-            }
-        }
-    }
 
-    @Override
-    public void execute(Runnable runnable) {
-        executorQueue.offer(runnable);
-    }
-
-    /**
-     * The main function for the executor
-     */
-    private void execute() {
-        while (true) {
-            try {
-                Runnable task = executorQueue.take();
-                if (task == EXECUTOR_STOP_MARKER)
-                    break;
-                task.run();
-            } catch (InterruptedException exception) {
-                break;
-            }
-        }
     }
 }
