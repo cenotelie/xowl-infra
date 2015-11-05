@@ -80,22 +80,26 @@ class XOWLHandler extends HandlerPart {
 
     @Override
     public void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database) {
-        switch (contentType) {
-            case TYPE_RULE_EXPLANATION:
-                explainQuad(httpExchange, database, body);
-                break;
-            case TYPE_RULE_LIST:
-                ruleList(httpExchange, database);
-                break;
-            case TYPE_RULE_STATUS:
-                ruleStatus(httpExchange, database, body);
-                break;
-            case TYPE_RULE_ADD:
-                ruleAdd(httpExchange, database, body);
-                break;
-            case TYPE_RULE_REMOVE:
-                ruleRemove(httpExchange, database, body);
-                break;
+        if (controller.isAdminOf(user, database) || controller.isServerAdmin(user)) {
+            switch (contentType) {
+                case TYPE_RULE_EXPLANATION:
+                    explainQuad(httpExchange, database, body);
+                    break;
+                case TYPE_RULE_LIST:
+                    ruleList(httpExchange, database);
+                    break;
+                case TYPE_RULE_STATUS:
+                    ruleStatus(httpExchange, database, body);
+                    break;
+                case TYPE_RULE_ADD:
+                    ruleAdd(httpExchange, database, body);
+                    break;
+                case TYPE_RULE_REMOVE:
+                    ruleRemove(httpExchange, database, body);
+                    break;
+            }
+        } else {
+            response(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, null);
         }
     }
 

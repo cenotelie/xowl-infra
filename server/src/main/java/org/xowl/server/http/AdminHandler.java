@@ -61,20 +61,36 @@ class AdminHandler extends HandlerPart {
     public void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database) {
         switch (contentType) {
             case TYPE_ADMIN_SHUTDOWN: {
-                controller.requestShutdown();
-                response(httpExchange, Utils.HTTP_CODE_OK, null);
+                if (controller.isServerAdmin(user)) {
+                    controller.requestShutdown();
+                    response(httpExchange, Utils.HTTP_CODE_OK, null);
+                } else {
+                    response(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, null);
+                }
                 break;
             }
             case TYPE_ADMIN_RESTART: {
-                controller.requestRestart();
-                response(httpExchange, Utils.HTTP_CODE_OK, null);
+                if (controller.isServerAdmin(user)) {
+                    controller.requestShutdown();
+                    response(httpExchange, Utils.HTTP_CODE_OK, null);
+                } else {
+                    response(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, null);
+                }
                 break;
             }
             case TYPE_ADMIN_CREATE_USER:
-                createUser(httpExchange, body);
+                if (controller.isServerAdmin(user)) {
+                    createUser(httpExchange, body);
+                } else {
+                    response(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, null);
+                }
                 break;
             case TYPE_ADMIN_CREATE_DATABASE:
-                createDatabase(httpExchange, body);
+                if (controller.isServerAdmin(user)) {
+                    createDatabase(httpExchange, body);
+                } else {
+                    response(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, null);
+                }
                 break;
         }
     }

@@ -285,98 +285,146 @@ public abstract class Controller implements Closeable {
     /**
      * Makes a user an administrator of a database
      *
-     * @param login    The user
+     * @param user     The user
      * @param database The database
      * @return Whether the operation succeeded
      */
-    public boolean makeUserAdmin(String login, String database) {
-        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_ADMINOF, true);
+    public boolean makeUserAdmin(User user, Database database) {
+        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, true);
     }
 
     /**
      * Revokes a user as an administrator of a database
      *
-     * @param login    The user
+     * @param user     The user
      * @param database The database
      * @return Whether the operation succeeded
      */
-    public synchronized boolean revokeUserAdmin(String login, String database) {
-        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_ADMINOF, false);
+    public boolean revokeUserAdmin(User user, Database database) {
+        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, false);
     }
 
     /**
      * Makes a user able to read a database
      *
-     * @param login    The user
+     * @param user     The user
      * @param database The database
      * @return Whether the operation succeeded
      */
-    public synchronized boolean addUserCanRead(String login, String database) {
-        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_CANREAD, true);
+    public boolean addUserCanRead(User user, Database database) {
+        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, true);
     }
 
     /**
      * Revokes a user the ability to read from a database
      *
-     * @param login    The user
+     * @param user     The user
      * @param database The database
      * @return Whether the operation succeeded
      */
-    public synchronized boolean revokeUserCanRead(String login, String database) {
-        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_CANREAD, false);
+    public boolean revokeUserCanRead(User user, Database database) {
+        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, false);
     }
 
     /**
      * Makes a user able to write a database
      *
-     * @param login    The user
+     * @param user     The user
      * @param database The database
      * @return Whether the operation succeeded
      */
-    public synchronized boolean addUserCanWrite(String login, String database) {
-        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_CANWRITE, true);
+    public boolean addUserCanWrite(User user, Database database) {
+        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, true);
     }
 
     /**
      * Revokes a user the ability to write to a database
      *
-     * @param login    The user
+     * @param user     The user
      * @param database The database
      * @return Whether the operation succeeded
      */
-    public synchronized boolean revokeUserCanWrite(String login, String database) {
-        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_CANWRITE, false);
+    public boolean revokeUserCanWrite(User user, Database database) {
+        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, false);
     }
 
     /**
      * Change a user privilege on a database
      *
-     * @param login     The user
+     * @param user      The user
      * @param database  The database
      * @param privilege The privilege
      * @param positive  Whether to add or remove the privilege
      * @return Whether the operation succeeded
      */
-    private synchronized boolean changeUserPriviliedge(String login, String database, String privilege, boolean positive) {
-        String userIRI = SCHEMA_ADMIN_USERS + login;
-        ProxyObject proxyUser = adminDB.getRepository().getProxy(userIRI);
-        if (proxyUser == null)
-            return false;
-        String dbIRI = SCHEMA_ADMIN_DBS + database;
-        ProxyObject proxyDB = adminDB.getRepository().getProxy(dbIRI);
-        if (proxyDB == null)
-            return false;
-        Collection<ProxyObject> dbs = proxyUser.getObjectValues(privilege);
+    private synchronized boolean changeUserPriviliedge(ProxyObject user, ProxyObject database, String privilege, boolean positive) {
+        Collection<ProxyObject> dbs = user.getObjectValues(privilege);
         if (positive) {
-            if (dbs.contains(proxyDB))
+            if (dbs.contains(database))
                 return false;
-            proxyUser.setValue(privilege, proxyDB);
+            user.setValue(privilege, database);
         } else {
-            if (!dbs.contains(proxyDB))
+            if (!dbs.contains(database))
                 return false;
-            proxyUser.unset(privilege, proxyDB);
+            user.unset(privilege, database);
         }
         return true;
+    }
+
+    /**
+     * Gets whether the user is a server administrator
+     *
+     * @param user The user
+     * @return Whether the user is a server administrator
+     */
+    public boolean isServerAdmin(User user) {
+        return isAllowed(user.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF);
+    }
+
+    /**
+     * Gets whether the user is the administrator of a database
+     *
+     * @param user     The user
+     * @param database The database
+     * @return Whether the user is an administrator
+     */
+    public boolean isAdminOf(User user, Database database) {
+        return isAllowed(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF);
+    }
+
+    /**
+     * Gets whether the user can read a database
+     *
+     * @param user     The user
+     * @param database The database
+     * @return Whether the user can read a database
+     */
+    public boolean canRead(User user, Database database) {
+        return isAllowed(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD);
+    }
+
+    /**
+     * Gets whether the user can write to a database
+     *
+     * @param user     The user
+     * @param database The database
+     * @return Whether the user can write to a database
+     */
+    public boolean canWrite(User user, Database database) {
+        return isAllowed(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE);
+    }
+
+    /**
+     * Gets whether a user is granted a privilege on a database
+     *
+     * @param user      The user
+     * @param database  The database
+     * @param privilege The privilege
+     * @return Whether the user is allowed
+     */
+    private synchronized boolean isAllowed(ProxyObject user, ProxyObject database, String privilege) {
+        Collection<ProxyObject> dbs = user.getObjectValues(privilege);
+        return dbs.contains(database);
     }
 
     @Override

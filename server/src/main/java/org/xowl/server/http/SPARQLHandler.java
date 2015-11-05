@@ -71,16 +71,20 @@ class SPARQLHandler extends HandlerPart {
 
     @Override
     public void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database) {
-        switch (method) {
-            case "GET":
-                onGet(httpExchange, contentType, body, user, database);
-                break;
-            case "POST":
-                onPost(httpExchange, contentType, body, user, database);
-                break;
-            default:
-                response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Cannot handle this request");
-                break;
+        if (controller.canWrite(user, database) || controller.isServerAdmin(user)) {
+            switch (method) {
+                case "GET":
+                    onGet(httpExchange, contentType, body, user, database);
+                    break;
+                case "POST":
+                    onPost(httpExchange, contentType, body, user, database);
+                    break;
+                default:
+                    response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Cannot handle this request");
+                    break;
+            }
+        } else {
+            response(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, null);
         }
     }
 
