@@ -29,14 +29,14 @@ import org.xowl.server.db.Controller;
 import org.xowl.server.ssl.SSLManager;
 import org.xowl.utils.collections.Couple;
 
-import javax.net.ssl.*;
-import java.io.*;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.*;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
 
@@ -87,8 +87,7 @@ public class Server implements Closeable, Executor {
         controller.getLogger().info("Initializing the HTTPS server ...");
         this.configuration = configuration;
         SSLContext sslContext = null;
-        controller.getLogger().info("Generating SSL certificate ...");
-        Couple<KeyStore, String> ssl = SSLManager.generateKeyStore();
+        Couple<KeyStore, String> ssl = SSLManager.getKeyStore(configuration);
         if (ssl != null) {
             try {
                 controller.getLogger().info("Setting up SSL");
@@ -96,7 +95,7 @@ public class Server implements Closeable, Executor {
                 keyManager.init(ssl.x, ssl.y.toCharArray());
                 TrustManagerFactory trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                 trustManager.init(ssl.x);
-                sslContext = SSLContext.getInstance("SSL");
+                sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(keyManager.getKeyManagers(), trustManager.getTrustManagers(), null);
             } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException exception) {
                 exception.printStackTrace();
@@ -114,7 +113,7 @@ public class Server implements Closeable, Executor {
         }
         if (temp != null && sslContext != null) {
             server = temp;
-            server.createContext("/", new TopHandler(controller)).setAuthenticator(new BasicAuthenticator(configuration.getsecurityRealm()) {
+            server.createContext("/", new TopHandler(controller)).setAuthenticator(new BasicAuthenticator(configuration.getSecurityRealm()) {
                 @Override
                 public boolean checkCredentials(String login, String password) {
                     return controller.login(login, password);
@@ -123,10 +122,16 @@ public class Server implements Closeable, Executor {
             server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
                 @Override
                 public void configure(HttpsParameters params) {
-                    SSLContext context = getSSLContext();
-                    SSLParameters newParams = context.getDefaultSSLParameters();
-                    newParams.setNeedClientAuth(true);
-                    params.setSSLParameters(newParams);
+                    try {
+                        SSLContext defaultSSLContext = SSLContext.getDefault();
+                        SSLEngine engine = defaultSSLContext.createSSLEngine();
+                        params.setNeedClientAuth(false);
+                        params.setCipherSuites(engine.getEnabledCipherSuites());
+                        params.setProtocols(engine.getEnabledProtocols());
+                        params.setSSLParameters(defaultSSLContext.getDefaultSSLParameters());
+                    } catch (NoSuchAlgorithmException exception) {
+                        exception.printStackTrace();
+                    }
                 }
             });
             server.setExecutor(this);

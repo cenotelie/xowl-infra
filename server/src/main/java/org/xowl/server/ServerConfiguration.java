@@ -45,15 +45,15 @@ public class ServerConfiguration {
     /**
      * The default configuration
      */
-    private Configuration confDefault;
+    private final Configuration confDefault;
     /**
      * The current configuration file
      */
-    private Configuration confFile;
+    private final Configuration confFile;
     /**
      * The root folder for this server
      */
-    private File root;
+    private final File root;
 
     /**
      * Initializes this configuration
@@ -171,8 +171,26 @@ public class ServerConfiguration {
      *
      * @return The security realm for this server
      */
-    public String getsecurityRealm() {
+    public String getSecurityRealm() {
         return getValue("security", "realm");
+    }
+
+    /**
+     * Gets the path to the key store for SSL certificates
+     *
+     * @return The path to the key store
+     */
+    public String getSecurityKeyStore() {
+        return getValue("security", "keyStore");
+    }
+
+    /**
+     * Gets the password for the key store
+     *
+     * @return The password for the key store
+     */
+    public String getSecurityKeyStorePassword() {
+        return getValue("security", "keyStorePassword");
     }
 
     /**
@@ -211,5 +229,21 @@ public class ServerConfiguration {
      */
     public int getHttpStopTimeout() {
         return Integer.parseInt(getValue("http", "stopTimeout"));
+    }
+
+    /**
+     * Registers in the configuration the location and password for the key store
+     *
+     * @param location The location to the key store
+     * @param password the password to the key store
+     */
+    public void setupKeyStore(String location, String password) {
+        confFile.addValue("security", "keyStore", location);
+        confFile.addValue("security", "keyStorePassword", password);
+        try {
+            confFile.save(new File(root, FILE_NAME).getAbsolutePath(), Charset.forName("UTF-8"));
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
     }
 }

@@ -77,7 +77,7 @@ class TopHandler extends HandlerPart implements HttpHandler {
         Headers rHeaders = httpExchange.getRequestHeaders();
         User user = controller.getUser(httpExchange.getPrincipal().getUsername());
         if (user == null) {
-            httpExchange.getResponseHeaders().add("WWW-Authenticate", "Basic realm=\"" + controller.getConfiguration().getsecurityRealm() + "\"");
+            httpExchange.getResponseHeaders().add("WWW-Authenticate", "Basic realm=\"" + controller.getConfiguration().getSecurityRealm() + "\"");
             response(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, "Failed to login");
             return;
         }
