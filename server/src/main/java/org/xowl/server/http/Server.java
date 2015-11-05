@@ -26,14 +26,13 @@ import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.server.db.Controller;
+import org.xowl.server.ssl.SSLManager;
+import org.xowl.utils.collections.Couple;
 
 import javax.net.ssl.*;
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -85,58 +84,30 @@ public class Server implements Closeable, Executor {
      * @param controller    The current controller
      */
     public Server(ServerConfiguration configuration, final Controller controller) {
+        controller.getLogger().info("Initializing the HTTPS server ...");
         this.configuration = configuration;
         SSLContext sslContext = null;
-        try {
-            /*CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            InputStream is = new FileInputStream("server.crt");
-            InputStream caInput = new BufferedInputStream(is);
-            Certificate ca = cf.generateCertificate(caInput);
-            caInput.close();
-
-            // Create a KeyStore containing our trusted CAs
-            String keyStoreType = KeyStore.getDefaultType();
-            KeyStore keyStore = KeyStore.getInstance(keyStoreType);
-            keyStore.load(null, null);
-            keyStore.setCertificateEntry("ca", ca);
-
-            // Create a TrustManager that trusts the CAs in our KeyStore
-            String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
-            tmf.init(keyStore);
-
-            // Create an SSLContext that uses our TrustManager
-            SSLContext context = SSLContext.getInstance("TLS");
-            context.init(null, tmf.getTrustManagers(), null);*/
-
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{
-                    new X509TrustManager() {
-                        @Override
-                        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                            // TODO: check the certificate
-                        }
-
-                        @Override
-                        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                            // TODO: check the certificate
-                        }
-
-                        @Override
-                        public X509Certificate[] getAcceptedIssuers() {
-                            // TODO: check the certificate
-                            return new X509Certificate[0];
-                        }
-                    }
-            }, new SecureRandom());
-        } catch (NoSuchAlgorithmException | KeyManagementException exception) {
-            exception.printStackTrace();
+        controller.getLogger().info("Generating SSL certificate ...");
+        Couple<KeyStore, String> ssl = SSLManager.generateKeyStore();
+        if (ssl != null) {
+            try {
+                controller.getLogger().info("Setting up SSL");
+                KeyManagerFactory keyManager = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                keyManager.init(ssl.x, ssl.y.toCharArray());
+                TrustManagerFactory trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                trustManager.init(ssl.x);
+                sslContext = SSLContext.getInstance("SSL");
+                sslContext.init(keyManager.getKeyManagers(), trustManager.getTrustManagers(), null);
+            } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException exception) {
+                exception.printStackTrace();
+            }
         }
         InetSocketAddress address = new InetSocketAddress(
                 configuration.getHttpAddress(),
                 configuration.getHttpPort());
         HttpsServer temp = null;
         try {
+            controller.getLogger().info("Creating the HTTPS server");
             temp = HttpsServer.create(address, configuration.getHttpBacklog());
         } catch (IOException exception) {
             exception.printStackTrace();
@@ -159,6 +130,7 @@ public class Server implements Closeable, Executor {
                 }
             });
             server.setExecutor(this);
+            controller.getLogger().info("HTTPS server is ready");
         } else {
             server = null;
         }
