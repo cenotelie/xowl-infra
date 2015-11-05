@@ -143,6 +143,7 @@ public abstract class Controller implements Closeable {
             admin.proxy.setValue(SCHEMA_ADMIN_ADMINOF, adminDB.proxy);
             admin.proxy.setValue(SCHEMA_ADMIN_CANREAD, adminDB.proxy);
             admin.proxy.setValue(SCHEMA_ADMIN_CANWRITE, adminDB.proxy);
+            adminDB.getRepository().getStore().commit();
         } else {
             ProxyObject classDB = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE);
             for (ProxyObject poDB : classDB.getInstances()) {
