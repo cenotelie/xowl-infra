@@ -336,13 +336,15 @@ public class Repository extends AbstractRepository {
      * @return The associated proxy, or null if the entity does not exist
      */
     public ProxyObject getProxy(String iri) {
-        String[] parts = iri.split("#");
-        Ontology ontology = ontologies.get(parts[0]);
-        if (ontology == null)
-            return null;
         IRINode node = backend.getExistingIRINode(iri);
         if (node == null)
             return null;
+        String[] parts = iri.split("#");
+        Ontology ontology = ontologies.get(parts[0]);
+        if (ontology == null) {
+            ontology = resolveOntology(parts[0]);
+            ontologies.put(parts[0], ontology);
+        }
         return resolveProxy(ontology, node);
     }
 

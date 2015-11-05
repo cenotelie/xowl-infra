@@ -102,6 +102,7 @@ public class Program {
         }
 
         // cleanup
+        controller.getLogger().info("Shutting down this server ...");
         try {
             httpServer.close();
         } catch (IOException exception) {

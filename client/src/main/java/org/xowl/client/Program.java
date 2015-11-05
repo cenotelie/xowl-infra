@@ -46,6 +46,7 @@ public class Program {
      */
     public void run(String[] args) {
         Connection connection = new Connection("https://localhost:8080/", "MyAdminDB", "admin", "admin");
-        connection.sparqlQuery("DESCRIBE ?u WHERE { GRAPH ?g {?u a <http://xowl.org/server/admin#User>} }", AbstractRepository.SYNTAX_NQUADS);
+        connection.adminServerShutdown();
+        //connection.sparqlQuery("DESCRIBE ?u WHERE { GRAPH ?g {?u a <http://xowl.org/server/admin#User>} }", AbstractRepository.SYNTAX_NQUADS);
     }
 }

@@ -30,6 +30,7 @@ import org.xowl.utils.Logger;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,6 +60,18 @@ public abstract class Controller implements Closeable {
      * The Password concept in the administration database
      */
     public static final String SCHEMA_ADMIN_PASSWORD = "http://xowl.org/server/admin#password";
+    /**
+     * The AdminOf concept in the administration database
+     */
+    public static final String SCHEMA_ADMIN_ADMINOF = "http://xowl.org/server/admin#adminOf";
+    /**
+     * The CanRead concept in the administration database
+     */
+    public static final String SCHEMA_ADMIN_CANREAD = "http://xowl.org/server/admin#canRead";
+    /**
+     * The CanWrite concept in the administration database
+     */
+    public static final String SCHEMA_ADMIN_CANWRITE = "http://xowl.org/server/admin#canWrite";
     /**
      * The User graph in the administration database
      */
@@ -165,7 +178,7 @@ public abstract class Controller implements Closeable {
      * @param name The name of the database
      * @return The created database
      */
-    public Database newDatabase(String name) {
+    public synchronized Database newDatabase(String name) {
         logger.info("Creating new database \"" + name + "\" ...");
         if (!name.matches("[_a-zA-Z0-9]+")) {
             logger.error("Failed to create database \"" + name + "\": name does not meet expectations");
@@ -180,6 +193,7 @@ public abstract class Controller implements Closeable {
         try {
             result = new Database(configuration, folder);
             ProxyObject proxy = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DBS + name);
+            proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE));
             proxy.setValue(SCHEMA_ADMIN_NAME, name);
             proxy.setValue(SCHEMA_ADMIN_LOCATION, folder.getAbsolutePath());
             adminDB.getRepository().getStore().commit();
@@ -201,7 +215,6 @@ public abstract class Controller implements Closeable {
      * @return Whether the login/password is acceptable
      */
     public boolean login(String login, String password) {
-        logger.info("Login attempt for " + login);
         if (login == null || login.isEmpty() || password == null || password.isEmpty()) {
             logger.info("Login failure for " + login);
             return false;
@@ -241,7 +254,7 @@ public abstract class Controller implements Closeable {
      * @param password The password
      * @return Whether the operation succeeded
      */
-    public boolean newUser(String login, String password) {
+    public synchronized boolean newUser(String login, String password) {
         logger.info("Creating new user \"" + login + "\" ...");
         if (!login.matches("[_a-zA-Z0-9]+")) {
             logger.error("Failed to create user \"" + login + "\": login does not meet expectations");
@@ -267,10 +280,106 @@ public abstract class Controller implements Closeable {
         return true;
     }
 
+    /**
+     * Makes a user an administrator of a database
+     *
+     * @param login    The user
+     * @param database The database
+     * @return Whether the operation succeeded
+     */
+    public boolean makeUserAdmin(String login, String database) {
+        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_ADMINOF, true);
+    }
+
+    /**
+     * Revokes a user as an administrator of a database
+     *
+     * @param login    The user
+     * @param database The database
+     * @return Whether the operation succeeded
+     */
+    public synchronized boolean revokeUserAdmin(String login, String database) {
+        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_ADMINOF, false);
+    }
+
+    /**
+     * Makes a user able to read a database
+     *
+     * @param login    The user
+     * @param database The database
+     * @return Whether the operation succeeded
+     */
+    public synchronized boolean addUserCanRead(String login, String database) {
+        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_CANREAD, true);
+    }
+
+    /**
+     * Revokes a user the ability to read from a database
+     *
+     * @param login    The user
+     * @param database The database
+     * @return Whether the operation succeeded
+     */
+    public synchronized boolean revokeUserCanRead(String login, String database) {
+        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_CANREAD, false);
+    }
+
+    /**
+     * Makes a user able to write a database
+     *
+     * @param login    The user
+     * @param database The database
+     * @return Whether the operation succeeded
+     */
+    public synchronized boolean addUserCanWrite(String login, String database) {
+        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_CANWRITE, true);
+    }
+
+    /**
+     * Revokes a user the ability to write to a database
+     *
+     * @param login    The user
+     * @param database The database
+     * @return Whether the operation succeeded
+     */
+    public synchronized boolean revokeUserCanWrite(String login, String database) {
+        return changeUserPriviliedge(login, database, SCHEMA_ADMIN_CANWRITE, false);
+    }
+
+    /**
+     * Change a user privilege on a database
+     *
+     * @param login     The user
+     * @param database  The database
+     * @param privilege The privilege
+     * @param positive  Whether to add or remove the privilege
+     * @return Whether the operation succeeded
+     */
+    private synchronized boolean changeUserPriviliedge(String login, String database, String privilege, boolean positive) {
+        String userIRI = SCHEMA_ADMIN_USERS + login;
+        ProxyObject proxyUser = adminDB.getRepository().getProxy(userIRI);
+        if (proxyUser == null)
+            return false;
+        String dbIRI = SCHEMA_ADMIN_DBS + database;
+        ProxyObject proxyDB = adminDB.getRepository().getProxy(dbIRI);
+        if (proxyDB == null)
+            return false;
+        Collection<ProxyObject> dbs = proxyUser.getObjectValues(privilege);
+        if (positive) {
+            if (dbs.contains(proxyDB))
+                return false;
+            proxyUser.setValue(privilege, proxyDB);
+        } else {
+            if (!dbs.contains(proxyDB))
+                return false;
+            proxyUser.unset(privilege, proxyDB);
+        }
+        return true;
+    }
+
     @Override
     public void close() throws IOException {
         logger.info("Closing all databases ...");
-        adminDB.close();
         for (Map.Entry<String, Database> entry : databases.entrySet()) {
             logger.info("Closing database " + entry.getKey());
             try {
