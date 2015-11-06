@@ -460,9 +460,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean resetPassword(User client, User target, String password) {
-        if (!checkIsServerAdmin(client))
-            return false;
-        return changePassword(target, password);
+        return checkIsServerAdmin(client) && changePassword(target, password);
     }
 
     /**
@@ -473,9 +471,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean grantServerAdmin(User client, User target) {
-        if (!checkIsServerAdmin(client))
-            return false;
-        return changeUserPrivilege(target.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF, true);
+        return checkIsServerAdmin(client) && changeUserPrivilege(target.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF, true);
     }
 
     /**
@@ -486,9 +482,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean revokeServerAdmin(User client, User target) {
-        if (!checkIsServerAdmin(client))
-            return false;
-        return changeUserPrivilege(target.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF, false);
+        return checkIsServerAdmin(client) && changeUserPrivilege(target.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF, false);
     }
 
     /**
@@ -500,9 +494,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean grantDBAdmin(User client, User user, Database database) {
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
-            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, true);
-        return false;
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, true);
     }
 
     /**
@@ -514,9 +506,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean revokeDBAdmin(User client, User user, Database database) {
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
-            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, false);
-        return false;
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, false);
     }
 
     /**
@@ -528,9 +518,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean grantDBRead(User client, User user, Database database) {
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
-            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, true);
-        return false;
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, true);
     }
 
     /**
@@ -542,9 +530,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean revokeDBRead(User client, User user, Database database) {
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
-            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, false);
-        return false;
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, false);
     }
 
 
@@ -557,9 +543,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean grantDBWrite(User client, User user, Database database) {
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
-            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, true);
-        return false;
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, true);
     }
 
     /**
@@ -571,9 +555,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean revokeDBWrite(User client, User user, Database database) {
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
-            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, false);
-        return false;
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, false);
     }
 
     /**
