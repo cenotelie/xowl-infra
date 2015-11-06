@@ -41,7 +41,7 @@ import java.security.cert.X509Certificate;
  *
  * @author Laurent Wouters
  */
-public class Connection {
+public class HTTPConnector {
     /**
      * A response to a request
      */
@@ -89,7 +89,7 @@ public class Connection {
      * @param login    Login for the endpoint
      * @param password Password for the endpoint
      */
-    public Connection(String endpoint, String database, String login, String password) {
+    public HTTPConnector(String endpoint, String database, String login, String password) {
         SSLContext sc = null;
         try {
             sc = SSLContext.getInstance("SSL");
