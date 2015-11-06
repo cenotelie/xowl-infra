@@ -101,25 +101,21 @@ public class XPServer implements Closeable {
         }
 
         SSLServerSocket temp = null;
-        try {
-            controller.getLogger().info("Creating the xOWL protocol server");
-            InetAddress address = InetAddress.getByName(configuration.getXPAddress());
-            temp = (SSLServerSocket) SSLServerSocketFactory.getDefault().createServerSocket(
-                    configuration.getXPPort(),
-                    configuration.getXPBacklog(),
-                    address);
-        } catch (IOException exception) {
-            exception.printStackTrace();
+        if (sslContext != null) {
+            try {
+                controller.getLogger().info("Creating the xOWL protocol server");
+                InetAddress address = InetAddress.getByName(configuration.getXPAddress());
+                temp = (SSLServerSocket) sslContext.getServerSocketFactory().createServerSocket(
+                        configuration.getXPPort(),
+                        configuration.getXPBacklog(),
+                        address);
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
         }
 
-        if (temp != null && sslContext != null) {
-            SSLEngine sslEngine = sslContext.createSSLEngine();
-            SSLParameters sslParams = sslContext.getDefaultSSLParameters();
-            sslParams.setNeedClientAuth(false);
-            sslParams.setCipherSuites(sslEngine.getEnabledCipherSuites());
-            sslParams.setProtocols(sslEngine.getEnabledProtocols());
+        if (temp != null) {
             socket = temp;
-            socket.setSSLParameters(sslParams);
             executorPool.execute(new Runnable() {
                 @Override
                 public void run() {

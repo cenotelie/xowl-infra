@@ -122,17 +122,20 @@ class Connection implements Runnable {
     private void doRun() throws IOException {
         // state 0
         send("XOWL SERVER " + configuration.getServerName());
-        socketOutput.newLine();
         // state 1
         while (true) {
             String line = socketInput.readLine();
+            if (line == null)
+                return;
             if (!line.startsWith("AUTH LOGIN "))
                 continue;
-            String login = line.substring("AUTH LOGIN ".length());
+            String login = line.substring("AUTH LOGIN ".length()).trim();
             line = socketInput.readLine();
+            if (line == null)
+                return;
             if (!line.startsWith("AUTH PASSWORD "))
                 continue;
-            String password = line.substring("AUTH PASSWORD ".length());
+            String password = line.substring("AUTH PASSWORD ".length()).trim();
             boolean success = controller.login(socket.getInetAddress(), login, password);
             if (success) {
                 user = controller.getUser(login);
@@ -156,7 +159,11 @@ class Connection implements Runnable {
     private void runAuthenticated() throws IOException {
         while (true) {
             String line = socketInput.readLine();
-            if (line == null || line.equals("LOGOUT")) {
+            if (line == null) {
+                // client quit
+                return;
+            }
+            if (line.equals("LOGOUT")) {
                 send("BYE");
                 return;
             }
@@ -204,10 +211,16 @@ class Connection implements Runnable {
             }
             send("login?");
             String login = socketInput.readLine();
+            if (login == null)
+                return false;
             send("password?");
             String password = socketInput.readLine();
+            if (password == null)
+                return false;
             send("same password?");
             String password2 = socketInput.readLine();
+            if (password2 == null)
+                return false;
             if (!password.equals(password2)) {
                 send("passwords do not match");
                 return true;
@@ -222,6 +235,8 @@ class Connection implements Runnable {
                 return true;
             }
             String login = socketInput.readLine();
+            if (login == null)
+                return false;
             // TODO: implement this
             send("FAILED");
             return true;
@@ -237,7 +252,11 @@ class Connection implements Runnable {
                 return true;
             }
             String login = socketInput.readLine();
+            if (login == null)
+                return false;
             String password = socketInput.readLine();
+            if (password == null)
+                return false;
             // TODO: implement this
             send("FAILED");
             return true;
@@ -259,6 +278,8 @@ class Connection implements Runnable {
                 return true;
             }
             String name = socketInput.readLine();
+            if (name == null)
+                return false;
             // TODO: implement this
             send("FAILED");
             return true;
@@ -269,21 +290,33 @@ class Connection implements Runnable {
                 return true;
             }
             String dbName = socketInput.readLine();
+            if (dbName == null)
+                return false;
             String userName = socketInput.readLine();
+            if (userName == null)
+                return false;
             // TODO: implement this
             send("FAILED");
             return true;
         }
         if (line.equals("ADMIN GRANT READ")) {
             String dbName = socketInput.readLine();
+            if (dbName == null)
+                return false;
             String userName = socketInput.readLine();
+            if (userName == null)
+                return false;
             // TODO: implement this
             send("FAILED");
             return true;
         }
         if (line.equals("ADMIN GRANT WRITE")) {
             String dbName = socketInput.readLine();
+            if (dbName == null)
+                return false;
             String userName = socketInput.readLine();
+            if (userName == null)
+                return false;
             // TODO: implement this
             send("FAILED");
             return true;
