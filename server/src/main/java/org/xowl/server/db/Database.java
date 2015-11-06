@@ -144,6 +144,15 @@ public class Database implements Closeable {
         return logger;
     }
 
+    /**
+     * Gets the name of this user
+     *
+     * @return The name of this user
+     */
+    public String getName() {
+        return (String) proxy.getDataValue(Controller.SCHEMA_ADMIN_NAME);
+    }
+
     @Override
     public void close() throws IOException {
         try {

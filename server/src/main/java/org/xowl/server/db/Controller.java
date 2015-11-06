@@ -31,10 +31,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.file.Files;
+import java.util.*;
 
 /**
  * The main controller for the hosted databases
@@ -117,6 +115,10 @@ public abstract class Controller implements Closeable {
      * The map of clients with failed login attempts
      */
     private final Map<InetAddress, ClientLogin> clients;
+    /**
+     * The map of current users on this server
+     */
+    private final Map<String, User> users;
 
     /**
      * Gets current configuration
@@ -155,12 +157,13 @@ public abstract class Controller implements Closeable {
         adminDB = new Database(configuration, configuration.getRoot());
         databases.put(configuration.getAdminDBName(), adminDB);
         clients = new HashMap<>();
+        users = new HashMap<>();
         if (isEmpty) {
             adminDB.proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE));
             adminDB.proxy.setValue(SCHEMA_ADMIN_NAME, configuration.getAdminDBName());
             adminDB.proxy.setValue(SCHEMA_ADMIN_LOCATION, ".");
-            newUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
-            User admin = getUser(configuration.getAdminDefaultUser());
+            User admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
+            users.put(admin.getName(), admin);
             admin.proxy.setValue(SCHEMA_ADMIN_ADMINOF, adminDB.proxy);
             admin.proxy.setValue(SCHEMA_ADMIN_CANREAD, adminDB.proxy);
             admin.proxy.setValue(SCHEMA_ADMIN_CANWRITE, adminDB.proxy);
@@ -187,89 +190,28 @@ public abstract class Controller implements Closeable {
     }
 
     /**
-     * Gets the database for the specified name
-     *
-     * @param name The name of a database
-     * @return The database for the specified name
-     */
-    public Database getDatabase(String name) {
-        return databases.get(name);
-    }
-
-    /**
-     * Creates a new database
-     *
-     * @param name The name of the database
-     * @return The created database
-     */
-    public synchronized Database newDatabase(String name) {
-        logger.info("Creating new database \"" + name + "\" ...");
-        if (!name.matches("[_a-zA-Z0-9]+")) {
-            logger.error("Failed to create database \"" + name + "\": name does not meet expectations");
-            return null;
-        }
-        Database result = databases.get(name);
-        if (result != null) {
-            logger.warning("Database already exist: \"" + name + "\"");
-            return result;
-        }
-        File folder = new File(configuration.getRoot(), name);
-        try {
-            ProxyObject proxy = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DBS + name);
-            proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE));
-            proxy.setValue(SCHEMA_ADMIN_NAME, name);
-            proxy.setValue(SCHEMA_ADMIN_LOCATION, folder.getAbsolutePath());
-            result = new Database(folder, proxy);
-            adminDB.getRepository().getStore().commit();
-        } catch (IOException exception) {
-            // do nothing, this exception is reported by the db logger
-            logger.error("Failed to create database \"" + name + "\"");
-            return null;
-        }
-        databases.put(name, result);
-        logger.info("Created new database \"" + name + "\"");
-        return result;
-    }
-
-    /**
      * Gets whether a client is banned
      *
      * @param client A client
      * @return Wether the client is banned
      */
     public boolean isBanned(InetAddress client) {
-        ClientLogin cl = clients.get(client);
-        if (cl == null)
-            return false;
-        if (cl.banTimeStamp == -1)
-            return false;
-        long now = Calendar.getInstance().getTime().getTime();
-        long diff = now - cl.banTimeStamp;
-        if (diff < 1000 * configuration.getSecurityBanLength()) {
-            // still banned
-            return true;
-        } else {
-            // not banned anymore
-            clients.remove(client);
-            return false;
-        }
-    }
-
-    /**
-     * Handles a login failure from a client
-     *
-     * @param client The client trying to login
-     */
-    private void onLoginFailure(InetAddress client) {
-        ClientLogin cl = clients.get(client);
-        if (cl == null) {
-            cl = new ClientLogin();
-            clients.put(client, cl);
-        }
-        cl.failedAttempt++;
-        if (cl.failedAttempt >= configuration.getSecurityMaxLoginAttempt()) {
-            // too much failure, ban this client for a while
-            cl.banTimeStamp = Calendar.getInstance().getTime().getTime();
+        synchronized (clients) {
+            ClientLogin cl = clients.get(client);
+            if (cl == null)
+                return false;
+            if (cl.banTimeStamp == -1)
+                return false;
+            long now = Calendar.getInstance().getTime().getTime();
+            long diff = now - cl.banTimeStamp;
+            if (diff < 1000 * configuration.getSecurityBanLength()) {
+                // still banned
+                return true;
+            } else {
+                // not banned anymore
+                clients.remove(client);
+                return false;
+            }
         }
     }
 
@@ -279,144 +221,359 @@ public abstract class Controller implements Closeable {
      * @param client   The client trying to login
      * @param login    The user to log in
      * @param password The user password
-     * @return Whether the login/password is acceptable
+     * @return The user of the login is successful, null otherwise
      */
-    public boolean login(InetAddress client, String login, String password) {
+    public User login(InetAddress client, String login, String password) {
         if (isBanned(client))
-            return false;
+            return null;
         if (login == null || login.isEmpty() || password == null || password.isEmpty()) {
             onLoginFailure(client);
             logger.info("Login failure for " + login + " from " + client.toString());
-            return false;
+            return null;
         }
         String userIRI = SCHEMA_ADMIN_USERS + login;
-        ProxyObject proxy = adminDB.getRepository().getProxy(userIRI);
+        ProxyObject proxy;
+        String hash = null;
+        synchronized (adminDB) {
+            proxy = adminDB.getRepository().getProxy(userIRI);
+            if (proxy != null)
+                hash = (String) proxy.getDataValue(SCHEMA_ADMIN_PASSWORD);
+        }
         if (proxy == null) {
             onLoginFailure(client);
             logger.info("Login failure for " + login);
-            return false;
+            return null;
         }
-        String hash = (String) proxy.getDataValue(SCHEMA_ADMIN_PASSWORD);
         if (!BCrypt.checkpw(password, hash)) {
             onLoginFailure(client);
             logger.info("Login failure for " + login);
-            return false;
+            return null;
         } else {
-            clients.remove(client);
+            synchronized (clients) {
+                clients.remove(client);
+            }
             logger.info("Login success for " + login);
-            return true;
+            return null;
         }
+    }
+
+    /**
+     * Handles a login failure from a client
+     *
+     * @param client The client trying to login
+     */
+    private void onLoginFailure(InetAddress client) {
+        synchronized (clients) {
+            ClientLogin cl = clients.get(client);
+            if (cl == null) {
+                cl = new ClientLogin();
+                clients.put(client, cl);
+            }
+            cl.failedAttempt++;
+            if (cl.failedAttempt >= configuration.getSecurityMaxLoginAttempt()) {
+                // too much failure, ban this client for a while
+                logger.info("Banned client " + client.toString() + " for " + configuration.getSecurityBanLength() + " seconds");
+                cl.banTimeStamp = Calendar.getInstance().getTime().getTime();
+            }
+        }
+    }
+
+    /**
+     * Gets whether a user is granted a privilege on a database
+     *
+     * @param user      The user
+     * @param database  The database
+     * @param privilege The privilege
+     * @return Whether the user is allowed
+     */
+    private boolean checkIsAllowed(ProxyObject user, ProxyObject database, String privilege) {
+        Collection<ProxyObject> dbs;
+        synchronized (adminDB) {
+            dbs = user.getObjectValues(privilege);
+        }
+        return dbs.contains(database);
+    }
+
+    /**
+     * Gets whether a user is an administrator of a database
+     *
+     * @param user     A user
+     * @param database A database
+     * @return Whether the user is an administrator of the database
+     */
+    private boolean checkIsDBAdmin(User user, Database database) {
+        return checkIsAllowed(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF);
+    }
+
+    /**
+     * Gets whether a user is a server administrator
+     *
+     * @param user A user
+     * @return Whether the user is a server administrator
+     */
+    private boolean checkIsServerAdmin(User user) {
+        return checkIsAllowed(user.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF);
     }
 
     /**
      * Gets the user for the specified login
      *
-     * @param login The user's login
-     * @return The user
+     * @param client The client requesting the information
+     * @param login  The user's login
+     * @return The user, or null if the information is not available
      */
-    public User getUser(String login) {
+    public User getUser(User client, String login) {
+        if (!checkIsServerAdmin(client))
+            return null;
         String userIRI = SCHEMA_ADMIN_USERS + login;
-        ProxyObject proxy = adminDB.getRepository().getProxy(userIRI);
-        return proxy == null ? null : new User(proxy);
+        ProxyObject proxy;
+        String name = null;
+        synchronized (adminDB) {
+            proxy = adminDB.getRepository().getProxy(userIRI);
+            if (proxy != null)
+                name = (String) proxy.getDataValue(SCHEMA_ADMIN_NAME);
+        }
+        if (proxy == null)
+            return null;
+        User result = users.get(name);
+        if (result == null) {
+            result = new User(proxy);
+            users.put(name, result);
+        }
+        return result;
+    }
+
+    /**
+     * Gets the users on this server
+     *
+     * @param client The client requesting the information
+     * @return The users
+     */
+    public List<User> getUsers(User client) {
+        List<User> result = new ArrayList<>();
+        if (!checkIsServerAdmin(client))
+            return result;
+        synchronized (adminDB) {
+            ProxyObject classUser = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_USER);
+            for (ProxyObject poUser : classUser.getInstances()) {
+                String name = (String) poUser.getDataValue(SCHEMA_ADMIN_NAME);
+                User user = users.get(name);
+                if (user == null) {
+                    user = new User(poUser);
+                    users.put(name, user);
+                }
+                result.add(user);
+            }
+        }
+        return result;
     }
 
     /**
      * Creates a new user for this server
      *
+     * @param client   The requesting client
      * @param login    The login
      * @param password The password
      * @return Whether the operation succeeded
      */
-    public synchronized boolean newUser(String login, String password) {
-        logger.info("Creating new user \"" + login + "\" ...");
-        if (!login.matches("[_a-zA-Z0-9]+")) {
-            logger.error("Failed to create user \"" + login + "\": login does not meet expectations");
-            return false;
-        }
-        if (password.length() < configuration.getSecurityMinPasswordLength()) {
-            logger.error("Failed to create user \"" + login + "\": password does not meet expectations");
-            return false;
-        }
+    public User createUser(User client, String login, String password) {
+        if (!checkIsServerAdmin(client))
+            return null;
+        if (!login.matches("[_a-zA-Z0-9]+"))
+            return null;
+        if (password.length() < configuration.getSecurityMinPasswordLength())
+            return null;
+        return doCreateUser(login, password);
+    }
+
+    /**
+     * Realizes the creation of a user
+     *
+     * @param login    The login for the new user
+     * @param password The password for the new user
+     * @return The created user
+     */
+    private User doCreateUser(String login, String password) {
         String userIRI = SCHEMA_ADMIN_USERS + login;
-        ProxyObject proxy = adminDB.getRepository().getProxy(userIRI);
-        if (proxy != null) {
-            // user already exist
-            logger.error("Failed to create user \"" + login + "\": user already exist");
-            return false;
+        ProxyObject proxy;
+        synchronized (adminDB) {
+            proxy = adminDB.getRepository().getProxy(userIRI);
+            if (proxy == null)
+                return null;
+            proxy = adminDB.getRepository().resolveProxy(userIRI);
+            proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_USER));
+            proxy.setValue(SCHEMA_ADMIN_NAME, login);
+            proxy.setValue(SCHEMA_ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
+            adminDB.getRepository().getStore().commit();
         }
-        proxy = adminDB.getRepository().resolveProxy(userIRI);
-        proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_USER));
-        proxy.setValue(SCHEMA_ADMIN_NAME, login);
-        proxy.setValue(SCHEMA_ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
-        adminDB.getRepository().getStore().commit();
-        logger.info("Created new user \"" + login + "\"");
+        User result = new User(proxy);
+        synchronized (users) {
+            users.put(login, result);
+        }
+        return result;
+    }
+
+    /**
+     * Deletes a user from this server
+     *
+     * @param client   The requesting client
+     * @param toDelete The user to delete
+     * @return Whether the operation succeeded
+     */
+    public boolean deleteUser(User client, User toDelete) {
+        if (!checkIsServerAdmin(client))
+            return false;
+        synchronized (users) {
+            users.remove(toDelete.getName());
+        }
+        synchronized (adminDB) {
+            toDelete.proxy.delete();
+            adminDB.getRepository().getStore().commit();
+        }
         return true;
     }
 
     /**
-     * Makes a user an administrator of a database
+     * Changes the password of the requesting user
      *
      * @param user     The user
-     * @param database The database
+     * @param password The new password
      * @return Whether the operation succeeded
      */
-    public boolean makeUserAdmin(User user, Database database) {
-        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, true);
+    public boolean changePassword(User user, String password) {
+        if (password.length() < configuration.getSecurityMinPasswordLength())
+            return false;
+        synchronized (adminDB) {
+            user.proxy.unset(SCHEMA_ADMIN_PASSWORD);
+            user.proxy.setValue(SCHEMA_ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
+            adminDB.getRepository().getStore().commit();
+        }
+        return true;
     }
 
     /**
-     * Revokes a user as an administrator of a database
+     * Resets the password of a target user
      *
-     * @param user     The user
-     * @param database The database
+     * @param client   The requesting client
+     * @param target   The user for which the password should be changed
+     * @param password The new password
      * @return Whether the operation succeeded
      */
-    public boolean revokeUserAdmin(User user, Database database) {
-        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, false);
+    public boolean resetPassword(User client, User target, String password) {
+        if (!checkIsServerAdmin(client))
+            return false;
+        return changePassword(target, password);
     }
 
     /**
-     * Makes a user able to read a database
+     * Grants server administrative privilege to a target user
      *
-     * @param user     The user
-     * @param database The database
+     * @param client The requesting client
+     * @param target The target user
      * @return Whether the operation succeeded
      */
-    public boolean addUserCanRead(User user, Database database) {
-        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, true);
+    public boolean grantServerAdmin(User client, User target) {
+        if (!checkIsServerAdmin(client))
+            return false;
+        return changeUserPrivilege(target.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF, true);
     }
 
     /**
-     * Revokes a user the ability to read from a database
+     * Revokes server administrative privilege to a target user
      *
-     * @param user     The user
-     * @param database The database
+     * @param client The requesting client
+     * @param target The target user
      * @return Whether the operation succeeded
      */
-    public boolean revokeUserCanRead(User user, Database database) {
-        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, false);
+    public boolean revokeServerAdmin(User client, User target) {
+        if (!checkIsServerAdmin(client))
+            return false;
+        return changeUserPrivilege(target.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF, false);
     }
 
     /**
-     * Makes a user able to write a database
+     * Grants database administrative privilege to a target user
      *
-     * @param user     The user
+     * @param client   The requesting client
+     * @param user     The target user
      * @param database The database
      * @return Whether the operation succeeded
      */
-    public boolean addUserCanWrite(User user, Database database) {
-        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, true);
+    public boolean grantDBAdmin(User client, User user, Database database) {
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
+            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, true);
+        return false;
     }
 
     /**
-     * Revokes a user the ability to write to a database
+     * Revokes database administrative privilege to a target user
      *
-     * @param user     The user
+     * @param client   The requesting client
+     * @param user     The target user
      * @param database The database
      * @return Whether the operation succeeded
      */
-    public boolean revokeUserCanWrite(User user, Database database) {
-        return changeUserPriviliedge(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, false);
+    public boolean revokeDBAdmin(User client, User user, Database database) {
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
+            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, false);
+        return false;
+    }
+
+    /**
+     * Grants database reading privilege to a target user
+     *
+     * @param client   The requesting client
+     * @param user     The target user
+     * @param database The database
+     * @return Whether the operation succeeded
+     */
+    public boolean grantDBRead(User client, User user, Database database) {
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
+            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, true);
+        return false;
+    }
+
+    /**
+     * Revokes database reading privilege to a target user
+     *
+     * @param client   The requesting client
+     * @param user     The target user
+     * @param database The database
+     * @return Whether the operation succeeded
+     */
+    public boolean revokeDBRead(User client, User user, Database database) {
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
+            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, false);
+        return false;
+    }
+
+
+    /**
+     * Grants database writing privilege to a target user
+     *
+     * @param client   The requesting client
+     * @param user     The target user
+     * @param database The database
+     * @return Whether the operation succeeded
+     */
+    public boolean grantDBWrite(User client, User user, Database database) {
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
+            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, true);
+        return false;
+    }
+
+    /**
+     * Revokes database writing privilege to a target user
+     *
+     * @param client   The requesting client
+     * @param user     The target user
+     * @param database The database
+     * @return Whether the operation succeeded
+     */
+    public boolean revokeDBWrite(User client, User user, Database database) {
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
+            return changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, false);
+        return false;
     }
 
     /**
@@ -428,74 +585,126 @@ public abstract class Controller implements Closeable {
      * @param positive  Whether to add or remove the privilege
      * @return Whether the operation succeeded
      */
-    private synchronized boolean changeUserPriviliedge(ProxyObject user, ProxyObject database, String privilege, boolean positive) {
-        Collection<ProxyObject> dbs = user.getObjectValues(privilege);
-        if (positive) {
-            if (dbs.contains(database))
-                return false;
-            user.setValue(privilege, database);
-        } else {
-            if (!dbs.contains(database))
-                return false;
-            user.unset(privilege, database);
+    private boolean changeUserPrivilege(ProxyObject user, ProxyObject database, String privilege, boolean positive) {
+        synchronized (adminDB) {
+            Collection<ProxyObject> dbs = user.getObjectValues(privilege);
+            if (positive) {
+                if (dbs.contains(database))
+                    return false;
+                user.setValue(privilege, database);
+            } else {
+                if (!dbs.contains(database))
+                    return false;
+                user.unset(privilege, database);
+            }
+            adminDB.getRepository().getStore().commit();
         }
         return true;
     }
 
     /**
-     * Gets whether the user is a server administrator
+     * Gets the database for the specified name
      *
-     * @param user The user
-     * @return Whether the user is a server administrator
+     * @param client The requesting client
+     * @param name   The name of a database
+     * @return The database for the specified name
      */
-    public boolean isServerAdmin(User user) {
-        return isAllowed(user.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF);
+    public Database getDatabase(User client, String name) {
+        Database database;
+        synchronized (databases) {
+            database = databases.get(name);
+        }
+        if (database == null)
+            return null;
+        if (checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, database)
+                || checkIsAllowed(client.proxy, database.proxy, SCHEMA_ADMIN_CANREAD)
+                || checkIsAllowed(client.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE))
+            return database;
+        return null;
     }
 
     /**
-     * Gets whether the user is the administrator of a database
+     * Gets the databases on this server
      *
-     * @param user     The user
-     * @param database The database
-     * @return Whether the user is an administrator
+     * @param client The requesting client
+     * @return The databases
      */
-    public boolean isAdminOf(User user, Database database) {
-        return isAllowed(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF);
+    public List<Database> getDatabases(User client) {
+        List<Database> result = new ArrayList<>();
+        if (checkIsServerAdmin(client)) {
+            result.addAll(databases.values());
+            return result;
+        }
+        synchronized (databases) {
+            for (Database database : databases.values()) {
+                if (checkIsServerAdmin(client)
+                        || checkIsDBAdmin(client, database)
+                        || checkIsAllowed(client.proxy, database.proxy, SCHEMA_ADMIN_CANREAD)
+                        || checkIsAllowed(client.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE))
+                    result.add(database);
+            }
+        }
+        return result;
     }
 
     /**
-     * Gets whether the user can read a database
+     * Creates a new database
      *
-     * @param user     The user
-     * @param database The database
-     * @return Whether the user can read a database
+     * @param client The requesting client
+     * @param name   The name of the database
+     * @return The created database
      */
-    public boolean canRead(User user, Database database) {
-        return isAllowed(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD);
+    public Database createDatabase(User client, String name) {
+        if (!checkIsServerAdmin(client))
+            return null;
+        if (!name.matches("[_a-zA-Z0-9]+"))
+            return null;
+
+        synchronized (databases) {
+            Database result = databases.get(name);
+            if (result != null)
+                return null;
+            File folder = new File(configuration.getRoot(), name);
+            try {
+                ProxyObject proxy = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DBS + name);
+                proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE));
+                proxy.setValue(SCHEMA_ADMIN_NAME, name);
+                proxy.setValue(SCHEMA_ADMIN_LOCATION, folder.getAbsolutePath());
+                result = new Database(folder, proxy);
+                adminDB.getRepository().getStore().commit();
+                databases.put(name, result);
+                return result;
+            } catch (IOException exception) {
+                return null;
+            }
+        }
     }
 
     /**
-     * Gets whether the user can write to a database
+     * Drops a new database
      *
-     * @param user     The user
-     * @param database The database
-     * @return Whether the user can write to a database
+     * @param client   The requesting client
+     * @param database The database to drop
+     * @return Whether the operation succeeded
      */
-    public boolean canWrite(User user, Database database) {
-        return isAllowed(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE);
-    }
-
-    /**
-     * Gets whether a user is granted a privilege on a database
-     *
-     * @param user      The user
-     * @param database  The database
-     * @param privilege The privilege
-     * @return Whether the user is allowed
-     */
-    private synchronized boolean isAllowed(ProxyObject user, ProxyObject database, String privilege) {
-        Collection<ProxyObject> dbs = user.getObjectValues(privilege);
-        return dbs.contains(database);
+    public boolean dropDatabase(User client, Database database) {
+        if (database == adminDB)
+            return false;
+        if (!checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
+            return false;
+        synchronized (databases) {
+            databases.remove(database.getName());
+            File folder = new File((String) database.proxy.getDataValue(SCHEMA_ADMIN_LOCATION));
+            try {
+                Files.delete(folder.toPath());
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+            database.proxy.delete();
+            adminDB.getRepository().getStore().commit();
+        }
+        return true;
     }
 
     @Override

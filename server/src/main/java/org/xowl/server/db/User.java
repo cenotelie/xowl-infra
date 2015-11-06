@@ -41,4 +41,13 @@ public class User {
     public User(ProxyObject proxy) {
         this.proxy = proxy;
     }
+
+    /**
+     * Gets the name of this user
+     *
+     * @return The name of this user
+     */
+    public String getName() {
+        return (String) proxy.getDataValue(Controller.SCHEMA_ADMIN_NAME);
+    }
 }
