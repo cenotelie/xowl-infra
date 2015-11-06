@@ -85,7 +85,7 @@ public class Database implements Closeable {
         String cBackend = configuration.getValue("storage");
         BaseStore store = Objects.equals(cBackend, "memory") ? StoreFactory.newInMemoryStore() : StoreFactory.newFileStore(location);
         this.repository = new Repository(store);
-        this.proxy = repository.resolveProxy(Controller.SCHEMA_ADMIN_DBS + confServer.getAdminDBName());
+        this.proxy = repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + confServer.getAdminDBName());
     }
 
     /**
@@ -132,7 +132,7 @@ public class Database implements Closeable {
      * @return The name of this user
      */
     public String getName() {
-        return (String) proxy.getDataValue(Controller.SCHEMA_ADMIN_NAME);
+        return (String) proxy.getDataValue(Schema.ADMIN_NAME);
     }
 
     @Override

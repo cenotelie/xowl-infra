@@ -48,6 +48,6 @@ public class User {
      * @return The name of this user
      */
     public String getName() {
-        return (String) proxy.getDataValue(Controller.SCHEMA_ADMIN_NAME);
+        return (String) proxy.getDataValue(Schema.ADMIN_NAME);
     }
 }

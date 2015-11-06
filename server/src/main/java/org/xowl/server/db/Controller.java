@@ -41,47 +41,6 @@ import java.util.*;
  */
 public abstract class Controller implements Closeable {
     /**
-     * The User concept in the administration database
-     */
-    public static final String SCHEMA_ADMIN_USER = "http://xowl.org/server/admin#User";
-    /**
-     * The Database concept in the administration database
-     */
-    public static final String SCHEMA_ADMIN_DATABASE = "http://xowl.org/server/admin#Database";
-    /**
-     * The Name concept in the administration database
-     */
-    public static final String SCHEMA_ADMIN_NAME = "http://xowl.org/server/admin#name";
-    /**
-     * The Location concept in the administration database
-     */
-    public static final String SCHEMA_ADMIN_LOCATION = "http://xowl.org/server/admin#location";
-    /**
-     * The Password concept in the administration database
-     */
-    public static final String SCHEMA_ADMIN_PASSWORD = "http://xowl.org/server/admin#password";
-    /**
-     * The AdminOf concept in the administration database
-     */
-    public static final String SCHEMA_ADMIN_ADMINOF = "http://xowl.org/server/admin#adminOf";
-    /**
-     * The CanRead concept in the administration database
-     */
-    public static final String SCHEMA_ADMIN_CANREAD = "http://xowl.org/server/admin#canRead";
-    /**
-     * The CanWrite concept in the administration database
-     */
-    public static final String SCHEMA_ADMIN_CANWRITE = "http://xowl.org/server/admin#canWrite";
-    /**
-     * The User graph in the administration database
-     */
-    public static final String SCHEMA_ADMIN_USERS = "http://xowl.org/server/users#";
-    /**
-     * The Database graph in the administration database
-     */
-    public static final String SCHEMA_ADMIN_DBS = "http://xowl.org/server/db#";
-
-    /**
      * The data about a client
      */
     private static class ClientLogin {
@@ -159,23 +118,23 @@ public abstract class Controller implements Closeable {
         clients = new HashMap<>();
         users = new HashMap<>();
         if (isEmpty) {
-            adminDB.proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(SCHEMA_ADMIN_DATABASE));
-            adminDB.proxy.setValue(SCHEMA_ADMIN_NAME, configuration.getAdminDBName());
-            adminDB.proxy.setValue(SCHEMA_ADMIN_LOCATION, ".");
+            adminDB.proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(Schema.ADMIN_DATABASE));
+            adminDB.proxy.setValue(Schema.ADMIN_NAME, configuration.getAdminDBName());
+            adminDB.proxy.setValue(Schema.ADMIN_LOCATION, ".");
             User admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
             users.put(admin.getName(), admin);
-            admin.proxy.setValue(SCHEMA_ADMIN_ADMINOF, adminDB.proxy);
-            admin.proxy.setValue(SCHEMA_ADMIN_CANREAD, adminDB.proxy);
-            admin.proxy.setValue(SCHEMA_ADMIN_CANWRITE, adminDB.proxy);
+            admin.proxy.setValue(Schema.ADMIN_ADMINOF, adminDB.proxy);
+            admin.proxy.setValue(Schema.ADMIN_CANREAD, adminDB.proxy);
+            admin.proxy.setValue(Schema.ADMIN_CANWRITE, adminDB.proxy);
             adminDB.repository.getStore().commit();
         } else {
-            ProxyObject classDB = adminDB.repository.resolveProxy(SCHEMA_ADMIN_DATABASE);
+            ProxyObject classDB = adminDB.repository.resolveProxy(Schema.ADMIN_DATABASE);
             for (ProxyObject poDB : classDB.getInstances()) {
                 if (poDB == adminDB.proxy)
                     continue;
                 logger.info("Found database " + poDB.getIRIString());
-                String name = (String) poDB.getDataValue(SCHEMA_ADMIN_NAME);
-                String location = (String) poDB.getDataValue(SCHEMA_ADMIN_LOCATION);
+                String name = (String) poDB.getDataValue(Schema.ADMIN_NAME);
+                String location = (String) poDB.getDataValue(Schema.ADMIN_LOCATION);
                 try {
                     Database db = new Database(new File(configuration.getRoot(), location), poDB);
                     databases.put(name, db);
@@ -231,13 +190,13 @@ public abstract class Controller implements Closeable {
             logger.info("Login failure for " + login + " from " + client.toString());
             return null;
         }
-        String userIRI = SCHEMA_ADMIN_USERS + login;
+        String userIRI = Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
         String hash = null;
         synchronized (adminDB) {
             proxy = adminDB.repository.getProxy(userIRI);
             if (proxy != null)
-                hash = (String) proxy.getDataValue(SCHEMA_ADMIN_PASSWORD);
+                hash = (String) proxy.getDataValue(Schema.ADMIN_PASSWORD);
         }
         if (proxy == null) {
             onLoginFailure(client);
@@ -302,7 +261,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the user is an administrator of the database
      */
     private boolean checkIsDBAdmin(User user, Database database) {
-        return checkIsAllowed(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF);
+        return checkIsAllowed(user.proxy, database.proxy, Schema.ADMIN_ADMINOF);
     }
 
     /**
@@ -312,7 +271,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the user is a server administrator
      */
     private boolean checkIsServerAdmin(User user) {
-        return checkIsAllowed(user.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF);
+        return checkIsAllowed(user.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF);
     }
 
     /**
@@ -325,13 +284,13 @@ public abstract class Controller implements Closeable {
     public User getUser(User client, String login) {
         if (!checkIsServerAdmin(client))
             return null;
-        String userIRI = SCHEMA_ADMIN_USERS + login;
+        String userIRI = Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
         String name = null;
         synchronized (adminDB) {
             proxy = adminDB.repository.getProxy(userIRI);
             if (proxy != null)
-                name = (String) proxy.getDataValue(SCHEMA_ADMIN_NAME);
+                name = (String) proxy.getDataValue(Schema.ADMIN_NAME);
         }
         if (proxy == null)
             return null;
@@ -354,9 +313,9 @@ public abstract class Controller implements Closeable {
         if (!checkIsServerAdmin(client))
             return result;
         synchronized (adminDB) {
-            ProxyObject classUser = adminDB.repository.resolveProxy(SCHEMA_ADMIN_USER);
+            ProxyObject classUser = adminDB.repository.resolveProxy(Schema.ADMIN_USER);
             for (ProxyObject poUser : classUser.getInstances()) {
-                String name = (String) poUser.getDataValue(SCHEMA_ADMIN_NAME);
+                String name = (String) poUser.getDataValue(Schema.ADMIN_NAME);
                 User user = users.get(name);
                 if (user == null) {
                     user = new User(poUser);
@@ -394,16 +353,16 @@ public abstract class Controller implements Closeable {
      * @return The created user
      */
     private User doCreateUser(String login, String password) {
-        String userIRI = SCHEMA_ADMIN_USERS + login;
+        String userIRI = Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
         synchronized (adminDB) {
             proxy = adminDB.repository.getProxy(userIRI);
             if (proxy == null)
                 return null;
             proxy = adminDB.repository.resolveProxy(userIRI);
-            proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(SCHEMA_ADMIN_USER));
-            proxy.setValue(SCHEMA_ADMIN_NAME, login);
-            proxy.setValue(SCHEMA_ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
+            proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(Schema.ADMIN_USER));
+            proxy.setValue(Schema.ADMIN_NAME, login);
+            proxy.setValue(Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
             adminDB.repository.getStore().commit();
         }
         User result = new User(proxy);
@@ -444,8 +403,8 @@ public abstract class Controller implements Closeable {
         if (password.length() < configuration.getSecurityMinPasswordLength())
             return false;
         synchronized (adminDB) {
-            user.proxy.unset(SCHEMA_ADMIN_PASSWORD);
-            user.proxy.setValue(SCHEMA_ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
+            user.proxy.unset(Schema.ADMIN_PASSWORD);
+            user.proxy.setValue(Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
             adminDB.repository.getStore().commit();
         }
         return true;
@@ -471,7 +430,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean grantServerAdmin(User client, User target) {
-        return checkIsServerAdmin(client) && changeUserPrivilege(target.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF, true);
+        return checkIsServerAdmin(client) && changeUserPrivilege(target.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF, true);
     }
 
     /**
@@ -482,7 +441,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean revokeServerAdmin(User client, User target) {
-        return checkIsServerAdmin(client) && changeUserPrivilege(target.proxy, adminDB.proxy, SCHEMA_ADMIN_ADMINOF, false);
+        return checkIsServerAdmin(client) && changeUserPrivilege(target.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF, false);
     }
 
     /**
@@ -494,7 +453,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean grantDBAdmin(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, true);
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_ADMINOF, true);
     }
 
     /**
@@ -506,7 +465,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean revokeDBAdmin(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_ADMINOF, false);
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_ADMINOF, false);
     }
 
     /**
@@ -518,7 +477,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean grantDBRead(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, true);
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANREAD, true);
     }
 
     /**
@@ -530,7 +489,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean revokeDBRead(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANREAD, false);
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANREAD, false);
     }
 
 
@@ -543,7 +502,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean grantDBWrite(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, true);
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANWRITE, true);
     }
 
     /**
@@ -555,7 +514,7 @@ public abstract class Controller implements Closeable {
      * @return Whether the operation succeeded
      */
     public boolean revokeDBWrite(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE, false);
+        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANWRITE, false);
     }
 
     /**
@@ -600,8 +559,8 @@ public abstract class Controller implements Closeable {
             return null;
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, database)
-                || checkIsAllowed(client.proxy, database.proxy, SCHEMA_ADMIN_CANREAD)
-                || checkIsAllowed(client.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE))
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE))
             return database;
         return null;
     }
@@ -622,8 +581,8 @@ public abstract class Controller implements Closeable {
             for (Database database : databases.values()) {
                 if (checkIsServerAdmin(client)
                         || checkIsDBAdmin(client, database)
-                        || checkIsAllowed(client.proxy, database.proxy, SCHEMA_ADMIN_CANREAD)
-                        || checkIsAllowed(client.proxy, database.proxy, SCHEMA_ADMIN_CANWRITE))
+                        || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)
+                        || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE))
                     result.add(database);
             }
         }
@@ -649,10 +608,10 @@ public abstract class Controller implements Closeable {
                 return null;
             File folder = new File(configuration.getRoot(), name);
             try {
-                ProxyObject proxy = adminDB.repository.resolveProxy(SCHEMA_ADMIN_DBS + name);
-                proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(SCHEMA_ADMIN_DATABASE));
-                proxy.setValue(SCHEMA_ADMIN_NAME, name);
-                proxy.setValue(SCHEMA_ADMIN_LOCATION, folder.getAbsolutePath());
+                ProxyObject proxy = adminDB.repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + name);
+                proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(Schema.ADMIN_DATABASE));
+                proxy.setValue(Schema.ADMIN_NAME, name);
+                proxy.setValue(Schema.ADMIN_LOCATION, folder.getAbsolutePath());
                 result = new Database(folder, proxy);
                 adminDB.repository.getStore().commit();
                 databases.put(name, result);
@@ -677,7 +636,7 @@ public abstract class Controller implements Closeable {
             return false;
         synchronized (databases) {
             databases.remove(database.getName());
-            File folder = new File((String) database.proxy.getDataValue(SCHEMA_ADMIN_LOCATION));
+            File folder = new File((String) database.proxy.getDataValue(Schema.ADMIN_LOCATION));
             try {
                 Files.delete(folder.toPath());
             } catch (IOException exception) {
