@@ -132,6 +132,9 @@ public class Program {
             }, Program.class.getCanonicalName() + ".ConnectionListener").start();
             while (!exit) {
                 String data = input.readLine();
+                if ("LOGOUT".equals(data)) {
+                    exit = true;
+                }
                 connection.send(data);
             }
         } catch (IOException e) {
