@@ -49,15 +49,15 @@ public class Database implements Closeable {
     /**
      * The logger
      */
-    private final Logger logger;
+    final Logger logger;
     /**
      * The repository
      */
-    private final Repository repository;
+    final Repository repository;
     /**
      * The current configuration for this database
      */
-    private final Configuration configuration;
+    final Configuration configuration;
     /**
      * The proxy object representing this database
      */
@@ -124,24 +124,6 @@ public class Database implements Closeable {
         IOException result = new IOException(message);
         logger.error(result);
         return result;
-    }
-
-    /**
-     * Gets the repository
-     *
-     * @return The repository
-     */
-    public Repository getRepository() {
-        return repository;
-    }
-
-    /**
-     * Gets the logger for this database
-     *
-     * @return The logger
-     */
-    public Logger getLogger() {
-        return logger;
     }
 
     /**

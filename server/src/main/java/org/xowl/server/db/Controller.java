@@ -159,7 +159,7 @@ public abstract class Controller implements Closeable {
         clients = new HashMap<>();
         users = new HashMap<>();
         if (isEmpty) {
-            adminDB.proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE));
+            adminDB.proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(SCHEMA_ADMIN_DATABASE));
             adminDB.proxy.setValue(SCHEMA_ADMIN_NAME, configuration.getAdminDBName());
             adminDB.proxy.setValue(SCHEMA_ADMIN_LOCATION, ".");
             User admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
@@ -167,9 +167,9 @@ public abstract class Controller implements Closeable {
             admin.proxy.setValue(SCHEMA_ADMIN_ADMINOF, adminDB.proxy);
             admin.proxy.setValue(SCHEMA_ADMIN_CANREAD, adminDB.proxy);
             admin.proxy.setValue(SCHEMA_ADMIN_CANWRITE, adminDB.proxy);
-            adminDB.getRepository().getStore().commit();
+            adminDB.repository.getStore().commit();
         } else {
-            ProxyObject classDB = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE);
+            ProxyObject classDB = adminDB.repository.resolveProxy(SCHEMA_ADMIN_DATABASE);
             for (ProxyObject poDB : classDB.getInstances()) {
                 if (poDB == adminDB.proxy)
                     continue;
@@ -235,7 +235,7 @@ public abstract class Controller implements Closeable {
         ProxyObject proxy;
         String hash = null;
         synchronized (adminDB) {
-            proxy = adminDB.getRepository().getProxy(userIRI);
+            proxy = adminDB.repository.getProxy(userIRI);
             if (proxy != null)
                 hash = (String) proxy.getDataValue(SCHEMA_ADMIN_PASSWORD);
         }
@@ -329,7 +329,7 @@ public abstract class Controller implements Closeable {
         ProxyObject proxy;
         String name = null;
         synchronized (adminDB) {
-            proxy = adminDB.getRepository().getProxy(userIRI);
+            proxy = adminDB.repository.getProxy(userIRI);
             if (proxy != null)
                 name = (String) proxy.getDataValue(SCHEMA_ADMIN_NAME);
         }
@@ -354,7 +354,7 @@ public abstract class Controller implements Closeable {
         if (!checkIsServerAdmin(client))
             return result;
         synchronized (adminDB) {
-            ProxyObject classUser = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_USER);
+            ProxyObject classUser = adminDB.repository.resolveProxy(SCHEMA_ADMIN_USER);
             for (ProxyObject poUser : classUser.getInstances()) {
                 String name = (String) poUser.getDataValue(SCHEMA_ADMIN_NAME);
                 User user = users.get(name);
@@ -397,14 +397,14 @@ public abstract class Controller implements Closeable {
         String userIRI = SCHEMA_ADMIN_USERS + login;
         ProxyObject proxy;
         synchronized (adminDB) {
-            proxy = adminDB.getRepository().getProxy(userIRI);
+            proxy = adminDB.repository.getProxy(userIRI);
             if (proxy == null)
                 return null;
-            proxy = adminDB.getRepository().resolveProxy(userIRI);
-            proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_USER));
+            proxy = adminDB.repository.resolveProxy(userIRI);
+            proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(SCHEMA_ADMIN_USER));
             proxy.setValue(SCHEMA_ADMIN_NAME, login);
             proxy.setValue(SCHEMA_ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
-            adminDB.getRepository().getStore().commit();
+            adminDB.repository.getStore().commit();
         }
         User result = new User(proxy);
         synchronized (users) {
@@ -428,7 +428,7 @@ public abstract class Controller implements Closeable {
         }
         synchronized (adminDB) {
             toDelete.proxy.delete();
-            adminDB.getRepository().getStore().commit();
+            adminDB.repository.getStore().commit();
         }
         return true;
     }
@@ -446,7 +446,7 @@ public abstract class Controller implements Closeable {
         synchronized (adminDB) {
             user.proxy.unset(SCHEMA_ADMIN_PASSWORD);
             user.proxy.setValue(SCHEMA_ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
-            adminDB.getRepository().getStore().commit();
+            adminDB.repository.getStore().commit();
         }
         return true;
     }
@@ -579,7 +579,7 @@ public abstract class Controller implements Closeable {
                     return false;
                 user.unset(privilege, database);
             }
-            adminDB.getRepository().getStore().commit();
+            adminDB.repository.getStore().commit();
         }
         return true;
     }
@@ -649,12 +649,12 @@ public abstract class Controller implements Closeable {
                 return null;
             File folder = new File(configuration.getRoot(), name);
             try {
-                ProxyObject proxy = adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DBS + name);
-                proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE));
+                ProxyObject proxy = adminDB.repository.resolveProxy(SCHEMA_ADMIN_DBS + name);
+                proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(SCHEMA_ADMIN_DATABASE));
                 proxy.setValue(SCHEMA_ADMIN_NAME, name);
                 proxy.setValue(SCHEMA_ADMIN_LOCATION, folder.getAbsolutePath());
                 result = new Database(folder, proxy);
-                adminDB.getRepository().getStore().commit();
+                adminDB.repository.getStore().commit();
                 databases.put(name, result);
                 return result;
             } catch (IOException exception) {
@@ -684,7 +684,7 @@ public abstract class Controller implements Closeable {
                 exception.printStackTrace();
             }
             database.proxy.delete();
-            adminDB.getRepository().getStore().commit();
+            adminDB.repository.getStore().commit();
         }
         return true;
     }
