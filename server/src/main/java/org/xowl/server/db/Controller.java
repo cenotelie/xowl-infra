@@ -30,6 +30,8 @@ import org.xowl.utils.Logger;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,6 +84,20 @@ public abstract class Controller implements Closeable {
     public static final String SCHEMA_ADMIN_DBS = "http://xowl.org/server/db#";
 
     /**
+     * The data about a client
+     */
+    private static class ClientLogin {
+        /**
+         * The number of failed attempt
+         */
+        public int failedAttempt = 0;
+        /**
+         * The timestamp of the ban
+         */
+        public long banTimeStamp = -1;
+    }
+
+    /**
      * The current configuration
      */
     private final ServerConfiguration configuration;
@@ -97,6 +113,10 @@ public abstract class Controller implements Closeable {
      * The administration database
      */
     private final Database adminDB;
+    /**
+     * The map of clients with failed login attempts
+     */
+    private final Map<InetAddress, ClientLogin> clients;
 
     /**
      * Gets current configuration
@@ -134,6 +154,7 @@ public abstract class Controller implements Closeable {
         logger.info("Initializing the controller");
         adminDB = new Database(configuration, configuration.getRoot());
         databases.put(configuration.getAdminDBName(), adminDB);
+        clients = new HashMap<>();
         if (isEmpty) {
             adminDB.proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(SCHEMA_ADMIN_DATABASE));
             adminDB.proxy.setValue(SCHEMA_ADMIN_NAME, configuration.getAdminDBName());
@@ -211,28 +232,77 @@ public abstract class Controller implements Closeable {
     }
 
     /**
+     * Gets whether a client is banned
+     *
+     * @param client A client
+     * @return Wether the client is banned
+     */
+    public boolean isBanned(InetAddress client) {
+        ClientLogin cl = clients.get(client);
+        if (cl == null)
+            return false;
+        if (cl.banTimeStamp == -1)
+            return false;
+        long now = Calendar.getInstance().getTime().getTime();
+        long diff = now - cl.banTimeStamp;
+        if (diff < 1000 * configuration.getSecurityBanLength()) {
+            // still banned
+            return true;
+        } else {
+            // not banned anymore
+            clients.remove(client);
+            return false;
+        }
+    }
+
+    /**
+     * Handles a login failure from a client
+     *
+     * @param client The client trying to login
+     */
+    private void onLoginFailure(InetAddress client) {
+        ClientLogin cl = clients.get(client);
+        if (cl == null) {
+            cl = new ClientLogin();
+            clients.put(client, cl);
+        }
+        cl.failedAttempt++;
+        if (cl.failedAttempt >= configuration.getSecurityMaxLoginAttempt()) {
+            // too much failure, ban this client for a while
+            cl.banTimeStamp = Calendar.getInstance().getTime().getTime();
+        }
+    }
+
+    /**
      * Login a user
      *
+     * @param client   The client trying to login
      * @param login    The user to log in
      * @param password The user password
      * @return Whether the login/password is acceptable
      */
-    public boolean login(String login, String password) {
+    public boolean login(InetAddress client, String login, String password) {
+        if (isBanned(client))
+            return false;
         if (login == null || login.isEmpty() || password == null || password.isEmpty()) {
-            logger.info("Login failure for " + login);
+            onLoginFailure(client);
+            logger.info("Login failure for " + login + " from " + client.toString());
             return false;
         }
         String userIRI = SCHEMA_ADMIN_USERS + login;
         ProxyObject proxy = adminDB.getRepository().getProxy(userIRI);
         if (proxy == null) {
+            onLoginFailure(client);
             logger.info("Login failure for " + login);
             return false;
         }
         String hash = (String) proxy.getDataValue(SCHEMA_ADMIN_PASSWORD);
         if (!BCrypt.checkpw(password, hash)) {
+            onLoginFailure(client);
             logger.info("Login failure for " + login);
             return false;
         } else {
+            clients.remove(client);
             logger.info("Login success for " + login);
             return true;
         }

@@ -20,10 +20,7 @@
 
 package org.xowl.server.http;
 
-import com.sun.net.httpserver.BasicAuthenticator;
-import com.sun.net.httpserver.HttpsConfigurator;
-import com.sun.net.httpserver.HttpsParameters;
-import com.sun.net.httpserver.HttpsServer;
+import com.sun.net.httpserver.*;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.server.db.Controller;
 import org.xowl.server.ssl.SSLManager;
@@ -109,12 +106,7 @@ public class HTTPServer implements Closeable {
         }
         if (temp != null && sslContext != null) {
             server = temp;
-            server.createContext("/", new TopHandler(controller)).setAuthenticator(new BasicAuthenticator(configuration.getSecurityRealm()) {
-                @Override
-                public boolean checkCredentials(String login, String password) {
-                    return controller.login(login, password);
-                }
-            });
+            server.createContext("/", new TopHandler(controller)).setAuthenticator(new Authenticator(controller, configuration.getSecurityRealm()));
             server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
                 @Override
                 public void configure(HttpsParameters params) {

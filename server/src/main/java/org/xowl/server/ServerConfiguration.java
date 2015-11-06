@@ -104,6 +104,15 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets the name of this server
+     *
+     * @return The name of this server
+     */
+    public String getServerName() {
+        return getValue(null, "serverName");
+    }
+
+    /**
      * Gets the name of the administration database
      *
      * @return The name of the administration database
