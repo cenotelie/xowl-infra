@@ -22,6 +22,7 @@ package org.xowl.server;
 
 import org.xowl.server.db.Controller;
 import org.xowl.server.http.HTTPServer;
+import org.xowl.server.xp.XPServer;
 
 import java.io.IOException;
 
@@ -46,14 +47,6 @@ public class Program {
      */
     private final ServerConfiguration configuration;
     /**
-     * The main controller for the databases
-     */
-    private Controller controller;
-    /**
-     * The HTTP server
-     */
-    private HTTPServer httpServer;
-    /**
      * Marker whether the program should stop
      */
     private boolean shouldStop;
@@ -73,6 +66,7 @@ public class Program {
      */
     public void run() {
         // setup and start
+        Controller controller;
         try {
             controller = new Controller(configuration) {
 
@@ -90,8 +84,9 @@ public class Program {
             exception.printStackTrace();
             return;
         }
-        httpServer = new HTTPServer(configuration, controller);
+        HTTPServer httpServer = new HTTPServer(configuration, controller);
         httpServer.start();
+        XPServer xpServer = new XPServer(configuration, controller);
 
         while (!shouldStop) {
             try {
@@ -103,6 +98,11 @@ public class Program {
 
         // cleanup
         controller.getLogger().info("Shutting down this server ...");
+        try {
+            xpServer.close();
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
         try {
             httpServer.close();
         } catch (IOException exception) {
