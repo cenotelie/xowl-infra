@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Laurent Wouters
  */
-public class Server implements Closeable {
+public class HTTPServer implements Closeable {
     /**
      * The bound of the executor queue
      */
@@ -79,7 +79,7 @@ public class Server implements Closeable {
      * @param configuration The current configuration
      * @param controller    The current controller
      */
-    public Server(ServerConfiguration configuration, final Controller controller) {
+    public HTTPServer(ServerConfiguration configuration, final Controller controller) {
         controller.getLogger().info("Initializing the HTTPS server ...");
         this.configuration = configuration;
         SSLContext sslContext = null;

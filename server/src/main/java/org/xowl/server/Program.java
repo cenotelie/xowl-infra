@@ -21,7 +21,7 @@
 package org.xowl.server;
 
 import org.xowl.server.db.Controller;
-import org.xowl.server.http.Server;
+import org.xowl.server.http.HTTPServer;
 
 import java.io.IOException;
 
@@ -52,7 +52,7 @@ public class Program {
     /**
      * The HTTP server
      */
-    private Server httpServer;
+    private HTTPServer httpServer;
     /**
      * Marker whether the program should stop
      */
@@ -90,7 +90,7 @@ public class Program {
             exception.printStackTrace();
             return;
         }
-        httpServer = new Server(configuration, controller);
+        httpServer = new HTTPServer(configuration, controller);
         httpServer.start();
 
         while (!shouldStop) {

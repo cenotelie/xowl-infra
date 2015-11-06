@@ -232,6 +232,44 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets the address to bind for the xOWL protocol server
+     *
+     * @return The address to bind
+     */
+    public String getXPAddress() {
+        return getValue("xp", "address");
+    }
+
+    /**
+     * Gets the port to bind for the xOWL protocol server
+     *
+     * @return The port to bind
+     */
+    public int getXPPort() {
+        return Integer.parseInt(getValue("xp", "port"));
+    }
+
+    /**
+     * Gets the maximum backlog for the xOWL protocol server
+     * This is the maximum number of queued incoming connections to allow on the listening socket.
+     * 0 or less indicates a system-specific value.
+     *
+     * @return The maximum backlog for the xOWL protocol server
+     */
+    public int getXPBacklog() {
+        return Integer.parseInt(getValue("xp", "backlog"));
+    }
+
+    /**
+     * Gets the timeout when stopping the xOWL protocol server
+     *
+     * @return The timeout when stopping the xOWL protocol server
+     */
+    public int getXPStopTimeout() {
+        return Integer.parseInt(getValue("xp", "stopTimeout"));
+    }
+
+    /**
      * Registers in the configuration the location and password for the key store
      *
      * @param location The location to the key store
