@@ -148,5 +148,7 @@ public class Program {
     private static void printHelp() {
         System.out.println("xOWL CLI interface");
         System.out.println("xowl --host <host> --port <port> --login <login> --password <password>");
+        System.out.println("");
+        System.out.println("For help on the protocol, login and use the command HELP");
     }
 }
