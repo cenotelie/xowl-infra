@@ -131,11 +131,17 @@ public class Program {
                 }
             }, Program.class.getCanonicalName() + ".ConnectionListener").start();
             while (!exit) {
-                String data = input.readLine();
-                if ("LOGOUT".equals(data)) {
-                    exit = true;
+                while (!exit && !input.ready()) {
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException exception) {
+                        // do nothing
+                    }
                 }
-                connection.send(data);
+                if (!exit) {
+                    String data = input.readLine();
+                    connection.send(data);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
