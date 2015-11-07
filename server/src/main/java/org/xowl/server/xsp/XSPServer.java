@@ -132,7 +132,12 @@ public class XSPServer implements Closeable {
     public void close() throws IOException {
         if (socket != null) {
             socket.close();
-            executorPool.shutdown();
+            executorPool.shutdownNow();
+            try {
+                executorPool.awaitTermination(configuration.getHttpStopTimeout(), TimeUnit.SECONDS);
+            } catch (InterruptedException exception) {
+                // do nothing
+            }
         }
     }
 

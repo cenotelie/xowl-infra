@@ -128,8 +128,7 @@ public class XOWLConnection implements Closeable {
         socket.connect(new InetSocketAddress(host, port));
         socketOutput = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
         socketInput = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-        send("AUTH LOGIN " + login);
-        send("AUTH PASSWORD " + password);
+        send("AUTH " + login + " " + password);
     }
 
     /**

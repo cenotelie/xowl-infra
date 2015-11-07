@@ -50,4 +50,9 @@ public class User {
     public String getName() {
         return (String) proxy.getDataValue(Schema.ADMIN_NAME);
     }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

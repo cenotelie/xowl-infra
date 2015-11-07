@@ -39,7 +39,7 @@ public class SSLManager {
     /**
      * The alias for generated certificates
      */
-    public static final String GENERATED_ALIAS = "org.xowl.server";
+    public static final String GENERATED_ALIAS = "server.xowl.org";
     /**
      * The file name for the key store
      */
@@ -94,7 +94,7 @@ public class SSLManager {
             String[] command = new String[]{"keytool", "-genkeypair",
                     "-alias", GENERATED_ALIAS,
                     "-keyalg", "RSA", "-keysize", "2048",
-                    "-dname", "CN=" + GENERATED_ALIAS,
+                    "-dname", "CN=" + GENERATED_ALIAS + ", O=xowl.org",
                     "-validity", "3650", "-storetype", "JKS",
                     "-keystore", target.getAbsolutePath()};
             final Process process = Runtime.getRuntime().exec(command);

@@ -403,4 +403,9 @@ public class Database implements Closeable {
             logger.error(exception);
         }
     }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

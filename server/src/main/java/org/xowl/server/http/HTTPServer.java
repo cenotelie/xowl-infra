@@ -154,6 +154,11 @@ public class HTTPServer implements Closeable {
         if (server != null) {
             server.stop(configuration.getHttpStopTimeout());
             executorPool.shutdown();
+            try {
+                executorPool.awaitTermination(configuration.getHttpStopTimeout(), TimeUnit.SECONDS);
+            } catch (InterruptedException exception) {
+                // do nothing
+            }
         }
     }
 }

@@ -333,10 +333,14 @@ public abstract class ProtocolHandler {
      * @return The protocol reply
      */
     private ProtocolReply runAdmin(String command) {
-        if (command.equals("ADMIN SHUTDOWN"))
+        if (command.equals("ADMIN SHUTDOWN")) {
+            onExit();
             return controller.serverShutdown(user);
-        if (command.equals("ADMIN RESTART"))
+        }
+        if (command.equals("ADMIN RESTART")) {
+            onExit();
             return controller.serverRestart(user);
+        }
 
         if (command.equals("ADMIN LIST USERS"))
             return runAdminListUsers();
