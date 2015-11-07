@@ -20,7 +20,11 @@
 
 package org.xowl.server.db;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.InetAddress;
+import java.nio.charset.Charset;
 import java.util.Collections;
 
 /**
@@ -80,6 +84,8 @@ public abstract class ProtocolHandler {
                 return ProtocolReplyUnauthenticated.instance();
             return new ProtocolReplySuccess(user.getName());
         }
+        if (command.equals("HELP"))
+            return runHelp();
         if (command.startsWith("ADMIN "))
             return runAdmin(command);
         if (command.startsWith("SPARQL "))
@@ -100,6 +106,24 @@ public abstract class ProtocolHandler {
      * When the user requested to exit
      */
     protected abstract void onExit();
+
+    /**
+     * Runs the help command
+     */
+    private ProtocolReply runHelp() {
+        StringWriter writer = new StringWriter();
+        try (InputStream stream = ProtocolHandler.class.getResourceAsStream("/org/xowl/server/help")) {
+            byte[] buffer = new byte[1024];
+            int read = stream.read(buffer);
+            while (read > 0) {
+                writer.write(new String(buffer, 0, read, Charset.forName("UTF-8")));
+                read = stream.read(buffer);
+            }
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+        }
+        return new ProtocolReplySuccess(writer.toString());
+    }
 
     /**
      * Runs the authentication command
