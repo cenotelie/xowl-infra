@@ -62,7 +62,7 @@ class AdminHandler extends HandlerPart {
         switch (contentType) {
             case TYPE_ADMIN_SHUTDOWN: {
                 if (controller.isServerAdmin(user)) {
-                    controller.requestShutdown();
+                    controller.onRequestShutdown();
                     response(httpExchange, Utils.HTTP_CODE_OK, null);
                 } else {
                     response(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, null);
@@ -71,7 +71,7 @@ class AdminHandler extends HandlerPart {
             }
             case TYPE_ADMIN_RESTART: {
                 if (controller.isServerAdmin(user)) {
-                    controller.requestShutdown();
+                    controller.onRequestShutdown();
                     response(httpExchange, Utils.HTTP_CODE_OK, null);
                 } else {
                     response(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, null);

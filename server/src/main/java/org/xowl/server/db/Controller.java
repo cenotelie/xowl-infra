@@ -180,15 +180,15 @@ public abstract class Controller implements Closeable {
      * @param client   The client trying to login
      * @param login    The user to log in
      * @param password The user password
-     * @return The user of the login is successful, null otherwise
+     * @return The protocol reply, or null if the client is banned
      */
-    public User login(InetAddress client, String login, String password) {
+    public ProtocolReply login(InetAddress client, String login, String password) {
         if (isBanned(client))
             return null;
         if (login == null || login.isEmpty() || password == null || password.isEmpty()) {
-            onLoginFailure(client);
+            boolean banned = onLoginFailure(client);
             logger.info("Login failure for " + login + " from " + client.toString());
-            return null;
+            return banned ? null : ProtocolReplyFailure.instance();
         }
         String userIRI = Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
@@ -199,20 +199,28 @@ public abstract class Controller implements Closeable {
                 hash = (String) proxy.getDataValue(Schema.ADMIN_PASSWORD);
         }
         if (proxy == null) {
-            onLoginFailure(client);
+            boolean banned = onLoginFailure(client);
             logger.info("Login failure for " + login);
-            return null;
+            return banned ? null : ProtocolReplyFailure.instance();
         }
         if (!BCrypt.checkpw(password, hash)) {
-            onLoginFailure(client);
+            boolean banned = onLoginFailure(client);
             logger.info("Login failure for " + login);
-            return null;
+            return banned ? null : ProtocolReplyFailure.instance();
         } else {
             synchronized (clients) {
                 clients.remove(client);
             }
             logger.info("Login success for " + login);
-            return null;
+            User user;
+            synchronized (users) {
+                user = users.get(login);
+                if (user == null) {
+                    user = new User(proxy);
+                    users.put(login, user);
+                }
+            }
+            return new ProtocolReplyResult<>(user);
         }
     }
 
@@ -220,8 +228,9 @@ public abstract class Controller implements Closeable {
      * Handles a login failure from a client
      *
      * @param client The client trying to login
+     * @return Whether the failure resulted in the client being banned
      */
-    private void onLoginFailure(InetAddress client) {
+    private boolean onLoginFailure(InetAddress client) {
         synchronized (clients) {
             ClientLogin cl = clients.get(client);
             if (cl == null) {
@@ -233,7 +242,9 @@ public abstract class Controller implements Closeable {
                 // too much failure, ban this client for a while
                 logger.info("Banned client " + client.toString() + " for " + configuration.getSecurityBanLength() + " seconds");
                 cl.banTimeStamp = Calendar.getInstance().getTime().getTime();
+                return true;
             }
+            return false;
         }
     }
 
@@ -275,15 +286,47 @@ public abstract class Controller implements Closeable {
     }
 
     /**
+     * Requests the shutdown of the server
+     *
+     * @param client The requesting client
+     * @return The protocol reply
+     */
+    public ProtocolReply serverShutdown(User client) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (!checkIsServerAdmin(client))
+            return ProtocolReplyUnauthorized.instance();
+        onRequestShutdown();
+        return ProtocolReplySuccess.instance();
+    }
+
+    /**
+     * Requests the restart of the server
+     *
+     * @param client The requesting client
+     * @return The protocol reply
+     */
+    public ProtocolReply serverRestart(User client) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (!checkIsServerAdmin(client))
+            return ProtocolReplyUnauthorized.instance();
+        onRequestRestart();
+        return ProtocolReplySuccess.instance();
+    }
+
+    /**
      * Gets the user for the specified login
      *
      * @param client The client requesting the information
      * @param login  The user's login
-     * @return The user, or null if the information is not available
+     * @return The protocol reply
      */
-    public User getUser(User client, String login) {
+    public ProtocolReply getUser(User client, String login) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return null;
+            return ProtocolReplyUnauthorized.instance();
         String userIRI = Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
         String name = null;
@@ -293,25 +336,27 @@ public abstract class Controller implements Closeable {
                 name = (String) proxy.getDataValue(Schema.ADMIN_NAME);
         }
         if (proxy == null)
-            return null;
+            return new ProtocolReplyFailure("User does not exist");
         User result = users.get(name);
         if (result == null) {
             result = new User(proxy);
             users.put(name, result);
         }
-        return result;
+        return new ProtocolReplyResult<>(result);
     }
 
     /**
      * Gets the users on this server
      *
      * @param client The client requesting the information
-     * @return The users
+     * @return The protocol reply
      */
-    public List<User> getUsers(User client) {
-        List<User> result = new ArrayList<>();
+    public ProtocolReply getUsers(User client) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return result;
+            return ProtocolReplyUnauthorized.instance();
+        Collection<User> result = new ArrayList<>();
         synchronized (adminDB) {
             ProxyObject classUser = adminDB.repository.resolveProxy(Schema.ADMIN_USER);
             for (ProxyObject poUser : classUser.getInstances()) {
@@ -324,7 +369,7 @@ public abstract class Controller implements Closeable {
                 result.add(user);
             }
         }
-        return result;
+        return new ProtocolReplyResult<>(result);
     }
 
     /**
@@ -333,16 +378,19 @@ public abstract class Controller implements Closeable {
      * @param client   The requesting client
      * @param login    The login
      * @param password The password
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public User createUser(User client, String login, String password) {
+    public ProtocolReply createUser(User client, String login, String password) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return null;
+            return ProtocolReplyUnauthorized.instance();
         if (!login.matches("[_a-zA-Z0-9]+"))
-            return null;
+            return new ProtocolReplyFailure("Login does not meet requirements");
         if (password.length() < configuration.getSecurityMinPasswordLength())
-            return null;
-        return doCreateUser(login, password);
+            return new ProtocolReplyFailure("Password does not meet requirements");
+        User user = doCreateUser(login, password);
+        return new ProtocolReplyResult<>(user);
     }
 
     /**
@@ -377,11 +425,13 @@ public abstract class Controller implements Closeable {
      *
      * @param client   The requesting client
      * @param toDelete The user to delete
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean deleteUser(User client, User toDelete) {
+    public ProtocolReply deleteUser(User client, User toDelete) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return false;
+            return ProtocolReplyUnauthorized.instance();
         synchronized (users) {
             users.remove(toDelete.getName());
         }
@@ -389,7 +439,7 @@ public abstract class Controller implements Closeable {
             toDelete.proxy.delete();
             adminDB.repository.getStore().commit();
         }
-        return true;
+        return ProtocolReplySuccess.instance();
     }
 
     /**
@@ -397,17 +447,17 @@ public abstract class Controller implements Closeable {
      *
      * @param user     The user
      * @param password The new password
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean changePassword(User user, String password) {
+    public ProtocolReply changePassword(User user, String password) {
         if (password.length() < configuration.getSecurityMinPasswordLength())
-            return false;
+            return new ProtocolReplyFailure("Password does not meet requirements");
         synchronized (adminDB) {
             user.proxy.unset(Schema.ADMIN_PASSWORD);
             user.proxy.setValue(Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
             adminDB.repository.getStore().commit();
         }
-        return true;
+        return ProtocolReplySuccess.instance();
     }
 
     /**
@@ -416,10 +466,14 @@ public abstract class Controller implements Closeable {
      * @param client   The requesting client
      * @param target   The user for which the password should be changed
      * @param password The new password
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean resetPassword(User client, User target, String password) {
-        return checkIsServerAdmin(client) && changePassword(target, password);
+    public ProtocolReply resetPassword(User client, User target, String password) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (!checkIsServerAdmin(client))
+            return ProtocolReplyUnauthorized.instance();
+        return changePassword(target, password);
     }
 
     /**
@@ -427,10 +481,16 @@ public abstract class Controller implements Closeable {
      *
      * @param client The requesting client
      * @param target The target user
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean grantServerAdmin(User client, User target) {
-        return checkIsServerAdmin(client) && changeUserPrivilege(target.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF, true);
+    public ProtocolReply grantServerAdmin(User client, User target) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client)) {
+            boolean success = changeUserPrivilege(target.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF, true);
+            return success ? ProtocolReplySuccess.instance() : ProtocolReplyFailure.instance();
+        }
+        return ProtocolReplyUnauthorized.instance();
     }
 
     /**
@@ -438,10 +498,16 @@ public abstract class Controller implements Closeable {
      *
      * @param client The requesting client
      * @param target The target user
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean revokeServerAdmin(User client, User target) {
-        return checkIsServerAdmin(client) && changeUserPrivilege(target.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF, false);
+    public ProtocolReply revokeServerAdmin(User client, User target) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client)) {
+            boolean success = changeUserPrivilege(target.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF, false);
+            return success ? ProtocolReplySuccess.instance() : ProtocolReplyFailure.instance();
+        }
+        return ProtocolReplyUnauthorized.instance();
     }
 
     /**
@@ -450,10 +516,16 @@ public abstract class Controller implements Closeable {
      * @param client   The requesting client
      * @param user     The target user
      * @param database The database
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean grantDBAdmin(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_ADMINOF, true);
+    public ProtocolReply grantDBAdmin(User client, User user, Database database) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_ADMINOF, true);
+            return success ? ProtocolReplySuccess.instance() : ProtocolReplyFailure.instance();
+        }
+        return ProtocolReplyUnauthorized.instance();
     }
 
     /**
@@ -462,10 +534,16 @@ public abstract class Controller implements Closeable {
      * @param client   The requesting client
      * @param user     The target user
      * @param database The database
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean revokeDBAdmin(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_ADMINOF, false);
+    public ProtocolReply revokeDBAdmin(User client, User user, Database database) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_ADMINOF, false);
+            return success ? ProtocolReplySuccess.instance() : ProtocolReplyFailure.instance();
+        }
+        return ProtocolReplyUnauthorized.instance();
     }
 
     /**
@@ -474,10 +552,16 @@ public abstract class Controller implements Closeable {
      * @param client   The requesting client
      * @param user     The target user
      * @param database The database
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean grantDBRead(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANREAD, true);
+    public ProtocolReply grantDBRead(User client, User user, Database database) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANREAD, true);
+            return success ? ProtocolReplySuccess.instance() : ProtocolReplyFailure.instance();
+        }
+        return ProtocolReplyUnauthorized.instance();
     }
 
     /**
@@ -486,10 +570,16 @@ public abstract class Controller implements Closeable {
      * @param client   The requesting client
      * @param user     The target user
      * @param database The database
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean revokeDBRead(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANREAD, false);
+    public ProtocolReply revokeDBRead(User client, User user, Database database) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANREAD, false);
+            return success ? ProtocolReplySuccess.instance() : ProtocolReplyFailure.instance();
+        }
+        return ProtocolReplyUnauthorized.instance();
     }
 
 
@@ -499,10 +589,16 @@ public abstract class Controller implements Closeable {
      * @param client   The requesting client
      * @param user     The target user
      * @param database The database
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean grantDBWrite(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANWRITE, true);
+    public ProtocolReply grantDBWrite(User client, User user, Database database) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANWRITE, true);
+            return success ? ProtocolReplySuccess.instance() : ProtocolReplyFailure.instance();
+        }
+        return ProtocolReplyUnauthorized.instance();
     }
 
     /**
@@ -511,10 +607,16 @@ public abstract class Controller implements Closeable {
      * @param client   The requesting client
      * @param user     The target user
      * @param database The database
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean revokeDBWrite(User client, User user, Database database) {
-        return (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) && changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANWRITE, false);
+    public ProtocolReply revokeDBWrite(User client, User user, Database database) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANWRITE, false);
+            return success ? ProtocolReplySuccess.instance() : ProtocolReplyFailure.instance();
+        }
+        return ProtocolReplyUnauthorized.instance();
     }
 
     /**
@@ -548,34 +650,38 @@ public abstract class Controller implements Closeable {
      *
      * @param client The requesting client
      * @param name   The name of a database
-     * @return The database for the specified name
+     * @return The protocol reply
      */
-    public Database getDatabase(User client, String name) {
+    public ProtocolReply getDatabase(User client, String name) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
         Database database;
         synchronized (databases) {
             database = databases.get(name);
         }
         if (database == null)
-            return null;
+            return ProtocolReplyFailure.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, database)
                 || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)
                 || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE))
-            return database;
-        return null;
+            return new ProtocolReplyResult<>(database);
+        return ProtocolReplyUnauthorized.instance();
     }
 
     /**
      * Gets the databases on this server
      *
      * @param client The requesting client
-     * @return The databases
+     * @return The protocol reply
      */
-    public List<Database> getDatabases(User client) {
-        List<Database> result = new ArrayList<>();
+    public ProtocolReply getDatabases(User client) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        Collection<Database> result = new ArrayList<>();
         if (checkIsServerAdmin(client)) {
             result.addAll(databases.values());
-            return result;
+            return new ProtocolReplyResult<>(result);
         }
         synchronized (databases) {
             for (Database database : databases.values()) {
@@ -586,7 +692,7 @@ public abstract class Controller implements Closeable {
                     result.add(database);
             }
         }
-        return result;
+        return new ProtocolReplyResult<>(result);
     }
 
     /**
@@ -594,13 +700,15 @@ public abstract class Controller implements Closeable {
      *
      * @param client The requesting client
      * @param name   The name of the database
-     * @return The created database
+     * @return The protocol reply
      */
-    public Database createDatabase(User client, String name) {
+    public ProtocolReply createDatabase(User client, String name) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
-            return null;
+            return ProtocolReplyUnauthorized.instance();
         if (!name.matches("[_a-zA-Z0-9]+"))
-            return null;
+            return new ProtocolReplyFailure("Database name does not match requirements");
 
         synchronized (databases) {
             Database result = databases.get(name);
@@ -615,9 +723,9 @@ public abstract class Controller implements Closeable {
                 result = new Database(folder, proxy);
                 adminDB.repository.getStore().commit();
                 databases.put(name, result);
-                return result;
+                return ProtocolReplySuccess.instance();
             } catch (IOException exception) {
-                return null;
+                return ProtocolReplyFailure.instance();
             }
         }
     }
@@ -627,13 +735,15 @@ public abstract class Controller implements Closeable {
      *
      * @param client   The requesting client
      * @param database The database to drop
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    public boolean dropDatabase(User client, Database database) {
+    public ProtocolReply dropDatabase(User client, Database database) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
         if (database == adminDB)
-            return false;
+            return ProtocolReplyFailure.instance();
         if (!checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
-            return false;
+            return ProtocolReplyUnauthorized.instance();
         synchronized (databases) {
             databases.remove(database.getName());
             File folder = new File((String) database.proxy.getDataValue(Schema.ADMIN_LOCATION));
@@ -645,7 +755,7 @@ public abstract class Controller implements Closeable {
             database.proxy.delete();
             adminDB.repository.getStore().commit();
         }
-        return true;
+        return ProtocolReplySuccess.instance();
     }
 
     @Override
@@ -667,10 +777,10 @@ public abstract class Controller implements Closeable {
     /**
      * Request the server to shutdown
      */
-    public abstract void requestShutdown();
+    protected abstract void onRequestShutdown();
 
     /**
      * Request the server to restart
      */
-    public abstract void requestRestart();
+    protected abstract void onRequestRestart();
 }

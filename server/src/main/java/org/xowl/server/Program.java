@@ -71,12 +71,12 @@ public class Program {
             controller = new Controller(configuration) {
 
                 @Override
-                public void requestShutdown() {
+                public void onRequestShutdown() {
                     shouldStop = true;
                 }
 
                 @Override
-                public void requestRestart() {
+                public void onRequestRestart() {
                     shouldStop = true;
                 }
             };
