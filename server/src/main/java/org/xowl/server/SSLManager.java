@@ -31,7 +31,7 @@ import java.security.cert.CertificateException;
 import java.util.Scanner;
 
 /**
- * New code
+ * API for the management of SSL/TLS keys
  *
  * @author Laurent Wouters
  */
