@@ -112,7 +112,7 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
         }
 
         if (Objects.equals(method, "GET")) {
-            if (database != null) {
+            if (database == null) {
                 serveResource(resource);
             } else {
                 onGetSPARQL(database);
@@ -253,7 +253,7 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
                 response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Not implemented");
                 break;
             case XOWL_TYPE_COMMAND:
-                onPostCommand(database, body);
+                onPostCommand(body);
                 break;
         }
     }
@@ -275,10 +275,9 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
     /**
      * Answer to a XSP command on a POST method
      *
-     * @param database The target database
-     * @param body     The request body
+     * @param body The request body
      */
-    private void onPostCommand(Database database, String body) {
+    private void onPostCommand(String body) {
         ProtocolReply reply = execute(body);
         response(reply);
     }
@@ -351,7 +350,7 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
             }
             response(HttpURLConnection.HTTP_OK, builder.toString());
         } else if (data instanceof Result) {
-            Result sparqlResult = ((ProtocolReplyResult<Result>) reply).getData();
+            Result sparqlResult = (Result) data;
             StringWriter writer = new StringWriter();
             try {
                 sparqlResult.print(writer, Utils.coerceContentType(sparqlResult, resultType));
