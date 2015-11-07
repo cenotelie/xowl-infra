@@ -25,6 +25,10 @@ import org.xowl.server.db.Controller;
 import org.xowl.server.db.ProtocolHandler;
 import org.xowl.server.db.ProtocolReply;
 import org.xowl.server.db.ProtocolReplyResult;
+import org.xowl.store.AbstractRepository;
+import org.xowl.store.sparql.Result;
+import org.xowl.store.sparql.ResultQuads;
+import org.xowl.store.sparql.ResultSolutions;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -131,6 +135,21 @@ class Connection extends ProtocolHandler implements Runnable {
                 if (data instanceof Collection) {
                     for (Object element : (Collection) data)
                         send(element.toString());
+                } else if (data instanceof Result) {
+                    Result sparqlResult = (Result) data;
+                    if (sparqlResult instanceof ResultQuads) {
+                        StringWriter writer = new StringWriter();
+                        sparqlResult.print(writer, AbstractRepository.SYNTAX_NQUADS);
+                        send(writer.toString());
+                    } else if (sparqlResult instanceof ResultSolutions) {
+                        StringWriter writer = new StringWriter();
+                        sparqlResult.print(writer, Result.SYNTAX_JSON);
+                        send(writer.toString());
+                    } else {
+                        StringWriter writer = new StringWriter();
+                        sparqlResult.print(writer, Result.SYNTAX_CSV);
+                        send(writer.toString());
+                    }
                 } else {
                     send(data.toString());
                 }

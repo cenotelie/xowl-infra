@@ -23,6 +23,7 @@ package org.xowl.server;
 import org.xowl.server.db.Controller;
 import org.xowl.server.http.HTTPServer;
 import org.xowl.server.xp.XPServer;
+import org.xowl.utils.BufferedLogger;
 
 import java.io.IOException;
 
@@ -113,5 +114,20 @@ public class Program {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+    }
+
+    /**
+     * Gets the content of the log
+     *
+     * @param logger The logger
+     * @return The content of the log
+     */
+    public static String getLog(BufferedLogger logger) {
+        StringBuilder builder = new StringBuilder();
+        for (Object error : logger.getErrorMessages()) {
+            builder.append(error.toString());
+            builder.append("\n");
+        }
+        return builder.toString();
     }
 }

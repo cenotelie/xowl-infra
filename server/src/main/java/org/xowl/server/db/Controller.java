@@ -21,15 +21,23 @@
 package org.xowl.server.db;
 
 import org.mindrot.jbcrypt.BCrypt;
+import org.xowl.server.Program;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Vocabulary;
+import org.xowl.store.loaders.SPARQLLoader;
+import org.xowl.store.sparql.Command;
+import org.xowl.store.sparql.Result;
+import org.xowl.store.sparql.ResultSuccess;
+import org.xowl.utils.BufferedLogger;
 import org.xowl.utils.ConsoleLogger;
+import org.xowl.utils.DispatchLogger;
 import org.xowl.utils.Logger;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.util.*;
@@ -152,7 +160,7 @@ public abstract class Controller implements Closeable {
      * Gets whether a client is banned
      *
      * @param client A client
-     * @return Wether the client is banned
+     * @return Whether the client is banned
      */
     public boolean isBanned(InetAddress client) {
         synchronized (clients) {
@@ -756,6 +764,43 @@ public abstract class Controller implements Closeable {
             adminDB.repository.getStore().commit();
         }
         return ProtocolReplySuccess.instance();
+    }
+
+    /**
+     * Executes a SPARQL command
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param sparql   The SPARQL command
+     * @return The protocol reply
+     */
+    public ProtocolReply sparql(User client, Database database, String sparql) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (!checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, database)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD))
+            return ProtocolReplyUnauthorized.instance();
+
+
+        BufferedLogger bufferedLogger = new BufferedLogger();
+        DispatchLogger dispatchLogger = new DispatchLogger(database.logger, bufferedLogger);
+        SPARQLLoader loader = new SPARQLLoader(database.repository.getStore(), Collections.<String>emptyList(), Collections.<String>emptyList());
+        List<Command> commands = loader.load(dispatchLogger, new StringReader(sparql));
+        if (commands == null) {
+            // ill-formed request
+            dispatchLogger.error("Failed to parse and load the request");
+            return new ProtocolReplyFailure(Program.getLog(bufferedLogger));
+        }
+        Result result = ResultSuccess.INSTANCE;
+        for (Command command : commands) {
+            result = command.execute(database.repository);
+            if (result.isFailure()) {
+                break;
+            }
+        }
+        return new ProtocolReplyResult<>(result);
     }
 
     @Override

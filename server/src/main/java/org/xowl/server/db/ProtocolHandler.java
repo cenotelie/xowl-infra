@@ -81,6 +81,8 @@ public abstract class ProtocolHandler {
         }
         if (command.startsWith("ADMIN "))
             return runAdmin(command);
+        if (command.startsWith("SPARQL "))
+            return runSPARQL(command);
         return new ProtocolReplyFailure("UNRECOGNIZED COMMAND");
     }
 
@@ -98,6 +100,7 @@ public abstract class ProtocolHandler {
 
     /**
      * Runs the authentication command
+     * Expected command line: AUTH login password
      *
      * @param line the authentication command
      * @return The protocol reply
@@ -115,10 +118,30 @@ public abstract class ProtocolHandler {
             return null;
         }
         if (result.isSuccess()) {
-            user = ((ProtocolReplyResult<User>)result).getData();
+            user = ((ProtocolReplyResult<User>) result).getData();
             return ProtocolReplySuccess.instance();
         }
         return result;
+    }
+
+    /**
+     * Runs a SPARQL command
+     * Expected command line: SPARQL database command
+     *
+     * @param line The command line
+     * @return The protocol reply
+     */
+    private ProtocolReply runSPARQL(String line) {
+        line = line.substring("SPARQL ".length());
+        int index = line.indexOf(' ');
+        if (index == -1)
+            return new ProtocolReplyFailure("INVALID COMMAND");
+        String dbName = line.substring(0, index);
+        String sparql = line.substring(index + 1);
+        ProtocolReply database = controller.getDatabase(user, dbName);
+        if (!database.isSuccess())
+            return database;
+        return controller.sparql(user, ((ProtocolReplyResult<Database>) database).getData(), sparql);
     }
 
     /**
