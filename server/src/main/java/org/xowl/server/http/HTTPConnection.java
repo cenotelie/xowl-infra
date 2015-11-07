@@ -105,7 +105,7 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
             }
             ProtocolReply dbReply = controller.getDatabase(user, dbName);
             if (!dbReply.isSuccess()) {
-                response(HttpURLConnection.HTTP_FORBIDDEN, null);
+                response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
                 return;
             }
             database = ((ProtocolReplyResult<Database>) dbReply).getData();
@@ -312,7 +312,7 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
     private void response(ProtocolReply reply) {
         if (reply == null) {
             // client got banned
-            response(HttpURLConnection.HTTP_FORBIDDEN, null);
+            response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
             return;
         }
         if (reply instanceof ProtocolReplyUnauthenticated) {
@@ -320,7 +320,7 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
             return;
         }
         if (reply instanceof ProtocolReplyUnauthorized) {
-            response(HttpURLConnection.HTTP_FORBIDDEN, null);
+            response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
             return;
         }
         if (reply instanceof ProtocolReplyFailure) {
