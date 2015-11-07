@@ -22,7 +22,7 @@ package org.xowl.server.xp;
 
 import org.xowl.server.ServerConfiguration;
 import org.xowl.server.db.Controller;
-import org.xowl.server.ssl.SSLManager;
+import org.xowl.server.SSLManager;
 import org.xowl.utils.collections.Couple;
 
 import javax.net.ssl.*;
