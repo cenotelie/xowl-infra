@@ -94,7 +94,7 @@ public class ConfigurationGenerator {
             writer.append(System.lineSeparator());
             writer.append("public class " + name + "{" + System.lineSeparator());
             for (String property : properties) {
-                List<String> values = config.getValues(property);
+                List<String> values = config.getAll(property);
                 if (values.size() == 1) {
                     writer.append("    public String " + property.replace(".", "_") + ";" + System.lineSeparator());
                 } else {
@@ -103,28 +103,28 @@ public class ConfigurationGenerator {
             }
             writer.append("    public " + name + "() {" + System.lineSeparator());
             for (String property : properties) {
-                List<String> values = config.getValues(property);
+                List<String> values = config.getAll(property);
                 if (values.size() != 1)
                     writer.append("        " + property.replace(".", "_") + " = new ArrayList<String>();" + System.lineSeparator());
             }
             writer.append("    }" + System.lineSeparator());
             writer.append("    public " + name + "(Configuration config) {" + System.lineSeparator());
             for (String property : properties) {
-                List<String> values = config.getValues(property);
+                List<String> values = config.getAll(property);
                 if (values.size() == 1) {
-                    writer.append("        " + property.replace(".", "_") + " = config.getValue(\"" + property + "\");" + System.lineSeparator());
+                    writer.append("        " + property.replace(".", "_") + " = config.get(\"" + property + "\");" + System.lineSeparator());
                 } else {
-                    writer.append("        " + property.replace(".", "_") + " = config.getValues(\"" + property + "\");" + System.lineSeparator());
+                    writer.append("        " + property.replace(".", "_") + " = config.getAll(\"" + property + "\");" + System.lineSeparator());
                 }
             }
             writer.append("    }" + System.lineSeparator());
             writer.append("    public void save(Configuration config) {" + System.lineSeparator());
             for (String property : properties) {
-                List<String> values = config.getValues(property);
+                List<String> values = config.getAll(property);
                 if (values.size() == 1) {
-                    writer.append("        config.addValue(null, \"" + property + "\", " + property.replace(".", "_") + ");" + System.lineSeparator());
+                    writer.append("        config.add(null, \"" + property + "\", " + property.replace(".", "_") + ");" + System.lineSeparator());
                 } else {
-                    writer.append("        for (String value : " + property.replace(".", "_") + ") config.addValue(null, \"" + property + "\", value);" + System.lineSeparator());
+                    writer.append("        for (String value : " + property.replace(".", "_") + ") config.add(null, \"" + property + "\", value);" + System.lineSeparator());
                 }
             }
             writer.append("    }" + System.lineSeparator());

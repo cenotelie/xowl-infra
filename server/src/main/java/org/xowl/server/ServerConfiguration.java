@@ -88,10 +88,10 @@ public class ServerConfiguration {
      * @return The associated value
      */
     private String getValue(String section, String property) {
-        String result = confFile.getValue(section, property);
+        String result = confFile.get(section, property);
         if (result != null)
             return result;
-        return confDefault.getValue(section, property);
+        return confDefault.get(section, property);
     }
 
     /**
@@ -285,8 +285,8 @@ public class ServerConfiguration {
      * @param password the password to the key store
      */
     public void setupKeyStore(String location, String password) {
-        confFile.addValue("security", "keyStore", location);
-        confFile.addValue("security", "keyStorePassword", password);
+        confFile.add("security", "keyStore", location);
+        confFile.add("security", "keyStorePassword", password);
         try {
             confFile.save(new File(root, FILE_NAME).getAbsolutePath(), Charset.forName("UTF-8"));
         } catch (IOException exception) {
