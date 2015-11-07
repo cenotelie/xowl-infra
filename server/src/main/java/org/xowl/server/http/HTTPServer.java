@@ -106,7 +106,12 @@ public class HTTPServer implements Closeable {
         }
         if (temp != null && sslContext != null) {
             server = temp;
-            server.createContext("/", new TopHandler(controller)).setAuthenticator(new Authenticator(controller, configuration.getSecurityRealm()));
+            server.createContext("/", new HttpHandler() {
+                @Override
+                public void handle(HttpExchange httpExchange) throws IOException {
+                    ((new HTTPConnection(controller, httpExchange))).run();
+                }
+            }).setAuthenticator(new Authenticator(controller, configuration.getSecurityRealm()));
             server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
                 @Override
                 public void configure(HttpsParameters params) {
@@ -150,6 +155,5 @@ public class HTTPServer implements Closeable {
             server.stop(configuration.getHttpStopTimeout());
             executorPool.shutdown();
         }
-
     }
 }

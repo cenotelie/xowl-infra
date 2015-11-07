@@ -43,31 +43,6 @@ import java.util.*;
  */
 class Utils {
     /**
-     * HTTP header for a user token
-     */
-    public static final String HEADER_DATABASE = "X-XOWL-Database";
-    /**
-     * HTTP response code on OK
-     */
-    public static final int HTTP_CODE_OK = 200;
-    /**
-     * HTTP response code on unauthorized access
-     */
-    public static final int HTTP_CODE_UNAUTHORIZED = 401;
-    /**
-     * HTTP response code on resource not found
-     */
-    public static final int HTTP_CODE_NOT_FOUND = 404;
-    /**
-     * HTTP response code on a protocol error
-     */
-    public static final int HTTP_CODE_PROTOCOL_ERROR = 400;
-    /**
-     * HTTP response code on an internal error
-     */
-    public static final int HTTP_CODE_INTERNAL_ERROR = 500;
-
-    /**
      * Gets the request body of the specified request
      *
      * @param exchange The exchange

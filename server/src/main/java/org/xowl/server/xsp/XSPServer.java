@@ -143,7 +143,7 @@ public class XSPServer implements Closeable {
         while (true) {
             try {
                 Socket socket = this.socket.accept();
-                Connection connection = new Connection(configuration, controller, socket);
+                XSPConnection connection = new XSPConnection(configuration, controller, socket);
                 executorPool.execute(connection);
             } catch (IOException exception) {
                 break;

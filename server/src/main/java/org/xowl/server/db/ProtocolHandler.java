@@ -207,7 +207,7 @@ public abstract class ProtocolHandler {
      * @param database The active database
      * @return The protocol reply
      */
-    public ProtocolReply runDBSetEntailment(Database database, String line) {
+    private ProtocolReply runDBSetEntailment(Database database, String line) {
         String regime = line.substring("ENTAILMENT ".length());
         return controller.dbSetEntailmentRegime(user, database, regime);
     }
@@ -219,7 +219,7 @@ public abstract class ProtocolHandler {
      * @param database The active database
      * @return The protocol reply
      */
-    public ProtocolReply runDBListRules(Database database) {
+    private ProtocolReply runDBListRules(Database database) {
         return controller.dbListAllRules(user, database);
     }
 
@@ -230,7 +230,7 @@ public abstract class ProtocolHandler {
      * @param database The active database
      * @return The protocol reply
      */
-    public ProtocolReply runDBListActiveRules(Database database) {
+    private ProtocolReply runDBListActiveRules(Database database) {
         return controller.dbListActiveRules(user, database);
     }
 
@@ -242,7 +242,7 @@ public abstract class ProtocolHandler {
      * @param line     The command line
      * @return The protocol reply
      */
-    public ProtocolReply runDBAddRule(Database database, String line) {
+    private ProtocolReply runDBAddRule(Database database, String line) {
         String content = line.substring("ADD RULE ".length());
         return controller.dbAddRule(user, database, content, false);
     }
@@ -255,7 +255,7 @@ public abstract class ProtocolHandler {
      * @param line     The command line
      * @return The protocol reply
      */
-    public ProtocolReply runDBRemoveRule(Database database, String line) {
+    private ProtocolReply runDBRemoveRule(Database database, String line) {
         String rule = line.substring("REMOVE RULE ".length());
         return controller.dbRemoveRule(user, database, rule);
     }
@@ -268,7 +268,7 @@ public abstract class ProtocolHandler {
      * @param line     The command line
      * @return The protocol reply
      */
-    public ProtocolReply runDBActivateRule(Database database, String line) {
+    private ProtocolReply runDBActivateRule(Database database, String line) {
         String rule = line.substring("ACTIVATE ".length());
         return controller.dbActivateRule(user, database, rule);
     }
@@ -281,7 +281,7 @@ public abstract class ProtocolHandler {
      * @param line     The command line
      * @return The protocol reply
      */
-    public ProtocolReply runDBDeactivateRule(Database database, String line) {
+    private ProtocolReply runDBDeactivateRule(Database database, String line) {
         String rule = line.substring("DEACTIVATE ".length());
         return controller.dbDeactivateRule(user, database, rule);
     }
@@ -294,7 +294,7 @@ public abstract class ProtocolHandler {
      * @param line     The command line
      * @return The protocol reply
      */
-    public ProtocolReply runDBIsActiveRule(Database database, String line) {
+    private ProtocolReply runDBIsActiveRule(Database database, String line) {
         String rule = line.substring("IS ACTIVE ".length());
         return controller.dbIsRuleActive(user, database, rule);
     }
@@ -307,7 +307,7 @@ public abstract class ProtocolHandler {
      * @param line     The command line
      * @return The protocol reply
      */
-    public ProtocolReply runDBGetRuleStatus(Database database, String line) {
+    private ProtocolReply runDBGetRuleStatus(Database database, String line) {
         String rule = line.substring("STATUS ".length());
         return controller.dbGetRuleStatus(user, database, rule);
     }
@@ -320,7 +320,7 @@ public abstract class ProtocolHandler {
      * @param line     The command line
      * @return The protocol reply
      */
-    public ProtocolReply runDBGetExplanation(Database database, String line) {
+    private ProtocolReply runDBGetExplanation(Database database, String line) {
         String quad = line.substring("EXPLAIN ".length());
         return controller.dbGetQuadExplanation(user, database, quad);
     }

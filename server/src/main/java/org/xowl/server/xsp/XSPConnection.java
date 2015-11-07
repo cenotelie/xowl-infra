@@ -42,7 +42,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-class Connection extends ProtocolHandler implements Runnable {
+class XSPConnection extends ProtocolHandler implements Runnable {
     /**
      * The current configuration
      */
@@ -70,7 +70,7 @@ class Connection extends ProtocolHandler implements Runnable {
      * @param controller The current controller
      * @param socket     The socket for the this connection
      */
-    public Connection(ServerConfiguration configuration, Controller controller, Socket socket) {
+    public XSPConnection(ServerConfiguration configuration, Controller controller, Socket socket) {
         super(controller);
         this.configuration = configuration;
         this.socket = socket;

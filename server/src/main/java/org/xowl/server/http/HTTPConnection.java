@@ -20,83 +20,100 @@
 
 package org.xowl.server.http;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.server.db.Controller;
-import org.xowl.server.db.Database;
-import org.xowl.server.db.User;
-import org.xowl.store.loaders.SPARQLLoader;
-import org.xowl.store.sparql.Command;
-import org.xowl.store.sparql.Result;
-import org.xowl.store.sparql.ResultFailure;
-import org.xowl.utils.BufferedLogger;
-import org.xowl.utils.DispatchLogger;
+import org.xowl.server.db.ProtocolHandler;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.nio.charset.Charset;
+import java.util.Objects;
 
 /**
- * Implements the SPARQL protocol
- * (See <a href="http://www.w3.org/TR/2013/REC-sparql11-protocol-20130321/">SPARQL Protocol</a>)
- * This service does NOT handle any security concern.
+ * Represents an active connection to the HTTP server
  *
  * @author Laurent Wouters
  */
-class SPARQLHandler extends HandlerPart {
+class HTTPConnection extends ProtocolHandler implements Runnable {
     /**
-     * The content type for a URL encoded message body
+     * The content type for a SPARQL URL encoded message body
      */
-    public static final String TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
+    public static final String SPARQL_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
     /**
      * The content type for a SPARQL query in a message body
      */
-    public static final String TYPE_SPARQL_QUERY = "application/sparql-query";
+    public static final String SPARQL_TYPE_SPARQL_QUERY = "application/sparql-query";
     /**
      * The content type for a SPARQL update in a message body
      */
-    public static final String TYPE_SPARQL_UPDATE = "application/sparql-update";
+    public static final String SPARQL_TYPE_SPARQL_UPDATE = "application/sparql-update";
+    /**
+     * The content type for a xOWL XSP command
+     */
+    public static final String XOWL_TYPE_COMMAND = "application/x-xowl-xsp";
 
     /**
-     * Initializes this handler
-     *
-     * @param controller The top controller
+     * The HTTP exchange to treat
      */
-    public SPARQLHandler(Controller controller) {
+    private final HttpExchange httpExchange;
+
+    /**
+     * Initializes this connection
+     *
+     * @param controller The current controller
+     * @param exchange   The HTTP exchange to treat
+     */
+    public HTTPConnection(Controller controller, HttpExchange exchange) {
         super(controller);
+        this.httpExchange = exchange;
     }
 
     @Override
-    public void handle(HttpExchange httpExchange, String method, String contentType, String body, User user, Database database) {
-        if (controller.canWrite(user, database) || controller.isServerAdmin(user)) {
-            switch (method) {
-                case "GET":
-                    onGet(httpExchange, contentType, body, user, database);
-                    break;
-                case "POST":
-                    onPost(httpExchange, contentType, body, user, database);
-                    break;
-                default:
-                    response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Cannot handle this request");
-                    break;
-            }
-        } else {
-            response(httpExchange, Utils.HTTP_CODE_UNAUTHORIZED, null);
+    public void run() {
+        String method = httpExchange.getRequestMethod();
+        if (Objects.equals(method, "OPTIONS")) {
+            // assume a pre-flight CORS request
+            response(HttpURLConnection.HTTP_OK, null);
+            return;
         }
+
+        user = controller.user(httpExchange.getPrincipal().getUsername());
+        if (user == null) {
+            // should not happen ...
+            httpExchange.getResponseHeaders().add("WWW-Authenticate", "Basic realm=\"" + controller.getConfiguration().getSecurityRealm() + "\"");
+            response(HttpURLConnection.HTTP_UNAUTHORIZED, "Failed to login");
+            return;
+        }
+
+        Headers rHeaders = httpExchange.getRequestHeaders();
+        String contentType = Utils.getRequestContentType(rHeaders);
+        String body;
+        try {
+            body = Utils.getRequestBody(httpExchange);
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+            response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Failed to read the body");
+            return;
+        }
+
+
     }
 
-    /**
-     * Handles a GET request on a SPARQL endpoint
-     *
-     * @param httpExchange The HTTP exchange
-     * @param contentType  The content type for the request body
-     * @param body         The request body
-     * @param user         The current user
-     * @param database     The current database
-     */
+    @Override
+    protected InetAddress getClient() {
+        return httpExchange.getRemoteAddress().getAddress();
+    }
+
+    @Override
+    protected void onExit() {
+        // do nothing
+    }
+
+
+    /*
     private void onGet(HttpExchange httpExchange, String contentType, String body, User user, Database database) {
         Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
         List<String> vQuery = params.get("query");
@@ -124,15 +141,6 @@ class SPARQLHandler extends HandlerPart {
         }
     }
 
-    /**
-     * Handles a POST request on a SPARQL endpoint
-     *
-     * @param httpExchange The HTTP exchange
-     * @param contentType  The content type for the request body
-     * @param body         The request body
-     * @param user         The current user
-     * @param database     The current database
-     */
     private void onPost(HttpExchange httpExchange, String contentType, String body, User user, Database database) {
         Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
         List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
@@ -158,16 +166,6 @@ class SPARQLHandler extends HandlerPart {
         }
     }
 
-    /**
-     * Executes a SPARQL request
-     *
-     * @param httpExchange The response to write to
-     * @param body         The request body
-     * @param defaultIRIs  The context's default IRIs
-     * @param namedIRIs    The context's named IRIs
-     * @param contentType  The negotiated content type for the response
-     * @param database     The active database
-     */
     private void executeSPARQL(HttpExchange httpExchange, String body, Collection<String> defaultIRIs, Collection<String> namedIRIs, String contentType, Database database) {
         BufferedLogger bufferedLogger = new BufferedLogger();
         DispatchLogger dispatchLogger = new DispatchLogger(database.getLogger(), bufferedLogger);
@@ -197,5 +195,30 @@ class SPARQLHandler extends HandlerPart {
                 httpExchange,
                 result.isFailure() ? Utils.HTTP_CODE_INTERNAL_ERROR : Utils.HTTP_CODE_OK,
                 writer.toString());
+    }
+
+    */
+
+
+    /**
+     * Ends the current exchange with the specified message and response code
+     *
+     * @param code    The http code
+     * @param message The response body message
+     */
+    private void response(int code, String message) {
+        byte[] buffer = message != null ? message.getBytes(Charset.forName("UTF-8")) : new byte[0];
+        Headers headers = httpExchange.getResponseHeaders();
+        Utils.enableCORS(headers);
+        try {
+            httpExchange.sendResponseHeaders(code, buffer.length);
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+        }
+        try (OutputStream stream = httpExchange.getResponseBody()) {
+            stream.write(buffer);
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+        }
     }
 }

@@ -107,6 +107,16 @@ public abstract class Controller implements Closeable {
     }
 
     /**
+     * Resolves the user for the specified login
+     *
+     * @param login A login
+     * @return The user
+     */
+    public User user(String login) {
+        return users.get(login);
+    }
+
+    /**
      * Initializes this controller
      *
      * @param configuration The current configuration
