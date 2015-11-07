@@ -21,6 +21,7 @@
 package org.xowl.server.db;
 
 import java.net.InetAddress;
+import java.util.Collections;
 
 /**
  * Implements the xOWL Server Protocol
@@ -143,7 +144,7 @@ public abstract class ProtocolHandler {
         ProtocolReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.sparql(user, ((ProtocolReplyResult<Database>) database).getData(), sparql);
+        return controller.sparql(user, ((ProtocolReplyResult<Database>) database).getData(), sparql, Collections.<String>emptyList(), Collections.<String>emptyList());
     }
 
     /**

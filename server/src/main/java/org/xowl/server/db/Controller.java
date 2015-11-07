@@ -426,7 +426,7 @@ public abstract class Controller implements Closeable {
         ProxyObject proxy;
         synchronized (adminDB) {
             proxy = adminDB.repository.getProxy(userIRI);
-            if (proxy == null)
+            if (proxy != null)
                 return null;
             proxy = adminDB.repository.resolveProxy(userIRI);
             proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(Schema.ADMIN_USER));
@@ -782,12 +782,14 @@ public abstract class Controller implements Closeable {
     /**
      * Executes a SPARQL command
      *
-     * @param client   The requesting client
-     * @param database The target database
-     * @param sparql   The SPARQL command
+     * @param client      The requesting client
+     * @param database    The target database
+     * @param sparql      The SPARQL command
+     * @param defaultIRIs The context's default IRIs
+     * @param namedIRIs   The context's named IRIs
      * @return The protocol reply
      */
-    public ProtocolReply sparql(User client, Database database, String sparql) {
+    public ProtocolReply sparql(User client, Database database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         if (client == null)
             return ProtocolReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client)
@@ -796,7 +798,7 @@ public abstract class Controller implements Closeable {
                 || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
             BufferedLogger bufferedLogger = new BufferedLogger();
             DispatchLogger dispatchLogger = new DispatchLogger(database.logger, bufferedLogger);
-            SPARQLLoader loader = new SPARQLLoader(database.repository.getStore(), Collections.<String>emptyList(), Collections.<String>emptyList());
+            SPARQLLoader loader = new SPARQLLoader(database.repository.getStore(), defaultIRIs, namedIRIs);
             List<Command> commands = loader.load(dispatchLogger, new StringReader(sparql));
             if (commands == null) {
                 // ill-formed request

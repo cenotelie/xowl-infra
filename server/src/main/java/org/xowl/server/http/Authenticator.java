@@ -27,6 +27,7 @@ import com.sun.net.httpserver.HttpPrincipal;
 import org.xowl.server.db.Controller;
 import org.xowl.server.db.ProtocolReply;
 
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.util.Base64;
 
@@ -66,7 +67,7 @@ class Authenticator extends BasicAuthenticator {
             } else {
                 Headers responseHeaders = httpExchange.getResponseHeaders();
                 responseHeaders.set("WWW-Authenticate", "Basic realm=\"" + this.realm + "\"");
-                return new Failure(401);
+                return new Failure(HttpURLConnection.HTTP_UNAUTHORIZED);
             }
         } else {
             int index = headerAuth.indexOf(32);
@@ -81,10 +82,10 @@ class Authenticator extends BasicAuthenticator {
                 } else {
                     Headers responseHeaders = httpExchange.getResponseHeaders();
                     responseHeaders.set("WWW-Authenticate", "Basic realm=\"" + this.realm + "\"");
-                    return new Failure(401);
+                    return new Failure(HttpURLConnection.HTTP_UNAUTHORIZED);
                 }
             } else {
-                return new Failure(401);
+                return new Failure(HttpURLConnection.HTTP_UNAUTHORIZED);
             }
         }
     }

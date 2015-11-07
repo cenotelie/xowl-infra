@@ -22,14 +22,20 @@ package org.xowl.server.http;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
-import org.xowl.server.db.Controller;
-import org.xowl.server.db.ProtocolHandler;
+import org.xowl.server.db.*;
+import org.xowl.store.IOUtils;
+import org.xowl.store.rdf.RuleExplanation;
+import org.xowl.store.rete.MatchStatus;
+import org.xowl.store.sparql.Result;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -88,18 +94,36 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
             return;
         }
 
-        Headers rHeaders = httpExchange.getRequestHeaders();
-        String contentType = Utils.getRequestContentType(rHeaders);
-        String body;
-        try {
-            body = Utils.getRequestBody(httpExchange);
-        } catch (IOException exception) {
-            controller.getLogger().error(exception);
-            response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Failed to read the body");
+        String resource = httpExchange.getRequestURI().getPath().substring(1);
+        Database database = null;
+        if (resource.startsWith("db/")) {
+            // requesting a specified database
+            String dbName = resource.substring(3);
+            int index = dbName.indexOf("/");
+            if (index != -1) {
+                dbName = dbName.substring(0, index);
+            }
+            ProtocolReply dbReply = controller.getDatabase(user, dbName);
+            if (!dbReply.isSuccess()) {
+                response(HttpURLConnection.HTTP_FORBIDDEN, null);
+                return;
+            }
+            database = ((ProtocolReplyResult<Database>) dbReply).getData();
+        }
+
+        if (Objects.equals(method, "GET")) {
+            if (database != null) {
+                serveResource(resource);
+            } else {
+                onGetSPARQL(database);
+            }
             return;
         }
-        String dbName = httpExchange.getRequestURI().getPath();
-        System.out.println(dbName);
+        if (Objects.equals(method, "POST")) {
+            onPost(database);
+            return;
+        }
+        response(HttpURLConnection.HTTP_BAD_METHOD, null);
     }
 
     @Override
@@ -112,93 +136,152 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
         // do nothing
     }
 
-
-    /*
-    private void onGet(HttpExchange httpExchange, String contentType, String body, User user, Database database) {
+    /**
+     * Answers to a SPARQL request on a GET method
+     *
+     * @param database The target database
+     */
+    private void onGetSPARQL(Database database) {
         Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
         List<String> vQuery = params.get("query");
         String query = vQuery == null ? null : vQuery.get(0);
+        String body;
+        try {
+            body = Utils.getRequestBody(httpExchange);
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+            response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Failed to read the body");
+            return;
+        }
         if (query != null) {
             if (body != null && !body.isEmpty()) {
                 // should be empty
                 // ill-formed request
-                response(httpExchange, Utils.HTTP_CODE_PROTOCOL_ERROR, "Ill-formed request, content is not empty");
+                response(HttpURLConnection.HTTP_BAD_REQUEST, null);
             } else {
-                List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
                 List<String> defaults = params.get("default-graph-uri");
                 List<String> named = params.get("named-graph-uri");
-                String resultType = Utils.negotiateType(acceptTypes);
-                executeSPARQL(
-                        httpExchange,
-                        query,
-                        defaults == null ? new ArrayList<String>() : defaults,
-                        named == null ? new ArrayList<String>() : named,
-                        resultType, database);
+                ProtocolReply reply = controller.sparql(user, database, body, defaults, named);
+                response(reply);
             }
         } else {
             // ill-formed request
-            response(httpExchange, Utils.HTTP_CODE_PROTOCOL_ERROR, "Ill-formed request, expected a query parameter");
+            response(HttpURLConnection.HTTP_BAD_REQUEST, null);
         }
     }
 
-    private void onPost(HttpExchange httpExchange, String contentType, String body, User user, Database database) {
-        Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
-        List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
-        switch (contentType) {
-            case TYPE_SPARQL_QUERY:
-            case TYPE_SPARQL_UPDATE: {
-                List<String> defaults = params.get("default-graph-uri");
-                List<String> named = params.get("named-graph-uri");
-                String resultType = Utils.negotiateType(acceptTypes);
-                executeSPARQL(
-                        httpExchange,
-                        body,
-                        defaults == null ? new ArrayList<String>() : defaults,
-                        named == null ? new ArrayList<String>() : named,
-                        resultType, database);
-                break;
-            }
-            case TYPE_URL_ENCODED: {
-                // TODO: decode and implement this
-                response(httpExchange, Utils.HTTP_CODE_INTERNAL_ERROR, "Not implemented");
-                break;
-            }
-        }
-    }
+    /**
+     * The buffer for serving resources
+     */
+    private static final byte[] BUFFER = new byte[1024];
 
-    private void executeSPARQL(HttpExchange httpExchange, String body, Collection<String> defaultIRIs, Collection<String> namedIRIs, String contentType, Database database) {
-        BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(database.getLogger(), bufferedLogger);
-        SPARQLLoader loader = new SPARQLLoader(database.getRepository().getStore(), defaultIRIs, namedIRIs);
-        List<Command> commands = loader.load(dispatchLogger, new StringReader(body));
-        if (commands == null) {
-            // ill-formed request
-            dispatchLogger.error("Failed to parse and load the request");
-            response(httpExchange, Utils.HTTP_CODE_PROTOCOL_ERROR, Utils.getLog(bufferedLogger));
+    /**
+     * Serves an embedded resource
+     *
+     * @param resource The requested resource
+     */
+    private void serveResource(String resource) {
+        if (resource.isEmpty())
+            resource = "index.html";
+        System.out.println("Serving " + resource);
+        resource = "/org/xowl/server/site/" + resource;
+        InputStream input = HTTPConnection.class.getResourceAsStream(resource);
+        if (input == null) {
+            response(HttpURLConnection.HTTP_NOT_FOUND, null);
             return;
         }
-        Result result = ResultFailure.INSTANCE;
-        for (Command command : commands) {
-            result = command.execute(database.getRepository());
-            if (result.isFailure()) {
-                break;
+        long length;
+        try {
+            File file = new File(HTTPConnection.class.getResource(resource).toURI());
+            length = file.length();
+        } catch (URISyntaxException exception) {
+            controller.getLogger().error(exception);
+            response(HttpURLConnection.HTTP_NOT_FOUND, null);
+            return;
+        }
+        Headers headers = httpExchange.getResponseHeaders();
+        Utils.enableCORS(headers);
+        try {
+            httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, length);
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+        }
+        try (OutputStream output = httpExchange.getResponseBody()) {
+            int read = input.read(BUFFER);
+            while (read > 0) {
+                output.write(BUFFER, 0, read);
+                read = input.read(BUFFER);
+            }
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+        } finally {
+            try {
+                input.close();
+            } catch (IOException exception) {
+                // do nothing
             }
         }
-        StringWriter writer = new StringWriter();
-        try {
-            result.print(writer, Utils.coerceContentType(result, contentType));
-        } catch (IOException exception) {
-            exception.printStackTrace();
-        }
-        httpExchange.getResponseHeaders().add("Content-Type", Utils.coerceContentType(result, contentType));
-        response(
-                httpExchange,
-                result.isFailure() ? Utils.HTTP_CODE_INTERNAL_ERROR : Utils.HTTP_CODE_OK,
-                writer.toString());
     }
 
-    */
+    /**
+     * When the method is POST
+     *
+     * @param database The target database
+     */
+    private void onPost(Database database) {
+        Headers rHeaders = httpExchange.getRequestHeaders();
+        String contentType = Utils.getRequestContentType(rHeaders);
+        if (contentType == null) {
+            response(HttpURLConnection.HTTP_BAD_REQUEST, "Missing content type");
+            return;
+        }
+        String body;
+        try {
+            body = Utils.getRequestBody(httpExchange);
+        } catch (IOException exception) {
+            controller.getLogger().error(exception);
+            response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Failed to read the body");
+            return;
+        }
+        switch (contentType) {
+            case SPARQL_TYPE_SPARQL_QUERY:
+            case SPARQL_TYPE_SPARQL_UPDATE:
+                onPostSPARQL(database, body);
+                break;
+            case SPARQL_TYPE_URL_ENCODED:
+                // TODO: decode and implement this
+                response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Not implemented");
+                break;
+            case XOWL_TYPE_COMMAND:
+                onPostCommand(database, body);
+                break;
+        }
+    }
 
+    /**
+     * Answers to a SPARQL request on a POST method
+     *
+     * @param database The target database
+     * @param body     The request body
+     */
+    private void onPostSPARQL(Database database, String body) {
+        Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+        List<String> defaults = params.get("default-graph-uri");
+        List<String> named = params.get("named-graph-uri");
+        ProtocolReply reply = controller.sparql(user, database, body, defaults, named);
+        response(reply);
+    }
+
+    /**
+     * Answer to a XSP command on a POST method
+     *
+     * @param database The target database
+     * @param body     The request body
+     */
+    private void onPostCommand(Database database, String body) {
+        ProtocolReply reply = execute(body);
+        response(reply);
+    }
 
     /**
      * Ends the current exchange with the specified message and response code
@@ -219,6 +302,88 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
             stream.write(buffer);
         } catch (IOException exception) {
             controller.getLogger().error(exception);
+        }
+    }
+
+    /**
+     * Ends the current exchange with a protocol reply
+     *
+     * @param reply The protocol reply
+     */
+    private void response(ProtocolReply reply) {
+        if (reply == null) {
+            // client got banned
+            response(HttpURLConnection.HTTP_FORBIDDEN, null);
+            return;
+        }
+        if (reply instanceof ProtocolReplyUnauthenticated) {
+            response(HttpURLConnection.HTTP_UNAUTHORIZED, null);
+            return;
+        }
+        if (reply instanceof ProtocolReplyUnauthorized) {
+            response(HttpURLConnection.HTTP_FORBIDDEN, null);
+            return;
+        }
+        if (reply instanceof ProtocolReplyFailure) {
+            response(HttpURLConnection.HTTP_INTERNAL_ERROR, reply.getMessage());
+            return;
+        }
+        if (!(reply instanceof ProtocolReplyResult)) {
+            // other successes
+            response(HttpURLConnection.HTTP_OK, reply.getMessage());
+        }
+
+        List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
+        String resultType = Utils.negotiateType(acceptTypes);
+
+        Object data = ((ProtocolReplyResult) reply).getData();
+        if (data instanceof Collection) {
+            httpExchange.getResponseHeaders().add("Content-Type", "application/json");
+            StringBuilder builder = new StringBuilder("{ \"results\": [");
+            boolean first = true;
+            for (Object elem : ((Collection) data)) {
+                if (!first)
+                    builder.append(", ");
+                first = false;
+                builder.append("\"");
+                builder.append(IOUtils.escapeStringJSON(elem.toString()));
+                builder.append("\"");
+            }
+            response(HttpURLConnection.HTTP_OK, builder.toString());
+        } else if (data instanceof Result) {
+            Result sparqlResult = ((ProtocolReplyResult<Result>) reply).getData();
+            StringWriter writer = new StringWriter();
+            try {
+                sparqlResult.print(writer, Utils.coerceContentType(sparqlResult, resultType));
+            } catch (IOException exception) {
+                // cannot happen
+                exception.printStackTrace();
+            }
+            httpExchange.getResponseHeaders().add("Content-Type", Utils.coerceContentType(sparqlResult, resultType));
+            response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR, writer.toString());
+        } else if (data instanceof MatchStatus) {
+            httpExchange.getResponseHeaders().add("Content-Type", "application/json");
+            StringWriter writer = new StringWriter();
+            try {
+                ((MatchStatus) data).printJSON(writer);
+            } catch (IOException exception) {
+                // cannot happen
+                exception.printStackTrace();
+            }
+            response(HttpURLConnection.HTTP_OK, writer.toString());
+        } else if (data instanceof RuleExplanation) {
+            httpExchange.getResponseHeaders().add("Content-Type", "application/json");
+            StringWriter writer = new StringWriter();
+            try {
+                ((RuleExplanation) data).printJSON(writer);
+            } catch (IOException exception) {
+                // cannot happen
+                exception.printStackTrace();
+            }
+            response(HttpURLConnection.HTTP_OK, writer.toString());
+        } else {
+            httpExchange.getResponseHeaders().add("Content-Type", "text");
+            response(HttpURLConnection.HTTP_OK, data.toString());
         }
     }
 }
