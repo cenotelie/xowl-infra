@@ -23,7 +23,7 @@ package org.xowl.server.db;
 import java.net.InetAddress;
 
 /**
- * Implements the xOWL server protocol
+ * Implements the xOWL Server Protocol
  *
  * @author Laurent Wouters
  */
@@ -79,9 +79,6 @@ public abstract class ProtocolHandler {
                 return ProtocolReplyUnauthenticated.instance();
             return new ProtocolReplySuccess(user.getName());
         }
-        if (command.equals("HELP")) {
-
-        }
         if (command.startsWith("ADMIN "))
             return runAdmin(command);
         if (command.startsWith("SPARQL "))
@@ -102,14 +99,6 @@ public abstract class ProtocolHandler {
      * When the user requested to exit
      */
     protected abstract void onExit();
-
-    /**
-     * Runs the help command
-     * @return The protocol reply
-     */
-    private ProtocolReply runHelp() {
-
-    }
 
     /**
      * Runs the authentication command
@@ -174,10 +163,166 @@ public abstract class ProtocolHandler {
         ProtocolReply dbResult = controller.getDatabase(user, dbName);
         if (!dbResult.isSuccess())
             return dbResult;
-        Database database = ((ProtocolReplyResult<Database>)dbResult).getData();
+        Database database = ((ProtocolReplyResult<Database>) dbResult).getData();
+        if (line.equals("ENTAILMENT"))
+            return runDBGetEntailment(database);
+        if (line.startsWith("ENTAILMENT"))
+            return runDBSetEntailment(database, line);
+        if (line.equals("LIST RULES"))
+            return runDBListRules(database);
+        if (line.equals("LIST ACTIVE RULES"))
+            return runDBListActiveRules(database);
+        if (line.startsWith("ADD RULE "))
+            return runDBAddRule(database, line);
+        if (line.startsWith("REMOVE RULE "))
+            return runDBRemoveRule(database, line);
+        if (line.startsWith("ACTIVATE "))
+            return runDBActivateRule(database, line);
+        if (line.startsWith("DEACTIVATE "))
+            return runDBDeactivateRule(database, line);
+        if (line.startsWith("IS ACTIVE "))
+            return runDBIsActiveRule(database, line);
+        if (line.startsWith("STATUS "))
+            return runDBGetRuleStatus(database, line);
+        if (line.startsWith("EXPLAIN "))
+            return runDBGetExplanation(database, line);
+        return new ProtocolReplyFailure("UNRECOGNIZED COMMAND");
+    }
 
+    /**
+     * Request the retrieval of the entailment regime
+     * Expected command line: DATABASE db ENTAILMENT
+     *
+     * @param database The active database
+     * @return The protocol reply
+     */
+    private ProtocolReply runDBGetEntailment(Database database) {
+        return controller.dbGetEntailmentRegime(user, database);
+    }
 
+    /**
+     * Request the setting of the entailment regime
+     * Expected command line: DATABASE db ENTAILMENT regime
+     *
+     * @param database The active database
+     * @return The protocol reply
+     */
+    public ProtocolReply runDBSetEntailment(Database database, String line) {
+        String regime = line.substring("ENTAILMENT ".length());
+        return controller.dbSetEntailmentRegime(user, database, regime);
+    }
 
+    /**
+     * Request the listing of the all the rules rules
+     * Expected command line: DATABASE db LIST RULES
+     *
+     * @param database The active database
+     * @return The protocol reply
+     */
+    public ProtocolReply runDBListRules(Database database) {
+        return controller.dbListAllRules(user, database);
+    }
+
+    /**
+     * Request the listing of the active rules
+     * Expected command line: DATABASE db LIST ACTIVE RULES
+     *
+     * @param database The active database
+     * @return The protocol reply
+     */
+    public ProtocolReply runDBListActiveRules(Database database) {
+        return controller.dbListActiveRules(user, database);
+    }
+
+    /**
+     * Request the insertion of a rule
+     * Expected command line: DATABASE db ADD RULE content
+     *
+     * @param database The active database
+     * @param line     The command line
+     * @return The protocol reply
+     */
+    public ProtocolReply runDBAddRule(Database database, String line) {
+        String content = line.substring("ADD RULE ".length());
+        return controller.dbAddRule(user, database, content, false);
+    }
+
+    /**
+     * Request the removal of a rule
+     * Expected command line: DATABASE db REMOVE RULE rule
+     *
+     * @param database The active database
+     * @param line     The command line
+     * @return The protocol reply
+     */
+    public ProtocolReply runDBRemoveRule(Database database, String line) {
+        String rule = line.substring("REMOVE RULE ".length());
+        return controller.dbRemoveRule(user, database, rule);
+    }
+
+    /**
+     * Request the activation of a rule
+     * Expected command line: DATABASE db ACTIVATE rule
+     *
+     * @param database The active database
+     * @param line     The command line
+     * @return The protocol reply
+     */
+    public ProtocolReply runDBActivateRule(Database database, String line) {
+        String rule = line.substring("ACTIVATE ".length());
+        return controller.dbActivateRule(user, database, rule);
+    }
+
+    /**
+     * Request the deactivation of a rule
+     * Expected command line: DATABASE db DEACTIVATE rule
+     *
+     * @param database The active database
+     * @param line     The command line
+     * @return The protocol reply
+     */
+    public ProtocolReply runDBDeactivateRule(Database database, String line) {
+        String rule = line.substring("DEACTIVATE ".length());
+        return controller.dbDeactivateRule(user, database, rule);
+    }
+
+    /**
+     * Request whether a rule is active
+     * Expected command line: DATABASE db IS ACTIVE rule
+     *
+     * @param database The active database
+     * @param line     The command line
+     * @return The protocol reply
+     */
+    public ProtocolReply runDBIsActiveRule(Database database, String line) {
+        String rule = line.substring("IS ACTIVE ".length());
+        return controller.dbIsRuleActive(user, database, rule);
+    }
+
+    /**
+     * Request the matching status of a rule
+     * Expected command line: DATABASE db STATUS rule
+     *
+     * @param database The active database
+     * @param line     The command line
+     * @return The protocol reply
+     */
+    public ProtocolReply runDBGetRuleStatus(Database database, String line) {
+        String rule = line.substring("STATUS ".length());
+        return controller.dbGetRuleStatus(user, database, rule);
+    }
+
+    /**
+     * Request the explanation of a quad
+     * Expected command line: DATABASE db EXPLAIN quad
+     *
+     * @param database The active database
+     * @param line     The command line
+     * @return The protocol reply
+     */
+    public ProtocolReply runDBGetExplanation(Database database, String line) {
+        String quad = line.substring("EXPLAIN ".length());
+        return controller.dbGetQuadExplanation(user, database, quad);
     }
 
     /**

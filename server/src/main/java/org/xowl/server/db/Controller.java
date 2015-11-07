@@ -1013,8 +1013,7 @@ public abstract class Controller implements Closeable {
                 || checkIsDBAdmin(client, database)
                 || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
                 || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
-
-
+            return database.getExplanation(quad);
         } else {
             return ProtocolReplyUnauthorized.instance();
         }

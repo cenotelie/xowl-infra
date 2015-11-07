@@ -25,6 +25,7 @@ import org.xowl.server.ServerConfiguration;
 import org.xowl.store.EntailmentRegime;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;
+import org.xowl.store.loaders.NQuadsLoader;
 import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.RDFTLoader;
 import org.xowl.store.rdf.Quad;
@@ -372,10 +373,24 @@ public class Database implements Closeable {
     /**
      * Gets an explanation about how the specified quad appeared in the database
      *
-     * @param quad The quad to investigate
+     * @param content The quad to investigate
      * @return The protocol reply
      */
-    public ProtocolReply getExplanation(Quad quad) {
+    public ProtocolReply getExplanation(String content) {
+        BufferedLogger bufferedLogger = new BufferedLogger();
+        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
+        NQuadsLoader loader = new NQuadsLoader(repository.getStore());
+        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(content), null, null);
+        if (result == null) {
+            // ill-formed request
+            dispatchLogger.error("Failed to parse and load the quad");
+            return new ProtocolReplyFailure(Program.getLog(bufferedLogger));
+        }
+        if (result.getQuads().size() != 1)
+            return new ProtocolReplyFailure("Expected one quad");
+        Quad quad = result.getQuads().get(0);
+        if (quad.getGraph() == null)
+            return new ProtocolReplyFailure("Quad must have a graph");
         RuleExplanation explanation = repository.getRDFRuleEngine().explain(quad);
         return new ProtocolReplyResult<>(explanation);
     }

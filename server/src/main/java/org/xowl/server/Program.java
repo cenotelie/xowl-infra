@@ -87,7 +87,7 @@ public class Program {
         }
         HTTPServer httpServer = new HTTPServer(configuration, controller);
         httpServer.start();
-        XSPServer XSPServer = new XSPServer(configuration, controller);
+        XSPServer xspServer = new XSPServer(configuration, controller);
 
         while (!shouldStop) {
             try {
@@ -100,7 +100,7 @@ public class Program {
         // cleanup
         controller.getLogger().info("Shutting down this server ...");
         try {
-            XSPServer.close();
+            xspServer.close();
         } catch (IOException exception) {
             exception.printStackTrace();
         }
