@@ -276,21 +276,12 @@ public class Repository extends AbstractRepository {
     }
 
     /**
-     * Activates the entailment rules
-     *
-     * @param logger The logger to use
-     */
-    public void activateEntailmentRules(Logger logger) {
-        activateEntailmentRules(logger, EntailmentRegime.OWL2_RDF);
-    }
-
-    /**
-     * Activates the entailment rules
+     * Sets the entailment regime
      *
      * @param logger The logger to use
      * @param regime The entailment regime to use
      */
-    public void activateEntailmentRules(Logger logger, EntailmentRegime regime) {
+    public void setEntailmentRegime(Logger logger, EntailmentRegime regime) {
         if (this.regime != EntailmentRegime.none) {
             logger.error("Entailment regime is already set");
             return;

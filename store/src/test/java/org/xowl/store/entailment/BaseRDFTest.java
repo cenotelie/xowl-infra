@@ -49,7 +49,7 @@ public class BaseRDFTest {
         TestLogger logger = new TestLogger();
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
-        repository.activateEntailmentRules(logger, regime);
+        repository.setEntailmentRegime(logger, regime);
         Assert.assertFalse("Failed to activate the entailment regime", logger.isOnError());
         repository.load(logger, input);
         Assert.assertFalse("Failed to load the input", logger.isOnError());
@@ -85,7 +85,7 @@ public class BaseRDFTest {
         TestLogger logger = new TestLogger();
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
-        repository.activateEntailmentRules(logger, regime);
+        repository.setEntailmentRegime(logger, regime);
         Assert.assertFalse("Failed to activate the entailment regime", logger.isOnError());
         repository.load(logger, input);
         Assert.assertFalse("Failed to load the input", logger.isOnError());

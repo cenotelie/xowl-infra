@@ -20,20 +20,17 @@
 
 package org.xowl.engine;
 
-import clojure.java.api.Clojure;
 import clojure.lang.Compiler;
 import clojure.lang.*;
 import org.xowl.lang.actions.DynamicExpression;
 import org.xowl.lang.actions.FunctionExpression;
 import org.xowl.lang.actions.OpaqueExpression;
-import org.xowl.lang.actions.QueryVariable;
 import org.xowl.lang.owl2.*;
 import org.xowl.lang.runtime.*;
 import org.xowl.lang.runtime.Literal;
-import org.xowl.store.*;
-import org.xowl.store.owl.Bindings;
-import org.xowl.store.sparql.Command;
-import org.xowl.utils.collections.Couple;
+import org.xowl.store.Evaluator;
+import org.xowl.store.ProxyObject;
+import org.xowl.store.Vocabulary;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -181,7 +178,7 @@ public class ClojureEvaluator implements Evaluator {
 
         List content = new ArrayList();
         HashSet<String> names = new HashSet<>();
-        for (int i = 0; i !=contexts.size(); i++) {
+        for (int i = 0; i != contexts.size(); i++) {
             for (Map.Entry<String, Object> binding : contexts.get(i).entrySet()) {
                 if (!names.contains(binding.getKey()) && !(binding.getValue() instanceof IRI)) {
                     content.add(Symbol.create(binding.getKey()));
@@ -218,6 +215,7 @@ public class ClojureEvaluator implements Evaluator {
     public Datatype evalDatatype(Datarange expression) {
         return null;
     }
+
     @Override
     public Individual evalIndividual(IndividualExpression expression) {
         return null;
