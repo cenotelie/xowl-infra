@@ -141,7 +141,9 @@ public abstract class Controller implements Closeable {
             adminDB.proxy.setValue(Schema.ADMIN_NAME, configuration.getAdminDBName());
             adminDB.proxy.setValue(Schema.ADMIN_LOCATION, ".");
             User admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
+            User guest = doCreateUser(configuration.getHttpGuestLogin(), configuration.getHttpGuestPassword());
             users.put(admin.getName(), admin);
+            users.put(guest.getName(), guest);
             admin.proxy.setValue(Schema.ADMIN_ADMINOF, adminDB.proxy);
             admin.proxy.setValue(Schema.ADMIN_CANREAD, adminDB.proxy);
             admin.proxy.setValue(Schema.ADMIN_CANWRITE, adminDB.proxy);

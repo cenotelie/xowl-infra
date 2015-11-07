@@ -241,6 +241,24 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets the login for the guest account
+     *
+     * @return The login for the guest account
+     */
+    public String getHttpGuestLogin() {
+        return getValue("http", "guestLogin");
+    }
+
+    /**
+     * Gets the password for the guest account
+     *
+     * @return The password for the guest account
+     */
+    public String getHttpGuestPassword() {
+        return getValue("http", "guestPassword");
+    }
+
+    /**
      * Gets the address to bind for the XSP server
      *
      * @return The address to bind

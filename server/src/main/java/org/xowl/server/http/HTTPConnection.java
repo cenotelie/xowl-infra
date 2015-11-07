@@ -98,8 +98,8 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
             response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Failed to read the body");
             return;
         }
-
-
+        String dbName = httpExchange.getRequestURI().getPath();
+        System.out.println(dbName);
     }
 
     @Override
