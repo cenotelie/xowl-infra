@@ -46,11 +46,6 @@ public class SSLManager {
     private static final String KEY_STORE_FILE = "keystore.jks";
 
     /**
-     * Hexadecimal characters
-     */
-    private static final char[] HEX = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
-    /**
      * Gets the key store
      *
      * @param configuration The current configuration
@@ -89,13 +84,7 @@ public class SSLManager {
         SecureRandom random = new SecureRandom();
         byte[] buffer = new byte[20];
         random.nextBytes(buffer);
-        char[] chars = new char[buffer.length * 2];
-        int j = 0;
-        for (int i = 0; i != buffer.length; i++) {
-            chars[j++] = HEX[(buffer[i] & 0xF0) >>> 4];
-            chars[j++] = HEX[buffer[i] & 0x0F];
-        }
-        String password = new String(chars);
+        String password = Program.encode(buffer);
 
         try {
             if (target.exists() && !target.delete()) {

@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server.xp;
+package org.xowl.server.xsp;
 
 import org.xowl.server.ServerConfiguration;
 import org.xowl.server.db.Controller;
@@ -36,7 +36,7 @@ import java.net.Socket;
 import java.util.Collection;
 
 /**
- * Represents an active connection to the xOWL protocol server
+ * Represents an active connection to the XSP server
  *
  * @author Laurent Wouters
  */

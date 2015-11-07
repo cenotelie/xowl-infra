@@ -128,6 +128,16 @@ public class Configuration {
     /**
      * Adds the specified property-value pair in the specified section
      *
+     * @param property A property in the section
+     * @param value    The value to associate
+     */
+    public void add(String property, String value) {
+        global.add(property, value);
+    }
+
+    /**
+     * Adds the specified property-value pair in the specified section
+     *
      * @param section  A section in this configuration
      * @param property A property in the section
      * @param value    The value to associate
@@ -139,12 +149,31 @@ public class Configuration {
     /**
      * Sets the property, removing all previous values, if any
      *
+     * @param property A property
+     * @param value    The new value
+     */
+    public void set(String property, String value) {
+        global.set(property, value);
+    }
+
+    /**
+     * Sets the property, removing all previous values, if any
+     *
      * @param section  A section in this configuration
      * @param property A property
      * @param value    The new value
      */
     public void set(String section, String property, String value) {
         getSection(section).set(property, value);
+    }
+
+    /**
+     * Clears any value for the property
+     *
+     * @param property The property to clear
+     */
+    public void clear(String property) {
+        global.clear(property);
     }
 
     /**

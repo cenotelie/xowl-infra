@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server.xp;
+package org.xowl.server.xsp;
 
 import org.xowl.server.ServerConfiguration;
 import org.xowl.server.db.Controller;
@@ -36,11 +36,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Server for the xOWL protocol
+ * Server for XSP (xOWL Server Protocol)
  *
  * @author Laurent Wouters
  */
-public class XPServer implements Closeable {
+public class XSPServer implements Closeable {
     /**
      * The bound of the executor queue
      */
@@ -77,8 +77,8 @@ public class XPServer implements Closeable {
      * @param configuration The current configuration
      * @param controller    The current controller
      */
-    public XPServer(ServerConfiguration configuration, Controller controller) {
-        controller.getLogger().info("Initializing the xOWL protocol server ...");
+    public XSPServer(ServerConfiguration configuration, Controller controller) {
+        controller.getLogger().info("Initializing the XSP server ...");
         this.configuration = configuration;
         this.controller = controller;
         ArrayBlockingQueue<Runnable> executorQueue = new ArrayBlockingQueue<>(EXECUTOR_QUEUE_BOUND);
@@ -103,7 +103,7 @@ public class XPServer implements Closeable {
         SSLServerSocket temp = null;
         if (sslContext != null) {
             try {
-                controller.getLogger().info("Creating the xOWL protocol server");
+                controller.getLogger().info("Creating the XSP server");
                 InetAddress address = InetAddress.getByName(configuration.getXPAddress());
                 temp = (SSLServerSocket) sslContext.getServerSocketFactory().createServerSocket(
                         configuration.getXPPort(),
@@ -122,7 +122,7 @@ public class XPServer implements Closeable {
                     listen();
                 }
             });
-            controller.getLogger().info("xOWL protocol server is ready");
+            controller.getLogger().info("XSP server is ready");
         } else {
             socket = null;
         }

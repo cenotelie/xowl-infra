@@ -23,6 +23,7 @@ package org.xowl.server.db;
 import org.mindrot.jbcrypt.BCrypt;
 import org.xowl.server.Program;
 import org.xowl.server.ServerConfiguration;
+import org.xowl.store.EntailmentRegime;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.loaders.SPARQLLoader;
@@ -777,30 +778,246 @@ public abstract class Controller implements Closeable {
     public ProtocolReply sparql(User client, Database database, String sparql) {
         if (client == null)
             return ProtocolReplyUnauthenticated.instance();
-        if (!checkIsServerAdmin(client)
+        if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, database)
                 || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD))
-            return ProtocolReplyUnauthorized.instance();
-
-
-        BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(database.logger, bufferedLogger);
-        SPARQLLoader loader = new SPARQLLoader(database.repository.getStore(), Collections.<String>emptyList(), Collections.<String>emptyList());
-        List<Command> commands = loader.load(dispatchLogger, new StringReader(sparql));
-        if (commands == null) {
-            // ill-formed request
-            dispatchLogger.error("Failed to parse and load the request");
-            return new ProtocolReplyFailure(Program.getLog(bufferedLogger));
-        }
-        Result result = ResultSuccess.INSTANCE;
-        for (Command command : commands) {
-            result = command.execute(database.repository);
-            if (result.isFailure()) {
-                break;
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+            BufferedLogger bufferedLogger = new BufferedLogger();
+            DispatchLogger dispatchLogger = new DispatchLogger(database.logger, bufferedLogger);
+            SPARQLLoader loader = new SPARQLLoader(database.repository.getStore(), Collections.<String>emptyList(), Collections.<String>emptyList());
+            List<Command> commands = loader.load(dispatchLogger, new StringReader(sparql));
+            if (commands == null) {
+                // ill-formed request
+                dispatchLogger.error("Failed to parse and load the request");
+                return new ProtocolReplyFailure(Program.getLog(bufferedLogger));
             }
+            Result result = ResultSuccess.INSTANCE;
+            for (Command command : commands) {
+                result = command.execute(database.repository);
+                if (result.isFailure()) {
+                    break;
+                }
+            }
+            return new ProtocolReplyResult<>(result);
+        } else {
+            return ProtocolReplyUnauthorized.instance();
         }
-        return new ProtocolReplyResult<>(result);
+    }
+
+    /**
+     * Gets the entailment regime for a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @return The protocol reply
+     */
+    public ProtocolReply dbGetEntailmentRegime(User client, Database database) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, database)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+            return new ProtocolReplyResult<>(database.getEntailmentRegime());
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
+    }
+
+    /**
+     * Sets the entailment regime for a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param regime   The entailment regime
+     * @return The protocol reply
+     */
+    public ProtocolReply dbSetEntailmentRegime(User client, Database database, String regime) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            database.setEntailmentRegime(EntailmentRegime.valueOf(regime));
+            return ProtocolReplySuccess.instance();
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
+    }
+
+    /**
+     * Lists all the rules on a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @return The protocol reply
+     */
+    public ProtocolReply dbListAllRules(User client, Database database) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, database)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+            return database.getAllRules();
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
+    }
+
+    /**
+     * Lists the currently active rules on a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @return The protocol reply
+     */
+    public ProtocolReply dbListActiveRules(User client, Database database) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, database)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+            return database.getActiveRules();
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
+    }
+
+    /**
+     * Adds a new rule to a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param content  The rule's content
+     * @param activate Whether to readily activate the rule
+     * @return The protocol reply
+     */
+    public ProtocolReply dbAddRule(User client, Database database, String content, boolean activate) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            return database.addRule(content, activate);
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
+    }
+
+    /**
+     * Removes a rule from a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param rule     The rule's IRI
+     * @return The protocol reply
+     */
+    public ProtocolReply dbRemoveRule(User client, Database database, String rule) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            return database.removeRule(rule);
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
+    }
+
+    /**
+     * Activates an existing rule in a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param rule     The rule's IRI
+     * @return The protocol reply
+     */
+    public ProtocolReply dbActivateRule(User client, Database database, String rule) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            return database.activateRule(rule);
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
+    }
+
+    /**
+     * Deactivates an existing rule in a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param rule     The rule's IRI
+     * @return The protocol reply
+     */
+    public ProtocolReply dbDeactivateRule(User client, Database database, String rule) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            return database.deactivateRule(rule);
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
+    }
+
+    /**
+     * Gets whether a rule in a database is currently active
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param rule     The rule's IRI
+     * @return The protocol reply
+     */
+    public ProtocolReply dbIsRuleActive(User client, Database database, String rule) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, database)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+            return database.isRuleActive(rule);
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
+    }
+
+    /**
+     * Gets the matching status of a rule in a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param rule     The rule's IRI
+     * @return The protocol reply
+     */
+    public ProtocolReply dbGetRuleStatus(User client, Database database, String rule) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, database)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+            return database.getRuleStatus(rule);
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
+    }
+
+    /**
+     * Gets the explanation for a quad in a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param quad     The quad serialization
+     * @return The protocol reply
+     */
+    public ProtocolReply dbGetQuadExplanation(User client, Database database, String quad) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, database)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+
+
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
     }
 
     @Override

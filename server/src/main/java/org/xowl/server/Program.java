@@ -22,7 +22,7 @@ package org.xowl.server;
 
 import org.xowl.server.db.Controller;
 import org.xowl.server.http.HTTPServer;
-import org.xowl.server.xp.XPServer;
+import org.xowl.server.xsp.XSPServer;
 import org.xowl.utils.BufferedLogger;
 
 import java.io.IOException;
@@ -87,7 +87,7 @@ public class Program {
         }
         HTTPServer httpServer = new HTTPServer(configuration, controller);
         httpServer.start();
-        XPServer xpServer = new XPServer(configuration, controller);
+        XSPServer XSPServer = new XSPServer(configuration, controller);
 
         while (!shouldStop) {
             try {
@@ -100,7 +100,7 @@ public class Program {
         // cleanup
         controller.getLogger().info("Shutting down this server ...");
         try {
-            xpServer.close();
+            XSPServer.close();
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -129,5 +129,26 @@ public class Program {
             builder.append("\n");
         }
         return builder.toString();
+    }
+
+    /**
+     * Hexadecimal characters
+     */
+    private static final char[] HEX = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+    /**
+     * Encodes a series of bytes
+     *
+     * @param bytes The bytes to encode
+     * @return The encoded text
+     */
+    public static String encode(byte[] bytes) {
+        char[] chars = new char[bytes.length * 2];
+        int j = 0;
+        for (int i = 0; i != bytes.length; i++) {
+            chars[j++] = HEX[(bytes[i] & 0xF0) >>> 4];
+            chars[j++] = HEX[bytes[i] & 0x0F];
+        }
+        return new String(chars);
     }
 }

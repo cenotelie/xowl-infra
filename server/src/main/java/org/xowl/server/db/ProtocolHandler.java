@@ -79,10 +79,15 @@ public abstract class ProtocolHandler {
                 return ProtocolReplyUnauthenticated.instance();
             return new ProtocolReplySuccess(user.getName());
         }
+        if (command.equals("HELP")) {
+
+        }
         if (command.startsWith("ADMIN "))
             return runAdmin(command);
         if (command.startsWith("SPARQL "))
             return runSPARQL(command);
+        if (command.startsWith("DATABASE "))
+            return runDB(command);
         return new ProtocolReplyFailure("UNRECOGNIZED COMMAND");
     }
 
@@ -97,6 +102,14 @@ public abstract class ProtocolHandler {
      * When the user requested to exit
      */
     protected abstract void onExit();
+
+    /**
+     * Runs the help command
+     * @return The protocol reply
+     */
+    private ProtocolReply runHelp() {
+
+    }
 
     /**
      * Runs the authentication command
@@ -142,6 +155,29 @@ public abstract class ProtocolHandler {
         if (!database.isSuccess())
             return database;
         return controller.sparql(user, ((ProtocolReplyResult<Database>) database).getData(), sparql);
+    }
+
+    /**
+     * Runs a DATABASE command
+     * Expected command line: DATABASE database command
+     *
+     * @param line The command line
+     * @return The protocol reply
+     */
+    private ProtocolReply runDB(String line) {
+        line = line.substring("DATABASE ".length());
+        int index = line.indexOf(' ');
+        if (index == -1)
+            return new ProtocolReplyFailure("INVALID COMMAND");
+        String dbName = line.substring(0, index);
+        line = line.substring(index + 1);
+        ProtocolReply dbResult = controller.getDatabase(user, dbName);
+        if (!dbResult.isSuccess())
+            return dbResult;
+        Database database = ((ProtocolReplyResult<Database>)dbResult).getData();
+
+
+
     }
 
     /**
