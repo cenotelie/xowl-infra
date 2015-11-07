@@ -26,6 +26,8 @@ import org.xowl.server.db.ProtocolHandler;
 import org.xowl.server.db.ProtocolReply;
 import org.xowl.server.db.ProtocolReplyResult;
 import org.xowl.store.AbstractRepository;
+import org.xowl.store.rdf.RuleExplanation;
+import org.xowl.store.rete.MatchStatus;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultQuads;
 import org.xowl.store.sparql.ResultSolutions;
@@ -150,6 +152,14 @@ class Connection extends ProtocolHandler implements Runnable {
                         sparqlResult.print(writer, Result.SYNTAX_CSV);
                         send(writer.toString());
                     }
+                } else if (data instanceof MatchStatus) {
+                    StringWriter writer = new StringWriter();
+                    ((MatchStatus) data).printJSON(writer);
+                    send(writer.toString());
+                } else if (data instanceof RuleExplanation) {
+                    StringWriter writer = new StringWriter();
+                    ((RuleExplanation) data).printJSON(writer);
+                    send(writer.toString());
                 } else {
                     send(data.toString());
                 }

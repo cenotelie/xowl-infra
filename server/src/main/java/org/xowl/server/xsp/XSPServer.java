@@ -104,10 +104,10 @@ public class XSPServer implements Closeable {
         if (sslContext != null) {
             try {
                 controller.getLogger().info("Creating the XSP server");
-                InetAddress address = InetAddress.getByName(configuration.getXPAddress());
+                InetAddress address = InetAddress.getByName(configuration.getXSPAddress());
                 temp = (SSLServerSocket) sslContext.getServerSocketFactory().createServerSocket(
-                        configuration.getXPPort(),
-                        configuration.getXPBacklog(),
+                        configuration.getXSPPort(),
+                        configuration.getXSPBacklog(),
                         address);
             } catch (IOException exception) {
                 exception.printStackTrace();
