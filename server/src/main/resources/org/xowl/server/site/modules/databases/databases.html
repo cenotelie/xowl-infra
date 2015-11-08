@@ -1,0 +1,32 @@
+<p>
+  <div class="ui info raised message">
+    <div class="header">Info</div>
+    <p>This page lists only the databases you have been granted access to.</p>
+  </div>
+  <div class="ui form">
+    <div class="item">
+      <div class="ui icon input">
+        <input placeholder="Search..." type="text"></input>
+        <i class="search icon"></i>
+      </div>
+    </div>
+  </div>
+  <table class="ui celled table">
+    <thead>
+      <tr>
+        <th class="one wide">Status</th>
+        <th class="nine wide">Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="center aligned"><i class="large green checkmark icon"></i></td>
+        <td><a class="item" href="#/database/{{database.id}}"><i class="database icon"></i> DB1</a></td>
+      </tr>
+      <tr>
+        <td class="center aligned"><i class="large green checkmark icon"></i></td>
+        <td><a class="item" href="#/database/{{database.id}}"><i class="database icon"></i> DB2</a></td>
+      </tr>
+    </tbody>
+  </table>
+</p>

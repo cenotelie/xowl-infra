@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="xOWLServer">
+
+<head>
+  <meta charset="utf-8">
+  <title>xOWL Server</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" type="text/css" href="vendors/semantic.min.css">
+  <link rel="stylesheet" type="text/css" href="vendors/icon.min.css">
+</head>
+
+<body>
+  <div class="ui attached stackable menu">
+    <div class="ui container">
+      <a class="item" href="#/home">
+        <i class="home icon"></i> Home
+      </a>
+      <div class="ui simple dropdown item">
+        <i class="database icon"></i> Databases
+        <i class="dropdown icon"></i>
+        <div class="menu">
+          <a class="item" href="#/databases"><i class="grid layout icon"></i> Browse</a>
+          <a class="item" href="#/database/{{database.id}}"><i class="database icon"></i> DB1</a>
+          <a class="item" href="#/database/{{database.id}}"><i class="database icon"></i> DB2</a>
+        </div>
+      </div>
+      <a class="item" href="#/users">
+        <i class="users icon"></i> Users
+      </a>
+      <a class="item" href="#/logout">
+        <i class="sign out icon"></i> Logout
+      </a>
+    </div>
+  </div>
+  <div class="body" ng-view></div>
+  <script src="vendors/jquery-2.1.4.min.js"></script>
+  <script src="vendors/angular.min.js"></script>
+  <script src="vendors/angular-route.min.js"></script>
+  <script src="vendors/semantic.min.js"></script>
+  <script src="app.js"></script>
+  <script src="modules/login/login.js"></script>
+  <script src="modules/logout/logout.js"></script>
+  <script src="modules/databases/databases.js"></script>
+  <script src="modules/database/database.js"></script>
+  <script src="modules/users/users.js"></script>
+</body>
+
+</html>

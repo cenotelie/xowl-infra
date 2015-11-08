@@ -1,0 +1,29 @@
+<p>
+	<div class="ui info raised message">
+		<div class="header">Database {{database.id}}</div>
+		<p>You are currently editing database {{database.id}}.</p>
+	</div>
+	<div class="ui top attached tabular menu">
+		<a class="item active" data-tab="users">Users</a>
+		<a class="item" data-tab="reasoning">Reasoning</a>
+		<a class="item" data-tab="rules">Rules</a>
+		<a class="item" data-tab="query">Query</a>
+	</div>
+	<div class="ui bottom attached segment active" data-tab="users">
+		<div>Users</div>
+	</div>
+	<div class="ui bottom attached segment" data-tab="reasoning">
+		<div>Reasoning</div>
+	</div>
+	<div class="ui bottom attached segment" data-tab="rules">
+		<div>Rules</div>
+	</div>
+	<div class="ui bottom attached segment" data-tab="query">
+		<div>Query</div>
+	</div>
+	<script>
+		$(document).ready(function() {
+			$('.tabular.menu .item').tab();
+		});
+	</script>
+</p>
