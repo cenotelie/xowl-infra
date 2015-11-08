@@ -25,7 +25,6 @@ import com.sun.net.httpserver.HttpExchange;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultQuads;
-import org.xowl.utils.BufferedLogger;
 import org.xowl.utils.collections.Couple;
 
 import java.io.ByteArrayOutputStream;
@@ -231,17 +230,52 @@ class Utils {
     }
 
     /**
-     * Gets the content of the log
-     *
-     * @param logger The logger
-     * @return The content of the log
+     * The size of buffers for loading content
      */
-    public static String getLog(BufferedLogger logger) {
-        StringBuilder builder = new StringBuilder();
-        for (Object error : logger.getErrorMessages()) {
-            builder.append(error.toString());
-            builder.append("\n");
+    private static final int BUFFER_SIZE = 1024;
+
+    /**
+     * Loads all the content from the specified input stream
+     *
+     * @param stream The stream to load from
+     * @return The loaded content
+     * @throws IOException When the reading the stream fails
+     */
+    public static byte[] load(InputStream stream) throws IOException {
+        List<byte[]> content = new ArrayList<>();
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int length = 0;
+        int read;
+        int size = 0;
+        while (true) {
+            read = stream.read(buffer, length, BUFFER_SIZE - length);
+            if (read == -1) {
+                if (length != 0) {
+                    content.add(buffer);
+                    size += length;
+                }
+                break;
+            }
+            length += read;
+            if (length == BUFFER_SIZE) {
+                content.add(buffer);
+                size += BUFFER_SIZE;
+                buffer = new byte[BUFFER_SIZE];
+                length = 0;
+            }
         }
-        return builder.toString();
+
+        byte[] result = new byte[size];
+        int current = 0;
+        for (int i = 0; i != content.size(); i++) {
+            if (i == content.size() - 1) {
+                // the last buffer
+                System.arraycopy(content.get(i), 0, result, current, size - current);
+            } else {
+                System.arraycopy(content.get(i), 0, result, current, BUFFER_SIZE);
+                current += BUFFER_SIZE;
+            }
+        }
+        return result;
     }
 }

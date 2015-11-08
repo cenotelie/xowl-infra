@@ -28,15 +28,14 @@ import org.xowl.store.rdf.RuleExplanation;
 import org.xowl.store.rete.MatchStatus;
 import org.xowl.store.sparql.Result;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents an active connection to the HTTP server
@@ -171,9 +170,9 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
     }
 
     /**
-     * The buffer for serving resources
+     * The cache for serving HTTP resources
      */
-    private static final byte[] BUFFER = new byte[1024];
+    private static final Map<String, byte[]> CACHE = new HashMap<>();
 
     /**
      * Serves an embedded resource
@@ -183,43 +182,45 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
     private void serveResource(String resource) {
         if (resource.isEmpty())
             resource = "index.html";
-        System.out.println("Serving " + resource);
-        resource = "/org/xowl/server/site/" + resource;
-        InputStream input = HTTPConnection.class.getResourceAsStream(resource);
+
+        byte[] buffer = CACHE.get(resource);
+        if (buffer != null) {
+            serveResource(buffer);
+            return;
+        }
+
+        InputStream input = HTTPConnection.class.getResourceAsStream("/org/xowl/server/site/" + resource);
         if (input == null) {
             response(HttpURLConnection.HTTP_NOT_FOUND, null);
             return;
         }
-        long length;
         try {
-            File file = new File(HTTPConnection.class.getResource(resource).toURI());
-            length = file.length();
-        } catch (URISyntaxException exception) {
-            controller.getLogger().error(exception);
-            response(HttpURLConnection.HTTP_NOT_FOUND, null);
-            return;
+            buffer = Utils.load(input);
+            input.close();
+        } catch (IOException exception) {
+            // do nothing
         }
+        CACHE.put(resource, buffer);
+        serveResource(buffer);
+    }
+
+    /**
+     * Serves the resource in the specified buffer
+     *
+     * @param buffer The buffer containing the resource
+     */
+    private void serveResource(byte[] buffer) {
         Headers headers = httpExchange.getResponseHeaders();
         Utils.enableCORS(headers);
         try {
-            httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, length);
+            httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, buffer.length);
         } catch (IOException exception) {
             controller.getLogger().error(exception);
         }
         try (OutputStream output = httpExchange.getResponseBody()) {
-            int read = input.read(BUFFER);
-            while (read > 0) {
-                output.write(BUFFER, 0, read);
-                read = input.read(BUFFER);
-            }
+            output.write(buffer);
         } catch (IOException exception) {
             controller.getLogger().error(exception);
-        } finally {
-            try {
-                input.close();
-            } catch (IOException exception) {
-                // do nothing
-            }
         }
     }
 

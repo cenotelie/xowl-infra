@@ -221,18 +221,17 @@ public abstract class Controller implements Closeable {
         }
         if (proxy == null) {
             boolean banned = onLoginFailure(client);
-            logger.info("Login failure for " + login);
+            logger.info("Login failure for " + login + " from " + client.toString());
             return banned ? null : ProtocolReplyFailure.instance();
         }
         if (!BCrypt.checkpw(password, hash)) {
             boolean banned = onLoginFailure(client);
-            logger.info("Login failure for " + login);
+            logger.info("Login failure for " + login + " from " + client.toString());
             return banned ? null : ProtocolReplyFailure.instance();
         } else {
             synchronized (clients) {
                 clients.remove(client);
             }
-            logger.info("Login success for " + login);
             User user;
             synchronized (users) {
                 user = users.get(login);
