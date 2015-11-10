@@ -22,7 +22,6 @@ package org.xowl.server.http;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
-import org.xowl.server.Program;
 import org.xowl.server.db.*;
 import org.xowl.store.IOUtils;
 import org.xowl.store.rdf.RuleExplanation;
@@ -30,20 +29,22 @@ import org.xowl.store.rete.MatchStatus;
 import org.xowl.store.sparql.Result;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents an active connection to the HTTP server
  *
  * @author Laurent Wouters
  */
-class HTTPConnection extends ProtocolHandler implements Runnable {
+class HTTPAPIConnection extends ProtocolHandler implements Runnable {
     /**
      * The content type for a SPARQL URL encoded message body
      */
@@ -72,7 +73,7 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
      * @param controller The current controller
      * @param exchange   The HTTP exchange to treat
      */
-    public HTTPConnection(Controller controller, HttpExchange exchange) {
+    public HTTPAPIConnection(Controller controller, HttpExchange exchange) {
         super(controller);
         this.httpExchange = exchange;
     }
@@ -94,11 +95,11 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
             return;
         }
 
-        String resource = httpExchange.getRequestURI().getPath().substring(1);
+        String resource = httpExchange.getRequestURI().getPath().substring("/api".length());
         Database database = null;
-        if (resource.startsWith("db/")) {
+        if (resource.startsWith("/db/")) {
             // requesting a specified database
-            String dbName = resource.substring(3);
+            String dbName = resource.substring(4);
             int index = dbName.indexOf("/");
             if (index != -1) {
                 dbName = dbName.substring(0, index);
@@ -113,10 +114,10 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
 
         if (Objects.equals(method, "GET")) {
             if (database == null) {
-                serveResource(resource);
-            } else {
-                onGetSPARQL(database);
+                response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
+                return;
             }
+            onGetSPARQL(database);
             return;
         }
         if (Objects.equals(method, "POST")) {
@@ -171,61 +172,6 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
     }
 
     /**
-     * The cache for serving HTTP resources
-     */
-    private static final Map<String, byte[]> CACHE = new HashMap<>();
-
-    /**
-     * Serves an embedded resource
-     *
-     * @param resource The requested resource
-     */
-    private void serveResource(String resource) {
-        if (resource.isEmpty())
-            resource = "index.html";
-
-        byte[] buffer = CACHE.get(resource);
-        if (buffer != null) {
-            serveResource(buffer);
-            return;
-        }
-
-        InputStream input = HTTPConnection.class.getResourceAsStream("/org/xowl/server/site/" + resource);
-        if (input == null) {
-            response(HttpURLConnection.HTTP_NOT_FOUND, null);
-            return;
-        }
-        try {
-            buffer = Program.load(input);
-            input.close();
-        } catch (IOException exception) {
-            // do nothing
-        }
-        CACHE.put(resource, buffer);
-        serveResource(buffer);
-    }
-
-    /**
-     * Serves the resource in the specified buffer
-     *
-     * @param buffer The buffer containing the resource
-     */
-    private void serveResource(byte[] buffer) {
-        Headers headers = httpExchange.getResponseHeaders();
-        Utils.enableCORS(headers);
-        try {
-            httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, buffer.length);
-        } catch (IOException exception) {
-            controller.getLogger().error(exception);
-        }
-        try (OutputStream output = httpExchange.getResponseBody()) {
-            output.write(buffer);
-        } catch (IOException exception) {
-            controller.getLogger().error(exception);
-        }
-    }
-
-    /**
      * When the method is POST
      *
      * @param database The target database
@@ -267,11 +213,15 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
      * @param body     The request body
      */
     private void onPostSPARQL(Database database, String body) {
-        Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
-        List<String> defaults = params.get("default-graph-uri");
-        List<String> named = params.get("named-graph-uri");
-        ProtocolReply reply = controller.sparql(user, database, body, defaults, named);
-        response(reply);
+        if (database == null) {
+            response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
+        } else {
+            Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+            List<String> defaults = params.get("default-graph-uri");
+            List<String> named = params.get("named-graph-uri");
+            ProtocolReply reply = controller.sparql(user, database, body, defaults, named);
+            response(reply);
+        }
     }
 
     /**

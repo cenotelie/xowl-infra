@@ -59,16 +59,9 @@ class Authenticator extends BasicAuthenticator {
         Headers requestHeaders = httpExchange.getRequestHeaders();
         String headerAuth = requestHeaders.getFirst("Authorization");
         if (headerAuth == null) {
-            // not authorized, used the guest login and password
-            if (checkCredentials(client,
-                    controller.getConfiguration().getHttpGuestLogin(),
-                    controller.getConfiguration().getHttpGuestPassword())) {
-                return new Success(new HttpPrincipal(controller.getConfiguration().getHttpGuestLogin(), this.realm));
-            } else {
-                Headers responseHeaders = httpExchange.getResponseHeaders();
-                responseHeaders.set("WWW-Authenticate", "Basic realm=\"" + this.realm + "\"");
-                return new Failure(HttpURLConnection.HTTP_UNAUTHORIZED);
-            }
+            Headers responseHeaders = httpExchange.getResponseHeaders();
+            responseHeaders.set("WWW-Authenticate", "Basic realm=\"" + this.realm + "\"");
+            return new Retry(HttpURLConnection.HTTP_UNAUTHORIZED);
         } else {
             int index = headerAuth.indexOf(32);
             if (index != -1 && headerAuth.substring(0, index).equals("Basic")) {
