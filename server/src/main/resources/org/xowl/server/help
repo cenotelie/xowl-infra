@@ -38,6 +38,7 @@ DATABASE db LIST RULES          Lists the rules registered in the database, incl
 DATABASE db LIST ACTIVE RULES   Lists the active rules in the database
 DATABASE db ADD RULE content    Adds a new (inactive) rule in the RDFT syntax to the database
 DATABASE db REMOVE RULE rule    Removes a rule specified by its IRI from the database
+DATABASE db RULE rule           Gets the definition of the rule specified by its IRI in the database
 DATABASE db ACTIVATE rule       Activates a rule specified by its IRI in the database
 DATABASE db DEACTIVATE rule     Deactivates a rule specified by its IRI in the database
 DATABASE db IS ACTIVE rule      Gets whether the rule specified by its IRI is active in the database
