@@ -300,6 +300,28 @@ public class Database implements Closeable {
     }
 
     /**
+     * Gets the definition of a rule
+     *
+     * @param iri The IRI of a rule
+     * @return The protocol reply
+     */
+    public ProtocolReply getRuleDefinition(String iri) {
+        if (!configuration.getAll(CONFIG_ALL_RULES).contains(iri))
+            return new ProtocolReplyFailure("Not in this database");
+
+        File folder = new File(location, REPO_RULES);
+        File file = new File(folder, Program.encode(iri.getBytes(Charset.forName("UTF-8"))));
+        try (FileInputStream stream = new FileInputStream(file)) {
+            byte[] content = Program.load(stream);
+            String definition = new String(content, Charset.forName("UTF-8"));
+            return new ProtocolReplyResult<>(definition);
+        } catch (IOException exception) {
+            logger.error(exception);
+            return ProtocolReplyFailure.instance();
+        }
+    }
+
+    /**
      * Activates a rule in this database
      *
      * @param iri The IRI of a rule

@@ -934,6 +934,24 @@ public abstract class Controller implements Closeable {
     }
 
     /**
+     * Gets the definition of a rule
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param rule     The rule's IRI
+     * @return The protocol reply
+     */
+    public ProtocolReply dbGetRuleDefinition(User client, Database database, String rule) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            return database.getRuleDefinition(rule);
+        } else {
+            return ProtocolReplyUnauthorized.instance();
+        }
+    }
+
+    /**
      * Activates an existing rule in a database
      *
      * @param client   The requesting client

@@ -22,6 +22,7 @@ package org.xowl.server.http;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
+import org.xowl.server.Program;
 import org.xowl.server.db.*;
 import org.xowl.store.IOUtils;
 import org.xowl.store.rdf.RuleExplanation;
@@ -195,7 +196,7 @@ class HTTPConnection extends ProtocolHandler implements Runnable {
             return;
         }
         try {
-            buffer = Utils.load(input);
+            buffer = Program.load(input);
             input.close();
         } catch (IOException exception) {
             // do nothing

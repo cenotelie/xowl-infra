@@ -201,6 +201,8 @@ public abstract class ProtocolHandler {
             return runDBAddRule(database, line);
         if (line.startsWith("REMOVE RULE "))
             return runDBRemoveRule(database, line);
+        if (line.startsWith("RULE"))
+            return runDBRuleDefinition(database, line);
         if (line.startsWith("ACTIVATE "))
             return runDBActivateRule(database, line);
         if (line.startsWith("DEACTIVATE "))
@@ -283,6 +285,19 @@ public abstract class ProtocolHandler {
     private ProtocolReply runDBRemoveRule(Database database, String line) {
         String rule = line.substring("REMOVE RULE ".length());
         return controller.dbRemoveRule(user, database, rule);
+    }
+
+    /**
+     * Request the definition of a rule
+     * Expected command line: DATABASE db RULE rule
+     *
+     * @param database The active database
+     * @param line     The command line
+     * @return The protocol reply
+     */
+    private ProtocolReply runDBRuleDefinition(Database database, String line) {
+        String rule = line.substring("RULE ".length());
+        return controller.dbGetRuleDefinition(user, database, rule);
     }
 
     /**
