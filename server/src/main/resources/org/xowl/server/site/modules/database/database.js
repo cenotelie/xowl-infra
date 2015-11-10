@@ -3,7 +3,7 @@
 angular.module('xOWLServer.database', ['ngRoute'])
 
 	.config(['$routeProvider', function ($routeProvider) {
-		$routeProvider.when('/database', {
+		$routeProvider.when('/database/:id', {
 			templateUrl: 'modules/database/database.html',
 			controller: 'DatabaseCtrl'
 		});

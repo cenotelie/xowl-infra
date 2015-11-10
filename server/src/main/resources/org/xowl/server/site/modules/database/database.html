@@ -1,29 +1,37 @@
 <p>
-	<div class="ui info raised message">
-		<div class="header">Database {{database.id}}</div>
-		<p>You are currently editing database {{database.id}}.</p>
+	<div class="alert alert-info alert-dismissible" role="alert">
+		<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> This is database {{database.id}}.
 	</div>
-	<div class="ui top attached tabular menu">
-		<a class="item active" data-tab="users">Users</a>
-		<a class="item" data-tab="reasoning">Reasoning</a>
-		<a class="item" data-tab="rules">Rules</a>
-		<a class="item" data-tab="query">Query</a>
-	</div>
-	<div class="ui bottom attached segment active" data-tab="users">
-		<div>Users</div>
-	</div>
-	<div class="ui bottom attached segment" data-tab="reasoning">
-		<div>Reasoning</div>
-	</div>
-	<div class="ui bottom attached segment" data-tab="rules">
-		<div>Rules</div>
-	</div>
-	<div class="ui bottom attached segment" data-tab="query">
-		<div>Query</div>
+	<div>
+		<ul class="nav nav-tabs" role="tablist">
+			<li id="DBTab1" role="presentation" class="active"><a href="" aria-controls="tab-data-home" role="tab" data-toggle="tab">Home</a></li>
+			<li id="DBTab2" role="presentation"><a href="" aria-controls="tab-data-profile" role="tab" data-toggle="tab">Profile</a></li>
+			<li id="DBTab3" role="presentation"><a href="" aria-controls="tab-data-messages" role="tab" data-toggle="tab">Messages</a></li>
+			<li id="DBTab4" role="presentation"><a href="" aria-controls="tab-data-settings" role="tab" data-toggle="tab">Settings</a></li>
+		</ul>
+		<div class="tab-content">
+			<div role="tabpanel" class="tab-pane active" id="tab-data-home">Home</div>
+			<div role="tabpanel" class="tab-pane" id="tab-data-profile">Profile</div>
+			<div role="tabpanel" class="tab-pane" id="tab-data-messages">Messages</div>
+			<div role="tabpanel" class="tab-pane" id="tab-data-settings">Settings</div>
+		</div>
 	</div>
 	<script>
-		$(document).ready(function() {
-			$('.tabular.menu .item').tab();
+		$('#DBTab1 a').click(function (e) {
+			e.preventDefault();
+			$(this).tab('show');
+		});
+		$('#DBTab2 a').click(function (e) {
+			e.preventDefault();
+			$(this).tab('show');
+		});
+		$('#DBTab3 a').click(function (e) {
+			e.preventDefault();
+			$(this).tab('show');
+		});
+		$('#DBTab4 a').click(function (e) {
+			e.preventDefault();
+			$(this).tab('show');
 		});
 	</script>
 </p>

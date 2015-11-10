@@ -4,11 +4,24 @@
 angular.module('xOWLServer', [
   'ngRoute',
   'xOWLServer.login',
-  'xOWLServer.logout',
   'xOWLServer.databases',
   'xOWLServer.database',
   'xOWLServer.users'
-]).
-config(['$routeProvider', function($routeProvider) {
-  $routeProvider.otherwise({redirectTo: '/login'});
-}]);
+])
+
+  .config(['$routeProvider', function ($routeProvider) {
+    $routeProvider.otherwise({ redirectTo: '/login' });
+  }])
+
+  .controller('xOWLServerCtrl', ['$scope', function ($scope) {
+    $scope.databases = [
+      {
+        id: "__admin",
+        name: "__admin"
+      },
+      {
+        id: "test",
+        name: "test"
+      }
+    ];
+  }]);

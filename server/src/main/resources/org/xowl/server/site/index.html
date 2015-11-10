@@ -7,41 +7,34 @@
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="app.css">
-  <link rel="stylesheet" type="text/css" href="vendors/semantic.min.css">
-  <link rel="stylesheet" type="text/css" href="vendors/icon.min.css">
+  <link rel="stylesheet" type="text/css" href="vendors/bootstrap.min.css">
+  <!--<link rel="stylesheet" type="text/css" href="vendors/bootstrap-theme.min.css">-->
 </head>
 
 <body>
-  <div class="ui attached stackable menu">
-    <div class="ui container">
-      <a class="item" href="#/home">
-        <i class="home icon"></i> Home
-      </a>
-      <div class="ui simple dropdown item">
-        <i class="database icon"></i> Databases
-        <i class="dropdown icon"></i>
-        <div class="menu">
-          <a class="item" href="#/databases"><i class="grid layout icon"></i> Browse</a>
-          <a class="item" href="#/database/{{database.id}}"><i class="database icon"></i> DB1</a>
-          <a class="item" href="#/database/{{database.id}}"><i class="database icon"></i> DB2</a>
-        </div>
-      </div>
-      <a class="item" href="#/users">
-        <i class="users icon"></i> Users
-      </a>
-      <a class="item" href="#/logout">
-        <i class="sign out icon"></i> Logout
-      </a>
+  <div class="page-header" style="margin-top: 10px;">
+    <h3 style="margin-top: 0px; margin-left: 10px; display: inline-block;">
+      <img class="img-responsive" src="assets/xowl.png" width="50px" style="display: inline-block;"/>
+      xOWL Server
+    </h3>
+    <div class="btn-group btn-group-lg" role="toolbar" aria-label="main-menu" style="margin-left: 150px; display: inline-block;">
+      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Databases <span class="caret"></span></button>
+      <ul class="dropdown-menu" ng-controller="xOWLServerCtrl">
+        <li><a href="#databases">Browse</a></li>
+        <li role="separator" class="divider"></li>
+        <li ng-repeat="database in databases"><a href="#database/{{database.id}}">{{database.name}}</a></li>
+      </ul>
     </div>
+    <a role="button" class="btn btn-default btn-lg" href="#/users">Users</a>
+    <a role="button" class="btn btn-danger btn-lg" href="#/logout">Logout</a>
   </div>
   <div class="body" ng-view></div>
   <script src="vendors/jquery-2.1.4.min.js"></script>
   <script src="vendors/angular.min.js"></script>
   <script src="vendors/angular-route.min.js"></script>
-  <script src="vendors/semantic.min.js"></script>
+  <script src="vendors/bootstrap.min.js"></script>
   <script src="app.js"></script>
   <script src="modules/login/login.js"></script>
-  <script src="modules/logout/logout.js"></script>
   <script src="modules/databases/databases.js"></script>
   <script src="modules/database/database.js"></script>
   <script src="modules/users/users.js"></script>
