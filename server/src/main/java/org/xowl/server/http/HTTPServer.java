@@ -43,8 +43,8 @@ import java.util.concurrent.TimeUnit;
  * Schema for the served URIs:
  * /api         Access point where to post core administrative commands
  * /api/db/xxx  Access point where to post commands specific to the database "xxx"
- * /web         The web application front page
- * /web/auth    The web application content that requires authentication
+ * /web/        The web application front page
+ * /web/auth/   The web application content that requires authentication
  *
  * @author Laurent Wouters
  */
@@ -118,13 +118,13 @@ public class HTTPServer implements Closeable {
                     ((new HTTPAPIConnection(controller, httpExchange))).run();
                 }
             }).setAuthenticator(authenticator);
-            server.createContext("/web/auth", new HttpHandler() {
+            server.createContext("/web/auth/", new HttpHandler() {
                 @Override
                 public void handle(HttpExchange httpExchange) throws IOException {
                     ((new HTTPWebConnection(controller, httpExchange))).run();
                 }
             }).setAuthenticator(authenticator);
-            server.createContext("/web", new HttpHandler() {
+            server.createContext("/web/", new HttpHandler() {
                 @Override
                 public void handle(HttpExchange httpExchange) throws IOException {
                     ((new HTTPWebConnection(controller, httpExchange))).run();
