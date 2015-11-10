@@ -65,18 +65,9 @@ public class HTTPWebConnection extends ProtocolHandler implements Runnable {
             return;
         }
 
-        if (httpExchange.getPrincipal() != null) {
-            user = controller.user(httpExchange.getPrincipal().getUsername());
-        }
         String resource = httpExchange.getRequestURI().getPath().substring("/web/".length());
         while (resource.endsWith("/")) {
             resource = resource.substring(0, resource.length() - 1);
-        }
-
-        if (user == null && resource.startsWith("/auth")) {
-            httpExchange.getResponseHeaders().add("WWW-Authenticate", "Basic realm=\"" + controller.getConfiguration().getSecurityRealm() + "\"");
-            response(HttpURLConnection.HTTP_FORBIDDEN, "Failed to login");
-            return;
         }
 
         if (Objects.equals(method, "GET")) {
