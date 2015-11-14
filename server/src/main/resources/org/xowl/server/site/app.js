@@ -6,6 +6,7 @@ angular.module('xOWLServer', [
   'angularBasicAuth',
   'LocalStorageModule',
   'xOWLServer.login',
+  'xOWLServer.server',
   'xOWLServer.account',
   'xOWLServer.databases',
   'xOWLServer.database',

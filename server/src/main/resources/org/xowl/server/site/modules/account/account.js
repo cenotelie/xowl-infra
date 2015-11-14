@@ -27,5 +27,7 @@ angular.module('xOWLServer.account', ['ngRoute'])
       }, function (response) {
         $scope.messages = $sce.trustAsHtml(getError(MSG_ERROR_CONNECTION));
       });
+      document.getElementById('field-password-1').value = "";
+      document.getElementById('field-password-2').value = "";
     };
   }]);

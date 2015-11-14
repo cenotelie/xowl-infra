@@ -18,22 +18,9 @@
       xOWL Server
     </h3>
     <div ng-if="currentUser != null" style="display: inline-block;">
-      <div class="btn-group btn-group-lg" role="toolbar" aria-label="main-menu" style="margin-left: 150px; display: inline-block;">
-        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Databases <span class="caret"></span></button>
-        <ul class="dropdown-menu">
-          <li><a href="#databases">Browse</a></li>
-          <li role="separator" class="divider"></li>
-          <li ng-repeat="database in databases"><a href="#database/{{database}}">{{database}}</a></li>
-        </ul>
-      </div>
-      <div class="btn-group btn-group-lg" role="toolbar" aria-label="main-menu" style="display: inline-block;">
-        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Users <span class="caret"></span></button>
-        <ul class="dropdown-menu">
-          <li><a href="#users">Browse</a></li>
-          <li role="separator" class="divider"></li>
-          <li ng-repeat="user in users"><a href="#user/{{user}}">{{user}}</a></li>
-        </ul>
-      </div>
+      <a role="button" class="btn btn-lg btn-default" href="#server" style="margin-left: 100px;">Server</a>
+      <a role="button" class="btn btn-lg btn-default" href="#databases">Databases</a>
+      <a role="button" class="btn btn-lg btn-default" href="#users">Users</a>
       <div class="btn-group btn-group-lg" role="toolbar" aria-label="main-menu" style="display: inline-block;">
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></button>
         <ul class="dropdown-menu">
@@ -53,6 +40,7 @@
   <script src="vendors/bootstrap.min.js"></script>
   <script src="app.js"></script>
   <script src="modules/login/login.js"></script>
+  <script src="modules/server/server.js"></script>
   <script src="modules/account/account.js"></script>
   <script src="modules/databases/databases.js"></script>
   <script src="modules/database/database.js"></script>
