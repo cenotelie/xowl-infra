@@ -144,6 +144,7 @@ public class UserPrivileges implements Serializable {
             builder.append((privileges[i] & Schema.PRIVILEGE_READ) == Schema.PRIVILEGE_READ);
             builder.append("}");
         }
+        builder.append("]}");
         return builder.toString();
     }
 }

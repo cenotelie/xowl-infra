@@ -114,7 +114,11 @@ public class HTTPServer implements Closeable {
             server.createContext("/api", new HttpHandler() {
                 @Override
                 public void handle(HttpExchange httpExchange) throws IOException {
-                    ((new HTTPAPIConnection(controller, httpExchange))).run();
+                    try {
+                        ((new HTTPAPIConnection(controller, httpExchange))).run();
+                    } catch (Exception exception) {
+                        controller.getLogger().error(exception);
+                    }
                 }
             }).setAuthenticator(authenticator);
             server.createContext("/web/", new HttpHandler() {

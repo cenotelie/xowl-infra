@@ -105,7 +105,7 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
             }
             ProtocolReply dbReply = controller.getDatabase(user, dbName);
             if (!dbReply.isSuccess()) {
-                response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
+                response(HttpURLConnection.HTTP_FORBIDDEN, null);
                 return;
             }
             database = ((ProtocolReplyResult<Database>) dbReply).getData();
@@ -267,7 +267,7 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
     private void response(ProtocolReply reply) {
         if (reply == null) {
             // client got banned
-            response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
+            response(HttpURLConnection.HTTP_FORBIDDEN, null);
             return;
         }
         if (reply instanceof ProtocolReplyUnauthenticated) {
@@ -275,7 +275,7 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
             return;
         }
         if (reply instanceof ProtocolReplyUnauthorized) {
-            response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
+            response(HttpURLConnection.HTTP_FORBIDDEN, null);
             return;
         }
         if (reply instanceof ProtocolReplyFailure) {
@@ -285,6 +285,7 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
         if (!(reply instanceof ProtocolReplyResult)) {
             // other successes
             response(HttpURLConnection.HTTP_OK, reply.getMessage());
+            return;
         }
 
         List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());

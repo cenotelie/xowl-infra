@@ -9,19 +9,23 @@ angular.module('xOWLServer.account', ['ngRoute'])
     });
   }])
 
-  .controller('AccountCtrl', ['$scope', function ($scope) {
-    $scope.privileges = [
-      {
-        database: "__admin",
-        isAdmin: true,
-        canWrite: true,
-        canRead: true
-      },
-      {
-        database: "test",
-        isAdmin: false,
-        canWrite: false,
-        canRead: true
+  .controller('AccountCtrl', ['$rootScope', '$scope', '$http', '$sce', function ($rootScope, $scope, $http, $sce) {
+    $http.post('/api', "ADMIN PRIVILEGES " + $rootScope.currentUser, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
+      $scope.privileges = response.data.results;
+    }, function (response) {
+      $scope.messages = $sce.trustAsHtml(getError(MSG_ERROR_CONNECTION));
+    });
+    $scope.onPasswordChange = function () {
+      var pass1 = document.getElementById('field-password-1').value;
+      var pass2 = document.getElementById('field-password-2').value;
+      if (pass1 !== pass2) {
+        $scope.messages = $sce.trustAsHtml(getError("Passwords do not match!"));
+        return;
       }
-    ];
+      $http.post('/api', "ADMIN CHANGE PASSWORD " + pass1, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
+        $scope.messages = $sce.trustAsHtml(getSuccess("Password was successfully changed."));
+      }, function (response) {
+        $scope.messages = $sce.trustAsHtml(getError(MSG_ERROR_CONNECTION));
+      });
+    };
   }]);

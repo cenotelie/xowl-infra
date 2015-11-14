@@ -28,16 +28,10 @@ angular.module('xOWLServer.login', ['ngRoute', 'angularBasicAuth'])
             $location.path("/databases");
           })
           .error(function () {
-            $scope.messages = $sce.trustAsHtml(MSG_ERROR);
+            $scope.messages = $sce.trustAsHtml(getError("Failed to login, login/password do not match a recognized user on this server."));
           });
       };
       $rootScope.onLogoutButton = function () {
         authService.logout();
       };
     }]);
-
-var MSG_ERROR = "<div class='alert alert-danger alert-dismissible' role='alert' style='margin-top: 20px;'>" +
-  "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>" +
-  "<span class='glyphicon glyphicon-exclamation-sign' aria-hidden='true'></span>" +
-  " Login failed!" +
-  "</div>";

@@ -502,7 +502,7 @@ public abstract class ProtocolHandler {
      * @return The protocol reply
      */
     private ProtocolReply runAdminGetUserPrivileges(String line) {
-        String login = line.substring("ADMIN GRANT SERVER ADMIN ".length());
+        String login = line.substring("ADMIN PRIVILEGES ".length());
         ProtocolReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;

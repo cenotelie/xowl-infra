@@ -1,4 +1,5 @@
 <p ng-controller="AccountCtrl">
+	<div ng-bind-html="messages"></div>
 	<div>
 		<ul class="nav nav-tabs" role="tablist" id="UserTabs">
 			<li role="presentation" class="active"><a href="#tab-data-privileges" aria-controls="#tab-data-privileges" role="tab">Privileges</a></li>
@@ -42,7 +43,7 @@
 								<label for="field-password">New password (the same)</label>
 								<input type="password" class="form-control" id="field-password-2" placeholder="Password">
 							</div>
-							<button type="submit" class="btn btn-primary">OK</button>
+							<button type="submit" class="btn btn-primary" ng-click="onPasswordChange()">OK</button>
 						</form>
 					</div>
 				</div>

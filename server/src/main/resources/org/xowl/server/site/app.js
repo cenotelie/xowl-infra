@@ -25,3 +25,17 @@ angular.module('xOWLServer', [
       $rootScope.currentUser = null;
     });
   }]);
+
+var MSG_ERROR_CONNECTION = "Error while accessing the server!";
+
+function getError(msg) {
+  return "<div class='alert alert-danger alert-dismissible' role='alert' style='margin-top: 20px;'>" +
+    "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>" +
+    "<span class='glyphicon glyphicon-exclamation-sign' aria-hidden='true'></span> " + msg + "</div>";
+}
+
+function getSuccess(msg) {
+  return "<div class='alert alert-success alert-dismissible' role='alert' style='margin-top: 20px;'>" +
+    "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>" +
+    "<span class='glyphicon glyphicon-exclamation-sign' aria-hidden='true'></span> " + msg + "</div>";
+}
