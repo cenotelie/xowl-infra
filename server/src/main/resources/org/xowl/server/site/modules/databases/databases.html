@@ -4,6 +4,7 @@
     <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> This page lists only the databases you have been
     granted access to.
   </div>
+  <div ng-bind-html="messages"></div>
   <div class="form-group">
     <label for="field-search">Search</label>
     <input type="text" class="form-control" id="field-search" placeholder="name" ng-model="query">
@@ -18,7 +19,7 @@
     <tbody>
       <tr ng-repeat="database in databases | filter: query">
         <td align="center"><span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span></td>
-        <td><a class="item" href="#/database/{{database.id}}"><i class="database icon"></i> {{database.name}}</a></td>
+        <td><a class="item" href="#/database/{{database}}"><i class="glyphicon glyphicon-hdd"></i> {{database}}</a></td>
       </tr>
     </tbody>
   </table>

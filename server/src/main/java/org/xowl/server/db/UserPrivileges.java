@@ -20,6 +20,7 @@
 
 package org.xowl.server.db;
 
+import org.xowl.store.Serializable;
 import org.xowl.utils.collections.SparseIterator;
 
 import java.util.Arrays;
@@ -30,7 +31,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-public class UserPrivileges {
+public class UserPrivileges implements Serializable {
     /**
      * Initial length of the buffers
      */
@@ -100,5 +101,49 @@ public class UserPrivileges {
      */
     public Iterator<Database> getDatabases() {
         return new SparseIterator<>(databases);
+    }
+
+    @Override
+    public String serializedString() {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i != databases.length; i++) {
+            if (databases[i] == null)
+                break;
+            if (i != 0)
+                builder.append(System.lineSeparator());
+            boolean canAdmin = (privileges[i] & Schema.PRIVILEGE_ADMIN) == Schema.PRIVILEGE_ADMIN;
+            boolean canWrite = (privileges[i] & Schema.PRIVILEGE_WRITE) == Schema.PRIVILEGE_WRITE;
+            boolean canRead = (privileges[i] & Schema.PRIVILEGE_READ) == Schema.PRIVILEGE_READ;
+            builder.append(databases[i].getName());
+            builder.append(":");
+            if (canAdmin)
+                builder.append(" ADMIN");
+            if (canWrite)
+                builder.append(" WRITE");
+            if (canRead)
+                builder.append(" READ");
+        }
+        return builder.toString();
+    }
+
+    @Override
+    public String serializedJSON() {
+        StringBuilder builder = new StringBuilder("{ \"results\": [");
+        for (int i = 0; i != databases.length; i++) {
+            if (databases[i] == null)
+                break;
+            if (i != 0)
+                builder.append(", ");
+            builder.append("{ \"database\": \"");
+            builder.append(databases[i].getName());
+            builder.append("\", \"isAdmin\": ");
+            builder.append((privileges[i] & Schema.PRIVILEGE_ADMIN) == Schema.PRIVILEGE_ADMIN);
+            builder.append(", \"canWrite\": ");
+            builder.append((privileges[i] & Schema.PRIVILEGE_WRITE) == Schema.PRIVILEGE_WRITE);
+            builder.append(", \"canRead\": ");
+            builder.append((privileges[i] & Schema.PRIVILEGE_READ) == Schema.PRIVILEGE_READ);
+            builder.append("}");
+        }
+        return builder.toString();
     }
 }

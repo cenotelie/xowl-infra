@@ -400,8 +400,6 @@ public abstract class Controller implements Closeable {
     public ProtocolReply getUsers(User client) {
         if (client == null)
             return ProtocolReplyUnauthenticated.instance();
-        if (!checkIsServerAdmin(client))
-            return ProtocolReplyUnauthorized.instance();
         Collection<User> result = new ArrayList<>();
         synchronized (adminDB) {
             ProxyObject classUser = adminDB.repository.resolveProxy(Schema.ADMIN_USER);

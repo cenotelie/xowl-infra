@@ -26,6 +26,7 @@ import org.xowl.store.writers.*;
 import org.xowl.utils.SinkLogger;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
@@ -93,5 +94,23 @@ public class ResultQuads implements Result {
         }
         SinkLogger logger = new SinkLogger();
         serializer.serialize(logger, quads.iterator());
+    }
+
+    @Override
+    public String serializedString() {
+        StringWriter writer = new StringWriter();
+        RDFSerializer serializer = new NQuadsSerializer(writer);
+        SinkLogger logger = new SinkLogger();
+        serializer.serialize(logger, quads.iterator());
+        return writer.toString();
+    }
+
+    @Override
+    public String serializedJSON() {
+        StringWriter writer = new StringWriter();
+        RDFSerializer serializer = new JSONLDSerializer(writer);
+        SinkLogger logger = new SinkLogger();
+        serializer.serialize(logger, quads.iterator());
+        return writer.toString();
     }
 }

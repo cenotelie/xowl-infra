@@ -21,19 +21,16 @@
 package org.xowl.server.xsp;
 
 import org.xowl.server.ServerConfiguration;
-import org.xowl.server.db.*;
-import org.xowl.store.AbstractRepository;
-import org.xowl.store.rdf.RuleExplanation;
-import org.xowl.store.rete.MatchStatus;
-import org.xowl.store.sparql.Result;
-import org.xowl.store.sparql.ResultQuads;
-import org.xowl.store.sparql.ResultSolutions;
+import org.xowl.server.db.Controller;
+import org.xowl.server.db.ProtocolHandler;
+import org.xowl.server.db.ProtocolReply;
+import org.xowl.server.db.ProtocolReplyResult;
+import org.xowl.store.Serializable;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * Represents an active connection to the XSP server
@@ -132,51 +129,11 @@ class XSPConnection extends ProtocolHandler implements Runnable {
             }
             if (reply instanceof ProtocolReplyResult) {
                 Object data = ((ProtocolReplyResult) reply).getData();
-                if (data instanceof Collection) {
+                if (data instanceof Serializable) {
+                    send(((org.xowl.store.Serializable) data).serializedString());
+                } else if (data instanceof Collection) {
                     for (Object element : (Collection) data)
                         send(element.toString());
-                } else if (data instanceof Result) {
-                    Result sparqlResult = (Result) data;
-                    if (sparqlResult instanceof ResultQuads) {
-                        StringWriter writer = new StringWriter();
-                        sparqlResult.print(writer, AbstractRepository.SYNTAX_NQUADS);
-                        send(writer.toString());
-                    } else if (sparqlResult instanceof ResultSolutions) {
-                        StringWriter writer = new StringWriter();
-                        sparqlResult.print(writer, Result.SYNTAX_JSON);
-                        send(writer.toString());
-                    } else {
-                        StringWriter writer = new StringWriter();
-                        sparqlResult.print(writer, Result.SYNTAX_CSV);
-                        send(writer.toString());
-                    }
-                } else if (data instanceof MatchStatus) {
-                    StringWriter writer = new StringWriter();
-                    ((MatchStatus) data).printJSON(writer);
-                    send(writer.toString());
-                } else if (data instanceof RuleExplanation) {
-                    StringWriter writer = new StringWriter();
-                    ((RuleExplanation) data).printJSON(writer);
-                    send(writer.toString());
-                } else if (data instanceof UserPrivileges) {
-                    UserPrivileges privileges = (UserPrivileges) data;
-                    Iterator<Database> databases = privileges.getDatabases();
-                    while (databases.hasNext()) {
-                        Database db = databases.next();
-                        int pr = privileges.getFor(db);
-                        boolean canAdmin = (pr & Schema.PRIVILEGE_ADMIN) == Schema.PRIVILEGE_ADMIN;
-                        boolean canWrite = (pr & Schema.PRIVILEGE_WRITE) == Schema.PRIVILEGE_WRITE;
-                        boolean canRead = (pr & Schema.PRIVILEGE_READ) == Schema.PRIVILEGE_READ;
-                        StringBuilder builder = new StringBuilder(db.getName());
-                        builder.append(":");
-                        if (canAdmin)
-                            builder.append(" ADMIN");
-                        if (canWrite)
-                            builder.append(" WRITE");
-                        if (canRead)
-                            builder.append(" READ");
-                        send(builder.toString());
-                    }
                 } else {
                     send(data.toString());
                 }

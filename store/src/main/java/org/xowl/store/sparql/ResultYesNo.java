@@ -21,6 +21,7 @@
 package org.xowl.store.sparql;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 
 /**
@@ -78,6 +79,22 @@ public class ResultYesNo implements Result {
             default:
                 throw new IllegalArgumentException("Unsupported format " + syntax);
         }
+    }
+
+    @Override
+    public String serializedString() {
+        return Boolean.toString(value);
+    }
+
+    @Override
+    public String serializedJSON() {
+        StringWriter writer = new StringWriter();
+        try {
+            printJSON(writer);
+        } catch (IOException exception) {
+            // cannot happen
+        }
+        return writer.toString();
     }
 
     /**

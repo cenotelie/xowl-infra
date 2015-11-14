@@ -1,0 +1,58 @@
+<p ng-controller="AccountCtrl">
+	<div>
+		<ul class="nav nav-tabs" role="tablist" id="UserTabs">
+			<li role="presentation" class="active"><a href="#tab-data-privileges" aria-controls="#tab-data-privileges" role="tab">Privileges</a></li>
+			<li role="presentation"><a href="#tab-data-security" aria-controls="#tab-data-security" role="tab">Security</a></li>
+		</ul>
+		<div class="tab-content">
+			<div role="tabpanel" class="tab-pane active" id="tab-data-privileges" style="margin-top: 20px;">
+				<div class="form-group">
+					<label for="field-search">Search</label>
+					<input type="text" class="form-control" id="field-search" placeholder="name" ng-model="query">
+				</div>
+				<table class="table table-bordered table-hover">
+					<thead>
+						<tr>
+							<th style="width: 25%;">Database</th>
+							<th style="width: 25%;">Is Admin</th>
+							<th style="width: 25%;">Can Write</th>
+							<th style="width: 25%;">Can Read</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="access in privileges | filter: {database: query}">
+							<td><a class="item" href="#/database/{{access.database}}"><i class="glyphicon glyphicon-hdd"></i> {{access.database}}</a></td>
+							<td align="center"><span ng-if="access.isAdmin" class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span></td>
+							<td align="center"><span ng-if="access.canWrite" class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span></td>
+							<td align="center"><span ng-if="access.canRead" class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div role="tabpanel" class="tab-pane" id="tab-data-security">
+				<div class="panel panel-danger" style="margin-top: 20px;">
+					<div class="panel-heading">Change password</div>
+					<div class="panel-body">
+						<form>
+							<div class="form-group">
+								<label for="field-password">New password</label>
+								<input type="password" class="form-control" id="field-password-1" placeholder="Password">
+							</div>
+							<div class="form-group">
+								<label for="field-password">New password (the same)</label>
+								<input type="password" class="form-control" id="field-password-2" placeholder="Password">
+							</div>
+							<button type="submit" class="btn btn-primary">OK</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		$('#UserTabs a').click(function (e) {
+			e.preventDefault();
+			$(this).tab('show');
+		});
+	</script>
+</p>

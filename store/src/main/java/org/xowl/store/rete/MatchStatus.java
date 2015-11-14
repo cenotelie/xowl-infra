@@ -19,8 +19,10 @@
  ******************************************************************************/
 package org.xowl.store.rete;
 
+import org.xowl.store.Serializable;
+
 import java.io.IOException;
-import java.io.Writer;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +32,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class MatchStatus {
+public class MatchStatus implements Serializable {
     /**
      * The match steps
      */
@@ -61,19 +63,25 @@ public class MatchStatus {
         steps.add(step);
     }
 
-    /**
-     * Serializes this matching status in the JSON syntax
-     *
-     * @param writer The writer to write to
-     * @throws IOException When the underlying write operation failed
-     */
-    public void printJSON(Writer writer) throws IOException {
+    @Override
+    public String serializedString() {
+        return serializedJSON();
+    }
+
+    @Override
+    public String serializedJSON() {
+        StringWriter writer = new StringWriter();
         writer.write("{ \"steps\": [");
         for (int i = 0; i != steps.size(); i++) {
             if (i != 0)
                 writer.write(", ");
-            steps.get(i).printJSON(writer);
+            try {
+                steps.get(i).printJSON(writer);
+            } catch (IOException exception) {
+                // cannot happen
+            }
         }
         writer.write("] }");
+        return writer.toString();
     }
 }

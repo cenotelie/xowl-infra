@@ -24,8 +24,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.server.db.*;
 import org.xowl.store.IOUtils;
-import org.xowl.store.rdf.RuleExplanation;
-import org.xowl.store.rete.MatchStatus;
+import org.xowl.store.Serializable;
 import org.xowl.store.sparql.Result;
 
 import java.io.IOException;
@@ -34,7 +33,10 @@ import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents an active connection to the HTTP server
@@ -111,7 +113,8 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
 
         if (Objects.equals(method, "GET")) {
             if (database == null) {
-                response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
+                // this is most probably an authentication request
+                response(HttpURLConnection.HTTP_OK, null);
                 return;
             }
             onGetSPARQL(database);
@@ -199,6 +202,9 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
                 break;
             case XOWL_TYPE_COMMAND:
                 onPostCommand(body);
+                break;
+            default:
+                response(HttpURLConnection.HTTP_BAD_REQUEST, null);
                 break;
         }
     }
@@ -297,6 +303,7 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
                 builder.append(IOUtils.escapeStringJSON(elem.toString()));
                 builder.append("\"");
             }
+            builder.append("]}");
             response(HttpURLConnection.HTTP_OK, builder.toString());
         } else if (data instanceof Result) {
             Result sparqlResult = (Result) data;
@@ -309,50 +316,9 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
             }
             httpExchange.getResponseHeaders().add("Content-Type", Utils.coerceContentType(sparqlResult, resultType));
             response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR, writer.toString());
-        } else if (data instanceof UserPrivileges) {
+        } else if (data instanceof Serializable) {
             httpExchange.getResponseHeaders().add("Content-Type", "application/json");
-            StringBuilder builder = new StringBuilder("{ \"results\": [");
-            UserPrivileges privileges = (UserPrivileges) data;
-            Iterator<Database> databases = privileges.getDatabases();
-            boolean first = true;
-            while (databases.hasNext()) {
-                Database db = databases.next();
-                int pr = privileges.getFor(db);
-                if (!first)
-                    builder.append(", ");
-                first = false;
-                builder.append("{ \"database\": \"");
-                builder.append(db.getName());
-                builder.append("\", \"isAdmin\": ");
-                builder.append((pr & Schema.PRIVILEGE_ADMIN) == Schema.PRIVILEGE_ADMIN);
-                builder.append(", \"canWrite\": ");
-                builder.append((pr & Schema.PRIVILEGE_WRITE) == Schema.PRIVILEGE_WRITE);
-                builder.append(", \"canRead\": ");
-                builder.append((pr & Schema.PRIVILEGE_READ) == Schema.PRIVILEGE_READ);
-                builder.append("}");
-            }
-            builder.append("]}");
-            response(HttpURLConnection.HTTP_OK, builder.toString());
-        } else if (data instanceof MatchStatus) {
-            httpExchange.getResponseHeaders().add("Content-Type", "application/json");
-            StringWriter writer = new StringWriter();
-            try {
-                ((MatchStatus) data).printJSON(writer);
-            } catch (IOException exception) {
-                // cannot happen
-                exception.printStackTrace();
-            }
-            response(HttpURLConnection.HTTP_OK, writer.toString());
-        } else if (data instanceof RuleExplanation) {
-            httpExchange.getResponseHeaders().add("Content-Type", "application/json");
-            StringWriter writer = new StringWriter();
-            try {
-                ((RuleExplanation) data).printJSON(writer);
-            } catch (IOException exception) {
-                // cannot happen
-                exception.printStackTrace();
-            }
-            response(HttpURLConnection.HTTP_OK, writer.toString());
+            response(HttpURLConnection.HTTP_OK, ((Serializable) data).serializedJSON());
         } else {
             httpExchange.getResponseHeaders().add("Content-Type", "text");
             response(HttpURLConnection.HTTP_OK, data.toString());

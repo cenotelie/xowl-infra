@@ -1,35 +1,106 @@
-<p>
-	<div class="alert alert-info alert-dismissible" role="alert">
-		<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> This is database {{database.id}}.
-	</div>
+<p ng-controller="DatabaseCtrl">
 	<div>
-		<ul class="nav nav-tabs" role="tablist">
-			<li id="DBTab1" role="presentation" class="active"><a href="" aria-controls="tab-data-home" role="tab" data-toggle="tab">Home</a></li>
-			<li id="DBTab2" role="presentation"><a href="" aria-controls="tab-data-profile" role="tab" data-toggle="tab">Profile</a></li>
-			<li id="DBTab3" role="presentation"><a href="" aria-controls="tab-data-messages" role="tab" data-toggle="tab">Messages</a></li>
-			<li id="DBTab4" role="presentation"><a href="" aria-controls="tab-data-settings" role="tab" data-toggle="tab">Settings</a></li>
+		<ul class="nav nav-tabs" role="tablist" id="DBTabs">
+			<li role="presentation" class="active"><a href="#tab-data-summary" aria-controls="tab-data-summary" role="tab">Summary</a></li>
+			<li role="presentation"><a href="#tab-data-settings" aria-controls="tab-data-settings" role="tab">Settings</a></li>
+			<li role="presentation"><a href="#tab-data-accesses" aria-controls="tab-data-accesses" role="tab">Accesses</a></li>
+			<li role="presentation"><a href="#tab-data-rules" aria-controls="tab-data-rules" role="tab">Rules</a></li>
+			<li role="presentation"><a href="#tab-data-sparql" aria-controls="tab-data-sparql" role="tab">SPARQL</a></li>
 		</ul>
 		<div class="tab-content">
-			<div role="tabpanel" class="tab-pane active" id="tab-data-home">Home</div>
-			<div role="tabpanel" class="tab-pane" id="tab-data-profile">Profile</div>
-			<div role="tabpanel" class="tab-pane" id="tab-data-messages">Messages</div>
-			<div role="tabpanel" class="tab-pane" id="tab-data-settings">Settings</div>
+			<div role="tabpanel" class="tab-pane active" id="tab-data-summary">
+				<div class="panel panel-info" style="margin-top: 20px;">
+					<div class="panel-heading">General Information</div>
+					<div class="panel-body">
+						<div class="form-horizontal">
+							<div class="form-group">
+								<label for="db-name" class="col-sm-2 control-label">Name</label>
+								<div class="col-sm-10">
+									<span class="form-control" id="db-name">{{database.name}}</span>
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="db-status" class="col-sm-2 control-label">Status</label>
+								<div class="col-sm-10">
+									<span ng-if="database.status" class="glyphicon glyphicon-ok text-success" id="db-status" aria-hidden="true"></span>
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="sb-entailment" class="col-sm-2 control-label">Entailment</label>
+								<div class="col-sm-10">
+									<span class="form-control" id="sb-entailment">{{database.entailment}}</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div role="tabpanel" class="tab-pane" id="tab-data-settings">
+				<div class="panel panel-info" style="margin-top: 20px;">
+					<div class="panel-heading">Entailment setup</div>
+					<div class="panel-body">
+						<form class="form-horizontal">
+							<div class="form-group">
+								<div class="radio col-sm-10">
+									<label>
+										<input type="radio" name="entailemnt-options" id="entailment-option-none" value="entailment-none" checked> No entailment
+									</label>
+								</div>
+								<div class="radio col-sm-10">
+									<label>
+										<input type="radio" name="entailemnt-options" id="entailment-option-simple" value="entailment-simple"> Simple interpretation
+									</label>
+								</div>
+								<div class="radio col-sm-10">
+									<label>
+										<input type="radio" name="entailemnt-options" id="entailment-option-rdf" value="entailment-rdf"> RDF interpretation
+									</label>
+								</div>
+								<div class="radio col-sm-10">
+									<label>
+										<input type="radio" name="entailemnt-options" id="entailment-option-rdfs" value="entailment-rdfs"> RDFS interpretation
+									</label>
+								</div>
+								<div class="radio col-sm-10">
+									<label>
+										<input type="radio" name="entailemnt-options" id="entailment-option-owl2-rdf" value="entailment-owl2-rdf"> OWL2, RDF-based interpretation
+									</label>
+								</div>
+								<div class="radio col-sm-10">
+									<label>
+										<input type="radio" name="entailemnt-options" id="entailment-option-owl2-direct" value="entailment-owl2-direct"> OWL2, direct interpretation
+									</label>
+								</div>
+							</div>
+							<button type="submit" class="btn btn-primary">Submit</button>
+						</form>
+					</div>
+				</div>
+				<div class="panel panel-danger" style="margin-top: 20px;">
+					<div class="panel-heading">Drop database</div>
+					<div class="panel-body">
+						<form class="form-horizontal">
+							<span>
+								Dropping the database will delete all data. This operation <b>cannot</b> be reverted.
+							</span>
+							<button type="submit" class="btn btn-danger">Drop the database</button>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div role="tabpanel" class="tab-pane" id="tab-data-accesses">
+
+			</div>
+			<div role="tabpanel" class="tab-pane" id="tab-data-rules">
+
+			</div>
+			<div role="tabpanel" class="tab-pane" id="tab-data-sparql">
+
+			</div>
 		</div>
 	</div>
 	<script>
-		$('#DBTab1 a').click(function (e) {
-			e.preventDefault();
-			$(this).tab('show');
-		});
-		$('#DBTab2 a').click(function (e) {
-			e.preventDefault();
-			$(this).tab('show');
-		});
-		$('#DBTab3 a').click(function (e) {
-			e.preventDefault();
-			$(this).tab('show');
-		});
-		$('#DBTab4 a').click(function (e) {
+		$('#DBTabs a').click(function (e) {
 			e.preventDefault();
 			$(this).tab('show');
 		});

@@ -9,6 +9,10 @@ angular.module('xOWLServer.database', ['ngRoute'])
 		});
 	}])
 
-	.controller('DatabaseCtrl', [function () {
-
-	}]);
+	.controller('DatabaseCtrl', ['$scope', function ($scope) {
+    $scope.database = {
+		name: "__admin",
+		status: true,
+		entailment: "NONE"
+	};
+  }]);

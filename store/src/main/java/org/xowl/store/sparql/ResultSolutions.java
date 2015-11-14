@@ -25,6 +25,7 @@ import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +87,28 @@ public class ResultSolutions implements Result {
             default:
                 throw new IllegalArgumentException("Unsupported format " + syntax);
         }
+    }
+
+    @Override
+    public String serializedString() {
+        StringWriter writer = new StringWriter();
+        try {
+            printTSV(writer);
+        } catch (IOException exception) {
+            // cannot happen
+        }
+        return writer.toString();
+    }
+
+    @Override
+    public String serializedJSON() {
+        StringWriter writer = new StringWriter();
+        try {
+            printJSON(writer);
+        } catch (IOException exception) {
+            // cannot happen
+        }
+        return writer.toString();
     }
 
     /**

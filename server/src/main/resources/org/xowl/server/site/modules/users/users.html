@@ -1,3 +1,18 @@
-<p>
-  Manager users here
+<p ng-controller="UsersCtrl">
+  <div class="form-group">
+    <label for="field-search">Search</label>
+    <input type="text" class="form-control" id="field-search" placeholder="name" ng-model="query">
+  </div>
+  <table class="table table-bordered table-hover">
+    <thead>
+      <tr>
+        <th style="width: 100%;">Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="user in users | filter: query">
+        <td><a class="item" href="#/user/{{user}}"><i class="glyphicon glyphicon-user"></i> {{user}}</a></td>
+      </tr>
+    </tbody>
+  </table>
 </p>

@@ -3,7 +3,10 @@
 // Declare app level module which depends on views, and components
 angular.module('xOWLServer', [
   'ngRoute',
+  'angularBasicAuth',
+  'LocalStorageModule',
   'xOWLServer.login',
+  'xOWLServer.account',
   'xOWLServer.databases',
   'xOWLServer.database',
   'xOWLServer.users'
@@ -13,15 +16,12 @@ angular.module('xOWLServer', [
     $routeProvider.otherwise({ redirectTo: '/login' });
   }])
 
-  .controller('xOWLServerCtrl', ['$scope', function ($scope) {
-    $scope.databases = [
-      {
-        id: "__admin",
-        name: "__admin"
-      },
-      {
-        id: "test",
-        name: "test"
-      }
-    ];
+  .controller('xOWLServerCtrl', ['$rootScope', 'localStorageService', function ($rootScope, localStorage) {
+    $rootScope.currentUser = localStorage.get('username');
+    $rootScope.$on('login', function () {
+      $rootScope.currentUser = localStorage.get('username');
+    });
+    $rootScope.$on('logout', function () {
+      $rootScope.currentUser = null;
+    });
   }]);
