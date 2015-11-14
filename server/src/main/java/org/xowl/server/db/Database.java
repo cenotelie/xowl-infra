@@ -201,6 +201,7 @@ public class Database implements Closeable {
         } catch (IOException exception) {
             logger.error(exception);
         }
+        repository.getStore().commit();
     }
 
     /**

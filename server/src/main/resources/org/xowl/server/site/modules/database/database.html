@@ -1,4 +1,5 @@
 <p ng-controller="DatabaseCtrl">
+	<div ng-bind-html="messages"></div>
 	<div>
 		<ul class="nav nav-tabs" role="tablist" id="DBTabs">
 			<li role="presentation" class="active"><a href="#tab-data-summary" aria-controls="tab-data-summary" role="tab">Summary</a></li>
@@ -43,7 +44,7 @@
 							<div class="form-group">
 								<div class="radio col-sm-10">
 									<label>
-										<input type="radio" name="entailemnt-options" id="entailment-option-none" value="entailment-none" checked> No entailment
+										<input type="radio" name="entailemnt-options" id="entailment-option-none" value="entailment-none"> No entailment
 									</label>
 								</div>
 								<div class="radio col-sm-10">
@@ -72,7 +73,7 @@
 									</label>
 								</div>
 							</div>
-							<button type="submit" class="btn btn-primary">Submit</button>
+							<button type="submit" class="btn btn-primary" ng-click="onSetEntailment()">Submit</button>
 						</form>
 					</div>
 				</div>
@@ -83,7 +84,7 @@
 							<span>
 								Dropping the database will delete all data. This operation <b>cannot</b> be reverted.
 							</span>
-							<button type="submit" class="btn btn-danger">Drop the database</button>
+							<button type="submit" class="btn btn-danger" ng-click="onDBDrop()">Drop the database</button>
 						</form>
 					</div>
 				</div>

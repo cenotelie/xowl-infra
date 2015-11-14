@@ -40,7 +40,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.InetAddress;
-import java.nio.file.Files;
 import java.util.*;
 
 /**
@@ -185,7 +184,7 @@ public abstract class Controller implements Closeable {
                 try {
                     Database db = new Database(new File(configuration.getRoot(), location), poDB);
                     databases.put(name, db);
-                    logger.error("Loaded database " + poDB.getIRIString() + " as " + name);
+                    logger.info("Loaded database " + poDB.getIRIString() + " as " + name);
                 } catch (IOException exception) {
                     // do nothing, this exception is reported by the db logger
                     logger.error("Failed to load database " + poDB.getIRIString() + " as " + name);
@@ -789,9 +788,10 @@ public abstract class Controller implements Closeable {
                 ProxyObject proxy = adminDB.repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + name);
                 proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(Schema.ADMIN_DATABASE));
                 proxy.setValue(Schema.ADMIN_NAME, name);
-                proxy.setValue(Schema.ADMIN_LOCATION, folder.getAbsolutePath());
+                proxy.setValue(Schema.ADMIN_LOCATION, name);
                 result = new Database(folder, proxy);
                 adminDB.repository.getStore().commit();
+                result.repository.getStore().commit();
                 databases.put(name, result);
                 return ProtocolReplySuccess.instance();
             } catch (IOException exception) {
@@ -816,9 +816,22 @@ public abstract class Controller implements Closeable {
             return ProtocolReplyUnauthorized.instance();
         synchronized (databases) {
             databases.remove(database.getName());
-            File folder = new File((String) database.proxy.getDataValue(Schema.ADMIN_LOCATION));
+            File folder = new File(configuration.getRoot(), (String) database.proxy.getDataValue(Schema.ADMIN_LOCATION));
             try {
-                Files.delete(folder.toPath());
+                database.close();
+                File[] children = folder.listFiles();
+                if (children == null) {
+                    logger.error("Failed to list the files in " + folder.getAbsolutePath());
+                } else {
+                    for (int i = 0; i != children.length; i++) {
+                        if (!children[i].delete()) {
+                            logger.error("Failed to delete " + children[i].getAbsolutePath());
+                        }
+                    }
+                }
+                if (!folder.delete()) {
+                    logger.error("Failed to delete " + folder.getAbsolutePath());
+                }
             } catch (IOException exception) {
                 exception.printStackTrace();
             }

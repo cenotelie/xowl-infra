@@ -110,9 +110,12 @@ public class Section {
      * @param value    A value to associate to the property
      */
     public void add(String property, String value) {
-        if (!properties.containsKey(property))
-            properties.put(property, new ArrayList<String>());
-        properties.get(property).add(value);
+        List<String> values = properties.get(property);
+        if (values == null) {
+            values = new ArrayList<>();
+            properties.put(property, values);
+        }
+        values.add(value);
     }
 
     /**
@@ -123,10 +126,11 @@ public class Section {
      */
     public void set(String property, String value) {
         List<String> values = properties.get(property);
-        if (value == null) {
+        if (values == null) {
             values = new ArrayList<>();
             properties.put(property, values);
         }
+        values.clear();
         values.add(value);
     }
 
