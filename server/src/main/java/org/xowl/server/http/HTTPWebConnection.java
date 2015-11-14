@@ -37,9 +37,11 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * Represents an active connection to the HTTP server for the request of a resource
+ *
  * @author Laurent Wouters
  */
-public class HTTPWebConnection extends ProtocolHandler implements Runnable {
+class HTTPWebConnection extends ProtocolHandler implements Runnable {
     /**
      * The HTTP exchange to treat
      */

@@ -34,10 +34,7 @@ import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents an active connection to the HTTP server
@@ -312,6 +309,30 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
             }
             httpExchange.getResponseHeaders().add("Content-Type", Utils.coerceContentType(sparqlResult, resultType));
             response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR, writer.toString());
+        } else if (data instanceof UserPrivileges) {
+            httpExchange.getResponseHeaders().add("Content-Type", "application/json");
+            StringBuilder builder = new StringBuilder("{ \"results\": [");
+            UserPrivileges privileges = (UserPrivileges) data;
+            Iterator<Database> databases = privileges.getDatabases();
+            boolean first = true;
+            while (databases.hasNext()) {
+                Database db = databases.next();
+                int pr = privileges.getFor(db);
+                if (!first)
+                    builder.append(", ");
+                first = false;
+                builder.append("{ \"database\": \"");
+                builder.append(db.getName());
+                builder.append("\", \"isAdmin\": ");
+                builder.append((pr & Schema.PRIVILEGE_ADMIN) == Schema.PRIVILEGE_ADMIN);
+                builder.append(", \"canWrite\": ");
+                builder.append((pr & Schema.PRIVILEGE_WRITE) == Schema.PRIVILEGE_WRITE);
+                builder.append(", \"canRead\": ");
+                builder.append((pr & Schema.PRIVILEGE_READ) == Schema.PRIVILEGE_READ);
+                builder.append("}");
+            }
+            builder.append("]}");
+            response(HttpURLConnection.HTTP_OK, builder.toString());
         } else if (data instanceof MatchStatus) {
             httpExchange.getResponseHeaders().add("Content-Type", "application/json");
             StringWriter writer = new StringWriter();

@@ -15,6 +15,7 @@ ADMIN CREATE USER login pw      Creates a new user account with the specified lo
 ADMIN DELETE USER login         Delete the user account specified by the login
 ADMIN CHANGE PASSWORD pw        Changes the password of this account to the specified one
 ADMIN RESET PASSWORD login pw   Resets the password of another account
+ADMIN PRIVILEGES login          Lists the current privileges assigned to a user account
 ADMIN GRANT SERVER ADMIN login  Grants server-wide administrative privileges to a user account
 ADMIN REVOKE SERVER ADMIN lg    Revokes server-wide administrative privileges to a user account
 ADMIN GRANT ADMIN login db      Grants administrative privileges to a user account on a single database

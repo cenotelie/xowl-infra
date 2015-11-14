@@ -117,6 +117,34 @@ public abstract class Controller implements Closeable {
     }
 
     /**
+     * Resolves the database for the specified name
+     *
+     * @param name The name of a database
+     * @return The database, or null if it is unknown
+     */
+    private Database database(String name) {
+        synchronized (databases) {
+            return databases.get(name);
+        }
+    }
+
+    /**
+     * Resolves the database for the specified proxy object
+     *
+     * @param proxy A proxy
+     * @return The database, or null if it is unknown
+     */
+    private Database database(ProxyObject proxy) {
+        synchronized (databases) {
+            for (Database db : databases.values()) {
+                if (db.proxy == proxy)
+                    return db;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Initializes this controller
      *
      * @param configuration The current configuration
@@ -495,6 +523,35 @@ public abstract class Controller implements Closeable {
     }
 
     /**
+     * Gets the privileges assigned to a target user
+     *
+     * @param client The requesting client
+     * @param target The target user
+     * @return The protocol reply
+     */
+    public ProtocolReply getUserPrivileges(User client, User target) {
+        if (client == null)
+            return ProtocolReplyUnauthenticated.instance();
+        if (client == target || checkIsServerAdmin(client)) {
+            UserPrivileges result = new UserPrivileges();
+            for (ProxyObject value : target.proxy.getObjectValues(Schema.ADMIN_ADMINOF)) {
+                Database database = database(value);
+                result.add(database, Schema.PRIVILEGE_ADMIN);
+            }
+            for (ProxyObject value : target.proxy.getObjectValues(Schema.ADMIN_CANWRITE)) {
+                Database database = database(value);
+                result.add(database, Schema.PRIVILEGE_WRITE);
+            }
+            for (ProxyObject value : target.proxy.getObjectValues(Schema.ADMIN_CANREAD)) {
+                Database database = database(value);
+                result.add(database, Schema.PRIVILEGE_READ);
+            }
+            return new ProtocolReplyResult<>(result);
+        }
+        return ProtocolReplyUnauthorized.instance();
+    }
+
+    /**
      * Grants server administrative privilege to a target user
      *
      * @param client The requesting client
@@ -673,10 +730,7 @@ public abstract class Controller implements Closeable {
     public ProtocolReply getDatabase(User client, String name) {
         if (client == null)
             return ProtocolReplyUnauthenticated.instance();
-        Database database;
-        synchronized (databases) {
-            database = databases.get(name);
-        }
+        Database database = database(name);
         if (database == null)
             return ProtocolReplyFailure.instance();
         if (checkIsServerAdmin(client)
@@ -697,11 +751,11 @@ public abstract class Controller implements Closeable {
         if (client == null)
             return ProtocolReplyUnauthenticated.instance();
         Collection<Database> result = new ArrayList<>();
-        if (checkIsServerAdmin(client)) {
-            result.addAll(databases.values());
-            return new ProtocolReplyResult<>(result);
-        }
         synchronized (databases) {
+            if (checkIsServerAdmin(client)) {
+                result.addAll(databases.values());
+                return new ProtocolReplyResult<>(result);
+            }
             for (Database database : databases.values()) {
                 if (checkIsServerAdmin(client)
                         || checkIsDBAdmin(client, database)

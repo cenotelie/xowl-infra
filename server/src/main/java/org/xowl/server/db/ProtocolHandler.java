@@ -391,6 +391,8 @@ public abstract class ProtocolHandler {
             return runAdminChangePassword(command);
         if (command.startsWith("ADMIN RESET PASSWORD "))
             return runAdminResetPassword(command);
+        if (command.startsWith("ADMIN PRIVILEGES "))
+            return runAdminGetUserPrivileges(command);
         if (command.startsWith("ADMIN GRANT SERVER ADMIN "))
             return runAdminGrantServerAdmin(command);
         if (command.startsWith("ADMIN REVOKE SERVER ADMIN "))
@@ -490,6 +492,21 @@ public abstract class ProtocolHandler {
         if (!target.isSuccess())
             return target;
         return controller.resetPassword(user, ((ProtocolReplyResult<User>) target).getData(), password);
+    }
+
+    /**
+     * Requests the privileges assigned to a user
+     * Expected command line: ADMIN PRIVILEGES login
+     *
+     * @param line The command line
+     * @return The protocol reply
+     */
+    private ProtocolReply runAdminGetUserPrivileges(String line) {
+        String login = line.substring("ADMIN GRANT SERVER ADMIN ".length());
+        ProtocolReply target = controller.getUser(user, login);
+        if (!target.isSuccess())
+            return target;
+        return controller.getUserPrivileges(user, ((ProtocolReplyResult<User>) target).getData());
     }
 
     /**
