@@ -1595,9 +1595,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             bufferDecremented.get(i).setSubject(rSubject);
         for (int i = sizeRemoved; i != bufferRemoved.size(); i++)
             bufferRemoved.get(i).setSubject(rSubject);
-        int modifier = sizeRemoved - bufferRemoved.size();
-        if (modifier < 0)
-            ((PersistedNode) rSubject).modifyRefCount(modifier);
 
         if (newChild == PersistedNode.KEY_NOT_PRESENT) {
             // the child bucket is empty
@@ -1663,9 +1660,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 bufferDecremented.get(i).setProperty(rProperty);
             for (int i = sizeRemoved; i != bufferRemoved.size(); i++)
                 bufferRemoved.get(i).setProperty(rProperty);
-            int modifier = sizeRemoved - bufferRemoved.size();
-            if (modifier < 0)
-                ((PersistedNode) rProperty).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -1746,9 +1740,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 bufferDecremented.get(i).setObject(rObject);
             for (int i = sizeRemoved; i != bufferRemoved.size(); i++)
                 bufferRemoved.get(i).setObject(rObject);
-            int modifier = sizeRemoved - bufferRemoved.size();
-            if (modifier < 0)
-                ((PersistedNode) rObject).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -1831,7 +1822,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
 
             if (removedGraph != null) {
                 // multiplicity of the graph reached 0
-                removedGraph.decrementRefCount();
                 if (graph == null) {
                     // remove all graphs
                     try {
@@ -1953,11 +1943,14 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
 
         int size = buffer.size();
         long newChild = clearOnProperty(child, graph, buffer);
-        for (int i = size; i != buffer.size(); i++)
-            buffer.get(i).setSubject(subject);
-        int modifier = size - buffer.size();
-        if (modifier < 0)
-            ((PersistedNode) subject).modifyRefCount(modifier);
+        for (int i = size; i != buffer.size(); i++) {
+            MQuad quad = buffer.get(i);
+            quad.setSubject(subject);
+            ((PersistedNode) quad.getSubject()).decrementRefCount();
+            ((PersistedNode) quad.getProperty()).decrementRefCount();
+            ((PersistedNode) quad.getObject()).decrementRefCount();
+            ((PersistedNode) quad.getGraph()).decrementRefCount();
+        }
 
         if (newChild == PersistedNode.KEY_NOT_PRESENT) {
             // the child bucket is empty
@@ -2007,9 +2000,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             long newChild = clearOnObject(child, graph, buffer);
             for (int i = size; i != buffer.size(); i++)
                 buffer.get(i).setProperty(property);
-            int modifier = size - buffer.size();
-            if (modifier < 0)
-                ((PersistedNode) property).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -2075,9 +2065,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             long newChild = clearOnGraph(child, graph, buffer);
             for (int i = size; i != buffer.size(); i++)
                 buffer.get(i).setObject(object);
-            int modifier = size - buffer.size();
-            if (modifier < 0)
-                ((PersistedNode) object).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -2135,10 +2122,8 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 long key = element.readLong();
                 if (graph == null) {
                     PersistedNode g = getNode(type, key);
-                    g.decrementRefCount();
                     buffer.add(new MQuad((GraphNode) g, element.readLong()));
                 } else if (graph.getNodeType() == type && graph.getKey() == key) {
-                    graph.decrementRefCount();
                     buffer.add(new MQuad((GraphNode) graph, element.readLong()));
                     found = true;
                 }
@@ -2282,9 +2267,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             bufferOld.get(i).setSubject(subject);
         for (int i = sizeNew; i != bufferNew.size(); i++)
             bufferNew.get(i).setSubject(subject);
-        int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
-        if (modifier != 0)
-            ((PersistedNode) subject).modifyRefCount(modifier);
 
         if (newChild == PersistedNode.KEY_NOT_PRESENT) {
             // the child bucket is empty
@@ -2340,9 +2322,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 bufferOld.get(i).setProperty(property);
             for (int i = sizeNew; i != bufferNew.size(); i++)
                 bufferNew.get(i).setProperty(property);
-            int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
-            if (modifier != 0)
-                ((PersistedNode) property).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -2414,9 +2393,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 bufferOld.get(i).setObject(object);
             for (int i = sizeNew; i != bufferNew.size(); i++)
                 bufferNew.get(i).setObject(object);
-            int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
-            if (modifier != 0)
-                ((PersistedNode) object).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -2646,9 +2622,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             bufferOld.get(i).setSubject(subject);
         for (int i = sizeNew; i != bufferNew.size(); i++)
             bufferNew.get(i).setSubject(subject);
-        int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
-        if (modifier != 0)
-            ((PersistedNode) subject).modifyRefCount(modifier);
 
         if (newChild == PersistedNode.KEY_NOT_PRESENT) {
             // the child bucket is empty
@@ -2703,9 +2676,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 bufferOld.get(i).setProperty(property);
             for (int i = sizeNew; i != bufferNew.size(); i++)
                 bufferNew.get(i).setProperty(property);
-            int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
-            if (modifier != 0)
-                ((PersistedNode) property).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -2776,9 +2746,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 bufferOld.get(i).setObject(object);
             for (int i = sizeNew; i != bufferNew.size(); i++)
                 bufferNew.get(i).setObject(object);
-            int modifier = (bufferNew.size() - sizeNew) - (bufferOld.size() - sizeOld);
-            if (modifier != 0)
-                ((PersistedNode) object).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -3081,5 +3048,146 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 return mapEntry.getValue();
             }
         });
+    }
+
+    /**
+     * The pad for debug printing
+     */
+    private static final String PAD = "\t";
+
+    /**
+     * Prints the content of the dataset while looking for errors
+     */
+    private void debugPrint() {
+        System.out.println("=== Persisted Dataset ===");
+        debugPrintSubjectMap(mapSubjectIRI);
+        debugPrintSubjectMap(mapSubjectBlank);
+        debugPrintSubjectMap(mapSubjectAnon);
+    }
+
+    /**
+     * Prints the content of a subject map
+     *
+     * @param map A subject map
+     */
+    private void debugPrintSubjectMap(Map<Long, Long> map) {
+        for (Map.Entry<Long, Long> entry : map.entrySet()) {
+            long key = entry.getValue();
+            try (IOElement element = backend.read(key)) {
+                long next = element.readLong();
+                int nodeType = element.readInt();
+                long nodeKey = element.readLong();
+                long child = element.readLong();
+                if (nodeKey != entry.getKey()) {
+                    System.out.println("@" + Long.toHexString(key) + ": ERROR: Mismatch in map: " + Long.toHexString(entry.getKey()) + " -> " + Long.toHexString(nodeKey));
+                } else {
+                    PersistedNode node = getNode(nodeType, nodeKey);
+                    if (node == null) {
+                        System.out.println("@" + Long.toHexString(key) + ": ERROR: Wrong data for key");
+                    } else if ((node.getNodeType() & Node.FLAG_SUBJECT) == Node.FLAG_SUBJECT) {
+                        System.out.println("@" + Long.toHexString(key) + " " + node.toString());
+                    } else {
+                        System.out.println("@" + Long.toHexString(key) + ": ERROR: Expected subject, got:" + node.toString());
+                    }
+                }
+                debugPrintProperties(child);
+            } catch (IOException | StorageException exception) {
+                System.out.println("@" + Long.toHexString(key) + ": ERROR: Access to key");
+            }
+        }
+    }
+
+    /**
+     * Prints a bucket of properties
+     *
+     * @param bucket The bucket of properties
+     */
+    private void debugPrintProperties(long bucket) {
+        if (bucket == PersistedNode.KEY_NOT_PRESENT) {
+            System.out.println(PAD + "ERROR: Missing key");
+            return;
+        }
+        while (bucket != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement element = backend.read(bucket)) {
+                long next = element.readLong();
+                int nodeType = element.readInt();
+                long nodeKey = element.readLong();
+                long child = element.readLong();
+                PersistedNode node = getNode(nodeType, nodeKey);
+                if (node == null) {
+                    System.out.println(PAD + "@" + Long.toHexString(bucket) + ": ERROR: Wrong data for key");
+                } else if ((node.getNodeType() & Node.FLAG_PROPERTY) == Node.FLAG_PROPERTY) {
+                    System.out.println(PAD + "@" + Long.toHexString(bucket) + " " + node.toString());
+                } else {
+                    System.out.println(PAD + "@" + Long.toHexString(bucket) + ": ERROR:  Expected property, got:" + node.toString());
+                }
+                debugPrintObjects(child);
+                bucket = next;
+            } catch (IOException | StorageException exception) {
+                System.out.println(PAD + "@" + Long.toHexString(bucket) + ": ERROR: Access to key");
+            }
+        }
+    }
+
+
+    /**
+     * Prints a bucket of objects
+     *
+     * @param bucket The bucket of objects
+     */
+    private void debugPrintObjects(long bucket) {
+        if (bucket == PersistedNode.KEY_NOT_PRESENT) {
+            System.out.println(PAD + PAD + "ERROR: Missing key");
+            return;
+        }
+        while (bucket != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement element = backend.read(bucket)) {
+                long next = element.readLong();
+                int nodeType = element.readInt();
+                long nodeKey = element.readLong();
+                long child = element.readLong();
+                PersistedNode node = getNode(nodeType, nodeKey);
+                if (node == null) {
+                    System.out.println(PAD + PAD + "@" + Long.toHexString(bucket) + ": ERROR: Wrong data for key");
+                } else {
+                    System.out.println(PAD + PAD + "@" + Long.toHexString(bucket) + " " + node.toString());
+                }
+                debugPrintGraphs(child);
+                bucket = next;
+            } catch (IOException | StorageException exception) {
+                System.out.println(PAD + PAD + "@" + Long.toHexString(bucket) + ": ERROR: Access to key");
+            }
+        }
+    }
+
+    /**
+     * Prints a bucket of graphs
+     *
+     * @param bucket The bucket of graphs
+     */
+    private void debugPrintGraphs(long bucket) {
+        if (bucket == PersistedNode.KEY_NOT_PRESENT) {
+            System.out.println(PAD + PAD + PAD + "ERROR: Missing key");
+            return;
+        }
+        while (bucket != PersistedNode.KEY_NOT_PRESENT) {
+            try (IOElement element = backend.read(bucket)) {
+                long next = element.readLong();
+                int nodeType = element.readInt();
+                long nodeKey = element.readLong();
+                long multiplicity = element.readLong();
+                PersistedNode node = getNode(nodeType, nodeKey);
+                if (node == null) {
+                    System.out.println(PAD + PAD + PAD + "@" + Long.toHexString(bucket) + ": ERROR: Wrong data for key");
+                } else if ((node.getNodeType() & Node.FLAG_GRAPH) == Node.FLAG_GRAPH) {
+                    System.out.println(PAD + PAD + PAD + "@" + Long.toHexString(bucket) + " " + node.toString() + " => " + multiplicity);
+                } else {
+                    System.out.println(PAD + PAD + PAD + "@" + Long.toHexString(bucket) + ": ERROR: Expected graph, got:" + node.toString() + " => " + multiplicity);
+                }
+                bucket = next;
+            } catch (IOException | StorageException exception) {
+                System.out.println(PAD + PAD + PAD + "@" + Long.toHexString(bucket) + ": ERROR: Access to key");
+            }
+        }
     }
 }

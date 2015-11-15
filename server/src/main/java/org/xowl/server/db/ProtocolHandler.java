@@ -408,9 +408,9 @@ public abstract class ProtocolHandler extends SafeRunnable {
             return runAdminGrantDBRead(command);
         if (command.startsWith("ADMIN REVOKE READ "))
             return runAdminRevokeDBRead(command);
-        if (command.startsWith("ADMIN GRANT READ "))
+        if (command.startsWith("ADMIN GRANT WRITE "))
             return runAdminGrantDBWrite(command);
-        if (command.startsWith("ADMIN REVOKE READ "))
+        if (command.startsWith("ADMIN REVOKE WRITE "))
             return runAdminRevokeDBWrite(command);
 
         if (command.equals("ADMIN LIST DATABASES"))

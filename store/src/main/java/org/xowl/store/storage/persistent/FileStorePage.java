@@ -281,7 +281,7 @@ class FileStorePage {
      */
     private int writeNewEntry(int length) throws StorageException {
         // compute the entry data
-        int key = keyRadical + entryCount;
+        int key = keyRadical + (int) entryCount;
         long dataLocation = location + startData - length;
         // write the entry
         backend.seek(location + startFreeSpace);
@@ -332,18 +332,17 @@ class FileStorePage {
                 // go to the previous entry
                 entryIndex--;
                 // is is a valid entry?
-                if (entryIndex >= 0) {
-                    // get its info
-                    backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
-                    offset = backend.readChar();
-                    length = backend.readChar();
-                }
+                if (entryIndex < 0)
+                    break;
+                // get its info
+                backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
+                offset = backend.readChar();
+                length = backend.readChar();
             }
         } else {
             // simply marks this entry as empty by erasing the offset
             backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
             backend.writeChar('\0');
-            entryCount--;
         }
         return length;
     }
