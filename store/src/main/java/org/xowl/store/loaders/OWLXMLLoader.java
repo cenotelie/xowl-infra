@@ -28,7 +28,7 @@ import org.xowl.lang.owl2.*;
 import org.xowl.store.IOUtils;
 import org.xowl.store.URIUtils;
 import org.xowl.store.Vocabulary;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 
 import java.io.Reader;
 import java.util.*;

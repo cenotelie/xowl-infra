@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,8 +16,8 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
-package org.xowl.utils;
+ ******************************************************************************/
+package org.xowl.utils.logging;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +27,7 @@ import java.util.logging.Logger;
  *
  * @author Laurent Wouters
  */
-public class StandardLogger implements org.xowl.utils.Logger {
+public class StandardLogger implements org.xowl.utils.logging.Logger {
     /**
      * The backend logger
      */

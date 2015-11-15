@@ -21,7 +21,7 @@
 package org.xowl.store.writers;
 
 import org.xowl.lang.owl2.Axiom;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 
 import java.util.Iterator;
 

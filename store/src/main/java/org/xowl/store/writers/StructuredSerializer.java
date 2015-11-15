@@ -27,7 +27,7 @@ import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.store.storage.cache.CachedNodes;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 import org.xowl.utils.collections.Couple;
 
 import java.io.IOException;

@@ -23,8 +23,8 @@ package org.xowl.generator;
 import org.xowl.generator.builder.Builder;
 import org.xowl.generator.model.Model;
 import org.xowl.store.owl.DirectSemantics;
-import org.xowl.utils.ConsoleLogger;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.ConsoleLogger;
+import org.xowl.utils.logging.Logger;
 import org.xowl.utils.collections.Couple;
 import org.xowl.utils.config.Configuration;
 

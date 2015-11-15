@@ -24,7 +24,7 @@ import org.xowl.lang.owl2.IRI;
 import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.loaders.*;
 import org.xowl.store.writers.*;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 
 import java.io.*;
 import java.net.URL;

@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,50 +16,49 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
-package org.xowl.utils;
+ ******************************************************************************/
+
+package org.xowl.utils.logging;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Represents a logger that does nothing
+ * Logger that dispatches its messages to other loggers
  *
  * @author Laurent Wouters
  */
-public class SinkLogger implements Logger {
+public class DispatchLogger implements Logger {
     /**
-     * Flags whether the logger received error
+     * The inner loggers
      */
-    private boolean onError;
+    private final List<Logger> inners;
 
-    /**
-     * Gets whether this logger received errors since its last reset
-     *
-     * @return true if errors were received
-     */
-    public boolean isOnError() {
-        return onError;
-    }
-
-    /**
-     * Resets this logger error flag
-     */
-    public void reset() {
-        onError = false;
+    public DispatchLogger(Logger... inners) {
+        this.inners = Arrays.asList(inners);
     }
 
     @Override
     public void debug(Object message) {
+        for (Logger inner : inners)
+            inner.debug(message);
     }
 
     @Override
     public void info(Object message) {
+        for (Logger inner : inners)
+            inner.info(message);
     }
 
     @Override
     public void warning(Object message) {
+        for (Logger inner : inners)
+            inner.warning(message);
     }
 
     @Override
     public void error(Object message) {
-        onError = true;
+        for (Logger inner : inners)
+            inner.error(message);
     }
 }

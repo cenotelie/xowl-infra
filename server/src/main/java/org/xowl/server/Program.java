@@ -23,7 +23,7 @@ package org.xowl.server;
 import org.xowl.server.db.Controller;
 import org.xowl.server.http.HTTPServer;
 import org.xowl.server.xsp.XSPServer;
-import org.xowl.utils.BufferedLogger;
+import org.xowl.utils.logging.BufferedLogger;
 
 import java.io.IOException;
 import java.io.InputStream;

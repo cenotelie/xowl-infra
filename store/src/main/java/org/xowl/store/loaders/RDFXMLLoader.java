@@ -28,7 +28,7 @@ import org.xowl.hime.redist.ParseResult;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 import org.xowl.utils.collections.Couple;
 
 import java.io.Reader;

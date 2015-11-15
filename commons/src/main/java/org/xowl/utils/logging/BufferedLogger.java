@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.utils;
+package org.xowl.utils.logging;
 
 import java.util.ArrayList;
 import java.util.Collections;

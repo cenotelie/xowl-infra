@@ -31,10 +31,10 @@ import org.xowl.store.rdf.Quad;
 import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultSuccess;
-import org.xowl.utils.BufferedLogger;
-import org.xowl.utils.ConsoleLogger;
-import org.xowl.utils.DispatchLogger;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.BufferedLogger;
+import org.xowl.utils.logging.ConsoleLogger;
+import org.xowl.utils.logging.DispatchLogger;
+import org.xowl.utils.logging.Logger;
 
 import java.io.Closeable;
 import java.io.File;

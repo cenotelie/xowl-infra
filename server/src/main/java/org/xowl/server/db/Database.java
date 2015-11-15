@@ -34,10 +34,10 @@ import org.xowl.store.rdf.RuleExplanation;
 import org.xowl.store.rete.MatchStatus;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.StoreFactory;
-import org.xowl.utils.BufferedLogger;
-import org.xowl.utils.ConsoleLogger;
-import org.xowl.utils.DispatchLogger;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.BufferedLogger;
+import org.xowl.utils.logging.ConsoleLogger;
+import org.xowl.utils.logging.DispatchLogger;
+import org.xowl.utils.logging.Logger;
 import org.xowl.utils.config.Configuration;
 
 import java.io.*;

@@ -17,48 +17,49 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
-
-package org.xowl.utils;
-
-import java.util.Arrays;
-import java.util.List;
+package org.xowl.utils.logging;
 
 /**
- * Logger that dispatches its messages to other loggers
+ * Represents a logger that does nothing
  *
  * @author Laurent Wouters
  */
-public class DispatchLogger implements Logger {
+public class SinkLogger implements Logger {
     /**
-     * The inner loggers
+     * Flags whether the logger received error
      */
-    private final List<Logger> inners;
+    private boolean onError;
 
-    public DispatchLogger(Logger... inners) {
-        this.inners = Arrays.asList(inners);
+    /**
+     * Gets whether this logger received errors since its last reset
+     *
+     * @return true if errors were received
+     */
+    public boolean isOnError() {
+        return onError;
+    }
+
+    /**
+     * Resets this logger error flag
+     */
+    public void reset() {
+        onError = false;
     }
 
     @Override
     public void debug(Object message) {
-        for (Logger inner : inners)
-            inner.debug(message);
     }
 
     @Override
     public void info(Object message) {
-        for (Logger inner : inners)
-            inner.info(message);
     }
 
     @Override
     public void warning(Object message) {
-        for (Logger inner : inners)
-            inner.warning(message);
     }
 
     @Override
     public void error(Object message) {
-        for (Logger inner : inners)
-            inner.error(message);
+        onError = true;
     }
 }

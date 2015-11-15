@@ -36,7 +36,7 @@ import org.xowl.store.storage.StoreFactory;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.store.writers.OWLSerializer;
 import org.xowl.store.writers.RDFSerializer;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.SkippableIterator;
