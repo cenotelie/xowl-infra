@@ -66,12 +66,14 @@ abstract class IOProxy implements IOElement {
 
     @Override
     public IOElement seek(long index) {
-        return backend.seek(location + index);
+        backend.seek(location + index);
+        return this;
     }
 
     @Override
     public IOElement reset() {
-        return backend.seek(location);
+        backend.seek(location);
+        return this;
     }
 
     @Override

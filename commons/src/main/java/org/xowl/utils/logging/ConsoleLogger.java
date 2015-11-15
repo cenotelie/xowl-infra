@@ -67,7 +67,7 @@ public class ConsoleLogger implements Logger {
             Exception ex = (Exception) message;
             stream.println("[" + level + "] " + ex.getMessage());
             for (StackTraceElement element : ex.getStackTrace()) {
-                stream.println("[" + level + "] " + element.toString());
+                stream.println("[" + level + "] \t" + element.toString());
             }
         } else {
             stream.println("[" + level + "] " + message.toString());

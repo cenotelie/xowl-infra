@@ -9,7 +9,7 @@ angular.module('xOWLServer.user', ['ngRoute'])
     });
   }])
 
-  .controller('UserCtrl', ['$rootScope', '$scope', '$http', '$sce', '$routeParams', function ($rootScope, $scope, $http, $sce, $routeParams) {
+  .controller('UserCtrl', ['$rootScope', '$scope', '$http', '$sce', '$routeParams', '$location', function ($rootScope, $scope, $http, $sce, $routeParams, $location) {
     $scope.user = $routeParams.id;
 
     $scope.updatePrivileges = function () {
@@ -37,19 +37,17 @@ angular.module('xOWLServer.user', ['ngRoute'])
       document.getElementById('field-password-2').value = "";
     };
 
-    $scope.onRevoke = function (access) {
+    $scope.onRevoke = function (access, privilege) {
       var database = access.database;
       if (access.isAdmin) {
-        $http.post('/api', "ADMIN REVOKE ADMIN " + $scope.user + " " + database, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) { }, function (response) { });
+        $http.post('/api', "ADMIN REVOKE " + privilege + " " + $scope.user + " " + database, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
+          $scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
+          $scope.updatePrivileges();
+        }, function (response) {
+          $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
+          $scope.updatePrivileges();
+        });
       }
-      if (access.canWrite) {
-        $http.post('/api', "ADMIN REVOKE WRITE " + $scope.user + " " + database, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) { }, function (response) { });
-      }
-      if (access.canRead) {
-        $http.post('/api', "ADMIN REVOKE READ " + $scope.user + " " + database, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) { }, function (response) { });
-      }
-      $scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
-      $scope.updatePrivileges();
     }
 
     $scope.onGrant = function (access) {
@@ -62,11 +60,11 @@ angular.module('xOWLServer.user', ['ngRoute'])
         $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
       });
     }
-    
+
     $scope.onUserDelete = function (access) {
       $http.post('/api', "ADMIN DELETE USER " + $scope.user, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
         $scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
-        $scope.updatePrivileges();
+        $location.path("/users");
       }, function (response) {
         $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
       });

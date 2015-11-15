@@ -68,15 +68,15 @@ public interface Schema {
     String ADMIN_GRAPH_DBS = "http://xowl.org/server/db#";
 
     /**
-     * Flag for the READ privilege
+     * Flag for the ADMIN privilege
      */
-    int PRIVILEGE_READ = 1;
+    int PRIVILEGE_ADMIN = 1;
     /**
      * Flag for the WRITE privilege
      */
-    int PRIVILEGE_WRITE = (1 << 1) | PRIVILEGE_READ;
+    int PRIVILEGE_WRITE = (1 << 1);
     /**
-     * Flag for the ADMIN privilege
+     * Flag for the READ privilege
      */
-    int PRIVILEGE_ADMIN = (1 << 2) | PRIVILEGE_WRITE | PRIVILEGE_READ;
+    int PRIVILEGE_READ = (1 << 2);
 }

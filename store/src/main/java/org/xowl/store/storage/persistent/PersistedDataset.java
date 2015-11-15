@@ -112,7 +112,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 value = next;
                 next = entry.readLong();
             } catch (IOException | StorageException exception) {
-                // do nothing
+                Logger.DEFAULT.error(exception);
             }
             return value;
         }
@@ -160,6 +160,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             try {
                 this.next = findNext();
             } catch (IOException | StorageException exception) {
+                Logger.DEFAULT.error(exception);
                 this.next = PersistedNode.KEY_NOT_PRESENT;
             }
             this.value = PersistedNode.KEY_NOT_PRESENT;
@@ -207,7 +208,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 value = next;
                 next = findNext();
             } catch (IOException | StorageException exception) {
-                // do nothing
+                Logger.DEFAULT.error(exception);
             }
             return value;
         }
