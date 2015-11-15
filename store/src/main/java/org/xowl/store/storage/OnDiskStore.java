@@ -27,6 +27,7 @@ import org.xowl.store.storage.persistent.PersistedDataset;
 import org.xowl.store.storage.persistent.PersistedNodes;
 import org.xowl.store.storage.persistent.StorageException;
 import org.xowl.utils.collections.LockingIterator;
+import org.xowl.utils.concurrent.TrackedReentrantLock;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,7 +67,7 @@ class OnDiskStore implements BaseStore {
     public OnDiskStore(File directory, boolean isReadonly) throws IOException, StorageException {
         nodes = new PersistedNodes(directory, isReadonly);
         dataset = new PersistedDataset(nodes, directory, isReadonly);
-        globalLock = new ReentrantLock();
+        globalLock = new TrackedReentrantLock();
     }
 
     @Override

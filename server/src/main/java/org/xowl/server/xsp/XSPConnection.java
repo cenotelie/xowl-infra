@@ -26,7 +26,6 @@ import org.xowl.server.db.ProtocolHandler;
 import org.xowl.server.db.ProtocolReply;
 import org.xowl.server.db.ProtocolReplyResult;
 import org.xowl.store.Serializable;
-import org.xowl.utils.collections.LockingIterator;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -38,7 +37,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-class XSPConnection extends ProtocolHandler implements Runnable {
+class XSPConnection extends ProtocolHandler {
     /**
      * The current configuration
      */
@@ -84,24 +83,6 @@ class XSPConnection extends ProtocolHandler implements Runnable {
     }
 
     @Override
-    public void run() {
-        try {
-            if (controller.isBanned(socket.getInetAddress()))
-                return;
-            doRun();
-        } catch (IOException exception) {
-            controller.getLogger().error(exception);
-        } finally {
-            try {
-                socket.close();
-            } catch (IOException exception) {
-                controller.getLogger().error(exception);
-            }
-            LockingIterator.cleanup();
-        }
-    }
-
-    @Override
     protected InetAddress getClient() {
         return socket.getInetAddress();
     }
@@ -111,36 +92,44 @@ class XSPConnection extends ProtocolHandler implements Runnable {
         exit = true;
     }
 
-    /**
-     * Runs the xOWL protocol
-     *
-     * @throws IOException When an IO error occurs
-     */
-    private void doRun() throws IOException {
-        // state 0
-        send("XOWL SERVER " + configuration.getServerName());
-        // state 1
-        while (!exit) {
-            String line = socketInput.readLine();
-            if (line == null)
-                return;
-            ProtocolReply reply = execute(line);
-            if (reply == null) {
-                // client got banned
-                return;
-            }
-            if (reply instanceof ProtocolReplyResult) {
-                Object data = ((ProtocolReplyResult) reply).getData();
-                if (data instanceof Serializable) {
-                    send(((org.xowl.store.Serializable) data).serializedString());
-                } else if (data instanceof Collection) {
-                    for (Object element : (Collection) data)
-                        send(element.toString());
-                } else {
-                    send(data.toString());
+    @Override
+    public void doRun() {
+        if (controller.isBanned(socket.getInetAddress()))
+            return;
+        try {
+            // state 0
+            send("XOWL SERVER " + configuration.getServerName());
+            // state 1
+            while (!exit) {
+                String line = socketInput.readLine();
+                if (line == null)
+                    return;
+                ProtocolReply reply = execute(line);
+                if (reply == null) {
+                    // client got banned
+                    return;
                 }
-            } else {
-                send(reply.getMessage());
+                if (reply instanceof ProtocolReplyResult) {
+                    Object data = ((ProtocolReplyResult) reply).getData();
+                    if (data instanceof Serializable) {
+                        send(((org.xowl.store.Serializable) data).serializedString());
+                    } else if (data instanceof Collection) {
+                        for (Object element : (Collection) data)
+                            send(element.toString());
+                    } else {
+                        send(data.toString());
+                    }
+                } else {
+                    send(reply.getMessage());
+                }
+            }
+        } catch (IOException exception) {
+            logger.error(exception);
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException exception) {
+                controller.getLogger().error(exception);
             }
         }
     }

@@ -31,39 +31,6 @@ import java.util.concurrent.locks.Lock;
  * @author Laurent Wouters
  */
 public class LockingIterator<T> implements Iterator<T>, AutoCloseable {
-    private static class Item {
-        public LockingIterator iterator;
-        public StackTraceElement[] stackTrace;
-
-        public Item(LockingIterator iterator) {
-            this.iterator = iterator;
-            this.stackTrace = Thread.currentThread().getStackTrace();
-        }
-    }
-
-    /**
-     * The map of currently open iterators, i.e. iterators that hold a lock
-     */
-    private static final Map<Thread, List<Item>> ITERATORS = new HashMap<>();
-
-    /**
-     * Cleans up the remaining iterators for the current thread
-     */
-    public static void cleanup() {
-        List<Item> values = ITERATORS.get(Thread.currentThread());
-        if (values == null)
-            return;
-        for (Item item : values) {
-            System.err.println("Leaking locking iterator by:");
-            for (int i = 1; i != item.stackTrace.length; i++) {
-                System.err.println(item.stackTrace[i].toString());
-            }
-            item.iterator.lock.unlock();
-            item.iterator.hasReleased = true;
-        }
-        ITERATORS.remove(Thread.currentThread());
-    }
-
     /**
      * The inner iterator
      */
@@ -86,12 +53,6 @@ public class LockingIterator<T> implements Iterator<T>, AutoCloseable {
     public LockingIterator(Iterator<T> inner, Lock lock) {
         this.inner = inner;
         this.lock = lock;
-        List<Item> values = ITERATORS.get(Thread.currentThread());
-        if (values == null) {
-            values = new ArrayList<>();
-            ITERATORS.put(Thread.currentThread(), values);
-        }
-        values.add(new Item(this));
     }
 
     /**
@@ -100,15 +61,6 @@ public class LockingIterator<T> implements Iterator<T>, AutoCloseable {
     private void release() {
         if (hasReleased)
             return;
-        List<Item> values = ITERATORS.get(Thread.currentThread());
-        for (int i = 0; i != values.size(); i++) {
-            if (values.get(i).iterator == this) {
-                values.remove(i);
-                break;
-            }
-        }
-        if (values.isEmpty())
-            ITERATORS.remove(Thread.currentThread());
         lock.unlock();
         hasReleased = true;
     }

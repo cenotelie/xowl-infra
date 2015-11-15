@@ -59,7 +59,7 @@ class HTTPWebConnection extends ProtocolHandler implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void doRun() {
         String method = httpExchange.getRequestMethod();
         if (Objects.equals(method, "OPTIONS")) {
             // assume a pre-flight CORS request

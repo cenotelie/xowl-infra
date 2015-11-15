@@ -20,6 +20,8 @@
 
 package org.xowl.server.db;
 
+import org.xowl.utils.concurrent.SafeRunnable;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -32,7 +34,7 @@ import java.util.Collections;
  *
  * @author Laurent Wouters
  */
-public abstract class ProtocolHandler {
+public abstract class ProtocolHandler extends SafeRunnable {
     /**
      * The backend server controller
      */
@@ -48,6 +50,7 @@ public abstract class ProtocolHandler {
      * @param controller The backend server controller
      */
     public ProtocolHandler(Controller controller) {
+        super(controller.getLogger());
         this.controller = controller;
     }
 
@@ -120,7 +123,7 @@ public abstract class ProtocolHandler {
                 read = stream.read(buffer);
             }
         } catch (IOException exception) {
-            controller.getLogger().error(exception);
+            logger.error(exception);
         }
         return new ProtocolReplySuccess(writer.toString());
     }
