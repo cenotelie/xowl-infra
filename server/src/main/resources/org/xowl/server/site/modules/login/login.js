@@ -33,5 +33,6 @@ angular.module('xOWLServer.login', ['ngRoute', 'angularBasicAuth'])
       };
       $rootScope.onLogoutButton = function () {
         authService.logout();
+        $location.path("/login");
       };
     }]);
