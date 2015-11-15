@@ -13,6 +13,6 @@ angular.module('xOWLServer.users', ['ngRoute'])
     $http.post('/api', "ADMIN LIST USERS", { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
       $scope.users = response.data.results;
     }, function (response) {
-      $scope.messages = $sce.trustAsHtml(getError(MSG_ERROR_CONNECTION));
+      $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
     });
   }]);

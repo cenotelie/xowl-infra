@@ -20,7 +20,7 @@ angular.module('xOWLServer.databases', ['ngRoute'])
       $http.post('/api', "ADMIN CREATE DATABASE " + name, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
         $location.path("/database/" + name);
       }, function (response) {
-        $scope.messages = $sce.trustAsHtml(getError("Failed to create the database."));
+        $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
       });
       document.getElementById('field-db-name').value = "";
     };

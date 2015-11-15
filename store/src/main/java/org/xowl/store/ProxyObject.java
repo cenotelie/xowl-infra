@@ -245,6 +245,28 @@ public class ProxyObject {
     }
 
     /**
+     * Adds the value of the property
+     *
+     * @param property The property
+     * @param value    The new value
+     */
+    public void addValue(String property, ProxyObject value) {
+        IRINode propertyNode = node(property);
+        addValue(propertyNode, value.subject);
+    }
+
+    /**
+     * Adds the value of the property
+     *
+     * @param property The property
+     * @param value    The new value
+     */
+    public void addValue(String property, Object value) {
+        IRINode propertyNode = node(property);
+        addValue(propertyNode, encode(propertyNode, value));
+    }
+
+    /**
      * Sets the value of the property
      *
      * @param property The property
@@ -273,31 +295,31 @@ public class ProxyObject {
     }
 
     /**
-     * Unsets all values of the property
+     * Removes all values of the property
      *
      * @param property The property
      */
-    public void unset(String property) {
+    public void removeAllValues(String property) {
         removeAllValues(node(property));
     }
 
     /**
-     * Unsets the value of a property
+     * Removes the value of a property
      *
      * @param property The property
      * @param value    The value
      */
-    public void unset(String property, ProxyObject value) {
+    public void removeValue(String property, ProxyObject value) {
         removeValue(node(property), value.subject);
     }
 
     /**
-     * Unsets the value of a property
+     * Removes the value of a property
      *
      * @param property The property
      * @param value    The value
      */
-    public void unset(String property, Object value) {
+    public void removeValue(String property, Object value) {
         IRINode propertyNode = node(property);
         removeValue(propertyNode, encode(propertyNode, value));
     }

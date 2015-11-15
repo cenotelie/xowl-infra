@@ -70,22 +70,11 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      */
     private static final int GINDEX_ENTRY_SIZE = 8 + 4 + 4 + GINDEX_ENTRY_MAX_ITEM_COUNT * (4 + 4);
 
-    /**
-     * Encapsulates a key to a quad node
-     */
-    private static abstract class QNode {
-        /**
-         * Gets the key
-         *
-         * @return The key
-         */
-        public abstract long key();
-    }
 
     /**
      * Iterator over the quad node in a bucket
      */
-    private static class QNodeIterator extends QNode implements Iterator<QNode> {
+    private static class QNodeIterator implements Iterator<Long> {
         /**
          * The backend
          */
@@ -117,18 +106,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         }
 
         @Override
-        public QNode next() {
+        public Long next() {
             try (IOElement entry = backend.read(next)) {
                 value = next;
                 next = entry.readLong();
             } catch (IOException | StorageException exception) {
                 // do nothing
             }
-            return this;
-        }
-
-        @Override
-        public long key() {
             return value;
         }
     }
@@ -136,7 +120,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     /**
      * Iterator over the subject nodes in a graph index
      */
-    private static class GraphQNodeIterator extends QNode implements Iterator<QNode> {
+    private static class GraphQNodeIterator implements Iterator<Long> {
         /**
          * The backend
          */
@@ -217,18 +201,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         }
 
         @Override
-        public QNode next() {
+        public Long next() {
             try {
                 value = next;
                 next = findNext();
             } catch (IOException | StorageException exception) {
                 // do nothing
             }
-            return this;
-        }
-
-        @Override
-        public long key() {
             return value;
         }
     }
@@ -448,11 +427,11 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         Long bucket = map.get(pGraph.getKey());
         if (graph == null)
             return new SingleIterator<>(null);
-        Iterator<QNode> iteratorSubjects = new GraphQNodeIterator(backend, bucket);
+        Iterator<Long> iteratorSubjects = new GraphQNodeIterator(backend, bucket);
         return new AdaptingIterator<>(new CombiningIterator<>(iteratorSubjects, new Adapter<Iterator<MQuad>>() {
             @Override
             public <X> Iterator<MQuad> adapt(X element) {
-                long subjectKey = ((QNode) element).key();
+                long subjectKey = ((Long) element);
                 try (IOElement entry = backend.read(subjectKey)) {
                     long propertyBucket = entry.seek(8 + 4 + 8).readLong();
                     return getAllOnProperty(propertyBucket, property, object, (GraphNode) pGraph);
@@ -463,8 +442,8 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         }), new Adapter<Quad>() {
             @Override
             public <X> Quad adapt(X element) {
-                Couple<QNode, MQuad> couple = (Couple<QNode, MQuad>) element;
-                long subjectKey = couple.x.key();
+                Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
+                long subjectKey = couple.x;
                 try (IOElement entry = backend.read(subjectKey)) {
                     couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
                 } catch (IOException | StorageException exception) {
@@ -523,7 +502,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(backend, bucket), new Adapter<Iterator<MQuad>>() {
                 @Override
                 public <X> Iterator<MQuad> adapt(X element) {
-                    long key = ((QNode) element).key();
+                    long key = ((Long) element);
                     try (IOElement entry = backend.read(key)) {
                         entry.seek(8 + 4 + 8);
                         long objectKey = entry.readLong();
@@ -535,8 +514,8 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }), new Adapter<MQuad>() {
                 @Override
                 public <X> MQuad adapt(X element) {
-                    Couple<QNode, MQuad> couple = (Couple<QNode, MQuad>) element;
-                    long key = couple.x.key();
+                    Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
+                    long key = couple.x;
                     try (IOElement entry = backend.read(key)) {
                         entry.seek(8);
                         PersistedNode node = getNode(entry.readInt(), entry.readLong());
@@ -593,7 +572,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(backend, bucket), new Adapter<Iterator<MQuad>>() {
                 @Override
                 public <X> Iterator<MQuad> adapt(X element) {
-                    long key = ((QNode) element).key();
+                    long key = ((Long) element);
                     try (IOElement entry = backend.read(key)) {
                         entry.seek(8 + 4 + 8);
                         long graphKey = entry.readLong();
@@ -605,8 +584,8 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }), new Adapter<MQuad>() {
                 @Override
                 public <X> MQuad adapt(X element) {
-                    Couple<QNode, MQuad> couple = (Couple<QNode, MQuad>) element;
-                    long key = couple.x.key();
+                    Couple<Long, MQuad> couple = (Couple<Long, MQuad>) element;
+                    long key = couple.x;
                     try (IOElement entry = backend.read(key)) {
                         entry.seek(8);
                         PersistedNode node = getNode(entry.readInt(), entry.readLong());
@@ -662,7 +641,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return new AdaptingIterator<>(new QNodeIterator(backend, bucket), new Adapter<MQuad>() {
                 @Override
                 public <X> MQuad adapt(X element) {
-                    long key = ((QNode) element).key();
+                    long key = ((Long) element);
                     try (IOElement entry = backend.read(key)) {
                         entry.seek(8);
                         PersistedNode node = getNode(entry.readInt(), entry.readLong());

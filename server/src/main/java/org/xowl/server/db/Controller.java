@@ -169,9 +169,7 @@ public abstract class Controller implements Closeable {
             adminDB.proxy.setValue(Schema.ADMIN_LOCATION, ".");
             User admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
             users.put(admin.getName(), admin);
-            admin.proxy.setValue(Schema.ADMIN_ADMINOF, adminDB.proxy);
-            admin.proxy.setValue(Schema.ADMIN_CANREAD, adminDB.proxy);
-            admin.proxy.setValue(Schema.ADMIN_CANWRITE, adminDB.proxy);
+            admin.proxy.addValue(Schema.ADMIN_ADMINOF, adminDB.proxy);
             adminDB.repository.getStore().commit();
         } else {
             ProxyObject classDB = adminDB.repository.resolveProxy(Schema.ADMIN_DATABASE);
@@ -370,6 +368,8 @@ public abstract class Controller implements Closeable {
     public ProtocolReply getUser(User client, String login) {
         if (client == null)
             return ProtocolReplyUnauthenticated.instance();
+        if (client.getName().equals(login))
+            return new ProtocolReplyResult<>(client);
         if (!checkIsServerAdmin(client))
             return ProtocolReplyUnauthorized.instance();
         String userIRI = Schema.ADMIN_GRAPH_USERS + login;
@@ -496,7 +496,7 @@ public abstract class Controller implements Closeable {
         if (password.length() < configuration.getSecurityMinPasswordLength())
             return new ProtocolReplyFailure("Password does not meet requirements");
         synchronized (adminDB) {
-            user.proxy.unset(Schema.ADMIN_PASSWORD);
+            user.proxy.removeAllValues(Schema.ADMIN_PASSWORD);
             user.proxy.setValue(Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
             adminDB.repository.getStore().commit();
         }
@@ -706,11 +706,11 @@ public abstract class Controller implements Closeable {
             if (positive) {
                 if (dbs.contains(database))
                     return false;
-                user.setValue(privilege, database);
+                user.addValue(privilege, database);
             } else {
                 if (!dbs.contains(database))
                     return false;
-                user.unset(privilege, database);
+                user.removeValue(privilege, database);
             }
             adminDB.repository.getStore().commit();
         }

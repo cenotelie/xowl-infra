@@ -14,14 +14,14 @@ angular.module('xOWLServer.server', ['ngRoute'])
       $http.post('/api', "ADMIN SHUTDOWN", { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
         $scope.messages = $sce.trustAsHtml(getSuccess("Server is shutting down."));
       }, function (response) {
-        $scope.messages = $sce.trustAsHtml(getError("Failed to execute this operation."));
+        $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
       });
     };
     $scope.onServerRestart = function () {
       $http.post('/api', "ADMIN RESTART", { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
         $scope.messages = $sce.trustAsHtml(getSuccess("Server is restarting."));
       }, function (response) {
-        $scope.messages = $sce.trustAsHtml(getError("Failed to execute this operation."));
+        $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
       });
     };
   }]);

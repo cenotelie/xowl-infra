@@ -18,7 +18,7 @@ angular.module('xOWLServer.database', ['ngRoute'])
 			$scope.database.entailment = response.data;
 			setupEntailment($scope.database.entailment);
 		}, function (response) {
-			$scope.messages = $sce.trustAsHtml(getError(MSG_ERROR_CONNECTION));
+			$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
 		});
 		$scope.onSetEntailment = function () {
 			var regime = getEntailment();
@@ -26,7 +26,7 @@ angular.module('xOWLServer.database', ['ngRoute'])
 				$scope.messages = $sce.trustAsHtml(getSuccess("The entailment regime was set."));
 				$scope.database.entailment = regime;
 			}, function (response) {
-				$scope.messages = $sce.trustAsHtml(getError(MSG_ERROR_CONNECTION));
+				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
 				setupEntailment($scope.database.entailment);
 			});
 		}
@@ -34,7 +34,7 @@ angular.module('xOWLServer.database', ['ngRoute'])
 			$http.post('/api', "ADMIN DROP DATABASE " + $scope.database.name, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
 				$location.path("/databases");
 			}, function (response) {
-				$scope.messages = $sce.trustAsHtml(getError(MSG_ERROR_CONNECTION));
+				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
 			});
 		}
 	}]);
