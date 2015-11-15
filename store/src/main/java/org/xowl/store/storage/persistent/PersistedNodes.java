@@ -31,6 +31,7 @@ import org.xowl.store.rdf.LiteralNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.store.storage.impl.NodeManagerImpl;
+import org.xowl.utils.logging.ConsoleLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -196,7 +197,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             counter += modifier;
             element.seek(8).writeLong(counter);
         } catch (IOException | StorageException exception) {
-            // do nothing
+            ConsoleLogger.INSTANCE.error(exception);
         }
     }
 
@@ -289,12 +290,14 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                     mapStrings.put(hash, result);
                 return result;
             } catch (IOException | StorageException exception) {
+                ConsoleLogger.INSTANCE.error(exception);
                 return PersistedNode.KEY_NOT_PRESENT;
             }
         } else {
             try {
                 return lookupString(bucket, data);
             } catch (IOException | StorageException exception) {
+                ConsoleLogger.INSTANCE.error(exception);
                 return PersistedNode.KEY_NOT_PRESENT;
             }
         }
@@ -337,7 +340,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             counter += modifier;
             element.seek(8).writeLong(counter);
         } catch (IOException | StorageException exception) {
-            // do nothing
+            ConsoleLogger.INSTANCE.error(exception);
         }
     }
 
@@ -378,6 +381,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 mapLiterals.put(keyLexical, result);
                 return result;
             } catch (IOException | StorageException exception) {
+                ConsoleLogger.INSTANCE.error(exception);
                 return PersistedNode.KEY_NOT_PRESENT;
             }
         } else {
@@ -394,6 +398,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                     previous = candidate;
                     candidate = next;
                 } catch (IOException | StorageException exception) {
+                    ConsoleLogger.INSTANCE.error(exception);
                     return PersistedNode.KEY_NOT_PRESENT;
                 }
             }
@@ -414,6 +419,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 }
                 return result;
             } catch (IOException | StorageException exception) {
+                ConsoleLogger.INSTANCE.error(exception);
                 return PersistedNode.KEY_NOT_PRESENT;
             }
         }

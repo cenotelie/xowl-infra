@@ -31,6 +31,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class LockManager {
     /**
+     * Whether to debug lock leaks
+     */
+    public static final boolean DEBUG_LEAKS = true;
+
+    /**
      * The currently tracked locks
      */
     private static final ConcurrentHashMap<Thread, List<TrackedLock>> LOCKS = new ConcurrentHashMap<>();
@@ -69,10 +74,12 @@ public class LockManager {
         if (locks == null)
             return;
         for (TrackedLock lock : locks) {
-            StackTraceElement[] trace = lock.trace();
-            System.err.println("Leaking locking iterator by:");
-            for (int i = 1; i != trace.length; i++) {
-                System.err.println("\t" + trace[i].toString());
+            if (DEBUG_LEAKS) {
+                StackTraceElement[] trace = lock.trace();
+                System.err.println("Leaking locking iterator by:");
+                for (int i = 1; i != trace.length; i++) {
+                    System.err.println("\t" + trace[i].toString());
+                }
             }
             lock.simpleRelease();
         }

@@ -51,9 +51,10 @@ public class TrackedReentrantLock extends ReentrantLock implements TrackedLock {
 
     @Override
     public void lock() {
-        if (!isHeldByCurrentThread()) {
-            super.lock();
-            trace = Thread.currentThread().getStackTrace();
+        super.lock();
+        if (getHoldCount() == 1) {
+            if (LockManager.DEBUG_LEAKS)
+                trace = Thread.currentThread().getStackTrace();
             LockManager.register(this);
         }
     }
