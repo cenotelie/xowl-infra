@@ -32,6 +32,10 @@ public class User {
      * The proxy object representing this user
      */
     final ProxyObject proxy;
+    /**
+     * The cached name
+     */
+    private String name;
 
     /**
      * Initializes this user
@@ -48,7 +52,10 @@ public class User {
      * @return The name of this user
      */
     public String getName() {
-        return (String) proxy.getDataValue(Schema.ADMIN_NAME);
+        if (name != null)
+            return name;
+        name = (String) proxy.getDataValue(Schema.ADMIN_NAME);
+        return name;
     }
 
     @Override

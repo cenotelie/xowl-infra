@@ -104,6 +104,10 @@ public class Database implements Closeable {
      * The proxy object representing this database
      */
     final ProxyObject proxy;
+    /**
+     * The cached name
+     */
+    private String name;
 
     /**
      * Initializes this database (as the admin database)
@@ -176,7 +180,10 @@ public class Database implements Closeable {
      * @return The name of this user
      */
     public String getName() {
-        return (String) proxy.getDataValue(Schema.ADMIN_NAME);
+        if (name != null)
+            return name;
+        name = (String) proxy.getDataValue(Schema.ADMIN_NAME);
+        return name;
     }
 
     /**

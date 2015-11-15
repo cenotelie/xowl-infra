@@ -244,6 +244,8 @@ class FileStore extends IOBackend {
     protected IOElement access(long key, boolean writable) throws StorageException {
         int index = getFileIndexFor(key);
         int sk = getShortKey(key);
+        if (index >= files.size())
+            throw new StorageException("Invalid key");
         FileStoreFile file = files.get(index);
         FileStorePage page = file.getPageFor(sk);
         int length = page.positionFor(sk);

@@ -13,12 +13,14 @@
 		<div class="tab-content">
 			<div role="tabpanel" class="tab-pane active" id="tab-data-privileges" style="margin-top: 20px;">
 				<div class="panel panel-default" style="margin-top: 20px;">
-					<div class="panel-heading">Grant privilege</div>
-					<div class="panel-body">
+					<div class="panel-heading">
+						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#grant-form" aria-expanded="false" aria-controls="grant-form">Grant privilege</button>
+					</div>
+					<div id="grant-form" class="panel-body collapse">
 						<form>
 							<div class="form-group">
 								<label for="field-grant-database">Database</label>
-								<input type="text" class="form-control" id="field-grant-database" placeholder="database">
+								<input type="text" class="form-control" id="field-grant-database" placeholder="database" />
 							</div>
 							<div class="form-group">
 								<label for="field-grant-privilege">Privilege</label>
@@ -34,7 +36,7 @@
 				</div>
 				<div class="form-group">
 					<label for="field-search">Search</label>
-					<input type="text" class="form-control" id="field-search" placeholder="name" ng-model="query">
+					<input type="text" class="form-control" id="field-search" placeholder="name" ng-model="query" />
 				</div>
 				<table class="table table-bordered table-hover">
 					<thead>
@@ -63,16 +65,34 @@
 				<div class="panel panel-danger" style="margin-top: 20px;">
 					<div class="panel-heading">Reset the password</div>
 					<div class="panel-body">
+						<div class="panel panel-danger">
+							<div class="panel-body">
+								<span>Beware that resetting the password will make the account inaccessible to user <strong>{{user}}</strong>, unless you tell him/her the new password.</span>
+							</div>
+						</div>
 						<form>
 							<div class="form-group">
 								<label for="field-password-1">New password</label>
-								<input type="password" class="form-control" id="field-password-1" placeholder="Password">
+								<input type="password" class="form-control" id="field-password-1" placeholder="Password" />
 							</div>
 							<div class="form-group">
 								<label for="field-password-2">New password (the same)</label>
-								<input type="password" class="form-control" id="field-password-2" placeholder="Password">
+								<input type="password" class="form-control" id="field-password-2" placeholder="Password" />
 							</div>
 							<button type="submit" class="btn btn-primary" ng-click="onPasswordChange()">OK</button>
+						</form>
+					</div>
+				</div>
+				<div class="panel panel-danger" style="margin-top: 20px;">
+					<div class="panel-heading">Delete the user</div>
+					<div class="panel-body">
+						<div class="panel panel-default">
+							<div class="panel-body">
+								This operation cannot be undone.
+							</div>
+						</div>
+						<form>
+							<button type="submit" class="btn btn-danger" ng-click="onUserDelete()">Delete user <strong>{{user}}</strong></button>
 						</form>
 					</div>
 				</div>

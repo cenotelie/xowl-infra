@@ -45,6 +45,14 @@ import java.util.Objects;
  */
 class HTTPAPIConnection extends ProtocolHandler implements Runnable {
     /**
+     * The HTTP Content-Type header
+     */
+    private static final String HEADER_CONTENT_TYPE = "Content-Type";
+    /**
+     * The plain text content type
+     */
+    public static final String TEXT_PLAIN = "text/plain";
+    /**
      * The content type for a SPARQL URL encoded message body
      */
     public static final String SPARQL_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
@@ -279,11 +287,13 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
             return;
         }
         if (reply instanceof ProtocolReplyFailure) {
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
             response(HttpURLConnection.HTTP_INTERNAL_ERROR, reply.getMessage());
             return;
         }
         if (!(reply instanceof ProtocolReplyResult)) {
             // other successes
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
             response(HttpURLConnection.HTTP_OK, reply.getMessage());
             return;
         }
@@ -293,8 +303,9 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
 
         Object data = ((ProtocolReplyResult) reply).getData();
         if (data instanceof Collection) {
-            httpExchange.getResponseHeaders().add("Content-Type", "application/json");
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, Result.SYNTAX_JSON);
             StringBuilder builder = new StringBuilder("{ \"results\": [");
+
             boolean first = true;
             for (Object elem : ((Collection) data)) {
                 if (!first)
@@ -315,13 +326,13 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
                 // cannot happen
                 exception.printStackTrace();
             }
-            httpExchange.getResponseHeaders().add("Content-Type", Utils.coerceContentType(sparqlResult, resultType));
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, Utils.coerceContentType(sparqlResult, resultType));
             response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR, writer.toString());
         } else if (data instanceof Serializable) {
-            httpExchange.getResponseHeaders().add("Content-Type", "application/json");
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, Result.SYNTAX_JSON);
             response(HttpURLConnection.HTTP_OK, ((Serializable) data).serializedJSON());
         } else {
-            httpExchange.getResponseHeaders().add("Content-Type", "text");
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
             response(HttpURLConnection.HTTP_OK, data.toString());
         }
     }

@@ -1,9 +1,4 @@
 <p ng-controller="DatabasesCtrl">
-  <div class="alert alert-info alert-dismissible" role="alert">
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> This page lists only the databases you have been
-    granted access to.
-  </div>
   <div ng-bind-html="messages"></div>
   <div>
     <ul class="nav nav-tabs" role="tablist" id="DBTabs">
@@ -14,7 +9,7 @@
       <div role="tabpanel" class="tab-pane active" id="tab-data-list">
         <div class="form-group">
           <label for="field-search">Search</label>
-          <input type="text" class="form-control" id="field-search" placeholder="name" ng-model="query">
+          <input type="text" class="form-control" id="field-search" placeholder="name" ng-model="query"/>
         </div>
         <table class="table table-bordered table-hover">
           <thead>
@@ -37,7 +32,7 @@
             <form>
               <div class="form-group">
                 <label for="field-db-name">New database name</label>
-                <input type="text" class="form-control" id="field-db-name" placeholder="name">
+                <input type="text" class="form-control" id="field-db-name" placeholder="name"/>
               </div>
               <button type="submit" class="btn btn-primary" ng-click="onNewDB()">Create</button>
             </form>
