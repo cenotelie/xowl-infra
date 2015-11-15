@@ -26,7 +26,7 @@ import org.xowl.store.AbstractRepository;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultQuads;
 import org.xowl.utils.collections.Couple;
-import org.xowl.utils.logging.ConsoleLogger;
+import org.xowl.utils.logging.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -102,14 +102,14 @@ class Utils {
                 try {
                     key = URLDecoder.decode(param[0], "UTF-8");
                 } catch (UnsupportedEncodingException exception) {
-                    ConsoleLogger.INSTANCE.error(exception);
+                    Logger.DEFAULT.error(exception);
                 }
             }
             if (param.length > 1) {
                 try {
                     value = URLDecoder.decode(param[1], "UTF-8");
                 } catch (UnsupportedEncodingException exception) {
-                    ConsoleLogger.INSTANCE.error(exception);
+                    Logger.DEFAULT.error(exception);
                 }
             }
             if (key != null && !key.isEmpty() && value != null && !value.isEmpty()) {

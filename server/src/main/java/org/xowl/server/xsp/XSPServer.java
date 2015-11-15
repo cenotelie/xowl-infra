@@ -24,7 +24,7 @@ import org.xowl.server.ServerConfiguration;
 import org.xowl.server.db.Controller;
 import org.xowl.server.SSLManager;
 import org.xowl.utils.collections.Couple;
-import org.xowl.utils.logging.ConsoleLogger;
+import org.xowl.utils.logging.Logger;
 
 import javax.net.ssl.*;
 import java.io.Closeable;
@@ -97,7 +97,7 @@ public class XSPServer implements Closeable {
                 sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(keyManager.getKeyManagers(), trustManager.getTrustManagers(), null);
             } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException exception) {
-                ConsoleLogger.INSTANCE.error(exception);
+                Logger.DEFAULT.error(exception);
             }
         }
 
@@ -111,7 +111,7 @@ public class XSPServer implements Closeable {
                         configuration.getXSPBacklog(),
                         address);
             } catch (IOException exception) {
-                ConsoleLogger.INSTANCE.error(exception);
+                Logger.DEFAULT.error(exception);
             }
         }
 

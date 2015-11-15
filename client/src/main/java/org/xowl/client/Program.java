@@ -21,7 +21,7 @@
 package org.xowl.client;
 
 import org.xowl.store.storage.remote.XOWLConnection;
-import org.xowl.utils.logging.ConsoleLogger;
+import org.xowl.utils.logging.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -145,7 +145,7 @@ public class Program {
                 }
             }
         } catch (IOException exception) {
-            ConsoleLogger.INSTANCE.error(exception);
+            Logger.DEFAULT.error(exception);
         }
     }
 

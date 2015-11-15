@@ -20,7 +20,6 @@
 
 package org.xowl.utils.concurrent;
 
-import org.xowl.utils.logging.ConsoleLogger;
 import org.xowl.utils.logging.Logger;
 
 /**
@@ -48,7 +47,7 @@ public abstract class SafeRunnable implements Runnable {
         try {
             doRun();
         } catch (Exception exception) {
-            ConsoleLogger.INSTANCE.error(exception);
+            Logger.DEFAULT.error(exception);
         } finally {
             LockManager.cleanup();
         }

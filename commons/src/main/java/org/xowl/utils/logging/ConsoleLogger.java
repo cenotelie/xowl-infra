@@ -32,11 +32,6 @@ public class ConsoleLogger implements Logger {
     private static final String LEVEL_WARNING = "WARNING";
     private static final String LEVEL_ERROR = "ERROR";
 
-    /**
-     * A common instance for last-resort logging
-     */
-    public static final ConsoleLogger INSTANCE = new ConsoleLogger();
-
     @Override
     public void debug(Object message) {
         log(message, LEVEL_DEBUG, false);

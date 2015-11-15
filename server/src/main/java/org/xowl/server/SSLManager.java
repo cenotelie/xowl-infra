@@ -21,7 +21,7 @@
 package org.xowl.server;
 
 import org.xowl.utils.collections.Couple;
-import org.xowl.utils.logging.ConsoleLogger;
+import org.xowl.utils.logging.Logger;
 
 import java.io.*;
 import java.security.KeyStore;
@@ -70,7 +70,7 @@ public class SSLManager {
             }
             return new Couple<>(keyStore, password);
         } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException exception) {
-            ConsoleLogger.INSTANCE.error(exception);
+            Logger.DEFAULT.error(exception);
             return null;
         }
     }
@@ -108,7 +108,7 @@ public class SSLManager {
                             System.out.println(scan.nextLine());
                         }
                     } catch (IOException exception) {
-                        ConsoleLogger.INSTANCE.error(exception);
+                        Logger.DEFAULT.error(exception);
                     }
                 }
             }).start();
@@ -125,7 +125,7 @@ public class SSLManager {
             process.waitFor();
             return password;
         } catch (IOException | InterruptedException exception) {
-            ConsoleLogger.INSTANCE.error(exception);
+            Logger.DEFAULT.error(exception);
             return null;
         }
     }
