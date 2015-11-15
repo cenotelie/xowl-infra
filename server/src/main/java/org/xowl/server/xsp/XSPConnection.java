@@ -26,6 +26,7 @@ import org.xowl.server.db.ProtocolHandler;
 import org.xowl.server.db.ProtocolReply;
 import org.xowl.server.db.ProtocolReplyResult;
 import org.xowl.store.Serializable;
+import org.xowl.utils.collections.LockingIterator;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -96,6 +97,7 @@ class XSPConnection extends ProtocolHandler implements Runnable {
             } catch (IOException exception) {
                 controller.getLogger().error(exception);
             }
+            LockingIterator.cleanup();
         }
     }
 

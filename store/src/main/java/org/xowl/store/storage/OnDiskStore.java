@@ -26,12 +26,12 @@ import org.xowl.store.rdf.*;
 import org.xowl.store.storage.persistent.PersistedDataset;
 import org.xowl.store.storage.persistent.PersistedNodes;
 import org.xowl.store.storage.persistent.StorageException;
+import org.xowl.utils.collections.LockingIterator;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -53,7 +53,7 @@ class OnDiskStore implements BaseStore {
     /**
      * Global lock for this store used to prevent concurrent access
      */
-    private final Lock globalLock;
+    private final ReentrantLock globalLock;
 
     /**
      * Initializes this store
@@ -136,41 +136,25 @@ class OnDiskStore implements BaseStore {
     @Override
     public Iterator<Quad> getAll() {
         globalLock.lock();
-        try {
-            return dataset.getAll();
-        } finally {
-            globalLock.unlock();
-        }
+        return new LockingIterator<>(dataset.getAll(), globalLock);
     }
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph) {
         globalLock.lock();
-        try {
-            return dataset.getAll(graph);
-        } finally {
-            globalLock.unlock();
-        }
+        return new LockingIterator<>(dataset.getAll(graph), globalLock);
     }
 
     @Override
     public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
         globalLock.lock();
-        try {
-            return dataset.getAll(subject, property, object);
-        } finally {
-            globalLock.unlock();
-        }
+        return new LockingIterator<>(dataset.getAll(subject, property, object), globalLock);
     }
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
         globalLock.lock();
-        try {
-            return dataset.getAll(graph, subject, property, object);
-        } finally {
-            globalLock.unlock();
-        }
+        return new LockingIterator<>(dataset.getAll(graph, subject, property, object), globalLock);
     }
 
     @Override

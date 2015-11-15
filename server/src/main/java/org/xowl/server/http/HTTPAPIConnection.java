@@ -26,6 +26,7 @@ import org.xowl.server.db.*;
 import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;
 import org.xowl.store.sparql.Result;
+import org.xowl.utils.collections.LockingIterator;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -87,6 +88,16 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
 
     @Override
     public void run() {
+        try {
+            doRun();
+        } catch (Exception exception) {
+            controller.getLogger().error(exception);
+        } finally {
+            LockingIterator.cleanup();
+        }
+    }
+
+    private void doRun() {
         String method = httpExchange.getRequestMethod();
         if (Objects.equals(method, "OPTIONS")) {
             // assume a pre-flight CORS request
