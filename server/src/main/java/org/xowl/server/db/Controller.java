@@ -27,6 +27,7 @@ import org.xowl.store.EntailmentRegime;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.loaders.SPARQLLoader;
+import org.xowl.store.rdf.Quad;
 import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultSuccess;
@@ -190,6 +191,17 @@ public abstract class Controller implements Closeable {
             }
         }
         logger.info("Controller is ready");
+    }
+
+    /**
+     * Dumps the admin database onto the console
+     */
+    private void debugDumpAdminDB() {
+        Iterator<Quad> quads = adminDB.repository.getStore().getAll();
+        System.out.println("=======");
+        while (quads.hasNext()) {
+            System.out.println(quads.next());
+        }
     }
 
     /**
@@ -812,33 +824,35 @@ public abstract class Controller implements Closeable {
             return ProtocolReplyUnauthenticated.instance();
         if (database == adminDB)
             return ProtocolReplyFailure.instance();
-        if (!checkIsServerAdmin(client) || checkIsDBAdmin(client, database))
-            return ProtocolReplyUnauthorized.instance();
-        synchronized (databases) {
-            databases.remove(database.getName());
-            File folder = new File(configuration.getRoot(), (String) database.proxy.getDataValue(Schema.ADMIN_LOCATION));
-            try {
-                database.close();
-                File[] children = folder.listFiles();
-                if (children == null) {
-                    logger.error("Failed to list the files in " + folder.getAbsolutePath());
-                } else {
-                    for (int i = 0; i != children.length; i++) {
-                        if (!children[i].delete()) {
-                            logger.error("Failed to delete " + children[i].getAbsolutePath());
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            synchronized (databases) {
+                databases.remove(database.getName());
+                File folder = new File(configuration.getRoot(), (String) database.proxy.getDataValue(Schema.ADMIN_LOCATION));
+                try {
+                    database.close();
+                    File[] children = folder.listFiles();
+                    if (children == null) {
+                        logger.error("Failed to list the files in " + folder.getAbsolutePath());
+                    } else {
+                        for (int i = 0; i != children.length; i++) {
+                            if (!children[i].delete()) {
+                                logger.error("Failed to delete " + children[i].getAbsolutePath());
+                            }
                         }
                     }
+                    if (!folder.delete()) {
+                        logger.error("Failed to delete " + folder.getAbsolutePath());
+                    }
+                } catch (IOException exception) {
+                    exception.printStackTrace();
                 }
-                if (!folder.delete()) {
-                    logger.error("Failed to delete " + folder.getAbsolutePath());
-                }
-            } catch (IOException exception) {
-                exception.printStackTrace();
+                database.proxy.delete();
+                adminDB.repository.getStore().commit();
             }
-            database.proxy.delete();
-            adminDB.repository.getStore().commit();
+            return ProtocolReplySuccess.instance();
+        } else {
+            return ProtocolReplyUnauthorized.instance();
         }
-        return ProtocolReplySuccess.instance();
     }
 
     /**

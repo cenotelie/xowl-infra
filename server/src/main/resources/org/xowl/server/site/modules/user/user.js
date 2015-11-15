@@ -62,4 +62,13 @@ angular.module('xOWLServer.user', ['ngRoute'])
         $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
       });
     }
+    
+    $scope.onUserDelete = function (access) {
+      $http.post('/api', "ADMIN DELETE USER " + $scope.user, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
+        $scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
+        $scope.updatePrivileges();
+      }, function (response) {
+        $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
+      });
+    }
   }]);

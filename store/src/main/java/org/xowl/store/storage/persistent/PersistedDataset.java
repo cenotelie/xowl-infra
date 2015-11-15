@@ -1340,7 +1340,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         PersistedNode pProperty = nodes.getPersistent(property, false);
         PersistedNode pObject = nodes.getPersistent(value, false);
         PersistedNode pGraph = nodes.getPersistent(graph, false);
-        if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
+        if ((subject != null && pSubject == null)
+                || (property != null && pProperty == null)
+                || (value != null && pObject == null)
+                || (graph != null && pGraph == null))
             // the quad cannot be in this store
             return;
         if (subject != null)

@@ -1,5 +1,10 @@
 <p ng-controller="DatabaseCtrl">
 	<div ng-bind-html="messages"></div>
+	<div class="panel panel-default">
+		<div class="panel-body">
+			Settings for database <strong>{{database.name}}</strong>.
+		</div>
+	</div>
 	<div>
 		<ul class="nav nav-tabs" role="tablist" id="DBTabs">
 			<li role="presentation" class="active"><a href="#tab-data-summary" aria-controls="tab-data-summary" role="tab">Summary</a></li>
@@ -80,11 +85,13 @@
 				<div class="panel panel-danger" style="margin-top: 20px;">
 					<div class="panel-heading">Drop database</div>
 					<div class="panel-body">
-						<form class="form-horizontal">
-							<span>
-								Dropping the database will delete all data. This operation <b>cannot</b> be reverted.
-							</span>
-							<button type="submit" class="btn btn-danger" ng-click="onDBDrop()">Drop the database</button>
+						<div class="panel panel-default">
+							<div class="panel-body">
+								Dropping the database will delete all data. This operation <b>cannot</b> be undone.
+							</div>
+						</div>
+						<form>
+							<button type="submit" class="btn btn-danger" ng-click="onDBDrop()">Drop database <strong>{{database.name}}</strong></button>
 						</form>
 					</div>
 				</div>
