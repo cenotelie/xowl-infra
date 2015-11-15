@@ -20,6 +20,8 @@
 
 package org.xowl.store.storage.remote;
 
+import org.xowl.utils.logging.ConsoleLogger;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
@@ -121,7 +123,7 @@ public class XOWLConnection implements Closeable {
                     }
             }, new SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
             return;
         }
         socket = (SSLSocket) sslContext.getSocketFactory().createSocket();

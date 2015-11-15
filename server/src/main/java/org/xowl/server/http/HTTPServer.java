@@ -25,6 +25,7 @@ import org.xowl.server.SSLManager;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.server.db.Controller;
 import org.xowl.utils.collections.Couple;
+import org.xowl.utils.logging.ConsoleLogger;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -95,7 +96,7 @@ public class HTTPServer implements Closeable {
                 sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(keyManager.getKeyManagers(), trustManager.getTrustManagers(), null);
             } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException exception) {
-                exception.printStackTrace();
+                ConsoleLogger.INSTANCE.error(exception);
             }
         }
         InetSocketAddress address = new InetSocketAddress(
@@ -106,7 +107,7 @@ public class HTTPServer implements Closeable {
             controller.getLogger().info("Creating the HTTPS server");
             temp = HttpsServer.create(address, configuration.getHttpBacklog());
         } catch (IOException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
         }
         if (temp != null && sslContext != null) {
             Authenticator authenticator = new Authenticator(controller, configuration.getSecurityRealm());
@@ -138,7 +139,7 @@ public class HTTPServer implements Closeable {
                         params.setProtocols(engine.getEnabledProtocols());
                         params.setSSLParameters(defaultSSLContext.getDefaultSSLParameters());
                     } catch (NoSuchAlgorithmException exception) {
-                        exception.printStackTrace();
+                        ConsoleLogger.INSTANCE.error(exception);
                     }
                 }
             });

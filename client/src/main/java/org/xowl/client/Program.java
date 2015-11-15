@@ -21,6 +21,7 @@
 package org.xowl.client;
 
 import org.xowl.store.storage.remote.XOWLConnection;
+import org.xowl.utils.logging.ConsoleLogger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -143,8 +144,8 @@ public class Program {
                     connection.send(data);
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException exception) {
+            ConsoleLogger.INSTANCE.error(exception);
         }
     }
 

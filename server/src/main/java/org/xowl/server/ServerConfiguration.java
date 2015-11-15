@@ -21,6 +21,7 @@
 package org.xowl.server;
 
 import org.xowl.utils.config.Configuration;
+import org.xowl.utils.logging.ConsoleLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,7 +68,7 @@ public class ServerConfiguration {
         try {
             confDefault.load(stream, Charset.forName("UTF-8"));
         } catch (IOException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
         }
         root = (args.length > 0) ? new File(args[0]) : new File(System.getProperty("user.dir"));
         File file = new File(root, FILE_NAME);
@@ -76,7 +77,7 @@ public class ServerConfiguration {
                 confFile.load(file.getAbsolutePath(), Charset.forName("UTF-8"));
             }
         } catch (IOException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
         }
     }
 
@@ -281,7 +282,7 @@ public class ServerConfiguration {
         try {
             confFile.save(new File(root, FILE_NAME).getAbsolutePath(), Charset.forName("UTF-8"));
         } catch (IOException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
         }
     }
 }

@@ -844,7 +844,7 @@ public abstract class Controller implements Closeable {
                         logger.error("Failed to delete " + folder.getAbsolutePath());
                     }
                 } catch (IOException exception) {
-                    exception.printStackTrace();
+                    ConsoleLogger.INSTANCE.error(exception);
                 }
                 database.proxy.delete();
                 adminDB.repository.getStore().commit();

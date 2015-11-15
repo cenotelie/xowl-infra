@@ -26,6 +26,7 @@ import org.xowl.server.db.*;
 import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;
 import org.xowl.store.sparql.Result;
+import org.xowl.utils.logging.ConsoleLogger;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -43,7 +44,7 @@ import java.util.Objects;
  *
  * @author Laurent Wouters
  */
-class HTTPAPIConnection extends ProtocolHandler implements Runnable {
+class HTTPAPIConnection extends ProtocolHandler {
     /**
      * The HTTP Content-Type header
      */
@@ -324,7 +325,7 @@ class HTTPAPIConnection extends ProtocolHandler implements Runnable {
                 sparqlResult.print(writer, Utils.coerceContentType(sparqlResult, resultType));
             } catch (IOException exception) {
                 // cannot happen
-                exception.printStackTrace();
+                ConsoleLogger.INSTANCE.error(exception);
             }
             httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, Utils.coerceContentType(sparqlResult, resultType));
             response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR, writer.toString());

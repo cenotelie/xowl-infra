@@ -22,6 +22,7 @@ package org.xowl.store.storage.remote;
 
 import org.apache.xerces.impl.dv.util.Base64;
 import org.xowl.store.sparql.Result;
+import org.xowl.utils.logging.ConsoleLogger;
 
 import javax.net.ssl.*;
 import java.io.*;
@@ -114,7 +115,7 @@ public class HTTPConnector {
                     }
             }, new SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
         }
         sslContext = sc;
         hostnameVerifier = new HostnameVerifier() {
@@ -188,7 +189,7 @@ public class HTTPConnector {
         try {
             url = new URL(endpoint);
         } catch (MalformedURLException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
             return null;
         }
 
@@ -196,7 +197,7 @@ public class HTTPConnector {
         try {
             connection = (HttpURLConnection) url.openConnection();
         } catch (IOException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
             return null;
         }
         if (connection instanceof HttpsURLConnection) {
@@ -207,7 +208,7 @@ public class HTTPConnector {
         try {
             connection.setRequestMethod("POST");
         } catch (ProtocolException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
             return null;
         }
         connection.setRequestProperty("Authorization", "Basic " + authToken);
@@ -221,7 +222,7 @@ public class HTTPConnector {
             try (OutputStream stream = connection.getOutputStream()) {
                 stream.write(body.getBytes());
             } catch (IOException exception) {
-                exception.printStackTrace();
+                ConsoleLogger.INSTANCE.error(exception);
                 return null;
             }
         }
@@ -230,7 +231,7 @@ public class HTTPConnector {
         try {
             response.code = connection.getResponseCode();
         } catch (IOException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
             connection.disconnect();
             return null;
         }
@@ -248,7 +249,7 @@ public class HTTPConnector {
                 rd.close();
                 response.body = builder.toString();
             } catch (IOException exception) {
-                exception.printStackTrace();
+                ConsoleLogger.INSTANCE.error(exception);
             }
         }
         connection.disconnect();

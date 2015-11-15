@@ -24,6 +24,7 @@ import org.xowl.server.db.Controller;
 import org.xowl.server.http.HTTPServer;
 import org.xowl.server.xsp.XSPServer;
 import org.xowl.utils.logging.BufferedLogger;
+import org.xowl.utils.logging.ConsoleLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,7 +86,7 @@ public class Program {
                 }
             };
         } catch (IOException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
             return;
         }
         HTTPServer httpServer = new HTTPServer(configuration, controller);
@@ -105,17 +106,17 @@ public class Program {
         try {
             xspServer.close();
         } catch (IOException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
         }
         try {
             httpServer.close();
         } catch (IOException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
         }
         try {
             controller.close();
         } catch (IOException exception) {
-            exception.printStackTrace();
+            ConsoleLogger.INSTANCE.error(exception);
         }
     }
 
