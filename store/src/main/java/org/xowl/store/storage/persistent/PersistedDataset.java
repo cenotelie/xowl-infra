@@ -1404,6 +1404,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = size; i != bufferRemoved.size(); i++) {
                 MQuad quad = bufferRemoved.get(i);
                 doQuadDeindex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
+                ((PersistedNode) quad.getSubject()).decrementRefCount();
+                ((PersistedNode) quad.getProperty()).decrementRefCount();
+                ((PersistedNode) quad.getObject()).decrementRefCount();
+                ((PersistedNode) quad.getGraph()).decrementRefCount();
             }
             if (isEmpty)
                 map.remove(subject.getKey());
@@ -1546,6 +1550,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = size; i != bufferRemoved.size(); i++) {
                 MQuad quad = bufferRemoved.get(i);
                 doQuadDeindex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
+                ((PersistedNode) quad.getSubject()).decrementRefCount();
+                ((PersistedNode) quad.getProperty()).decrementRefCount();
+                ((PersistedNode) quad.getObject()).decrementRefCount();
+                ((PersistedNode) quad.getGraph()).decrementRefCount();
             }
             if (isEmpty)
                 toRemove.add(entry.getKey());
@@ -1589,7 +1597,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             bufferRemoved.get(i).setSubject(rSubject);
         int modifier = sizeRemoved - bufferRemoved.size();
         if (modifier < 0)
-            ((PersistedNode) rSubject).modifyRefCount(-modifier);
+            ((PersistedNode) rSubject).modifyRefCount(modifier);
 
         if (newChild == PersistedNode.KEY_NOT_PRESENT) {
             // the child bucket is empty
@@ -1657,7 +1665,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 bufferRemoved.get(i).setProperty(rProperty);
             int modifier = sizeRemoved - bufferRemoved.size();
             if (modifier < 0)
-                ((PersistedNode) rProperty).modifyRefCount(-modifier);
+                ((PersistedNode) rProperty).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -1740,7 +1748,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 bufferRemoved.get(i).setObject(rObject);
             int modifier = sizeRemoved - bufferRemoved.size();
             if (modifier < 0)
-                ((PersistedNode) rObject).modifyRefCount(-modifier);
+                ((PersistedNode) rObject).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -1949,7 +1957,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             buffer.get(i).setSubject(subject);
         int modifier = size - buffer.size();
         if (modifier < 0)
-            ((PersistedNode) subject).modifyRefCount(-modifier);
+            ((PersistedNode) subject).modifyRefCount(modifier);
 
         if (newChild == PersistedNode.KEY_NOT_PRESENT) {
             // the child bucket is empty
@@ -2001,7 +2009,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 buffer.get(i).setProperty(property);
             int modifier = size - buffer.size();
             if (modifier < 0)
-                ((PersistedNode) property).modifyRefCount(-modifier);
+                ((PersistedNode) property).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -2069,7 +2077,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 buffer.get(i).setObject(object);
             int modifier = size - buffer.size();
             if (modifier < 0)
-                ((PersistedNode) object).modifyRefCount(-modifier);
+                ((PersistedNode) object).modifyRefCount(modifier);
 
             if (newChild == PersistedNode.KEY_NOT_PRESENT) {
                 // the child bucket is empty
@@ -2224,10 +2232,18 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = sizeOld; i != bufferOld.size(); i++) {
                 MQuad quad = bufferOld.get(i);
                 doQuadDeindex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
+                ((PersistedNode) quad.getSubject()).decrementRefCount();
+                ((PersistedNode) quad.getProperty()).decrementRefCount();
+                ((PersistedNode) quad.getObject()).decrementRefCount();
+                ((PersistedNode) quad.getGraph()).decrementRefCount();
             }
             for (int i = sizeNew; i != bufferNew.size(); i++) {
                 MQuad quad = bufferOld.get(i);
                 doQuadIndex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
+                ((PersistedNode) quad.getSubject()).incrementRefCount();
+                ((PersistedNode) quad.getProperty()).incrementRefCount();
+                ((PersistedNode) quad.getObject()).incrementRefCount();
+                ((PersistedNode) quad.getGraph()).incrementRefCount();
             }
             if (isEmpty)
                 toRemove.add(entry.getKey());
@@ -2581,10 +2597,18 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = sizeOld; i != bufferOld.size(); i++) {
                 MQuad quad = bufferOld.get(i);
                 doQuadDeindex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
+                ((PersistedNode) quad.getSubject()).decrementRefCount();
+                ((PersistedNode) quad.getProperty()).decrementRefCount();
+                ((PersistedNode) quad.getObject()).decrementRefCount();
+                ((PersistedNode) quad.getGraph()).decrementRefCount();
             }
             for (int i = sizeNew; i != bufferNew.size(); i++) {
                 MQuad quad = bufferOld.get(i);
                 doQuadIndex((PersistedNode) quad.getSubject(), (PersistedNode) quad.getGraph());
+                ((PersistedNode) quad.getSubject()).incrementRefCount();
+                ((PersistedNode) quad.getProperty()).incrementRefCount();
+                ((PersistedNode) quad.getObject()).incrementRefCount();
+                ((PersistedNode) quad.getGraph()).incrementRefCount();
             }
             if (isEmpty)
                 toRemove.add(entry.getKey());

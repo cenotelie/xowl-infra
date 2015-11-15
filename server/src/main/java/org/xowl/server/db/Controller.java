@@ -441,10 +441,12 @@ public abstract class Controller implements Closeable {
         if (!checkIsServerAdmin(client))
             return ProtocolReplyUnauthorized.instance();
         if (!login.matches("[_a-zA-Z0-9]+"))
-            return new ProtocolReplyFailure("Login does not meet requirements");
+            return new ProtocolReplyFailure("Login does not meet requirements ([_a-zA-Z0-9]+)");
         if (password.length() < configuration.getSecurityMinPasswordLength())
-            return new ProtocolReplyFailure("Password does not meet requirements");
+            return new ProtocolReplyFailure("Password does not meet requirements (min length " + configuration.getSecurityMinPasswordLength() + ")");
         User user = doCreateUser(login, password);
+        if (user == null)
+            return new ProtocolReplyFailure("User already exists");
         return new ProtocolReplyResult<>(user);
     }
 
@@ -789,12 +791,12 @@ public abstract class Controller implements Closeable {
         if (!checkIsServerAdmin(client))
             return ProtocolReplyUnauthorized.instance();
         if (!name.matches("[_a-zA-Z0-9]+"))
-            return new ProtocolReplyFailure("Database name does not match requirements");
+            return new ProtocolReplyFailure("Database name does not match requirements ([_a-zA-Z0-9]+)");
 
         synchronized (databases) {
             Database result = databases.get(name);
             if (result != null)
-                return null;
+                return new ProtocolReplyFailure("The database already exists");
             File folder = new File(configuration.getRoot(), name);
             try {
                 ProxyObject proxy = adminDB.repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + name);

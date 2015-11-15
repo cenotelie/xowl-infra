@@ -216,8 +216,9 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
             try (IOElement entry = backend.read(candidate)) {
                 long next = entry.readLong();
-                int size = entry.seek(16).readInt();
-                if (size == buffer.length) {
+                long count = entry.readLong();
+                int size = entry.readInt();
+                if (count > 0 && size == buffer.length) {
                     if (Arrays.equals(buffer, entry.readBytes(buffer.length)))
                         // the string is already there, return its key
                         return candidate;
@@ -390,10 +391,11 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             while (candidate != PersistedNode.KEY_NOT_PRESENT) {
                 try (IOElement entry = backend.access(candidate)) {
                     long next = entry.readLong();
+                    long count = entry.readLong();
                     entry.seek(24);
                     long candidateDatatype = entry.readLong();
                     long candidateLangTag = entry.readLong();
-                    if (keyDatatype == candidateDatatype && keyLangTag == candidateLangTag)
+                    if ((doInsert || count > 0) && keyDatatype == candidateDatatype && keyLangTag == candidateLangTag)
                         return candidate;
                     previous = candidate;
                     candidate = next;

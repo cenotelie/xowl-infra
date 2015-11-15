@@ -306,7 +306,7 @@ public class Repository extends AbstractRepository {
     }
 
     /**
-     * Resolves a proxy on the existing entity having the specified IRI in the specified ontology
+     * Gets a proxy on the existing entity having the specified IRI in the specified ontology
      *
      * @param ontology The ontology defining the entity
      * @param iri      The IRI of an entity
