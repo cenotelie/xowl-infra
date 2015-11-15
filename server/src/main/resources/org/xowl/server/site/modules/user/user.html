@@ -12,7 +12,7 @@
 		</ul>
 		<div class="tab-content">
 			<div role="tabpanel" class="tab-pane active" id="tab-data-privileges" style="margin-top: 20px;">
-				<div class="panel panel-default" style="margin-top: 20px;">
+				<div class="panel panel-info" style="margin-top: 20px;">
 					<div class="panel-heading">
 						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#grant-form" aria-expanded="false" aria-controls="grant-form">Grant privilege</button>
 					</div>
@@ -41,43 +41,48 @@
 				<table class="table table-bordered table-hover">
 					<thead>
 						<tr>
-							<th style="width: 25%;">Database</th>
-							<th style="width: 25%;">Is Admin</th>
-							<th style="width: 25%;">Can Write</th>
-							<th style="width: 25%;">Can Read</th>
+							<th style="width: 20%;">Action</th>
+							<th style="width: 20%;">Database</th>
+							<th style="width: 20%;">Is Admin</th>
+							<th style="width: 20%;">Can Write</th>
+							<th style="width: 20%;">Can Read</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr ng-repeat="access in privileges | filter: {database: query}">
+							<td align="center">
+								<div class="dropdown">
+									<button class="btn btn-danger btn-xs dropdown-toggle" type="button" id="menu-revoke" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+										Revoke
+										<span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu" aria-labelledby="menu-revoke">
+										<li><a ng-if="access.isAdmin" ng-click="onRevoke(access, 'ADMIN')">ADMIN</a></li>
+										<li><a ng-if="access.canWrite" ng-click="onRevoke(access, 'WRITE')">WRITE</a></li>
+										<li><a ng-if="access.canRead" ng-click="onRevoke(access, 'READ')">READ</a></li>
+									</ul>
+								</div>
+							</td>
 							<td><a class="item" href="#/database/{{access.database}}"><i class="glyphicon glyphicon-hdd"></i> {{access.database}}</a></td>
 							<td align="center">
 								<p ng-if="access.isAdmin">
-									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
-									<button type="submit" class="btn btn-danger btn-xs" ng-click="onRevoke(access, 'ADMIN')" title="revoke">
-										<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
-									</button>
+									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="GRANTED"></span>
 								</p>
 							</td>
 							<td align="center">
 								<p ng-if="access.canWrite">
-									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
-									<button type="submit" class="btn btn-danger btn-xs" ng-click="onRevoke(access, 'WRITE')" title="revoke">
-										<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
-									</button>
+									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="GRANTED"></span>
 								</p>
 								<p ng-if="!access.canWrite && access.isAdmin">
-									<span class="glyphicon glyphicon-plus text-info" aria-hidden="true"></span>
+									<span class="glyphicon glyphicon-plus text-info" aria-hidden="true" title="INFERRED"></span>
 								</p>
 							</td>
 							<td align="center">
 								<p ng-if="access.canRead">
-									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
-									<button type="submit" class="btn btn-danger btn-xs" ng-click="onRevoke(access, 'READ')" title="revoke">
-										<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
-									</button>
+									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="GRANTED"></span>
 								</p>
 								<p ng-if="!access.canRead && (access.isAdmin || access.canWrite)">
-									<span class="glyphicon glyphicon-plus text-info" aria-hidden="true"></span>
+									<span class="glyphicon glyphicon-plus text-info" aria-hidden="true" title="INFERRED"></span>
 								</p>
 							</td>
 						</tr>

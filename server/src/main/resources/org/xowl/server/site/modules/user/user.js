@@ -50,7 +50,7 @@ angular.module('xOWLServer.user', ['ngRoute'])
       }
     }
 
-    $scope.onGrant = function (access) {
+    $scope.onGrant = function () {
       var database = document.getElementById('field-grant-database').value;
       var privilege = document.getElementById('field-grant-privilege').value;
       $http.post('/api', "ADMIN GRANT " + privilege + " " + $scope.user + " " + database, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
@@ -61,7 +61,7 @@ angular.module('xOWLServer.user', ['ngRoute'])
       });
     }
 
-    $scope.onUserDelete = function (access) {
+    $scope.onUserDelete = function () {
       $http.post('/api', "ADMIN DELETE USER " + $scope.user, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
         $scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
         $location.path("/users");

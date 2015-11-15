@@ -28,9 +28,27 @@
 					<tbody>
 						<tr ng-repeat="access in privileges | filter: {database: query}">
 							<td><a class="item" href="#/database/{{access.database}}"><i class="glyphicon glyphicon-hdd"></i> {{access.database}}</a></td>
-							<td align="center"><span ng-if="access.isAdmin" class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span></td>
-							<td align="center"><span ng-if="access.canWrite" class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span></td>
-							<td align="center"><span ng-if="access.canRead" class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span></td>
+							<td align="center">
+								<p ng-if="access.isAdmin">
+									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="GRANTED"></span>
+								</p>
+							</td>
+							<td align="center">
+								<p ng-if="access.canWrite">
+									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="GRANTED"></span>
+								</p>
+								<p ng-if="!access.canWrite && access.isAdmin">
+									<span class="glyphicon glyphicon-plus text-info" aria-hidden="true" title="INFERRED"></span>
+								</p>
+							</td>
+							<td align="center">
+								<p ng-if="access.canRead">
+									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="GRANTED"></span>
+								</p>
+								<p ng-if="!access.canRead && (access.isAdmin || access.canWrite)">
+									<span class="glyphicon glyphicon-plus text-info" aria-hidden="true" title="INFERRED"></span>
+								</p>
+							</td>
 						</tr>
 					</tbody>
 				</table>

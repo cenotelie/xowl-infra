@@ -49,32 +49,32 @@
 							<div class="form-group">
 								<div class="radio col-sm-10">
 									<label>
-										<input type="radio" name="entailemnt-options" id="entailment-option-none" value="entailment-none"/> No entailment
+										<input type="radio" name="entailemnt-options" id="entailment-option-none" value="entailment-none" /> No entailment
 									</label>
 								</div>
 								<div class="radio col-sm-10">
 									<label>
-										<input type="radio" name="entailemnt-options" id="entailment-option-simple" value="entailment-simple"/> Simple interpretation
+										<input type="radio" name="entailemnt-options" id="entailment-option-simple" value="entailment-simple" /> Simple interpretation
 									</label>
 								</div>
 								<div class="radio col-sm-10">
 									<label>
-										<input type="radio" name="entailemnt-options" id="entailment-option-rdf" value="entailment-rdf"/> RDF interpretation
+										<input type="radio" name="entailemnt-options" id="entailment-option-rdf" value="entailment-rdf" /> RDF interpretation
 									</label>
 								</div>
 								<div class="radio col-sm-10">
 									<label>
-										<input type="radio" name="entailemnt-options" id="entailment-option-rdfs" value="entailment-rdfs"/> RDFS interpretation
+										<input type="radio" name="entailemnt-options" id="entailment-option-rdfs" value="entailment-rdfs" /> RDFS interpretation
 									</label>
 								</div>
 								<div class="radio col-sm-10">
 									<label>
-										<input type="radio" name="entailemnt-options" id="entailment-option-owl2-rdf" value="entailment-owl2-rdf"/> OWL2, RDF-based interpretation
+										<input type="radio" name="entailemnt-options" id="entailment-option-owl2-rdf" value="entailment-owl2-rdf" /> OWL2, RDF-based interpretation
 									</label>
 								</div>
 								<div class="radio col-sm-10">
 									<label>
-										<input type="radio" name="entailemnt-options" id="entailment-option-owl2-direct" value="entailment-owl2-direct"/> OWL2, direct interpretation
+										<input type="radio" name="entailemnt-options" id="entailment-option-owl2-direct" value="entailment-owl2-direct" /> OWL2, direct interpretation
 									</label>
 								</div>
 							</div>
@@ -97,13 +97,193 @@
 				</div>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-accesses">
-
+				<div class="panel panel-info" style="margin-top: 20px;">
+					<div class="panel-heading">
+						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#grant-form" aria-expanded="false" aria-controls="grant-form">Grant privilege</button>
+					</div>
+					<div id="grant-form" class="panel-body collapse">
+						<form>
+							<div class="form-group">
+								<label for="field-grant-user">User</label>
+								<input type="text" class="form-control" id="field-grant-user" placeholder="user" />
+							</div>
+							<div class="form-group">
+								<label for="field-grant-privilege">Privilege</label>
+								<select id="field-grant-privilege" class="form-control">
+									<option>READ</option>
+									<option>WRITE</option>
+									<option>ADMIN</option>
+								</select>
+							</div>
+							<button type="submit" class="btn btn-primary" ng-click="onGrant()">GRANT</button>
+						</form>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="field-search-user">Search</label>
+					<input type="text" class="form-control" id="field-search-user" placeholder="name" ng-model="user_query" />
+				</div>
+				<table class="table table-bordered table-hover">
+					<thead>
+						<tr>
+							<th style="width: 20%;">Action</th>
+							<th style="width: 20%;">User</th>
+							<th style="width: 20%;">Is Admin</th>
+							<th style="width: 20%;">Can Write</th>
+							<th style="width: 20%;">Can Read</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="access in privileges | filter: {user: user_query}">
+							<td align="center">
+								<div class="dropdown">
+									<button class="btn btn-danger btn-xs dropdown-toggle" type="button" id="menu-revoke" data-toggle="dropdown" aria-haspopup="true"
+									aria-expanded="true">
+										Revoke
+										<span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu" aria-labelledby="menu-revoke">
+										<li><a ng-if="access.isAdmin" ng-click="onRevoke(access, 'ADMIN')">ADMIN</a></li>
+										<li><a ng-if="access.canWrite" ng-click="onRevoke(access, 'WRITE')">WRITE</a></li>
+										<li><a ng-if="access.canRead" ng-click="onRevoke(access, 'READ')">READ</a></li>
+									</ul>
+								</div>
+							</td>
+							<td><a class="item" href="#/database/{{access.user}}"><i class="glyphicon glyphicon-user"></i> {{access.user}}</a></td>
+							<td align="center">
+								<p ng-if="access.isAdmin">
+									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="GRANTED"></span>
+								</p>
+							</td>
+							<td align="center">
+								<p ng-if="access.canWrite">
+									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="GRANTED"></span>
+								</p>
+								<p ng-if="!access.canWrite && access.isAdmin">
+									<span class="glyphicon glyphicon-plus text-info" aria-hidden="true" title="INFERRED"></span>
+								</p>
+							</td>
+							<td align="center">
+								<p ng-if="access.canRead">
+									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="GRANTED"></span>
+								</p>
+								<p ng-if="!access.canRead && (access.isAdmin || access.canWrite)">
+									<span class="glyphicon glyphicon-plus text-info" aria-hidden="true" title="INFERRED"></span>
+								</p>
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-rules">
+				<div class="panel panel-info" style="margin-top: 20px;">
+					<div class="panel-heading">
+						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#rule-form" aria-expanded="false" aria-controls="rule-form">New Rule ...</button>
+					</div>
+					<div id="rule-form" class="panel-body collapse">
+						<form>
+							<div class="form-group">
+								<label for="rule-def-new">Rule definition:</label>
+								<textarea class="form-control" rows="15" id="rule-def-new">@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix owl: <http://www.w3.org/2002/07/owl#>.
+@prefix xowl: <http://xowl.org/store/rules/xowl#>.
 
+rule xowl:myrule distinct {
+    ?x rdf:type ?y
+	NOT (?x rdf:type owl:Class)
+} => {
+    ?x rdf:type xowl:MyClass
+}</textarea>
+							</div>
+							<button type="submit" class="btn btn-primary" ng-click="onNewRule()">Add</button>
+						</form>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="field-search-rule">Search</label>
+					<input type="text" class="form-control" id="field-search-rule" placeholder="name" ng-model="rule_query" />
+				</div>
+				<table class="table table-bordered table-hover">
+					<thead>
+						<tr>
+							<th style="width: 20%;">Action</th>
+							<th style="width: 20%;">Status</th>
+							<th style="width: 60%;">Rule</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="rule in rules | filter: {rule: rule_query}">
+							<td align="center">
+								<div class="dropdown">
+									<button class="btn btn-default btn-xs dropdown-toggle" type="button" id="menu-rule" data-toggle="dropdown" aria-haspopup="true"
+									aria-expanded="true">
+										Actions
+										<span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu" aria-labelledby="menu-rule">
+										<li><a ng-if="rule.isActive" ng-click="onActivateRule()">Deactivate</a></li>
+										<li><a ng-if="!rule.isActive" ng-click="onDeactivateRule()">Activate</a></li>
+										<li role="separator" class="divider"></li>
+										<li><a class="text-danger" ng-click="onRemoveRule()">Remove</a></li>
+									</ul>
+								</div>
+							</td>
+							<td align="center">
+								<p ng-if="rule.isActive">
+									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="Active"></span>
+								</p>
+								<p ng-if="!rule.isActive">
+									<span class="glyphicon glyphicon-ok text-default" aria-hidden="true" title="Inactive"></span>
+								</p>
+							</td>
+							<td align="left">
+								{{rule.name}}
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-sparql">
+				<div class="panel panel-info" style="margin-top: 20px;">
+					<div class="panel-heading">SPARQL Query</div>
+					<div class="panel-body">
+						<form>
+							<div class="form-group">
+								<label for="sparql">SPARQL Query:</label>
+								<textarea class="form-control" rows="15" id="sparql">PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xowl: <http://xowl.org/store/rules/xowl#>
 
+SELECT DISTINCT ?x ?y WHERE { GRAPH ?g {
+    ?x a ?y
+} }</textarea>
+							</div>
+							<button type="submit" class="btn btn-primary" ng-click="onSPARQL()">Send</button>
+						</form>
+					</div>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<table class="table table-bordered table-hover">
+							<thead>
+								<tr>
+									<th ng-repeat="header in data.headers">{{header}}</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="row in data.row">
+									<td ng-repeat="cell in row.cells">
+										{{cell}}
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
