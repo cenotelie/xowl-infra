@@ -184,18 +184,7 @@
 						<form>
 							<div class="form-group">
 								<label for="rule-def-new">Rule definition:</label>
-								<textarea class="form-control" rows="15" id="rule-def-new">@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
-@prefix owl: <http://www.w3.org/2002/07/owl#>.
-@prefix xowl: <http://xowl.org/store/rules/xowl#>.
-
-rule xowl:myrule distinct {
-    ?x rdf:type ?y
-	NOT (?x rdf:type owl:Class)
-} => {
-    ?x rdf:type xowl:MyClass
-}</textarea>
+								<textarea class="form-control" rows="15" id="rule-def-new"></textarea>
 							</div>
 							<button type="submit" class="btn btn-primary" ng-click="onNewRule()">Add</button>
 						</form>
@@ -209,7 +198,7 @@ rule xowl:myrule distinct {
 					<thead>
 						<tr>
 							<th style="width: 20%;">Action</th>
-							<th style="width: 20%;">Status</th>
+							<th style="width: 20%;">Active</th>
 							<th style="width: 60%;">Rule</th>
 						</tr>
 					</thead>
@@ -223,19 +212,16 @@ rule xowl:myrule distinct {
 										<span class="caret"></span>
 									</button>
 									<ul class="dropdown-menu" aria-labelledby="menu-rule">
-										<li><a ng-if="rule.isActive" ng-click="onActivateRule()">Deactivate</a></li>
-										<li><a ng-if="!rule.isActive" ng-click="onDeactivateRule()">Activate</a></li>
+										<li><a ng-if="rule.isActive" ng-click="onActivateRule(rule.name)">Deactivate</a></li>
+										<li><a ng-if="!rule.isActive" ng-click="onDeactivateRule(rule.name)">Activate</a></li>
 										<li role="separator" class="divider"></li>
-										<li><a class="text-danger" ng-click="onRemoveRule()">Remove</a></li>
+										<li><a class="text-danger" ng-click="onRemoveRule(rule.name)">Remove</a></li>
 									</ul>
 								</div>
 							</td>
 							<td align="center">
 								<p ng-if="rule.isActive">
 									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="Active"></span>
-								</p>
-								<p ng-if="!rule.isActive">
-									<span class="glyphicon glyphicon-ok text-default" aria-hidden="true" title="Inactive"></span>
 								</p>
 							</td>
 							<td align="left">
@@ -252,15 +238,7 @@ rule xowl:myrule distinct {
 						<form>
 							<div class="form-group">
 								<label for="sparql">SPARQL Query:</label>
-								<textarea class="form-control" rows="15" id="sparql">PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX xowl: <http://xowl.org/store/rules/xowl#>
-
-SELECT DISTINCT ?x ?y WHERE { GRAPH ?g {
-    ?x a ?y
-} }</textarea>
+								<textarea class="form-control" rows="15" id="sparql"></textarea>
 							</div>
 							<button type="submit" class="btn btn-primary" ng-click="onSPARQL()">Send</button>
 						</form>

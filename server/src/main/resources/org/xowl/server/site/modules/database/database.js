@@ -20,7 +20,9 @@ angular.module('xOWLServer.database', ['ngRoute'])
 		}, function (response) {
 			$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
 		});
-		reloadRules($scope, $http, $sce);
+		reloadRules($scope, $sce, $http);
+		document.getElementById("rule-def-new").value = DEFAULT_RULE;
+		document.getElementById("sparql").value = DEFAULT_QUERY;
 
 		$scope.onSetEntailment = function () {
 			var regime = getEntailment();
@@ -40,11 +42,66 @@ angular.module('xOWLServer.database', ['ngRoute'])
 				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
 			});
 		}
+
+		$scope.onNewRule = function () {
+			var data = document.getElementById("rule-def-new").value;
+			$http.post('/api', "DATABASE " + $scope.database.name + " ADD RULE " + data, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
+				$scope.messages = $sce.trustAsHtml(getSuccess("Added new rule."));
+				reloadRules($scope, $sce, $http);
+			}, function (response) {
+				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
+			});
+		}
+
+		$scope.onRemoveRule = function (name) {
+			$http.post('/api', "DATABASE " + $scope.database.name + " REMOVE RULE " + name, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
+				$scope.messages = $sce.trustAsHtml(getSuccess("Removed rule " + name));
+				reloadRules($scope, $sce, $http);
+			}, function (response) {
+				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
+			});
+		}
+
+		$scope.onActivateRule = function (name) {
+		}
+
+		$scope.onDeactivateRule = function (name) {
+		}
 		
-		$scope.onNewRule = function() {
-			
+		$scope.onSPARQL = function () {
+			var query = document.getElementById("sparql").value;
+			$http.post('/api/db/' + $scope.database.name + '/', query,
+			{ headers: {
+				"Content-Type": "application/sparql-query",
+				"Accept": "application/n-quads, application/sparql-results+json"
+				} }).then(function (response) {
+				
+			}, function (response) {
+				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
+			});
 		}
 	}]);
+
+var DEFAULT_RULE =
+	"@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.\n" +
+	"@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.\n" +
+	"@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.\n" +
+	"@prefix owl: <http://www.w3.org/2002/07/owl#>.\n" +
+	"@prefix xowl: <http://xowl.org/store/rules/xowl#>.\n" +
+	"rule xowl:myrule distinct {\n" +
+	"    ?x rdf:type ?y\n" +
+	"    NOT (?x rdf:type owl:Class)\n" +
+	"} => {\n" +
+	"    ?x rdf:type xowl:MyClass\n" +
+	"}";
+
+var DEFAULT_QUERY =
+	"PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+	"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
+	"PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
+	"PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
+	"PREFIX xowl: <http://xowl.org/store/rules/xowl#>\n" +
+	"SELECT DISTINCT ?x ?y WHERE { GRAPH ?g { ?x a ?y } }";
 
 function reloadRules($scope, $sce, $http) {
 	$http.post('/api', "DATABASE " + $scope.database.name + " LIST RULES", { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
