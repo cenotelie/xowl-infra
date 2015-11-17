@@ -832,21 +832,11 @@ public abstract class Controller implements Closeable {
                 File folder = new File(configuration.getRoot(), (String) database.proxy.getDataValue(Schema.ADMIN_LOCATION));
                 try {
                     database.close();
-                    File[] children = folder.listFiles();
-                    if (children == null) {
-                        logger.error("Failed to list the files in " + folder.getAbsolutePath());
-                    } else {
-                        for (int i = 0; i != children.length; i++) {
-                            if (!children[i].delete()) {
-                                logger.error("Failed to delete " + children[i].getAbsolutePath());
-                            }
-                        }
-                    }
-                    if (!folder.delete()) {
-                        logger.error("Failed to delete " + folder.getAbsolutePath());
-                    }
                 } catch (IOException exception) {
                     Logger.DEFAULT.error(exception);
+                }
+                if (!Program.delete(folder)) {
+                    logger.error("Failed to delete " + folder.getAbsolutePath());
                 }
                 database.proxy.delete();
                 adminDB.repository.getStore().commit();

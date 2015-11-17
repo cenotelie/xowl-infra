@@ -26,6 +26,7 @@ import org.xowl.server.xsp.XSPServer;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -204,5 +205,25 @@ public class Program {
             }
         }
         return result;
+    }
+
+    /**
+     * Deletes a folder
+     *
+     * @param folder The folder to delete
+     * @return true if the operation succeeded, false otherwise
+     */
+    public static boolean delete(File folder) {
+        boolean success = false;
+        File[] children = folder.listFiles();
+        if (children == null)
+            return false;
+        for (int i = 0; i != children.length; i++) {
+            if (children[i].isFile())
+                success |= children[i].delete();
+            else
+                success |= delete(children[i]);
+        }
+        return success;
     }
 }

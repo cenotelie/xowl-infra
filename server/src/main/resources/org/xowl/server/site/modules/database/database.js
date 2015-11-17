@@ -20,6 +20,8 @@ angular.module('xOWLServer.database', ['ngRoute'])
 		}, function (response) {
 			$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
 		});
+		reloadRules($scope, $http, $sce);
+
 		$scope.onSetEntailment = function () {
 			var regime = getEntailment();
 			$http.post('/api', "DATABASE " + $scope.database.name + " ENTAILMENT " + regime, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
@@ -30,6 +32,7 @@ angular.module('xOWLServer.database', ['ngRoute'])
 				setupEntailment($scope.database.entailment);
 			});
 		}
+
 		$scope.onDBDrop = function () {
 			$http.post('/api', "ADMIN DROP DATABASE " + $scope.database.name, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
 				$location.path("/databases");
@@ -37,7 +40,34 @@ angular.module('xOWLServer.database', ['ngRoute'])
 				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
 			});
 		}
+		
+		$scope.onNewRule = function() {
+			
+		}
 	}]);
+
+function reloadRules($scope, $sce, $http) {
+	$http.post('/api', "DATABASE " + $scope.database.name + " LIST RULES", { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
+		$scope.rules = [];
+		for (var i = 0; i != response.data.results.length; i++) {
+			$scope.rules.push({ name: response.data.results[i], isActive: false });
+		}
+		$http.post('/api', "DATABASE " + $scope.database.name + " LIST ACTIVE RULES", { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
+			for (var i = 0; i != response.data.results.length; i++) {
+				var name = response.data.results[i];
+				for (var j = 0; j != $scope.rules.length; i++) {
+					if ($scope.rules[j].name === name) {
+						$scope.rules[j].isActive = true;
+					}
+				}
+			}
+		}, function (response) {
+			$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
+		});
+	}, function (response) {
+		$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
+	});
+}
 
 function getEntailment() {
 	if (document.getElementById('entailment-option-none').checked)
