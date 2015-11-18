@@ -36,7 +36,7 @@ import org.xowl.store.storage.StoreFactory;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.store.writers.OWLSerializer;
 import org.xowl.store.writers.RDFSerializer;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.SkippableIterator;
@@ -276,21 +276,12 @@ public class Repository extends AbstractRepository {
     }
 
     /**
-     * Activates the entailment rules
-     *
-     * @param logger The logger to use
-     */
-    public void activateEntailmentRules(Logger logger) {
-        activateEntailmentRules(logger, EntailmentRegime.OWL2_RDF);
-    }
-
-    /**
-     * Activates the entailment rules
+     * Sets the entailment regime
      *
      * @param logger The logger to use
      * @param regime The entailment regime to use
      */
-    public void activateEntailmentRules(Logger logger, EntailmentRegime regime) {
+    public void setEntailmentRegime(Logger logger, EntailmentRegime regime) {
         if (this.regime != EntailmentRegime.none) {
             logger.error("Entailment regime is already set");
             return;
@@ -317,7 +308,7 @@ public class Repository extends AbstractRepository {
     }
 
     /**
-     * Resolves a proxy on the existing entity having the specified IRI in the specified ontology
+     * Gets a proxy on the existing entity having the specified IRI in the specified ontology
      *
      * @param ontology The ontology defining the entity
      * @param iri      The IRI of an entity
@@ -338,13 +329,15 @@ public class Repository extends AbstractRepository {
      * @return The associated proxy, or null if the entity does not exist
      */
     public ProxyObject getProxy(String iri) {
-        String[] parts = iri.split("#");
-        Ontology ontology = ontologies.get(parts[0]);
-        if (ontology == null)
-            return null;
         IRINode node = backend.getExistingIRINode(iri);
         if (node == null)
             return null;
+        String[] parts = iri.split("#");
+        Ontology ontology = ontologies.get(parts[0]);
+        if (ontology == null) {
+            ontology = resolveOntology(parts[0]);
+            ontologies.put(parts[0], ontology);
+        }
         return resolveProxy(ontology, node);
     }
 

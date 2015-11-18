@@ -181,4 +181,9 @@ public class Rule {
         this.consequentMetaPositives = new ArrayList<>();
         this.consequentMetaNegatives = new ArrayList<>();
     }
+
+    @Override
+    public String toString() {
+        return iri;
+    }
 }

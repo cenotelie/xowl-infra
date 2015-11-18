@@ -26,7 +26,7 @@ import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.owl.DirectSemantics;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;

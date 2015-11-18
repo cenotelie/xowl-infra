@@ -26,12 +26,11 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 /**
  * Represents a persisted binary file
+ * Due to the use of an internal state for maintaining the current index, this class is NOT thread safe.
  *
  * @author Laurent Wouters
  */
@@ -66,10 +65,6 @@ class FileStoreFile implements IOElement {
      * The file channel
      */
     private final FileChannel channel;
-    /**
-     * A buffer for reading and writing
-     */
-    private final ByteBuffer buffer;
     /**
      * The block buffers
      */
@@ -131,7 +126,6 @@ class FileStoreFile implements IOElement {
     public FileStoreFile(File file, boolean isReadonly) throws IOException {
         this.isReadonly = isReadonly;
         this.channel = newChannel(file, isReadonly);
-        this.buffer = ByteBuffer.allocate(8);
         this.blockBuffers = new MappedByteBuffer[MAX_LOADED_BLOCKS];
         this.blockLocations = new long[MAX_LOADED_BLOCKS];
         this.blockLastHits = new long[MAX_LOADED_BLOCKS];
@@ -150,7 +144,7 @@ class FileStoreFile implements IOElement {
      * @param file       The file location
      * @param isReadonly Whether this store is in readonly mode
      * @return The file channel
-     * @throws IOException IOException When the backing file cannot be accessed
+     * @throws IOException When the backing file cannot be accessed
      */
     private static FileChannel newChannel(File file, boolean isReadonly) throws IOException {
         if (file.exists() && !file.canWrite())
@@ -278,18 +272,18 @@ class FileStoreFile implements IOElement {
     }
 
     @Override
-    public byte readByte() throws IOException {
+    public byte readByte() throws StorageException {
         if (!canRead(1))
-            throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+            throw new StorageException("Cannot read the specified amount of data at this index");
         if (!prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
         byte value = blockBuffers[currentBlock].get((int) (index & INDEX_MASK_LOWER));
         index++;
         return value;
     }
 
     @Override
-    public byte[] readBytes(int length) throws IOException {
+    public byte[] readBytes(int length) throws StorageException {
         if (!canRead(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         byte[] result = new byte[length];
@@ -298,342 +292,187 @@ class FileStoreFile implements IOElement {
     }
 
     @Override
-    public void readBytes(byte[] buffer, int index, int length) throws IOException {
+    public void readBytes(byte[] buffer, int index, int length) throws StorageException {
         if (!canRead(1))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         if (index < 0 || index + length > buffer.length)
             throw new IndexOutOfBoundsException("Out of bounds index and length for the specified buffer");
-        int remainingInBlock = BLOCK_SIZE - (int) (this.index & INDEX_MASK_LOWER);
-        int remainingLength = length;
-        int targetIndex = index;
-        while (remainingLength > remainingInBlock) {
-            if (!prepareIOAt())
-                throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-            blockBuffers[currentBlock].get(buffer, targetIndex, remainingInBlock);
-            remainingLength -= remainingInBlock;
-            targetIndex += remainingInBlock;
-            this.index += remainingInBlock;
-            remainingInBlock = BLOCK_SIZE;
-        }
+        if (length > BLOCK_SIZE - (int) (this.index & INDEX_MASK_LOWER))
+            throw new StorageException("IO operation crosses block boundaries");
         if (!prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-        blockBuffers[currentBlock].get(buffer, targetIndex, remainingLength);
-        this.index += remainingLength;
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
+        blockBuffers[currentBlock].get(buffer, index, length);
+        this.index += length;
     }
 
     @Override
-    public char readChar() throws IOException {
+    public char readChar() throws StorageException {
         if (!canRead(2))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        if ((int) (this.index & INDEX_MASK_LOWER) + 2 > BLOCK_SIZE)
+            throw new StorageException("IO operation crosses block boundaries");
         if (!prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-        if ((int) (this.index & INDEX_MASK_LOWER) + 2 <= BLOCK_SIZE) {
-            // within the same block
-            char value = blockBuffers[currentBlock].getChar();
-            index += 2;
-            return value;
-        }
-        buffer.position(0);
-        buffer.put(blockBuffers[currentBlock].get());
-        index++;
-        // next block
-        if (!prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-        buffer.put(blockBuffers[currentBlock].get());
-        index++;
-        return buffer.getChar(0);
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
+        char value = blockBuffers[currentBlock].getChar();
+        index += 2;
+        return value;
     }
 
     @Override
-    public int readInt() throws IOException {
+    public int readInt() throws StorageException {
         if (!canRead(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        if ((int) (this.index & INDEX_MASK_LOWER) + 4 > BLOCK_SIZE)
+            throw new StorageException("IO operation crosses block boundaries");
         if (!prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-        if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
-            // within the same block
-            int value = blockBuffers[currentBlock].getInt();
-            index += 4;
-            return value;
-        }
-        buffer.position(0);
-        for (int i = 0; i != 4; i++) {
-            buffer.put(blockBuffers[currentBlock].get());
-            index++;
-            if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
-                if (!prepareIOAt())
-                    throw new IOException("Failed to access the data at this index");
-            }
-        }
-        return buffer.getInt(0);
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
+        int value = blockBuffers[currentBlock].getInt();
+        index += 4;
+        return value;
     }
 
     @Override
-    public long readLong() throws IOException {
+    public long readLong() throws StorageException {
         if (!canRead(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        if ((int) (this.index & INDEX_MASK_LOWER) + 8 > BLOCK_SIZE)
+            throw new StorageException("IO operation crosses block boundaries");
         if (!prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-        if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
-            // within the same block
-            long value = blockBuffers[currentBlock].getLong();
-            index += 8;
-            return value;
-        }
-        buffer.position(0);
-        for (int i = 0; i != 8; i++) {
-            buffer.put(blockBuffers[currentBlock].get());
-            index++;
-            if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
-                if (!prepareIOAt())
-                    throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-            }
-        }
-        return buffer.getLong(0);
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
+        long value = blockBuffers[currentBlock].getLong();
+        index += 8;
+        return value;
     }
 
     @Override
-    public float readFloat() throws IOException {
+    public float readFloat() throws StorageException {
         if (!canRead(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        if ((int) (this.index & INDEX_MASK_LOWER) + 4 > BLOCK_SIZE)
+            throw new StorageException("IO operation crosses block boundaries");
         if (!prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-        if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
-            // within the same block
-            float value = blockBuffers[currentBlock].getFloat();
-            index += 4;
-            return value;
-        }
-        buffer.position(0);
-        for (int i = 0; i != 4; i++) {
-            buffer.put(blockBuffers[currentBlock].get());
-            index++;
-            if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
-                if (!prepareIOAt())
-                    throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-            }
-        }
-        return buffer.getFloat(0);
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
+        float value = blockBuffers[currentBlock].getFloat();
+        index += 4;
+        return value;
     }
 
     @Override
-    public double readDouble() throws IOException {
+    public double readDouble() throws StorageException {
         if (!canRead(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
+        if ((int) (this.index & INDEX_MASK_LOWER) + 8 > BLOCK_SIZE)
+            throw new StorageException("IO operation crosses block boundaries");
         if (!prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-        if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
-            // within the same block
-            double value = blockBuffers[currentBlock].getDouble();
-            index += 8;
-            return value;
-        }
-        buffer.position(0);
-        for (int i = 0; i != 8; i++) {
-            buffer.put(blockBuffers[currentBlock].get());
-            index++;
-            if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
-                if (!prepareIOAt())
-                    throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-            }
-        }
-        return buffer.getDouble(0);
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
+        double value = blockBuffers[currentBlock].getDouble();
+        index += 8;
+        return value;
     }
 
     @Override
-    public void writeByte(byte value) throws IOException {
-        if (isReadonly || !prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
+    public void writeByte(byte value) throws StorageException {
+        if (isReadonly)
+            throw new StorageException("File is in readonly mode");
+        if (!prepareIOAt())
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockBuffers[currentBlock].put((int) (index & INDEX_MASK_LOWER), value);
         blockIsDirty[currentBlock] = true;
         index++;
     }
 
     @Override
-    public void writeBytes(byte[] value) throws IOException {
+    public void writeBytes(byte[] value) throws StorageException {
         writeBytes(value, 0, value.length);
     }
 
     @Override
-    public void writeBytes(byte[] buffer, int index, int length) throws IOException {
+    public void writeBytes(byte[] buffer, int index, int length) throws StorageException {
         if (index < 0 || index + length > buffer.length)
             throw new IndexOutOfBoundsException("Out of bounds index and length for the specified buffer");
-        int remainingInBlock = BLOCK_SIZE - (int) (this.index & INDEX_MASK_LOWER);
-        int remainingLength = length;
-        int targetIndex = index;
-        while (remainingLength > remainingInBlock) {
-            if (isReadonly || !prepareIOAt())
-                throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-            blockBuffers[currentBlock].put(buffer, targetIndex, remainingInBlock);
-            blockIsDirty[currentBlock] = true;
-            remainingLength -= remainingInBlock;
-            targetIndex += remainingInBlock;
-            this.index += remainingInBlock;
-            remainingInBlock = BLOCK_SIZE;
-        }
-        if (isReadonly || !prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-        blockBuffers[currentBlock].put(buffer, targetIndex, remainingLength);
+        if (isReadonly)
+            throw new StorageException("File is in readonly mode");
+        if (length > BLOCK_SIZE - (int) (this.index & INDEX_MASK_LOWER))
+            throw new StorageException("IO operation crosses block boundaries");
+        if (!prepareIOAt())
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
+        blockBuffers[currentBlock].put(buffer, index, length);
         blockIsDirty[currentBlock] = true;
-        this.index += remainingLength;
+        this.index += length;
     }
 
     @Override
-    public void writeChar(char value) throws IOException {
-        if (isReadonly || !prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-        if ((int) (this.index & INDEX_MASK_LOWER) + 2 <= BLOCK_SIZE) {
-            // within the same block
-            blockBuffers[currentBlock].putChar(value);
-            blockIsDirty[currentBlock] = true;
-            index += 2;
-        } else {
-            buffer.putChar(0, value);
-            blockBuffers[currentBlock].put(buffer.get(0));
-            blockIsDirty[currentBlock] = true;
-            index++;
-            // next block
-            if (!prepareIOAt())
-                throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-            blockBuffers[currentBlock].put(buffer.get(1));
-            blockIsDirty[currentBlock] = true;
-            index++;
-        }
+    public void writeChar(char value) throws StorageException {
+        if (isReadonly)
+            throw new StorageException("File is in readonly mode");
+        if ((int) (this.index & INDEX_MASK_LOWER) + 2 > BLOCK_SIZE)
+            throw new StorageException("IO operation crosses block boundaries");
+        if (!prepareIOAt())
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
+        blockBuffers[currentBlock].putChar(value);
+        blockIsDirty[currentBlock] = true;
+        index += 2;
     }
 
     @Override
-    public void writeInt(int value) throws IOException {
-        if (isReadonly || !prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
+    public void writeInt(int value) throws StorageException {
+        if (isReadonly)
+            throw new StorageException("File is in readonly mode");
+        if ((int) (this.index & INDEX_MASK_LOWER) + 4 > BLOCK_SIZE)
+            throw new StorageException("IO operation crosses block boundaries");
+        if (!prepareIOAt())
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
-        if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
-            // within the same block
-            blockBuffers[currentBlock].putInt(value);
-            index += 4;
-        } else {
-            buffer.putInt(0, value);
-            for (int i = 0; i != 4; i++) {
-                blockBuffers[currentBlock].put(buffer.get(i));
-                index++;
-                if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
-                    if (!prepareIOAt())
-                        throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-                    blockIsDirty[currentBlock] = true;
-                }
-            }
-        }
+        blockBuffers[currentBlock].putInt(value);
+        index += 4;
     }
 
     @Override
-    public void writeLong(long value) throws IOException {
-        if (isReadonly || !prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
+    public void writeLong(long value) throws StorageException {
+        if (isReadonly)
+            throw new StorageException("File is in readonly mode");
+        if ((int) (this.index & INDEX_MASK_LOWER) + 8 > BLOCK_SIZE)
+            throw new StorageException("IO operation crosses block boundaries");
+        if (!prepareIOAt())
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
-        if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
-            // within the same block
-            blockBuffers[currentBlock].putLong(value);
-            index += 8;
-        } else {
-            buffer.putLong(0, value);
-            for (int i = 0; i != 8; i++) {
-                blockBuffers[currentBlock].put(buffer.get(i));
-                index++;
-                if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
-                    if (!prepareIOAt())
-                        throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-                    blockIsDirty[currentBlock] = true;
-                }
-            }
-        }
+        blockBuffers[currentBlock].putLong(value);
+        index += 8;
     }
 
     @Override
-    public void writeFloat(float value) throws IOException {
-        if (isReadonly || !prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
+    public void writeFloat(float value) throws StorageException {
+        if (isReadonly)
+            throw new StorageException("File is in readonly mode");
+        if ((int) (this.index & INDEX_MASK_LOWER) + 4 > BLOCK_SIZE)
+            throw new StorageException("IO operation crosses block boundaries");
+        if (!prepareIOAt())
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
-        if ((int) (this.index & INDEX_MASK_LOWER) + 4 <= BLOCK_SIZE) {
-            // within the same block
-            blockBuffers[currentBlock].putFloat(value);
-            index += 4;
-        } else {
-            buffer.putFloat(0, value);
-            for (int i = 0; i != 4; i++) {
-                blockBuffers[currentBlock].put(buffer.get(i));
-                index++;
-                if (i < 3 && (index & INDEX_MASK_LOWER) == 0) {
-                    if (!prepareIOAt())
-                        throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-                    blockIsDirty[currentBlock] = true;
-                }
-            }
-        }
+        blockBuffers[currentBlock].putFloat(value);
+        index += 4;
     }
 
     @Override
-    public void writeDouble(double value) throws IOException {
-        if (isReadonly || !prepareIOAt())
-            throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
+    public void writeDouble(double value) throws StorageException {
+        if (isReadonly)
+            throw new StorageException("File is in readonly mode");
+        if ((int) (this.index & INDEX_MASK_LOWER) + 8 > BLOCK_SIZE)
+            throw new StorageException("IO operation crosses block boundaries");
+        if (!prepareIOAt())
+            throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
         blockIsDirty[currentBlock] = true;
-        if ((int) (this.index & INDEX_MASK_LOWER) + 8 <= BLOCK_SIZE) {
-            // within the same block
-            blockBuffers[currentBlock].putDouble(value);
-            index += 8;
-        } else {
-            buffer.putDouble(0, value);
-            for (int i = 0; i != 8; i++) {
-                blockBuffers[currentBlock].put(buffer.get(i));
-                index++;
-                if (i < 7 && (index & INDEX_MASK_LOWER) == 0) {
-                    if (!prepareIOAt())
-                        throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-                    blockIsDirty[currentBlock] = true;
-                }
-            }
-        }
-    }
-
-    /**
-     * Computes the SHA-1 value of the content at the current index and the specified length
-     *
-     * @param length The number of bytes
-     * @return The SHA-1 hash value
-     * @throws IOException When an IO operation failed
-     */
-    public byte[] digestSHA1(int length) throws IOException {
-        if (!canRead(length))
-            throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            int remainingInBlock = BLOCK_SIZE - (int) (this.index & INDEX_MASK_LOWER);
-            int remainingLength = length;
-            while (remainingLength > remainingInBlock) {
-                if (!prepareIOAt())
-                    throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-                md.update(blockBuffers[currentBlock].array(), blockBuffers[currentBlock].position(), remainingInBlock);
-                remainingLength -= remainingInBlock;
-                this.index += remainingInBlock;
-                remainingInBlock = BLOCK_SIZE;
-            }
-            if (!prepareIOAt())
-                throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
-            md.update(blockBuffers[currentBlock].array(), blockBuffers[currentBlock].position(), remainingLength);
-            this.index += remainingLength;
-            return md.digest();
-        } catch (NoSuchAlgorithmException exception) {
-            // cannot happen
-            return null;
-        }
+        blockBuffers[currentBlock].putDouble(value);
+        index += 8;
     }
 
     /**
      * Gets the page that contains the current index
      *
      * @return The page that contains the current index
-     * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    public FileStorePage getPage() throws IOException, StorageException {
+    public FileStorePage getPage() throws StorageException {
         return getPageAt(index);
     }
 
@@ -642,10 +481,9 @@ class FileStoreFile implements IOElement {
      *
      * @param index The index of a page
      * @return The n-th page
-     * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    public FileStorePage getPage(int index) throws IOException, StorageException {
+    public FileStorePage getPage(int index) throws StorageException {
         long originalIndex = this.index;
         long targetLocation = index * BLOCK_SIZE;
         if (targetLocation < getSize()) {
@@ -664,7 +502,7 @@ class FileStoreFile implements IOElement {
             // force the block to be allocated
             seek(targetLocation);
             if (!prepareIOAt())
-                throw new IOException("Failed to access the data at index 0x" + Long.toHexString(index));
+                throw new StorageException("Failed to access the data at index 0x" + Long.toHexString(index));
         }
         FileStorePage result = new FileStorePage(this, targetLocation, index << 16);
         if (blockLocations[currentBlock] != targetLocation)
@@ -679,10 +517,9 @@ class FileStoreFile implements IOElement {
      *
      * @param location A location
      * @return The page that contains the specified location
-     * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    public FileStorePage getPageAt(long location) throws IOException, StorageException {
+    public FileStorePage getPageAt(long location) throws StorageException {
         return getPage((int) ((location & INDEX_MASK_UPPER) / BLOCK_SIZE));
     }
 
@@ -691,10 +528,9 @@ class FileStoreFile implements IOElement {
      *
      * @param key A key
      * @return The page that contains the specified key
-     * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    public FileStorePage getPageFor(int key) throws IOException, StorageException {
+    public FileStorePage getPageFor(int key) throws StorageException {
         return getPage(key >>> 16);
     }
 

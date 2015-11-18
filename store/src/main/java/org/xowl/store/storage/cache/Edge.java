@@ -24,7 +24,8 @@ import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Property;
-import org.xowl.store.storage.MQuad;
+import org.xowl.store.storage.impl.DatasetImpl;
+import org.xowl.store.storage.impl.MQuad;
 import org.xowl.utils.collections.*;
 
 import java.util.Arrays;
@@ -98,17 +99,17 @@ class Edge implements Iterable<EdgeTarget> {
             targets = Arrays.copyOf(targets, targets.length + INIT_BUFFER_SIZE);
             targets[size] = new EdgeTarget(graph, value);
             size++;
-            return CachedDataset.ADD_RESULT_NEW;
+            return DatasetImpl.ADD_RESULT_NEW;
         }
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] == null) {
                 targets[i] = new EdgeTarget(graph, value);
                 size++;
-                return CachedDataset.ADD_RESULT_NEW;
+                return DatasetImpl.ADD_RESULT_NEW;
             }
         }
         // cannot happen
-        return CachedDataset.ADD_RESULT_UNKNOWN;
+        return DatasetImpl.ADD_RESULT_UNKNOWN;
     }
 
     /**
@@ -122,15 +123,15 @@ class Edge implements Iterable<EdgeTarget> {
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && RDFUtils.same(targets[i].getTarget(), value)) {
                 int result = targets[i].remove(graph);
-                if (result == CachedDataset.REMOVE_RESULT_EMPTIED) {
+                if (result == DatasetImpl.REMOVE_RESULT_EMPTIED) {
                     targets[i] = null;
                     size--;
-                    return (size == 0) ? CachedDataset.REMOVE_RESULT_EMPTIED : CachedDataset.REMOVE_RESULT_REMOVED;
+                    return (size == 0) ? DatasetImpl.REMOVE_RESULT_EMPTIED : DatasetImpl.REMOVE_RESULT_REMOVED;
                 }
                 return result;
             }
         }
-        return CachedDataset.REMOVE_RESULT_NOT_FOUND;
+        return DatasetImpl.REMOVE_RESULT_NOT_FOUND;
     }
 
     /**
@@ -152,13 +153,13 @@ class Edge implements Iterable<EdgeTarget> {
                     bufferDecremented.get(j).setObject(targets[i].getTarget());
                 for (int j = originalSizeRem; j != bufferRemoved.size(); j++)
                     bufferRemoved.get(j).setObject(targets[i].getTarget());
-                if (result == CachedDataset.REMOVE_RESULT_EMPTIED) {
+                if (result == DatasetImpl.REMOVE_RESULT_EMPTIED) {
                     targets[i] = null;
                     size--;
                 }
             }
         }
-        return (size == 0) ? CachedDataset.REMOVE_RESULT_EMPTIED : CachedDataset.REMOVE_RESULT_REMOVED;
+        return (size == 0) ? DatasetImpl.REMOVE_RESULT_EMPTIED : DatasetImpl.REMOVE_RESULT_REMOVED;
     }
 
     /**

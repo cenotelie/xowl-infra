@@ -24,25 +24,27 @@ import org.mapdb.Atomic;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.store.IRIs;
 import org.xowl.store.owl.AnonymousNode;
-import org.xowl.store.rdf.*;
-import org.xowl.store.storage.NodeManager;
+import org.xowl.store.rdf.BlankNode;
+import org.xowl.store.rdf.IRINode;
+import org.xowl.store.rdf.LiteralNode;
+import org.xowl.store.rdf.Node;
 import org.xowl.store.storage.UnsupportedNodeType;
+import org.xowl.store.storage.impl.NodeManagerImpl;
+import org.xowl.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Represents a persistent store of nodes
  *
  * @author Laurent Wouters
  */
-public class PersistedNodes implements NodeManager, AutoCloseable {
+public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     /**
      * The suffix for the index file
      */
@@ -195,7 +197,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
             counter += modifier;
             element.seek(8).writeLong(counter);
         } catch (IOException | StorageException exception) {
-            // do nothing
+            Logger.DEFAULT.error(exception);
         }
     }
 
@@ -214,8 +216,9 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
             try (IOElement entry = backend.read(candidate)) {
                 long next = entry.readLong();
-                int size = entry.seek(16).readInt();
-                if (size == buffer.length) {
+                long count = entry.readLong();
+                int size = entry.readInt();
+                if (count > 0 && size == buffer.length) {
                     if (Arrays.equals(buffer, entry.readBytes(buffer.length)))
                         // the string is already there, return its key
                         return candidate;
@@ -288,12 +291,14 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
                     mapStrings.put(hash, result);
                 return result;
             } catch (IOException | StorageException exception) {
+                Logger.DEFAULT.error(exception);
                 return PersistedNode.KEY_NOT_PRESENT;
             }
         } else {
             try {
                 return lookupString(bucket, data);
             } catch (IOException | StorageException exception) {
+                Logger.DEFAULT.error(exception);
                 return PersistedNode.KEY_NOT_PRESENT;
             }
         }
@@ -336,7 +341,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
             counter += modifier;
             element.seek(8).writeLong(counter);
         } catch (IOException | StorageException exception) {
-            // do nothing
+            Logger.DEFAULT.error(exception);
         }
     }
 
@@ -377,6 +382,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
                 mapLiterals.put(keyLexical, result);
                 return result;
             } catch (IOException | StorageException exception) {
+                Logger.DEFAULT.error(exception);
                 return PersistedNode.KEY_NOT_PRESENT;
             }
         } else {
@@ -385,14 +391,16 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
             while (candidate != PersistedNode.KEY_NOT_PRESENT) {
                 try (IOElement entry = backend.access(candidate)) {
                     long next = entry.readLong();
+                    long count = entry.readLong();
                     entry.seek(24);
                     long candidateDatatype = entry.readLong();
                     long candidateLangTag = entry.readLong();
-                    if (keyDatatype == candidateDatatype && keyLangTag == candidateLangTag)
+                    if ((doInsert || count > 0) && keyDatatype == candidateDatatype && keyLangTag == candidateLangTag)
                         return candidate;
                     previous = candidate;
                     candidate = next;
                 } catch (IOException | StorageException exception) {
+                    Logger.DEFAULT.error(exception);
                     return PersistedNode.KEY_NOT_PRESENT;
                 }
             }
@@ -413,6 +421,7 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
                 }
                 return result;
             } catch (IOException | StorageException exception) {
+                Logger.DEFAULT.error(exception);
                 return PersistedNode.KEY_NOT_PRESENT;
             }
         }
@@ -427,6 +436,8 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
      * @throws UnsupportedNodeType When the node cannot be persisted
      */
     public PersistedNode getPersistent(Node node, boolean create) throws UnsupportedNodeType {
+        if (node == null)
+            return null;
         if (node instanceof PersistedNode) {
             PersistedNode persistedNode = ((PersistedNode) node);
             if (persistedNode.getStore() == this || persistedNode.getStore() == null)
@@ -542,16 +553,6 @@ public class PersistedNodes implements NodeManager, AutoCloseable {
         boolean success = backend.rollback();
         database.rollback();
         return success;
-    }
-
-    @Override
-    public IRINode getIRINode(GraphNode graph) {
-        if (graph != null && graph.getNodeType() == Node.TYPE_IRI) {
-            String value = ((IRINode) graph).getIRIValue();
-            return getIRINode(value + "#" + UUID.randomUUID().toString());
-        } else {
-            return getIRINode(IRIs.GRAPH_DEFAULT + "#" + UUID.randomUUID().toString());
-        }
     }
 
     @Override

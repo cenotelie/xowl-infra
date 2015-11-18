@@ -21,9 +21,11 @@
 package org.xowl.store.rdf;
 
 import org.xowl.store.IOUtils;
+import org.xowl.store.Serializable;
 import org.xowl.utils.collections.Couple;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +35,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class RuleExplanation {
+public class RuleExplanation implements Serializable {
     /**
      * Represents a node in the explanation
      */
@@ -136,19 +138,25 @@ public class RuleExplanation {
         return n;
     }
 
-    /**
-     * Serializes this explanation in the JSON syntax
-     *
-     * @param writer The writer to write to
-     * @throws IOException When the underlying write operation failed
-     */
-    public void printJSON(Writer writer) throws IOException {
+    @Override
+    public String serializedString() {
+        return serializedJSON();
+    }
+
+    @Override
+    public String serializedJSON() {
+        StringWriter writer = new StringWriter();
         writer.write("{ \"root\": 0, \"nodes\": [");
         for (int i = 0; i != nodes.size(); i++) {
             if (i != 0)
                 writer.write(", ");
-            nodes.get(i).printJSON(writer);
+            try {
+                nodes.get(i).printJSON(writer);
+            } catch (IOException exception) {
+                // cannot happen
+            }
         }
         writer.write("] }");
+        return writer.toString();
     }
 }

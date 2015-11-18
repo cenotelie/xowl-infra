@@ -30,7 +30,7 @@ import org.xowl.store.loaders.OWLLoaderResult;
 import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.writers.OWLSerializer;
 import org.xowl.store.writers.RDFSerializer;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 
 import java.util.*;
 

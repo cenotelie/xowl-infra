@@ -22,7 +22,7 @@ package org.xowl.store.writers;
 
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 import org.xowl.utils.collections.Couple;
 
 import java.io.IOException;

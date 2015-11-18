@@ -29,7 +29,7 @@ import org.xowl.store.TestLogger;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.StoreFactory;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;

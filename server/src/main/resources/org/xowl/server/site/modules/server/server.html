@@ -1,0 +1,22 @@
+<p>
+  <div ng-bind-html="messages"></div>
+  <div class="panel panel-warning" style="margin-top: 20px;">
+    <div class="panel-heading">Server shutdown/restart</div>
+    <div class="panel-body">
+      <form>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            Shutting down or restarting the server will close all current connections. After a shutdown, an access to the hosting maching
+            will be required to restart the server.
+          </div>
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-warning" ng-click="onServerShutdown()">Shutdown the server</button>
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-warning" ng-click="onServerRestart()">Restart the server</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</p>

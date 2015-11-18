@@ -23,7 +23,7 @@ package org.xowl.generator.model;
 import org.xowl.lang.runtime.Class;
 import org.xowl.lang.runtime.*;
 import org.xowl.utils.Files;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Writer;

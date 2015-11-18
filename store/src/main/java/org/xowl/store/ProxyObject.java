@@ -24,10 +24,7 @@ import org.xowl.lang.owl2.Ontology;
 import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
-import org.xowl.utils.collections.Adapter;
-import org.xowl.utils.collections.AdaptingIterator;
-import org.xowl.utils.collections.Couple;
-import org.xowl.utils.collections.SkippableIterator;
+import org.xowl.utils.collections.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -245,6 +242,28 @@ public class ProxyObject {
     }
 
     /**
+     * Adds the value of the property
+     *
+     * @param property The property
+     * @param value    The new value
+     */
+    public void addValue(String property, ProxyObject value) {
+        IRINode propertyNode = node(property);
+        addValue(propertyNode, value.subject);
+    }
+
+    /**
+     * Adds the value of the property
+     *
+     * @param property The property
+     * @param value    The new value
+     */
+    public void addValue(String property, Object value) {
+        IRINode propertyNode = node(property);
+        addValue(propertyNode, encode(propertyNode, value));
+    }
+
+    /**
      * Sets the value of the property
      *
      * @param property The property
@@ -273,31 +292,31 @@ public class ProxyObject {
     }
 
     /**
-     * Unsets all values of the property
+     * Removes all values of the property
      *
      * @param property The property
      */
-    public void unset(String property) {
+    public void removeAllValues(String property) {
         removeAllValues(node(property));
     }
 
     /**
-     * Unsets the value of a property
+     * Removes the value of a property
      *
      * @param property The property
      * @param value    The value
      */
-    public void unset(String property, ProxyObject value) {
+    public void removeValue(String property, ProxyObject value) {
         removeValue(node(property), value.subject);
     }
 
     /**
-     * Unsets the value of a property
+     * Removes the value of a property
      *
      * @param property The property
      * @param value    The value
      */
-    public void unset(String property, Object value) {
+    public void removeValue(String property, Object value) {
         IRINode propertyNode = node(property);
         removeValue(propertyNode, encode(propertyNode, value));
     }
@@ -528,6 +547,13 @@ public class ProxyObject {
             // range is undefined, return xsd:String
             return Vocabulary.xsdString;
         Node rangeNode = iterator.next().getObject();
+        if (iterator instanceof LockingIterator) {
+            try {
+                ((LockingIterator) iterator).close();
+            } catch (Exception exception) {
+                // cannot happen
+            }
+        }
         if (rangeNode.getNodeType() == Node.TYPE_IRI)
             return ((IRINode) rangeNode).getIRIValue();
         // range is defined, but is either a blank, or an anonymous node, return xsd:String

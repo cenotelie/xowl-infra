@@ -1,0 +1,14 @@
+<div>
+  <form>
+    <div class="form-group">
+      <label for="field-login">Login</label>
+      <input type="text" class="form-control" id="field-login" placeholder="Login" ng-bind="username"/>
+    </div>
+    <div class="form-group">
+      <label for="field-password">Password</label>
+      <input type="password" class="form-control" id="field-password" placeholder="Password" ng-bind="password"/>
+    </div>
+    <button type="submit" class="btn btn-primary" ng-click="onLoginButton()">Login</button>
+  </form>
+  <div ng-bind-html="messages"></div>
+</div>

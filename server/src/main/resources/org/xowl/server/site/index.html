@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="xOWLServer">
+
+<head>
+  <meta charset="utf-8">
+  <title>xOWL Server</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" type="text/css" href="vendors/bootstrap.min.css">
+  <!--<link rel="stylesheet" type="text/css" href="vendors/bootstrap-theme.min.css">-->
+</head>
+
+<body>
+  <div ng-controller="xOWLServerCtrl" class="page-header" style="margin-top: 10px;">
+    <h3 style="margin-top: 0px; margin-left: 10px; display: inline-block;">
+      <img class="img-responsive" src="assets/xowl.png" width="50px" style="display: inline-block;"/>
+      xOWL Server
+    </h3>
+    <div ng-if="xowl.userName != null" style="display: inline-block;">
+      <a role="button" class="btn btn-lg btn-default" href="#server" style="margin-left: 100px;">Server</a>
+      <a role="button" class="btn btn-lg btn-default" href="#databases">Databases</a>
+      <a role="button" class="btn btn-lg btn-default" href="#users">Users</a>
+      <div class="btn-group btn-group-lg" role="toolbar" aria-label="main-menu" style="display: inline-block;">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></button>
+        <ul class="dropdown-menu">
+          <li><a href="#account">My account</a></li>
+          <li><a href="#login" ng-click="onLogoutButton()">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="body" ng-view></div>
+  <script src="vendors/jquery-2.1.4.min.js"></script>
+  <script src="vendors/angular.min.js"></script>
+  <script src="vendors/angular-route.min.js"></script>
+  <script src="vendors/bootstrap.min.js"></script>
+  <script src="app.js"></script>
+  <script src="xowl-api.js"></script>
+  <script src="xowl-api-angular.js"></script>
+  <script src="modules/login/login.js"></script>
+  <script src="modules/server/server.js"></script>
+  <script src="modules/account/account.js"></script>
+  <script src="modules/databases/databases.js"></script>
+  <script src="modules/database/database.js"></script>
+  <script src="modules/users/users.js"></script>
+  <script src="modules/user/user.js"></script>
+</body>
+
+</html>

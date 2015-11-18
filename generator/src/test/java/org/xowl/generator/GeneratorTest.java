@@ -37,14 +37,14 @@ public class GeneratorTest {
     public void reflectiveXOWLGeneration() {
         TestLogger logger = new TestLogger();
         Configuration config = new Configuration();
-        config.addValue(null, "input", "http://xowl.org/lang/owl2");
-        config.addValue(null, "input", "http://xowl.org/lang/actions");
-        config.addValue(null, "input", "http://xowl.org/lang/rules");
-        config.addValue(null, "input", "http://xowl.org/lang/runtime");
-        config.addValue(null, "input", "http://xowl.org/lang/instrumentation");
-        config.addValue(null, "basePackage", "org.xowl.lang");
-        config.addValue(null, "output", "target/tests/");
-        config.addValue(null, "jarName", "XOWLModel.jar");
+        config.add(null, "input", "http://xowl.org/lang/owl2");
+        config.add(null, "input", "http://xowl.org/lang/actions");
+        config.add(null, "input", "http://xowl.org/lang/rules");
+        config.add(null, "input", "http://xowl.org/lang/runtime");
+        config.add(null, "input", "http://xowl.org/lang/instrumentation");
+        config.add(null, "basePackage", "org.xowl.lang");
+        config.add(null, "output", "target/tests/");
+        config.add(null, "jarName", "XOWLModel.jar");
         Program program = new Program(logger, config);
         program.execute();
         Assert.assertFalse("Failed to re-generate xOWL abstract syntax", logger.isOnError());

@@ -23,8 +23,8 @@ package org.xowl.generator;
 import org.xowl.generator.builder.Builder;
 import org.xowl.generator.model.Model;
 import org.xowl.store.owl.DirectSemantics;
-import org.xowl.utils.ConsoleLogger;
-import org.xowl.utils.Logger;
+import org.xowl.utils.logging.ConsoleLogger;
+import org.xowl.utils.logging.Logger;
 import org.xowl.utils.collections.Couple;
 import org.xowl.utils.config.Configuration;
 
@@ -136,7 +136,7 @@ public class Program {
      * @param config The configuration to load
      */
     private void loadConfig(Configuration config) {
-        List<String> values = config.getValues(null, CONFIG_REPOSITORY);
+        List<String> values = config.getAll(null, CONFIG_REPOSITORY);
         for (String val : values) {
             String[] parts = val.split("\\|");
             Couple<String, String> mapping = new Couple<>();
@@ -144,24 +144,24 @@ public class Program {
             mapping.y = parts[1].trim();
             repositories.add(mapping);
         }
-        values = config.getValues(null, CONFIG_INPUT);
+        values = config.getAll(null, CONFIG_INPUT);
         for (String val : values) {
             inputs.add(val.trim());
         }
 
-        String value = config.getValue(CONFIG_BASE_PACKAGE);
+        String value = config.get(CONFIG_BASE_PACKAGE);
         if (value != null)
             basePackage = value;
 
-        value = config.getValue(CONFIG_DEBUG);
+        value = config.get(CONFIG_DEBUG);
         if (value != null)
             debug = Boolean.valueOf(value);
 
-        value = config.getValue(CONFIG_OUTPUT);
+        value = config.get(CONFIG_OUTPUT);
         if (value != null)
             outputDirectory = value;
 
-        value = config.getValue(CONFIG_JAR_NAME);
+        value = config.get(CONFIG_JAR_NAME);
         if (value != null)
             outputJarName = value;
     }

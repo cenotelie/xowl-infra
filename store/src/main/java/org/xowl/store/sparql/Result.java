@@ -20,6 +20,8 @@
 
 package org.xowl.store.sparql;
 
+import org.xowl.store.Serializable;
+
 import java.io.IOException;
 import java.io.Writer;
 
@@ -28,7 +30,7 @@ import java.io.Writer;
  *
  * @author Laurent Wouters
  */
-public interface Result {
+public interface Result extends Serializable {
     /**
      * XML syntax for SPARQL results
      */

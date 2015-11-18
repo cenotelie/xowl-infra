@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2014 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.utils.config;
 
@@ -82,7 +82,7 @@ public class Section {
      * @param property A property in this section
      * @return The values for the specified property
      */
-    public List<String> getValues(String property) {
+    public List<String> getAll(String property) {
         if (!properties.containsKey(property))
             return new ArrayList<>();
         return properties.get(property);
@@ -94,7 +94,7 @@ public class Section {
      * @param property A property in this section
      * @return The first value for the specified property, or null if there is none
      */
-    public String getValue(String property) {
+    public String get(String property) {
         if (!properties.containsKey(property))
             return null;
         List<String> values = properties.get(property);
@@ -109,10 +109,38 @@ public class Section {
      * @param property A property
      * @param value    A value to associate to the property
      */
-    public void addValue(String property, String value) {
-        if (!properties.containsKey(property))
-            properties.put(property, new ArrayList<String>());
-        properties.get(property).add(value);
+    public void add(String property, String value) {
+        List<String> values = properties.get(property);
+        if (values == null) {
+            values = new ArrayList<>();
+            properties.put(property, values);
+        }
+        values.add(value);
+    }
+
+    /**
+     * Sets the property, removing all previous values, if any
+     *
+     * @param property A property
+     * @param value    The new value
+     */
+    public void set(String property, String value) {
+        List<String> values = properties.get(property);
+        if (values == null) {
+            values = new ArrayList<>();
+            properties.put(property, values);
+        }
+        values.clear();
+        values.add(value);
+    }
+
+    /**
+     * Clears any value for the property
+     *
+     * @param property The property to clear
+     */
+    public void clear(String property) {
+        properties.remove(property);
     }
 
     /**

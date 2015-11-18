@@ -23,7 +23,8 @@ package org.xowl.store.storage.cache;
 import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Node;
-import org.xowl.store.storage.MQuad;
+import org.xowl.store.storage.impl.DatasetImpl;
+import org.xowl.store.storage.impl.MQuad;
 import org.xowl.utils.collections.*;
 
 import java.util.Arrays;
@@ -95,7 +96,7 @@ class EdgeTarget implements Iterable<GraphNode> {
             hasEmpty = hasEmpty || (graphs[i] == null);
             if (RDFUtils.same(graphs[i], graph)) {
                 multiplicities[i]++;
-                return CachedDataset.ADD_RESULT_INCREMENT;
+                return DatasetImpl.ADD_RESULT_INCREMENT;
             }
         }
         if (!hasEmpty) {
@@ -104,18 +105,18 @@ class EdgeTarget implements Iterable<GraphNode> {
             graphs[size] = graph;
             multiplicities[size] = 1;
             size++;
-            return CachedDataset.ADD_RESULT_NEW;
+            return DatasetImpl.ADD_RESULT_NEW;
         }
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] == null) {
                 graphs[i] = graph;
                 multiplicities[i] = 1;
                 size++;
-                return CachedDataset.ADD_RESULT_NEW;
+                return DatasetImpl.ADD_RESULT_NEW;
             }
         }
         // cannot happen
-        return CachedDataset.ADD_RESULT_UNKNOWN;
+        return DatasetImpl.ADD_RESULT_UNKNOWN;
     }
 
     /**
@@ -131,12 +132,12 @@ class EdgeTarget implements Iterable<GraphNode> {
                 if (multiplicities[i] == 0) {
                     graphs[i] = null;
                     size--;
-                    return (size == 0) ? CachedDataset.REMOVE_RESULT_EMPTIED : CachedDataset.REMOVE_RESULT_REMOVED;
+                    return (size == 0) ? DatasetImpl.REMOVE_RESULT_EMPTIED : DatasetImpl.REMOVE_RESULT_REMOVED;
                 }
-                return CachedDataset.REMOVE_RESULT_DECREMENT;
+                return DatasetImpl.REMOVE_RESULT_DECREMENT;
             }
         }
-        return CachedDataset.REMOVE_RESULT_NOT_FOUND;
+        return DatasetImpl.REMOVE_RESULT_NOT_FOUND;
     }
 
     /**
@@ -160,7 +161,7 @@ class EdgeTarget implements Iterable<GraphNode> {
                 }
             }
         }
-        return (size == 0) ? CachedDataset.REMOVE_RESULT_EMPTIED : CachedDataset.REMOVE_RESULT_REMOVED;
+        return (size == 0) ? DatasetImpl.REMOVE_RESULT_EMPTIED : DatasetImpl.REMOVE_RESULT_REMOVED;
     }
 
     /**

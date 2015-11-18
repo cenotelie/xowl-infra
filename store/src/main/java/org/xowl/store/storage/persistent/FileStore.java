@@ -27,7 +27,8 @@ import java.util.List;
 
 /**
  * A store of binary data backed by files
- * <p>
+ * This class is NOT thread safe.
+ * <p/>
  * Each data file is composed of blocks (or pages)
  * - First block:
  * - int32: Magic identifier for the store
@@ -146,18 +147,12 @@ class FileStore extends IOBackend {
      * @return Whether the operation succeeded
      */
     public boolean commit() {
-        globalLock.lock();
-        if (!state.compareAndSet(STATE_READY, STATE_FINALIZING)) {
-            globalLock.unlock();
-            throw new IllegalStateException("The store is not in a ready state");
-        }
-        finalizeAllTransactions();
+        state = STATE_COMMITTING;
         boolean success = true;
         for (FileStoreFile child : files) {
             success &= child.commit();
         }
-        state.set(success ? STATE_READY : STATE_ERROR);
-        globalLock.unlock();
+        state = (success ? STATE_READY : STATE_ERROR);
         return success;
     }
 
@@ -167,29 +162,18 @@ class FileStore extends IOBackend {
      * @return Whether the operation fully succeeded
      */
     public boolean rollback() {
-        globalLock.lock();
-        if (!state.compareAndSet(STATE_READY, STATE_FINALIZING)) {
-            globalLock.unlock();
-            throw new IllegalStateException("The store is not in a ready state");
-        }
-        finalizeAllTransactions();
+        state = STATE_COMMITTING;
         boolean success = true;
         for (FileStoreFile child : files) {
             success &= child.rollback();
         }
-        state.set(success ? STATE_READY : STATE_ERROR);
-        globalLock.unlock();
+        state = (success ? STATE_READY : STATE_ERROR);
         return success;
     }
 
     @Override
     public void close() throws IOException {
-        globalLock.lock();
-        if (!state.compareAndSet(STATE_READY, STATE_CLOSING)) {
-            globalLock.unlock();
-            throw new IllegalStateException("The store is not in a ready state");
-        }
-        finalizeAllTransactions();
+        state = STATE_CLOSING;
         for (FileStoreFile child : files) {
             try {
                 child.close();
@@ -197,8 +181,7 @@ class FileStore extends IOBackend {
                 // do nothing
             }
         }
-        state.compareAndSet(STATE_CLOSING, STATE_CLOSED);
-        globalLock.unlock();
+        state = STATE_CLOSED;
     }
 
     /**
@@ -207,12 +190,7 @@ class FileStore extends IOBackend {
     public void clear() {
         if (isReadonly)
             return;
-        globalLock.lock();
-        if (!state.compareAndSet(STATE_READY, STATE_FINALIZING)) {
-            globalLock.unlock();
-            throw new IllegalStateException("The store is not in a ready state");
-        }
-        finalizeAllTransactions();
+        state = STATE_COMMITTING;
         for (int i = 0; i != files.size(); i++) {
             try {
                 files.get(i).close();
@@ -227,11 +205,10 @@ class FileStore extends IOBackend {
             FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false);
             initializeFile(first);
             files.add(first);
-        } catch (IOException exception) {
+        } catch (StorageException | IOException exception) {
             // do nothing
         }
-        state.compareAndSet(STATE_FINALIZING, STATE_READY);
-        globalLock.unlock();
+        state = STATE_READY;
     }
 
     /**
@@ -239,10 +216,9 @@ class FileStore extends IOBackend {
      *
      * @param key The key to an entry
      * @return The IO element that can be used for reading and writing
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
-    public IOElement access(long key) throws IOException, StorageException {
+    public IOElement access(long key) throws StorageException {
         return access(key, true);
     }
 
@@ -251,10 +227,9 @@ class FileStore extends IOBackend {
      *
      * @param key The key to an entry
      * @return The IO element that can be used for reading
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
-    public IOElement read(long key) throws IOException, StorageException {
+    public IOElement read(long key) throws StorageException {
         return access(key, false);
     }
 
@@ -264,10 +239,9 @@ class FileStore extends IOBackend {
      * @param key      The key to an entry
      * @param writable Whether the transaction allows writing to the backend
      * @return The IO element that can be used for reading and writing
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
-    protected IOElement access(long key, boolean writable) throws IOException, StorageException {
+    protected IOElement access(long key, boolean writable) throws StorageException {
         int index = getFileIndexFor(key);
         int sk = getShortKey(key);
         FileStoreFile file = files.get(index);
@@ -281,8 +255,8 @@ class FileStore extends IOBackend {
      *
      * @param entrySize The size of the entry to write
      * @return The key for retrieving the data
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
+     * @throws IOException      When a new file cannot be allocated
+     * @throws StorageException When an IO operation failed
      */
     public long add(int entrySize) throws IOException, StorageException {
         if (isReadonly)
@@ -304,10 +278,9 @@ class FileStore extends IOBackend {
      * Removes the entry for the specified key
      *
      * @param key The key of the entry to remove
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
-    public void remove(long key) throws IOException, StorageException {
+    public void remove(long key) throws StorageException {
         if (isReadonly)
             throw new StorageException("The store is read only");
         int index = getFileIndexFor(key);
@@ -322,10 +295,9 @@ class FileStore extends IOBackend {
      * @param file      The backend file to write to
      * @param entrySize The size of the entry to write
      * @return The key for retrieving the data
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
-    private long provision(int fileIndex, FileStoreFile file, int entrySize) throws IOException, StorageException {
+    private long provision(int fileIndex, FileStoreFile file, int entrySize) throws StorageException {
         try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, true)) {
             header.seek(8);
             int openBlockCount = header.readInt();
@@ -388,6 +360,9 @@ class FileStore extends IOBackend {
             header.writeInt(openBlockCount);
             header.writeInt(nextFreeBlock);
             return getFullKey(fileIndex, page.registerEntry(entrySize));
+        } catch (IOException exception) {
+            // an IOException cannot happen
+            return PersistedNode.KEY_NOT_PRESENT;
         }
     }
 
@@ -396,10 +371,9 @@ class FileStore extends IOBackend {
      *
      * @param file The backend file containing the entry
      * @param key  The key of the entry to remove
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
-    private void clear(FileStoreFile file, int key) throws IOException, StorageException {
+    private void clear(FileStoreFile file, int key) throws StorageException {
         try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, true)) {
             FileStorePage page = file.getPageFor(key);
             int length = page.removeEntry(key);
@@ -430,6 +404,8 @@ class FileStore extends IOBackend {
                     header.writeInt(nextFreeBlock);
                 }
             }
+        } catch (IOException exception) {
+            // an IOException cannot happen
         }
     }
 
@@ -474,7 +450,7 @@ class FileStore extends IOBackend {
      * @return The short key
      */
     public static int getShortKey(long key) {
-        return (int) (key & 0xFFFFFFFFl);
+        return (int) (key & 0xFFFFFFFFL);
     }
 
     /**
@@ -492,9 +468,9 @@ class FileStore extends IOBackend {
      * Initializes a backing file
      *
      * @param file The file to initialize
-     * @throws IOException When an IO error occurred
+     * @throws StorageException When an IO error occurred
      */
-    private static void initializeFile(FileStoreFile file) throws IOException {
+    private static void initializeFile(FileStoreFile file) throws StorageException {
         file.seek(0);
         file.writeInt(MAGIC_ID);
         file.writeInt(LAYOUT_VERSION);

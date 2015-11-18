@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2014 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.utils.config;
 
@@ -79,8 +79,8 @@ public class Configuration {
      * @param property A property in the global section
      * @return A list of the values associated to the specified property
      */
-    public List<String> getValues(String property) {
-        return global.getValues(property);
+    public List<String> getAll(String property) {
+        return global.getAll(property);
     }
 
     /**
@@ -89,8 +89,8 @@ public class Configuration {
      * @param property A property in the global section
      * @return The first value associated to the specified property
      */
-    public String getValue(String property) {
-        return global.getValue(property);
+    public String get(String property) {
+        return global.get(property);
     }
 
     /**
@@ -100,13 +100,13 @@ public class Configuration {
      * @param property A property in the section
      * @return A list of the values associated to the specified property
      */
-    public List<String> getValues(String section, String property) {
+    public List<String> getAll(String section, String property) {
         if (section == null)
-            return global.getValues(property);
+            return global.getAll(property);
         Section current = sections.get(section);
         if (current == null)
             return new ArrayList<>();
-        return current.getValues(property);
+        return current.getAll(property);
     }
 
     /**
@@ -116,13 +116,23 @@ public class Configuration {
      * @param property A property in the section
      * @return A list of the values associated to the specified property
      */
-    public String getValue(String section, String property) {
+    public String get(String section, String property) {
         if (section == null)
-            return global.getValue(property);
+            return global.get(property);
         Section current = sections.get(section);
         if (current == null)
             return null;
-        return current.getValue(property);
+        return current.get(property);
+    }
+
+    /**
+     * Adds the specified property-value pair in the specified section
+     *
+     * @param property A property in the section
+     * @param value    The value to associate
+     */
+    public void add(String property, String value) {
+        global.add(property, value);
     }
 
     /**
@@ -132,8 +142,48 @@ public class Configuration {
      * @param property A property in the section
      * @param value    The value to associate
      */
-    public void addValue(String section, String property, String value) {
-        getSection(section).addValue(property, value);
+    public void add(String section, String property, String value) {
+        getSection(section).add(property, value);
+    }
+
+    /**
+     * Sets the property, removing all previous values, if any
+     *
+     * @param property A property
+     * @param value    The new value
+     */
+    public void set(String property, String value) {
+        global.set(property, value);
+    }
+
+    /**
+     * Sets the property, removing all previous values, if any
+     *
+     * @param section  A section in this configuration
+     * @param property A property
+     * @param value    The new value
+     */
+    public void set(String section, String property, String value) {
+        getSection(section).set(property, value);
+    }
+
+    /**
+     * Clears any value for the property
+     *
+     * @param property The property to clear
+     */
+    public void clear(String property) {
+        global.clear(property);
+    }
+
+    /**
+     * Clears any value for the property
+     *
+     * @param section  A section in this configuration
+     * @param property The property to clear
+     */
+    public void clear(String section, String property) {
+        getSection(section).clear(property);
     }
 
     /**
@@ -189,7 +239,7 @@ public class Configuration {
      */
     public void load(InputStream stream, Charset charset) throws IOException {
         String content = org.xowl.utils.Files.read(stream, charset);
-        String[] lines = content.split("\r\n");
+        String[] lines = content.split("(\r\n?)|(\r?\n)");
         Section current = global;
         for (String line : lines) {
             if (line.startsWith("#") || line.startsWith(";"))
@@ -201,14 +251,14 @@ public class Configuration {
             } else if (line.contains("=")) {
                 String[] parts = line.split("=");
                 if (parts.length == 2) {
-                    current.addValue(parts[0].trim(), replaceEscapees(parts[1].trim()));
+                    current.add(parts[0].trim(), replaceEscapees(parts[1].trim()));
                 } else if (parts.length > 2) {
                     java.lang.StringBuilder buffer = new java.lang.StringBuilder(parts[1]);
                     for (int i = 2; i != parts.length; i++) {
                         buffer.append("=");
                         buffer.append(parts[i]);
                     }
-                    current.addValue(parts[0].trim(), replaceEscapees(buffer.toString().trim()));
+                    current.add(parts[0].trim(), replaceEscapees(buffer.toString().trim()));
                 }
             }
         }

@@ -20,24 +20,22 @@
 
 package org.xowl.store.storage.persistent;
 
-import java.io.IOException;
-
 /**
  * Represents a page of data in a persisted binary store
- * <p>
+ * <p/>
  * Page general layout:
  * - header
  * - entry array (fill down from just after the header)
  * - ... free space
  * - data content (fill up from the bottom of the page)
- * <p>
+ * <p/>
  * Header layout:
  * - Layout version (2 bytes)
  * - Flags (2 bytes)
  * - Number of entries (2 bytes)
  * - Offset to start of free space (2 bytes)
  * - Offset to start of data content (2 bytes)
- * <p>
+ * <p/>
  * Entry layout:
  * - offset (2 bytes)
  * - length (2 bytes)
@@ -114,10 +112,9 @@ class FileStorePage {
      * @param backend    The backend to use
      * @param location   The location of the page in the backend
      * @param keyRadical The radical of keys emitted by this page
-     * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
-    public FileStorePage(FileStoreFile backend, long location, int keyRadical) throws IOException, StorageException {
+    public FileStorePage(FileStoreFile backend, long location, int keyRadical) throws StorageException {
         this.backend = backend;
         this.location = location;
         this.keyRadical = keyRadical;
@@ -176,9 +173,9 @@ class FileStorePage {
      * Gets the amount of free space for entry payloads in this page
      *
      * @return The amount of free space
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    public int getFreeSpace() throws IOException {
+    public int getFreeSpace() throws StorageException {
         int result = 0;
         if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
             // we can reuse empty entries and there are at least one
@@ -202,9 +199,9 @@ class FileStorePage {
      *
      * @param length The length of the content to store
      * @return true if the content can be stored
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    public boolean canStore(int length) throws IOException {
+    public boolean canStore(int length) throws StorageException {
         if (length > MAX_ENTRY_SIZE)
             return false;
         if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
@@ -229,10 +226,9 @@ class FileStorePage {
      *
      * @param length The length of the entry to register
      * @return The key to be used to retrieve the data
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When an entry of the specified length cannot be stored
+     * @throws StorageException When an IO operation failed
      */
-    public int registerEntry(int length) throws IOException, StorageException {
+    public int registerEntry(int length) throws StorageException {
         if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
             // we can reuse empty entries and there are at least one
             char entryIndex = 0;
@@ -260,9 +256,9 @@ class FileStorePage {
      * @param entryIndex The entry's index
      * @param dataOffset The data offset to overwrite with
      * @return The key to be used to retrieve the data
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    private int overwriteEmptyEntry(int entryIndex, char dataOffset) throws IOException {
+    private int overwriteEmptyEntry(int entryIndex, char dataOffset) throws StorageException {
         // compute the entry data
         int key = keyRadical + entryIndex;
         // write the entry
@@ -281,11 +277,11 @@ class FileStorePage {
      *
      * @param length The length of the entry to register
      * @return The key to be used to retrieve the data
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    private int writeNewEntry(int length) throws IOException {
+    private int writeNewEntry(int length) throws StorageException {
         // compute the entry data
-        int key = keyRadical + entryCount;
+        int key = keyRadical + (int) entryCount;
         long dataLocation = location + startData - length;
         // write the entry
         backend.seek(location + startFreeSpace);
@@ -306,10 +302,9 @@ class FileStorePage {
      *
      * @param key The key to an entry
      * @return The length of the removed entry
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the provided key is not within this page
+     * @throws StorageException When an IO operation failed
      */
-    public int removeEntry(int key) throws IOException, StorageException {
+    public int removeEntry(int key) throws StorageException {
         int entryIndex = key - keyRadical;
         if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >>> 2)
             throw new StorageException("The entry for the specified key is not in this page");
@@ -337,18 +332,17 @@ class FileStorePage {
                 // go to the previous entry
                 entryIndex--;
                 // is is a valid entry?
-                if (entryIndex >= 0) {
-                    // get its info
-                    backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
-                    offset = backend.readChar();
-                    length = backend.readChar();
-                }
+                if (entryIndex < 0)
+                    break;
+                // get its info
+                backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
+                offset = backend.readChar();
+                length = backend.readChar();
             }
         } else {
             // simply marks this entry as empty by erasing the offset
             backend.seek(location + entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE);
             backend.writeChar('\0');
-            entryCount--;
         }
         return length;
     }
@@ -358,10 +352,9 @@ class FileStorePage {
      *
      * @param key The key identifying the data
      * @return The length of the entry
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the provided key is not within this page
+     * @throws StorageException When an IO operation failed
      */
-    public int positionFor(int key) throws IOException, StorageException {
+    public int positionFor(int key) throws StorageException {
         int entryIndex = key - keyRadical;
         if (entryIndex < 0 || entryIndex >= (startFreeSpace - PAGE_HEADER_SIZE) >>> 2)
             throw new StorageException("The entry for the specified key is not in this page");
@@ -389,7 +382,7 @@ class FileStorePage {
             backend.writeChar(startFreeSpace);
             backend.writeChar(startData);
             return true;
-        } catch (IOException exception) {
+        } catch (StorageException exception) {
             return false;
         }
     }
