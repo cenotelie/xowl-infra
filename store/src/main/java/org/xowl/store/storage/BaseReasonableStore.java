@@ -26,8 +26,10 @@ import org.xowl.store.RDFUtils;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Represents a data store that is composed of a backend store for ground data and a volatile store for data coming from reasoning facilities
@@ -102,12 +104,16 @@ class BaseReasonableStore implements BaseStore {
 
     @Override
     public long getMultiplicity(Quad quad) {
-        return aggregate.getMultiplicity(quad);
+        if (RDFUtils.same(graphInference, quad.getGraph()) || RDFUtils.same(graphMeta, quad.getGraph()))
+            return volatileStore.getMultiplicity(quad);
+        return groundStore.getMultiplicity(quad);
     }
 
     @Override
     public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return aggregate.getMultiplicity(graph, subject, property, object);
+        if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
+            return volatileStore.getMultiplicity(graph, subject, property, object);
+        return groundStore.getMultiplicity(graph, subject, property, object);
     }
 
     @Override
@@ -117,7 +123,11 @@ class BaseReasonableStore implements BaseStore {
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph) {
-        return aggregate.getAll(graph);
+        if (graph == null)
+            return getAll();
+        if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
+            return volatileStore.getAll(graph);
+        return groundStore.getAll(graph);
     }
 
     @Override
@@ -127,7 +137,11 @@ class BaseReasonableStore implements BaseStore {
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return aggregate.getAll(graph, subject, property, object);
+        if (graph == null)
+            return getAll(subject, property, object);
+        if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
+            return volatileStore.getAll(graph, subject, property, object);
+        return groundStore.getAll(graph, subject, property, object);
     }
 
     @Override
@@ -142,7 +156,11 @@ class BaseReasonableStore implements BaseStore {
 
     @Override
     public long count(GraphNode graph) {
-        return aggregate.count(graph);
+        if (graph == null)
+            return count();
+        if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
+            return volatileStore.count(graph);
+        return groundStore.count(graph);
     }
 
     @Override
@@ -152,12 +170,113 @@ class BaseReasonableStore implements BaseStore {
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return aggregate.count(graph, subject, property, object);
+        if (graph == null)
+            return count(subject, property, object);
+        if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
+            return volatileStore.count(graph, subject, property, object);
+        return groundStore.count(graph, subject, property, object);
     }
 
     @Override
     public void insert(Changeset changeset) throws UnsupportedNodeType {
-        // TODO: implement this
+        // try to simplify this operation
+        if (changeset.getRemoved().isEmpty() && changeset.getAdded().size() == 1) {
+            add(changeset.getAdded().iterator().next());
+            return;
+        }
+        if (changeset.getAdded().isEmpty() && changeset.getRemoved().size() == 1) {
+            remove(changeset.getRemoved().iterator().next());
+            return;
+        }
+
+        // nope, try to discriminate
+        boolean[] addedIsVolatile = new boolean[changeset.getAdded().size()];
+        boolean addedAllVolatile = true;
+        boolean addedAllGround = true;
+        int i = 0;
+        for (Quad quad : changeset.getAdded()) {
+            addedIsVolatile[i] = (RDFUtils.same(graphInference, quad.getGraph()) || RDFUtils.same(graphMeta, quad.getGraph()));
+            addedAllVolatile &= addedIsVolatile[i];
+            addedAllGround &= !addedIsVolatile[i];
+            i++;
+        }
+
+        boolean[] removedIsVolatile = new boolean[changeset.getRemoved().size()];
+        boolean removedAllVolatile = true;
+        boolean removedAllGround = true;
+        i = 0;
+        for (Quad quad : changeset.getRemoved()) {
+            removedIsVolatile[i] = (RDFUtils.same(graphInference, quad.getGraph()) || RDFUtils.same(graphMeta, quad.getGraph()));
+            removedAllVolatile &= removedIsVolatile[i];
+            removedAllGround &= !removedIsVolatile[i];
+            i++;
+        }
+
+        if (addedAllVolatile && removedAllVolatile) {
+            volatileStore.insert(changeset);
+            return;
+        }
+        if (addedAllGround && removedAllGround) {
+            groundStore.insert(changeset);
+            return;
+        }
+
+        boolean addedIsHandled = true;
+        if (addedIsVolatile.length > 0) {
+            if (addedAllVolatile) {
+                volatileStore.insert(Changeset.fromAdded(changeset.getAdded()));
+            } else if (addedAllGround) {
+                groundStore.insert(Changeset.fromAdded(changeset.getAdded()));
+            } else {
+                addedIsHandled = false;
+            }
+        }
+
+        boolean removedIsHandled = true;
+        if (removedIsVolatile.length > 0) {
+            if (removedAllVolatile) {
+                volatileStore.insert(Changeset.fromRemoved(changeset.getRemoved()));
+            } else if (removedAllGround) {
+                groundStore.insert(Changeset.fromRemoved(changeset.getRemoved()));
+            } else {
+                removedIsHandled = false;
+            }
+        }
+
+        if (addedIsHandled && removedIsHandled)
+            return;
+
+        List<Quad> addedForVolatile = addedIsVolatile.length > 0 ? new ArrayList<Quad>(addedIsVolatile.length) : null;
+        List<Quad> addedForGround = addedIsVolatile.length > 0 ? new ArrayList<Quad>(addedIsVolatile.length) : null;
+        List<Quad> removedForVolatile = removedIsVolatile.length > 0 ? new ArrayList<Quad>(removedIsVolatile.length) : null;
+        List<Quad> removedForGround = removedIsVolatile.length > 0 ? new ArrayList<Quad>(removedIsVolatile.length) : null;
+        i = 0;
+        for (Quad quad : changeset.getAdded()) {
+            (addedIsVolatile[i++] ? addedForVolatile : addedForGround).add(quad);
+        }
+        for (Quad quad : changeset.getRemoved()) {
+            (removedIsVolatile[i++] ? removedForVolatile : removedForGround).add(quad);
+        }
+
+        if (addedForVolatile != null) {
+            if (removedForVolatile != null) {
+                volatileStore.insert(Changeset.fromAddedRemoved(addedForVolatile, removedForVolatile));
+            } else {
+                volatileStore.insert(Changeset.fromRemoved(addedForVolatile));
+            }
+        } else if (removedForVolatile != null) {
+            volatileStore.insert(Changeset.fromRemoved(removedForVolatile));
+        }
+
+        if (addedForGround != null) {
+            if (removedForGround != null) {
+                groundStore.insert(Changeset.fromAddedRemoved(addedForGround, removedForGround));
+            } else {
+                groundStore.insert(Changeset.fromRemoved(addedForGround));
+            }
+        } else if (removedForGround != null) {
+            groundStore.insert(Changeset.fromRemoved(removedForGround));
+        }
     }
 
     @Override
