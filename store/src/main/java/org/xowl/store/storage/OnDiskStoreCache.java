@@ -31,7 +31,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Implements a persisted dataset that uses a caching layer to improve its access performances
+ * Represents a part of a cache for the on-disk store.
+ * A cache part represents a set of cached quad corresponding either to a single subject, or to a single graph
  *
  * @author Laurent Wouters
  */
@@ -39,7 +40,7 @@ class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
     /**
      * The base persisted dataset
      */
-    private final PersistedDataset disk;
+    private final PersistedDataset persisted;
     /**
      * The cache corresponding exactly to the on-disk data
      */
@@ -47,80 +48,180 @@ class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
     /**
      * The current state of the cached data with the pending changes applied
      */
-    private final DiffDataset current;
+    private final DiffDataset diff;
+    /**
+     * Whether this cache part is clean, i.e. it has no pending changes
+     */
+    private boolean isClean;
+    /**
+     * The estimated size of this cache
+     */
+    private int size;
 
+    /**
+     * Gets whether this cache is clean
+     *
+     * @return Whether the cache is clean
+     */
+    public boolean isClean() {
+        return isClean;
+    }
 
-    public OnDiskStoreCache(PersistedDataset disk) {
-        this.disk = disk;
+    /**
+     * Gets the estimated size of this cache
+     *
+     * @return The estimated size of this cache
+     */
+    public int getSize() {
+        return size;
+    }
+
+    /**
+     * Initializes this cache part for a subject node
+     *
+     * @param persisted The base persisted dataset
+     * @param subject   The subject node for which to cache the quads
+     */
+    public OnDiskStoreCache(PersistedDataset persisted, SubjectNode subject) {
+        this.persisted = persisted;
         this.cache = new CachedDataset();
-        this.current = new DiffDataset(cache);
+        this.diff = new DiffDataset(cache);
+        this.isClean = true;
+        doCache((Iterator) persisted.getAll(subject, null, null));
     }
 
-    private void ensureInCache(SubjectNode subject) {
-
+    /**
+     * Initializes this cache part for a graph
+     *
+     * @param persisted The base persisted dataset
+     * @param graph     The graph node for which to cache the quads
+     */
+    public OnDiskStoreCache(PersistedDataset persisted, GraphNode graph) {
+        this.persisted = persisted;
+        this.cache = new CachedDataset();
+        this.diff = new DiffDataset(cache);
+        this.isClean = true;
+        doCache((Iterator) persisted.getAll(graph));
     }
 
-    private void ensureInCache(GraphNode graph) {
+    /**
+     * Loads this cache for the specified iterator
+     *
+     * @param iterator The iterator over the quads to cache
+     */
+    private void doCache(Iterator<MQuad> iterator) {
+        try {
+            while (iterator.hasNext()) {
+                MQuad quad = iterator.next();
+                for (int i = 0; i < quad.getMultiplicity(); i++) {
+                    cache.add(quad);
+                }
+                size++;
+            }
+        } catch (UnsupportedNodeType exception) {
+            // cannot happen
+        }
+    }
 
+    /**
+     * Commits the outstanding changes to this cache
+     */
+    public void commit() throws UnsupportedNodeType {
+        persisted.insert(diff.getChangeset());
+        persisted.commit();
+        diff.rollback();
+        isClean = true;
+    }
+
+    /**
+     * Rollbacks any pending changes on this cache
+     */
+    public void rollback() {
+        diff.rollback();
     }
 
     @Override
     public void close() throws Exception {
-
+        commit();
     }
 
     @Override
     public int doAddQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        return 0;
+        isClean = false;
+        int result = diff.doAddQuad(graph, subject, property, value);
+        if (result == DatasetImpl.ADD_RESULT_NEW)
+            size++;
+        return result;
     }
 
     @Override
     public int doRemoveQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        return 0;
+        isClean = false;
+        int result = diff.doRemoveQuad(graph, subject, property, value);
+        if (result >= DatasetImpl.REMOVE_RESULT_REMOVED)
+            size--;
+        return result;
     }
 
     @Override
     public void doRemoveQuads(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws UnsupportedNodeType {
-
+        isClean = false;
+        int before = bufferRemoved.size();
+        diff.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
+        size -= bufferRemoved.size() - before;
     }
 
     @Override
     public void doClear(List<MQuad> buffer) {
-        disk.doClear(buffer);
+        isClean = false;
+        int before = buffer.size();
+        diff.doClear(buffer);
+        size -= buffer.size() - before;
     }
 
     @Override
     public void doClear(GraphNode graph, List<MQuad> buffer) {
-        disk.doClear(graph, buffer);
+        isClean = false;
+        int before = buffer.size();
+        diff.doClear(graph, buffer);
+        size -= buffer.size() - before;
     }
 
     @Override
     public void doCopy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
-
+        isClean = false;
+        int beforeOld = bufferOld.size();
+        int beforeNew = bufferNew.size();
+        diff.doCopy(origin, target, bufferOld, bufferNew, overwrite);
+        size += (bufferNew.size() - beforeNew) - (bufferOld.size() - beforeOld);
     }
 
     @Override
     public void doMove(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
-
+        isClean = false;
+        int beforeOld = bufferOld.size();
+        int beforeNew = bufferNew.size();
+        diff.doMove(origin, target, bufferOld, bufferNew);
+        size += (bufferNew.size() - beforeNew) - (bufferOld.size() - beforeOld);
     }
 
     @Override
     public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return 0;
+        return diff.getMultiplicity(graph, subject, property, object);
     }
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return null;
+        return diff.getAll(graph, subject, property, object);
     }
 
     @Override
     public Collection<GraphNode> getGraphs() {
-        return null;
+        return diff.getGraphs();
     }
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return 0;
+        return diff.count(graph, subject, property, object);
     }
 }

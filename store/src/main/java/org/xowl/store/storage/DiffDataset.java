@@ -100,6 +100,14 @@ class DiffDataset extends DatasetImpl {
     }
 
     /**
+     * Drops all pending changes stored in this diff dataset
+     */
+    public void rollback() {
+        diffPositives.clear();
+        diffNegatives.clear();
+    }
+
+    /**
      * Gets the changeset representing the differences between this dataset and the original one
      *
      * @return The changeset
