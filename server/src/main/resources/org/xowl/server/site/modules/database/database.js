@@ -9,76 +9,102 @@ angular.module('xOWLServer.database', ['ngRoute'])
 		});
 	}])
 
-	.controller('DatabaseCtrl', ['$scope', '$http', '$sce', '$routeParams', '$location', function ($scope, $http, $sce, $routeParams, $location) {
+	.controller('DatabaseCtrl', ['$rootScope', '$scope', '$sce', '$routeParams', '$location', function ($rootScope, $scope, $sce, $routeParams, $location) {
 		$scope.database = {
 			name: $routeParams.id,
 			status: true
 		}
-		$http.post('/api', "DATABASE " + $scope.database.name + " ENTAILMENT", { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-			$scope.database.entailment = response.data;
-			setupEntailment($scope.database.entailment);
-		}, function (response) {
-			$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-		});
-		reloadRules($scope, $sce, $http);
+
+		$rootScope.xowl.getEntailmentFor(function (code, type, content) {
+			if (code === 200) {
+				$scope.database.entailment = content;
+				setupEntailment($scope.database.entailment);
+			} else {
+				$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+			}
+		}, $scope.database.name);
+
+		reloadRules($rootScope, $scope, $sce);
 		document.getElementById("rule-def-new").value = DEFAULT_RULE;
 		document.getElementById("sparql").value = DEFAULT_QUERY;
 
 		$scope.onSetEntailment = function () {
 			var regime = getEntailment();
-			$http.post('/api', "DATABASE " + $scope.database.name + " ENTAILMENT " + regime, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-				$scope.messages = $sce.trustAsHtml(getSuccess("The entailment regime was set."));
-				$scope.database.entailment = regime;
-			}, function (response) {
-				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-				setupEntailment($scope.database.entailment);
-			});
+			$rootScope.xowl.setEntailmentFor(function (code, type, content) {
+				if (code === 200) {
+					$scope.messages = $sce.trustAsHtml(getSuccess("The entailment regime was set."));
+					$scope.database.entailment = regime;
+				} else {
+					setupEntailment($scope.database.entailment);
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, regime);
 		}
 
 		$scope.onDBDrop = function () {
-			$http.post('/api', "ADMIN DROP DATABASE " + $scope.database.name, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-				$location.path("/databases");
-			}, function (response) {
-				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-			});
+			$rootScope.xowl.dropDatabase(function (code, type, content) {
+				if (code === 200) {
+					$location.path("/databases");
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name);
 		}
 
 		$scope.onNewRule = function () {
 			var data = document.getElementById("rule-def-new").value;
-			$http.post('/api', "DATABASE " + $scope.database.name + " ADD RULE " + data, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-				$scope.messages = $sce.trustAsHtml(getSuccess("Added new rule."));
-				reloadRules($scope, $sce, $http);
-			}, function (response) {
-				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-			});
+			$rootScope.xowl.addDBRule(function (code, type, content) {
+				if (code === 200) {
+					$scope.messages = $sce.trustAsHtml(getSuccess("Added new rule."));
+					reloadRules($rootScope, $scope, $sce);
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, data);
 		}
 
 		$scope.onRemoveRule = function (name) {
-			$http.post('/api', "DATABASE " + $scope.database.name + " REMOVE RULE " + name, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-				$scope.messages = $sce.trustAsHtml(getSuccess("Removed rule " + name));
-				reloadRules($scope, $sce, $http);
-			}, function (response) {
-				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-			});
+			$rootScope.xowl.removeDBRule(function (code, type, content) {
+				if (code === 200) {
+					$scope.messages = $sce.trustAsHtml(getSuccess("Removed rule " + name));
+					reloadRules($rootScope, $scope, $sce);
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, name);
 		}
 
 		$scope.onActivateRule = function (name) {
+			$rootScope.xowl.activateDBRule(function (code, type, content) {
+				if (code === 200) {
+					$scope.messages = $sce.trustAsHtml(getSuccess("Activated rule " + name));
+					reloadRules($rootScope, $scope, $sce);
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, name);
 		}
 
 		$scope.onDeactivateRule = function (name) {
+			$rootScope.xowl.deactivateDBRule(function (code, type, content) {
+				if (code === 200) {
+					$scope.messages = $sce.trustAsHtml(getSuccess("Deactivated rule " + name));
+					reloadRules($rootScope, $scope, $sce);
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, name);
 		}
-		
+
 		$scope.onSPARQL = function () {
 			var query = document.getElementById("sparql").value;
-			$http.post('/api/db/' + $scope.database.name + '/', query,
-			{ headers: {
-				"Content-Type": "application/sparql-query",
-				"Accept": "application/n-quads, application/sparql-results+json"
-				} }).then(function (response) {
-				
-			}, function (response) {
-				$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-			});
+			$rootScope.xowl.sparql(function (code, type, content) {
+				if (code === 200) {
+					onSPARQLResults($scope, type, content);
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, query);
 		}
 	}]);
 
@@ -103,27 +129,100 @@ var DEFAULT_QUERY =
 	"PREFIX xowl: <http://xowl.org/store/rules/xowl#>\n" +
 	"SELECT DISTINCT ?x ?y WHERE { GRAPH ?g { ?x a ?y } }";
 
-function reloadRules($scope, $sce, $http) {
-	$http.post('/api', "DATABASE " + $scope.database.name + " LIST RULES", { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-		$scope.rules = [];
-		for (var i = 0; i != response.data.results.length; i++) {
-			$scope.rules.push({ name: response.data.results[i], isActive: false });
-		}
-		$http.post('/api', "DATABASE " + $scope.database.name + " LIST ACTIVE RULES", { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-			for (var i = 0; i != response.data.results.length; i++) {
-				var name = response.data.results[i];
-				for (var j = 0; j != $scope.rules.length; i++) {
-					if ($scope.rules[j].name === name) {
-						$scope.rules[j].isActive = true;
+function reloadRules($rootScope, $scope, $sce) {
+	$rootScope.xowl.getDBRules(function (code, type, content) {
+		if (code !== 200) {
+			$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+		} else {
+			$scope.rules = [];
+			for (var i = 0; i != content.length; i++) {
+				$scope.rules.push({ name: content[i], isActive: false });
+			}
+			$rootScope.xowl.getDBActiveRules(function (code, type, content) {
+				for (var i = 0; i != content.length; i++) {
+					for (var j = 0; j != $scope.rules.length; i++) {
+						if ($scope.rules[j].name === content[i]) {
+							$scope.rules[j].isActive = true;
+						}
 					}
 				}
+			}, $scope.database.name);
+		}
+	}, $scope.database.name);
+}
+
+function onSPARQLResults($scope, type, content) {
+	$scope.data = { headers: [''], rows: [] };
+	var index = type.indexOf(";");
+    if (index !== -1)
+        type = type.substring(0, index);
+	if (type === "application/sparql-results+json") {
+		var data = JSON.parse(content);
+		if (data.hasOwnProperty("boolean")) {
+			var isSuccess = data.boolean;
+			if (isSuccess)
+				alert("OK");
+			else
+				alert(data.error);
+			return;
+		}
+		var vars = data.head.vars;
+		var solutions = data.results.bindings;
+		for (var i = 0; i != vars.length; i++) {
+			$scope.data.headers.push(vars[i]);
+		}
+		for (var i = 0; i != solutions.length; i++) {
+			var solution = solutions[i];
+			var row = { cells: [(i + 1).toString()] };
+			for (var j = 0; j != vars.length; j++) {
+				if (solution.hasOwnProperty(vars[j])) {
+					row.cells.push(rdfToString(solution[vars[j]]));
+				} else {
+					row.cells.push('');
+				}
 			}
-		}, function (response) {
-			$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-		});
-	}, function (response) {
-		$scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-	});
+			$scope.data.rows.push(row);
+		}
+	} else if (type === "application/n-quads") {
+		$scope.data.headers = ['s', 'p', 'o', 'g'];
+		var entities = parseNQuads(content);
+		var names = Object.getOwnPropertyNames(entities);
+		for (var p = 0; p != names.length; p++) {
+			var entity = entities[names[p]];
+			for (j = 0; j != entity.properties.length; j++) {
+				var property = entity.properties[j];
+				var row = { cells: [] };
+				if (entity.id.startsWith("http://"))
+					row.cells.push(entity.id);
+				else
+					row.cells.push('_:' + entity.id);
+				row.cells.push(property.id);
+				row.cells.push(rdfToString(property.value));
+				row.cells.push(property.graph);
+				$scope.data.rows.push(row);
+			}
+		}
+	}
+}
+
+function rdfToString(value) {
+    if (value.type === "uri" || value.type === "iri") {
+        return value.value;
+    } else if (value.type === "bnode") {
+        return '_:' + value.value;
+    } else if (value.type === "blank") {
+		return '_:' + value.id;
+    } else if (value.type === "variable") {
+		return '?' + value.value;
+    } else if (value.hasOwnProperty("lexical")) {
+		return '"' + value.lexical + '"' +
+			(value.datatype !== null ? '^^<' + value.datatype + '>' : '') +
+			(value.lang !== null ? '@' + value.lang : '');
+    } else {
+		return '"' + value.value + '"' +
+			(value.datatype !== null ? '^^<' + value.datatype + '>' : '') +
+			(value.hasOwnProperty("xml:lang") ? '@' + value["xml:lang"] : '');
+    }
 }
 
 function getEntailment() {

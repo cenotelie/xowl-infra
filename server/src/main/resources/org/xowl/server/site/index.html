@@ -17,7 +17,7 @@
       <img class="img-responsive" src="assets/xowl.png" width="50px" style="display: inline-block;"/>
       xOWL Server
     </h3>
-    <div ng-if="currentUser != null" style="display: inline-block;">
+    <div ng-if="xowl.userName != null" style="display: inline-block;">
       <a role="button" class="btn btn-lg btn-default" href="#server" style="margin-left: 100px;">Server</a>
       <a role="button" class="btn btn-lg btn-default" href="#databases">Databases</a>
       <a role="button" class="btn btn-lg btn-default" href="#users">Users</a>
@@ -34,12 +34,10 @@
   <script src="vendors/jquery-2.1.4.min.js"></script>
   <script src="vendors/angular.min.js"></script>
   <script src="vendors/angular-route.min.js"></script>
-  <script src="vendors/angular-base64.min.js"></script>
-  <script src="vendors/angular-local-storage.min.js"></script>
-  <script src="vendors/angular-basicauth.min.js"></script>
   <script src="vendors/bootstrap.min.js"></script>
   <script src="app.js"></script>
   <script src="xowl-api.js"></script>
+  <script src="xowl-api-angular.js"></script>
   <script src="modules/login/login.js"></script>
   <script src="modules/server/server.js"></script>
   <script src="modules/account/account.js"></script>

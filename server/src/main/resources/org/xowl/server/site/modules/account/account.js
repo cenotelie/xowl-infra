@@ -9,15 +9,14 @@ angular.module('xOWLServer.account', ['ngRoute'])
     });
   }])
 
-  .controller('AccountCtrl', ['$rootScope', '$scope', '$sce', '$http', function ($rootScope, $scope, $sce, $http) {
-    XOWL_ANGULAR_HTTP = $http;
-    xowlUserPrivileges(function (code, type, content) {
+  .controller('AccountCtrl', ['$rootScope', '$scope', '$sce', function ($rootScope, $scope, $sce) {
+    $rootScope.xowl.getPrivileges(function (code, type, content) {
       if (code === 200) {
         $scope.privileges = content;
       } else {
         $scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
       }
-    }, $rootScope.currentUser);
+    }, $rootScope.xowl.userName);
 
     $scope.onPasswordChange = function () {
       doChangePassword($rootScope, $scope, $sce);
@@ -32,7 +31,7 @@ function doChangePassword($rootScope, $scope, $sce) {
     $scope.messages = $sce.trustAsHtml(getError("Passwords do not match!"));
     return;
   }
-  xowlChangePassword(function (code, type, content) {
+  $rootScope.xowl.changePassword(function (code, type, content) {
     if (code === 200) {
       $scope.messages = $sce.trustAsHtml(getSuccess("Password was successfully changed."));
     } else {

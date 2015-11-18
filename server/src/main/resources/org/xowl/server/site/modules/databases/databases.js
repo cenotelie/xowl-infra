@@ -9,19 +9,24 @@ angular.module('xOWLServer.databases', ['ngRoute'])
     });
   }])
 
-  .controller('DatabasesCtrl', ['$scope', '$http', '$sce', '$location', function ($scope, $http, $sce, $location) {
-    $http.post('/api', "ADMIN LIST DATABASES", { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-      $scope.databases = response.data.results;
-    }, function (response) {
-      $scope.messages = $sce.trustAsHtml(getError(MSG_ERROR_CONNECTION));
+  .controller('DatabasesCtrl', ['$rootScope', '$scope', '$sce', '$location', function ($rootScope, $scope, $sce, $location) {
+    $rootScope.xowl.getDatabases(function (code, type, content) {
+      if (code === 200) {
+        $scope.databases = content;
+      } else {
+        $scope.messages = $sce.trustAsHtml(getError(MSG_ERROR_CONNECTION));
+      }
     });
+
     $scope.onNewDB = function () {
       var name = document.getElementById('field-db-name').value;
-      $http.post('/api', "ADMIN CREATE DATABASE " + name, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-        $location.path("/database/" + name);
-      }, function (response) {
-        $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-      });
+      $rootScope.xowl.createDatabase(function (code, type, content) {
+        if (code === 200) {
+          $location.path("/database/" + name);
+        } else {
+          $scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+        }
+      }, name);
       document.getElementById('field-db-name').value = "";
     };
   }]);

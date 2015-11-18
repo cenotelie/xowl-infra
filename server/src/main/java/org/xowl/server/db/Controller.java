@@ -866,6 +866,10 @@ public abstract class Controller implements Closeable {
                 || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
             BufferedLogger bufferedLogger = new BufferedLogger();
             DispatchLogger dispatchLogger = new DispatchLogger(database.logger, bufferedLogger);
+            if (defaultIRIs == null)
+                defaultIRIs = Collections.emptyList();
+            if (namedIRIs == null)
+                namedIRIs = Collections.emptyList();
             SPARQLLoader loader = new SPARQLLoader(database.repository.getStore(), defaultIRIs, namedIRIs);
             List<Command> commands = loader.load(dispatchLogger, new StringReader(sparql));
             if (commands == null) {
