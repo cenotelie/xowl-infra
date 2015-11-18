@@ -35,7 +35,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-class CachingOnDiskDataset extends DatasetImpl implements AutoCloseable {
+class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
     /**
      * The base persisted dataset
      */
@@ -50,7 +50,7 @@ class CachingOnDiskDataset extends DatasetImpl implements AutoCloseable {
     private final DiffDataset current;
 
 
-    public CachingOnDiskDataset(PersistedDataset disk) {
+    public OnDiskStoreCache(PersistedDataset disk) {
         this.disk = disk;
         this.cache = new CachedDataset();
         this.current = new DiffDataset(cache);

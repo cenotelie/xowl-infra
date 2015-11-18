@@ -26,14 +26,11 @@ import org.xowl.store.rdf.*;
 import org.xowl.store.storage.persistent.PersistedDataset;
 import org.xowl.store.storage.persistent.PersistedNodes;
 import org.xowl.store.storage.persistent.StorageException;
-import org.xowl.utils.collections.LockingIterator;
-import org.xowl.utils.concurrent.TrackedReentrantLock;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Concrete implementation of a persisted data store.
@@ -51,10 +48,6 @@ class OnDiskStore implements BaseStore {
      * The store for the dataset
      */
     private final PersistedDataset dataset;
-    /**
-     * Global lock for this store used to prevent concurrent access
-     */
-    private final ReentrantLock globalLock;
 
     /**
      * Initializes this store
@@ -67,306 +60,177 @@ class OnDiskStore implements BaseStore {
     public OnDiskStore(File directory, boolean isReadonly) throws IOException, StorageException {
         nodes = new PersistedNodes(directory, isReadonly);
         dataset = new PersistedDataset(nodes, directory, isReadonly);
-        globalLock = new TrackedReentrantLock();
     }
 
     @Override
     public boolean commit() {
-        globalLock.lock();
-        try {
-            boolean success = nodes.commit();
-            success &= dataset.commit();
-            return success;
-        } finally {
-            globalLock.unlock();
-        }
+        boolean success = nodes.commit();
+        success &= dataset.commit();
+        return success;
     }
 
     @Override
     public boolean rollback() {
-        globalLock.lock();
-        try {
-            boolean success = nodes.rollback();
-            success &= dataset.rollback();
-            return success;
-        } finally {
-            globalLock.unlock();
-        }
+        boolean success = nodes.rollback();
+        success &= dataset.rollback();
+        return success;
     }
 
     @Override
     public void addListener(ChangeListener listener) {
-        globalLock.lock();
-        try {
-            dataset.addListener(listener);
-        } finally {
-            globalLock.unlock();
-        }
+        dataset.addListener(listener);
     }
 
     @Override
     public void removeListener(ChangeListener listener) {
-        globalLock.lock();
-        try {
-            dataset.removeListener(listener);
-        } finally {
-            globalLock.unlock();
-        }
+        dataset.removeListener(listener);
     }
 
     @Override
     public long getMultiplicity(Quad quad) {
-        globalLock.lock();
-        try {
-            return dataset.getMultiplicity(quad);
-        } finally {
-            globalLock.unlock();
-        }
+        return dataset.getMultiplicity(quad);
     }
 
     @Override
     public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        globalLock.lock();
-        try {
-            return dataset.getMultiplicity(graph, subject, property, object);
-        } finally {
-            globalLock.unlock();
-        }
+        return dataset.getMultiplicity(graph, subject, property, object);
     }
 
     @Override
     public Iterator<Quad> getAll() {
-        globalLock.lock();
-        return new LockingIterator<>(dataset.getAll(), globalLock);
+        return dataset.getAll();
     }
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph) {
-        globalLock.lock();
-        return new LockingIterator<>(dataset.getAll(graph), globalLock);
+        return dataset.getAll(graph);
     }
 
     @Override
     public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
-        globalLock.lock();
-        return new LockingIterator<>(dataset.getAll(subject, property, object), globalLock);
+        return dataset.getAll(subject, property, object);
     }
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        globalLock.lock();
-        return new LockingIterator<>(dataset.getAll(graph, subject, property, object), globalLock);
+        return dataset.getAll(graph, subject, property, object);
     }
 
     @Override
     public Collection<GraphNode> getGraphs() {
-        globalLock.lock();
-        try {
-            return dataset.getGraphs();
-        } finally {
-            globalLock.unlock();
-        }
+        return dataset.getGraphs();
     }
 
     @Override
     public long count() {
-        globalLock.lock();
-        try {
-            return dataset.count();
-        } finally {
-            globalLock.unlock();
-        }
+        return dataset.count();
     }
 
     @Override
     public long count(GraphNode graph) {
-        globalLock.lock();
-        try {
-            return dataset.count(graph);
-        } finally {
-            globalLock.unlock();
-        }
+        return dataset.count(graph);
     }
 
     @Override
     public long count(SubjectNode subject, Property property, Node object) {
-        globalLock.lock();
-        try {
-            return dataset.count(subject, property, object);
-        } finally {
-            globalLock.unlock();
-        }
+        return dataset.count(subject, property, object);
     }
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        globalLock.lock();
-        try {
-            return dataset.count(graph, subject, property, object);
-        } finally {
-            globalLock.unlock();
-        }
+        return dataset.count(graph, subject, property, object);
     }
 
 
     @Override
     public void insert(Changeset changeset) throws UnsupportedNodeType {
-        globalLock.lock();
-        try {
-            dataset.insert(changeset);
-        } finally {
-            globalLock.unlock();
-        }
+        dataset.insert(changeset);
     }
 
     @Override
     public void add(Quad quad) throws UnsupportedNodeType {
-        globalLock.lock();
-        try {
-            dataset.add(quad);
-        } finally {
-            globalLock.unlock();
-        }
+        dataset.add(quad);
     }
 
     @Override
     public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        globalLock.lock();
-        try {
-            dataset.add(graph, subject, property, value);
-        } finally {
-            globalLock.unlock();
-        }
+        dataset.add(graph, subject, property, value);
     }
 
     @Override
     public void remove(Quad quad) throws UnsupportedNodeType {
-        globalLock.lock();
-        try {
-            dataset.remove(quad);
-        } finally {
-            globalLock.unlock();
-        }
+        dataset.remove(quad);
     }
 
     @Override
     public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        globalLock.lock();
-        try {
-            dataset.remove(graph, subject, property, value);
-        } finally {
-            globalLock.unlock();
-        }
+        dataset.remove(graph, subject, property, value);
     }
 
     @Override
     public void clear() {
-        globalLock.lock();
-        try {
-            dataset.clear();
-        } finally {
-            globalLock.unlock();
-        }
+        dataset.clear();
     }
 
     @Override
     public void clear(GraphNode graph) {
-        globalLock.lock();
-        try {
-            dataset.clear(graph);
-        } finally {
-            globalLock.unlock();
-        }
+        dataset.clear(graph);
     }
 
     @Override
     public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
-        globalLock.lock();
-        try {
-            dataset.copy(origin, target, overwrite);
-        } finally {
-            globalLock.unlock();
-        }
+        dataset.copy(origin, target, overwrite);
     }
 
     @Override
     public void move(GraphNode origin, GraphNode target) {
-        globalLock.lock();
-        try {
-            dataset.move(origin, target);
-        } finally {
-            globalLock.unlock();
-        }
+        dataset.move(origin, target);
     }
 
     @Override
     public IRINode getIRINode(GraphNode graph) {
-        globalLock.lock();
-        try {
-            return nodes.getIRINode(graph);
-        } finally {
-            globalLock.unlock();
-        }
+        return nodes.getIRINode(graph);
     }
 
     @Override
     public IRINode getIRINode(String iri) {
-        globalLock.lock();
-        try {
-            return nodes.getIRINode(iri);
-        } finally {
-            globalLock.unlock();
-        }
+        return nodes.getIRINode(iri);
     }
 
     @Override
     public IRINode getExistingIRINode(String iri) {
-        globalLock.lock();
-        try {
-            return nodes.getExistingIRINode(iri);
-        } finally {
-            globalLock.unlock();
-        }
+        return nodes.getExistingIRINode(iri);
     }
 
     @Override
     public BlankNode getBlankNode() {
-        globalLock.lock();
-        try {
-            return nodes.getBlankNode();
-        } finally {
-            globalLock.unlock();
-        }
+        return nodes.getBlankNode();
     }
 
     @Override
     public LiteralNode getLiteralNode(String lex, String datatype, String lang) {
-        globalLock.lock();
-        try {
-            return nodes.getLiteralNode(lex, datatype, lang);
-        } finally {
-            globalLock.unlock();
-        }
+        return nodes.getLiteralNode(lex, datatype, lang);
     }
 
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
-        globalLock.lock();
-        try {
-            return nodes.getAnonNode(individual);
-        } finally {
-            globalLock.unlock();
-        }
+        return nodes.getAnonNode(individual);
     }
 
     @Override
     public void close() throws Exception {
-        globalLock.lock();
+        Exception ex = null;
+        try {
+            nodes.close();
+        } catch (Exception exception) {
+            ex = exception;
+        }
         try {
             dataset.close();
-            nodes.close();
-        } finally {
-            globalLock.unlock();
+        } catch (Exception exception) {
+            // TODO: clean this, the previous ex could be swallowed
+            ex = exception;
         }
+        throw ex;
     }
 }
