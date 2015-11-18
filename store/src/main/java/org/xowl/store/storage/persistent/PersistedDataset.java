@@ -1163,7 +1163,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (pSubject == null || pProperty == null || pObject == null || pGraph == null)
             // the quad cannot be in this store
             return REMOVE_RESULT_NOT_FOUND;
-        int result = doQuadRemove(pGraph, pSubject, pProperty, pObject);
+        int result = doQuadRemove(pSubject, pProperty, pObject, pGraph);
         if (result >= REMOVE_RESULT_REMOVED) {
             doQuadDeindex(pSubject, pGraph);
             pSubject.decrementRefCount();

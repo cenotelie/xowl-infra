@@ -14,7 +14,7 @@ angular.module('xOWLServer.databases', ['ngRoute'])
       if (code === 200) {
         $scope.databases = content;
       } else {
-        $scope.messages = $sce.trustAsHtml(getError(MSG_ERROR_CONNECTION));
+        $scope.messages = $sce.trustAsHtml(getError(code, content));
       }
     });
 

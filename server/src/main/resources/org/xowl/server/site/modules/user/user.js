@@ -9,15 +9,17 @@ angular.module('xOWLServer.user', ['ngRoute'])
     });
   }])
 
-  .controller('UserCtrl', ['$rootScope', '$scope', '$http', '$sce', '$routeParams', '$location', function ($rootScope, $scope, $http, $sce, $routeParams, $location) {
+  .controller('UserCtrl', ['$rootScope', '$scope', '$sce', '$routeParams', '$location', function ($rootScope, $scope, $sce, $routeParams, $location) {
     $scope.user = $routeParams.id;
 
     $scope.updatePrivileges = function () {
-      $http.post('/api', "ADMIN PRIVILEGES " + $scope.user, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-        $scope.privileges = response.data.results;
-      }, function (response) {
-        $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-      });
+      $rootScope.xowl.getPrivileges(function (code, type, content) {
+        if (code === 200) {
+          $scope.privileges = content;
+        } else {
+          $scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+        }
+      }, $scope.user);
     }
     $scope.updatePrivileges();
 
@@ -28,45 +30,49 @@ angular.module('xOWLServer.user', ['ngRoute'])
         $scope.messages = $sce.trustAsHtml(getError("Passwords do not match!"));
         return;
       }
-      $http.post('/api', "ADMIN RESET PASSWORD " + $scope.user + " " + pass1, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-        $scope.messages = $sce.trustAsHtml(getSuccess("Password was successfully reset."));
-      }, function (response) {
-        $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-      });
+      $rootScope.xowl.resetPassword(function (code, type, content) {
+        if (code === 200) {
+          $scope.messages = $sce.trustAsHtml(getSuccess("Password was successfully changed."));
+        } else {
+          $scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+        }
+      }, $scope.user, pass1);
       document.getElementById('field-password-1').value = "";
       document.getElementById('field-password-2').value = "";
     };
 
     $scope.onRevoke = function (access, privilege) {
       var database = access.database;
-      if (access.isAdmin) {
-        $http.post('/api', "ADMIN REVOKE " + privilege + " " + $scope.user + " " + database, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
+      $rootScope.xowl.revokeDB(function (code, type, content) {
+        if (code === 200) {
           $scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
           $scope.updatePrivileges();
-        }, function (response) {
-          $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-          $scope.updatePrivileges();
-        });
-      }
+        } else {
+          $scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+        }
+      }, database, privilege, $scope.user);
     }
 
     $scope.onGrant = function () {
       var database = document.getElementById('field-grant-database').value;
       var privilege = document.getElementById('field-grant-privilege').value;
-      $http.post('/api', "ADMIN GRANT " + privilege + " " + $scope.user + " " + database, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-        $scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
-        $scope.updatePrivileges();
-      }, function (response) {
-        $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-      });
+      $rootScope.xowl.grantDB(function (code, type, content) {
+        if (code === 200) {
+          $scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
+          $scope.updatePrivileges();
+        } else {
+          $scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+        }
+      }, database, privilege, $scope.user);
     }
 
     $scope.onUserDelete = function () {
-      $http.post('/api', "ADMIN DELETE USER " + $scope.user, { headers: { "Content-Type": "application/x-xowl-xsp" } }).then(function (response) {
-        $scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
-        $location.path("/users");
-      }, function (response) {
-        $scope.messages = $sce.trustAsHtml(getErrorFor(response.status, response.data));
-      });
+      $rootScope.xowl.deleteUser(function (code, type, content) {
+        if (code === 200) {
+          $location.path("/users");
+        } else {
+          $scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+        }
+      }, $scope.user);
     }
   }]);
