@@ -52,6 +52,7 @@ public class StoreFactory {
             File directory = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
             return new BaseReasonableStore(new BaseMTSafeStore(new OnDiskStore(directory, false)));
         } catch (IOException | StorageException exception) {
+            exception.printStackTrace();
             return null;
         }
     }
@@ -66,6 +67,7 @@ public class StoreFactory {
         try {
             return new BaseReasonableStore(new BaseMTSafeStore(new OnDiskStore(directory, false)));
         } catch (IOException | StorageException exception) {
+            exception.printStackTrace();
             return null;
         }
     }
@@ -80,6 +82,7 @@ public class StoreFactory {
         try {
             return new BaseReasonableStore(new BaseMTSafeStore(new OnDiskStore(directory, true)));
         } catch (IOException | StorageException exception) {
+            exception.printStackTrace();
             return null;
         }
     }

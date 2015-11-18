@@ -345,7 +345,6 @@ class BaseMTSafeStore implements BaseStore {
         globalLock.lock();
         try {
             backend.close();
-            backend.close();
         } finally {
             globalLock.unlock();
         }
