@@ -33,11 +33,11 @@ public class AdaptingIterator<T, X> implements Iterator<T> {
     /**
      * The innner iterator
      */
-    private final Iterator<X> content;
+    protected final Iterator<X> content;
     /**
      * The adapter for translating the element
      */
-    private final Adapter<T> adapter;
+    protected final Adapter<T> adapter;
 
     /**
      * Initializes this iterator

@@ -33,23 +33,27 @@ public class CombiningIterator<X, Y> implements Iterator<Couple<X, Y>> {
     /**
      * The current result that has been return by the next function
      */
-    private final Couple<X, Y> current;
+    protected final Couple<X, Y> current;
     /**
      * The next result to be returned
      */
-    private final Couple<X, Y> nextResult;
+    protected final Couple<X, Y> nextResult;
     /**
      * The iterator of values on the left
      */
-    private final Iterator<X> leftIterator;
+    protected final Iterator<X> leftIterator;
     /**
      * The current iterator for the right elements
      */
-    private Iterator<Y> rightIterator;
+    protected Iterator<Y> rightIterator;
+    /**
+     * Flag whether the next result must be looked for
+     */
+    protected boolean mustFindNext;
     /**
      * The adapter to get an iterator of Y for each X item
      */
-    private final Adapter<Iterator<Y>> adapter;
+    protected final Adapter<Iterator<Y>> adapter;
 
     /**
      * Initializes this iterator
@@ -83,18 +87,23 @@ public class CombiningIterator<X, Y> implements Iterator<Couple<X, Y>> {
             nextResult.x = null;
             nextResult.y = null;
         }
+        mustFindNext = false;
     }
 
     @Override
     public boolean hasNext() {
+        if (mustFindNext)
+            findNext();
         return (nextResult.x != null && nextResult.y != null);
     }
 
     @Override
     public Couple<X, Y> next() {
+        if (mustFindNext)
+            findNext();
         current.x = nextResult.x;
         current.y = nextResult.y;
-        findNext();
+        mustFindNext = true;
         return current;
     }
 

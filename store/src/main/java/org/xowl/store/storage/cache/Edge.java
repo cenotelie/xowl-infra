@@ -81,6 +81,15 @@ class Edge implements Iterable<EdgeTarget> {
     }
 
     /**
+     * Gets the number of graphs
+     *
+     * @return The number of graphs
+     */
+    public int getSize() {
+        return size;
+    }
+
+    /**
      * Adds the specified edge (or increment the counter)
      *
      * @param graph The graph containing the quad
@@ -294,36 +303,68 @@ class Edge implements Iterable<EdgeTarget> {
      */
     public Iterator<MQuad> getAll(final GraphNode graph, final Node value) {
         if (value == null || value.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(new IndexIterator<>(targets), new Adapter<Iterator<MQuad>>() {
+            return new AdaptingIterator<MQuad, Couple<Integer, MQuad>>(new CombiningIterator<Integer, MQuad>(new IndexIterator<>(targets), new Adapter<Iterator<MQuad>>() {
                 @Override
                 public <X> Iterator<MQuad> adapt(X element) {
-                    Integer index = (Integer) element;
+                    int index = (Integer) element;
                     return targets[index].getAll(graph);
                 }
-            }), new Adapter<MQuad>() {
+            }) {
+                @Override
+                public void remove() {
+                    if (!mustFindNext)
+                        throw new IllegalStateException("The hasNext method must have been not called for this operation to succeed");
+                    rightIterator.remove();
+                    int index = current.x;
+                    if (targets[index].getSize() == 0) {
+                        targets[index] = null;
+                        size--;
+                    }
+                }
+            }, new Adapter<MQuad>() {
                 @Override
                 public <X> MQuad adapt(X element) {
                     Couple<Integer, MQuad> result = (Couple<Integer, MQuad>) element;
                     result.y.setObject(targets[result.x].getTarget());
                     return result.y;
                 }
-            });
+            }) {
+                @Override
+                public void remove() {
+                    content.remove();
+                }
+            };
         }
 
         for (int i = 0; i != targets.length; i++) {
             if (targets[i] != null && RDFUtils.same(targets[i].getTarget(), value)) {
-                return new AdaptingIterator<>(targets[i].getAll(graph), new Adapter<MQuad>() {
+                final int index = i;
+                return new AdaptingIterator<MQuad, MQuad>(targets[i].getAll(graph), new Adapter<MQuad>() {
                     @Override
                     public <X> MQuad adapt(X element) {
                         MQuad result = (MQuad) element;
                         result.setObject(value);
                         return result;
                     }
-                });
+                }) {
+                    @Override
+                    public void remove() {
+                        content.remove();
+                        if (targets[index].getSize() == 0) {
+                            targets[index] = null;
+                            size--;
+                        }
+                    }
+                };
             }
         }
 
-        return new SingleIterator<>(null);
+        return new SingleIterator<MQuad>(null) {
+            @Override
+            public void remove() {
+                // do nothing
+            }
+        };
     }
 
     /**
