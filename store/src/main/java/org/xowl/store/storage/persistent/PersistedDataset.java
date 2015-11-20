@@ -369,9 +369,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        if (subject != null)
+        if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE)
             return getAllOnSingleSubject(graph, subject, property, object);
-        if (graph != null)
+        if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE)
             return getAllOnSingleGraph(graph, property, object);
         return getAllDefault(property, object);
     }

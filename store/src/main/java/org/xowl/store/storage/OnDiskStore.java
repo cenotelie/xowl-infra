@@ -31,9 +31,7 @@ import org.xowl.store.storage.persistent.StorageException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Concrete implementation of a persisted data store.
@@ -56,25 +54,9 @@ class OnDiskStore implements BaseStore {
      */
     private final CachedNodes cacheNodes;
     /**
-     * The cache parts for specific subjects
+     * The caching dataset
      */
-    private final Map<SubjectNode, OnDiskStoreCache> cacheBySubject;
-    /**
-     * The cache parts for specific graphs
-     */
-    private final Map<GraphNode, OnDiskStoreCache> cacheByGraph;
-    /**
-     * The estimated size
-     */
-    private int cacheSize;
-    /**
-     * The number of cache hit
-     */
-    private long cacheHitCount;
-    /**
-     * The number of cache miss
-     */
-    private long cacheMissCount;
+    private final OnDiskStoreCache cacheDataset;
 
     /**
      * Initializes this store
@@ -88,53 +70,18 @@ class OnDiskStore implements BaseStore {
         persistedNodes = new PersistedNodes(directory, isReadonly);
         persistedDataset = new PersistedDataset(persistedNodes, directory, isReadonly);
         cacheNodes = new CachedNodes();
-        cacheBySubject = new HashMap<>();
-        cacheByGraph = new HashMap<>();
-        cacheSize = 0;
-        cacheHitCount = 0;
-        cacheMissCount = 0;
+        cacheDataset = new OnDiskStoreCache(persistedDataset);
     }
 
     @Override
     public boolean commit() {
-        // commit all caches
-        boolean success = true;
-        for (OnDiskStoreCache part : cacheBySubject.values()) {
-            if (!part.isClean()) {
-                try {
-                    part.commit();
-                } catch (Exception exception) {
-                    success = false;
-                }
-            }
-        }
-        for (OnDiskStoreCache part : cacheByGraph.values()) {
-            if (!part.isClean()) {
-                try {
-                    part.commit();
-                } catch (Exception exception) {
-                    success = false;
-                }
-            }
-        }
-        // commit the persistence layer
-        success &= persistedNodes.commit();
+        boolean success = persistedNodes.commit();
         success &= persistedDataset.commit();
         return success;
     }
 
     @Override
     public boolean rollback() {
-        for (OnDiskStoreCache part : cacheBySubject.values()) {
-            if (!part.isClean()) {
-                part.rollback();
-            }
-        }
-        for (OnDiskStoreCache part : cacheBySubject.values()) {
-            if (!part.isClean()) {
-                part.rollback();
-            }
-        }
         boolean success = persistedNodes.rollback();
         success &= persistedDataset.rollback();
         return success;
@@ -142,113 +89,113 @@ class OnDiskStore implements BaseStore {
 
     @Override
     public void addListener(ChangeListener listener) {
-        persistedDataset.addListener(listener);
+        cacheDataset.addListener(listener);
     }
 
     @Override
     public void removeListener(ChangeListener listener) {
-        persistedDataset.removeListener(listener);
+        cacheDataset.removeListener(listener);
     }
 
     @Override
     public long getMultiplicity(Quad quad) {
-        return persistedDataset.getMultiplicity(quad);
+        return cacheDataset.getMultiplicity(quad);
     }
 
     @Override
     public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return persistedDataset.getMultiplicity(graph, subject, property, object);
+        return cacheDataset.getMultiplicity(graph, subject, property, object);
     }
 
     @Override
     public Iterator<Quad> getAll() {
-        return persistedDataset.getAll();
+        return cacheDataset.getAll();
     }
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph) {
-        return persistedDataset.getAll(graph);
+        return cacheDataset.getAll(graph);
     }
 
     @Override
     public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
-        return persistedDataset.getAll(subject, property, object);
+        return cacheDataset.getAll(subject, property, object);
     }
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return persistedDataset.getAll(graph, subject, property, object);
+        return cacheDataset.getAll(graph, subject, property, object);
     }
 
     @Override
     public Collection<GraphNode> getGraphs() {
-        return persistedDataset.getGraphs();
+        return cacheDataset.getGraphs();
     }
 
     @Override
     public long count() {
-        return persistedDataset.count();
+        return cacheDataset.count();
     }
 
     @Override
     public long count(GraphNode graph) {
-        return persistedDataset.count(graph);
+        return cacheDataset.count(graph);
     }
 
     @Override
     public long count(SubjectNode subject, Property property, Node object) {
-        return persistedDataset.count(subject, property, object);
+        return cacheDataset.count(subject, property, object);
     }
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return persistedDataset.count(graph, subject, property, object);
+        return cacheDataset.count(graph, subject, property, object);
     }
 
 
     @Override
     public void insert(Changeset changeset) throws UnsupportedNodeType {
-        persistedDataset.insert(changeset);
+        cacheDataset.insert(changeset);
     }
 
     @Override
     public void add(Quad quad) throws UnsupportedNodeType {
-        persistedDataset.add(quad);
+        cacheDataset.add(quad);
     }
 
     @Override
     public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        persistedDataset.add(graph, subject, property, value);
+        cacheDataset.add(graph, subject, property, value);
     }
 
     @Override
     public void remove(Quad quad) throws UnsupportedNodeType {
-        persistedDataset.remove(quad);
+        cacheDataset.remove(quad);
     }
 
     @Override
     public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        persistedDataset.remove(graph, subject, property, value);
+        cacheDataset.remove(graph, subject, property, value);
     }
 
     @Override
     public void clear() {
-        persistedDataset.clear();
+        cacheDataset.clear();
     }
 
     @Override
     public void clear(GraphNode graph) {
-        persistedDataset.clear(graph);
+        cacheDataset.clear(graph);
     }
 
     @Override
     public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
-        persistedDataset.copy(origin, target, overwrite);
+        cacheDataset.copy(origin, target, overwrite);
     }
 
     @Override
     public void move(GraphNode origin, GraphNode target) {
-        persistedDataset.move(origin, target);
+        cacheDataset.move(origin, target);
     }
 
     @Override

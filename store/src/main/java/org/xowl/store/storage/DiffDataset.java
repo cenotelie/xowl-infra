@@ -28,6 +28,7 @@ import org.xowl.utils.collections.Adapter;
 import org.xowl.utils.collections.AdaptingIterator;
 import org.xowl.utils.collections.ConcatenatedIterator;
 import org.xowl.utils.collections.SkippableIterator;
+import org.xowl.utils.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -100,7 +101,42 @@ class DiffDataset extends DatasetImpl {
     }
 
     /**
-     * Drops all pending changes stored in this diff dataset
+     * Commits all outstanding changes to the origin dataset
+     */
+    public void commit() {
+        Iterator<Quad> iterator;
+        if (diffPositives != null) {
+            iterator = diffPositives.getAll();
+            while (iterator.hasNext()) {
+                MQuad quad = (MQuad) iterator.next();
+                for (int i = 0; i < quad.getMultiplicity(); i++) {
+                    try {
+                        original.add(quad);
+                    } catch (UnsupportedNodeType exception) {
+                        Logger.DEFAULT.error(exception);
+                    }
+                }
+            }
+            diffPositives.clear();
+        }
+        if (diffNegatives != null) {
+            iterator = diffNegatives.getAll();
+            while (iterator.hasNext()) {
+                MQuad quad = (MQuad) iterator.next();
+                for (int i = 0; i < quad.getMultiplicity(); i++) {
+                    try {
+                        original.remove(quad);
+                    } catch (UnsupportedNodeType exception) {
+                        Logger.DEFAULT.error(exception);
+                    }
+                }
+            }
+            diffNegatives.clear();
+        }
+    }
+
+    /**
+     * Drops all outstanding changes
      */
     public void rollback() {
         diffPositives.clear();

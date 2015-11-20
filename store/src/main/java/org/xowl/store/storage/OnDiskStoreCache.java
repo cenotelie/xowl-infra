@@ -20,6 +20,7 @@
 
 package org.xowl.store.storage;
 
+import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.cache.CachedDataset;
 import org.xowl.store.storage.impl.DatasetImpl;
@@ -31,12 +32,106 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Represents a part of a cache for the on-disk store.
- * A cache part represents a set of cached quad corresponding either to a single subject, or to a single graph
+ * Represents the caching part of a a on-disk persistent data store
  *
  * @author Laurent Wouters
  */
-class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
+class OnDiskStoreCache extends DatasetImpl {
+    /**
+     * The maximum number of cached subjects
+     */
+    private static final int MAX_CACHED_SUBJECTS = 256;
+    /**
+     * The maximum number of cached graphs
+     */
+    private static final int MAX_CACHED_GRAPHS = 4;
+
+    /**
+     * Represents a collection of cached elements
+     */
+    private static class Part {
+        /**
+         * The cached nodes
+         */
+        private final Node[] nodes;
+        /**
+         * The last hit time
+         */
+        private final long[] hits;
+        /**
+         * The number of cached items
+         */
+        private int count;
+        /**
+         * The current time
+         */
+        private long current;
+
+        /**
+         * Initializes the cache
+         *
+         * @param size The maximum number of items in this cache
+         */
+        public Part(int size) {
+            this.nodes = new Node[size];
+            this.hits = new long[size];
+            this.count = 0;
+            this.current = Long.MIN_VALUE;
+        }
+
+        /**
+         * Gets whether the specified node is cached
+         *
+         * @param node The node to look for
+         * @return true if the node is cached
+         */
+        public boolean contains(Node node) {
+            for (int i = 0; i != count; i++) {
+                if (RDFUtils.same(nodes[i], node))
+                    return true;
+            }
+            return false;
+        }
+
+        /**
+         * Caches a node
+         * If the node was already in the cached, return it.
+         * If the node was simply added, return null.
+         * If the insertion resulted in another node being dropped, return the dropped node.
+         *
+         * @param node The node to cache
+         * @return The result
+         */
+        public Node cache(Node node) {
+            current++;
+            int oldestIndex = -1;
+            long oldestTime = Long.MAX_VALUE;
+            for (int i = 0; i != count; i++) {
+                if (RDFUtils.same(nodes[i], node)) {
+                    hits[i] = current;
+                    return null;
+                }
+                if (hits[i] < oldestTime) {
+                    oldestTime = hits[i];
+                    oldestIndex = i;
+                }
+            }
+            // not in this collection
+            if (count < nodes.length) {
+                // still not full
+                nodes[count] = node;
+                hits[count] = current;
+                count++;
+                return null;
+            }
+            // the collection is full, we need to drop the oldest element
+            Node toDrop = nodes[oldestIndex];
+            nodes[oldestIndex] = node;
+            hits[oldestIndex] = current;
+            return toDrop;
+        }
+    }
+
     /**
      * The base persisted dataset
      */
@@ -50,73 +145,102 @@ class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
      */
     private final DiffDataset diff;
     /**
-     * Whether this cache part is clean, i.e. it has no pending changes
+     * Collection of the cached subjects
      */
-    private boolean isClean;
+    private final Part cachedSubjects;
+    /**
+     * Collection of the cached graphs
+     */
+    private final Part cachedGraphs;
     /**
      * The estimated size of this cache
      */
     private int size;
 
     /**
-     * Gets whether this cache is clean
-     *
-     * @return Whether the cache is clean
-     */
-    public boolean isClean() {
-        return isClean;
-    }
-
-    /**
-     * Gets the estimated size of this cache
-     *
-     * @return The estimated size of this cache
-     */
-    public int getSize() {
-        return size;
-    }
-
-    /**
-     * Initializes this cache part for a subject node
+     * Initializes this cache
      *
      * @param persisted The base persisted dataset
-     * @param subject   The subject node for which to cache the quads
      */
-    public OnDiskStoreCache(PersistedDataset persisted, SubjectNode subject) {
+    public OnDiskStoreCache(PersistedDataset persisted) {
         this.persisted = persisted;
         this.cache = new CachedDataset();
         this.diff = new DiffDataset(cache);
-        this.isClean = true;
-        doCache((Iterator) persisted.getAll(subject, null, null));
+        this.cachedSubjects = new Part(MAX_CACHED_SUBJECTS);
+        this.cachedGraphs = new Part(MAX_CACHED_GRAPHS);
+        this.size = 0;
     }
 
     /**
-     * Initializes this cache part for a graph
+     * Makes sure that the quads for the specified subject node are all in the cache
      *
-     * @param persisted The base persisted dataset
-     * @param graph     The graph node for which to cache the quads
+     * @param subject The subject node
      */
-    public OnDiskStoreCache(PersistedDataset persisted, GraphNode graph) {
-        this.persisted = persisted;
-        this.cache = new CachedDataset();
-        this.diff = new DiffDataset(cache);
-        this.isClean = true;
-        doCache((Iterator) persisted.getAll(graph));
-    }
-
-    /**
-     * Loads this cache for the specified iterator
-     *
-     * @param iterator The iterator over the quads to cache
-     */
-    private void doCache(Iterator<MQuad> iterator) {
+    private void ensureInCache(SubjectNode subject) {
+        Node result = cachedSubjects.cache(subject);
+        if (result == subject) {
+            // the subject is already cached
+            return;
+        }
+        if (result != null) {
+            // drop the quads for the old subject
+            Iterator<Quad> iterator = cache.getAll((SubjectNode) result, null, null);
+            while (iterator.hasNext()) {
+                Quad quad = iterator.next();
+                if (!cachedGraphs.contains(quad.getGraph())) {
+                    iterator.remove();
+                    size--;
+                }
+            }
+        }
+        Iterator<MQuad> iterator = (Iterator) persisted.getAll(subject, null, null);
         try {
             while (iterator.hasNext()) {
                 MQuad quad = iterator.next();
-                for (int i = 0; i < quad.getMultiplicity(); i++) {
-                    cache.add(quad);
+                if (!cachedGraphs.contains(quad.getGraph())) {
+                    for (int i = 0; i < quad.getMultiplicity(); i++) {
+                        cache.add(quad);
+                    }
+                    size++;
                 }
-                size++;
+            }
+        } catch (UnsupportedNodeType exception) {
+            // cannot happen
+        }
+    }
+
+    /**
+     * Makes sure that the quads for the specified graph are all in the cache
+     *
+     * @param graph The graph
+     */
+    private void ensureInCache(GraphNode graph) {
+        Node result = cachedGraphs.cache(graph);
+        if (result == graph) {
+            // the graph is already cached
+            return;
+        }
+        if (result != null) {
+            // drop the quads for the old graph
+            Iterator<Quad> iterator = cache.getAll((GraphNode) result);
+            while (iterator.hasNext()) {
+                Quad quad = iterator.next();
+                if (!cachedSubjects.contains(quad.getSubject())) {
+                    iterator.remove();
+                    size--;
+                }
+            }
+        }
+        Iterator<MQuad> iterator = (Iterator) persisted.getAll(graph);
+        try {
+            while (iterator.hasNext()) {
+                MQuad quad = iterator.next();
+                if (!cachedSubjects.contains(quad.getSubject())) {
+                    for (int i = 0; i < quad.getMultiplicity(); i++) {
+                        cache.add(quad);
+                    }
+                    size++;
+                }
             }
         } catch (UnsupportedNodeType exception) {
             // cannot happen
@@ -126,28 +250,21 @@ class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
     /**
      * Commits the outstanding changes to this cache
      */
-    public void commit() throws UnsupportedNodeType {
-        persisted.insert(diff.getChangeset());
+    private void commit() {
+        diff.commit();
         persisted.commit();
-        diff.rollback();
-        isClean = true;
     }
 
     /**
      * Rollbacks any pending changes on this cache
      */
-    public void rollback() {
+    private void rollback() {
         diff.rollback();
     }
 
     @Override
-    public void close() throws Exception {
-        commit();
-    }
-
-    @Override
     public int doAddQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        isClean = false;
+        ensureInCache(subject);
         int result = diff.doAddQuad(graph, subject, property, value);
         if (result == DatasetImpl.ADD_RESULT_NEW)
             size++;
@@ -156,7 +273,7 @@ class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
 
     @Override
     public int doRemoveQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        isClean = false;
+        ensureInCache(subject);
         int result = diff.doRemoveQuad(graph, subject, property, value);
         if (result >= DatasetImpl.REMOVE_RESULT_REMOVED)
             size--;
@@ -165,7 +282,13 @@ class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
 
     @Override
     public void doRemoveQuads(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws UnsupportedNodeType {
-        isClean = false;
+        if (subject != null) {
+            ensureInCache(subject);
+        } else if (graph != null) {
+            ensureInCache(graph);
+        } else {
+            // TODO: handle this
+        }
         int before = bufferRemoved.size();
         diff.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
         size -= bufferRemoved.size() - before;
@@ -173,7 +296,6 @@ class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
 
     @Override
     public void doClear(List<MQuad> buffer) {
-        isClean = false;
         int before = buffer.size();
         diff.doClear(buffer);
         size -= buffer.size() - before;
@@ -181,7 +303,6 @@ class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
 
     @Override
     public void doClear(GraphNode graph, List<MQuad> buffer) {
-        isClean = false;
         int before = buffer.size();
         diff.doClear(graph, buffer);
         size -= buffer.size() - before;
@@ -189,7 +310,6 @@ class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
 
     @Override
     public void doCopy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
-        isClean = false;
         int beforeOld = bufferOld.size();
         int beforeNew = bufferNew.size();
         diff.doCopy(origin, target, bufferOld, bufferNew, overwrite);
@@ -198,7 +318,6 @@ class OnDiskStoreCache extends DatasetImpl implements AutoCloseable {
 
     @Override
     public void doMove(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
-        isClean = false;
         int beforeOld = bufferOld.size();
         int beforeNew = bufferNew.size();
         diff.doMove(origin, target, bufferOld, bufferNew);
