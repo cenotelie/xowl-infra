@@ -289,7 +289,7 @@ class EdgeBucket implements Iterable<Edge> {
      */
     public Iterator<MQuad> getAll(final GraphNode graph, final Property property, final Node value) {
         if (property == null || property.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<MQuad, Couple<Integer, MQuad>>(new CombiningIterator<Integer, MQuad>(new IndexIterator<>(edges), new Adapter<Iterator<MQuad>>() {
+            return new AdaptingIterator<>(new CombiningIterator<Integer, MQuad>(new IndexIterator<>(edges), new Adapter<Iterator<MQuad>>() {
                 @Override
                 public <X> Iterator<MQuad> adapt(X element) {
                     Integer index = (Integer) element;
@@ -298,9 +298,7 @@ class EdgeBucket implements Iterable<Edge> {
             }) {
                 @Override
                 public void remove() {
-                    if (!mustFindNext)
-                        throw new IllegalStateException("The hasNext method must have been not called for this operation to succeed");
-                    rightIterator.remove();
+                    lastRightIterator.remove();
                     int index = current.x;
                     if (edges[index].getSize() == 0) {
                         edges[index] = null;
@@ -314,12 +312,7 @@ class EdgeBucket implements Iterable<Edge> {
                     result.y.setProperty(edges[result.x].getProperty());
                     return result.y;
                 }
-            }) {
-                @Override
-                public void remove() {
-                    content.remove();
-                }
-            };
+            });
         }
 
         for (int i = 0; i != edges.length; i++) {
@@ -345,12 +338,7 @@ class EdgeBucket implements Iterable<Edge> {
             }
         }
 
-        return new SingleIterator<MQuad>(null) {
-            @Override
-            public void remove() {
-                // do nothing
-            }
-        };
+        return new SingleIterator<>(null);
     }
 
     /**

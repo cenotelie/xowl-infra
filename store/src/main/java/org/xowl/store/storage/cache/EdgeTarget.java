@@ -330,22 +330,6 @@ class EdgeTarget implements Iterable<GraphNode> {
     }
 
     /**
-     * Adapter of an index to a quad
-     */
-    private class IndexAdapter implements Adapter<MQuad> {
-        /**
-         * The last adapted index
-         */
-        private int index = -1;
-
-        @Override
-        public <X> MQuad adapt(X element) {
-            index = (Integer) element;
-            return new MQuad(graphs[index], multiplicities[index]);
-        }
-    }
-
-    /**
      * Gets all the quads with the specified data
      *
      * @param graph The filtering graph
@@ -353,15 +337,20 @@ class EdgeTarget implements Iterable<GraphNode> {
      */
     public Iterator<MQuad> getAll(GraphNode graph) {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<MQuad, Integer>(new IndexIterator<>(graphs), new IndexAdapter()) {
+            return new AdaptingIterator<>(new IndexIterator<GraphNode>(graphs) {
                 @Override
                 public void remove() {
-                    int index = ((IndexAdapter) adapter).index;
-                    graphs[index] = null;
-                    multiplicities[index] = 0;
+                    graphs[lastResult] = null;
+                    multiplicities[lastResult] = 0;
                     size--;
                 }
-            };
+            }, new Adapter<MQuad>() {
+                @Override
+                public <X> MQuad adapt(X element) {
+                    int index = (Integer) element;
+                    return new MQuad(graphs[index], multiplicities[index]);
+                }
+            });
         }
 
         for (int i = 0; i != graphs.length; i++) {
@@ -378,12 +367,7 @@ class EdgeTarget implements Iterable<GraphNode> {
             }
         }
 
-        return new SingleIterator<MQuad>(null) {
-            @Override
-            public void remove() {
-                // do nothing
-            }
-        };
+        return new SingleIterator<>(null);
     }
 
     /**

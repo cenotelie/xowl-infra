@@ -68,7 +68,7 @@ public class CachedDataset extends DatasetImpl {
     @Override
     public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) {
         if (subject == null || subject.getNodeType() == Node.TYPE_VARIABLE) {
-            AdaptingIterator<MQuad, Couple<Couple<SubjectNode, EdgeBucket>, MQuad>> result = new AdaptingIterator<MQuad, Couple<Couple<SubjectNode, EdgeBucket>, MQuad>>(new CombiningIterator<Couple<SubjectNode, EdgeBucket>, MQuad>(getAllSubjects(), new Adapter<Iterator<MQuad>>() {
+            AdaptingIterator<MQuad, Couple<Couple<SubjectNode, EdgeBucket>, MQuad>> result = new AdaptingIterator<>(new CombiningIterator<Couple<SubjectNode, EdgeBucket>, MQuad>(getAllSubjects(), new Adapter<Iterator<MQuad>>() {
                 @Override
                 public <X> Iterator<MQuad> adapt(X element) {
                     Couple<SubjectNode, EdgeBucket> subject = (Couple<SubjectNode, EdgeBucket>) element;
@@ -77,9 +77,7 @@ public class CachedDataset extends DatasetImpl {
             }) {
                 @Override
                 public void remove() {
-                    if (!mustFindNext)
-                        throw new IllegalStateException("The hasNext method must have been not called for this operation to succeed");
-                    rightIterator.remove();
+                    lastRightIterator.remove();
                     if (current.x.y.getSize() == 0)
                         leftIterator.remove();
                 }
@@ -90,23 +88,12 @@ public class CachedDataset extends DatasetImpl {
                     result.y.setSubject(result.x.x);
                     return result.y;
                 }
-            }) {
-                @Override
-                public void remove() {
-                    content.remove();
-                }
-            };
+            });
             return (Iterator) result;
         } else {
             final EdgeBucket bucket = getBucketFor(subject);
-            if (bucket == null) {
-                return new SingleIterator<Quad>(null) {
-                    @Override
-                    public void remove() {
-                        // do nothing
-                    }
-                };
-            }
+            if (bucket == null)
+                return new SingleIterator<>(null);
             return new AdaptingIterator<Quad, MQuad>(bucket.getAll(graph, property, object), new Adapter<Quad>() {
                 @Override
                 public <X> Quad adapt(X element) {
@@ -833,42 +820,27 @@ public class CachedDataset extends DatasetImpl {
      * @return An iterator over all the subjects starting edges in the graph
      */
     private Iterator<Couple<SubjectNode, EdgeBucket>> getAllSubjects() {
-        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<IRINode, EdgeBucket>> iterator1 = new AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<IRINode, EdgeBucket>>(edgesIRI.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<IRINode, EdgeBucket>> iterator1 = new AdaptingIterator<>(edgesIRI.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
             @Override
             public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
                 Map.Entry<IRINode, EdgeBucket> entry = (Map.Entry) element;
                 return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
             }
-        }) {
-            @Override
-            public void remove() {
-                content.remove();
-            }
-        };
-        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<BlankNode, EdgeBucket>> iterator2 = new AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<BlankNode, EdgeBucket>>(edgesBlank.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+        });
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<BlankNode, EdgeBucket>> iterator2 = new AdaptingIterator<>(edgesBlank.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
             @Override
             public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
                 Map.Entry<BlankNode, EdgeBucket> entry = (Map.Entry) element;
                 return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
             }
-        }) {
-            @Override
-            public void remove() {
-                content.remove();
-            }
-        };
-        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<AnonymousNode, EdgeBucket>> iterator3 = new AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<AnonymousNode, EdgeBucket>>(edgesAnon.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+        });
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<AnonymousNode, EdgeBucket>> iterator3 = new AdaptingIterator<>(edgesAnon.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
             @Override
             public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
                 Map.Entry<AnonymousNode, EdgeBucket> entry = (Map.Entry) element;
                 return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
             }
-        }) {
-            @Override
-            public void remove() {
-                content.remove();
-            }
-        };
+        });
         return new ConcatenatedIterator<>(new Iterator[]{
                 iterator1,
                 iterator2,

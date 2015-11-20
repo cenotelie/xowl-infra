@@ -20,7 +20,7 @@
 
 package org.xowl.utils.collections;
 
-import java.util.*;
+import java.util.Iterator;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -93,7 +93,7 @@ public class LockingIterator<T> implements Iterator<T>, AutoCloseable {
 
     @Override
     public void remove() {
-        throw new UnsupportedOperationException();
+        inner.remove();
     }
 
     @Override
