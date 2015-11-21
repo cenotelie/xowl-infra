@@ -23,6 +23,7 @@ package org.xowl.server.db;
 import org.xowl.server.Program;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.store.EntailmentRegime;
+import org.xowl.store.IRIs;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;
 import org.xowl.store.loaders.NQuadsLoader;
@@ -414,7 +415,7 @@ public class Database implements Closeable {
         BufferedLogger bufferedLogger = new BufferedLogger();
         DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
         NQuadsLoader loader = new NQuadsLoader(repository.getStore());
-        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(content), null, null);
+        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(content), null, IRIs.GRAPH_DEFAULT);
         if (result == null) {
             // ill-formed request
             dispatchLogger.error("Failed to parse and load the quad");
