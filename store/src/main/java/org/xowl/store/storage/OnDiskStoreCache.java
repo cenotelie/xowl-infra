@@ -26,6 +26,7 @@ import org.xowl.store.storage.cache.CachedDataset;
 import org.xowl.store.storage.impl.DatasetImpl;
 import org.xowl.store.storage.impl.MQuad;
 import org.xowl.store.storage.persistent.PersistedDataset;
+import org.xowl.utils.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -262,9 +263,22 @@ class OnDiskStoreCache extends DatasetImpl {
     /**
      * Commits the outstanding changes to this cache
      */
-    private void commit() {
+    public void commit() {
+        try {
+            persisted.insert(diff.getChangeset());
+        } catch (UnsupportedNodeType exception) {
+            persisted.rollback();
+            Logger.DEFAULT.error(exception);
+        }
         diff.commit();
         persisted.commit();
+    }
+
+    /**
+     * Rollbacks any outstanding changes to this cache
+     */
+    public void rollback() {
+        diff.rollback();
     }
 
     @Override
