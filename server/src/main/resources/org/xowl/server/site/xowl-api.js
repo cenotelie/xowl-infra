@@ -176,7 +176,7 @@ XOWL.prototype.createUser = function (callback, login, pw) {
 }
 
 /**
- * Request the deletion of a new user
+ * Request the deletion of a user
  * @method deleteUser
  * @param {commandCallback} callback - The callback for this request
  * @param {string} login - The login of the user to delete

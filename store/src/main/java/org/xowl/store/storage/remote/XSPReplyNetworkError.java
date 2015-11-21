@@ -21,7 +21,7 @@
 package org.xowl.store.storage.remote;
 
 /**
- * Implements a reply to a xOWL server protocol request when a network error occured (for any reason)
+ * Implements a reply to a xOWL server protocol request when a network error occurred (for any reason)
  *
  * @author Laurent Wouters
  */
