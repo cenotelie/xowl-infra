@@ -21,6 +21,7 @@
 package org.xowl.store.storage;
 
 import org.xowl.store.storage.persistent.StorageException;
+import org.xowl.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,56 +35,179 @@ import java.util.UUID;
  */
 public class StoreFactory {
     /**
-     * Creates a new store that is held in memory
-     *
-     * @return The store
+     * The primary type of storage
      */
-    public static BaseStore newInMemoryStore() {
-        return new BaseReasonableStore(new InMemoryStore());
+    public enum StorageType {
+        /**
+         * An in-memory storage
+         */
+        InMemory,
+        /**
+         * An on-disk storage
+         */
+        OnDisk,
     }
 
     /**
-     * Creates a new store backed by disk files in a temporary folder
-     *
-     * @return The store
+     * The configuration of a store
      */
-    public static BaseStore newFileStore() {
-        try {
-            File directory = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
-            return new BaseReasonableStore(new BaseMTSafeStore(new OnDiskStore(directory, false)));
-        } catch (IOException | StorageException exception) {
-            exception.printStackTrace();
-            return null;
+    public static class Config {
+        /**
+         * The primary type of storage
+         */
+        private StorageType primaryStorage;
+        /**
+         * The location of the on-disk storage, if necessary
+         */
+        private File location;
+        /**
+         * Whether the store is read-only
+         * This only makes sense with on-disk storage
+         */
+        private boolean isReadonly;
+        /**
+         * Whether the store shall support reasoning
+         * When reasoning is explicitly supported, the volatile inferred quads will never be committed to the primary storage
+         */
+        private boolean supportReasoning;
+        /**
+         * Whether the store shall support multi-threading
+         */
+        private boolean supportMultiThreading;
+        /**
+         * Whether the store shall support transactions
+         */
+        private boolean supportTransactions;
+        /**
+         * Whether the store shall support version control
+         */
+        private boolean supportVersioning;
+
+        /**
+         * Initializes this configuration element
+         */
+        public Config() {
+            primaryStorage = StorageType.InMemory;
+            location = null;
+            isReadonly = false;
+            supportReasoning = false;
+            supportMultiThreading = false;
+            supportTransactions = false;
+            supportVersioning = false;
+        }
+
+        /**
+         * Selects an in-memory primary storage for the store
+         *
+         * @return This configuration element
+         */
+        public Config inMemory() {
+            primaryStorage = StorageType.InMemory;
+            return this;
+        }
+
+        /**
+         * Selects an on-disk primary storage for the store
+         *
+         * @param location The target folder location
+         * @return This configuration element
+         */
+        public Config onDisk(File location) {
+            primaryStorage = StorageType.OnDisk;
+            this.location = location;
+            return this;
+        }
+
+        /**
+         * Makes the store read-only
+         * This only makes sense with on-disk storage.
+         *
+         * @return This configuration element
+         */
+        public Config readonly() {
+            isReadonly = true;
+            return this;
+        }
+
+        /**
+         * Activates the support of reasoning
+         * When reasoning is explicitly supported, the volatile inferred quads will never be committed to the primary storage
+         *
+         * @return This configuration element
+         */
+        public Config withReasoning() {
+            supportReasoning = true;
+            return this;
+        }
+
+        /**
+         * Activates the support of multi-threading
+         * This protects the primary storage against concurrent accesses
+         *
+         * @return This configuration element
+         */
+        public Config withMultithreading() {
+            supportMultiThreading = true;
+            return this;
+        }
+
+        /**
+         * Activates the support of transactions
+         *
+         * @return This configuration element
+         */
+        public Config withTransactions() {
+            supportTransactions = true;
+            return this;
+        }
+
+        /**
+         * Activates the support of version control on the store
+         *
+         * @return This configuration element
+         */
+        public Config withVersioning() {
+            supportVersioning = true;
+            return this;
+        }
+
+        /**
+         * Makes the store
+         *
+         * @return The store
+         */
+        public BaseStore make() {
+            BaseStore primary = null;
+            switch (primaryStorage) {
+                case InMemory:
+                    primary = new InMemoryStore();
+                    break;
+                case OnDisk: {
+                    try {
+                        if (location == null)
+                            location = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
+                        primary = new OnDiskStore(location, isReadonly);
+                    } catch (IOException | StorageException exception) {
+                        Logger.DEFAULT.error(exception);
+                        return null;
+                    }
+                }
+            }
+            BaseStore result = primary;
+            if (supportReasoning)
+                result = new BaseReasonableStore(result);
+            if (supportMultiThreading)
+                result = new BaseMTSafeStore(result);
+            return result;
         }
     }
 
     /**
-     * Creates a new store backed by disk files
+     * Creates a new store
      *
-     * @param directory The directory containing the data files
-     * @return The store
+     * @return The configuration element for the store
      */
-    public static BaseStore newFileStore(File directory) {
-        try {
-            return new BaseReasonableStore(new BaseMTSafeStore(new OnDiskStore(directory, false)));
-        } catch (IOException | StorageException exception) {
-            exception.printStackTrace();
-            return null;
-        }
-    }
-
-    /**
-     * Creates a new store backed by disk files in read-only mode
-     *
-     * @param directory The directory containing the data files
-     * @return The store
-     */
-    public static BaseStore newReadOnlyFileStore(File directory) {
-        try {
-            return new BaseReasonableStore(new BaseMTSafeStore(new OnDiskStore(directory, true)));
-        } catch (IOException | StorageException exception) {
-            exception.printStackTrace();
-            return null;
-        }
+    public static Config create() {
+        return new Config();
     }
 }

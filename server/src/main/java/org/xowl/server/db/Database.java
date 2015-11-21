@@ -130,7 +130,9 @@ public class Database implements Closeable {
             configuration.load(configFile.getAbsolutePath(), Charset.forName("UTF-8"));
         }
         String cBackend = configuration.get(CONFIG_STORAGE);
-        BaseStore store = Objects.equals(cBackend, CONFIG_STORAGE_MEMORY) ? StoreFactory.newInMemoryStore() : StoreFactory.newFileStore(location);
+        BaseStore store = Objects.equals(cBackend, CONFIG_STORAGE_MEMORY) ?
+                StoreFactory.create().inMemory().withReasoning().withMultithreading().make() :
+                StoreFactory.create().onDisk(location).withReasoning().withMultithreading().make();
         this.repository = new Repository(store);
         this.proxy = repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + confServer.getAdminDBName());
     }
@@ -156,7 +158,9 @@ public class Database implements Closeable {
             configuration.load(configFile.getAbsolutePath(), Charset.forName("UTF-8"));
         }
         String cBackend = configuration.get(CONFIG_STORAGE);
-        BaseStore store = Objects.equals(cBackend, CONFIG_STORAGE_MEMORY) ? StoreFactory.newInMemoryStore() : StoreFactory.newFileStore(location);
+        BaseStore store = Objects.equals(cBackend, CONFIG_STORAGE_MEMORY) ?
+                StoreFactory.create().inMemory().withReasoning().withMultithreading().make() :
+                StoreFactory.create().onDisk(location).withReasoning().withMultithreading().make();
         this.repository = new Repository(store);
         this.proxy = proxy;
     }
