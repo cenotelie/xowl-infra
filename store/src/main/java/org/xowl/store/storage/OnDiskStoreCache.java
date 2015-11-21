@@ -27,6 +27,7 @@ import org.xowl.store.storage.impl.DatasetImpl;
 import org.xowl.store.storage.impl.MQuad;
 import org.xowl.store.storage.persistent.PersistedDataset;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -172,6 +173,15 @@ class OnDiskStoreCache extends DatasetImpl {
     }
 
     /**
+     * Gets the estimated size of this cache
+     *
+     * @return The estimated size of this cache
+     */
+    public int getSize() {
+        return size;
+    }
+
+    /**
      * Makes sure that the quads for the specified subject node are all in the cache
      *
      * @param subject The subject node
@@ -183,6 +193,7 @@ class OnDiskStoreCache extends DatasetImpl {
             return;
         }
         if (result != null) {
+            commit();
             // drop the quads for the old subject
             Iterator<Quad> iterator = cache.getAll((SubjectNode) result, null, null);
             while (iterator.hasNext()) {
@@ -221,6 +232,7 @@ class OnDiskStoreCache extends DatasetImpl {
             return;
         }
         if (result != null) {
+            commit();
             // drop the quads for the old graph
             Iterator<Quad> iterator = cache.getAll((GraphNode) result);
             while (iterator.hasNext()) {
@@ -255,13 +267,6 @@ class OnDiskStoreCache extends DatasetImpl {
         persisted.commit();
     }
 
-    /**
-     * Rollbacks any pending changes on this cache
-     */
-    private void rollback() {
-        diff.rollback();
-    }
-
     @Override
     public int doAddQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
         ensureInCache(subject);
@@ -282,34 +287,58 @@ class OnDiskStoreCache extends DatasetImpl {
 
     @Override
     public void doRemoveQuads(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws UnsupportedNodeType {
-        if (subject != null) {
+        if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE) {
             ensureInCache(subject);
-        } else if (graph != null) {
+            int before = bufferRemoved.size();
+            diff.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
+            size -= bufferRemoved.size() - before;
+        } else if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE) {
             ensureInCache(graph);
+            int before = bufferRemoved.size();
+            diff.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
+            size -= bufferRemoved.size() - before;
         } else {
-            // TODO: handle this
+            commit();
+            // resync the cache
+            int beforeDecremented = bufferDecremented.size();
+            int beforeRemoved = bufferRemoved.size();
+            persisted.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
+            for (int i = beforeDecremented; i != bufferDecremented.size(); i++) {
+                MQuad quad = bufferDecremented.get(i);
+                if (cachedSubjects.contains(quad.getSubject()) || cachedGraphs.contains(quad.getGraph())) {
+                    cache.doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+                }
+            }
+            for (int i = beforeRemoved; i != bufferRemoved.size(); i++) {
+                MQuad quad = bufferRemoved.get(i);
+                if (cachedSubjects.contains(quad.getSubject()) || cachedGraphs.contains(quad.getGraph())) {
+                    cache.doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+                }
+            }
+            size -= bufferRemoved.size() - beforeRemoved;
         }
-        int before = bufferRemoved.size();
-        diff.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
-        size -= bufferRemoved.size() - before;
     }
 
     @Override
     public void doClear(List<MQuad> buffer) {
-        int before = buffer.size();
-        diff.doClear(buffer);
-        size -= buffer.size() - before;
+        commit();
+        cache.doClear(new ArrayList<MQuad>());
+        persisted.doClear(buffer);
+        size = 0;
     }
 
     @Override
     public void doClear(GraphNode graph, List<MQuad> buffer) {
-        int before = buffer.size();
+        ensureInCache(graph);
+        int originalSize = buffer.size();
         diff.doClear(graph, buffer);
-        size -= buffer.size() - before;
+        size -= (buffer.size() - originalSize);
     }
 
     @Override
     public void doCopy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
+        ensureInCache(origin);
+        ensureInCache(target);
         int beforeOld = bufferOld.size();
         int beforeNew = bufferNew.size();
         diff.doCopy(origin, target, bufferOld, bufferNew, overwrite);
@@ -318,6 +347,8 @@ class OnDiskStoreCache extends DatasetImpl {
 
     @Override
     public void doMove(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
+        ensureInCache(origin);
+        ensureInCache(target);
         int beforeOld = bufferOld.size();
         int beforeNew = bufferNew.size();
         diff.doMove(origin, target, bufferOld, bufferNew);
@@ -326,21 +357,45 @@ class OnDiskStoreCache extends DatasetImpl {
 
     @Override
     public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+        ensureInCache(subject);
         return diff.getMultiplicity(graph, subject, property, object);
     }
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return diff.getAll(graph, subject, property, object);
+        if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE) {
+            ensureInCache(subject);
+            return diff.getAll(graph, subject, property, object);
+        } else if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE) {
+            ensureInCache(graph);
+            return diff.getAll(graph, subject, property, object);
+        } else {
+            commit();
+            return persisted.getAll(graph, subject, property, object);
+        }
     }
 
     @Override
     public Collection<GraphNode> getGraphs() {
-        return diff.getGraphs();
+        Collection<GraphNode> result = persisted.getGraphs();
+        for (GraphNode graph : diff.getGraphs()) {
+            if (!result.contains(graph))
+                result.add(graph);
+        }
+        return result;
     }
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        return diff.count(graph, subject, property, object);
+        if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE) {
+            ensureInCache(subject);
+            return diff.count(graph, subject, property, object);
+        } else if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE) {
+            ensureInCache(graph);
+            return diff.count(graph, subject, property, object);
+        } else {
+            commit();
+            return persisted.count(graph, subject, property, object);
+        }
     }
 }
