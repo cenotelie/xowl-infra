@@ -23,8 +23,8 @@ package org.xowl.server.xsp;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.server.db.Controller;
 import org.xowl.server.db.ProtocolHandler;
-import org.xowl.server.db.ProtocolReply;
-import org.xowl.server.db.ProtocolReplyResult;
+import org.xowl.store.storage.remote.ProtocolReply;
+import org.xowl.store.storage.remote.ProtocolReplyResult;
 import org.xowl.store.Serializable;
 import org.xowl.store.storage.remote.SocketHelper;
 

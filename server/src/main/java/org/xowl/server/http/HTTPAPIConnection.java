@@ -26,6 +26,7 @@ import org.xowl.server.db.*;
 import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;
 import org.xowl.store.sparql.Result;
+import org.xowl.store.storage.remote.*;
 import org.xowl.utils.logging.Logger;
 
 import java.io.IOException;

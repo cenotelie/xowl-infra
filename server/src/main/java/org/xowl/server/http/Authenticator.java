@@ -25,7 +25,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
 import org.xowl.server.db.Controller;
-import org.xowl.server.db.ProtocolReply;
+import org.xowl.store.storage.remote.ProtocolReply;
 
 import java.net.HttpURLConnection;
 import java.net.InetAddress;

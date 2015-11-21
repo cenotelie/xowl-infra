@@ -141,9 +141,9 @@ public class XSPConnection extends Connection {
      *
      * @param host     The XSP host
      * @param port     The XSP port
-     * @param database The target database
-     * @param login    Login for the endpoint, if any, used for an HTTP Basic authentication
-     * @param password Password for the endpoint, if any, used for an HTTP Basic authentication
+     * @param database The target database, if any
+     * @param login    Login for the endpoint
+     * @param password Password for the endpoint
      */
     public XSPConnection(String host, int port, String database, String login, String password) {
         this.host = host;

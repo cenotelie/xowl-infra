@@ -31,6 +31,7 @@ import org.xowl.store.rdf.Quad;
 import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultSuccess;
+import org.xowl.store.storage.remote.*;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.ConsoleLogger;
 import org.xowl.utils.logging.DispatchLogger;

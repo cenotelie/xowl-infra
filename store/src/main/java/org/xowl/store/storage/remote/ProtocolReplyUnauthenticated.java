@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server.db;
+package org.xowl.store.storage.remote;
 
 /**
  * Implements a reply to a xOWL server protocol request when the user is not authenticated

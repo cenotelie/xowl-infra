@@ -18,44 +18,45 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server.db;
+package org.xowl.store.storage.remote;
 
 /**
- * Implements a reply to a xOWL server protocol request when the user is not authorized to perform the request
+ * Implements a successful reply to a xOWL server request with an object of type T as a response
  *
+ * @param <T> The type of return data
  * @author Laurent Wouters
  */
-public class ProtocolReplyUnauthorized implements ProtocolReply {
+public class ProtocolReplyResult<T> implements ProtocolReply {
     /**
-     * The singleton instance
+     * The payload
      */
-    private static ProtocolReplyUnauthorized INSTANCE = null;
+    private final T data;
 
     /**
-     * Gets the singleton instance
+     * Gets the payload
      *
-     * @return The singleton instance
+     * @return The payload
      */
-    public synchronized static ProtocolReplyUnauthorized instance() {
-        if (INSTANCE == null)
-            return new ProtocolReplyUnauthorized();
-        return INSTANCE;
+    public T getData() {
+        return data;
     }
 
     /**
-     * Initializes this instance
+     * Initializes this result
+     *
+     * @param data The payload
      */
-    private ProtocolReplyUnauthorized() {
-
+    public ProtocolReplyResult(T data) {
+        this.data = data;
     }
 
     @Override
     public boolean isSuccess() {
-        return false;
+        return true;
     }
 
     @Override
     public String getMessage() {
-        return "UNAUTHORIZED";
+        return "OK";
     }
 }

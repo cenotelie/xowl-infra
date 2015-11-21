@@ -18,51 +18,25 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server.db;
+package org.xowl.store.storage.remote;
 
 /**
- * Implements a reply to a xOWL server protocol request when the request failed
+ * Represents a reply to a request in the xOWL server protocol
  *
  * @author Laurent Wouters
  */
-public class ProtocolReplyFailure implements ProtocolReply {
+public interface ProtocolReply {
     /**
-     * The singleton instance
-     */
-    private static ProtocolReplyFailure INSTANCE = null;
-
-    /**
-     * Gets the default instance
+     * Gets whether the reply is a success
      *
-     * @return The default instance
+     * @return Whether the reply is a success
      */
-    public synchronized static ProtocolReplyFailure instance() {
-        if (INSTANCE == null)
-            return new ProtocolReplyFailure("FAILED");
-        return INSTANCE;
-    }
+    boolean isSuccess();
 
     /**
-     * The message associated to the failure
-     */
-    private final String message;
-
-    /**
-     * Initializes this reply
+     * Gets the message, if any
      *
-     * @param message The message associated to the failure
+     * @return The message, if any
      */
-    public ProtocolReplyFailure(String message) {
-        this.message = message;
-    }
-
-    @Override
-    public boolean isSuccess() {
-        return false;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
-    }
+    String getMessage();
 }

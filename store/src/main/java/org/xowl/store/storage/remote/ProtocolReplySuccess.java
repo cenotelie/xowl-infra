@@ -18,36 +18,42 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server.db;
+package org.xowl.store.storage.remote;
 
 /**
- * Implements a successful reply to a xOWL server request with an object of type T as a response
+ * Implements a simple successful reply to a xOWL server request
  *
- * @param <T> The type of return data
  * @author Laurent Wouters
  */
-public class ProtocolReplyResult<T> implements ProtocolReply {
+public class ProtocolReplySuccess implements ProtocolReply {
     /**
-     * The payload
+     * The singleton instance
      */
-    private final T data;
+    private static ProtocolReplySuccess INSTANCE = null;
 
     /**
-     * Gets the payload
+     * Gets the default instance
      *
-     * @return The payload
+     * @return The default instance
      */
-    public T getData() {
-        return data;
+    public synchronized static ProtocolReplySuccess instance() {
+        if (INSTANCE == null)
+            return new ProtocolReplySuccess("OK");
+        return INSTANCE;
     }
 
     /**
-     * Initializes this result
-     *
-     * @param data The payload
+     * The associated message
      */
-    public ProtocolReplyResult(T data) {
-        this.data = data;
+    private final String message;
+
+    /**
+     * Initializes this success
+     *
+     * @param message The associated message
+     */
+    public ProtocolReplySuccess(String message) {
+        this.message = message;
     }
 
     @Override
@@ -57,6 +63,6 @@ public class ProtocolReplyResult<T> implements ProtocolReply {
 
     @Override
     public String getMessage() {
-        return "OK";
+        return message;
     }
 }
