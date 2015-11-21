@@ -230,7 +230,7 @@ class OnDiskStore extends BaseStore {
 
     @Override
     public IRINode getExistingIRINode(String iri) {
-        return cacheNodes.getExistingIRINode(iri);
+        return persistedNodes.getExistingIRINode(iri);
     }
 
     @Override

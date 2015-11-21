@@ -137,7 +137,7 @@ class XSPConnection extends ProtocolHandler {
             try {
                 socket.close();
             } catch (IOException exception) {
-                controller.getLogger().error(exception);
+                logger.error(exception);
             }
         }
     }

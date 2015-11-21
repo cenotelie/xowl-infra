@@ -120,15 +120,10 @@ public class XSPConnection extends Connection {
      * The status of the last connection attempt
      */
     private int lastStatus;
-
     /**
-     * Gets whether this connection is open
-     *
-     * @return Whether the connection is open
+     * The name of the server
      */
-    public boolean isOpen() {
-        return socket != null && socket.isConnected();
-    }
+    private String serverName;
 
     /**
      * Gets the status of the last connection attempt
@@ -137,6 +132,15 @@ public class XSPConnection extends Connection {
      */
     public int getLastStatus() {
         return lastStatus;
+    }
+
+    /**
+     * Gets the name of the server
+     *
+     * @return The name of the server
+     */
+    public String getServerName() {
+        return serverName;
     }
 
     /**
@@ -202,7 +206,7 @@ public class XSPConnection extends Connection {
     public XSPReply serverShutdown() {
         String response = request("ADMIN SHUTDOWN");
         if (response == null)
-            return getReplyForError();
+            return new XSPReplyNetworkError(getReplyForError());
         if (response.startsWith("KO"))
             return getReplyForFailure(response.substring(2));
         return XSPReplySuccess.instance();
@@ -216,7 +220,7 @@ public class XSPConnection extends Connection {
     public XSPReply serverRestart() {
         String response = request("ADMIN RESTART");
         if (response == null)
-            return getReplyForError();
+            return new XSPReplyNetworkError(getReplyForError());
         if (response.startsWith("KO"))
             return getReplyForFailure(response.substring(2));
         return XSPReplySuccess.instance();
@@ -230,7 +234,7 @@ public class XSPConnection extends Connection {
     public XSPReply getUsers() {
         String response = request("ADMIN LIST USERS");
         if (response == null)
-            return getReplyForError();
+            return new XSPReplyNetworkError(getReplyForError());
         if (response.startsWith("KO"))
             return getReplyForFailure(response.substring(2));
         response = response.substring(2);
@@ -254,7 +258,7 @@ public class XSPConnection extends Connection {
     public XSPReply createUser(String login, String password) {
         String response = request("ADMIN CREATE USER " + login + " " + password);
         if (response == null)
-            return getReplyForError();
+            return new XSPReplyNetworkError(getReplyForError());
         if (response.startsWith("KO"))
             return getReplyForFailure(response.substring(2));
         return XSPReplySuccess.instance();
@@ -269,7 +273,7 @@ public class XSPConnection extends Connection {
     public XSPReply deleteUser(String login, String password) {
         String response = request("ADMIN DELETE USER " + login);
         if (response == null)
-            return getReplyForError();
+            return new XSPReplyNetworkError(getReplyForError());
         if (response.startsWith("KO"))
             return getReplyForFailure(response.substring(2));
         return XSPReplySuccess.instance();
@@ -284,7 +288,7 @@ public class XSPConnection extends Connection {
     public XSPReply changePassword(String password) {
         String response = request("ADMIN CHANGE PASSWORD " + password);
         if (response == null)
-            return getReplyForError();
+            return new XSPReplyNetworkError(getReplyForError());
         if (response.startsWith("KO"))
             return getReplyForFailure(response.substring(2));
         return XSPReplySuccess.instance();
@@ -300,39 +304,39 @@ public class XSPConnection extends Connection {
     public XSPReply resetPassword(String login, String password) {
         String response = request("ADMIN RESET PASSWORD " + login + " " + password);
         if (response == null)
-            return getReplyForError();
+            return new XSPReplyNetworkError(getReplyForError());
         if (response.startsWith("KO"))
             return getReplyForFailure(response.substring(2));
         return XSPReplySuccess.instance();
     }
 
     /**
-     * Gets the XSP reply for a network error
+     * Gets the XSP reply message for a network error
      *
-     * @return The XSP reply
+     * @return The XSP reply message
      */
-    private XSPReply getReplyForError() {
+    protected String getReplyForError() {
         switch (lastStatus) {
             case CONNECTION_OK:
-                return XSPReplySuccess.instance();
+                return null;
             case CONNECTION_TIMEOUT:
-                return new XSPReplyNetworkError("Timeout");
+                return "Timeout";
             case CONNECTION_CLOSED_BY_HOST:
-                return new XSPReplyNetworkError("Connection closed by host");
+                return "Connection closed by host";
             case CONNECTION_UNEXECTED_HOST:
-                return new XSPReplyNetworkError("Host handshake failed");
+                return "Host handshake failed";
             case CONNECTION_AUTHENTICATION_FAILED:
-                return new XSPReplyNetworkError("Authentication failed");
+                return "Authentication failed";
             case CONNECTION_SOCKET_CREATION_FAILED:
-                return new XSPReplyNetworkError("Socket creation failed");
+                return "Socket creation failed";
             case CONNECTION_RESOLUTION_FAILED:
-                return new XSPReplyNetworkError("Host resolution failed");
+                return "Host resolution failed";
             case CONNECTION_SOCKET_CONF_FAILED:
-                return new XSPReplyNetworkError("Socket configuration failed");
+                return "Socket configuration failed";
             case CONNECTION_IO_FAILED:
-                return new XSPReplyNetworkError("Reading/Writing failed");
+                return "Reading/Writing failed";
         }
-        return new XSPReplyNetworkError("Unknown error");
+        return "Unknown error";
     }
 
     /**
@@ -356,40 +360,10 @@ public class XSPConnection extends Connection {
      * @return The response, or null of the connection failed
      */
     protected synchronized String request(String message) {
-        if (!isOpen()) {
-            if (lastStatus > CONNECTION_TIMEOUT) {
-                // fatal error other than timeout occurred before
-                return null;
-            }
-            lastStatus = connect();
-            int retries = 0;
-            while (lastStatus == CONNECTION_TIMEOUT && retries < TIMEOUT_RETRY_ATTEMPTS) {
-                // sleep for a while and retry
-                try {
-                    Thread.sleep(TIMEOUT_RETRY_INTERVAL);
-                } catch (InterruptedException exception) {
-                    // WTF
-                    return null;
-                }
-                retries++;
-                lastStatus = connect();
-            }
-            if (lastStatus != CONNECTION_OK)
-                return null;
-        }
-
-        try {
-            SocketHelper.write(socket, message);
-        } catch (IOException exception) {
-            // IO failed
-            try {
-                socket.close();
-            } catch (IOException e) {
-                // do nothing
-            }
-            socket = null;
+        boolean success = doSend(message);
+        if (!success)
             return null;
-        }
+
         try {
             String response = SocketHelper.read(socket);
             if (response == null) {
@@ -421,17 +395,98 @@ public class XSPConnection extends Connection {
     }
 
     /**
-     * Connects to the remote host
+     * Sends the specified message
+     * This method makes
+     *
+     * @param message The message to send
+     * @return Whether the operation succeeded
+     */
+    private boolean doSend(String message) {
+        // first attempt to send the message
+        int status = doTrySend(message);
+        if (status < 0) {
+            // failed to connect at all
+            return false;
+        }
+        if (status > 0) {
+            // succeeded
+            return true;
+        }
+
+        // here the first attempt failed, but we were connected once
+        // try to restore the connection
+        return (doTrySend(message) > 0);
+    }
+
+    /**
+     * Attempts to send a message over the socket
+     *
+     * @param message The message to send
+     * @return Whether the operation succeeded
+     */
+    private int doTrySend(String message) {
+        if (!doGetConnected())
+            // cannot get connected at all
+            return -1;
+        // here we are supposed to be connected and authenticated
+        try {
+            SocketHelper.write(socket, message);
+            // we sent the message, stop here
+            return 1;
+        } catch (IOException exception) {
+            // this is a broken pipe, the server must have close the connection
+        }
+        // cleanup the old socket
+        try {
+            socket.close();
+        } catch (IOException e) {
+            // do nothing
+        }
+        socket = null;
+        return 0;
+    }
+
+    /**
+     * Ensures that the socket is connected
+     *
+     * @return Whether the operation succeeded
+     */
+    private boolean doGetConnected() {
+        if (socket == null || !socket.isConnected()) {
+            if (lastStatus > CONNECTION_TIMEOUT) {
+                // fatal error other than timeout occurred before
+                return false;
+            }
+            lastStatus = doTryConnect();
+            int retries = 0;
+            while (lastStatus == CONNECTION_TIMEOUT && retries < TIMEOUT_RETRY_ATTEMPTS) {
+                // sleep for a while and retry
+                try {
+                    Thread.sleep(TIMEOUT_RETRY_INTERVAL);
+                } catch (InterruptedException exception) {
+                    // WTF
+                    return false;
+                }
+                retries++;
+                lastStatus = doTryConnect();
+            }
+            return (lastStatus == CONNECTION_OK);
+        }
+        return true;
+    }
+
+    /**
+     * Tries to connect to the remote host
      *
      * @return The result of the connection attempt
      */
-    private int connect() {
-        int result = connectionSetupSocket();
-        if (result != CONNECTION_OK)
-            return result;
-        result = connectionGreetings();
-        if (result != CONNECTION_OK)
-            return result;
+    private int doTryConnect() {
+        int status = connectionSetupSocket();
+        if (status != CONNECTION_OK)
+            return status;
+        status = connectionGreetings();
+        if (status != CONNECTION_OK)
+            return status;
         return connectionAuthentication();
     }
 
@@ -510,7 +565,7 @@ public class XSPConnection extends Connection {
             socket = null;
             return CONNECTION_CLOSED_BY_HOST;
         }
-        if (!greeting.startsWith("XOWL SERVER")) {
+        if (!greeting.startsWith("XOWL SERVER ")) {
             // the socket closed
             try {
                 socket.close();
@@ -520,6 +575,7 @@ public class XSPConnection extends Connection {
             socket = null;
             return CONNECTION_UNEXECTED_HOST;
         }
+        serverName = greeting.substring("XOWL SERVER ".length());
         return CONNECTION_OK;
     }
 
@@ -572,7 +628,7 @@ public class XSPConnection extends Connection {
             socket = null;
             return CONNECTION_CLOSED_BY_HOST;
         }
-        if (!response.equals("OK")) {
+        if (!response.startsWith("OK")) {
             try {
                 socket.close();
             } catch (IOException e) {

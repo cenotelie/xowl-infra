@@ -47,10 +47,10 @@ public class SocketHelper {
      */
     public static void write(Socket socket, String message) throws IOException {
         byte[] content = message.getBytes(Charset.forName(CHARSET));
-        byte byte0 = (byte) content.length;
-        byte byte1 = (byte) (content.length >> 8);
-        byte byte2 = (byte) (content.length >> 16);
-        byte byte3 = (byte) (content.length >> 24);
+        byte byte0 = (byte) (0x000000FF & content.length);
+        byte byte1 = (byte) ((0x0000FF00 & content.length) >>> 8);
+        byte byte2 = (byte) ((0x00FF0000 & content.length) >>> 16);
+        byte byte3 = (byte) ((0xFF000000 & content.length) >>> 24);
         OutputStream stream = socket.getOutputStream();
         stream.write(byte0);
         stream.write(byte1);
@@ -70,14 +70,22 @@ public class SocketHelper {
     public static String read(Socket socket) throws IOException {
         try {
             InputStream stream = socket.getInputStream();
-            byte b0 = (byte) stream.read();
-            byte b1 = (byte) stream.read();
-            byte b2 = (byte) stream.read();
-            byte b3 = (byte) stream.read();
-            int length = (((b3 & 0xff) << 24) |
-                    ((b2 & 0xff) << 16) |
-                    ((b1 & 0xff) << 8) |
-                    ((b0 & 0xff)));
+            int i0 = stream.read();
+            if (i0 < 0)
+                return null;
+            int i1 = stream.read();
+            if (i1 < 0)
+                return null;
+            int i2 = stream.read();
+            if (i2 < 0)
+                return null;
+            int i3 = stream.read();
+            if (i3 < 0)
+                return null;
+            int length = (((((byte) i3) & 0xff) << 24) |
+                    ((((byte) i2) & 0xff) << 16) |
+                    ((((byte) i1) & 0xff) << 8) |
+                    ((((byte) i0) & 0xff)));
             byte[] content = new byte[length];
             int index = 0;
             while (index < length) {

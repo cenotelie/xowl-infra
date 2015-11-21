@@ -60,10 +60,6 @@ public class Program {
      * The password
      */
     private String password;
-    /**
-     * Flag whether to exit
-     */
-    private boolean exit;
 
     /**
      * Runs this program
@@ -111,41 +107,34 @@ public class Program {
             }
         }
 
-        /*try (final XOWLConnection connection = new XOWLConnection(host, port, login, password)) {
-            connection.connect();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (true) {
-                        try {
-                            String line = connection.read();
-                            if (line == null) {
-                                exit = true;
-                                return;
-                            }
-                            System.out.println(line);
-                        } catch (IOException exception) {
-                            return;
-                        }
-                    }
-                }
-            }, Program.class.getCanonicalName() + ".ConnectionListener").start();
-            while (!exit) {
-                while (!exit && !input.ready()) {
+        try (final XOWLConnection connection = new XOWLConnection(host, port, login, password)) {
+            String response = connection.execute("WHOAMI");
+            if (response == null)
+                return;
+            if (!response.equals(login)) {
+                System.out.println(response);
+                return;
+            }
+            System.out.println("Connected to server " + connection.getServerName());
+            while (true) {
+                System.out.print("XOWL> ");
+                while (!input.ready()) {
                     try {
                         Thread.sleep(50);
                     } catch (InterruptedException exception) {
                         // do nothing
                     }
                 }
-                if (!exit) {
-                    String data = input.readLine();
-                    connection.send(data);
+                String command = input.readLine();
+                if ("EXIT".equals(command)) {
+                    connection.close();
+                    return;
                 }
+                System.out.println(connection.execute(command));
             }
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
-        }*/
+        }
     }
 
     /**
