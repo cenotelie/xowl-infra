@@ -24,6 +24,7 @@ import org.xowl.store.RDFUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
+import org.xowl.utils.Files;
 import org.xowl.utils.logging.Logger;
 
 import java.io.IOException;
@@ -115,15 +116,15 @@ public class JSONLDSerializer extends StructuredSerializer {
      */
     private void serialize() throws IOException, UnsupportedNodeType {
         writer.write(Vocabulary.JSONLD.arrayBegin); //Expanded graph -> starts with default unnamed array
-        if (DEBUG) writer.write(System.lineSeparator());
+        if (DEBUG) writer.write(Files.LINE_SEPARATOR);
 
         if (!data.entrySet().isEmpty()) {
             if (!data.containsManyGraphs()) //Serialize default unnamed graph
                 if (data.getDefaultGraphNode() == null) {
                     writer.write(Vocabulary.JSONLD.objectBegin);
-                    writer.write(System.lineSeparator());
+                    writer.write(Files.LINE_SEPARATOR);
                     serializeNamedGraphContent(data);
-                    writer.write(System.lineSeparator());
+                    writer.write(Files.LINE_SEPARATOR);
                     writer.write(Vocabulary.JSONLD.objectEnd);
                 } else
                     serializeDefaultGraphContent(); //FIXME Bad way to get the graph
@@ -139,7 +140,7 @@ public class JSONLDSerializer extends StructuredSerializer {
                     serializeManyGraphsContent();
             }
         }
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
         writer.write(Vocabulary.JSONLD.arrayEnd);
     }
 
@@ -167,7 +168,7 @@ public class JSONLDSerializer extends StructuredSerializer {
             Entry<SubjectNode, List<Quad>> dmEntry = iterator.next();
             if (DEBUG) tab(1);
             writer.write(Vocabulary.JSONLD.objectBegin);
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
             if (DEBUG) tab(2);
             writer.write(Vocabulary.JSONLD.idTag);
             serializeJSONLDObject(dm, dmEntry.getKey());
@@ -175,37 +176,37 @@ public class JSONLDSerializer extends StructuredSerializer {
             List<DataMap> subGraphs = getSubGraphs(dmEntry.getKey());
             if (!subGraphs.isEmpty()) {
                 writer.write(Vocabulary.JSONLD.separator);
-                writer.write(System.lineSeparator());
+                writer.write(Files.LINE_SEPARATOR);
                 for (Iterator<DataMap> it = subGraphs.iterator(); it.hasNext(); ) {
                     DataMap subMap = it.next();
                     serializeSubGraphContent(subMap);
                     if (it.hasNext()) {
                         writer.write(Vocabulary.JSONLD.separator);
-                        writer.write(System.lineSeparator());
+                        writer.write(Files.LINE_SEPARATOR);
                     }
                 }
             }
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
             if (DEBUG) tab(1);
             writer.write(Vocabulary.JSONLD.objectEnd);
             if (iterator.hasNext()) {
                 writer.write(Vocabulary.JSONLD.separator);
-                writer.write(System.lineSeparator());
+                writer.write(Files.LINE_SEPARATOR);
             }
         }
         List<DataMap> otherGraphs = getOtherGraphs(dm);
         if (!otherGraphs.isEmpty()) {
             writer.write(Vocabulary.JSONLD.separator);
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
             for (Iterator<DataMap> it = otherGraphs.iterator(); it.hasNext(); ) {
                 DataMap subMap = it.next();
                 writer.write(Vocabulary.JSONLD.objectBegin);
-                writer.write(System.lineSeparator());
+                writer.write(Files.LINE_SEPARATOR);
                 serializeNamedGraphContent(subMap);
                 writer.write(Vocabulary.JSONLD.objectEnd);
                 if (it.hasNext()) {
                     writer.write(Vocabulary.JSONLD.separator);
-                    writer.write(System.lineSeparator());
+                    writer.write(Files.LINE_SEPARATOR);
                 }
             }
         }
@@ -269,15 +270,15 @@ public class JSONLDSerializer extends StructuredSerializer {
         writer.write(Vocabulary.JSONLD.idTag);
         writer.write(data.getGraphGraphNodes().get(0).toString());
         writer.write(Vocabulary.JSONLD.endLabelGoNext);
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
         if (DEBUG) tab(2);
         writer.write(Vocabulary.JSONLD.graphTag);
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
         serializeGraphContent(data);
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
         if (DEBUG) tab(2);
         writer.write(Vocabulary.JSONLD.arrayEnd);
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
     }
 
     /**
@@ -292,13 +293,13 @@ public class JSONLDSerializer extends StructuredSerializer {
             DataMap map = it.next();
             if (DEBUG) tab(1);
             writer.write(Vocabulary.JSONLD.objectBegin);
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
             if (DEBUG) tab(2);
             serializeNamedGraphContent(map);
             writer.write(Vocabulary.JSONLD.objectEnd);
             if (it.hasNext()) {
                 writer.write(Vocabulary.JSONLD.separator);
-                writer.write(System.lineSeparator());
+                writer.write(Files.LINE_SEPARATOR);
             }
         }
     }
@@ -313,12 +314,12 @@ public class JSONLDSerializer extends StructuredSerializer {
     private void serializeSubGraphContent(DataMap dataMap) throws IOException, UnsupportedNodeType {
         if (DEBUG) tab(2);
         writer.write(Vocabulary.JSONLD.graphTag);
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
         serializeGraphContent(dataMap);
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
         if (DEBUG) tab(2);
         writer.write(Vocabulary.JSONLD.arrayEnd);
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
     }
 
     /**
@@ -344,36 +345,36 @@ public class JSONLDSerializer extends StructuredSerializer {
             if (!listOfList.contains(entry.getKey()) && !entry.getValue().isEmpty()) {
                 if (DEBUG) tab(1);
                 writer.write(Vocabulary.JSONLD.objectBegin);
-                writer.write(System.lineSeparator());
+                writer.write(Files.LINE_SEPARATOR);
                 if (DEBUG) tab(2);
                 writer.write(Vocabulary.JSONLD.idTag);
                 serializeJSONLDObject(dt, entry.getKey());
-                writer.write(System.lineSeparator());
+                writer.write(Files.LINE_SEPARATOR);
                 if (DEBUG) tab(1);
                 writer.write(Vocabulary.JSONLD.objectEnd);
                 if (iterator.hasNext()) {
                     writer.write(Vocabulary.JSONLD.separator);
-                    writer.write(System.lineSeparator());
+                    writer.write(Files.LINE_SEPARATOR);
                 }
             }
         }
         if (!listOfList.isEmpty()) {
             writer.write(Vocabulary.JSONLD.separator);
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
             for (Iterator<SubjectNode> it = listOfList.iterator(); it.hasNext(); ) {
                 SubjectNode sn = it.next();
                 if (DEBUG) tab(1);
                 writer.write(Vocabulary.JSONLD.objectBegin);
-                writer.write(System.lineSeparator());
+                writer.write(Files.LINE_SEPARATOR);
                 if (DEBUG) tab(2);
                 writer.write(Vocabulary.JSONLD.idTag);
                 serializeJSONLDObject(dt, sn);
-                writer.write(System.lineSeparator());
+                writer.write(Files.LINE_SEPARATOR);
                 if (DEBUG) tab(1);
                 writer.write(Vocabulary.JSONLD.objectEnd);
                 if (it.hasNext()) {
                     writer.write(Vocabulary.JSONLD.separator);
-                    writer.write(System.lineSeparator());
+                    writer.write(Files.LINE_SEPARATOR);
                 }
             }
             listOfList.clear();
@@ -415,7 +416,7 @@ public class JSONLDSerializer extends StructuredSerializer {
             writer.write(subject.toString());
             writer.write(Vocabulary.JSONLD.endLabelGoNext);
         }
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
         if (DEBUG) tab(2);
         serializeProperties(map, quads);
     }
@@ -460,14 +461,14 @@ public class JSONLDSerializer extends StructuredSerializer {
                         serializePropertyObject(map, propSet.getValue().get(0));
                     } else {
                         serializePropertyObjects(map, propSet.getValue());
-                        writer.write(System.lineSeparator());
+                        writer.write(Files.LINE_SEPARATOR);
                         if (DEBUG) tab(2);
                     }
                     //array closed
                     writer.write(Vocabulary.JSONLD.arrayEnd);
                     if (iterator.hasNext()) {
                         writer.write(Vocabulary.JSONLD.separator);
-                        writer.write(System.lineSeparator());
+                        writer.write(Files.LINE_SEPARATOR);
                         if (DEBUG) tab(2);
                     }
                 }
@@ -481,24 +482,24 @@ public class JSONLDSerializer extends StructuredSerializer {
                         if (RDFUtils.isRdfNil(propSet.getValue().get(0).getObject()) && RDFUtils.isRdfRest(propSet.getValue().get(0).getProperty())) {
                             //empty list
                             writer.write(Vocabulary.JSONLD.objectBegin);
-                            writer.write(System.lineSeparator());
+                            writer.write(Files.LINE_SEPARATOR);
                             if (DEBUG) tab(3);
                             writer.write(Vocabulary.JSONLD.emptyListTag);
-                            writer.write(System.lineSeparator());
+                            writer.write(Files.LINE_SEPARATOR);
                             if (DEBUG) tab(2);
                             writer.write(Vocabulary.JSONLD.objectEnd);
                         } else
                             serializePropertyObject(map, propSet.getValue().get(0));
                     } else {
                         serializePropertyObjects(map, propSet.getValue());
-                        writer.write(System.lineSeparator());
+                        writer.write(Files.LINE_SEPARATOR);
                         if (DEBUG) tab(2);
                     }
                     //array closed
                     writer.write(Vocabulary.JSONLD.arrayEnd);
                     if (iterator.hasNext()) {
                         writer.write(Vocabulary.JSONLD.separator);
-                        writer.write(System.lineSeparator());
+                        writer.write(Files.LINE_SEPARATOR);
                         if (DEBUG) tab(2);
                     }
                 }
@@ -513,14 +514,14 @@ public class JSONLDSerializer extends StructuredSerializer {
                     serializePropertyObject(map, propSet.getValue().get(0));
                 } else {
                     serializePropertyObjects(map, propSet.getValue());
-                    writer.write(System.lineSeparator());
+                    writer.write(Files.LINE_SEPARATOR);
                     if (DEBUG) tab(2);
                 }
                 //array closed
                 writer.write(Vocabulary.JSONLD.arrayEnd);
                 if (iterator.hasNext()) {
                     writer.write(Vocabulary.JSONLD.separator);
-                    writer.write(System.lineSeparator());
+                    writer.write(Files.LINE_SEPARATOR);
                     if (DEBUG) tab(2);
                 }
             }
@@ -542,7 +543,7 @@ public class JSONLDSerializer extends StructuredSerializer {
             serializePropertyObject(map, quad);
             if ((i + 1 < quads.size()) && (!RDFUtils.isRdfNil(quads.get(i + 1).getObject()))) { //has next and next not nil
                 writer.write(Vocabulary.JSONLD.separator);
-                writer.write(System.lineSeparator());
+                writer.write(Files.LINE_SEPARATOR);
                 if (DEBUG) tab(1);
                 if (RDFUtils.isRdfRest(quads.get(i + 1).getProperty()))
                     if (DEBUG) tab(1);
@@ -558,17 +559,17 @@ public class JSONLDSerializer extends StructuredSerializer {
      * @throws UnsupportedNodeType
      */
     private void serializePropertyObjects(DataMap map, List<Quad> quads) throws IOException, UnsupportedNodeType {
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
         if (DEBUG) tab(1);
         if (containsJSONLDLists(quads)) {
             writer.write(Vocabulary.JSONLD.objectBegin);
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
             if (DEBUG) tab(2);
             writer.write(Vocabulary.JSONLD.listTag);
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
             if (DEBUG) tab(2);
             serializeManyProperties(map, quads);
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
             if (DEBUG) tab(2);
             writer.write(Vocabulary.JSONLD.objectEnd);
         } else {
@@ -610,17 +611,17 @@ public class JSONLDSerializer extends StructuredSerializer {
                     writer.write(Vocabulary.JSONLD.labelTag);
                 } else if (Vocabulary.rdfNil.equals(((IRINode) quad.getObject()).getIRIValue())) {
                     if (RDFUtils.isRdfRest(quad.getProperty())) {  //ends list
-                        writer.write(System.lineSeparator());
+                        writer.write(Files.LINE_SEPARATOR);
                         if (DEBUG) tab(3);
                         writer.write(Vocabulary.JSONLD.arrayEnd);
-                        writer.write(System.lineSeparator());
+                        writer.write(Files.LINE_SEPARATOR);
                         if (DEBUG) tab(2);
                     } else {  //emptylist
                         writer.write(Vocabulary.JSONLD.objectBegin);
-                        writer.write(System.lineSeparator());
+                        writer.write(Files.LINE_SEPARATOR);
                         if (DEBUG) tab(3);
                         writer.write(Vocabulary.JSONLD.emptyListTag);
-                        writer.write(System.lineSeparator());
+                        writer.write(Files.LINE_SEPARATOR);
                         if (DEBUG) tab(2);
                         writer.write(Vocabulary.JSONLD.objectEnd);
                     }

@@ -27,6 +27,7 @@ import org.xowl.store.storage.remote.XSPReply;
 import org.xowl.store.storage.remote.XSPReplyResult;
 import org.xowl.store.Serializable;
 import org.xowl.store.storage.remote.SocketHelper;
+import org.xowl.utils.Files;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -116,7 +117,7 @@ class XSPConnection extends ProtocolHandler {
                         boolean first = true;
                         for (Object element : (Collection) data) {
                             if (!first)
-                                builder.append(System.lineSeparator());
+                                builder.append(Files.LINE_SEPARATOR);
                             first = false;
                             builder.append(element.toString());
                         }

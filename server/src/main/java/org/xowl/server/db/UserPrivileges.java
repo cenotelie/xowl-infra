@@ -21,6 +21,7 @@
 package org.xowl.server.db;
 
 import org.xowl.store.Serializable;
+import org.xowl.utils.Files;
 import org.xowl.utils.collections.SparseIterator;
 
 import java.util.Arrays;
@@ -110,7 +111,7 @@ public class UserPrivileges implements Serializable {
             if (databases[i] == null)
                 break;
             if (i != 0)
-                builder.append(System.lineSeparator());
+                builder.append(Files.LINE_SEPARATOR);
             boolean canAdmin = (privileges[i] & Schema.PRIVILEGE_ADMIN) == Schema.PRIVILEGE_ADMIN;
             boolean canWrite = (privileges[i] & Schema.PRIVILEGE_WRITE) == Schema.PRIVILEGE_WRITE;
             boolean canRead = (privileges[i] & Schema.PRIVILEGE_READ) == Schema.PRIVILEGE_READ;

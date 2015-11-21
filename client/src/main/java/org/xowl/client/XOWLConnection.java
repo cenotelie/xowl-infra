@@ -40,15 +40,4 @@ public class XOWLConnection extends XSPConnection {
     public XOWLConnection(String host, int port, String database, String login, String password) {
         super(host, port, database, login, password);
     }
-
-    /**
-     * Shut down the server
-     *
-     * @return Whether the operation succeeded
-     */
-    public boolean serverShutdown() {
-        String response = request("ADMIN SHUTDOWN");
-        return response != null && ("OK".equals(response));
-    }
-
 }

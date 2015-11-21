@@ -111,7 +111,7 @@ public class Program {
             }
         }
 
-        try (final XOWLConnection connection = new XOWLConnection(host, port, login, password)) {
+        /*try (final XOWLConnection connection = new XOWLConnection(host, port, login, password)) {
             connection.connect();
             new Thread(new Runnable() {
                 @Override
@@ -145,7 +145,7 @@ public class Program {
             }
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
-        }
+        }*/
     }
 
     /**

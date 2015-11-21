@@ -20,6 +20,8 @@
 
 package org.xowl.utils.config;
 
+import org.xowl.utils.Files;
+
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -200,7 +202,7 @@ public class Configuration {
             boolean before = !global.isEmpty();
             for (Section section : sections.values()) {
                 if (before)
-                    writer.write(System.lineSeparator());
+                    writer.write(Files.LINE_SEPARATOR);
                 section.save(writer);
                 before = (before || !section.isEmpty());
             }

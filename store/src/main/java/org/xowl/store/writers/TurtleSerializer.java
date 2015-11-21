@@ -24,6 +24,7 @@ import org.xowl.store.IOUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
+import org.xowl.utils.Files;
 import org.xowl.utils.logging.Logger;
 import org.xowl.utils.collections.Couple;
 
@@ -84,10 +85,10 @@ public class TurtleSerializer extends StructuredSerializer {
             writer.write(": <");
             writer.write(IOUtils.escapeAbsoluteURIW3C(entry.getKey()));
             writer.write("> .");
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
         }
         for (Map.Entry<SubjectNode, List<Quad>> entry : data.entrySet()) {
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
             serializeTopLevel(entry.getKey(), entry.getValue());
         }
     }
@@ -107,7 +108,7 @@ public class TurtleSerializer extends StructuredSerializer {
             writer.write("_:n");
             writer.write(getBlankID((BlankNode) subject));
         }
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
 
         boolean first = true;
         for (int i = 0; i != quads.size(); i++) {
@@ -120,7 +121,7 @@ public class TurtleSerializer extends StructuredSerializer {
                 if (quad.getProperty() == property) {
                     if (!first) {
                         writer.write(" ;");
-                        writer.write(System.lineSeparator());
+                        writer.write(Files.LINE_SEPARATOR);
                     }
                     writer.write("    ");
                     first = false;
@@ -130,7 +131,7 @@ public class TurtleSerializer extends StructuredSerializer {
         }
         bufferProperties.clear();
         writer.write(" .");
-        writer.write(System.lineSeparator());
+        writer.write(Files.LINE_SEPARATOR);
     }
 
     /**

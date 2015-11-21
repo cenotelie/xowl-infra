@@ -20,6 +20,8 @@
 
 package org.xowl.utils.config;
 
+import org.xowl.utils.Files;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
@@ -156,11 +158,11 @@ public class Section {
             writer.write("[");
             writer.write(name);
             writer.write("]");
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
         }
         for (String option : keys) {
             for (String value : properties.get(option)) {
-                writer.write(option + " = " + value + System.lineSeparator());
+                writer.write(option + " = " + value + Files.LINE_SEPARATOR);
             }
         }
     }

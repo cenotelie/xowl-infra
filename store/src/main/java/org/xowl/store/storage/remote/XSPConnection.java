@@ -22,6 +22,7 @@ package org.xowl.store.storage.remote;
 
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultFailure;
+import org.xowl.utils.Files;
 
 import javax.net.ssl.SSLSocket;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class XSPConnection extends Connection {
     /**
      * The number of attempts for trying to reconnect on timeout
      */
-    private static final int TIMEOUT_RETRY_ATTEMPS = 3;
+    private static final int TIMEOUT_RETRY_ATTEMPTS = 3;
     /**
      * The interval between retries on timeout
      */
@@ -192,7 +193,114 @@ public class XSPConnection extends Connection {
     }
 
     /**
-     * Sends a message over this connection
+     * Request the xOWL server shutdown
+     * @return The protocol reply
+     */
+    public XSPReply serverShutdown() {
+        String response = request("ADMIN SHUTDOWN");
+        if (response == null)
+            return getReplyForError();
+        if (response.startsWith("KO"))
+            return getReplyForFailure(response.substring(2));
+        return XSPReplySuccess.instance();
+    }
+
+    /**
+     * Request the xOWL server restart
+     * @return The protocol reply
+     */
+    public XSPReply serverRestart() {
+        String response = request("ADMIN RESTART");
+        if (response == null)
+            return getReplyForError();
+        if (response.startsWith("KO"))
+            return getReplyForFailure(response.substring(2));
+        return XSPReplySuccess.instance();
+    }
+
+    /**
+     * Requests the list of the users on the xOWL server
+     * @return The protocol reply
+     */
+    public XSPReply getUsers() {
+        String response = request("ADMIN LIST USERS");
+        if (response == null)
+            return getReplyForError();
+        if (response.startsWith("KO"))
+            return getReplyForFailure(response.substring(2));
+        response = response.substring(2);
+        String[] lines = response.split(Files.LINE_SEPARATOR);
+        return null;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Gets the XSP reply for a network error
+     * @return The XSP reply
+     */
+    private XSPReply getReplyForError() {
+        switch (lastStatus) {
+            case CONNECTION_OK:
+                return XSPReplySuccess.instance();
+            case CONNECTION_TIMEOUT:
+                return new XSPReplyNetworkError("Timeout");
+            case CONNECTION_CLOSED_BY_HOST:
+                return new XSPReplyNetworkError("Connection closed by host");
+            case CONNECTION_UNEXECTED_HOST:
+                return new XSPReplyNetworkError("Host handshake failed");
+            case CONNECTION_AUTHENTICATION_FAILED:
+                return new XSPReplyNetworkError("Authentication failed");
+            case CONNECTION_SOCKET_CREATION_FAILED:
+                return new XSPReplyNetworkError("Socket creation failed");
+            case CONNECTION_RESOLUTION_FAILED:
+                return new XSPReplyNetworkError("Host resolution failed");
+            case CONNECTION_SOCKET_CONF_FAILED:
+                return new XSPReplyNetworkError("Socket configuration failed");
+            case CONNECTION_IO_FAILED:
+                return new XSPReplyNetworkError("Reading/Writing failed");
+        }
+        return new XSPReplyNetworkError("Unknown error");
+    }
+
+    /**
+     * Gets the XSP reply for a failing server response
+     * @param response The server response
+     * @return The XSP reply
+     */
+    private XSPReply getReplyForFailure(String response) {
+        if ("UNAUTHENTICATED".equals(response))
+            return XSPReplyUnauthenticated.instance();
+        if ("UNAUTHORIZED".equals(response))
+            return XSPReplyUnauthorized.instance();
+        return new XSPReplyFailure(response);
+    }
+
+    /**
+     * Sends an XSP message over this connection
      *
      * @param message The message
      * @return The response, or null of the connection failed
@@ -205,7 +313,7 @@ public class XSPConnection extends Connection {
             }
             lastStatus = connect();
             int retries = 0;
-            while (lastStatus == CONNECTION_TIMEOUT && retries < TIMEOUT_RETRY_ATTEMPS) {
+            while (lastStatus == CONNECTION_TIMEOUT && retries < TIMEOUT_RETRY_ATTEMPTS) {
                 // sleep for a while and retry
                 try {
                     Thread.sleep(TIMEOUT_RETRY_INTERVAL);
