@@ -20,7 +20,6 @@
 
 package org.xowl.client;
 
-import org.xowl.store.storage.remote.XOWLConnection;
 import org.xowl.utils.logging.Logger;
 
 import java.io.BufferedReader;

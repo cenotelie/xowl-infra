@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage.remote;
+package org.xowl.client;
 
 import org.xowl.utils.logging.Logger;
 
