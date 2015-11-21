@@ -80,6 +80,10 @@ public class StoreFactory {
          */
         private int xspPort;
         /**
+         * The target database on a XSP remote host
+         */
+        private String xspDatabase;
+        /**
          * The login for a remote host
          */
         private String remoteLogin;
@@ -114,12 +118,6 @@ public class StoreFactory {
          */
         public Config() {
             primaryStorage = StorageType.InMemory;
-            location = null;
-            isReadonly = false;
-            supportReasoning = false;
-            supportMultiThreading = false;
-            supportTransactions = false;
-            supportVersioning = false;
         }
 
         /**
@@ -157,6 +155,7 @@ public class StoreFactory {
             httpEndpoint = endpoint;
             xspHost = null;
             xspPort = 0;
+            xspDatabase = null;
             remoteLogin = login;
             remotePassword = password;
             return this;
@@ -167,15 +166,17 @@ public class StoreFactory {
          *
          * @param host     The XSP host
          * @param port     The XSP port
+         * @param database The target database
          * @param login    The login for the remote host, if any
          * @param password The password for the remote host, if any
          * @return This configuration element
          */
-        public Config remoteXSP(String host, int port, String login, String password) {
+        public Config remoteXSP(String host, int port, String database, String login, String password) {
             primaryStorage = StorageType.Remote;
             httpEndpoint = null;
             xspHost = host;
             xspPort = port;
+            xspDatabase = database;
             remoteLogin = login;
             remotePassword = password;
             return this;
@@ -261,7 +262,7 @@ public class StoreFactory {
                     if (httpEndpoint != null)
                         connection = new HTTPConnection(httpEndpoint, remoteLogin, remotePassword);
                     else if (xspHost != null)
-                        connection = new XSPConnection(xspHost, xspPort, remoteLogin, remotePassword);
+                        connection = new XSPConnection(xspHost, xspPort, xspDatabase, remoteLogin, remotePassword);
                     primary = new RemoteStore(connection, isReadonly);
                     break;
                 }

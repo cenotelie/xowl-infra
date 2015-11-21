@@ -271,6 +271,17 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets the maximum idle time (in seconds) for an XSP connection before it is closed by the server
+     * To prevent resource starvation, the XSP server will close idle connections.
+     * This value is used as the timeout setting for reading from a socket on an XSP connection.
+     *
+     * @return The maximum idle time
+     */
+    public int getXSPMaxIdleTime() {
+        return Integer.parseInt(getValue("xsp", "maxIdleTime"));
+    }
+
+    /**
      * Registers in the configuration the location and password for the key store
      *
      * @param location The location to the key store

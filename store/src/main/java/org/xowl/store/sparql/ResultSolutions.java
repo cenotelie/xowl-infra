@@ -91,13 +91,7 @@ public class ResultSolutions implements Result {
 
     @Override
     public String serializedString() {
-        StringWriter writer = new StringWriter();
-        try {
-            printTSV(writer);
-        } catch (IOException exception) {
-            // cannot happen
-        }
-        return writer.toString();
+        return serializedJSON();
     }
 
     @Override

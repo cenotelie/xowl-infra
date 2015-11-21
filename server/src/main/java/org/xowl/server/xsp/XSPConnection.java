@@ -4,18 +4,18 @@
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
+ * <p>
  * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
+ * Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
 package org.xowl.server.xsp;
@@ -26,10 +26,13 @@ import org.xowl.server.db.ProtocolHandler;
 import org.xowl.server.db.ProtocolReply;
 import org.xowl.server.db.ProtocolReplyResult;
 import org.xowl.store.Serializable;
+import org.xowl.store.storage.remote.SocketHelper;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.Collection;
 
 /**
@@ -47,14 +50,6 @@ class XSPConnection extends ProtocolHandler {
      */
     private final Socket socket;
     /**
-     * The stream used for writing to the socket
-     */
-    private final BufferedWriter socketOutput;
-    /**
-     * The stream used for reading to the socket
-     */
-    private final BufferedReader socketInput;
-    /**
      * Whether to exit
      */
     private boolean exit;
@@ -69,16 +64,11 @@ class XSPConnection extends ProtocolHandler {
         super(controller);
         this.configuration = configuration;
         this.socket = socket;
-        BufferedWriter output = null;
-        BufferedReader input = null;
         try {
-            output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-            input = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-        } catch (IOException exception) {
+            this.socket.setSoTimeout(configuration.getXSPMaxIdleTime() * 1000);
+        } catch (SocketException exception) {
             controller.getLogger().error(exception);
         }
-        socketOutput = output;
-        socketInput = input;
         exit = false;
     }
 
@@ -98,10 +88,16 @@ class XSPConnection extends ProtocolHandler {
             return;
         try {
             // state 0
-            send("XOWL SERVER " + configuration.getServerName());
+            SocketHelper.write(socket, "XOWL SERVER " + configuration.getServerName());
             // state 1
             while (!exit) {
-                String line = socketInput.readLine();
+                String line;
+                try {
+                    line = SocketHelper.read(socket);
+                } catch (SocketTimeoutException exception) {
+                    // time out while reading, finish this connection
+                    return;
+                }
                 if (line == null)
                     return;
                 ProtocolReply reply = execute(line);
@@ -112,15 +108,26 @@ class XSPConnection extends ProtocolHandler {
                 if (reply instanceof ProtocolReplyResult) {
                     Object data = ((ProtocolReplyResult) reply).getData();
                     if (data instanceof Serializable) {
-                        send(((org.xowl.store.Serializable) data).serializedString());
+                        String msg = (reply.isSuccess() ? "OK" : "KO") + ((org.xowl.store.Serializable) data).serializedString();
+                        SocketHelper.write(socket, msg);
                     } else if (data instanceof Collection) {
-                        for (Object element : (Collection) data)
-                            send(element.toString());
+                        StringBuilder builder = new StringBuilder();
+                        builder.append(reply.isSuccess() ? "OK" : "KO");
+                        boolean first = true;
+                        for (Object element : (Collection) data) {
+                            if (!first)
+                                builder.append(System.lineSeparator());
+                            first = false;
+                            builder.append(element.toString());
+                        }
+                        SocketHelper.write(socket, builder.toString());
                     } else {
-                        send(data.toString());
+                        String msg = (reply.isSuccess() ? "OK" : "KO") + data.toString();
+                        SocketHelper.write(socket, msg);
                     }
                 } else {
-                    send(reply.getMessage());
+                    String msg = (reply.isSuccess() ? "OK" : "KO") + reply.getMessage();
+                    SocketHelper.write(socket, msg);
                 }
             }
         } catch (IOException exception) {
@@ -132,16 +139,5 @@ class XSPConnection extends ProtocolHandler {
                 controller.getLogger().error(exception);
             }
         }
-    }
-
-    /**
-     * Sends data over the socket
-     *
-     * @param message The message to send
-     */
-    private void send(String message) throws IOException {
-        socketOutput.write(message);
-        socketOutput.newLine();
-        socketOutput.flush();
     }
 }
