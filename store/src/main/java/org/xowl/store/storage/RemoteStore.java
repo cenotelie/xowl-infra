@@ -44,15 +44,21 @@ class RemoteStore extends BaseStore {
      * The remote dataset
      */
     private final RemoteDataset dataset;
+    /**
+     * Whether this store is read-only
+     */
+    private final boolean isReadonly;
 
     /**
      * Initializes this store
      *
      * @param connection The connection to the remote host
+     * @param isReadonly Whether this store is read-only
      */
-    public RemoteStore(Connection connection) {
+    public RemoteStore(Connection connection, boolean isReadonly) {
         this.nodes = new CachedNodes();
         this.dataset = new RemoteDataset(nodes, connection);
+        this.isReadonly = isReadonly;
     }
 
     @Override
@@ -128,46 +134,64 @@ class RemoteStore extends BaseStore {
 
     @Override
     public void insert(Changeset changeset) throws UnsupportedNodeType {
+        if (isReadonly)
+            throw new IllegalStateException("Read-only");
         dataset.insert(changeset);
     }
 
     @Override
     public void add(Quad quad) throws UnsupportedNodeType {
+        if (isReadonly)
+            throw new IllegalStateException("Read-only");
         dataset.add(quad);
     }
 
     @Override
     public void add(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+        if (isReadonly)
+            throw new IllegalStateException("Read-only");
         dataset.add(graph, subject, property, value);
     }
 
     @Override
     public void remove(Quad quad) throws UnsupportedNodeType {
+        if (isReadonly)
+            throw new IllegalStateException("Read-only");
         dataset.remove(quad);
     }
 
     @Override
     public void remove(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
+        if (isReadonly)
+            throw new IllegalStateException("Read-only");
         dataset.remove(graph, subject, property, value);
     }
 
     @Override
     public void clear() {
+        if (isReadonly)
+            throw new IllegalStateException("Read-only");
         dataset.clear();
     }
 
     @Override
     public void clear(GraphNode graph) {
+        if (isReadonly)
+            throw new IllegalStateException("Read-only");
         dataset.clear(graph);
     }
 
     @Override
     public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+        if (isReadonly)
+            throw new IllegalStateException("Read-only");
         dataset.copy(origin, target, overwrite);
     }
 
     @Override
     public void move(GraphNode origin, GraphNode target) {
+        if (isReadonly)
+            throw new IllegalStateException("Read-only");
         dataset.move(origin, target);
     }
 

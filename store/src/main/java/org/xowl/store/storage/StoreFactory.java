@@ -21,6 +21,9 @@
 package org.xowl.store.storage;
 
 import org.xowl.store.storage.persistent.StorageException;
+import org.xowl.store.storage.remote.Connection;
+import org.xowl.store.storage.remote.HTTPConnection;
+import org.xowl.store.storage.remote.XSPConnection;
 import org.xowl.utils.logging.Logger;
 
 import java.io.File;
@@ -46,6 +49,10 @@ public class StoreFactory {
          * An on-disk storage
          */
         OnDisk,
+        /**
+         * A remote storage
+         */
+        Remote,
     }
 
     /**
@@ -61,8 +68,27 @@ public class StoreFactory {
          */
         private File location;
         /**
+         * The location for an HTTP remote host
+         */
+        private String httpEndpoint;
+        /**
+         * The host for a XSP remote host
+         */
+        private String xspHost;
+        /**
+         * The port for a XSP remote host
+         */
+        private int xspPort;
+        /**
+         * The login for a remote host
+         */
+        private String remoteLogin;
+        /**
+         * The password for a remote host
+         */
+        private String remotePassword;
+        /**
          * Whether the store is read-only
-         * This only makes sense with on-disk storage
          */
         private boolean isReadonly;
         /**
@@ -115,6 +141,43 @@ public class StoreFactory {
         public Config onDisk(File location) {
             primaryStorage = StorageType.OnDisk;
             this.location = location;
+            return this;
+        }
+
+        /**
+         * Selects a remote storage accessed through a standard SPARQL endpoint
+         *
+         * @param endpoint The location of the HTTP remote host
+         * @param login    The login for the remote host, if any
+         * @param password The password for the remote host, if any
+         * @return This configuration element
+         */
+        public Config remoteHTTP(String endpoint, String login, String password) {
+            primaryStorage = StorageType.Remote;
+            httpEndpoint = endpoint;
+            xspHost = null;
+            xspPort = 0;
+            remoteLogin = login;
+            remotePassword = password;
+            return this;
+        }
+
+        /**
+         * Selects a remote storage accessed through a xOWL Server Protocol endpoint
+         *
+         * @param host     The XSP host
+         * @param port     The XSP port
+         * @param login    The login for the remote host, if any
+         * @param password The password for the remote host, if any
+         * @return This configuration element
+         */
+        public Config remoteXSP(String host, int port, String login, String password) {
+            primaryStorage = StorageType.Remote;
+            httpEndpoint = null;
+            xspHost = host;
+            xspPort = port;
+            remoteLogin = login;
+            remotePassword = password;
             return this;
         }
 
@@ -191,6 +254,16 @@ public class StoreFactory {
                         Logger.DEFAULT.error(exception);
                         return null;
                     }
+                    break;
+                }
+                case Remote: {
+                    Connection connection = null;
+                    if (httpEndpoint != null)
+                        connection = new HTTPConnection(httpEndpoint, remoteLogin, remotePassword);
+                    else if (xspHost != null)
+                        connection = new XSPConnection(xspHost, xspPort, remoteLogin, remotePassword);
+                    primary = new RemoteStore(connection, isReadonly);
+                    break;
                 }
             }
             BaseStore result = primary;

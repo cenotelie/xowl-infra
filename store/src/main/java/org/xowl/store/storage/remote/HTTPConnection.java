@@ -71,7 +71,7 @@ public class HTTPConnection extends Connection {
     /**
      * URI of the endpoint
      */
-    private final String endpoint;
+    protected final String endpoint;
     /**
      * Login/Password for the endpoint, if any, used for an HTTP Basic authentication
      */

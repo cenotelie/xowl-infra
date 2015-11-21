@@ -112,13 +112,11 @@ public abstract class Connection implements Closeable {
                     new X509TrustManager() {
                         @Override
                         public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                            System.out.println();
                             // TODO: check certificate
                         }
 
                         @Override
                         public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                            System.out.println();
                             // TODO: check certificate
                         }
 
