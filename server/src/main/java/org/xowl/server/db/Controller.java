@@ -294,6 +294,10 @@ public abstract class Controller implements Closeable {
                 clients.put(client, cl);
             }
             cl.failedAttempt++;
+            if (client.equals(InetAddress.getLoopbackAddress())) {
+                // the loopback client cannot be banned
+                return false;
+            }
             if (cl.failedAttempt >= configuration.getSecurityMaxLoginAttempt()) {
                 // too much failure, ban this client for a while
                 logger.info("Banned client " + client.toString() + " for " + configuration.getSecurityBanLength() + " seconds");
