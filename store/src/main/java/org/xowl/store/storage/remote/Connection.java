@@ -55,7 +55,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-abstract class Connection implements Closeable {
+public abstract class Connection implements Closeable {
     /**
      * An array of SPARQL solutions
      */
