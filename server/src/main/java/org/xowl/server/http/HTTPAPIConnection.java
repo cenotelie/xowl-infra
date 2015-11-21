@@ -113,12 +113,12 @@ class HTTPAPIConnection extends ProtocolHandler {
             if (index != -1) {
                 dbName = dbName.substring(0, index);
             }
-            ProtocolReply dbReply = controller.getDatabase(user, dbName);
+            XSPReply dbReply = controller.getDatabase(user, dbName);
             if (!dbReply.isSuccess()) {
                 response(HttpURLConnection.HTTP_FORBIDDEN, null);
                 return;
             }
-            database = ((ProtocolReplyResult<Database>) dbReply).getData();
+            database = ((XSPReplyResult<Database>) dbReply).getData();
         }
 
         if (Objects.equals(method, "GET")) {
@@ -172,7 +172,7 @@ class HTTPAPIConnection extends ProtocolHandler {
             } else {
                 List<String> defaults = params.get("default-graph-uri");
                 List<String> named = params.get("named-graph-uri");
-                ProtocolReply reply = controller.sparql(user, database, body, defaults, named);
+                XSPReply reply = controller.sparql(user, database, body, defaults, named);
                 response(reply);
             }
         } else {
@@ -232,7 +232,7 @@ class HTTPAPIConnection extends ProtocolHandler {
             Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
             List<String> defaults = params.get("default-graph-uri");
             List<String> named = params.get("named-graph-uri");
-            ProtocolReply reply = controller.sparql(user, database, body, defaults, named);
+            XSPReply reply = controller.sparql(user, database, body, defaults, named);
             response(reply);
         }
     }
@@ -243,7 +243,7 @@ class HTTPAPIConnection extends ProtocolHandler {
      * @param body The request body
      */
     private void onPostCommand(String body) {
-        ProtocolReply reply = execute(body);
+        XSPReply reply = execute(body);
         response(reply);
     }
 
@@ -274,26 +274,26 @@ class HTTPAPIConnection extends ProtocolHandler {
      *
      * @param reply The protocol reply
      */
-    private void response(ProtocolReply reply) {
+    private void response(XSPReply reply) {
         if (reply == null) {
             // client got banned
             response(HttpURLConnection.HTTP_FORBIDDEN, null);
             return;
         }
-        if (reply instanceof ProtocolReplyUnauthenticated) {
+        if (reply instanceof XSPReplyUnauthenticated) {
             response(HttpURLConnection.HTTP_UNAUTHORIZED, null);
             return;
         }
-        if (reply instanceof ProtocolReplyUnauthorized) {
+        if (reply instanceof XSPReplyUnauthorized) {
             response(HttpURLConnection.HTTP_FORBIDDEN, null);
             return;
         }
-        if (reply instanceof ProtocolReplyFailure) {
+        if (reply instanceof XSPReplyFailure) {
             httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
             response(HttpURLConnection.HTTP_INTERNAL_ERROR, reply.getMessage());
             return;
         }
-        if (!(reply instanceof ProtocolReplyResult)) {
+        if (!(reply instanceof XSPReplyResult)) {
             // other successes
             httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
             response(HttpURLConnection.HTTP_OK, reply.getMessage());
@@ -303,7 +303,7 @@ class HTTPAPIConnection extends ProtocolHandler {
         List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
         String resultType = Utils.negotiateType(acceptTypes);
 
-        Object data = ((ProtocolReplyResult) reply).getData();
+        Object data = ((XSPReplyResult) reply).getData();
         if (data instanceof Collection) {
             httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, Result.SYNTAX_JSON);
             StringBuilder builder = new StringBuilder("{ \"results\": [");

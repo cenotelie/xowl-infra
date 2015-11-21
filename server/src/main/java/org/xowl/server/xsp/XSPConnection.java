@@ -23,8 +23,8 @@ package org.xowl.server.xsp;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.server.db.Controller;
 import org.xowl.server.db.ProtocolHandler;
-import org.xowl.store.storage.remote.ProtocolReply;
-import org.xowl.store.storage.remote.ProtocolReplyResult;
+import org.xowl.store.storage.remote.XSPReply;
+import org.xowl.store.storage.remote.XSPReplyResult;
 import org.xowl.store.Serializable;
 import org.xowl.store.storage.remote.SocketHelper;
 
@@ -100,13 +100,13 @@ class XSPConnection extends ProtocolHandler {
                 }
                 if (line == null)
                     return;
-                ProtocolReply reply = execute(line);
+                XSPReply reply = execute(line);
                 if (reply == null) {
                     // client got banned
                     return;
                 }
-                if (reply instanceof ProtocolReplyResult) {
-                    Object data = ((ProtocolReplyResult) reply).getData();
+                if (reply instanceof XSPReplyResult) {
+                    Object data = ((XSPReplyResult) reply).getData();
                     if (data instanceof Serializable) {
                         String msg = (reply.isSuccess() ? "OK" : "KO") + ((org.xowl.store.Serializable) data).serializedString();
                         SocketHelper.write(socket, msg);

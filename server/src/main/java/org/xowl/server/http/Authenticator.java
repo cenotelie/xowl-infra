@@ -25,7 +25,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
 import org.xowl.server.db.Controller;
-import org.xowl.store.storage.remote.ProtocolReply;
+import org.xowl.store.storage.remote.XSPReply;
 
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -92,7 +92,7 @@ class Authenticator extends BasicAuthenticator {
      * @return Whether the authentication succeeded
      */
     public boolean checkCredentials(InetAddress client, String login, String password) {
-        ProtocolReply reply = controller.login(client, login, password);
+        XSPReply reply = controller.login(client, login, password);
         return reply != null && reply.isSuccess();
     }
 

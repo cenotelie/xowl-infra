@@ -25,20 +25,20 @@ package org.xowl.store.storage.remote;
  *
  * @author Laurent Wouters
  */
-public class ProtocolReplyFailure implements ProtocolReply {
+public class XSPReplyFailure implements XSPReply {
     /**
      * The singleton instance
      */
-    private static ProtocolReplyFailure INSTANCE = null;
+    private static XSPReplyFailure INSTANCE = null;
 
     /**
      * Gets the default instance
      *
      * @return The default instance
      */
-    public synchronized static ProtocolReplyFailure instance() {
+    public synchronized static XSPReplyFailure instance() {
         if (INSTANCE == null)
-            return new ProtocolReplyFailure("FAILED");
+            return new XSPReplyFailure("FAILED");
         return INSTANCE;
     }
 
@@ -52,7 +52,7 @@ public class ProtocolReplyFailure implements ProtocolReply {
      *
      * @param message The message associated to the failure
      */
-    public ProtocolReplyFailure(String message) {
+    public XSPReplyFailure(String message) {
         this.message = message;
     }
 

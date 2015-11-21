@@ -21,41 +21,48 @@
 package org.xowl.store.storage.remote;
 
 /**
- * Implements a reply to a xOWL server protocol request when the user is not authenticated
+ * Implements a simple successful reply to a xOWL server request
  *
  * @author Laurent Wouters
  */
-public class ProtocolReplyUnauthenticated implements ProtocolReply {
+public class XSPReplySuccess implements XSPReply {
     /**
      * The singleton instance
      */
-    private static ProtocolReplyUnauthenticated INSTANCE = null;
+    private static XSPReplySuccess INSTANCE = null;
 
     /**
-     * Gets the singleton instance
+     * Gets the default instance
      *
-     * @return The singleton instance
+     * @return The default instance
      */
-    public synchronized static ProtocolReplyUnauthenticated instance() {
+    public synchronized static XSPReplySuccess instance() {
         if (INSTANCE == null)
-            return new ProtocolReplyUnauthenticated();
+            return new XSPReplySuccess("OK");
         return INSTANCE;
     }
 
     /**
-     * Initializes this instance
+     * The associated message
      */
-    private ProtocolReplyUnauthenticated() {
+    private final String message;
 
+    /**
+     * Initializes this success
+     *
+     * @param message The associated message
+     */
+    public XSPReplySuccess(String message) {
+        this.message = message;
     }
 
     @Override
     public boolean isSuccess() {
-        return false;
+        return true;
     }
 
     @Override
     public String getMessage() {
-        return "UNAUTHENTICATED";
+        return message;
     }
 }

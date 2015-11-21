@@ -21,31 +21,31 @@
 package org.xowl.store.storage.remote;
 
 /**
- * Implements a reply to a xOWL server protocol request when the user is not authorized to perform the request
+ * Implements a reply to a xOWL server protocol request when the user is not authenticated
  *
  * @author Laurent Wouters
  */
-public class ProtocolReplyUnauthorized implements ProtocolReply {
+public class XSPReplyUnauthenticated implements XSPReply {
     /**
      * The singleton instance
      */
-    private static ProtocolReplyUnauthorized INSTANCE = null;
+    private static XSPReplyUnauthenticated INSTANCE = null;
 
     /**
      * Gets the singleton instance
      *
      * @return The singleton instance
      */
-    public synchronized static ProtocolReplyUnauthorized instance() {
+    public synchronized static XSPReplyUnauthenticated instance() {
         if (INSTANCE == null)
-            return new ProtocolReplyUnauthorized();
+            return new XSPReplyUnauthenticated();
         return INSTANCE;
     }
 
     /**
      * Initializes this instance
      */
-    private ProtocolReplyUnauthorized() {
+    private XSPReplyUnauthenticated() {
 
     }
 
@@ -56,6 +56,6 @@ public class ProtocolReplyUnauthorized implements ProtocolReply {
 
     @Override
     public String getMessage() {
-        return "UNAUTHORIZED";
+        return "UNAUTHENTICATED";
     }
 }

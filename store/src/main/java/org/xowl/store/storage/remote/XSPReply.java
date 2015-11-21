@@ -21,42 +21,22 @@
 package org.xowl.store.storage.remote;
 
 /**
- * Implements a successful reply to a xOWL server request with an object of type T as a response
+ * Represents a reply to a request in the xOWL server protocol
  *
- * @param <T> The type of return data
  * @author Laurent Wouters
  */
-public class ProtocolReplyResult<T> implements ProtocolReply {
+public interface XSPReply {
     /**
-     * The payload
-     */
-    private final T data;
-
-    /**
-     * Gets the payload
+     * Gets whether the reply is a success
      *
-     * @return The payload
+     * @return Whether the reply is a success
      */
-    public T getData() {
-        return data;
-    }
+    boolean isSuccess();
 
     /**
-     * Initializes this result
+     * Gets the message, if any
      *
-     * @param data The payload
+     * @return The message, if any
      */
-    public ProtocolReplyResult(T data) {
-        this.data = data;
-    }
-
-    @Override
-    public boolean isSuccess() {
-        return true;
-    }
-
-    @Override
-    public String getMessage() {
-        return "OK";
-    }
+    String getMessage();
 }

@@ -35,10 +35,10 @@ import org.xowl.store.rdf.RuleExplanation;
 import org.xowl.store.rete.MatchStatus;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.StoreFactory;
-import org.xowl.store.storage.remote.ProtocolReply;
-import org.xowl.store.storage.remote.ProtocolReplyFailure;
-import org.xowl.store.storage.remote.ProtocolReplyResult;
-import org.xowl.store.storage.remote.ProtocolReplySuccess;
+import org.xowl.store.storage.remote.XSPReply;
+import org.xowl.store.storage.remote.XSPReplyFailure;
+import org.xowl.store.storage.remote.XSPReplyResult;
+import org.xowl.store.storage.remote.XSPReplySuccess;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.ConsoleLogger;
 import org.xowl.utils.logging.DispatchLogger;
@@ -225,8 +225,8 @@ public class Database implements Closeable {
      *
      * @return The protocol reply
      */
-    public ProtocolReply getAllRules() {
-        return new ProtocolReplyResult<>(configuration.getAll(CONFIG_ALL_RULES));
+    public XSPReply getAllRules() {
+        return new XSPReplyResult<>(configuration.getAll(CONFIG_ALL_RULES));
     }
 
     /**
@@ -234,8 +234,8 @@ public class Database implements Closeable {
      *
      * @return The protocol reply
      */
-    public ProtocolReply getActiveRules() {
-        return new ProtocolReplyResult<>(configuration.getAll(CONFIG_ACTIVE_RULES));
+    public XSPReply getActiveRules() {
+        return new XSPReplyResult<>(configuration.getAll(CONFIG_ACTIVE_RULES));
     }
 
     /**
@@ -245,11 +245,11 @@ public class Database implements Closeable {
      * @param activate Whether to activate the rule
      * @return The protocol reply
      */
-    public ProtocolReply addRule(String content, boolean activate) {
+    public XSPReply addRule(String content, boolean activate) {
         File folder = new File(location, REPO_RULES);
         if (!folder.exists()) {
             if (!folder.mkdirs())
-                return ProtocolReplyFailure.instance();
+                return XSPReplyFailure.instance();
         }
 
         BufferedLogger bufferedLogger = new BufferedLogger();
@@ -259,10 +259,10 @@ public class Database implements Closeable {
         if (result == null) {
             // ill-formed request
             dispatchLogger.error("Failed to parse and load the rules");
-            return new ProtocolReplyFailure(Program.getLog(bufferedLogger));
+            return new XSPReplyFailure(Program.getLog(bufferedLogger));
         }
         if (result.getRules().size() != 1)
-            return new ProtocolReplyFailure("Expected one rule");
+            return new XSPReplyFailure("Expected one rule");
 
         Rule rule = result.getRules().get(0);
         String name = Program.encode(rule.getIRI().getBytes(Charset.forName("UTF-8")));
@@ -272,7 +272,7 @@ public class Database implements Closeable {
             stream.flush();
         } catch (IOException exception) {
             logger.error(exception);
-            return ProtocolReplyFailure.instance();
+            return XSPReplyFailure.instance();
         }
 
         configuration.add(CONFIG_ALL_RULES, rule.getIRI());
@@ -285,7 +285,7 @@ public class Database implements Closeable {
         } catch (IOException exception) {
             logger.error(exception);
         }
-        return new ProtocolReplyResult<>(rule.getIRI());
+        return new XSPReplyResult<>(rule.getIRI());
     }
 
     /**
@@ -295,9 +295,9 @@ public class Database implements Closeable {
      * @param iri The IRI of a rule
      * @return The protocol reply
      */
-    public ProtocolReply removeRule(String iri) {
+    public XSPReply removeRule(String iri) {
         if (!configuration.getAll(CONFIG_ALL_RULES).contains(iri))
-            return new ProtocolReplyFailure("Not in this database");
+            return new XSPReplyFailure("Not in this database");
         configuration.getAll(CONFIG_ALL_RULES).remove(iri);
         List<String> active = configuration.getAll(CONFIG_ACTIVE_RULES);
         if (active.contains(iri)) {
@@ -313,7 +313,7 @@ public class Database implements Closeable {
         File folder = new File(location, REPO_RULES);
         File file = new File(folder, Program.encode(iri.getBytes(Charset.forName("UTF-8"))));
         file.delete();
-        return ProtocolReplySuccess.instance();
+        return XSPReplySuccess.instance();
     }
 
     /**
@@ -322,19 +322,19 @@ public class Database implements Closeable {
      * @param iri The IRI of a rule
      * @return The protocol reply
      */
-    public ProtocolReply getRuleDefinition(String iri) {
+    public XSPReply getRuleDefinition(String iri) {
         if (!configuration.getAll(CONFIG_ALL_RULES).contains(iri))
-            return new ProtocolReplyFailure("Not in this database");
+            return new XSPReplyFailure("Not in this database");
 
         File folder = new File(location, REPO_RULES);
         File file = new File(folder, Program.encode(iri.getBytes(Charset.forName("UTF-8"))));
         try (FileInputStream stream = new FileInputStream(file)) {
             byte[] content = Program.load(stream);
             String definition = new String(content, Charset.forName("UTF-8"));
-            return new ProtocolReplyResult<>(definition);
+            return new XSPReplyResult<>(definition);
         } catch (IOException exception) {
             logger.error(exception);
-            return ProtocolReplyFailure.instance();
+            return XSPReplyFailure.instance();
         }
     }
 
@@ -344,11 +344,11 @@ public class Database implements Closeable {
      * @param iri The IRI of a rule
      * @return The protocol reply
      */
-    public ProtocolReply activateRule(String iri) {
+    public XSPReply activateRule(String iri) {
         if (!configuration.getAll(CONFIG_ALL_RULES).contains(iri))
-            return new ProtocolReplyFailure("Not in this database");
+            return new XSPReplyFailure("Not in this database");
         if (configuration.getAll(CONFIG_ACTIVE_RULES).contains(iri))
-            return new ProtocolReplyFailure("Already active");
+            return new XSPReplyFailure("Already active");
 
         File folder = new File(location, REPO_RULES);
         File file = new File(folder, Program.encode(iri.getBytes(Charset.forName("UTF-8"))));
@@ -359,10 +359,10 @@ public class Database implements Closeable {
             rule = result.getRules().get(0);
         } catch (IOException exception) {
             logger.error(exception);
-            return ProtocolReplyFailure.instance();
+            return XSPReplyFailure.instance();
         }
         repository.getRDFRuleEngine().add(rule);
-        return ProtocolReplySuccess.instance();
+        return XSPReplySuccess.instance();
     }
 
     /**
@@ -371,17 +371,17 @@ public class Database implements Closeable {
      * @param iri The IRI of a rule
      * @return The protocol reply
      */
-    public ProtocolReply deactivateRule(String iri) {
+    public XSPReply deactivateRule(String iri) {
         if (!configuration.getAll(CONFIG_ALL_RULES).contains(iri))
-            return new ProtocolReplyFailure("Not in this database");
+            return new XSPReplyFailure("Not in this database");
         configuration.getAll(CONFIG_ALL_RULES).remove(iri);
         List<String> active = configuration.getAll(CONFIG_ACTIVE_RULES);
         if (active.contains(iri)) {
             active.remove(iri);
             repository.getRDFRuleEngine().remove(iri);
-            return ProtocolReplySuccess.instance();
+            return XSPReplySuccess.instance();
         }
-        return new ProtocolReplyFailure("Not active");
+        return new XSPReplyFailure("Not active");
     }
 
     /**
@@ -390,8 +390,8 @@ public class Database implements Closeable {
      * @param iri The IRI of a rule
      * @return The protocol reply
      */
-    public ProtocolReply isRuleActive(String iri) {
-        return new ProtocolReplyResult<>(configuration.getAll(CONFIG_ACTIVE_RULES).contains(iri));
+    public XSPReply isRuleActive(String iri) {
+        return new XSPReplyResult<>(configuration.getAll(CONFIG_ACTIVE_RULES).contains(iri));
     }
 
     /**
@@ -400,13 +400,13 @@ public class Database implements Closeable {
      * @param iri The IRI of a rule
      * @return The protocol reply
      */
-    public ProtocolReply getRuleStatus(String iri) {
+    public XSPReply getRuleStatus(String iri) {
         if (!configuration.getAll(CONFIG_ACTIVE_RULES).contains(iri))
-            return new ProtocolReplyFailure("Not active");
+            return new XSPReplyFailure("Not active");
         MatchStatus result = repository.getRDFRuleEngine().getMatchStatus(iri);
         if (result == null)
-            return ProtocolReplyFailure.instance();
-        return new ProtocolReplyResult<>(result);
+            return XSPReplyFailure.instance();
+        return new XSPReplyResult<>(result);
     }
 
     /**
@@ -415,7 +415,7 @@ public class Database implements Closeable {
      * @param content The quad to investigate
      * @return The protocol reply
      */
-    public ProtocolReply getExplanation(String content) {
+    public XSPReply getExplanation(String content) {
         BufferedLogger bufferedLogger = new BufferedLogger();
         DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
         NQuadsLoader loader = new NQuadsLoader(repository.getStore());
@@ -423,15 +423,15 @@ public class Database implements Closeable {
         if (result == null) {
             // ill-formed request
             dispatchLogger.error("Failed to parse and load the quad");
-            return new ProtocolReplyFailure(Program.getLog(bufferedLogger));
+            return new XSPReplyFailure(Program.getLog(bufferedLogger));
         }
         if (result.getQuads().size() != 1)
-            return new ProtocolReplyFailure("Expected one quad");
+            return new XSPReplyFailure("Expected one quad");
         Quad quad = result.getQuads().get(0);
         if (quad.getGraph() == null)
-            return new ProtocolReplyFailure("Quad must have a graph");
+            return new XSPReplyFailure("Quad must have a graph");
         RuleExplanation explanation = repository.getRDFRuleEngine().explain(quad);
-        return new ProtocolReplyResult<>(explanation);
+        return new XSPReplyResult<>(explanation);
     }
 
     @Override
