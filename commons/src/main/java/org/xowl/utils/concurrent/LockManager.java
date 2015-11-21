@@ -20,6 +20,8 @@
 
 package org.xowl.utils.concurrent;
 
+import org.xowl.utils.logging.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -75,11 +77,7 @@ public class LockManager {
             return;
         for (TrackedLock lock : locks) {
             if (DEBUG_LEAKS) {
-                StackTraceElement[] trace = lock.trace();
-                System.err.println("Leaking locking iterator by:");
-                for (int i = 1; i != trace.length; i++) {
-                    System.err.println("\t" + trace[i].toString());
-                }
+                Logger.DEFAULT.warning(new LeakingLock(lock.trace()));
             }
             lock.simpleRelease();
         }

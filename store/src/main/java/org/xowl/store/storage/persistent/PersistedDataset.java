@@ -802,9 +802,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 if (pGraph == null)
                     return 0;
             }
-            if (subject != null)
+            if (pSubject != null)
                 return countOnSingleSubject(pGraph, pSubject, pProperty, pObject);
-            if (graph != null)
+            if (pGraph != null)
                 return countOnSingleGraph(pGraph, pProperty, pObject);
             return countDefault(pProperty, pObject);
         } catch (UnsupportedNodeType exception) {
