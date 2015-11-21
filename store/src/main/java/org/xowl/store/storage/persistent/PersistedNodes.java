@@ -539,6 +539,8 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @return Whether the operation succeeded
      */
     public boolean commit() {
+        if (backend.isReadonly())
+            return false;
         boolean success = backend.commit();
         database.commit();
         return success;

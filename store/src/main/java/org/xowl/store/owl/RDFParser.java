@@ -80,7 +80,7 @@ public class RDFParser {
      */
     public Collection<Axiom> translate(Collection<Quad> quads) {
         try {
-            store = StoreFactory.newInMemoryStore();
+            store = StoreFactory.create().make();
             graphNode = new VariableNode("__graph__");
             store.insert(Changeset.fromAdded(quads));
         } catch (UnsupportedNodeType ex) {

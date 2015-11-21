@@ -89,19 +89,20 @@ class OnDiskStore extends BaseStore {
 
     @Override
     public void close() throws Exception {
-        Exception ex = null;
+        Exception toThrow = null;
         try {
             persistedNodes.close();
         } catch (Exception exception) {
-            ex = exception;
+            toThrow = exception;
         }
         try {
             persistedDataset.close();
         } catch (Exception exception) {
             // TODO: clean this, the previous ex could be swallowed
-            ex = exception;
+            toThrow = exception;
         }
-        throw ex;
+        if (toThrow != null)
+            throw toThrow;
     }
 
     @Override
