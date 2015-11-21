@@ -27,6 +27,9 @@ import java.util.*;
 
 /**
  * Implements a dataset that aggregates other datasets
+ * This implementation assumes that the aggregated datasets are disjoint, meaning there are no common quads between them.
+ * This class can be used, for example, when using different datasets to store quads from different graphs.
+ * This class is primarily used by the BaseReasonableStore.
  *
  * @author Laurent Wouters
  */

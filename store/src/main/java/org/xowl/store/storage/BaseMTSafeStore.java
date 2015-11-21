@@ -35,7 +35,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Laurent Wouters
  */
-class BaseMTSafeStore implements BaseStore {
+class BaseMTSafeStore extends BaseStore {
     /**
      * The backend store
      */
@@ -70,6 +70,16 @@ class BaseMTSafeStore implements BaseStore {
         globalLock.lock();
         try {
             return backend.rollback();
+        } finally {
+            globalLock.unlock();
+        }
+    }
+
+    @Override
+    public void close() throws Exception {
+        globalLock.lock();
+        try {
+            backend.close();
         } finally {
             globalLock.unlock();
         }
@@ -335,16 +345,6 @@ class BaseMTSafeStore implements BaseStore {
         globalLock.lock();
         try {
             return backend.getAnonNode(individual);
-        } finally {
-            globalLock.unlock();
-        }
-    }
-
-    @Override
-    public void close() throws Exception {
-        globalLock.lock();
-        try {
-            backend.close();
         } finally {
             globalLock.unlock();
         }

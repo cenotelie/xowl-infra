@@ -40,7 +40,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-class OnDiskStore implements BaseStore {
+class OnDiskStore extends BaseStore {
     /**
      * The store for the nodes
      */
@@ -85,6 +85,23 @@ class OnDiskStore implements BaseStore {
         boolean success = persistedNodes.rollback();
         success &= persistedDataset.rollback();
         return success;
+    }
+
+    @Override
+    public void close() throws Exception {
+        Exception ex = null;
+        try {
+            persistedNodes.close();
+        } catch (Exception exception) {
+            ex = exception;
+        }
+        try {
+            persistedDataset.close();
+        } catch (Exception exception) {
+            // TODO: clean this, the previous ex could be swallowed
+            ex = exception;
+        }
+        throw ex;
     }
 
     @Override
@@ -226,22 +243,5 @@ class OnDiskStore implements BaseStore {
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
         return cacheNodes.getAnonNode(individual);
-    }
-
-    @Override
-    public void close() throws Exception {
-        Exception ex = null;
-        try {
-            persistedNodes.close();
-        } catch (Exception exception) {
-            ex = exception;
-        }
-        try {
-            persistedDataset.close();
-        } catch (Exception exception) {
-            // TODO: clean this, the previous ex could be swallowed
-            ex = exception;
-        }
-        throw ex;
     }
 }

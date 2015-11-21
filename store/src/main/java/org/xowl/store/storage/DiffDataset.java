@@ -53,6 +53,10 @@ class DiffDataset extends DatasetImpl {
      * The differentially negative quads
      */
     private CachedDataset diffNegatives;
+    /**
+     * The size of the diff
+     */
+    private int size;
 
     /**
      * Initializes this dataset
@@ -61,6 +65,16 @@ class DiffDataset extends DatasetImpl {
      */
     public DiffDataset(DatasetImpl original) {
         this.original = original;
+        this.size = 0;
+    }
+
+    /**
+     * Gets the size of the diff represented by this dataset
+     *
+     * @return The size of the diff
+     */
+    public int getSize() {
+        return size;
     }
 
     /**
@@ -133,6 +147,7 @@ class DiffDataset extends DatasetImpl {
             }
             diffNegatives.clear();
         }
+        size = 0;
     }
 
     /**
@@ -141,6 +156,7 @@ class DiffDataset extends DatasetImpl {
     public void rollback() {
         diffPositives.clear();
         diffNegatives.clear();
+        size = 0;
     }
 
     /**
@@ -215,6 +231,7 @@ class DiffDataset extends DatasetImpl {
         if (diffNegatives != null) {
             int result = diffNegatives.doRemoveQuad(graph, subject, property, value);
             if (result >= REMOVE_RESULT_REMOVED) {
+                size--;
                 long multiplicity = original.getMultiplicity(graph, subject, property, value);
                 return multiplicity > 0 ? ADD_RESULT_INCREMENT : ADD_RESULT_NEW;
             } else if (result == REMOVE_RESULT_DECREMENT) {
@@ -227,6 +244,8 @@ class DiffDataset extends DatasetImpl {
             diffPositives = new CachedDataset();
         long multiplicity = original.getMultiplicity(graph, subject, property, value);
         int result = diffPositives.doAddQuad(graph, subject, property, value);
+        if (result == ADD_RESULT_NEW)
+            size++;
         return (multiplicity == 0) ? result : ADD_RESULT_INCREMENT;
     }
 
@@ -237,6 +256,7 @@ class DiffDataset extends DatasetImpl {
             if (result == REMOVE_RESULT_DECREMENT)
                 return REMOVE_RESULT_DECREMENT;
             else if (result >= REMOVE_RESULT_REMOVED) {
+                size--;
                 long multiplicity = original.getMultiplicity(graph, subject, property, value);
                 return multiplicity > 0 ? REMOVE_RESULT_DECREMENT : REMOVE_RESULT_REMOVED;
             }
@@ -245,17 +265,22 @@ class DiffDataset extends DatasetImpl {
             diffNegatives = new CachedDataset();
         long m1 = original.getMultiplicity(graph, subject, property, value);
         int result = diffNegatives.doAddQuad(graph, subject, property, value);
-        if (result == ADD_RESULT_NEW)
+        if (result == ADD_RESULT_NEW) {
+            size++;
             return (m1 - 1 > 0) ? REMOVE_RESULT_DECREMENT : REMOVE_RESULT_REMOVED;
+        }
         long m2 = diffNegatives.getMultiplicity(graph, subject, property, value);
         return (m1 - m2 > 0) ? REMOVE_RESULT_DECREMENT : REMOVE_RESULT_REMOVED;
     }
 
     @Override
     public void doRemoveQuads(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws UnsupportedNodeType {
+        List<MQuad> toRemove = new ArrayList<>();
         Iterator<Quad> iterator = getAll(graph, subject, property, value);
         while (iterator.hasNext()) {
-            MQuad quad = (MQuad) iterator.next();
+            toRemove.add((MQuad) iterator.next());
+        }
+        for (MQuad quad : toRemove) {
             int result = doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
             if (result == REMOVE_RESULT_DECREMENT)
                 bufferDecremented.add(quad);
@@ -266,14 +291,38 @@ class DiffDataset extends DatasetImpl {
 
     @Override
     public void doClear(List<MQuad> buffer) {
-        // TODO: implement this
-        throw new UnsupportedOperationException("Not implemented yet");
+        int originalSize = buffer.size();
+        Iterator<Quad> iterator = getAll(null, null, null, null);
+        while (iterator.hasNext()) {
+            buffer.add((MQuad) iterator.next());
+        }
+        for (int i = originalSize; i != buffer.size(); i++) {
+            MQuad quad = buffer.get(i);
+            try {
+                for (int j = 0; j < quad.getMultiplicity(); j++)
+                    doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            } catch (UnsupportedNodeType exception) {
+                // cannot happen
+            }
+        }
     }
 
     @Override
     public void doClear(GraphNode graph, List<MQuad> buffer) {
-        // TODO: implement this
-        throw new UnsupportedOperationException("Not implemented yet");
+        int originalSize = buffer.size();
+        Iterator<Quad> iterator = getAll(graph, null, null, null);
+        while (iterator.hasNext()) {
+            buffer.add((MQuad) iterator.next());
+        }
+        for (int i = originalSize; i != buffer.size(); i++) {
+            MQuad quad = buffer.get(i);
+            try {
+                for (int j = 0; j < quad.getMultiplicity(); j++)
+                    doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            } catch (UnsupportedNodeType exception) {
+                // cannot happen
+            }
+        }
     }
 
     @Override

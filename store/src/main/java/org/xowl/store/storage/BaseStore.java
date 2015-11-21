@@ -25,18 +25,29 @@ package org.xowl.store.storage;
  *
  * @author Laurent Wouters
  */
-public interface BaseStore extends Dataset, NodeManager, AutoCloseable {
+public abstract class BaseStore implements Dataset, NodeManager, AutoCloseable {
     /**
      * Commits the outstanding changes to this store
      *
      * @return Whether the operation succeeded
      */
-    boolean commit();
+    public boolean commit() {
+        // do nothing
+        return true;
+    }
 
     /**
      * Rollback the outstanding changes to this store
      *
      * @return Whether the operation succeeded
      */
-    boolean rollback();
+    public boolean rollback() {
+        // do nothing
+        return true;
+    }
+
+    @Override
+    public void close() throws Exception {
+        // do nothing
+    }
 }

@@ -36,7 +36,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-class BaseReasonableStore implements BaseStore {
+class BaseReasonableStore extends BaseStore {
     /**
      * The store for the ground data
      */
