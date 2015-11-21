@@ -30,7 +30,7 @@ import java.util.concurrent.locks.Lock;
  * @param <T> The type of the data to iterate over
  * @author Laurent Wouters
  */
-public class LockingIterator<T> implements Iterator<T>, AutoCloseable {
+public class LockingIterator<T> implements CloseableIterator {
     /**
      * The inner iterator
      */

@@ -140,6 +140,9 @@ public class Database implements Closeable {
                 StoreFactory.create().onDisk(location).withReasoning().withMultithreading().make();
         this.repository = new Repository(store);
         this.proxy = repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + confServer.getAdminDBName());
+        String cRegime = configuration.get(CONFIG_ENTAILMENT);
+        if (cRegime != null)
+            setEntailmentRegime(EntailmentRegime.valueOf(cRegime));
     }
 
     /**
@@ -168,6 +171,9 @@ public class Database implements Closeable {
                 StoreFactory.create().onDisk(location).withReasoning().withMultithreading().make();
         this.repository = new Repository(store);
         this.proxy = proxy;
+        String cRegime = configuration.get(CONFIG_ENTAILMENT);
+        if (cRegime != null)
+            setEntailmentRegime(EntailmentRegime.valueOf(cRegime));
     }
 
     /**

@@ -77,6 +77,8 @@ public class TrackedReentrantLock extends ReentrantLock implements TrackedLock {
 
     @Override
     public void simpleRelease() {
-        super.unlock();
+        while (isHeldByCurrentThread()) {
+            super.unlock();
+        }
     }
 }

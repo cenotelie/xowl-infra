@@ -233,11 +233,12 @@
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-sparql">
 				<div class="panel panel-info" style="margin-top: 20px;">
-					<div class="panel-heading">SPARQL Query</div>
-					<div class="panel-body">
+					<div class="panel-heading">
+						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#query-form" aria-expanded="false" aria-controls="query-form">SPARQL Query</button>
+					</div>
+					<div id="query-form" class="panel-body collapse">
 						<form>
 							<div class="form-group">
-								<label for="sparql">SPARQL Query:</label>
 								<textarea class="form-control" rows="15" id="sparql"></textarea>
 							</div>
 							<button type="submit" class="btn btn-primary" ng-click="onSPARQL()">Send</button>
@@ -249,12 +250,12 @@
 						<table class="table table-bordered table-hover">
 							<thead>
 								<tr>
-									<th ng-repeat="header in data.headers">{{header}}</th>
+									<th ng-repeat="header in data.headers track by $index">{{header}}</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr ng-repeat="row in data.rows">
-									<td ng-repeat="cell in row.cells">
+								<tr ng-repeat="row in data.rows track by $index">
+									<td ng-repeat="cell in row.cells track by $index">
 										{{cell}}
 									</td>
 								</tr>

@@ -25,6 +25,7 @@ import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.collections.*;
+import org.xowl.utils.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -547,11 +548,11 @@ public class ProxyObject {
             // range is undefined, return xsd:String
             return Vocabulary.xsdString;
         Node rangeNode = iterator.next().getObject();
-        if (iterator instanceof LockingIterator) {
+        if (iterator instanceof CloseableIterator) {
             try {
-                ((LockingIterator) iterator).close();
+                ((CloseableIterator) iterator).close();
             } catch (Exception exception) {
-                // cannot happen
+                Logger.DEFAULT.error(exception);
             }
         }
         if (rangeNode.getNodeType() == Node.TYPE_IRI)

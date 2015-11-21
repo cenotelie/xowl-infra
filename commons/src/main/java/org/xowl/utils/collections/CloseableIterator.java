@@ -18,43 +18,14 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.utils.concurrent;
+package org.xowl.utils.collections;
 
-import org.xowl.utils.logging.Logger;
+import java.util.Iterator;
 
 /**
- * Implements a runnable that ensure that all its locks are released before finishing
+ * Represents an iterator that must be closed after use
  *
  * @author Laurent Wouters
  */
-public abstract class SafeRunnable implements Runnable {
-    /**
-     * The logger for this runnable
-     */
-    protected final Logger logger;
-
-    /**
-     * Initializes this runnable
-     *
-     * @param logger The logger to use
-     */
-    public SafeRunnable(Logger logger) {
-        this.logger = logger;
-    }
-
-    @Override
-    public void run() {
-        try {
-            doRun();
-        } catch (Throwable exception) {
-            Logger.DEFAULT.error(exception);
-        } finally {
-            LockManager.cleanup();
-        }
-    }
-
-    /**
-     * Effectively run
-     */
-    public abstract void doRun();
+public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
 }
