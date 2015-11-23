@@ -39,11 +39,11 @@ import org.xowl.store.storage.remote.XSPReply;
 import org.xowl.store.storage.remote.XSPReplyFailure;
 import org.xowl.store.storage.remote.XSPReplyResult;
 import org.xowl.store.storage.remote.XSPReplySuccess;
+import org.xowl.utils.config.Configuration;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.ConsoleLogger;
 import org.xowl.utils.logging.DispatchLogger;
 import org.xowl.utils.logging.Logger;
-import org.xowl.utils.config.Configuration;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -81,13 +81,17 @@ public class Database implements Closeable {
      */
     private static final String CONFIG_ENTAILMENT = "entailment";
     /**
+     * The configuration section for the rules
+     */
+    private static final String CONFIG_SECTION_RULES = "rules";
+    /**
      * The configuration property that holds all the rules
      */
-    private static final String CONFIG_ALL_RULES = "rules";
+    private static final String CONFIG_ALL_RULES = "all";
     /**
      * The configuration property that holds the active rules
      */
-    private static final String CONFIG_ACTIVE_RULES = "activeRules";
+    private static final String CONFIG_ACTIVE_RULES = "actives";
 
     /**
      * The database's location
@@ -125,24 +129,10 @@ public class Database implements Closeable {
         this.location = location;
         this.logger = new ConsoleLogger();
         this.configuration = new Configuration();
-        if (!location.exists()) {
-            if (!location.mkdirs()) {
-                throw error(logger, "Failed to create the directory for repository at " + location.getPath());
-            }
-        }
-        File configFile = new File(location, REPO_CONF_NAME);
-        if (configFile.exists()) {
-            configuration.load(configFile.getAbsolutePath(), Charset.forName("UTF-8"));
-        }
-        String cBackend = configuration.get(CONFIG_STORAGE);
-        BaseStore store = Objects.equals(cBackend, CONFIG_STORAGE_MEMORY) ?
-                StoreFactory.create().inMemory().withReasoning().withMultithreading().make() :
-                StoreFactory.create().onDisk(location).withReasoning().withMultithreading().make();
+        BaseStore store = initStore();
         this.repository = new Repository(store);
         this.proxy = repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + confServer.getAdminDBName());
-        String cRegime = configuration.get(CONFIG_ENTAILMENT);
-        if (cRegime != null)
-            setEntailmentRegime(EntailmentRegime.valueOf(cRegime));
+        initRepository();
     }
 
     /**
@@ -156,6 +146,19 @@ public class Database implements Closeable {
         this.location = location;
         this.logger = new ConsoleLogger();
         this.configuration = new Configuration();
+        BaseStore store = initStore();
+        this.repository = new Repository(store);
+        this.proxy = proxy;
+        initRepository();
+    }
+
+    /**
+     * Initializes the underlying store
+     *
+     * @return The store
+     * @throws IOException When the location cannot be accessed
+     */
+    private BaseStore initStore() throws IOException {
         if (!location.exists()) {
             if (!location.mkdirs()) {
                 throw error(logger, "Failed to create the directory for repository at " + location.getPath());
@@ -166,14 +169,21 @@ public class Database implements Closeable {
             configuration.load(configFile.getAbsolutePath(), Charset.forName("UTF-8"));
         }
         String cBackend = configuration.get(CONFIG_STORAGE);
-        BaseStore store = Objects.equals(cBackend, CONFIG_STORAGE_MEMORY) ?
+        return Objects.equals(cBackend, CONFIG_STORAGE_MEMORY) ?
                 StoreFactory.create().inMemory().withReasoning().withMultithreading().make() :
                 StoreFactory.create().onDisk(location).withReasoning().withMultithreading().make();
-        this.repository = new Repository(store);
-        this.proxy = proxy;
+    }
+
+    /**
+     * Initializes the repository from configuration
+     */
+    private void initRepository() {
         String cRegime = configuration.get(CONFIG_ENTAILMENT);
         if (cRegime != null)
-            setEntailmentRegime(EntailmentRegime.valueOf(cRegime));
+            repository.setEntailmentRegime(logger, EntailmentRegime.valueOf(cRegime));
+        for (String rule : configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES)) {
+            activateRule(rule);
+        }
     }
 
     /**
@@ -232,7 +242,7 @@ public class Database implements Closeable {
      * @return The protocol reply
      */
     public XSPReply getAllRules() {
-        return new XSPReplyResult<>(configuration.getAll(CONFIG_ALL_RULES));
+        return new XSPReplyResult<>(configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES));
     }
 
     /**
@@ -241,7 +251,7 @@ public class Database implements Closeable {
      * @return The protocol reply
      */
     public XSPReply getActiveRules() {
-        return new XSPReplyResult<>(configuration.getAll(CONFIG_ACTIVE_RULES));
+        return new XSPReplyResult<>(configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES));
     }
 
     /**
@@ -281,7 +291,7 @@ public class Database implements Closeable {
             return XSPReplyFailure.instance();
         }
 
-        configuration.add(CONFIG_ALL_RULES, rule.getIRI());
+        configuration.add(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, rule.getIRI());
         if (activate) {
             repository.getRDFRuleEngine().add(rule);
             configuration.add(CONFIG_ACTIVE_RULES, name);
@@ -302,10 +312,10 @@ public class Database implements Closeable {
      * @return The protocol reply
      */
     public XSPReply removeRule(String iri) {
-        if (!configuration.getAll(CONFIG_ALL_RULES).contains(iri))
+        if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
             return new XSPReplyFailure("Not in this database");
-        configuration.getAll(CONFIG_ALL_RULES).remove(iri);
-        List<String> active = configuration.getAll(CONFIG_ACTIVE_RULES);
+        configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).remove(iri);
+        List<String> active = configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES);
         if (active.contains(iri)) {
             active.remove(iri);
             repository.getRDFRuleEngine().remove(iri);
@@ -329,7 +339,7 @@ public class Database implements Closeable {
      * @return The protocol reply
      */
     public XSPReply getRuleDefinition(String iri) {
-        if (!configuration.getAll(CONFIG_ALL_RULES).contains(iri))
+        if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
             return new XSPReplyFailure("Not in this database");
 
         File folder = new File(location, REPO_RULES);
@@ -351,9 +361,9 @@ public class Database implements Closeable {
      * @return The protocol reply
      */
     public XSPReply activateRule(String iri) {
-        if (!configuration.getAll(CONFIG_ALL_RULES).contains(iri))
+        if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
             return new XSPReplyFailure("Not in this database");
-        if (configuration.getAll(CONFIG_ACTIVE_RULES).contains(iri))
+        if (configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri))
             return new XSPReplyFailure("Already active");
 
         File folder = new File(location, REPO_RULES);
@@ -378,10 +388,10 @@ public class Database implements Closeable {
      * @return The protocol reply
      */
     public XSPReply deactivateRule(String iri) {
-        if (!configuration.getAll(CONFIG_ALL_RULES).contains(iri))
+        if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
             return new XSPReplyFailure("Not in this database");
-        configuration.getAll(CONFIG_ALL_RULES).remove(iri);
-        List<String> active = configuration.getAll(CONFIG_ACTIVE_RULES);
+        configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).remove(iri);
+        List<String> active = configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES);
         if (active.contains(iri)) {
             active.remove(iri);
             repository.getRDFRuleEngine().remove(iri);
@@ -397,7 +407,7 @@ public class Database implements Closeable {
      * @return The protocol reply
      */
     public XSPReply isRuleActive(String iri) {
-        return new XSPReplyResult<>(configuration.getAll(CONFIG_ACTIVE_RULES).contains(iri));
+        return new XSPReplyResult<>(configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri));
     }
 
     /**
@@ -407,7 +417,7 @@ public class Database implements Closeable {
      * @return The protocol reply
      */
     public XSPReply getRuleStatus(String iri) {
-        if (!configuration.getAll(CONFIG_ACTIVE_RULES).contains(iri))
+        if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri))
             return new XSPReplyFailure("Not active");
         MatchStatus result = repository.getRDFRuleEngine().getMatchStatus(iri);
         if (result == null)
