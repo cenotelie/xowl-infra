@@ -63,14 +63,17 @@ public class Program {
      * @param args The arguments
      */
     public Program(String[] args) {
-        this.configuration = new ServerConfiguration(args);
-        this.shouldStop = false;
+        this.configuration = new ServerConfiguration(args.length >= 1 ? args[0] : null);
+        this.shouldStop = !this.configuration.getRoot().exists();
     }
 
     /**
      * Runs this program
      */
     public void run() {
+        if (shouldStop)
+            return;
+
         // setup and start
         Controller controller;
         try {

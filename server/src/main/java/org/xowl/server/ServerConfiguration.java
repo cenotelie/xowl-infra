@@ -39,9 +39,9 @@ public class ServerConfiguration {
      */
     private static final String FILE_DEFAULT = "/org/xowl/server/config/default.ini";
     /**
-     * Name of the configuration file in a root folder
+     * Name of the configuration file in a startup folder
      */
-    private static final String FILE_NAME = "config.ini";
+    private static final String FILE_NAME = "xowl-server.conf";
 
     /**
      * The default configuration
@@ -52,16 +52,16 @@ public class ServerConfiguration {
      */
     private final Configuration confFile;
     /**
-     * The root folder for this server
+     * The root folder for this server's databases
      */
     private final File root;
 
     /**
      * Initializes this configuration
      *
-     * @param args The startup arguments
+     * @param startupDirectory The directory from which the server is starting up, or null for the current directory
      */
-    public ServerConfiguration(String[] args) {
+    public ServerConfiguration(String startupDirectory) {
         confDefault = new Configuration();
         confFile = new Configuration();
         InputStream stream = Program.class.getResourceAsStream(FILE_DEFAULT);
@@ -70,14 +70,20 @@ public class ServerConfiguration {
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
         }
-        root = (args.length > 0) ? new File(args[0]) : new File(System.getProperty("user.dir"));
-        File file = new File(root, FILE_NAME);
+        File location = startupDirectory != null ? new File(startupDirectory) : new File(System.getProperty("user.dir"));
+        File file = new File(location, FILE_NAME);
         try {
             if (file.exists()) {
                 confFile.load(file.getAbsolutePath(), Charset.forName("UTF-8"));
             }
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
+        }
+        root = new File(location, getValue(null, "repository"));
+        if (!file.exists()) {
+            if (!file.mkdirs()) {
+                Logger.DEFAULT.error("Failed to create the repository folder for the databases");
+            }
         }
     }
 
@@ -96,7 +102,7 @@ public class ServerConfiguration {
     }
 
     /**
-     * Gets the root folder for this server
+     * Gets the root folder for this server's databases
      *
      * @return The root folder
      */
