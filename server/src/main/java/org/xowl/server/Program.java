@@ -53,7 +53,11 @@ public class Program {
      */
     private final ServerConfiguration configuration;
     /**
-     * Marker whether the program should stop
+     * The signalling object for the main thread
+     */
+    private final Object signal;
+    /**
+     * Whether the server should stop
      */
     private boolean shouldStop;
 
@@ -64,17 +68,28 @@ public class Program {
      */
     public Program(String[] args) {
         this.configuration = new ServerConfiguration(args.length >= 1 ? args[0] : null);
-        this.shouldStop = !this.configuration.getRoot().exists();
+        this.signal = new Object();
+        this.shouldStop = false;
     }
 
     /**
      * Runs this program
      */
     public void run() {
-        if (shouldStop)
+        if (!configuration.getRoot().exists()) {
+            System.err.println("The repository location does not exist: " + configuration.getRoot().getAbsolutePath());
+            System.exit(1);
             return;
+        }
 
         // setup and start
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                shouldStop = true;
+                signal.notify();
+            }
+        }, Program.class.getCanonicalName() + ".shutdown"));
         Controller controller;
         try {
             controller = new Controller(configuration) {
@@ -82,11 +97,13 @@ public class Program {
                 @Override
                 public void onRequestShutdown() {
                     shouldStop = true;
+                    signal.notify();
                 }
 
                 @Override
                 public void onRequestRestart() {
                     shouldStop = true;
+                    signal.notify();
                 }
             };
         } catch (IOException exception) {
@@ -99,7 +116,7 @@ public class Program {
 
         while (!shouldStop) {
             try {
-                Thread.sleep(500);
+                signal.wait();
             } catch (InterruptedException exception) {
                 break;
             }
