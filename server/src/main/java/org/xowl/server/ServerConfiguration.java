@@ -80,8 +80,8 @@ public class ServerConfiguration {
             Logger.DEFAULT.error(exception);
         }
         root = new File(location, getValue(null, "repository"));
-        if (!file.exists()) {
-            if (!file.mkdirs()) {
+        if (!root.exists()) {
+            if (!root.mkdirs()) {
                 Logger.DEFAULT.error("Failed to create the repository folder for the databases");
             }
         }
