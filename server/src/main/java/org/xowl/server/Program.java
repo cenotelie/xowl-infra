@@ -119,8 +119,8 @@ public class Program {
      * @return Whether the operation succeeded
      */
     private boolean init() {
-        if (!configuration.getRoot().exists()) {
-            System.err.println("The repository location does not exist: " + configuration.getRoot().getAbsolutePath());
+        if (!configuration.getDatabasesFolder().exists()) {
+            System.err.println("The repository location does not exist: " + configuration.getDatabasesFolder().getAbsolutePath());
             System.exit(1);
             return false;
         }

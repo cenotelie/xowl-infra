@@ -52,6 +52,10 @@ public class ServerConfiguration {
      */
     private final Configuration confFile;
     /**
+     * The directory from which the server has been started
+     */
+    private final File startupLocation;
+    /**
      * The root folder for this server's databases
      */
     private final File root;
@@ -70,8 +74,8 @@ public class ServerConfiguration {
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
         }
-        File location = startupDirectory != null ? new File(startupDirectory) : new File(System.getProperty("user.dir"));
-        File file = new File(location, FILE_NAME);
+        startupLocation = startupDirectory != null ? new File(startupDirectory) : new File(System.getProperty("user.dir"));
+        File file = new File(startupLocation, FILE_NAME);
         try {
             if (file.exists()) {
                 confFile.load(file.getAbsolutePath(), Charset.forName("UTF-8"));
@@ -79,7 +83,7 @@ public class ServerConfiguration {
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
         }
-        root = new File(location, getValue(null, "repository"));
+        root = new File(startupLocation, getValue(null, "repository"));
         if (!root.exists()) {
             if (!root.mkdirs()) {
                 Logger.DEFAULT.error("Failed to create the repository folder for the databases");
@@ -102,11 +106,20 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets the folder from which this server was started
+     *
+     * @return The folder from which this server was started
+     */
+    public File getStartupFolder() {
+        return startupLocation;
+    }
+
+    /**
      * Gets the root folder for this server's databases
      *
-     * @return The root folder
+     * @return The root folder for the databases
      */
-    public File getRoot() {
+    public File getDatabasesFolder() {
         return root;
     }
 
@@ -297,7 +310,7 @@ public class ServerConfiguration {
         confFile.add("security", "keyStore", location);
         confFile.add("security", "keyStorePassword", password);
         try {
-            confFile.save(new File(root, FILE_NAME).getAbsolutePath(), Charset.forName("UTF-8"));
+            confFile.save(new File(startupLocation, FILE_NAME).getAbsolutePath(), Charset.forName("UTF-8"));
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
         }

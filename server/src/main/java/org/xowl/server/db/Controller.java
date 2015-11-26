@@ -156,12 +156,12 @@ public abstract class Controller implements Closeable {
         this.logger = new ConsoleLogger();
         this.databases = new HashMap<>();
         boolean isEmpty = true;
-        if (configuration.getRoot().exists()) {
-            String[] children = configuration.getRoot().list();
+        if (configuration.getDatabasesFolder().exists()) {
+            String[] children = configuration.getDatabasesFolder().list();
             isEmpty = children == null || children.length == 0;
         }
         logger.info("Initializing the controller");
-        adminDB = new Database(configuration, configuration.getRoot());
+        adminDB = new Database(configuration, configuration.getDatabasesFolder());
         databases.put(configuration.getAdminDBName(), adminDB);
         clients = new HashMap<>();
         users = new HashMap<>();
@@ -182,7 +182,7 @@ public abstract class Controller implements Closeable {
                 String name = (String) poDB.getDataValue(Schema.ADMIN_NAME);
                 String location = (String) poDB.getDataValue(Schema.ADMIN_LOCATION);
                 try {
-                    Database db = new Database(new File(configuration.getRoot(), location), poDB);
+                    Database db = new Database(new File(configuration.getDatabasesFolder(), location), poDB);
                     databases.put(name, db);
                     logger.info("Loaded database " + poDB.getIRIString() + " as " + name);
                 } catch (IOException exception) {
@@ -802,7 +802,7 @@ public abstract class Controller implements Closeable {
             Database result = databases.get(name);
             if (result != null)
                 return new XSPReplyFailure("The database already exists");
-            File folder = new File(configuration.getRoot(), name);
+            File folder = new File(configuration.getDatabasesFolder(), name);
             try {
                 ProxyObject proxy = adminDB.repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + name);
                 proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(Schema.ADMIN_DATABASE));
@@ -834,7 +834,7 @@ public abstract class Controller implements Closeable {
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
             synchronized (databases) {
                 databases.remove(database.getName());
-                File folder = new File(configuration.getRoot(), (String) database.proxy.getDataValue(Schema.ADMIN_LOCATION));
+                File folder = new File(configuration.getDatabasesFolder(), (String) database.proxy.getDataValue(Schema.ADMIN_LOCATION));
                 try {
                     database.close();
                 } catch (IOException exception) {
