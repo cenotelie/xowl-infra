@@ -12,15 +12,27 @@ angular.module('xOWLServer', [
   'xOWLServer.user'
 ])
 
-  .config(['$routeProvider', function ($routeProvider) {
+  .config(['$routeProvider', '$provide', '$httpProvider', function ($routeProvider, $provide, $httpProvider) {
     $routeProvider.otherwise({ redirectTo: '/login' });
+    $provide.factory('xOWLInterceptor', function ($q, $rootScope) {
+      return {
+        request: function (config) {
+          $rootScope.onAsync = true;
+          return config;
+        },
+        response: function (response) {
+          $rootScope.onAsync = false;
+          return response;
+        }
+      };
+    });
+    $httpProvider.interceptors.push('xOWLInterceptor');
   }])
 
   .controller('xOWLServerCtrl', ['$rootScope', '$http', function ($rootScope, $http) {
     $rootScope.xowl = new XOWL();
     $rootScope.xowl.$http = $http;
   }]);
-
 
 var MSG_ERROR_BAD_REQUEST = "Oops, wrong request.";
 var MSG_ERROR_UNAUTHORIZED = "You must be logged in to perform this operation.";
@@ -61,3 +73,4 @@ function getSuccess(msg) {
     "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>" +
     "<span class='glyphicon glyphicon-exclamation-sign' aria-hidden='true'></span> " + msg + "</div>";
 }
+

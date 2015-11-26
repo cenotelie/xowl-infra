@@ -15,7 +15,8 @@
 <body>
   <div ng-controller="xOWLServerCtrl" class="page-header" style="margin-top: 10px;">
     <h3 style="margin-top: 0px; margin-left: 10px; display: inline-block;">
-      <img class="img-responsive" src="assets/xowl.png" width="50px" style="display: inline-block;"/>
+      <img ng-if="!onAsync" class="img-responsive" src="assets/xowl.png" width="50px" style="display: inline-block;"/>
+      <img ng-if="onAsync" class="img-responsive" src="assets/xowl.gif" width="50px" style="display: inline-block;"/>
       xOWL Server
     </h3>
     <div ng-if="xowl.userName != null" style="display: inline-block;">
