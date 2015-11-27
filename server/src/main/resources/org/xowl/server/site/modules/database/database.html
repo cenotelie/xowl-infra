@@ -12,6 +12,7 @@
 			<li role="presentation"><a href="#tab-data-accesses" aria-controls="tab-data-accesses" role="tab">Accesses</a></li>
 			<li role="presentation"><a href="#tab-data-rules" aria-controls="tab-data-rules" role="tab">Rules</a></li>
 			<li role="presentation"><a href="#tab-data-sparql" aria-controls="tab-data-sparql" role="tab">SPARQL</a></li>
+			<li role="presentation"><a href="#tab-data-import" aria-controls="tab-data-import" role="tab">Import</a></li>
 		</ul>
 		<div class="tab-content">
 			<div role="tabpanel" class="tab-pane active" id="tab-data-summary">
@@ -282,6 +283,21 @@
 						</table>
 					</div>
 				</div>
+			</div>
+			<div role="tabpanel" class="tab-pane" id="tab-data-import">
+				<div class="panel panel-info" style="margin-top: 20px;">
+					<div class="panel-heading">Import content into the database</div>
+					<div class="panel-body">
+						<form class="form-horizontal">
+							<div class="form-group">
+								<input type="file" id="import-file" name="import-file"/>
+							</div>
+							<button type="submit" class="btn btn-primary" ng-click="onImport()">Submit</button>
+						</form>
+					</div>
+				</div>
+				
+				
 			</div>
 		</div>
 	</div>
