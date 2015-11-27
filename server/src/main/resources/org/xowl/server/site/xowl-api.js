@@ -145,6 +145,10 @@ XOWL.prototype.login = function (callback, login, password) {
 XOWL.prototype.logout = function () {
 	this.authToken = null;
 	this.userName = null;
+	if (this.useLocal) {
+		localStorage.removeItem('xowl.authToken');
+		localStorage.removeItem('xowl.userName');
+	}
 }
 
 /**
