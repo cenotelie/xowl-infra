@@ -122,6 +122,18 @@ angular.module('xOWLServer.database', ['ngRoute'])
 				}
 			}, $scope.database.name, name);
 		}
+		
+		$scope.onViewRule = function (name) {
+			$rootScope.xowl.getDBRuleDefinition(function (code, type, content) {
+				if (code === 200) {
+					document.getElementById("rule-modal-title").innerHTML = $sce.trustAsHtml(name);
+					document.getElementById("rule-modal-definition").value = content;
+					$('#rule-modal').modal('show');
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, name);
+		}
 
 		$scope.onSPARQL = function () {
 			var query = document.getElementById("sparql").value;

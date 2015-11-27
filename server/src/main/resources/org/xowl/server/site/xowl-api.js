@@ -208,7 +208,7 @@ XOWL.prototype.resetPassword = function (callback, login, pw) {
 
 /**
  * Requests the list of privileges for a user
- * @param getPrivileges
+ * @param getUserPrivileges
  * @param {privCallback} callback - The callback for this request
  * @param {string} login - The login of the user
  */
@@ -224,7 +224,7 @@ XOWL.prototype.getUserPrivileges = function (callback, login) {
 
 /**
  * Requests the list of privileges on a database
- * @param getPrivileges
+ * @param getDatabasePrivileges
  * @param {privCallback} callback - The callback for this request
  * @param {string} db - The target database
  */
@@ -423,6 +423,17 @@ XOWL.prototype.deactivateDBRule = function (callback, db, rule) {
  */
 XOWL.prototype.isDBRuleActive = function (callback, db, rule) {
 	this.command(callback, "DATABASE " + db + " IS ACTIVE " + rule);
+}
+
+/**
+ * Gets the definition of a database rule
+ * @param getDBRuleDefinition
+ * @param {commandCallback} callback - The callback for this request
+ * @param {string} db - The target database
+ * @param {string} rule - The URI of the rule
+ */
+XOWL.prototype.getDBRuleDefinition = function (callback, db, rule) {
+	this.command(callback, "DATABASE " + db + " RULE " + rule);
 }
 
 /**
