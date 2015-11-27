@@ -53,6 +53,11 @@ public abstract class LiteralNode implements Node {
     public abstract String getLangTag();
 
     @Override
+    public int hashCode() {
+        return getLexicalValue().hashCode() ^ getDatatype().hashCode();
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("\"");
         builder.append(getLexicalValue());

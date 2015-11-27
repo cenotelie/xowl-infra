@@ -32,6 +32,11 @@ public abstract class IRINode implements SubjectNode, Property, GraphNode {
     }
 
     @Override
+    public int hashCode() {
+        return getIRIValue().hashCode();
+    }
+
+    @Override
     public String toString() {
         return getIRIValue();
     }

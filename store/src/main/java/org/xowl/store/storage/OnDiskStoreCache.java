@@ -111,7 +111,7 @@ class OnDiskStoreCache extends DatasetImpl {
             for (int i = 0; i != count; i++) {
                 if (RDFUtils.same(nodes[i], node)) {
                     hits[i] = current;
-                    return null;
+                    return node;
                 }
                 if (hits[i] < oldestTime) {
                     oldestTime = hits[i];
