@@ -149,7 +149,7 @@
 									</ul>
 								</div>
 							</td>
-							<td><a class="item" href="#/database/{{access.user}}"><i class="glyphicon glyphicon-user"></i> {{access.user}}</a></td>
+							<td><a class="item" href="#/user/{{access.user}}"><i class="glyphicon glyphicon-user"></i> {{access.user}}</a></td>
 							<td align="center">
 								<p ng-if="access.isAdmin">
 									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="GRANTED"></span>
@@ -235,6 +235,12 @@
 				<div class="panel panel-info" style="margin-top: 20px;">
 					<div class="panel-heading">
 						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#query-form" aria-expanded="false" aria-controls="query-form">SPARQL Query</button>
+						<div class="btn-group" aria-label="main-menu" style="display: inline-block;">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">History <span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-repeat="part in history"><a ng-click="onHistory(part)">{{part.name}}</a></li>
+							</ul>
+						</div>
 					</div>
 					<div id="query-form" class="panel-body collapse">
 						<form>

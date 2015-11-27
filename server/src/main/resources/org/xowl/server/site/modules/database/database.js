@@ -14,6 +14,7 @@ angular.module('xOWLServer.database', ['ngRoute'])
 			name: $routeParams.id,
 			status: true
 		}
+		$scope.history = [];
 
 		$rootScope.xowl.getEntailmentFor(function (code, type, content) {
 			if (code === 200) {
@@ -124,6 +125,11 @@ angular.module('xOWLServer.database', ['ngRoute'])
 
 		$scope.onSPARQL = function () {
 			var query = document.getElementById("sparql").value;
+			var date = new Date();
+			$scope.history.push({
+				name: "[" + ($scope.history.length + 1).toString() + "] @ " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds(),
+				query: query
+			});
 			$rootScope.xowl.sparql(function (code, type, content) {
 				if (code === 200) {
 					onSPARQLResults($scope, type, content);
@@ -132,6 +138,10 @@ angular.module('xOWLServer.database', ['ngRoute'])
 				}
 			}, $scope.database.name, query);
 		}
+
+		$scope.onHistory = function (part) {
+			document.getElementById("sparql").value = part.query;
+		}
 	}]);
 
 var DEFAULT_RULE =
@@ -139,7 +149,7 @@ var DEFAULT_RULE =
 	"@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.\n" +
 	"@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.\n" +
 	"@prefix owl: <http://www.w3.org/2002/07/owl#>.\n" +
-	"@prefix xowl: <http://xowl.org/store/rules/xowl#>.\n" +
+	"@prefix xowl: <http://xowl.org/store/rules/xowl#>.\n\n" +
 	"rule xowl:myrule distinct {\n" +
 	"    ?x rdf:type ?y\n" +
 	"    NOT (?x rdf:type owl:Class)\n" +
@@ -152,7 +162,7 @@ var DEFAULT_QUERY =
 	"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
 	"PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
 	"PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
-	"PREFIX xowl: <http://xowl.org/store/rules/xowl#>\n" +
+	"PREFIX xowl: <http://xowl.org/store/rules/xowl#>\n\n" +
 	"SELECT DISTINCT ?x ?y WHERE { GRAPH ?g { ?x a ?y } }";
 
 function reloadPrivileges($rootScope, $scope, $sce) {
