@@ -22,7 +22,10 @@ package org.xowl.server.http;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
-import org.xowl.server.db.*;
+import org.xowl.server.db.Controller;
+import org.xowl.server.db.Database;
+import org.xowl.server.db.ProtocolHandler;
+import org.xowl.store.AbstractRepository;
 import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;
 import org.xowl.store.sparql.Result;
@@ -213,6 +216,18 @@ class HTTPAPIConnection extends ProtocolHandler {
             case XOWL_TYPE_COMMAND:
                 onPostCommand(body);
                 break;
+            case AbstractRepository.SYNTAX_NTRIPLES:
+            case AbstractRepository.SYNTAX_NQUADS:
+            case AbstractRepository.SYNTAX_TURTLE:
+            case AbstractRepository.SYNTAX_TRIG:
+            case AbstractRepository.SYNTAX_RDFXML:
+            case AbstractRepository.SYNTAX_JSON_LD:
+            case AbstractRepository.SYNTAX_FUNCTIONAL_OWL2:
+            case AbstractRepository.SYNTAX_OWLXML:
+            case AbstractRepository.SYNTAX_RDFT:
+            case AbstractRepository.SYNTAX_XOWL:
+                onPostData(database, contentType, body);
+                break;
             default:
                 response(HttpURLConnection.HTTP_BAD_REQUEST, null);
                 break;
@@ -238,13 +253,29 @@ class HTTPAPIConnection extends ProtocolHandler {
     }
 
     /**
-     * Answer to a XSP command on a POST method
+     * Answers to a XSP command on a POST method
      *
      * @param body The request body
      */
     private void onPostCommand(String body) {
         XSPReply reply = execute(body);
         response(reply);
+    }
+
+    /**
+     * Answers to the upload of data for a database
+     *
+     * @param database    The target database
+     * @param contentType The request content type
+     * @param body        The request body
+     */
+    private void onPostData(Database database, String contentType, String body) {
+        if (database == null) {
+            response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
+        } else {
+            XSPReply reply = controller.upload(user, database, contentType, body);
+            response(reply);
+        }
     }
 
     /**

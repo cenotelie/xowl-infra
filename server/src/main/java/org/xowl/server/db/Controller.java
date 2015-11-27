@@ -24,6 +24,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import org.xowl.server.Program;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.store.EntailmentRegime;
+import org.xowl.store.IRIs;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.loaders.SPARQLLoader;
@@ -1174,6 +1175,31 @@ public abstract class Controller implements Closeable {
                 || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
                 || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
             return database.getExplanation(quad);
+        } else {
+            return XSPReplyUnauthorized.instance();
+        }
+    }
+
+    /**
+     * Uploads some content to a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param syntax   The content's syntax
+     * @param content  The content
+     * @return The protocol reply
+     */
+    public XSPReply upload(User client, Database database, String syntax, String content) {
+        if (client == null)
+            return XSPReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
+            BufferedLogger bufferedLogger = new BufferedLogger();
+            DispatchLogger dispatchLogger = new DispatchLogger(database.logger, bufferedLogger);
+            database.repository.loadResource(dispatchLogger, new StringReader(content), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT, syntax);
+            if (!bufferedLogger.getErrorMessages().isEmpty()) {
+                return new XSPReplyFailure(Program.getLog(bufferedLogger));
+            }
+            return XSPReplySuccess.instance();
         } else {
             return XSPReplyUnauthorized.instance();
         }

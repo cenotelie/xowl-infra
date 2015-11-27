@@ -69,6 +69,22 @@
  * @param {Object[]} content.nodes - The explanation nodes
  */
 
+/**
+ * The MIME types of the recognized files
+ * @const
+ */
+var XOWL_MIME_TYPES = [
+	{ name: 'N-Triples', value: 'application/n-triples', extensions: ['.nt'] },
+	{ name: 'N-Quads', value: 'application/n-quads', extensions: ['.nq'] },
+	{ name: 'Turtle', value: 'text/turtle', extensions: ['.ttl'] },
+	{ name: 'TriG', value: 'application/trig', extensions: ['.trig'] },
+	{ name: 'JSON-LD', value: 'application/ld+json', extensions: ['.jsonld'] },
+	{ name: 'RDF/XML', value: 'application/rdf+xml', extensions: ['.rdf'] },
+	{ name: 'Functional OWL2', value: 'text/owl-functional', extensions: ['.ofn', '.fs'] },
+	{ name: 'OWL/XML', value: 'application/owl+xml', extensions: ['.owx', '.owl'] },
+	{ name: 'xOWL RDF Rules', value: 'application/x-xowl-rdft', extensions: ['.rdft'] },
+	{ name: 'xOWL Ontology', value: 'application/x-xowl', extensions: ['.xowl'] }
+];
 
 /**
  * Creates a new XOWL connection
@@ -492,6 +508,18 @@ XOWL.prototype.sparql = function (callback, db, sparql) {
 }
 
 /**
+ * Uploads into a database a piece of content
+ * @method upload
+ * @param {commandCallback} callback - The callback for this request
+ * @param {string} db - The target database
+ * @param {string} contentType - The MIME type of the content to upload
+ * @param {string} content - The content to upload to the database
+ */
+XOWL.prototype.upload = function (callback, db, contentType, content) {
+	this.jsUpload(callback, db, contentType, content);
+}
+
+/**
  * Executes a xOWL Server Protocol command (pure JS with XMLHttpRequest)
  * @method jsCommand
  * @param {commandCallback} callback - The callback for this request
@@ -534,4 +562,32 @@ XOWL.prototype.jsSPARQL = function (callback, db, sparql) {
 	if (this.authToken !== null)
 		xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
 	xmlHttp.send(sparql);
+}
+
+/**
+ * Uploads into a database a piece of content (pure JS with XMLHttpRequest)
+ * @method jsUpload
+ * @param {commandCallback} callback - The callback for this request
+ * @param {string} db - The target database
+ * @param {string} contentType - The MIME type of the content to upload
+ * @param {string} content - The content to upload to the database
+ */
+XOWL.prototype.jsUpload = function (callback, db, contentType, content) {
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.onreadystatechange = function () {
+		if (xmlHttp.readyState == 4) {
+			var ct = xmlHttp.getResponseHeader("Content-Type");
+			callback(xmlHttp.status, ct, xmlHttp.responseText);
+		}
+	}
+	xmlHttp.upload.onprogress = function (event) {
+		var ratio = event.loaded / event.total;
+		callback(0, null, ratio);
+	};
+	xmlHttp.open("POST", this.endpoint + "/db/" + db + "/", true);
+	xmlHttp.setRequestHeader("Accept", "text/plain, application/json");
+	xmlHttp.setRequestHeader("Content-Type", contentType);
+	if (this.authToken !== null)
+		xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
+	xmlHttp.send(content);
 }

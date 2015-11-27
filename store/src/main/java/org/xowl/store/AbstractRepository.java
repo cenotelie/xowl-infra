@@ -77,7 +77,7 @@ public abstract class AbstractRepository {
     /**
      * Supported RDF Transform syntax
      */
-    public static final String SYNTAX_RDFT = "application/rdft";
+    public static final String SYNTAX_RDFT = "application/x-xowl-rdft";
     public static final String EXT_RDFT = ".rdft";
     /**
      * Supported RDF/XML syntax
@@ -380,12 +380,13 @@ public abstract class AbstractRepository {
      * @param syntax      The resource's syntax
      * @return The loaded ontology
      */
-    private Ontology loadResource(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax) {
+    public Ontology loadResource(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax) {
         Ontology ontology = null;
         switch (syntax) {
             case SYNTAX_NTRIPLES:
             case SYNTAX_NQUADS:
             case SYNTAX_TURTLE:
+            case SYNTAX_TRIG:
             case SYNTAX_RDFXML:
             case SYNTAX_JSON_LD:
             case SYNTAX_RDFT: {
@@ -432,6 +433,7 @@ public abstract class AbstractRepository {
             case SYNTAX_NTRIPLES:
             case SYNTAX_NQUADS:
             case SYNTAX_TURTLE:
+            case SYNTAX_TRIG:
             case SYNTAX_RDFXML:
             case SYNTAX_JSON_LD:
             case SYNTAX_RDFT: {
@@ -588,6 +590,8 @@ public abstract class AbstractRepository {
                 return new NQuadsSerializer(writer);
             case SYNTAX_TURTLE:
                 return new TurtleSerializer(writer);
+            case SYNTAX_TRIG:
+                return null;
             case SYNTAX_RDFXML:
                 return new RDFXMLSerializer(writer);
             case SYNTAX_RDFT:
