@@ -29,9 +29,21 @@ angular.module('xOWLServer', [
     $httpProvider.interceptors.push('xOWLInterceptor');
   }])
 
-  .controller('xOWLServerCtrl', ['$rootScope', '$http', function ($rootScope, $http) {
+  .controller('xOWLServerCtrl', ['$rootScope', '$scope', '$http', function ($rootScope, $scope, $http) {
     $rootScope.xowl = new XOWL();
     $rootScope.xowl.$http = $http;
+    if ($rootScope.xowl.userName !== null) {
+      $rootScope.xowl.getDatabases(function (code, type, content) {
+        if (code === 200) {
+          $scope.databases = content;
+          if ($scope.databases.length > 5) {
+            $scope.databases = $scope.databases.slice(0, 6);
+          }
+        } else {
+          // do nothing here
+        }
+      });
+    }
   }]);
 
 var MSG_ERROR_BAD_REQUEST = "Oops, wrong request.";
@@ -73,4 +85,3 @@ function getSuccess(msg) {
     "<button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>" +
     "<span class='glyphicon glyphicon-exclamation-sign' aria-hidden='true'></span> " + msg + "</div>";
 }
-

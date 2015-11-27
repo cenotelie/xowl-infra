@@ -13,24 +13,36 @@
 </head>
 
 <body>
-  <div ng-controller="xOWLServerCtrl" class="page-header" style="margin-top: 10px;">
-    <h3 style="margin-top: 0px; margin-left: 10px; display: inline-block;">
-      <img ng-if="!onAsync" class="img-responsive" src="assets/xowl.png" width="50px" style="display: inline-block;"/>
-      <img ng-if="onAsync" class="img-responsive" src="assets/xowl.gif" width="50px" style="display: inline-block;"/>
+  <div ng-controller="xOWLServerCtrl" style="margin-top: 5px;">
+    <span style="margin-left: 5px; display: inline-block;">
+      <img ng-if="!onAsync" class="img-responsive" src="assets/xowl.png" width="25px" style="display: inline-block;"/>
+      <img ng-if="onAsync" class="img-responsive" src="assets/xowl.gif" width="25px" style="display: inline-block;"/>
       xOWL Server
-    </h3>
-    <div ng-if="xowl.userName != null" style="display: inline-block;">
-      <a role="button" class="btn btn-lg btn-default" href="#server" style="margin-left: 100px;">Server</a>
-      <a role="button" class="btn btn-lg btn-default" href="#databases">Databases</a>
-      <a role="button" class="btn btn-lg btn-default" href="#users">Users</a>
-      <div class="btn-group btn-group-lg" role="toolbar" aria-label="main-menu" style="display: inline-block;">
-        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Account <span class="caret"></span></button>
+    </span>
+    <div ng-if="xowl.userName != null" style="display: inline-block; margin-left: 50px;">
+      <div class="btn-group" role="toolbar" aria-label="main-menu" style="display: inline-block;">
+        <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Databases <span class="caret"></span></button>
+        <ul class="dropdown-menu">
+          <li><a href="#databases">Browse all ...</a></li>
+          <li role="separator" class="divider"></li>
+          <li ng-repeat="database in databases"><a href="#/database/{{database}}">{{database}}</a></li>
+        </ul>
+      </div>
+      <div class="btn-group" role="toolbar" aria-label="main-menu" style="display: inline-block;">
+        <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage <span class="caret"></span></button>
         <ul class="dropdown-menu">
           <li><a href="#account">My account</a></li>
+          <li><a href="#server">Server</a></li>
+          <li><a href="#users">Users</a></li>
+          <li role="separator" class="divider"></li>
           <li><a href="#login" ng-click="onLogoutButton()">Logout</a></li>
         </ul>
       </div>
+      <span style="display: inline-block; margin-left: 50px;">
+        Connected as <strong>{{xowl.userName}}</strong>
+      </span>
     </div>
+    <hr style="margin-top: 5px; margin-bottom: 5px;" />
   </div>
   <div class="body" ng-view></div>
   <script src="vendors/jquery-2.1.4.min.js"></script>
