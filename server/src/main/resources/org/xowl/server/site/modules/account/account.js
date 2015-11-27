@@ -10,7 +10,7 @@ angular.module('xOWLServer.account', ['ngRoute'])
   }])
 
   .controller('AccountCtrl', ['$rootScope', '$scope', '$sce', function ($rootScope, $scope, $sce) {
-    $rootScope.xowl.getPrivileges(function (code, type, content) {
+    $rootScope.xowl.getUserPrivileges(function (code, type, content) {
       if (code === 200) {
         $scope.privileges = content;
       } else {

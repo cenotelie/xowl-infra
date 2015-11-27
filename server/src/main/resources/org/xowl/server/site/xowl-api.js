@@ -212,14 +212,30 @@ XOWL.prototype.resetPassword = function (callback, login, pw) {
  * @param {privCallback} callback - The callback for this request
  * @param {string} login - The login of the user
  */
-XOWL.prototype.getPrivileges = function (callback, login) {
+XOWL.prototype.getUserPrivileges = function (callback, login) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
 			callback(code, "application/json", JSON.parse(content).results);
 		} else {
 			callback(code, type, content);
 		}
-	}, "ADMIN PRIVILEGES " + login);
+	}, "ADMIN PRIVILEGES FOR " + login);
+}
+
+/**
+ * Requests the list of privileges on a database
+ * @param getPrivileges
+ * @param {privCallback} callback - The callback for this request
+ * @param {string} db - The target database
+ */
+XOWL.prototype.getDatabasePrivileges = function (callback, db) {
+	this.command(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content).results);
+		} else {
+			callback(code, type, content);
+		}
+	}, "ADMIN PRIVILEGES ON " + db);
 }
 
 /**

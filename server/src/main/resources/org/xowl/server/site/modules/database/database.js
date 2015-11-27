@@ -25,6 +25,7 @@ angular.module('xOWLServer.database', ['ngRoute'])
 		}, $scope.database.name);
 
 		reloadRules($rootScope, $scope, $sce);
+		reloadPrivileges($rootScope, $scope, $sce);
 		document.getElementById("rule-def-new").value = DEFAULT_RULE;
 		document.getElementById("sparql").value = DEFAULT_QUERY;
 
@@ -49,6 +50,31 @@ angular.module('xOWLServer.database', ['ngRoute'])
 					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
 				}
 			}, $scope.database.name);
+		}
+
+		$scope.onRevoke = function (access, privilege) {
+			var user = access.user;
+			$rootScope.xowl.revokeDB(function (code, type, content) {
+				if (code === 200) {
+					$scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
+					reloadPrivileges($rootScope, $scope, $sce);
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, privilege, user);
+		}
+
+		$scope.onGrant = function () {
+			var user = document.getElementById('field-grant-user').value;
+			var privilege = document.getElementById('field-grant-privilege').value;
+			$rootScope.xowl.grantDB(function (code, type, content) {
+				if (code === 200) {
+					$scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
+					reloadPrivileges($rootScope, $scope, $sce);
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, privilege, user);
 		}
 
 		$scope.onNewRule = function () {
@@ -128,6 +154,16 @@ var DEFAULT_QUERY =
 	"PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
 	"PREFIX xowl: <http://xowl.org/store/rules/xowl#>\n" +
 	"SELECT DISTINCT ?x ?y WHERE { GRAPH ?g { ?x a ?y } }";
+
+function reloadPrivileges($rootScope, $scope, $sce) {
+	$rootScope.xowl.getDatabasePrivileges(function (code, type, content) {
+        if (code === 200) {
+			$scope.privileges = content;
+        } else {
+			$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+        }
+	}, $scope.database.name);
+}
 
 function reloadRules($rootScope, $scope, $sce) {
 	$rootScope.xowl.getDBRules(function (code, type, content) {

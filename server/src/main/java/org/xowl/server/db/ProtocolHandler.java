@@ -395,8 +395,10 @@ public abstract class ProtocolHandler extends SafeRunnable {
             return runAdminChangePassword(command);
         if (command.startsWith("ADMIN RESET PASSWORD "))
             return runAdminResetPassword(command);
-        if (command.startsWith("ADMIN PRIVILEGES "))
+        if (command.startsWith("ADMIN PRIVILEGES FOR "))
             return runAdminGetUserPrivileges(command);
+        if (command.startsWith("ADMIN PRIVILEGES ON "))
+            return runAdminGetDatabasePrivileges(command);
         if (command.startsWith("ADMIN GRANT SERVER ADMIN "))
             return runAdminGrantServerAdmin(command);
         if (command.startsWith("ADMIN REVOKE SERVER ADMIN "))
@@ -500,17 +502,32 @@ public abstract class ProtocolHandler extends SafeRunnable {
 
     /**
      * Requests the privileges assigned to a user
-     * Expected command line: ADMIN PRIVILEGES login
+     * Expected command line: ADMIN PRIVILEGES FOR login
      *
      * @param line The command line
      * @return The protocol reply
      */
     private XSPReply runAdminGetUserPrivileges(String line) {
-        String login = line.substring("ADMIN PRIVILEGES ".length());
+        String login = line.substring("ADMIN PRIVILEGES FOR ".length());
         XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
         return controller.getUserPrivileges(user, ((XSPReplyResult<User>) target).getData());
+    }
+
+    /**
+     * Requests the privileges for a database
+     * Expected command line: ADMIN PRIVILEGES ON database
+     *
+     * @param line The command line
+     * @return The protocol reply
+     */
+    private XSPReply runAdminGetDatabasePrivileges(String line) {
+        String dbName = line.substring("ADMIN PRIVILEGES ON ".length());
+        XSPReply target = controller.getDatabase(user, dbName);
+        if (!target.isSuccess())
+            return target;
+        return controller.getDatabasePrivileges(user, ((XSPReplyResult<Database>) target).getData());
     }
 
     /**

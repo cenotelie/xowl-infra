@@ -118,6 +118,24 @@ public abstract class Controller implements Closeable {
     }
 
     /**
+     * Resolves the user for the specified proxy object
+     *
+     * @param proxy A proxy
+     * @return The user
+     */
+    public User user(ProxyObject proxy) {
+        synchronized (users) {
+            for (User user : users.values()) {
+                if (user.proxy == proxy)
+                    return user;
+            }
+            User user = new User(proxy);
+            users.put(user.getName(), user);
+            return user;
+        }
+    }
+
+    /**
      * Resolves the database for the specified name
      *
      * @param name The name of a database
@@ -399,12 +417,14 @@ public abstract class Controller implements Closeable {
         }
         if (proxy == null)
             return new XSPReplyFailure("User does not exist");
-        User result = users.get(name);
-        if (result == null) {
-            result = new User(proxy);
-            users.put(name, result);
+        synchronized (users) {
+            User result = users.get(name);
+            if (result == null) {
+                result = new User(proxy);
+                users.put(name, result);
+            }
+            return new XSPReplyResult<>(result);
         }
-        return new XSPReplyResult<>(result);
     }
 
     /**
@@ -421,12 +441,14 @@ public abstract class Controller implements Closeable {
             ProxyObject classUser = adminDB.repository.resolveProxy(Schema.ADMIN_USER);
             for (ProxyObject poUser : classUser.getInstances()) {
                 String name = (String) poUser.getDataValue(Schema.ADMIN_NAME);
-                User user = users.get(name);
-                if (user == null) {
-                    user = new User(poUser);
-                    users.put(name, user);
+                synchronized (users) {
+                    User user = users.get(name);
+                    if (user == null) {
+                        user = new User(poUser);
+                        users.put(name, user);
+                    }
+                    result.add(user);
                 }
-                result.add(user);
             }
         }
         return new XSPReplyResult<>(result);
@@ -850,6 +872,35 @@ public abstract class Controller implements Closeable {
         } else {
             return XSPReplyUnauthorized.instance();
         }
+    }
+
+    /**
+     * Gets the privileges assigned to a users on a database
+     *
+     * @param client The requesting client
+     * @param target The target database
+     * @return The protocol reply
+     */
+    public XSPReply getDatabasePrivileges(User client, Database target) {
+        if (client == null)
+            return XSPReplyUnauthenticated.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, target)) {
+            DatabasePrivileges result = new DatabasePrivileges();
+            for (ProxyObject value : target.proxy.getObjectsFrom(Schema.ADMIN_ADMINOF)) {
+                User user = user(value);
+                result.add(user, Schema.PRIVILEGE_ADMIN);
+            }
+            for (ProxyObject value : target.proxy.getObjectsFrom(Schema.ADMIN_CANWRITE)) {
+                User user = user(value);
+                result.add(user, Schema.PRIVILEGE_WRITE);
+            }
+            for (ProxyObject value : target.proxy.getObjectsFrom(Schema.ADMIN_CANREAD)) {
+                User user = user(value);
+                result.add(user, Schema.PRIVILEGE_READ);
+            }
+            return new XSPReplyResult<>(result);
+        }
+        return XSPReplyUnauthorized.instance();
     }
 
     /**
