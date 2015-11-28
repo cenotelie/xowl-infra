@@ -1197,8 +1197,10 @@ public abstract class Controller implements Closeable {
             DispatchLogger dispatchLogger = new DispatchLogger(database.logger, bufferedLogger);
             database.repository.loadResource(dispatchLogger, new StringReader(content), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT, syntax);
             if (!bufferedLogger.getErrorMessages().isEmpty()) {
+                database.repository.getStore().rollback();
                 return new XSPReplyFailure(Program.getLog(bufferedLogger));
             }
+            database.repository.getStore().commit();
             return XSPReplySuccess.instance();
         } else {
             return XSPReplyUnauthorized.instance();

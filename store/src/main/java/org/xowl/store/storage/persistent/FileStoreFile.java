@@ -531,7 +531,7 @@ class FileStoreFile implements IOElement {
      * @throws StorageException When the page version does not match the expected one
      */
     public FileStorePage getPageFor(int key) throws StorageException {
-        return getPage(key >>> 16);
+        return getPage(key >> 16);
     }
 
     /**
