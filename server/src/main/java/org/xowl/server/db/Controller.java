@@ -572,7 +572,7 @@ public abstract class Controller implements Closeable {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (client == target || checkIsServerAdmin(client)) {
-            UserPrivileges result = new UserPrivileges();
+            UserPrivileges result = new UserPrivileges(checkIsServerAdmin(target));
             for (ProxyObject value : target.proxy.getObjectValues(Schema.ADMIN_ADMINOF)) {
                 Database database = database(value);
                 result.add(database, Schema.PRIVILEGE_ADMIN);

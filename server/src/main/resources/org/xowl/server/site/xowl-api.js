@@ -36,11 +36,25 @@
 
 /**
  * Represents the expected callback for request of the privileges of a user
- * @callback privCallback
+ * @callback userPrivCallback
+ * @param {number} code - The response code
+ * @param {string} type - The response content type
+ * @param {Object} content - The response content
+ * @param {boolean} content.isServerAdmin - Whether the user is a server administrator
+ * @param {Object[]} content.accesses - The privileges granted to the user
+ * @param {string} content.accesses[].database - The database for this privilege
+ * @param {boolean} content.accesses[].isAdmin - Whether the user has admin privileges
+ * @param {boolean} content.accesses[].canWrite - Whether the user can write to the database
+ * @param {boolean} content.accesses[].canRead - Whether the user can read from the database
+ */
+
+/**
+ * Represents the expected callback for request of the privileges of a database
+ * @callback dbPrivCallback
  * @param {number} code - The response code
  * @param {string} type - The response content type
  * @param {Object[]} content - The response content
- * @param {string} content[].database - The database for this privilege
+ * @param {string} content[].user - The user that has access
  * @param {boolean} content[].isAdmin - Whether the user has admin privileges
  * @param {boolean} content[].canWrite - Whether the user can write to the database
  * @param {boolean} content[].canRead - Whether the user can read from the database
@@ -229,13 +243,13 @@ XOWL.prototype.resetPassword = function (callback, login, pw) {
 /**
  * Requests the list of privileges for a user
  * @param getUserPrivileges
- * @param {privCallback} callback - The callback for this request
+ * @param {userPrivCallback} callback - The callback for this request
  * @param {string} login - The login of the user
  */
 XOWL.prototype.getUserPrivileges = function (callback, login) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).results);
+			callback(code, "application/json", JSON.parse(content));
 		} else {
 			callback(code, type, content);
 		}
@@ -245,13 +259,13 @@ XOWL.prototype.getUserPrivileges = function (callback, login) {
 /**
  * Requests the list of privileges on a database
  * @param getDatabasePrivileges
- * @param {privCallback} callback - The callback for this request
+ * @param {dbPrivCallback} callback - The callback for this request
  * @param {string} db - The target database
  */
 XOWL.prototype.getDatabasePrivileges = function (callback, db) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).results);
+			callback(code, "application/json", JSON.parse(content).accesses);
 		} else {
 			callback(code, type, content);
 		}

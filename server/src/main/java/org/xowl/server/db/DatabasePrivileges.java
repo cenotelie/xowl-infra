@@ -129,7 +129,7 @@ public class DatabasePrivileges implements Serializable {
 
     @Override
     public String serializedJSON() {
-        StringBuilder builder = new StringBuilder("{ \"results\": [");
+        StringBuilder builder = new StringBuilder("{ \"accesses\": [");
         for (int i = 0; i != users.length; i++) {
             if (users[i] == null)
                 break;

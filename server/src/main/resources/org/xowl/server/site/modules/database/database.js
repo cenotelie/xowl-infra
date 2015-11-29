@@ -65,6 +65,9 @@ angular.module('xOWLServer.database', ['ngRoute'])
 					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
 				}
 			}, $scope.database.name, privilege, user);
+			if (user === $rootScope.xowl.userName) {
+				reloadUserData($rootScope);
+			}
 		}
 
 		$scope.onGrant = function () {
@@ -78,6 +81,9 @@ angular.module('xOWLServer.database', ['ngRoute'])
 					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
 				}
 			}, $scope.database.name, privilege, user);
+			if (user === $rootScope.xowl.userName) {
+				reloadUserData($rootScope);
+			}
 		}
 
 		$scope.onNewRule = function () {

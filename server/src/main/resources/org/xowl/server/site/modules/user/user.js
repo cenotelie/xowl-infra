@@ -15,11 +15,14 @@ angular.module('xOWLServer.user', ['ngRoute'])
     $scope.updatePrivileges = function () {
       $rootScope.xowl.getUserPrivileges(function (code, type, content) {
         if (code === 200) {
-          $scope.privileges = content;
+          $scope.privileges = content.accesses;
         } else {
           $scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
         }
       }, $scope.user);
+      if ($scope.user === $rootScope.xowl.userName) {
+        reloadUserData($rootScope);
+      }
     }
     $scope.updatePrivileges();
 

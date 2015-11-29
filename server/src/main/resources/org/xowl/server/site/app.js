@@ -32,18 +32,7 @@ angular.module('xOWLServer', [
   .controller('xOWLServerCtrl', ['$rootScope', '$scope', '$http', function ($rootScope, $scope, $http) {
     $rootScope.xowl = new XOWL();
     $rootScope.xowl.$http = $http;
-    if ($rootScope.xowl.userName !== null) {
-      $rootScope.xowl.getDatabases(function (code, type, content) {
-        if (code === 200) {
-          $scope.databases = content;
-          if ($scope.databases.length > 5) {
-            $scope.databases = $scope.databases.slice(0, 6);
-          }
-        } else {
-          // do nothing here
-        }
-      });
-    }
+    reloadUserData($rootScope);
   }]);
 
 var MSG_ERROR_BAD_REQUEST = "Oops, wrong request.";
@@ -52,6 +41,26 @@ var MSG_ERROR_FORBIDDEN = "You are not authorized to perform this operation.";
 var MSG_ERROR_NOT_FOUND = "Can't find the requested data.";
 var MSG_ERROR_INTERNAL_ERROR = "Something wrong happened ...";
 var MSG_ERROR_CONNECTION = "Error while accessing the server!";
+
+function reloadUserData($rootScope) {
+  $rootScope.databases = [];
+  $rootScope.userPrivileges = [];
+  if ($rootScope.xowl.userName !== null) {
+    $rootScope.xowl.getDatabases(function (code, type, content) {
+      if (code !== 200)
+        return;
+      $rootScope.databases = content;
+      if ($rootScope.databases.length > 5) {
+        $rootScope.databases = $rootScope.databases.slice(0, 6);
+      }
+    });
+    $rootScope.xowl.getUserPrivileges(function (code, type, content) {
+      if (code !== 200)
+        return;
+      $rootScope.userPrivileges = content;
+    }, $rootScope.xowl.userName);
+  }
+}
 
 function getErrorFor(code, content) {
   if (content != null) {

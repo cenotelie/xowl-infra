@@ -8,12 +8,13 @@
 	<div>
 		<ul class="nav nav-tabs" role="tablist" id="UserTabs">
 			<li role="presentation" class="active"><a href="#tab-data-privileges" aria-controls="#tab-data-privileges" role="tab">Privileges</a></li>
-			<li role="presentation"><a href="#tab-data-security" aria-controls="#tab-data-security" role="tab">Security</a></li>
+			<li role="presentation"><a href="#tab-data-security" aria-controls="#tab-data-security" role="tab"><span class="glyphicon glyphicon-user text-danger" aria-hidden="true" title="Server Admin Only"></span>Security</a></li>
 		</ul>
 		<div class="tab-content">
 			<div role="tabpanel" class="tab-pane active" id="tab-data-privileges" style="margin-top: 20px;">
 				<div class="panel panel-info" style="margin-top: 20px;">
 					<div class="panel-heading">
+						<span class="glyphicon glyphicon-user text-warning" aria-hidden="true" title="Requires database administration privilege"></span>
 						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#grant-form" aria-expanded="false" aria-controls="grant-form">Grant privilege</button>
 					</div>
 					<div id="grant-form" class="panel-body collapse">
@@ -53,6 +54,7 @@
 							<td align="center">
 								<div class="dropdown">
 									<button class="btn btn-danger btn-xs dropdown-toggle" type="button" id="menu-revoke" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+										<span class="glyphicon glyphicon-user text-warning" aria-hidden="true" title="Requires database administration privilege"></span>
 										Revoke
 										<span class="caret"></span>
 									</button>

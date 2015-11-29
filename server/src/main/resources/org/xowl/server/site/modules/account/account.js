@@ -12,7 +12,7 @@ angular.module('xOWLServer.account', ['ngRoute'])
   .controller('AccountCtrl', ['$rootScope', '$scope', '$sce', function ($rootScope, $scope, $sce) {
     $rootScope.xowl.getUserPrivileges(function (code, type, content) {
       if (code === 200) {
-        $scope.privileges = content;
+        $scope.privileges = content.accesses;
       } else {
         $scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
       }

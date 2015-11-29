@@ -46,13 +46,20 @@ public class UserPrivileges implements Serializable {
      * The associated privileges
      */
     private int[] privileges;
+    /**
+     * Whether the user is a server admin
+     */
+    private boolean isServerAdmin;
 
     /**
      * Initializes this structure
+     *
+     * @param isServerAdmin Whether the user is a server admin
      */
-    public UserPrivileges() {
+    public UserPrivileges(boolean isServerAdmin) {
         this.databases = new Database[INIT_LENGTH];
         this.privileges = new int[INIT_LENGTH];
+        this.isServerAdmin = isServerAdmin;
     }
 
     /**
@@ -129,7 +136,9 @@ public class UserPrivileges implements Serializable {
 
     @Override
     public String serializedJSON() {
-        StringBuilder builder = new StringBuilder("{ \"results\": [");
+        StringBuilder builder = new StringBuilder("{ \"isServerAdmin\": ");
+        builder.append(isServerAdmin);
+        builder.append(", \"accesses\": [");
         for (int i = 0; i != databases.length; i++) {
             if (databases[i] == null)
                 break;
