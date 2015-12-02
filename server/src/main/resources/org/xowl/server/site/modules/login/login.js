@@ -23,7 +23,7 @@ angular.module('xOWLServer.login', ['ngRoute'])
           if (code !== 200) {
             $scope.messages = $sce.trustAsHtml(getError("Failed to login, login/password do not match a recognized user on this server."));
           } else {
-            reloadUserData();
+            reloadUserData($rootScope);
             $location.path("/databases");
           }
         }, login, password);
@@ -31,7 +31,7 @@ angular.module('xOWLServer.login', ['ngRoute'])
 
       $rootScope.onLogoutButton = function () {
         $rootScope.xowl.logout();
-        reloadUserData();
+        reloadUserData($rootScope);
         $location.path("/login");
       };
     }]);

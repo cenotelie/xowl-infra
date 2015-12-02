@@ -213,8 +213,8 @@
 										<span class="caret"></span>
 									</button>
 									<ul class="dropdown-menu" aria-labelledby="menu-rule">
-										<li><a ng-if="rule.isActive" ng-click="onActivateRule(rule.name)">Deactivate</a></li>
-										<li><a ng-if="!rule.isActive" ng-click="onDeactivateRule(rule.name)">Activate</a></li>
+										<li><a ng-if="rule.isActive" ng-click="onDeactivateRule(rule.name)">Deactivate</a></li>
+										<li><a ng-if="!rule.isActive" ng-click="onActivateRule(rule.name)">Activate</a></li>
 										<li role="separator" class="divider"></li>
 										<li><a class="text-danger" ng-click="onRemoveRule(rule.name)">Remove</a></li>
 									</ul>

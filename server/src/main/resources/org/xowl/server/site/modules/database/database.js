@@ -271,7 +271,7 @@ function reloadRules($rootScope, $scope, $sce) {
 			}
 			$rootScope.xowl.getDBActiveRules(function (code, type, content) {
 				for (var i = 0; i != content.length; i++) {
-					for (var j = 0; j != $scope.rules.length; i++) {
+					for (var j = 0; j != $scope.rules.length; j++) {
 						if ($scope.rules[j].name === content[i]) {
 							$scope.rules[j].isActive = true;
 						}

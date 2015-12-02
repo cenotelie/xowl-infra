@@ -434,7 +434,7 @@ XOWL.prototype.removeDBRule = function (callback, db, rule) {
  * @param {string} rule - The URI of the rule to activate
  */
 XOWL.prototype.activateDBRule = function (callback, db, rule) {
-	this.command(callback, "DATABASE " + db + " ACTIVATE RULE " + rule);
+	this.command(callback, "DATABASE " + db + " ACTIVATE " + rule);
 }
 
 /**
@@ -445,7 +445,7 @@ XOWL.prototype.activateDBRule = function (callback, db, rule) {
  * @param {string} rule - The URI of the rule to deactivate
  */
 XOWL.prototype.deactivateDBRule = function (callback, db, rule) {
-	this.command(callback, "DATABASE " + db + " DEACTIVATE RULE " + rule);
+	this.command(callback, "DATABASE " + db + " DEACTIVATE " + rule);
 }
 
 /**
