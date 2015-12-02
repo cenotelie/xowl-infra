@@ -121,6 +121,19 @@ public class Section {
     }
 
     /**
+     * Removes the specified property - value pair from this section
+     *
+     * @param property A property
+     * @param value    The associated value to remove
+     */
+    public void remove(String property, String value) {
+        List<String> values = properties.get(property);
+        if (values == null)
+            return;
+        values.remove(value);
+    }
+
+    /**
      * Sets the property, removing all previous values, if any
      *
      * @param property A property
