@@ -134,14 +134,25 @@ public abstract class StructuredSerializer implements RDFSerializer {
     protected void enqueueNode(Node node) {
         if (node.getNodeType() == Node.TYPE_IRI) {
             String iri = ((IRINode) node).getIRIValue();
-            int index = iri.indexOf("#");
+            int index = iri.lastIndexOf("#");
             if (index != -1) {
                 String head = iri.substring(index + 1);
                 String target = namespaces.get(head);
                 if (target != null)
                     return;
                 namespaces.put(head, NAMESPACE_RADICAL + Integer.toString(namespaces.size()));
+                return;
             }
+            index = iri.lastIndexOf("/");
+            if (index == -1) {
+                // shit is getting real ...
+                return;
+            }
+            String head = iri.substring(index + 1);
+            String target = namespaces.get(head);
+            if (target != null)
+                return;
+            namespaces.put(head, NAMESPACE_RADICAL + Integer.toString(namespaces.size()));
         }
     }
 
@@ -303,7 +314,13 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * @return The equivalent short name
      */
     protected String getShortName(String iri) {
-        int index = iri.indexOf("#");
-        return index == -1 ? null : namespaces.get(iri.substring(index + 1)) + ":" + iri.substring(index + 1);
+        int index = iri.lastIndexOf("#");
+        if (index > -1) {
+            return namespaces.get(iri.substring(index + 1)) + ":" + iri.substring(index + 1);
+        }
+        index = iri.lastIndexOf("/");
+        if (index == -1)
+            return null;
+        return namespaces.get(iri.substring(index + 1)) + ":" + iri.substring(index + 1);
     }
 }
