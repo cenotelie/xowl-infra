@@ -591,7 +591,7 @@ public abstract class AbstractRepository {
             case SYNTAX_TURTLE:
                 return new TurtleSerializer(writer);
             case SYNTAX_TRIG:
-                return null;
+                return new TriGSerializer(writer);
             case SYNTAX_RDFXML:
                 return new RDFXMLSerializer(writer);
             case SYNTAX_RDFT:

@@ -58,12 +58,8 @@ public class RDFXMLSerializer extends StructuredSerializer {
      * @param quads  The quads to serialize
      */
     public void serialize(Logger logger, Iterator<Quad> quads) {
-        try {
-            while (quads.hasNext()) {
-                enqueue(quads.next());
-            }
-        } catch (UnsupportedNodeType exception) {
-            logger.error(exception);
+        while (quads.hasNext()) {
+            enqueue(quads.next());
         }
         try {
             serialize();

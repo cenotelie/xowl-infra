@@ -21,12 +21,13 @@
 package org.xowl.store.writers;
 
 import org.xowl.store.IOUtils;
+import org.xowl.store.RDFUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.Files;
-import org.xowl.utils.logging.Logger;
 import org.xowl.utils.collections.Couple;
+import org.xowl.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -43,7 +44,7 @@ public class TurtleSerializer extends StructuredSerializer {
     /**
      * The writer to use
      */
-    private final Writer writer;
+    protected final Writer writer;
 
     /**
      * Initializes this serializer
@@ -61,13 +62,10 @@ public class TurtleSerializer extends StructuredSerializer {
      * @param quads  The quads to serialize
      */
     public void serialize(Logger logger, Iterator<Quad> quads) {
-        try {
-            while (quads.hasNext()) {
-                enqueue(quads.next());
-            }
-        } catch (UnsupportedNodeType exception) {
-            logger.error(exception);
+        while (quads.hasNext()) {
+            enqueue(quads.next());
         }
+        buildRdfLists();
         try {
             serialize();
         } catch (IOException | UnsupportedNodeType exception) {
@@ -78,7 +76,21 @@ public class TurtleSerializer extends StructuredSerializer {
     /**
      * Serializes the data
      */
-    private void serialize() throws IOException, UnsupportedNodeType {
+    protected void serialize() throws IOException, UnsupportedNodeType {
+        serializeNamespaces();
+        writer.write(Files.LINE_SEPARATOR);
+
+        for (Map.Entry<GraphNode, Map<SubjectNode, List<Couple<Property, Object>>>> entry : content.entrySet()) {
+            serializeGraph(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * Serializes the namespaces data
+     *
+     * @throws IOException When an IO error occurs
+     */
+    protected void serializeNamespaces() throws IOException {
         for (Map.Entry<String, String> entry : namespaces.entrySet()) {
             writer.write("@prefix ");
             writer.write(entry.getValue());
@@ -87,96 +99,152 @@ public class TurtleSerializer extends StructuredSerializer {
             writer.write("> .");
             writer.write(Files.LINE_SEPARATOR);
         }
-        for (Map.Entry<SubjectNode, List<Quad>> entry : data.entrySet()) {
+    }
+
+    /**
+     * Serializes a graph
+     *
+     * @param graph   The graph
+     * @param content The content to serialize
+     * @throws IOException         When an IO error occurs
+     * @throws UnsupportedNodeType When the specified node is not supported
+     */
+    protected void serializeGraph(GraphNode graph, Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException, UnsupportedNodeType {
+        serializeGraphContent(content);
+    }
+
+    /**
+     * Serializes the content of a graph
+     *
+     * @param content The content to serialize
+     * @throws IOException         When an IO error occurs
+     * @throws UnsupportedNodeType When the specified node is not supported
+     */
+    protected void serializeGraphContent(Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException, UnsupportedNodeType {
+        for (Map.Entry<SubjectNode, List<Couple<Property, Object>>> entry : content.entrySet()) {
+            serializeNode(entry.getKey());
+            writer.write(" ");
+            serializeProperties(entry.getValue());
+            writer.write(" .");
             writer.write(Files.LINE_SEPARATOR);
-            serializeTopLevel(entry.getKey(), entry.getValue());
         }
     }
 
     /**
-     * Serializes a top-level entity
+     * Serializes the properties of a node
      *
-     * @param subject The subject
-     * @param quads   All the quads for its property
+     * @param properties The RDF properties
+     * @throws IOException         When an IO error occurs
+     * @throws UnsupportedNodeType When the specified node is not supported
      */
-    private void serializeTopLevel(SubjectNode subject, List<Quad> quads) throws IOException, UnsupportedNodeType {
-        if (subject.getNodeType() == Node.TYPE_IRI) {
-            writer.write("<");
-            writer.write(IOUtils.escapeAbsoluteURIW3C(((IRINode) subject).getIRIValue()));
-            writer.write(">");
-        } else {
-            writer.write("_:n");
-            writer.write(getBlankID((BlankNode) subject));
-        }
-        writer.write(Files.LINE_SEPARATOR);
-
-        boolean first = true;
-        for (int i = 0; i != quads.size(); i++) {
-            Property property = quads.get(i).getProperty();
+    protected void serializeProperties(List<Couple<Property, Object>> properties) throws IOException, UnsupportedNodeType {
+        for (int i = 0; i != properties.size(); i++) {
+            Property property = properties.get(i).x;
             if (bufferProperties.contains(property))
                 continue;
+            if (i != 0)
+                writer.write(" ; ");
             bufferProperties.add(property);
-            for (int j = i; j != quads.size(); j++) {
-                Quad quad = quads.get(j);
-                if (quad.getProperty() == property) {
-                    if (!first) {
-                        writer.write(" ;");
-                        writer.write(Files.LINE_SEPARATOR);
-                    }
-                    writer.write("    ");
-                    first = false;
-                    serializeProperty(quad);
+            serializeProperty(property, properties.get(i).y);
+            for (int j = i + 1; j != properties.size(); j++) {
+                Couple<Property, Object> data = properties.get(j);
+                if (RDFUtils.same(data.x, property)) {
+                    writer.write(" , ");
+                    serializeProperty(property, data.y);
                 }
             }
         }
         bufferProperties.clear();
-        writer.write(" .");
-        writer.write(Files.LINE_SEPARATOR);
     }
 
     /**
      * Serializes a property from a node
      *
-     * @param quad The quad representing the property
+     * @param property The RDF property
+     * @param value    The value for the property
+     * @throws IOException         When an IO error occurs
+     * @throws UnsupportedNodeType When the specified node is not supported
      */
-    private void serializeProperty(Quad quad) throws IOException, UnsupportedNodeType {
-        String property = ((IRINode) quad.getProperty()).getIRIValue();
-        if (Vocabulary.rdfType.equals(property))
+    protected void serializeProperty(Property property, Object value) throws IOException, UnsupportedNodeType {
+        String iri = ((IRINode) property).getIRIValue();
+        if (Vocabulary.rdfType.equals(iri)) {
             writer.write("a");
-        else {
-            Couple<String, String> compact = getCompactIRI(quad.getProperty(), property);
-            writer.write(compact.x + ":" + compact.y);
+        } else {
+            String compact = getShortName(iri);
+            if (compact == null) {
+                writer.write("<");
+                writer.write(IOUtils.escapeAbsoluteURIW3C(iri));
+                writer.write(">");
+            } else {
+                writer.write(compact);
+            }
         }
         writer.write(" ");
 
-        switch (quad.getObject().getNodeType()) {
-            case Node.TYPE_IRI:
-                writer.write("<");
-                writer.write(IOUtils.escapeAbsoluteURIW3C(((IRINode) quad.getObject()).getIRIValue()));
-                writer.write(">");
-                break;
-            case Node.TYPE_BLANK:
-                writer.write("_:n");
-                writer.write(getBlankID((BlankNode) quad.getObject()));
-                break;
-            case Node.TYPE_LITERAL:
-                String lexicalValue = ((LiteralNode) quad.getObject()).getLexicalValue();
-                String datatype = ((LiteralNode) quad.getObject()).getDatatype();
-                String language = ((LiteralNode) quad.getObject()).getLangTag();
-                writer.write("\"");
-                writer.write(IOUtils.escapeStringW3C(lexicalValue));
-                writer.write("\"");
-                if (language != null) {
-                    writer.write("@");
-                    writer.write(language);
-                } else if (datatype != null) {
-                    writer.write("^^");
-                    Couple<String, String> compact = getCompactIRI(quad.getObject(), datatype);
-                    writer.write(compact.x + ":" + compact.y);
+        if (value instanceof List) {
+            List<Node> list = (List<Node>) value;
+            writer.write("(");
+            for (int i = 0; i != list.size(); i++) {
+                if (i != 0)
+                    writer.write(" ");
+                serializeNode(list.get(i));
+            }
+            writer.write(")");
+        } else {
+            serializeNode((Node) value);
+        }
+    }
+
+    /**
+     * Serialized the specified node
+     *
+     * @param node The node to serialize
+     * @throws IOException         When an IO error occurs
+     * @throws UnsupportedNodeType When the specified node is not supported
+     */
+    protected void serializeNode(Node node) throws IOException, UnsupportedNodeType {
+        switch (node.getNodeType()) {
+            case Node.TYPE_IRI: {
+                String compact = getShortName(((IRINode) node).getIRIValue());
+                if (compact == null) {
+                    writer.write("<");
+                    writer.write(IOUtils.escapeAbsoluteURIW3C(((IRINode) node).getIRIValue()));
+                    writer.write(">");
+                } else {
+                    writer.write(compact);
                 }
                 break;
+            }
+            case Node.TYPE_BLANK: {
+                writer.write("_:");
+                writer.write(Integer.toString(getBlankID((BlankNode) node)));
+                break;
+            }
+            case Node.TYPE_LITERAL: {
+                LiteralNode literalNode = (LiteralNode) node;
+                writer.write("\"");
+                writer.write(IOUtils.escapeStringW3C(literalNode.getLexicalValue()));
+                writer.write("\"");
+                String datatype = literalNode.getDatatype();
+                String langTag = literalNode.getLangTag();
+                if (langTag != null) {
+                    writer.write("@");
+                    writer.write(langTag);
+                } else if (datatype != null) {
+                    writer.write("^^");
+                    String compact = getShortName(datatype);
+                    if (compact == null) {
+                        writer.write("<");
+                        writer.write(IOUtils.escapeAbsoluteURIW3C(datatype));
+                        writer.write(">");
+                    } else {
+                        writer.write(compact);
+                    }
+                }
+                break;
+            }
             default:
-                throw new UnsupportedNodeType(quad.getObject(), "RDF serialization only support IRI, Blank and Literal nodes");
+                throw new UnsupportedNodeType(node, "Unsupported node type. Supported types are IRI nodes, blank nodes and literal nodes");
         }
     }
 }
