@@ -63,9 +63,9 @@ public abstract class StructuredSerializer implements RDFSerializer {
      */
     protected final Map<GraphNode, Map<SubjectNode, List<Couple<Property, Object>>>> content;
     /**
-     * The RDF lists in the content
+     * The detected list heads
      */
-    protected final Map<SubjectNode, List<Node>> contentLists;
+    private final Map<SubjectNode, Map<GraphNode, List<Couple<Property, Object>>>> listHeads;
     /**
      * A buffer of serialized property
      */
@@ -83,7 +83,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
         this.blanks = new long[BLANKS_MAP_INIT_SIZE];
         this.nextBlank = 0;
         this.content = new HashMap<>();
-        this.contentLists = new HashMap<>();
+        this.listHeads = new HashMap<>();
         this.bufferProperties = new ArrayList<>(5);
     }
 
@@ -161,72 +161,126 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * This method is optional for the serialization
      */
     protected void buildRdfLists() {
+        buildRdfListHeads();
+        buildRdfListReplace();
+    }
+
+    /**
+     * Builds the list of potential RDF list heads
+     */
+    private void buildRdfListHeads() {
         for (Map.Entry<GraphNode, Map<SubjectNode, List<Couple<Property, Object>>>> entryGraph : content.entrySet()) {
             List<SubjectNode> subjects = new ArrayList<>(entryGraph.getValue().keySet());
             for (SubjectNode subject : subjects) {
-                List<Couple<Property, Object>> properties = entryGraph.getValue().get(subject);
-                if (properties == null || isRdfListProxy(properties))
+                if (isRdfListHead(subject))
                     continue;
+                List<Couple<Property, Object>> properties = entryGraph.getValue().get(subject);
                 for (Couple<Property, Object> property : properties) {
-                    property.y = getValueFor(entryGraph.getValue(), (Node) property.y);
+                    if (isRdfListHead((Node) property.y)) {
+                        SubjectNode head = (SubjectNode) property.y;
+                        Map<GraphNode, List<Couple<Property, Object>>> sub1 = listHeads.get(head);
+                        if (sub1 == null) {
+                            sub1 = new HashMap<>();
+                            listHeads.put(head, sub1);
+                        }
+                        List<Couple<Property, Object>> sub2 = sub1.get(entryGraph.getKey());
+                        if (sub2 == null) {
+                            sub2 = new ArrayList<>();
+                            sub1.put(entryGraph.getKey(), sub2);
+                        }
+                        sub2.add(property);
+                    }
                 }
             }
         }
     }
 
     /**
-     * Gets the replacing value for a node representing an object in a quad
-     * When the node is the first proxy of a RDF list, this method tries to rebuild the list and return it
+     * Replaces RDF list heads by their interpretation when appropriate
+     * A RDF list can be replaced if it is well-formed and is referred to within its defining graph only
+     */
+    private void buildRdfListReplace() {
+        for (Map.Entry<SubjectNode, Map<GraphNode, List<Couple<Property, Object>>>> entry : listHeads.entrySet()) {
+            if (entry.getValue().size() >= 2) {
+                // at least two graph refer to this list, do not replace it
+                continue;
+            }
+            Map.Entry<GraphNode, List<Couple<Property, Object>>> temp = entry.getValue().entrySet().iterator().next();
+            GraphNode graph = temp.getKey();
+            List<Couple<Property, Object>> properties = temp.getValue();
+            Map<SubjectNode, List<Couple<Property, Object>>> subjects = content.get(graph);
+            List<Object> list = buildRdfList(subjects, entry.getKey());
+            if (list != null) {
+                for (Couple<Property, Object> property : properties) {
+                    property.y = list;
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets whether the specified node is the head of a RDF list
+     *
+     * @param node The node to evaluate
+     * @return Whether the specified node is the head of a RDF list
+     */
+    private boolean isRdfListHead(Node node) {
+        if ((node.getNodeType() & Node.FLAG_SUBJECT) == 0)
+            // not a subject
+            return false;
+        if (isRdfListNil(node))
+            return true;
+        if (node.getNodeType() != Node.TYPE_BLANK)
+            return false;
+        SubjectNode subjectNode = (SubjectNode) node;
+        if (listHeads.containsKey(subjectNode))
+            return true;
+        for (Map.Entry<GraphNode, Map<SubjectNode, List<Couple<Property, Object>>>> entryGraph : content.entrySet()) {
+            List<Couple<Property, Object>> properties = entryGraph.getValue().get(subjectNode);
+            if (properties != null && isRdfListProxy(properties))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Builds the RDF list represented by the
      *
      * @param subjects The map of the current subjects to look into for finding RDF list proxies
      * @param node     The node to replace
-     * @return The replacing value
+     * @return The replacing list, or null if the list is invalid
      */
-    protected Object getValueFor(Map<SubjectNode, List<Couple<Property, Object>>> subjects, Node node) {
-        if ((node.getNodeType() & Node.FLAG_SUBJECT) == 0)
-            // not a subject
-            return node;
-        SubjectNode subjectNode = (SubjectNode) node;
-        List<Couple<Property, Object>> properties = subjects.get(subjectNode);
-        if (properties == null) {
-            return node;
-        } else if (subjectNode.getNodeType() == Node.TYPE_BLANK && isRdfListProxy(properties)) {
-            // this is the first proxy of a list
-            List<Node> list = contentLists.get(subjectNode);
-            if (list != null)
-                return list;
-            list = new ArrayList<>();
-            List<SubjectNode> proxiesToRemove = new ArrayList<>();
-            Node head = subjectNode;
-            while (head != null && !isRdfListNil(head)) {
-                if (head.getNodeType() != Node.TYPE_BLANK) {
-                    // not a proxy ...
-                    return node;
-                }
-                SubjectNode subjectHead = (SubjectNode) head;
-                if (proxiesToRemove.contains(subjectHead)) {
-                    // this is cycle in the list ...
-                    return node;
-                }
-                properties = subjects.get(subjectHead);
-                if (properties == null || !isRdfListProxy(properties)) {
-                    // not a correct RDF list, do nothing, return the node as is
-                    return node;
-                }
-                proxiesToRemove.add(subjectHead);
-                Couple<Node, Node> data = getRdfListProxyData(properties);
-                list.add(data.x);
-                head = data.y;
+    private static List<Object> buildRdfList(Map<SubjectNode, List<Couple<Property, Object>>> subjects, SubjectNode node) {
+        List<Object> list = new ArrayList<>();
+        List<SubjectNode> proxiesToRemove = new ArrayList<>();
+        SubjectNode head = node;
+        while (head != null && !isRdfListNil(head)) {
+            if (head.getNodeType() != Node.TYPE_BLANK) {
+                // not a proxy ...
+                return null;
             }
-            contentLists.put((SubjectNode) node, list);
-            for (SubjectNode proxy : proxiesToRemove)
-                subjects.remove(proxy);
-            return list;
-        } else if (isRdfListNil(node)) {
-            return new ArrayList<Node>();
-        } else {
-            return node;
+            if (proxiesToRemove.contains(head)) {
+                // this is cycle in the list ...
+                return null;
+            }
+            List<Couple<Property, Object>> properties = subjects.get(head);
+            if (properties == null || !isRdfListProxy(properties)) {
+                // not a correct RDF list, do nothing, return the node as is
+                return null;
+            }
+            proxiesToRemove.add(head);
+            Couple<Node, Node> data = getRdfListProxyData(properties);
+            list.add(data.x);
+            Node next = data.y;
+            if ((next.getNodeType() & Node.FLAG_SUBJECT) == 0) {
+                // not a subject ...
+                return null;
+            }
+            head = (SubjectNode) next;
         }
+        for (SubjectNode proxy : proxiesToRemove)
+            subjects.remove(proxy);
+        return list;
     }
 
     /**
