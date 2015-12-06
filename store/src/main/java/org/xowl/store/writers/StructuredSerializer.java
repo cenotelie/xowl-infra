@@ -190,7 +190,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
         List<Couple<Property, Object>> properties = subjects.get(subjectNode);
         if (properties == null) {
             return node;
-        } else if (isRdfListProxy(properties)) {
+        } else if (subjectNode.getNodeType() == Node.TYPE_BLANK && isRdfListProxy(properties)) {
             // this is the first proxy of a list
             List<Node> list = contentLists.get(subjectNode);
             if (list != null)
@@ -199,7 +199,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
             List<SubjectNode> proxiesToRemove = new ArrayList<>();
             Node head = subjectNode;
             while (head != null && !isRdfListNil(head)) {
-                if ((head.getNodeType() & Node.FLAG_SUBJECT) == 0) {
+                if (head.getNodeType() != Node.TYPE_BLANK) {
                     // not a proxy ...
                     return node;
                 }
@@ -236,10 +236,22 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * @return Whether the properties describe a proxy in a RDF list
      */
     private static boolean isRdfListProxy(List<Couple<Property, Object>> properties) {
-        return properties.size() == 2
-                && ((isRdfListFirst(properties.get(0)) && isRdfListRest(properties.get(1)))
-                || (isRdfListFirst(properties.get(1)) && isRdfListRest(properties.get(0))));
-
+        if (properties.size() == 2) {
+            return (isRdfListFirst(properties.get(0)) && isRdfListRest(properties.get(1)))
+                    || (isRdfListFirst(properties.get(1)) && isRdfListRest(properties.get(0)));
+        } else if (properties.size() == 3) {
+            if (isRdfListType(properties.get(0))) {
+                return (isRdfListFirst(properties.get(1)) && isRdfListRest(properties.get(2)))
+                        || (isRdfListFirst(properties.get(2)) && isRdfListRest(properties.get(1)));
+            } else if (isRdfListFirst(properties.get(0))) {
+                return (isRdfListType(properties.get(1)) && isRdfListRest(properties.get(2)))
+                        || (isRdfListType(properties.get(2)) && isRdfListRest(properties.get(1)));
+            } else if (isRdfListRest(properties.get(0))) {
+                return (isRdfListFirst(properties.get(1)) && isRdfListType(properties.get(2)))
+                        || (isRdfListFirst(properties.get(2)) && isRdfListType(properties.get(1)));
+            }
+        }
+        return false;
     }
 
     /**
@@ -249,16 +261,29 @@ public abstract class StructuredSerializer implements RDFSerializer {
      * @return The couple of the first proxied element and the following proxy in the list
      */
     private static Couple<Node, Node> getRdfListProxyData(List<Couple<Property, Object>> properties) {
-        Node element;
-        Node rest;
-        if (isRdfListFirst(properties.get(0))) {
-            element = (Node) properties.get(0).y;
-            rest = (Node) properties.get(1).y;
-        } else {
-            rest = (Node) properties.get(0).y;
-            element = (Node) properties.get(1).y;
+        Node element = null;
+        Node rest = null;
+        for (int i = 0; i != properties.size(); i++) {
+            if (isRdfListFirst(properties.get(i)))
+                element = (Node) properties.get(i).y;
+            if (isRdfListRest(properties.get(i)))
+                rest = (Node) properties.get(i).y;
         }
         return new Couple<>(element, rest);
+    }
+
+    /**
+     * Gets whether the property is rdf:type with value rdf:List
+     *
+     * @param property The property
+     * @return Whether the property is rdf:type with value rdf:List
+     */
+    private static boolean isRdfListType(Couple<Property, Object> property) {
+        return property.x.getNodeType() == Node.TYPE_IRI
+                && Vocabulary.rdfType.equals(((IRINode) property.x).getIRIValue())
+                && property.y instanceof Node
+                && ((Node) property.y).getNodeType() == Node.TYPE_IRI
+                && Vocabulary.rdfList.equals(((IRINode) property.y).getIRIValue());
     }
 
     /**
