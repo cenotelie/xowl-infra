@@ -136,7 +136,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
             String iri = ((IRINode) node).getIRIValue();
             int index = iri.lastIndexOf("#");
             if (index != -1) {
-                String head = iri.substring(index + 1);
+                String head = iri.substring(0, index + 1);
                 String target = namespaces.get(head);
                 if (target != null)
                     return;
@@ -148,7 +148,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
                 // shit is getting real ...
                 return;
             }
-            String head = iri.substring(index + 1);
+            String head = iri.substring(0, index + 1);
             String target = namespaces.get(head);
             if (target != null)
                 return;
@@ -165,7 +165,7 @@ public abstract class StructuredSerializer implements RDFSerializer {
             List<SubjectNode> subjects = new ArrayList<>(entryGraph.getValue().keySet());
             for (SubjectNode subject : subjects) {
                 List<Couple<Property, Object>> properties = entryGraph.getValue().get(subject);
-                if (isRdfListProxy(properties))
+                if (properties == null || isRdfListProxy(properties))
                     continue;
                 for (Couple<Property, Object> property : properties) {
                     property.y = getValueFor(entryGraph.getValue(), (Node) property.y);
@@ -197,20 +197,24 @@ public abstract class StructuredSerializer implements RDFSerializer {
                 return list;
             list = new ArrayList<>();
             List<SubjectNode> proxiesToRemove = new ArrayList<>();
-            proxiesToRemove.add(subjectNode);
-            Couple<Node, Node> data = getRdfListProxyData(properties);
-            list.add(data.x);
-            Node head = data.y;
+            Node head = subjectNode;
             while (head != null && !isRdfListNil(head)) {
-                if ((head.getNodeType() & Node.FLAG_SUBJECT) == 0)
+                if ((head.getNodeType() & Node.FLAG_SUBJECT) == 0) {
                     // not a proxy ...
                     return node;
-                properties = subjects.get(head);
+                }
+                SubjectNode subjectHead = (SubjectNode) head;
+                if (proxiesToRemove.contains(subjectHead)) {
+                    // this is cycle in the list ...
+                    return node;
+                }
+                properties = subjects.get(subjectHead);
                 if (properties == null || !isRdfListProxy(properties)) {
                     // not a correct RDF list, do nothing, return the node as is
                     return node;
                 }
-                data = getRdfListProxyData(properties);
+                proxiesToRemove.add(subjectHead);
+                Couple<Node, Node> data = getRdfListProxyData(properties);
                 list.add(data.x);
                 head = data.y;
             }
@@ -316,11 +320,11 @@ public abstract class StructuredSerializer implements RDFSerializer {
     protected String getShortName(String iri) {
         int index = iri.lastIndexOf("#");
         if (index > -1) {
-            return namespaces.get(iri.substring(index + 1)) + ":" + iri.substring(index + 1);
+            return namespaces.get(iri.substring(0, index + 1)) + ":" + iri.substring(index + 1);
         }
         index = iri.lastIndexOf("/");
         if (index == -1)
             return null;
-        return namespaces.get(iri.substring(index + 1)) + ":" + iri.substring(index + 1);
+        return namespaces.get(iri.substring(0, index + 1)) + ":" + iri.substring(index + 1);
     }
 }

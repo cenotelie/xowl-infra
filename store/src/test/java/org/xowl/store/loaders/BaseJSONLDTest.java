@@ -79,7 +79,7 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
         }
         mapper.addRegexpMap(NAMESPACE + "(.*)", PHYSICAL + "\\1");
         mapper.addSimpleMap(generatedURI, "file://" + generated.getAbsolutePath());
-        testEval(mapper.get(expectedURI), expectedURI, mapper.get(generatedURI), generatedURI);
+        testEval(mapper.get(expectedURI), expectedURI, mapper.get(generatedURI), testedURI);
     }
 
     /**
