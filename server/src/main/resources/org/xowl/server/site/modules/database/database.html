@@ -8,11 +8,11 @@
 	<div>
 		<ul class="nav nav-tabs" role="tablist" id="DBTabs">
 			<li role="presentation" class="active"><a href="#tab-data-summary" aria-controls="tab-data-summary" role="tab">Summary</a></li>
-			<li role="presentation"><a href="#tab-data-settings" aria-controls="tab-data-settings" role="tab">Settings</a></li>
-			<li role="presentation"><a href="#tab-data-accesses" aria-controls="tab-data-accesses" role="tab">Accesses</a></li>
-			<li role="presentation"><a href="#tab-data-rules" aria-controls="tab-data-rules" role="tab">Rules</a></li>
 			<li role="presentation"><a href="#tab-data-sparql" aria-controls="tab-data-sparql" role="tab">SPARQL</a></li>
-			<li role="presentation"><a href="#tab-data-import" aria-controls="tab-data-import" role="tab">Import</a></li>
+			<li role="presentation"><a class="tab-db-admin" href="#tab-data-settings" aria-controls="tab-data-settings" role="tab">Settings</a></li>
+			<li role="presentation"><a class="tab-db-admin" href="#tab-data-accesses" aria-controls="tab-data-accesses" role="tab">Accesses</a></li>
+			<li role="presentation"><a class="tab-db-admin" href="#tab-data-rules" aria-controls="tab-data-rules" role="tab">Rules</a></li>
+			<li role="presentation"><a class="tab-db-admin" href="#tab-data-import" aria-controls="tab-data-import" role="tab">Import</a></li>
 		</ul>
 		<div class="tab-content">
 			<div role="tabpanel" class="tab-pane active" id="tab-data-summary">
@@ -43,6 +43,11 @@
 				</div>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-settings">
+				<div class="panel panel-warning" style="margin-top: 20px;">
+					<div class="panel-body">
+						<span class="text-warning">Changing the settings of database <strong>{{database.name}}</strong> requires either the <strong>{{database.name}}</strong>'s administration privilege, or the server administration privilege.</span>
+					</div>
+				</div>
 				<div class="panel panel-info" style="margin-top: 20px;">
 					<div class="panel-heading">Entailment setup</div>
 					<div class="panel-body">
@@ -98,6 +103,11 @@
 				</div>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-accesses">
+				<div class="panel panel-warning" style="margin-top: 20px;">
+					<div class="panel-body">
+						<span class="text-warning">The grant/revocation of privileges to a user for database <strong>{{database.name}}</strong> requires either the <strong>{{database.name}}</strong>'s administration privilege, or the server privilege.</span>
+					</div>
+				</div>
 				<div class="panel panel-info" style="margin-top: 20px;">
 					<div class="panel-heading">
 						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#grant-form" aria-expanded="false" aria-controls="grant-form">Grant privilege</button>
@@ -177,6 +187,11 @@
 				</table>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-rules">
+				<div class="panel panel-warning" style="margin-top: 20px;">
+					<div class="panel-body">
+						<span class="text-warning">The management of rules in database <strong>{{database.name}}</strong> requires either the <strong>{{database.name}}</strong>'s administration privilege, or the server privilege.</span>
+					</div>
+				</div>
 				<div class="panel panel-info" style="margin-top: 20px;">
 					<div class="panel-heading">
 						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#rule-form" aria-expanded="false" aria-controls="rule-form">New Rule ...</button>
@@ -285,6 +300,11 @@
 				</div>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-import">
+				<div class="panel panel-warning" style="margin-top: 20px;">
+					<div class="panel-body">
+						<span class="text-warning">The import of data into database <strong>{{database.name}}</strong> requires either the <strong>{{database.name}}</strong>'s administration privilege, or the server privilege.</span>
+					</div>
+				</div>
 				<div class="panel panel-info" style="margin-top: 20px;">
 					<div class="panel-heading">Import content into the database</div>
 					<div class="panel-body">

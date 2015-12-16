@@ -7,3 +7,12 @@
   margin-top: 5px;
   margin-bottom: 5px;
 }
+
+.tab-admin {
+  background-color: #EE6666;
+  color: white;
+}
+
+.tab-db-admin {
+  background-color: #CCCC66;
+}

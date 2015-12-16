@@ -3,13 +3,13 @@
   <div>
     <ul class="nav nav-tabs" role="tablist" id="DBTabs">
       <li role="presentation" class="active"><a href="#tab-data-list" aria-controls="tab-data-list" role="tab">List</a></li>
-      <li role="presentation"><a href="#tab-data-new" aria-controls="tab-data-new" role="tab"><span class="glyphicon glyphicon-user text-danger" aria-hidden="true" title="Server Admin Only"></span> New ...</a></li>
+      <li role="presentation"><a class="tab-admin" href="#tab-data-new" aria-controls="tab-data-new" role="tab">New ...</a></li>
     </ul>
     <div class="tab-content">
       <div role="tabpanel" class="tab-pane active" id="tab-data-list">
         <div class="form-group">
           <label for="field-search">Search</label>
-          <input type="text" class="form-control" id="field-search" placeholder="name" ng-model="query"/>
+          <input type="text" class="form-control" id="field-search" placeholder="name" ng-model="query" />
         </div>
         <table class="table table-bordered table-hover">
           <thead>
@@ -29,10 +29,15 @@
       <div role="tabpanel" class="tab-pane" id="tab-data-new">
         <div class="panel panel-info" style="margin-top: 20px;">
           <div class="panel-body">
+            <div class="panel panel-danger">
+              <div class="panel-body">
+                <span class="text-danger">The creation of a new database requires the server administration privilege.</span>
+              </div>
+            </div>
             <form>
               <div class="form-group">
                 <label for="field-db-name">New database name</label>
-                <input type="text" class="form-control" id="field-db-name" placeholder="name"/>
+                <input type="text" class="form-control" id="field-db-name" placeholder="name" />
               </div>
               <button type="submit" class="btn btn-primary" ng-click="onNewDB()">Create</button>
             </form>
@@ -41,10 +46,10 @@
       </div>
     </div>
   </div>
-	<script>
-		$('#DBTabs a').click(function (e) {
+  <script>
+    $('#DBTabs a').click(function (e) {
 			e.preventDefault();
 			$(this).tab('show');
 		});
-	</script>
+  </script>
 </p>

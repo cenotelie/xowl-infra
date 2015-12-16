@@ -67,6 +67,9 @@ function getErrorFor(code, content) {
     if (content == '' || (typeof content) == 'undefined')
       content = null;
   }
+  if (content !== null) {
+    content = content.replace(/\n/g, "<br/>");
+  }
   switch (code) {
     case 400:
       return getError(MSG_ERROR_BAD_REQUEST + (content !== null ? "<br/>" + content : ""));

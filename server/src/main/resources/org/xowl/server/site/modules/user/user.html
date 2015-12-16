@@ -8,13 +8,17 @@
 	<div>
 		<ul class="nav nav-tabs" role="tablist" id="UserTabs">
 			<li role="presentation" class="active"><a href="#tab-data-privileges" aria-controls="#tab-data-privileges" role="tab">Privileges</a></li>
-			<li role="presentation"><a href="#tab-data-security" aria-controls="#tab-data-security" role="tab"><span class="glyphicon glyphicon-user text-danger" aria-hidden="true" title="Server Admin Only"></span>Security</a></li>
+			<li role="presentation"><a class="tab-admin" href="#tab-data-security" aria-controls="#tab-data-security" role="tab">Security</a></li>
 		</ul>
 		<div class="tab-content">
 			<div role="tabpanel" class="tab-pane active" id="tab-data-privileges" style="margin-top: 20px;">
+				<div class="panel panel-danger" style="margin-top: 20px;">
+					<div class="panel-body">
+						<span class="text-danger">The grant/revocation of privileges to <strong>{{user}}</strong> for a database requires either the database's administration privilege, or the server privilege.</span>
+					</div>
+				</div>
 				<div class="panel panel-info" style="margin-top: 20px;">
 					<div class="panel-heading">
-						<span class="glyphicon glyphicon-user text-warning" aria-hidden="true" title="Requires database administration privilege"></span>
 						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#grant-form" aria-expanded="false" aria-controls="grant-form">Grant privilege</button>
 					</div>
 					<div id="grant-form" class="panel-body collapse">
@@ -53,10 +57,9 @@
 						<tr ng-repeat="access in privileges | filter: {database: query}">
 							<td align="center">
 								<div class="dropdown">
-									<button class="btn btn-danger btn-xs dropdown-toggle" type="button" id="menu-revoke" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-										<span class="glyphicon glyphicon-user text-warning" aria-hidden="true" title="Requires database administration privilege"></span>
-										Revoke
-										<span class="caret"></span>
+									<button class="btn btn-danger btn-xs dropdown-toggle" type="button" id="menu-revoke" data-toggle="dropdown" aria-haspopup="true"
+									aria-expanded="true">
+										Revoke <span class="caret"></span>
 									</button>
 									<ul class="dropdown-menu" aria-labelledby="menu-revoke">
 										<li><a ng-if="access.isAdmin" ng-click="onRevoke(access, 'ADMIN')">ADMIN</a></li>
@@ -92,6 +95,11 @@
 				</table>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-security">
+				<div class="panel panel-danger" style="margin-top: 20px;">
+					<div class="panel-body">
+						<span class="text-danger">The reset of <strong>{{user}}</strong>'s password or the deletion of <strong>{{user}}</strong> require the server administration privilege.</span>
+					</div>
+				</div>
 				<div class="panel panel-danger" style="margin-top: 20px;">
 					<div class="panel-heading">Reset the password</div>
 					<div class="panel-body">
