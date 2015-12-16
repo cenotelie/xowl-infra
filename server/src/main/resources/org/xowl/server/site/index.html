@@ -9,11 +9,11 @@
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="stylesheet" href="app.css">
   <link rel="stylesheet" type="text/css" href="vendors/bootstrap.min.css">
-  <!--<link rel="stylesheet" type="text/css" href="vendors/bootstrap-theme.min.css">-->
+  <link rel="stylesheet" type="text/css" href="vendors/bootstrap-theme.min.css">
 </head>
 
 <body>
-  <div ng-controller="xOWLServerCtrl" style="margin-top: 5px;">
+  <div ng-controller="xOWLServerCtrl" class="header">
     <span style="margin-left: 5px; display: inline-block;">
       <img ng-if="!onAsync" class="img-responsive" src="assets/xowl.png" width="25px" style="display: inline-block;"/>
       <img ng-if="onAsync" class="img-responsive" src="assets/xowl.gif" width="25px" style="display: inline-block;"/>
@@ -43,6 +43,12 @@
       </span>
     </div>
     <hr style="margin-top: 5px; margin-bottom: 5px;" />
+  </div>
+  <div ng-if="onAsync && onAsyncLong" class="async-marker">
+    <img class="img-responsive" src="assets/xowl.gif" width="128px" />
+    <div>
+      <span>This operation is<br/>taking some time ...</span>
+    </div>
   </div>
   <div class="body" ng-view></div>
   <script src="vendors/jquery-2.1.4.min.js"></script>

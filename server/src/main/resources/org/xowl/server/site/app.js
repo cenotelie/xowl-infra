@@ -14,18 +14,48 @@ angular.module('xOWLServer', [
 
   .config(['$routeProvider', '$provide', '$httpProvider', function ($routeProvider, $provide, $httpProvider) {
     $routeProvider.otherwise({ redirectTo: '/login' });
-    $provide.factory('xOWLInterceptor', function ($q, $rootScope) {
+    $provide.factory('xOWLInterceptor', ['$q', '$rootScope', '$timeout', function ($q, $rootScope, $timeout) {
+      $rootScope.onAsync = false;
+      $rootScope.onAsyncLong = false;
+      $rootScope.onAsyncTimeout = null;
       return {
         request: function (config) {
           $rootScope.onAsync = true;
+          $rootScope.onAsyncTimeout = $timeout(function () {
+            $rootScope.onAsyncTimeout = null;
+            $rootScope.onAsyncLong = true;
+          }, 15000);
           return config;
+        },
+        requestError: function (rejection) {
+          $rootScope.onAsync = false;
+          $rootScope.onAsyncLong = false;
+          if ($rootScope.onAsyncTimeout !== null) {
+            $timeout.cancel($rootScope.onAsyncTimeout);
+            $rootScope.onAsyncTimeout = null;
+          }
+          return $q.reject(rejection);
         },
         response: function (response) {
           $rootScope.onAsync = false;
+          $rootScope.onAsyncLong = false;
+          if ($rootScope.onAsyncTimeout !== null) {
+            $timeout.cancel($rootScope.onAsyncTimeout);
+            $rootScope.onAsyncTimeout = null;
+          }
           return response;
+        },
+        responseError: function (rejection) {
+          $rootScope.onAsync = false;
+          $rootScope.onAsyncLong = false;
+          if ($rootScope.onAsyncTimeout !== null) {
+            $timeout.cancel($rootScope.onAsyncTimeout);
+            $rootScope.onAsyncTimeout = null;
+          }
+          return $q.reject(rejection);
         }
       };
-    });
+    }]);
     $httpProvider.interceptors.push('xOWLInterceptor');
   }])
 
