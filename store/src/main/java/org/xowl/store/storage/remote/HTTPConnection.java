@@ -24,6 +24,7 @@ import org.apache.xerces.impl.dv.util.Base64;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultFailure;
+import org.xowl.store.sparql.ResultUtils;
 import org.xowl.utils.logging.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -95,32 +96,13 @@ public class HTTPConnection extends Connection {
     }
 
     @Override
-    public Result sparqlQuery(String command) {
+    public Result sparql(String command) {
         Response response = request(command, MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + "; " + Result.SYNTAX_JSON);
         if (response == null)
             return new ResultFailure("connection failed");
         if (response.code != HttpURLConnection.HTTP_OK)
-            return new ResultFailure(response.body != null ? response.body : "failure");
-        if (Result.SYNTAX_JSON.equals(response.type)) {
-            // solution set
-            return parseResponseSolutions(response.body);
-        } else if (AbstractRepository.SYNTAX_NQUADS.equals(response.type)) {
-            // quads
-            return parseResponseQuads(response.body);
-        } else {
-            // unknown
-            return new ResultFailure("Unknown content type " + response.type);
-        }
-    }
-
-    @Override
-    public Result sparqlUpdate(String command) {
-        Response response = request(command, MIME_SPARQL_UPDATE, Result.SYNTAX_CSV);
-        if (response == null)
-            return new ResultFailure("connection failed");
-        if (response.code != HttpURLConnection.HTTP_OK)
-            return new ResultFailure(response.body != null ? response.body : "failure");
-        return parseResponseUpdate(response.body);
+            return new ResultFailure(response.body != null ? response.body : "failure (HTTP " + response.code + ")");
+        return ResultUtils.parseResponse(response.body, response.type);
     }
 
     @Override

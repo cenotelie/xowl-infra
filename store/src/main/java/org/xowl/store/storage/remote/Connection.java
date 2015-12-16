@@ -49,6 +49,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Represents a connection to a remote database
@@ -56,41 +57,7 @@ import java.util.*;
  * @author Laurent Wouters
  */
 public abstract class Connection implements Closeable {
-    /**
-     * An array of SPARQL solutions
-     */
-    private static class ArraySolutions implements Solutions {
-        /**
-         * The content
-         */
-        private final List<QuerySolution> content;
 
-        /**
-         * Initializes the solutions
-         */
-        public ArraySolutions() {
-            content = new ArrayList<>();
-        }
-
-        /**
-         * Adds a new solution to this set
-         *
-         * @param solution The new solution
-         */
-        public void add(QuerySolution solution) {
-            content.add(solution);
-        }
-
-        @Override
-        public int size() {
-            return content.size();
-        }
-
-        @Override
-        public Iterator<QuerySolution> iterator() {
-            return content.iterator();
-        }
-    }
 
     /**
      * The SSL context for HTTPS connections
@@ -140,119 +107,10 @@ public abstract class Connection implements Closeable {
     }
 
     /**
-     * Sends a SPARQL query command to the remote host
+     * Sends a SPARQL command to the remote host
      *
      * @param command The SPARQL command
      * @return The result
      */
-    public abstract Result sparqlQuery(String command);
-
-    /**
-     * Sends a SPARQL update command to the remote host
-     *
-     * @param command The SPARQL command
-     * @return The result
-     */
-    public abstract Result sparqlUpdate(String command);
-
-
-    /**
-     * Parses a SPARQL response as solutions
-     *
-     * @param content The content to parse
-     * @return The parsed SPARQL result
-     */
-    public static Result parseResponseSolutions(String content) {
-        NodeManager nodeManager = new CachedNodes();
-        JSONLDLoader loader = new JSONLDLoader(nodeManager) {
-            @Override
-            protected Reader getReaderFor(Logger logger, String iri) {
-                return null;
-            }
-        };
-        BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(Logger.DEFAULT, bufferedLogger);
-        ParseResult parseResult = loader.parse(dispatchLogger, new StringReader(content));
-        if (parseResult == null || !parseResult.isSuccess()) {
-            dispatchLogger.error("Failed to parse and load the solutions:");
-            if (parseResult != null) {
-                for (ParseError error : parseResult.getErrors()) {
-                    dispatchLogger.error(error);
-                }
-            }
-            StringBuilder builder = new StringBuilder();
-            for (Object error : bufferedLogger.getErrorMessages()) {
-                builder.append(error.toString());
-                builder.append("\n");
-            }
-            return new ResultFailure(builder.toString());
-        }
-        ASTNode nodeRoot = parseResult.getRoot();
-        Map<String, VariableNode> variables = new HashMap<>();
-        // nodeRoot is the object
-        // root[0] is the 'head' member
-        // root[0][1] is the value of the 'vars' member, which is an array
-        // we iterate over the values in this array
-        for (ASTNode nodeVariable : nodeRoot.getChildren().get(0).getChildren().get(1).getChildren()) {
-            String name = nodeVariable.getValue();
-            variables.put(name, new VariableNode(name));
-        }
-
-        ArraySolutions solutions = new ArraySolutions();
-        // nodeRoot is the object
-        // root[1] is the 'results' member
-        // root[1][1] is the value of the 'results' member, which is an array
-        // we iterate over the values in this array
-        for (ASTNode nodeSolution : nodeRoot.getChildren().get(1).getChildren().get(1).getChildren()) {
-            List<Couple<VariableNode, Node>> bindings = new ArrayList<>();
-            for (ASTNode nodeBinding : nodeSolution.getChildren()) {
-                VariableNode variable = variables.get(nodeBinding.getChildren().get(0).getValue());
-                Node value = IOUtils.deserializeJSON(nodeManager, nodeBinding.getChildren().get(1));
-                bindings.add(new Couple<>(variable, value));
-            }
-            solutions.add(new QuerySolution(bindings));
-        }
-        return new ResultSolutions(solutions);
-    }
-
-    /**
-     * Parses a SPARQL response as quads
-     *
-     * @param content The content to parse
-     * @return The parsed SPARQL result
-     */
-    public static Result parseResponseQuads(String content) {
-        BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(Logger.DEFAULT, bufferedLogger);
-        NQuadsLoader loader = new NQuadsLoader(new CachedNodes());
-        RDFLoaderResult loaderResult = loader.loadRDF(dispatchLogger, new StringReader(content), null, IRIs.GRAPH_DEFAULT);
-        if (loaderResult == null) {
-            dispatchLogger.error("Failed to parse and load the quads");
-            StringBuilder builder = new StringBuilder();
-            for (Object error : bufferedLogger.getErrorMessages()) {
-                builder.append(error.toString());
-                builder.append("\n");
-            }
-            return new ResultFailure(builder.toString());
-        }
-        return new ResultQuads(loaderResult.getQuads());
-    }
-
-    /**
-     * Parses a SPARQL response to an update command
-     *
-     * @param content The content to parse
-     * @return The parsed SPARQL result
-     */
-    public static Result parseResponseUpdate(String content) {
-        if (content == null)
-            return ResultSuccess.INSTANCE;
-        if ("OK".equalsIgnoreCase(content))
-            return ResultSuccess.INSTANCE;
-        if ("true".equalsIgnoreCase(content))
-            return new ResultYesNo(true);
-        if ("false".equalsIgnoreCase(content))
-            return new ResultYesNo(false);
-        return ResultSuccess.INSTANCE;
-    }
+    public abstract Result sparql(String command);
 }

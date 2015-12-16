@@ -22,6 +22,7 @@ package org.xowl.store.storage.remote;
 
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultFailure;
+import org.xowl.store.sparql.ResultUtils;
 import org.xowl.utils.Files;
 
 import javax.net.ssl.SSLSocket;
@@ -173,29 +174,14 @@ public class XSPConnection extends Connection {
     }
 
     @Override
-    public Result sparqlQuery(String command) {
+    public Result sparql(String command) {
         String response = request("SPARQL " + database + " " + command);
         if (response == null)
             return new ResultFailure("connection failed");
         if (response.startsWith("KO"))
             return new ResultFailure(response.substring(2));
         response = response.substring(2);
-        if (response.startsWith("{")) {
-            // solution set
-            return parseResponseSolutions(response);
-        } else {
-            return parseResponseQuads(response);
-        }
-    }
-
-    @Override
-    public Result sparqlUpdate(String command) {
-        String response = request("SPARQL " + database + " " + command);
-        if (response == null)
-            return new ResultFailure("connection failed");
-        if (response.startsWith("KO"))
-            return new ResultFailure(response.substring(2));
-        return parseResponseUpdate(response.substring(2));
+        return ResultUtils.parseResponse(response, null);
     }
 
     /**

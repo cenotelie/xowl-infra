@@ -58,6 +58,10 @@ class HTTPAPIConnection extends ProtocolHandler {
      */
     public static final String TEXT_PLAIN = "text/plain";
     /**
+     * The JSON content type
+     */
+    public static final String JSON_TYPE = "application/json";
+    /**
      * The content type for a SPARQL URL encoded message body
      */
     public static final String SPARQL_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
@@ -331,12 +335,9 @@ class HTTPAPIConnection extends ProtocolHandler {
             return;
         }
 
-        List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
-        String resultType = Utils.negotiateType(acceptTypes);
-
         Object data = ((XSPReplyResult) reply).getData();
         if (data instanceof Collection) {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, Result.SYNTAX_JSON);
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, JSON_TYPE);
             StringBuilder builder = new StringBuilder("{ \"results\": [");
 
             boolean first = true;
@@ -352,17 +353,19 @@ class HTTPAPIConnection extends ProtocolHandler {
             response(HttpURLConnection.HTTP_OK, builder.toString());
         } else if (data instanceof Result) {
             Result sparqlResult = (Result) data;
+            List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
+            String resultType = Utils.coerceContentType(sparqlResult, Utils.negotiateType(acceptTypes));
             StringWriter writer = new StringWriter();
             try {
-                sparqlResult.print(writer, Utils.coerceContentType(sparqlResult, resultType));
+                sparqlResult.print(writer, resultType);
             } catch (IOException exception) {
                 // cannot happen
                 Logger.DEFAULT.error(exception);
             }
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, Utils.coerceContentType(sparqlResult, resultType));
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, resultType);
             response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR, writer.toString());
         } else if (data instanceof Serializable) {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, Result.SYNTAX_JSON);
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, JSON_TYPE);
             response(HttpURLConnection.HTTP_OK, ((Serializable) data).serializedJSON());
         } else {
             httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
