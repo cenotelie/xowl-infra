@@ -20,36 +20,16 @@
 
 package org.xowl.store.storage.remote;
 
-import org.xowl.hime.redist.ASTNode;
-import org.xowl.hime.redist.ParseError;
-import org.xowl.hime.redist.ParseResult;
-import org.xowl.store.IOUtils;
-import org.xowl.store.IRIs;
-import org.xowl.store.loaders.JSONLDLoader;
-import org.xowl.store.loaders.NQuadsLoader;
-import org.xowl.store.loaders.RDFLoaderResult;
-import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.QuerySolution;
-import org.xowl.store.rdf.VariableNode;
-import org.xowl.store.sparql.*;
-import org.xowl.store.storage.NodeManager;
-import org.xowl.store.storage.cache.CachedNodes;
-import org.xowl.utils.collections.Couple;
-import org.xowl.utils.logging.BufferedLogger;
-import org.xowl.utils.logging.DispatchLogger;
+import org.xowl.store.sparql.Result;
 import org.xowl.utils.logging.Logger;
 
 import javax.net.ssl.*;
 import java.io.Closeable;
-import java.io.Reader;
-import java.io.StringReader;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * Represents a connection to a remote database
