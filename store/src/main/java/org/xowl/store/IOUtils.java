@@ -38,6 +38,16 @@ import java.util.Map;
  */
 public class IOUtils {
     /**
+     * The MIME content type for plain text
+     */
+    public static final String MIME_TEXT_PLAIN = "text/plain";
+    /**
+     * The MIME content type for JSON
+     */
+    public static final String MIME_JSON = "application/json";
+
+
+    /**
      * String containing the escaped glyphs in absolute uris
      */
     private static final String ESCAPED_GLYPHS_ABSOLUTE_URIS = "<>\"{}|^`\\";

@@ -23,7 +23,6 @@ package org.xowl.store.storage;
 import org.xowl.store.storage.persistent.StorageException;
 import org.xowl.store.storage.remote.Connection;
 import org.xowl.store.storage.remote.HTTPConnection;
-import org.xowl.store.storage.remote.XSPConnection;
 import org.xowl.utils.logging.Logger;
 
 import java.io.File;
@@ -71,18 +70,6 @@ public class StoreFactory {
          * The location for an HTTP remote host
          */
         private String httpEndpoint;
-        /**
-         * The host for a XSP remote host
-         */
-        private String xspHost;
-        /**
-         * The port for a XSP remote host
-         */
-        private int xspPort;
-        /**
-         * The target database on a XSP remote host
-         */
-        private String xspDatabase;
         /**
          * The login for a remote host
          */
@@ -153,30 +140,6 @@ public class StoreFactory {
         public Config remoteHTTP(String endpoint, String login, String password) {
             primaryStorage = StorageType.Remote;
             httpEndpoint = endpoint;
-            xspHost = null;
-            xspPort = 0;
-            xspDatabase = null;
-            remoteLogin = login;
-            remotePassword = password;
-            return this;
-        }
-
-        /**
-         * Selects a remote storage accessed through a xOWL Server Protocol endpoint
-         *
-         * @param host     The XSP host
-         * @param port     The XSP port
-         * @param database The target database
-         * @param login    The login for the remote host, if any
-         * @param password The password for the remote host, if any
-         * @return This configuration element
-         */
-        public Config remoteXSP(String host, int port, String database, String login, String password) {
-            primaryStorage = StorageType.Remote;
-            httpEndpoint = null;
-            xspHost = host;
-            xspPort = port;
-            xspDatabase = database;
             remoteLogin = login;
             remotePassword = password;
             return this;
@@ -261,8 +224,6 @@ public class StoreFactory {
                     Connection connection = null;
                     if (httpEndpoint != null)
                         connection = new HTTPConnection(httpEndpoint, remoteLogin, remotePassword);
-                    else if (xspHost != null)
-                        connection = new XSPConnection(xspHost, xspPort, xspDatabase, remoteLogin, remotePassword);
                     primary = new RemoteStore(connection, isReadonly);
                     break;
                 }

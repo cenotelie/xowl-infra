@@ -18,44 +18,30 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage.remote;
+package org.xowl.store.xsp;
 
 /**
- * Implements a reply to a xOWL server protocol request when the user is not authenticated
+ * Represents a reply to a request in the xOWL server protocol
  *
  * @author Laurent Wouters
  */
-public class XSPReplyUnauthenticated implements XSPReply {
+public interface XSPReply {
     /**
-     * The singleton instance
+     * The MIME content type for an XSP command
      */
-    private static XSPReplyUnauthenticated INSTANCE = null;
+    String MIME_XSP_COMMAND = "application/x-xowl-xsp";
 
     /**
-     * Gets the singleton instance
+     * Gets whether the reply is a success
      *
-     * @return The singleton instance
+     * @return Whether the reply is a success
      */
-    public synchronized static XSPReplyUnauthenticated instance() {
-        if (INSTANCE == null)
-            return new XSPReplyUnauthenticated();
-        return INSTANCE;
-    }
+    boolean isSuccess();
 
     /**
-     * Initializes this instance
+     * Gets the message, if any
+     *
+     * @return The message, if any
      */
-    private XSPReplyUnauthenticated() {
-
-    }
-
-    @Override
-    public boolean isSuccess() {
-        return false;
-    }
-
-    @Override
-    public String getMessage() {
-        return "UNAUTHENTICATED";
-    }
+    String getMessage();
 }

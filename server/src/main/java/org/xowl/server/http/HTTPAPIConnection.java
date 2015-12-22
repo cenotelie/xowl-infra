@@ -28,8 +28,9 @@ import org.xowl.server.db.ProtocolHandler;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;
+import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
-import org.xowl.store.storage.remote.*;
+import org.xowl.store.xsp.*;
 import org.xowl.utils.logging.Logger;
 
 import java.io.IOException;
@@ -54,29 +55,9 @@ class HTTPAPIConnection extends ProtocolHandler {
      */
     private static final String HEADER_CONTENT_TYPE = "Content-Type";
     /**
-     * The plain text content type
-     */
-    public static final String TEXT_PLAIN = "text/plain";
-    /**
-     * The JSON content type
-     */
-    public static final String JSON_TYPE = "application/json";
-    /**
      * The content type for a SPARQL URL encoded message body
      */
     public static final String SPARQL_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
-    /**
-     * The content type for a SPARQL query in a message body
-     */
-    public static final String SPARQL_TYPE_SPARQL_QUERY = "application/sparql-query";
-    /**
-     * The content type for a SPARQL update in a message body
-     */
-    public static final String SPARQL_TYPE_SPARQL_UPDATE = "application/sparql-update";
-    /**
-     * The content type for a xOWL XSP command
-     */
-    public static final String XOWL_TYPE_COMMAND = "application/x-xowl-xsp";
 
     /**
      * The HTTP exchange to treat
@@ -209,15 +190,15 @@ class HTTPAPIConnection extends ProtocolHandler {
             return;
         }
         switch (contentType) {
-            case SPARQL_TYPE_SPARQL_QUERY:
-            case SPARQL_TYPE_SPARQL_UPDATE:
+            case Command.MIME_SPARQL_QUERY:
+            case Command.MIME_SPARQL_UPDATE:
                 onPostSPARQL(database, body);
                 break;
             case SPARQL_TYPE_URL_ENCODED:
                 // TODO: decode and implement this
                 response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Not implemented");
                 break;
-            case XOWL_TYPE_COMMAND:
+            case XSPReply.MIME_XSP_COMMAND:
                 onPostCommand(body);
                 break;
             case AbstractRepository.SYNTAX_NTRIPLES:
@@ -324,20 +305,20 @@ class HTTPAPIConnection extends ProtocolHandler {
             return;
         }
         if (reply instanceof XSPReplyFailure) {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_TEXT_PLAIN);
             response(HttpURLConnection.HTTP_INTERNAL_ERROR, reply.getMessage());
             return;
         }
         if (!(reply instanceof XSPReplyResult)) {
             // other successes
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_TEXT_PLAIN);
             response(HttpURLConnection.HTTP_OK, reply.getMessage());
             return;
         }
 
         Object data = ((XSPReplyResult) reply).getData();
         if (data instanceof Collection) {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, JSON_TYPE);
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_JSON);
             StringBuilder builder = new StringBuilder("{ \"type\": \"Collection\", \"results\": [");
 
             boolean first = true;
@@ -365,10 +346,10 @@ class HTTPAPIConnection extends ProtocolHandler {
             httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, resultType);
             response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR, writer.toString());
         } else if (data instanceof Serializable) {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, JSON_TYPE);
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_JSON);
             response(HttpURLConnection.HTTP_OK, ((Serializable) data).serializedJSON());
         } else {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_TEXT_PLAIN);
             response(HttpURLConnection.HTTP_OK, data.toString());
         }
     }

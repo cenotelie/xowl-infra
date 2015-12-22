@@ -22,7 +22,6 @@ package org.xowl.server;
 
 import org.xowl.server.db.Controller;
 import org.xowl.server.http.HTTPServer;
-import org.xowl.server.xsp.XSPServer;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.Logger;
 
@@ -69,10 +68,6 @@ public class Program {
      * The HTTP server
      */
     private HTTPServer httpServer;
-    /**
-     * The XSP server
-     */
-    private XSPServer xspServer;
 
     /**
      * Initializes this program
@@ -145,7 +140,6 @@ public class Program {
         }
         httpServer = new HTTPServer(configuration, controller);
         httpServer.start();
-        xspServer = new XSPServer(configuration, controller);
         return true;
     }
 
@@ -157,11 +151,6 @@ public class Program {
             return;
         controller.getLogger().info("Shutting down this server ...");
         try {
-            xspServer.close();
-        } catch (IOException exception) {
-            controller.getLogger().error(exception);
-        }
-        try {
             httpServer.close();
         } catch (IOException exception) {
             controller.getLogger().error(exception);
@@ -171,7 +160,6 @@ public class Program {
         } catch (IOException exception) {
             controller.getLogger().error(exception);
         }
-        xspServer = null;
         httpServer = null;
         controller = null;
     }

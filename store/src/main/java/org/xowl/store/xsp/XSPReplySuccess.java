@@ -18,44 +18,51 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage.remote;
+package org.xowl.store.xsp;
 
 /**
- * Implements a reply to a xOWL server protocol request when the user is not authorized to perform the request
+ * Implements a simple successful reply to a xOWL server request
  *
  * @author Laurent Wouters
  */
-public class XSPReplyUnauthorized implements XSPReply {
+public class XSPReplySuccess implements XSPReply {
     /**
      * The singleton instance
      */
-    private static XSPReplyUnauthorized INSTANCE = null;
+    private static XSPReplySuccess INSTANCE = null;
 
     /**
-     * Gets the singleton instance
+     * Gets the default instance
      *
-     * @return The singleton instance
+     * @return The default instance
      */
-    public synchronized static XSPReplyUnauthorized instance() {
+    public synchronized static XSPReplySuccess instance() {
         if (INSTANCE == null)
-            return new XSPReplyUnauthorized();
+            return new XSPReplySuccess("OK");
         return INSTANCE;
     }
 
     /**
-     * Initializes this instance
+     * The associated message
      */
-    private XSPReplyUnauthorized() {
+    private final String message;
 
+    /**
+     * Initializes this success
+     *
+     * @param message The associated message
+     */
+    public XSPReplySuccess(String message) {
+        this.message = message;
     }
 
     @Override
     public boolean isSuccess() {
-        return false;
+        return true;
     }
 
     @Override
     public String getMessage() {
-        return "UNAUTHORIZED";
+        return message;
     }
 }

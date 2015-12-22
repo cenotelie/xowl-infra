@@ -18,51 +18,45 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage.remote;
+package org.xowl.store.xsp;
 
 /**
- * Implements a reply to a xOWL server protocol request when the request failed
+ * Implements a successful reply to a xOWL server request with an object of type T as a response
  *
+ * @param <T> The type of return data
  * @author Laurent Wouters
  */
-public class XSPReplyFailure implements XSPReply {
+public class XSPReplyResult<T> implements XSPReply {
     /**
-     * The singleton instance
+     * The payload
      */
-    private static XSPReplyFailure INSTANCE = null;
+    private final T data;
 
     /**
-     * Gets the default instance
+     * Gets the payload
      *
-     * @return The default instance
+     * @return The payload
      */
-    public synchronized static XSPReplyFailure instance() {
-        if (INSTANCE == null)
-            return new XSPReplyFailure("FAILED");
-        return INSTANCE;
+    public T getData() {
+        return data;
     }
 
     /**
-     * The message associated to the failure
-     */
-    private final String message;
-
-    /**
-     * Initializes this reply
+     * Initializes this result
      *
-     * @param message The message associated to the failure
+     * @param data The payload
      */
-    public XSPReplyFailure(String message) {
-        this.message = message;
+    public XSPReplyResult(T data) {
+        this.data = data;
     }
 
     @Override
     public boolean isSuccess() {
-        return false;
+        return true;
     }
 
     @Override
     public String getMessage() {
-        return message;
+        return "OK";
     }
 }

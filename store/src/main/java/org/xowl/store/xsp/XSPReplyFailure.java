@@ -18,14 +18,30 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage.remote;
+package org.xowl.store.xsp;
 
 /**
- * Implements a reply to a xOWL server protocol request when a network error occurred (for any reason)
+ * Implements a reply to a xOWL server protocol request when the request failed
  *
  * @author Laurent Wouters
  */
-public class XSPReplyNetworkError implements XSPReply {
+public class XSPReplyFailure implements XSPReply {
+    /**
+     * The singleton instance
+     */
+    private static XSPReplyFailure INSTANCE = null;
+
+    /**
+     * Gets the default instance
+     *
+     * @return The default instance
+     */
+    public synchronized static XSPReplyFailure instance() {
+        if (INSTANCE == null)
+            return new XSPReplyFailure("FAILED");
+        return INSTANCE;
+    }
+
     /**
      * The message associated to the failure
      */
@@ -36,7 +52,7 @@ public class XSPReplyNetworkError implements XSPReply {
      *
      * @param message The message associated to the failure
      */
-    public XSPReplyNetworkError(String message) {
+    public XSPReplyFailure(String message) {
         this.message = message;
     }
 

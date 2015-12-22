@@ -20,7 +20,7 @@
 
 package org.xowl.server.db;
 
-import org.xowl.store.storage.remote.*;
+import org.xowl.store.xsp.*;
 import org.xowl.utils.concurrent.SafeRunnable;
 
 import java.io.IOException;

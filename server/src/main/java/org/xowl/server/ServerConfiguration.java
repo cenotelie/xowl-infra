@@ -124,15 +124,6 @@ public class ServerConfiguration {
     }
 
     /**
-     * Gets the name of this server
-     *
-     * @return The name of this server
-     */
-    public String getServerName() {
-        return getValue(null, "serverName");
-    }
-
-    /**
      * Gets the name of the administration database
      *
      * @return The name of the administration database
@@ -258,46 +249,6 @@ public class ServerConfiguration {
      */
     public int getHttpStopTimeout() {
         return Integer.parseInt(getValue("http", "stopTimeout"));
-    }
-
-    /**
-     * Gets the address to bind for the XSP server
-     *
-     * @return The address to bind
-     */
-    public String getXSPAddress() {
-        return getValue("xsp", "address");
-    }
-
-    /**
-     * Gets the port to bind for the XSP server
-     *
-     * @return The port to bind
-     */
-    public int getXSPPort() {
-        return Integer.parseInt(getValue("xsp", "port"));
-    }
-
-    /**
-     * Gets the maximum backlog for the XSP server
-     * This is the maximum number of queued incoming connections to allow on the listening socket.
-     * 0 or less indicates a system-specific value.
-     *
-     * @return The maximum backlog for the xOWL protocol server
-     */
-    public int getXSPBacklog() {
-        return Integer.parseInt(getValue("xsp", "backlog"));
-    }
-
-    /**
-     * Gets the maximum idle time (in seconds) for an XSP connection before it is closed by the server
-     * To prevent resource starvation, the XSP server will close idle connections.
-     * This value is used as the timeout setting for reading from a socket on an XSP connection.
-     *
-     * @return The maximum idle time
-     */
-    public int getXSPMaxIdleTime() {
-        return Integer.parseInt(getValue("xsp", "maxIdleTime"));
     }
 
     /**

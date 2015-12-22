@@ -22,46 +22,33 @@ package org.xowl.store.storage.remote;
 
 import org.apache.xerces.impl.dv.util.Base64;
 import org.xowl.store.AbstractRepository;
+import org.xowl.store.IOUtils;
+import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultFailure;
 import org.xowl.store.sparql.ResultUtils;
+import org.xowl.store.xsp.*;
 import org.xowl.utils.logging.Logger;
 
-import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 /**
- * Manages a connection to a standard remote SPARQL endpoint
+ * Manages a connection to a remote endpoint
  *
  * @author Laurent Wouters
  */
-public class HTTPConnection extends Connection {
-    /**
-     * The MIME content-type for a SPARQL query
-     */
-    private static final String MIME_SPARQL_QUERY = "application/sparql-query";
-    /**
-     * The MIME content type for a SPARQL update
-     */
-    private static final String MIME_SPARQL_UPDATE = "application/sparql-update";
-    /**
-     * The MIME content type for an XSP command
-     */
-    private static final String MIME_XSP_COMMAND = "application/x-xowl-xsp";
-    /**
-     * The MIME content type for plain text
-     */
-    private static final String MIME_TEXT_PLAIN = "text/plain";
-    /**
-     * The MIME content type for JSON
-     */
-    private static final String MIME_JSON_TYPE = "application/json";
-
+public class HTTPConnection implements Connection {
     /**
      * A response to a request
      */
@@ -80,7 +67,14 @@ public class HTTPConnection extends Connection {
         public String type;
     }
 
-
+    /**
+     * The SSL context for HTTPS connections
+     */
+    private final SSLContext sslContext;
+    /**
+     * The host name verifier for HTTPS connections
+     */
+    private final HostnameVerifier hostnameVerifier;
     /**
      * URI of the endpoint
      */
@@ -98,6 +92,38 @@ public class HTTPConnection extends Connection {
      * @param password Password for the endpoint, if any, used for an HTTP Basic authentication
      */
     public HTTPConnection(String endpoint, String login, String password) {
+        SSLContext sc = null;
+        try {
+            sc = SSLContext.getInstance("SSL");
+            sc.init(null, new TrustManager[]{
+                    new X509TrustManager() {
+                        @Override
+                        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                            // TODO: check certificate
+                        }
+
+                        @Override
+                        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+                            // TODO: check certificate
+                        }
+
+                        @Override
+                        public X509Certificate[] getAcceptedIssuers() {
+                            return new X509Certificate[0];
+                        }
+                    }
+            }, new SecureRandom());
+        } catch (NoSuchAlgorithmException | KeyManagementException exception) {
+            Logger.DEFAULT.error(exception);
+        }
+        sslContext = sc;
+        hostnameVerifier = new HostnameVerifier() {
+            @Override
+            public boolean verify(String s, SSLSession sslSession) {
+                // TODO: check host name
+                return true;
+            }
+        };
         this.endpoint = endpoint;
         if (login != null && password != null) {
             byte[] buffer = (login + ":" + password).getBytes(Charset.forName("UTF-8"));
@@ -109,7 +135,7 @@ public class HTTPConnection extends Connection {
 
     @Override
     public Result sparql(String command) {
-        Response response = request(command, MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + "; " + Result.SYNTAX_JSON);
+        Response response = request(command, Command.MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + "; " + Result.SYNTAX_JSON);
         if (response == null)
             return new ResultFailure("connection failed");
         if (response.code != HttpURLConnection.HTTP_OK)
@@ -119,7 +145,7 @@ public class HTTPConnection extends Connection {
 
     @Override
     public XSPReply xsp(String command) {
-        Response response = request(command, MIME_XSP_COMMAND, Result.SYNTAX_JSON);
+        Response response = request(command, XSPReply.MIME_XSP_COMMAND, Result.SYNTAX_JSON);
         if (response == null)
             return new XSPReplyNetworkError("connection failed");
         if (response.code == HttpURLConnection.HTTP_UNAUTHORIZED)
@@ -133,12 +159,12 @@ public class HTTPConnection extends Connection {
         // the result is OK from hereon
         if (response.body == null)
             return XSPReplySuccess.instance();
-        if (response.type == null || MIME_TEXT_PLAIN.equals(response.type))
+        if (response.type == null || IOUtils.MIME_TEXT_PLAIN.equals(response.type))
             // no response type or plain text
             return new XSPReplyResult<>(response.body);
-        if (MIME_JSON_TYPE.equals(response.type))
+        if (IOUtils.MIME_JSON.equals(response.type))
             // pure JSON response
-            return parseXSPResponseJSON(response.body);
+            return XSPReplyUtils.parseJSONResult(response.body);
         // assume SPARQL reply
         Result sparqlResult = ResultUtils.parseResponse(response.body, response.type);
         return new XSPReplyResult<>(sparqlResult);
