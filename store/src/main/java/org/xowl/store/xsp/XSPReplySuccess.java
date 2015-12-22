@@ -20,6 +20,8 @@
 
 package org.xowl.store.xsp;
 
+import org.xowl.store.IOUtils;
+
 /**
  * Implements a simple successful reply to a xOWL server request
  *
@@ -64,5 +66,15 @@ public class XSPReplySuccess implements XSPReply {
     @Override
     public String getMessage() {
         return message;
+    }
+
+    @Override
+    public String serializedString() {
+        return message == null ? "OK" : ("OK: " + message);
+    }
+
+    @Override
+    public String serializedJSON() {
+        return "{ \"isSuccess\": true, \"message\": \"" + (message == null ? "" : IOUtils.escapeStringJSON(message)) + "\" }";
     }
 }

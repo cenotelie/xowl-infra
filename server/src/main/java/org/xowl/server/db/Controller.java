@@ -452,7 +452,7 @@ public abstract class Controller implements Closeable {
                 }
             }
         }
-        return new XSPReplyResult<>(result);
+        return new XSPReplyResultCollection<>(result);
     }
 
     /**
@@ -793,7 +793,7 @@ public abstract class Controller implements Closeable {
         synchronized (databases) {
             if (checkIsServerAdmin(client)) {
                 result.addAll(databases.values());
-                return new XSPReplyResult<>(result);
+                return new XSPReplyResultCollection<>(result);
             }
             for (Database database : databases.values()) {
                 if (checkIsServerAdmin(client)
@@ -803,7 +803,7 @@ public abstract class Controller implements Closeable {
                     result.add(database);
             }
         }
-        return new XSPReplyResult<>(result);
+        return new XSPReplyResultCollection<>(result);
     }
 
     /**

@@ -27,19 +27,14 @@ import org.xowl.server.db.Database;
 import org.xowl.server.db.ProtocolHandler;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.IOUtils;
-import org.xowl.store.Serializable;
 import org.xowl.store.sparql.Command;
-import org.xowl.store.sparql.Result;
 import org.xowl.store.xsp.*;
-import org.xowl.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -309,48 +304,7 @@ class HTTPAPIConnection extends ProtocolHandler {
             response(HttpURLConnection.HTTP_INTERNAL_ERROR, reply.getMessage());
             return;
         }
-        if (!(reply instanceof XSPReplyResult)) {
-            // other successes
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_TEXT_PLAIN);
-            response(HttpURLConnection.HTTP_OK, reply.getMessage());
-            return;
-        }
-
-        Object data = ((XSPReplyResult) reply).getData();
-        if (data instanceof Collection) {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_JSON);
-            StringBuilder builder = new StringBuilder("{ \"type\": \"Collection\", \"results\": [");
-
-            boolean first = true;
-            for (Object elem : ((Collection) data)) {
-                if (!first)
-                    builder.append(", ");
-                first = false;
-                builder.append("\"");
-                builder.append(IOUtils.escapeStringJSON(elem.toString()));
-                builder.append("\"");
-            }
-            builder.append("]}");
-            response(HttpURLConnection.HTTP_OK, builder.toString());
-        } else if (data instanceof Result) {
-            Result sparqlResult = (Result) data;
-            List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
-            String resultType = Utils.coerceContentType(sparqlResult, Utils.negotiateType(acceptTypes));
-            StringWriter writer = new StringWriter();
-            try {
-                sparqlResult.print(writer, resultType);
-            } catch (IOException exception) {
-                // cannot happen
-                Logger.DEFAULT.error(exception);
-            }
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, resultType);
-            response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR, writer.toString());
-        } else if (data instanceof Serializable) {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_JSON);
-            response(HttpURLConnection.HTTP_OK, ((Serializable) data).serializedJSON());
-        } else {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_TEXT_PLAIN);
-            response(HttpURLConnection.HTTP_OK, data.toString());
-        }
+        httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_JSON);
+        response(HttpURLConnection.HTTP_OK, reply.serializedJSON());
     }
 }

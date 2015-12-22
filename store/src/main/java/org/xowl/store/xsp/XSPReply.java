@@ -20,12 +20,14 @@
 
 package org.xowl.store.xsp;
 
+import org.xowl.store.Serializable;
+
 /**
  * Represents a reply to a request in the xOWL server protocol
  *
  * @author Laurent Wouters
  */
-public interface XSPReply {
+public interface XSPReply extends Serializable {
     /**
      * The MIME content type for an XSP command
      */

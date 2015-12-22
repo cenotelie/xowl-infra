@@ -20,27 +20,29 @@
 
 package org.xowl.store.xsp;
 
-import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
- * Implements a successful reply to a xOWL server request with an object of type T as a response
+ * Implements a successful reply to a xOWL server request with a collection of objects of type T as a response
  *
  * @param <T> The type of return data
  * @author Laurent Wouters
  */
-public class XSPReplyResult<T> implements XSPReply {
+public class XSPReplyResultCollection<T> implements XSPReply {
     /**
      * The payload
      */
-    private final T data;
+    private final Collection<T> data;
 
     /**
      * Gets the payload
      *
      * @return The payload
      */
-    public T getData() {
+    public Collection<T> getData() {
         return data;
     }
 
@@ -49,8 +51,8 @@ public class XSPReplyResult<T> implements XSPReply {
      *
      * @param data The payload
      */
-    public XSPReplyResult(T data) {
-        this.data = data;
+    public XSPReplyResultCollection(Collection<T> data) {
+        this.data = Collections.unmodifiableCollection(data);
     }
 
     @Override
@@ -65,15 +67,32 @@ public class XSPReplyResult<T> implements XSPReply {
 
     @Override
     public String serializedString() {
-        return data == null ? "NO DATA" : data.toString();
+        StringBuilder builder = new StringBuilder("[");
+        boolean first = true;
+        for (T obj : data) {
+            if (first)
+                builder.append(", ");
+            first = false;
+            builder.append(obj.toString());
+        }
+        builder.append("]");
+        return builder.toString();
     }
 
     @Override
     public String serializedJSON() {
-        if (data == null)
-            return "{ \"isSuccess\": false, \"message\": \"NO DATA\", \"payload\": \"\" }";
-        if (data instanceof Serializable)
-            return "{ \"isSuccess\": true, \"message\": \"\", \"payload\": " + ((Serializable) data).serializedJSON() + " }";
-        return "{ \"isSuccess\": true, \"message\": \"\", \"payload\": \"" + IOUtils.escapeStringJSON(data.toString()) + "\" }";
+        StringBuilder builder = new StringBuilder("{ \"isSuccess\": true, \"message\": \"\", \"payload\": [");
+        boolean first = true;
+        for (T obj : data) {
+            if (first)
+                builder.append(", ");
+            first = false;
+            if (obj instanceof Serializable)
+                builder.append(((Serializable) obj).serializedJSON());
+            else
+                builder.append(obj.toString());
+        }
+        builder.append("]}");
+        return builder.toString();
     }
 }

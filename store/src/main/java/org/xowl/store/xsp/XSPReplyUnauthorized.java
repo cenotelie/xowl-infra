@@ -58,4 +58,14 @@ public class XSPReplyUnauthorized implements XSPReply {
     public String getMessage() {
         return "UNAUTHORIZED";
     }
+
+    @Override
+    public String serializedString() {
+        return "UNAUTHORIZED";
+    }
+
+    @Override
+    public String serializedJSON() {
+        return "{ \"isSuccess\": false, \"message\": \"UNAUTHORIZED\", \"cause\": \"UNAUTHORIZED\" }";
+    }
 }

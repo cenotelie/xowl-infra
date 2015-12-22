@@ -20,6 +20,8 @@
 
 package org.xowl.store.xsp;
 
+import org.xowl.store.IOUtils;
+
 /**
  * Implements a reply to a xOWL server protocol request when a network error occurred (for any reason)
  *
@@ -48,5 +50,15 @@ public class XSPReplyNetworkError implements XSPReply {
     @Override
     public String getMessage() {
         return message;
+    }
+
+    @Override
+    public String serializedString() {
+        return "ERROR: " + message;
+    }
+
+    @Override
+    public String serializedJSON() {
+        return "{ \"isSuccess\": false, \"message\": \"" + (message == null ? "" : IOUtils.escapeStringJSON(message)) + "\", \"cause\": \"NETWORK_ERROR\" }";
     }
 }

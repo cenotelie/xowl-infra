@@ -33,10 +33,7 @@ import org.xowl.store.rdf.RuleExplanation;
 import org.xowl.store.rete.MatchStatus;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.StoreFactory;
-import org.xowl.store.xsp.XSPReply;
-import org.xowl.store.xsp.XSPReplyFailure;
-import org.xowl.store.xsp.XSPReplyResult;
-import org.xowl.store.xsp.XSPReplySuccess;
+import org.xowl.store.xsp.*;
 import org.xowl.utils.config.Configuration;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.ConsoleLogger;
@@ -239,7 +236,7 @@ public class Database implements Serializable, Closeable {
      * @return The protocol reply
      */
     public XSPReply getAllRules() {
-        return new XSPReplyResult<>(configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES));
+        return new XSPReplyResultCollection<>(configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES));
     }
 
     /**
@@ -248,7 +245,7 @@ public class Database implements Serializable, Closeable {
      * @return The protocol reply
      */
     public XSPReply getActiveRules() {
-        return new XSPReplyResult<>(configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES));
+        return new XSPReplyResultCollection<>(configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES));
     }
 
     /**
