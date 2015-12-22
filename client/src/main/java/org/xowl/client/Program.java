@@ -20,6 +20,7 @@
 
 package org.xowl.client;
 
+import org.xowl.store.storage.remote.HTTPConnection;
 import org.xowl.utils.logging.Logger;
 
 import java.io.BufferedReader;
@@ -47,11 +48,7 @@ public class Program {
     /**
      * The remote host to connect to
      */
-    private String host = "localhost";
-    /**
-     * The port on the remote host
-     */
-    private int port = 3400;
+    private String endpoint = "https://localhost:3443/api";
     /**
      * The login
      */
@@ -72,12 +69,8 @@ public class Program {
                 printHelp();
                 return;
             }
-            if (args[i].equals("--host") && i < args.length - 1) {
-                host = args[i + 1];
-                i++;
-            }
-            if (args[i].equals("--port") && i < args.length - 1) {
-                port = Integer.parseInt(args[i + 1]);
+            if (args[i].equals("--endpoint") && i < args.length - 1) {
+                endpoint = args[i + 1];
                 i++;
             }
             if (args[i].equals("--login") && i < args.length - 1) {
@@ -107,15 +100,7 @@ public class Program {
             }
         }
 
-        try (final XOWLConnection connection = new XOWLConnection(host, port, login, password)) {
-            String response = connection.execute("WHOAMI");
-            if (response == null)
-                return;
-            if (!response.equals(login)) {
-                System.out.println(response);
-                return;
-            }
-            System.out.println("Connected to server " + connection.getServerName());
+        try (final XOWLConnection connection = new XOWLConnection(endpoint, login, password)) {
             while (true) {
                 System.out.print("XOWL> ");
                 while (!input.ready()) {
@@ -142,7 +127,7 @@ public class Program {
      */
     private static void printHelp() {
         System.out.println("xOWL CLI interface");
-        System.out.println("xowl --host <host> --port <port> --login <login> --password <password>");
+        System.out.println("xowl --endpoint <endpoint> --login <login> --password <password>");
         System.out.println("");
         System.out.println("For help on the protocol, login and use the command HELP");
     }

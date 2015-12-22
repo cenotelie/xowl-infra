@@ -145,7 +145,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="access in privileges | filter: {user: user_query}">
+						<tr ng-repeat="access in privileges.accesses | filter: {user: user_query}">
 							<td align="center">
 								<div class="dropdown">
 									<button class="btn btn-danger btn-xs dropdown-toggle" type="button" id="menu-revoke" data-toggle="dropdown" aria-haspopup="true"

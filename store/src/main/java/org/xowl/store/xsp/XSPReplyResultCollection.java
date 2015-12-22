@@ -70,7 +70,7 @@ public class XSPReplyResultCollection<T> implements XSPReply {
         StringBuilder builder = new StringBuilder("[");
         boolean first = true;
         for (T obj : data) {
-            if (first)
+            if (!first)
                 builder.append(", ");
             first = false;
             builder.append(obj.toString());
@@ -84,7 +84,7 @@ public class XSPReplyResultCollection<T> implements XSPReply {
         StringBuilder builder = new StringBuilder("{ \"isSuccess\": true, \"message\": \"\", \"payload\": [");
         boolean first = true;
         for (T obj : data) {
-            if (first)
+            if (!first)
                 builder.append(", ");
             first = false;
             if (obj instanceof Serializable)

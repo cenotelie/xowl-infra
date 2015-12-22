@@ -191,7 +191,7 @@ XOWL.prototype.serverRestart = function (callback) {
 XOWL.prototype.getUsers = function (callback) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).results);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -249,7 +249,7 @@ XOWL.prototype.resetPassword = function (callback, login, pw) {
 XOWL.prototype.getUserPrivileges = function (callback, login) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content));
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -265,7 +265,7 @@ XOWL.prototype.getUserPrivileges = function (callback, login) {
 XOWL.prototype.getDatabasePrivileges = function (callback, db) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).accesses);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -324,7 +324,7 @@ XOWL.prototype.revokeServerAdmin = function (callback, login) {
 XOWL.prototype.getDatabases = function (callback) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).results);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -358,7 +358,13 @@ XOWL.prototype.dropDatabase = function (callback, db) {
  * @param {string} db - The name of the database
  */
 XOWL.prototype.getEntailmentFor = function (callback, db) {
-	this.command(callback, "DATABASE " + db + " ENTAILMENT");
+	this.command(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content).payload);
+		} else {
+			callback(code, type, content);
+		}
+	}, "DATABASE " + db + " ENTAILMENT");
 }
 
 /**
@@ -381,7 +387,7 @@ XOWL.prototype.setEntailmentFor = function (callback, db, regime) {
 XOWL.prototype.getDBRules = function (callback, db) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).results);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -397,7 +403,7 @@ XOWL.prototype.getDBRules = function (callback, db) {
 XOWL.prototype.getDBActiveRules = function (callback, db) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).results);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -467,7 +473,13 @@ XOWL.prototype.isDBRuleActive = function (callback, db, rule) {
  * @param {string} rule - The URI of the rule
  */
 XOWL.prototype.getDBRuleDefinition = function (callback, db, rule) {
-	this.command(callback, "DATABASE " + db + " RULE " + rule);
+	this.command(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content).payload);
+		} else {
+			callback(code, type, content);
+		}
+	}, "DATABASE " + db + " RULE " + rule);
 }
 
 /**
@@ -480,7 +492,7 @@ XOWL.prototype.getDBRuleDefinition = function (callback, db, rule) {
 XOWL.prototype.getDBRuleStatus = function (callback, db, rule) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).steps);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -497,7 +509,7 @@ XOWL.prototype.getDBRuleStatus = function (callback, db, rule) {
 XOWL.prototype.explainQuad = function (callback, db, quad) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content));
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}

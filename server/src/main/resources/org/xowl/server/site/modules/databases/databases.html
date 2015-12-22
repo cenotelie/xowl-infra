@@ -21,7 +21,7 @@
           <tbody>
             <tr ng-repeat="database in databases | filter: query">
               <td align="center"><span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span></td>
-              <td><a class="item" href="#/database/{{database}}"><i class="glyphicon glyphicon-hdd"></i> {{database}}</a></td>
+              <td><a class="item" href="#/database/{{database.name}}"><i class="glyphicon glyphicon-hdd"></i> {{database.name}}</a></td>
             </tr>
           </tbody>
         </table>

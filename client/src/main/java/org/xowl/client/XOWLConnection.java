@@ -20,24 +20,24 @@
 
 package org.xowl.client;
 
-import org.xowl.store.storage.remote.XSPConnection;
+import org.xowl.store.storage.remote.HTTPConnection;
+import org.xowl.store.xsp.XSPReply;
 
 /**
  * Represents a connection to a xOWL server using the xOWL Server Protocol
  *
  * @author Laurent Wouters
  */
-public class XOWLConnection extends XSPConnection {
+public class XOWLConnection extends HTTPConnection {
     /**
      * Initializes this connection
      *
-     * @param host     The XSP host
-     * @param port     The XSP port
-     * @param login    Login for the endpoint
-     * @param password Password for the endpoint
+     * @param endpoint URI of the endpoint
+     * @param login    Login for the endpoint, if any, used for an HTTP Basic authentication
+     * @param password Password for the endpoint, if any, used for an HTTP Basic authentication
      */
-    public XOWLConnection(String host, int port, String login, String password) {
-        super(host, port, null, login, password);
+    public XOWLConnection(String endpoint, String login, String password) {
+        super(endpoint, login, password);
     }
 
     /**
@@ -47,9 +47,7 @@ public class XOWLConnection extends XSPConnection {
      * @return The response
      */
     public String execute(String command) {
-        String response = request(command);
-        if (response == null)
-            return getReplyForError();
-        return response.substring(2);
+        XSPReply response = xsp(command);
+        return response.serializedString();
     }
 }

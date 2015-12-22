@@ -25,7 +25,7 @@
         <ul class="dropdown-menu">
           <li><a href="#databases">Browse all ...</a></li>
           <li role="separator" class="divider"></li>
-          <li ng-repeat="database in databases"><a href="#/database/{{database}}">{{database}}</a></li>
+          <li ng-repeat="database in databases"><a href="#/database/{{database.name}}">{{database.name}}</a></li>
         </ul>
       </div>
       <div class="btn-group" role="toolbar" aria-label="main-menu" style="display: inline-block;">
