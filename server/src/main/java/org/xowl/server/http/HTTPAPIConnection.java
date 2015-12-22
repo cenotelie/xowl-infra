@@ -28,10 +28,12 @@ import org.xowl.server.db.ProtocolHandler;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.IOUtils;
 import org.xowl.store.sparql.Command;
+import org.xowl.store.sparql.Result;
 import org.xowl.store.xsp.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
@@ -304,6 +306,22 @@ class HTTPAPIConnection extends ProtocolHandler {
             response(HttpURLConnection.HTTP_INTERNAL_ERROR, reply.getMessage());
             return;
         }
+        if (reply instanceof XSPReplyResult && ((XSPReplyResult)reply).getData() instanceof Result) {
+            // special handling for SPARQL
+            Result sparqlResult = (Result) ((XSPReplyResult)reply).getData();
+            List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
+            String resultType = Utils.coerceContentType(sparqlResult, Utils.negotiateType(acceptTypes));
+            StringWriter writer = new StringWriter();
+            try {
+                sparqlResult.print(writer, resultType);
+            } catch (IOException exception) {
+                // cannot happen
+            }
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, resultType);
+            response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR, writer.toString());
+            return;
+        }
+        // general case
         httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_JSON);
         response(HttpURLConnection.HTTP_OK, reply.serializedJSON());
     }

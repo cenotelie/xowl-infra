@@ -75,10 +75,77 @@ public class XSPReplyUtils {
             return new XSPReplyFailure(builder.toString());
         }
 
-        Object obj = loadXSPObject(parseResult.getRoot());
-        if (obj == null)
+        if ("array".equals(parseResult.getRoot().getSymbol().getName()))
             return new XSPReplyFailure("Unexpected JSON format");
-        return new XSPReplyResult<>(obj);
+
+        ASTNode nodeIsSuccess = null;
+        ASTNode nodeMessage = null;
+        ASTNode nodeCause = null;
+        ASTNode nodePayload = null;
+        for (ASTNode memberNode : parseResult.getRoot().getChildren()) {
+            String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
+            memberName = memberName.substring(1, memberName.length() - 1);
+            ASTNode memberValue = memberNode.getChildren().get(1);
+            switch (memberName) {
+                case "isSuccess":
+                    nodeIsSuccess = memberValue;
+                    break;
+                case "message":
+                    nodeMessage = memberValue;
+                    break;
+                case "cause":
+                    nodeCause = memberValue;
+                    break;
+                case "payload":
+                    nodePayload = memberValue;
+                    break;
+            }
+        }
+
+        if (nodeIsSuccess == null)
+            return new XSPReplyFailure("Unexpected JSON format");
+        boolean isSuccess = "true".equalsIgnoreCase(nodeIsSuccess.getValue());
+        if (!isSuccess && nodeCause != null) {
+            String cause = IOUtils.unescape(nodeCause.getValue());
+            cause = cause.substring(1, cause.length() - 1);
+            if ("UNAUTHENTICATED".equals(cause))
+                return XSPReplyUnauthenticated.instance();
+            else if ("UNAUTHORIZED".equals(cause))
+                return XSPReplyUnauthorized.instance();
+            else
+                return new XSPReplyFailure(cause);
+        } else if (!isSuccess) {
+            if (nodeMessage == null)
+                return new XSPReplyFailure("Unexpected JSON format");
+            String message = IOUtils.unescape(nodeMessage.getValue());
+            message = message.substring(1, message.length() - 1);
+            return new XSPReplyFailure(message);
+        } else {
+            // this is a success
+            if (nodePayload != null) {
+                if ("array".equals(nodePayload.getSymbol().getName())) {
+                    Collection<Object> payload = new ArrayList<>(nodePayload.getChildren().size());
+                    for (ASTNode child : nodePayload.getChildren()) {
+                        Object element = loadXSPObject(child);
+                        if (element == null)
+                            return new XSPReplyFailure("Unexpected JSON format");
+                        payload.add(element);
+                    }
+                    return new XSPReplyResultCollection<>(payload);
+                } else {
+                    Object payload = loadXSPObject(nodePayload);
+                    if (payload == null)
+                        return new XSPReplyFailure("Unexpected JSON format");
+                    return new XSPReplyResult<>(payload);
+                }
+            } else {
+                if (nodeMessage == null)
+                    return XSPReplySuccess.instance();
+                String message = IOUtils.unescape(nodeMessage.getValue());
+                message = message.substring(1, message.length() - 1);
+                return new XSPReplySuccess(message);
+            }
+        }
     }
 
     /**
@@ -96,7 +163,6 @@ public class XSPReplyUtils {
             return value;
 
         ASTNode nodeType = null;
-        ASTNode nodeResults = null;
         ASTNode nodeName = null;
         for (ASTNode memberNode : root.getChildren()) {
             String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
@@ -105,9 +171,6 @@ public class XSPReplyUtils {
             switch (memberName) {
                 case "type":
                     nodeType = memberValue;
-                    break;
-                case "results":
-                    nodeResults = memberValue;
                     break;
                 case "name":
                     nodeName = memberValue;
@@ -121,8 +184,6 @@ public class XSPReplyUtils {
         type = type.substring(1, type.length() - 1);
 
         switch (type) {
-            case "Collection":
-                return loadXSPObjectCollection(nodeResults);
             case "org.xowl.server.db.User":
             case "org.xowl.server.db.Database":
                 if (nodeName == null)
@@ -141,23 +202,5 @@ public class XSPReplyUtils {
                 return null;
         }
         return null;
-    }
-
-    /**
-     * Loads an XSP result as a collection
-     *
-     * @param nodeResults The AST node for the collection
-     * @return The collection
-     */
-    private static Object loadXSPObjectCollection(ASTNode nodeResults) {
-        if (nodeResults == null)
-            return null;
-        Collection<Object> result = new ArrayList<>(nodeResults.getChildren().size());
-        for (ASTNode child : nodeResults.getChildren()) {
-            Object obj = loadXSPObject(child);
-            if (obj != null)
-                result.add(obj);
-        }
-        return result;
     }
 }
