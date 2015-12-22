@@ -146,7 +146,9 @@ public class RuleExplanation implements Serializable {
     @Override
     public String serializedJSON() {
         StringWriter writer = new StringWriter();
-        writer.write("{ \"root\": 0, \"nodes\": [");
+        writer.write("{ \"type\": \"");
+        writer.write(IOUtils.escapeStringJSON(RuleExplanation.class.getCanonicalName()));
+        writer.write("\", \"root\": 0, \"nodes\": [");
         for (int i = 0; i != nodes.size(); i++) {
             if (i != 0)
                 writer.write(", ");

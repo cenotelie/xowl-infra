@@ -49,6 +49,18 @@ public class HTTPConnection extends Connection {
      * The MIME content type for a SPARQL update
      */
     private static final String MIME_SPARQL_UPDATE = "application/sparql-update";
+    /**
+     * The MIME content type for an XSP command
+     */
+    private static final String MIME_XSP_COMMAND = "application/x-xowl-xsp";
+    /**
+     * The MIME content type for plain text
+     */
+    private static final String MIME_TEXT_PLAIN = "text/plain";
+    /**
+     * The MIME content type for JSON
+     */
+    private static final String MIME_JSON_TYPE = "application/json";
 
     /**
      * A response to a request
@@ -103,6 +115,33 @@ public class HTTPConnection extends Connection {
         if (response.code != HttpURLConnection.HTTP_OK)
             return new ResultFailure(response.body != null ? response.body : "failure (HTTP " + response.code + ")");
         return ResultUtils.parseResponse(response.body, response.type);
+    }
+
+    @Override
+    public XSPReply xsp(String command) {
+        Response response = request(command, MIME_XSP_COMMAND, Result.SYNTAX_JSON);
+        if (response == null)
+            return new XSPReplyNetworkError("connection failed");
+        if (response.code == HttpURLConnection.HTTP_UNAUTHORIZED)
+            return XSPReplyUnauthenticated.instance();
+        if (response.code == HttpURLConnection.HTTP_FORBIDDEN)
+            return XSPReplyUnauthorized.instance();
+        if (response.code == HttpURLConnection.HTTP_INTERNAL_ERROR)
+            return new XSPReplyFailure(response.body);
+        if (response.code != HttpURLConnection.HTTP_OK)
+            return new XSPReplyFailure(response.body != null ? response.body : "failure (HTTP " + response.code + ")");
+        // the result is OK from hereon
+        if (response.body == null)
+            return XSPReplySuccess.instance();
+        if (response.type == null || MIME_TEXT_PLAIN.equals(response.type))
+            // no response type or plain text
+            return new XSPReplyResult<>(response.body);
+        if (MIME_JSON_TYPE.equals(response.type))
+            // pure JSON response
+            return parseXSPResponseJSON(response.body);
+        // assume SPARQL reply
+        Result sparqlResult = ResultUtils.parseResponse(response.body, response.type);
+        return new XSPReplyResult<>(sparqlResult);
     }
 
     @Override

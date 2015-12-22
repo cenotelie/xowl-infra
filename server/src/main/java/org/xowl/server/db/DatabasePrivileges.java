@@ -20,6 +20,7 @@
 
 package org.xowl.server.db;
 
+import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;
 import org.xowl.utils.Files;
 import org.xowl.utils.collections.SparseIterator;
@@ -129,7 +130,9 @@ public class DatabasePrivileges implements Serializable {
 
     @Override
     public String serializedJSON() {
-        StringBuilder builder = new StringBuilder("{ \"accesses\": [");
+        StringBuilder builder = new StringBuilder("{\"type\":\"");
+        builder.append(IOUtils.escapeStringJSON(DatabasePrivileges.class.getCanonicalName()));
+        builder.append("\", \"accesses\": [");
         for (int i = 0; i != users.length; i++) {
             if (users[i] == null)
                 break;

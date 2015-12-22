@@ -22,10 +22,8 @@ package org.xowl.server.db;
 
 import org.xowl.server.Program;
 import org.xowl.server.ServerConfiguration;
-import org.xowl.store.EntailmentRegime;
-import org.xowl.store.IRIs;
-import org.xowl.store.ProxyObject;
-import org.xowl.store.Repository;
+import org.xowl.store.*;
+import org.xowl.store.Serializable;
 import org.xowl.store.loaders.NQuadsLoader;
 import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.RDFTLoader;
@@ -54,7 +52,7 @@ import java.util.Objects;
  *
  * @author Laurent Wouters
  */
-public class Database implements Closeable {
+public class Database implements Serializable, Closeable {
     /**
      * The configuration file for a repository
      */
@@ -482,5 +480,15 @@ public class Database implements Closeable {
     @Override
     public String toString() {
         return getName();
+    }
+
+    @Override
+    public String serializedString() {
+        return getName();
+    }
+
+    @Override
+    public String serializedJSON() {
+        return "{\"type\": \"" + IOUtils.escapeStringJSON(Database.class.getCanonicalName()) + "\", \"name\": \"" + IOUtils.escapeStringJSON(getName()) + "\"}";
     }
 }

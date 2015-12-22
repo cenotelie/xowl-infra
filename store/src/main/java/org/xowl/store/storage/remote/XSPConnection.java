@@ -184,46 +184,16 @@ public class XSPConnection extends Connection {
         return ResultUtils.parseResponse(response, null);
     }
 
-    /**
-     * Request the xOWL server shutdown
-     *
-     * @return The protocol reply
-     */
-    public XSPReply serverShutdown() {
-        String response = request("ADMIN SHUTDOWN");
-        if (response == null)
-            return new XSPReplyNetworkError(getReplyForError());
-        if (response.startsWith("KO"))
-            return getReplyForFailure(response.substring(2));
-        return XSPReplySuccess.instance();
-    }
-
-    /**
-     * Request the xOWL server restart
-     *
-     * @return The protocol reply
-     */
-    public XSPReply serverRestart() {
-        String response = request("ADMIN RESTART");
-        if (response == null)
-            return new XSPReplyNetworkError(getReplyForError());
-        if (response.startsWith("KO"))
-            return getReplyForFailure(response.substring(2));
-        return XSPReplySuccess.instance();
-    }
-
-    /**
-     * Requests the list of the users on the xOWL server
-     *
-     * @return The protocol reply
-     */
-    public XSPReply getUsers() {
-        String response = request("ADMIN LIST USERS");
+    @Override
+    public XSPReply xsp(String command) {
+        String response = request(command);
         if (response == null)
             return new XSPReplyNetworkError(getReplyForError());
         if (response.startsWith("KO"))
             return getReplyForFailure(response.substring(2));
         response = response.substring(2);
+
+
         String[] lines = response.split(Files.LINE_SEPARATOR);
         List<String> users = new ArrayList<>();
         for (int i = 0; i != lines.length; i++) {
@@ -231,69 +201,6 @@ public class XSPConnection extends Connection {
             if (!lines[i].isEmpty())
                 users.add(line);
         }
-        return new XSPReplyResult<>(users);
-    }
-
-    /**
-     * Request the creation of a new user
-     *
-     * @param login    The login for the new user
-     * @param password The password for the new user
-     * @return The protocol reply
-     */
-    public XSPReply createUser(String login, String password) {
-        String response = request("ADMIN CREATE USER " + login + " " + password);
-        if (response == null)
-            return new XSPReplyNetworkError(getReplyForError());
-        if (response.startsWith("KO"))
-            return getReplyForFailure(response.substring(2));
-        return XSPReplySuccess.instance();
-    }
-
-    /**
-     * Request the deletion of a user
-     *
-     * @param login The login of the user to delete
-     * @return The protocol reply
-     */
-    public XSPReply deleteUser(String login, String password) {
-        String response = request("ADMIN DELETE USER " + login);
-        if (response == null)
-            return new XSPReplyNetworkError(getReplyForError());
-        if (response.startsWith("KO"))
-            return getReplyForFailure(response.substring(2));
-        return XSPReplySuccess.instance();
-    }
-
-    /**
-     * Request the change of the password for the current user
-     *
-     * @param password The new password for the user
-     * @return The protocol reply
-     */
-    public XSPReply changePassword(String password) {
-        String response = request("ADMIN CHANGE PASSWORD " + password);
-        if (response == null)
-            return new XSPReplyNetworkError(getReplyForError());
-        if (response.startsWith("KO"))
-            return getReplyForFailure(response.substring(2));
-        return XSPReplySuccess.instance();
-    }
-
-    /**
-     * Request the reset of the password of another user
-     *
-     * @param login    The login of the user to reset the password for
-     * @param password The new password for the user
-     * @return The protocol reply
-     */
-    public XSPReply resetPassword(String login, String password) {
-        String response = request("ADMIN RESET PASSWORD " + login + " " + password);
-        if (response == null)
-            return new XSPReplyNetworkError(getReplyForError());
-        if (response.startsWith("KO"))
-            return getReplyForFailure(response.substring(2));
-        return XSPReplySuccess.instance();
     }
 
     /**

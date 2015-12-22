@@ -20,14 +20,16 @@
 
 package org.xowl.server.db;
 
+import org.xowl.store.IOUtils;
 import org.xowl.store.ProxyObject;
+import org.xowl.store.Serializable;
 
 /**
  * Represents a user on this server
  *
  * @author Laurent Wouters
  */
-public class User {
+public class User implements Serializable {
     /**
      * The proxy object representing this user
      */
@@ -61,5 +63,15 @@ public class User {
     @Override
     public String toString() {
         return getName();
+    }
+
+    @Override
+    public String serializedString() {
+        return getName();
+    }
+
+    @Override
+    public String serializedJSON() {
+        return "{\"type\": \"" + IOUtils.escapeStringJSON(User.class.getCanonicalName()) + "\", \"name\": \"" + IOUtils.escapeStringJSON(getName()) + "\"}";
     }
 }

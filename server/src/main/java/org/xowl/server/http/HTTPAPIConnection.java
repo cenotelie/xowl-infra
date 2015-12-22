@@ -338,7 +338,7 @@ class HTTPAPIConnection extends ProtocolHandler {
         Object data = ((XSPReplyResult) reply).getData();
         if (data instanceof Collection) {
             httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, JSON_TYPE);
-            StringBuilder builder = new StringBuilder("{ \"results\": [");
+            StringBuilder builder = new StringBuilder("{ \"type\": \"Collection\", \"results\": [");
 
             boolean first = true;
             for (Object elem : ((Collection) data)) {
