@@ -22,11 +22,14 @@ package org.xowl.server.http;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
-import org.xowl.server.db.*;
+import org.xowl.server.db.Controller;
+import org.xowl.server.db.Database;
+import org.xowl.server.db.ProtocolHandler;
+import org.xowl.store.AbstractRepository;
 import org.xowl.store.IOUtils;
-import org.xowl.store.Serializable;
+import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
-import org.xowl.utils.logging.Logger;
+import org.xowl.store.xsp.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -34,7 +37,6 @@ import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,25 +52,9 @@ class HTTPAPIConnection extends ProtocolHandler {
      */
     private static final String HEADER_CONTENT_TYPE = "Content-Type";
     /**
-     * The plain text content type
-     */
-    public static final String TEXT_PLAIN = "text/plain";
-    /**
      * The content type for a SPARQL URL encoded message body
      */
     public static final String SPARQL_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
-    /**
-     * The content type for a SPARQL query in a message body
-     */
-    public static final String SPARQL_TYPE_SPARQL_QUERY = "application/sparql-query";
-    /**
-     * The content type for a SPARQL update in a message body
-     */
-    public static final String SPARQL_TYPE_SPARQL_UPDATE = "application/sparql-update";
-    /**
-     * The content type for a xOWL XSP command
-     */
-    public static final String XOWL_TYPE_COMMAND = "application/x-xowl-xsp";
 
     /**
      * The HTTP exchange to treat
@@ -112,12 +98,12 @@ class HTTPAPIConnection extends ProtocolHandler {
             if (index != -1) {
                 dbName = dbName.substring(0, index);
             }
-            ProtocolReply dbReply = controller.getDatabase(user, dbName);
+            XSPReply dbReply = controller.getDatabase(user, dbName);
             if (!dbReply.isSuccess()) {
                 response(HttpURLConnection.HTTP_FORBIDDEN, null);
                 return;
             }
-            database = ((ProtocolReplyResult<Database>) dbReply).getData();
+            database = ((XSPReplyResult<Database>) dbReply).getData();
         }
 
         if (Objects.equals(method, "GET")) {
@@ -171,7 +157,7 @@ class HTTPAPIConnection extends ProtocolHandler {
             } else {
                 List<String> defaults = params.get("default-graph-uri");
                 List<String> named = params.get("named-graph-uri");
-                ProtocolReply reply = controller.sparql(user, database, body, defaults, named);
+                XSPReply reply = controller.sparql(user, database, body, defaults, named);
                 response(reply);
             }
         } else {
@@ -201,16 +187,28 @@ class HTTPAPIConnection extends ProtocolHandler {
             return;
         }
         switch (contentType) {
-            case SPARQL_TYPE_SPARQL_QUERY:
-            case SPARQL_TYPE_SPARQL_UPDATE:
+            case Command.MIME_SPARQL_QUERY:
+            case Command.MIME_SPARQL_UPDATE:
                 onPostSPARQL(database, body);
                 break;
             case SPARQL_TYPE_URL_ENCODED:
                 // TODO: decode and implement this
                 response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Not implemented");
                 break;
-            case XOWL_TYPE_COMMAND:
+            case XSPReply.MIME_XSP_COMMAND:
                 onPostCommand(body);
+                break;
+            case AbstractRepository.SYNTAX_NTRIPLES:
+            case AbstractRepository.SYNTAX_NQUADS:
+            case AbstractRepository.SYNTAX_TURTLE:
+            case AbstractRepository.SYNTAX_TRIG:
+            case AbstractRepository.SYNTAX_RDFXML:
+            case AbstractRepository.SYNTAX_JSON_LD:
+            case AbstractRepository.SYNTAX_FUNCTIONAL_OWL2:
+            case AbstractRepository.SYNTAX_OWLXML:
+            case AbstractRepository.SYNTAX_RDFT:
+            case AbstractRepository.SYNTAX_XOWL:
+                onPostData(database, contentType, body);
                 break;
             default:
                 response(HttpURLConnection.HTTP_BAD_REQUEST, null);
@@ -231,19 +229,35 @@ class HTTPAPIConnection extends ProtocolHandler {
             Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
             List<String> defaults = params.get("default-graph-uri");
             List<String> named = params.get("named-graph-uri");
-            ProtocolReply reply = controller.sparql(user, database, body, defaults, named);
+            XSPReply reply = controller.sparql(user, database, body, defaults, named);
             response(reply);
         }
     }
 
     /**
-     * Answer to a XSP command on a POST method
+     * Answers to a XSP command on a POST method
      *
      * @param body The request body
      */
     private void onPostCommand(String body) {
-        ProtocolReply reply = execute(body);
+        XSPReply reply = execute(body);
         response(reply);
+    }
+
+    /**
+     * Answers to the upload of data for a database
+     *
+     * @param database    The target database
+     * @param contentType The request content type
+     * @param body        The request body
+     */
+    private void onPostData(Database database, String contentType, String body) {
+        if (database == null) {
+            response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
+        } else {
+            XSPReply reply = controller.upload(user, database, contentType, body);
+            response(reply);
+        }
     }
 
     /**
@@ -273,68 +287,42 @@ class HTTPAPIConnection extends ProtocolHandler {
      *
      * @param reply The protocol reply
      */
-    private void response(ProtocolReply reply) {
+    private void response(XSPReply reply) {
         if (reply == null) {
             // client got banned
             response(HttpURLConnection.HTTP_FORBIDDEN, null);
             return;
         }
-        if (reply instanceof ProtocolReplyUnauthenticated) {
+        if (reply instanceof XSPReplyUnauthenticated) {
             response(HttpURLConnection.HTTP_UNAUTHORIZED, null);
             return;
         }
-        if (reply instanceof ProtocolReplyUnauthorized) {
+        if (reply instanceof XSPReplyUnauthorized) {
             response(HttpURLConnection.HTTP_FORBIDDEN, null);
             return;
         }
-        if (reply instanceof ProtocolReplyFailure) {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
+        if (reply instanceof XSPReplyFailure) {
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_TEXT_PLAIN);
             response(HttpURLConnection.HTTP_INTERNAL_ERROR, reply.getMessage());
             return;
         }
-        if (!(reply instanceof ProtocolReplyResult)) {
-            // other successes
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
-            response(HttpURLConnection.HTTP_OK, reply.getMessage());
-            return;
-        }
-
-        List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
-        String resultType = Utils.negotiateType(acceptTypes);
-
-        Object data = ((ProtocolReplyResult) reply).getData();
-        if (data instanceof Collection) {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, Result.SYNTAX_JSON);
-            StringBuilder builder = new StringBuilder("{ \"results\": [");
-
-            boolean first = true;
-            for (Object elem : ((Collection) data)) {
-                if (!first)
-                    builder.append(", ");
-                first = false;
-                builder.append("\"");
-                builder.append(IOUtils.escapeStringJSON(elem.toString()));
-                builder.append("\"");
-            }
-            builder.append("]}");
-            response(HttpURLConnection.HTTP_OK, builder.toString());
-        } else if (data instanceof Result) {
-            Result sparqlResult = (Result) data;
+        if (reply instanceof XSPReplyResult && ((XSPReplyResult)reply).getData() instanceof Result) {
+            // special handling for SPARQL
+            Result sparqlResult = (Result) ((XSPReplyResult)reply).getData();
+            List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
+            String resultType = Utils.coerceContentType(sparqlResult, Utils.negotiateType(acceptTypes));
             StringWriter writer = new StringWriter();
             try {
-                sparqlResult.print(writer, Utils.coerceContentType(sparqlResult, resultType));
+                sparqlResult.print(writer, resultType);
             } catch (IOException exception) {
                 // cannot happen
-                Logger.DEFAULT.error(exception);
             }
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, Utils.coerceContentType(sparqlResult, resultType));
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, resultType);
             response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR, writer.toString());
-        } else if (data instanceof Serializable) {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, Result.SYNTAX_JSON);
-            response(HttpURLConnection.HTTP_OK, ((Serializable) data).serializedJSON());
-        } else {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, TEXT_PLAIN);
-            response(HttpURLConnection.HTTP_OK, data.toString());
+            return;
         }
+        // general case
+        httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_JSON);
+        response(HttpURLConnection.HTTP_OK, reply.serializedJSON());
     }
 }

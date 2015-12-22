@@ -40,6 +40,18 @@ XOWL.prototype.sparql = function (callback, db, sparql) {
 }
 
 /**
+ * Uploads into a database a piece of content
+ * @method upload
+ * @param {commandCallback} callback - The callback for this request
+ * @param {string} db - The target database
+ * @param {string} contentType - The MIME type of the content to upload
+ * @param {string} content - The content to upload to the database
+ */
+XOWL.prototype.upload = function (callback, db, contentType, content) {
+	this.ngUpload(callback, db, contentType, content);
+}
+
+/**
 * Executes a xOWL Server Protocol command (AngularJS API)
 * @method ngCommand
 * @param {commandCallback} callback - The callback for this request
@@ -76,6 +88,30 @@ XOWL.prototype.ngSPARQL = function (callback, db, sparql) {
 	if (this.authToken !== null)
 		headers.headers["Authorization"] = "Basic " + this.authToken;
 	this.$http.post(this.endpoint + "/db/" + db + "/", sparql, headers).then(function (response) {
+			callback(response.status, response.headers("Content-Type"), response.data);
+		}, function (response) {
+			callback(response.status, response.headers("Content-Type"), response.data);
+		});
+}
+
+/**
+ * Uploads into a database a piece of content (AngularJS API)
+ * @method ngUpload
+ * @param {commandCallback} callback - The callback for this request
+ * @param {string} db - The target database
+ * @param {string} contentType - The MIME type of the content to upload
+ * @param {string} content - The content to upload to the database
+ */
+XOWL.prototype.ngUpload = function (callback, db, contentType, content) {
+	var headers = { headers: {
+			"Content-Type": contentType,
+			"Accept": "text/plain, application/json"
+			},
+			transformRequest: function(data, headersGetter) { return data; },
+			transformResponse: function(data, headersGetter, status) { return data; } };
+	if (this.authToken !== null)
+		headers.headers["Authorization"] = "Basic " + this.authToken;
+	this.$http.post(this.endpoint + "/db/" + db + "/", content, headers).then(function (response) {
 			callback(response.status, response.headers("Content-Type"), response.data);
 		}, function (response) {
 			callback(response.status, response.headers("Content-Type"), response.data);

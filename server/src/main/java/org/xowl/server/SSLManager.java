@@ -56,7 +56,7 @@ public class SSLManager {
         String location = configuration.getSecurityKeyStore();
         String password = configuration.getSecurityKeyStorePassword();
         if (location == null) {
-            File target = new File(configuration.getRoot(), KEY_STORE_FILE);
+            File target = new File(configuration.getStartupFolder(), KEY_STORE_FILE);
             password = generateKeyStore(target);
             if (password == null)
                 return null;
@@ -65,7 +65,7 @@ public class SSLManager {
         }
         try {
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            try (FileInputStream stream = new FileInputStream(new File(configuration.getRoot(), location))) {
+            try (FileInputStream stream = new FileInputStream(new File(configuration.getStartupFolder(), location))) {
                 keyStore.load(stream, password.toCharArray());
             }
             return new Couple<>(keyStore, password);

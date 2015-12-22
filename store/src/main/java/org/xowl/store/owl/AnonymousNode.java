@@ -35,6 +35,11 @@ public abstract class AnonymousNode implements SubjectNode {
     }
 
     @Override
+    public int hashCode() {
+        return getNodeID().hashCode();
+    }
+
+    @Override
     public String toString() {
         return "_:" + getNodeID();
     }

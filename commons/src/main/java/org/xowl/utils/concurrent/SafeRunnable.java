@@ -46,7 +46,7 @@ public abstract class SafeRunnable implements Runnable {
     public void run() {
         try {
             doRun();
-        } catch (Exception exception) {
+        } catch (Throwable exception) {
             Logger.DEFAULT.error(exception);
         } finally {
             LockManager.cleanup();

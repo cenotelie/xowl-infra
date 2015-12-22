@@ -92,13 +92,14 @@ public class RETENetwork {
      */
     public void addRule(RETERule rule) {
         RuleData ruleData = new RuleData();
-        ruleData.positives = getJoinData(rule);
+        List<JoinData> joinData = getJoinData(rule);
 
         // Build RETE for positives
-        Iterator<JoinData> iterData = ruleData.positives.iterator();
+        Iterator<JoinData> iterator = joinData.iterator();
         BetaMemory beta = BetaMemory.getDummy();
         for (Quad pattern : rule.getPositives()) {
-            JoinData data = iterData.next();
+            JoinData data = iterator.next();
+            ruleData.positives.add(data);
             FactHolder alpha = this.alpha.resolveMemory(pattern, input);
             data.nodeJoin = new BetaJoinNode(alpha, beta, data.tests, data.binders);
             beta = data.nodeJoin.getChild();
@@ -108,7 +109,7 @@ public class RETENetwork {
         TokenHolder last = beta;
         for (Collection<Quad> conjunction : rule.getNegatives()) {
             if (conjunction.size() == 1) {
-                JoinData data = iterData.next();
+                JoinData data = iterator.next();
                 Quad pattern = conjunction.iterator().next();
                 FactHolder alpha = this.alpha.resolveMemory(pattern, input);
                 last = new BetaNegativeJoinNode(alpha, last, data.tests);
@@ -117,7 +118,7 @@ public class RETENetwork {
                 BetaNCCEntryNode entry = new BetaNCCEntryNode(last, conjunction.size());
                 last = entry;
                 for (Quad pattern : conjunction) {
-                    JoinData data = iterData.next();
+                    JoinData data = iterator.next();
                     FactHolder alpha = this.alpha.resolveMemory(pattern, input);
                     BetaJoinNode join = new BetaJoinNode(alpha, last, data.tests, data.binders);
                     last = join.getChild();
@@ -308,6 +309,7 @@ public class RETENetwork {
          * Initializes this data
          */
         public RuleData() {
+            this.positives = new ArrayList<>();
             this.negatives = new ArrayList<>();
         }
     }

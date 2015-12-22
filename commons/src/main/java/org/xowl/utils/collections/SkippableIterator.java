@@ -1,4 +1,4 @@
-/**********************************************************************
+/*******************************************************************************
  * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 package org.xowl.utils.collections;
 
 import java.util.Iterator;
@@ -31,11 +31,15 @@ public class SkippableIterator<T> implements Iterator<T> {
     /**
      * The original iterator
      */
-    private final Iterator<T> original;
+    protected final Iterator<T> original;
     /**
      * The next item
      */
-    private T nextItem;
+    protected T nextItem;
+    /**
+     * Flag whether the next result must be looked for
+     */
+    protected boolean mustFindNext;
 
     /**
      * Initializes this iterator
@@ -44,29 +48,40 @@ public class SkippableIterator<T> implements Iterator<T> {
      */
     public SkippableIterator(Iterator<T> original) {
         this.original = original;
+        this.mustFindNext = true;
+    }
+
+    /**
+     * Finds the next element for this iterator
+     */
+    private void findNext() {
         while (original.hasNext() && nextItem == null) {
             nextItem = original.next();
         }
+        mustFindNext = false;
     }
 
     @Override
     public boolean hasNext() {
+        if (mustFindNext)
+            findNext();
         return (nextItem != null);
     }
 
     @Override
     public T next() {
+        if (mustFindNext)
+            findNext();
         T result = nextItem;
         nextItem = null;
-        while (original.hasNext() && nextItem == null) {
-            nextItem = original.next();
-        }
+        mustFindNext = true;
         return result;
     }
 
     @Override
     public void remove() {
-        throw new UnsupportedOperationException();
+        if (!mustFindNext)
+            throw new IllegalStateException("The hasNext method must have been not called for this operation to succeed");
+        original.remove();
     }
-
 }

@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.utils.collections;
 
@@ -30,13 +30,17 @@ import java.util.Iterator;
  */
 public class ConcatenatedIterator<T> implements Iterator<T> {
     /**
-     * The innner iterators
+     * The inner iterators
      */
-    private final Iterator<T>[] content;
+    protected final Iterator<T>[] content;
     /**
      * The index of the current iterator
      */
-    private int index;
+    protected int index;
+    /**
+     * The iterator of the current result
+     */
+    protected Iterator<T> currentIterator;
 
     /**
      * Initializes this iterator
@@ -58,6 +62,7 @@ public class ConcatenatedIterator<T> implements Iterator<T> {
     @Override
     public T next() {
         T result = content[index].next();
+        currentIterator = content[index];
         while (index != content.length && !content[index].hasNext())
             index++;
         return result;
@@ -65,6 +70,6 @@ public class ConcatenatedIterator<T> implements Iterator<T> {
 
     @Override
     public void remove() {
-        throw new UnsupportedOperationException();
+        currentIterator.remove();
     }
 }

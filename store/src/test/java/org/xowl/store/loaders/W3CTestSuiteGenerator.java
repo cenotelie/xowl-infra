@@ -71,7 +71,7 @@ public class W3CTestSuiteGenerator {
      * @param manifest The path to a manifest
      */
     public void generate(String manifest) {
-        BaseStore store = StoreFactory.newInMemoryStore();
+        BaseStore store = StoreFactory.create().make();
         TestLogger logger = new TestLogger();
 
         InputStream stream = W3CTestSuite.class.getResourceAsStream(manifest);

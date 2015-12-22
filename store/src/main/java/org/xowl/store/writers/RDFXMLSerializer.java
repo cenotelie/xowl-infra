@@ -20,10 +20,11 @@
 
 package org.xowl.store.writers;
 
+import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
-import org.xowl.utils.logging.Logger;
 import org.xowl.utils.collections.Couple;
+import org.xowl.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -58,13 +59,10 @@ public class RDFXMLSerializer extends StructuredSerializer {
      * @param quads  The quads to serialize
      */
     public void serialize(Logger logger, Iterator<Quad> quads) {
-        try {
-            while (quads.hasNext()) {
-                enqueue(quads.next());
-            }
-        } catch (UnsupportedNodeType exception) {
-            logger.error(exception);
+        while (quads.hasNext()) {
+            enqueue(quads.next());
         }
+        buildRdfLists();
         try {
             serialize();
         } catch (IOException | UnsupportedNodeType exception) {
@@ -82,72 +80,137 @@ public class RDFXMLSerializer extends StructuredSerializer {
             serializer.onAttribute("xmlns:" + entry.getValue(), entry.getKey());
         }
         serializer.onElementOpenEnd();
-        for (Map.Entry<SubjectNode, List<Quad>> entry : data.entrySet()) {
-            serializeTopLevel(entry.getKey(), entry.getValue());
+        for (Map.Entry<GraphNode, Map<SubjectNode, List<Couple<Property, Object>>>> entry : content.entrySet()) {
+            serializeGraph(entry.getKey(), entry.getValue());
         }
         serializer.onElementClose("rdf:RDF");
     }
 
     /**
-     * Serializes a top-level entity
+     * Serializes a graph
      *
-     * @param subject The subject
-     * @param quads   All the quads for its property
+     * @param graph   The graph
+     * @param content The content to serialize
+     * @throws IOException         When an IO error occurs
+     * @throws UnsupportedNodeType When the specified node is not supported
      */
-    private void serializeTopLevel(SubjectNode subject, List<Quad> quads) throws IOException, UnsupportedNodeType {
-        serializer.onElementOpenBegin("rdf:Description");
-        if (subject.getNodeType() == Node.TYPE_IRI) {
-            serializer.onAttribute("rdf:about", ((IRINode) subject).getIRIValue());
-        } else {
-            serializer.onAttribute("rdf:nodeID", "n" + getBlankID((BlankNode) subject));
+    protected void serializeGraph(GraphNode graph, Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException, UnsupportedNodeType {
+        serializeGraphContent(content);
+    }
+
+    /**
+     * Serializes the content of a graph
+     *
+     * @param content The content to serialize
+     * @throws IOException         When an IO error occurs
+     * @throws UnsupportedNodeType When the specified node is not supported
+     */
+    protected void serializeGraphContent(Map<SubjectNode, List<Couple<Property, Object>>> content) throws IOException, UnsupportedNodeType {
+        for (Map.Entry<SubjectNode, List<Couple<Property, Object>>> entry : content.entrySet()) {
+            SubjectNode subject = entry.getKey();
+            serializer.onElementOpenBegin("rdf:Description");
+            if (subject.getNodeType() == Node.TYPE_IRI) {
+                serializer.onAttribute("rdf:about", ((IRINode) subject).getIRIValue());
+            } else {
+                serializer.onAttribute("rdf:nodeID", "n" + getBlankID((BlankNode) subject));
+            }
+            serializeProperties(entry.getValue());
+            serializer.onElementClose("rdf:Description");
         }
-        for (int i = 0; i != quads.size(); i++) {
-            Property property = quads.get(i).getProperty();
+    }
+
+    /**
+     * Serializes the properties of a node
+     *
+     * @param properties The RDF properties
+     * @throws IOException         When an IO error occurs
+     * @throws UnsupportedNodeType When the specified node is not supported
+     */
+    protected void serializeProperties(List<Couple<Property, Object>> properties) throws IOException, UnsupportedNodeType {
+        for (int i = 0; i != properties.size(); i++) {
+            Property property = properties.get(i).x;
             if (bufferProperties.contains(property))
                 continue;
             bufferProperties.add(property);
-            for (int j = i; j != quads.size(); j++) {
-                Quad quad = quads.get(j);
-                if (quad.getProperty() == property)
-                    serializeProperty(quad);
+            serializeProperty(property, properties.get(i).y);
+            for (int j = i + 1; j != properties.size(); j++) {
+                Couple<Property, Object> data = properties.get(j);
+                if (RDFUtils.same(data.x, property)) {
+                    serializeProperty(property, data.y);
+                }
             }
         }
         bufferProperties.clear();
-        serializer.onElementClose("rdf:Description");
     }
 
     /**
      * Serializes a property from a node
      *
-     * @param quad The quad representing the property
+     * @param property The RDF property
+     * @param value    The value for the property
+     * @throws IOException         When an IO error occurs
+     * @throws UnsupportedNodeType When the specified node is not supported
      */
-    private void serializeProperty(Quad quad) throws IOException, UnsupportedNodeType {
-        Couple<String, String> property = getCompactIRI(quad.getProperty(), ((IRINode) quad.getProperty()).getIRIValue());
-        serializer.onElementOpenBegin(property.x + ":" + property.y);
-        switch (quad.getObject().getNodeType()) {
+    protected void serializeProperty(Property property, Object value) throws IOException, UnsupportedNodeType {
+        String propertyName = getShortName(((IRINode) property).getIRIValue());
+        serializer.onElementOpenBegin(propertyName);
+        if (value instanceof List) {
+            serializer.onAttribute("rdf:parseType", "Collection");
+            serializer.onElementOpenEnd();
+            List<Node> list = (List<Node>) value;
+            for (Node element : list)
+                serializeNode(element);
+            serializer.onElementClose(propertyName);
+        } else {
+            switch (((Node) value).getNodeType()) {
+                case Node.TYPE_IRI:
+                    serializer.onAttribute("rdf:about", ((IRINode) value).getIRIValue());
+                    serializer.onElementOpenEndAndClose();
+                    break;
+                case Node.TYPE_BLANK:
+                    serializer.onAttribute("rdf:nodeID", "n" + getBlankID((BlankNode) value));
+                    serializer.onElementOpenEndAndClose();
+                    break;
+                case Node.TYPE_LITERAL:
+                    String lexicalValue = ((LiteralNode) value).getLexicalValue();
+                    String datatype = ((LiteralNode) value).getDatatype();
+                    String language = ((LiteralNode) value).getLangTag();
+                    if (language != null) {
+                        serializer.onAttribute("xml:lang", language);
+                    } else if (datatype != null) {
+                        serializer.onAttribute("rdf:datatype", datatype);
+                    }
+                    serializer.onElementOpenEnd();
+                    serializer.onContent(lexicalValue);
+                    serializer.onElementClose(propertyName);
+                    break;
+                default:
+                    throw new UnsupportedNodeType((Node) value, "RDF serialization only support IRI, Blank and Literal nodes");
+            }
+        }
+    }
+
+    /**
+     * Serialized the specified node
+     *
+     * @param node The node to serialize
+     * @throws IOException         When an IO error occurs
+     * @throws UnsupportedNodeType When the specified node is not supported
+     */
+    protected void serializeNode(Node node) throws IOException, UnsupportedNodeType {
+        switch (node.getNodeType()) {
             case Node.TYPE_IRI:
-                serializer.onAttribute("rdf:about", ((IRINode) quad.getObject()).getIRIValue());
+                serializer.onElementOpenBegin("rdf:Description");
+                serializer.onAttribute("rdf:about", ((IRINode) node).getIRIValue());
                 serializer.onElementOpenEndAndClose();
                 break;
             case Node.TYPE_BLANK:
-                serializer.onAttribute("rdf:nodeID", "n" + getBlankID((BlankNode) quad.getObject()));
+                serializer.onElementOpenBegin("rdf:Description");
+                serializer.onAttribute("rdf:nodeID", "n" + getBlankID((BlankNode) node));
                 serializer.onElementOpenEndAndClose();
                 break;
-            case Node.TYPE_LITERAL:
-                String lexicalValue = ((LiteralNode) quad.getObject()).getLexicalValue();
-                String datatype = ((LiteralNode) quad.getObject()).getDatatype();
-                String language = ((LiteralNode) quad.getObject()).getLangTag();
-                if (language != null) {
-                    serializer.onAttribute("xml:lang", language);
-                } else if (datatype != null) {
-                    serializer.onAttribute("rdf:datatype", datatype);
-                }
-                serializer.onElementOpenEnd();
-                serializer.onContent(lexicalValue);
-                serializer.onElementClose(property.x + ":" + property.y);
-                break;
             default:
-                throw new UnsupportedNodeType(quad.getObject(), "RDF serialization only support IRI, Blank and Literal nodes");
+                throw new UnsupportedNodeType(node, "RDF/XML serialization only support IRI and Blank nodes as list members");
         }
     }
 }

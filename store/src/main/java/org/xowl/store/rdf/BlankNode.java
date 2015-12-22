@@ -55,6 +55,11 @@ public class BlankNode implements SubjectNode, GraphNode {
     }
 
     @Override
+    public int hashCode() {
+        return (int) blankID;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return (o instanceof BlankNode) && (this.blankID == ((BlankNode) o).getBlankID());
     }

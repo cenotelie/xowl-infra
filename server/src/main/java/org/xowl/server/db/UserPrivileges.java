@@ -20,7 +20,9 @@
 
 package org.xowl.server.db;
 
+import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;
+import org.xowl.utils.Files;
 import org.xowl.utils.collections.SparseIterator;
 
 import java.util.Arrays;
@@ -45,13 +47,20 @@ public class UserPrivileges implements Serializable {
      * The associated privileges
      */
     private int[] privileges;
+    /**
+     * Whether the user is a server admin
+     */
+    private boolean isServerAdmin;
 
     /**
      * Initializes this structure
+     *
+     * @param isServerAdmin Whether the user is a server admin
      */
-    public UserPrivileges() {
+    public UserPrivileges(boolean isServerAdmin) {
         this.databases = new Database[INIT_LENGTH];
         this.privileges = new int[INIT_LENGTH];
+        this.isServerAdmin = isServerAdmin;
     }
 
     /**
@@ -110,7 +119,7 @@ public class UserPrivileges implements Serializable {
             if (databases[i] == null)
                 break;
             if (i != 0)
-                builder.append(System.lineSeparator());
+                builder.append(Files.LINE_SEPARATOR);
             boolean canAdmin = (privileges[i] & Schema.PRIVILEGE_ADMIN) == Schema.PRIVILEGE_ADMIN;
             boolean canWrite = (privileges[i] & Schema.PRIVILEGE_WRITE) == Schema.PRIVILEGE_WRITE;
             boolean canRead = (privileges[i] & Schema.PRIVILEGE_READ) == Schema.PRIVILEGE_READ;
@@ -128,7 +137,11 @@ public class UserPrivileges implements Serializable {
 
     @Override
     public String serializedJSON() {
-        StringBuilder builder = new StringBuilder("{ \"results\": [");
+        StringBuilder builder = new StringBuilder("{\"type\": \"");
+        builder.append(IOUtils.escapeStringJSON(UserPrivileges.class.getCanonicalName()));
+        builder.append("\", \"isServerAdmin\": ");
+        builder.append(isServerAdmin);
+        builder.append(", \"accesses\": [");
         for (int i = 0; i != databases.length; i++) {
             if (databases[i] == null)
                 break;

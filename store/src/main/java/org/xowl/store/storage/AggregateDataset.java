@@ -27,14 +27,17 @@ import java.util.*;
 
 /**
  * Implements a dataset that aggregates other datasets
+ * This implementation assumes that the aggregated datasets are disjoint, meaning there are no common quads between them.
+ * This class can be used, for example, when using different datasets to store quads from different graphs.
+ * This class is primarily used by the BaseReasonableStore.
  *
  * @author Laurent Wouters
  */
-public class AggregateDataset implements Dataset {
+class AggregateDataset implements Dataset {
     /**
      * The aggregated datasets
      */
-    private final Collection<Dataset> content;
+    private final Dataset[] content;
     /**
      * The listeners
      */
@@ -46,7 +49,7 @@ public class AggregateDataset implements Dataset {
      * @param content The aggregated datasets
      */
     public AggregateDataset(Dataset... content) {
-        this.content = Collections.unmodifiableCollection(Arrays.asList(content));
+        this.content = Arrays.copyOf(content, content.length);
         this.listeners = new ArrayList<>();
         ChangeListener inner = new ChangeListener() {
             @Override
@@ -94,46 +97,58 @@ public class AggregateDataset implements Dataset {
     }
 
     @Override
+    public long getMultiplicity(Quad quad) {
+        long result = 0;
+        for (int i = 0; i != content.length; i++)
+            result += content[i].getMultiplicity(quad);
+        return result;
+    }
+
+    @Override
+    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+        long result = 0;
+        for (int i = 0; i != content.length; i++)
+            result += content[i].getMultiplicity(graph, subject, property, object);
+        return result;
+    }
+
+    @Override
     public Iterator<Quad> getAll() {
-        Iterator<Quad>[] iterators = new Iterator[content.size()];
-        int i = 0;
-        for (Dataset dataset : content)
-            iterators[i++] = dataset.getAll();
+        Iterator<Quad>[] iterators = new Iterator[content.length];
+        for (int i = 0; i != content.length; i++)
+            iterators[i] = content[i].getAll();
         return new ConcatenatedIterator<>(iterators);
     }
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph) {
-        Iterator<Quad>[] iterators = new Iterator[content.size()];
-        int i = 0;
-        for (Dataset dataset : content)
-            iterators[i++] = dataset.getAll(graph);
+        Iterator<Quad>[] iterators = new Iterator[content.length];
+        for (int i = 0; i != content.length; i++)
+            iterators[i] = content[i].getAll(graph);
         return new ConcatenatedIterator<>(iterators);
     }
 
     @Override
     public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
-        Iterator<Quad>[] iterators = new Iterator[content.size()];
-        int i = 0;
-        for (Dataset dataset : content)
-            iterators[i++] = dataset.getAll(subject, property, object);
+        Iterator<Quad>[] iterators = new Iterator[content.length];
+        for (int i = 0; i != content.length; i++)
+            iterators[i] = content[i].getAll(subject, property, object);
         return new ConcatenatedIterator<>(iterators);
     }
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        Iterator<Quad>[] iterators = new Iterator[content.size()];
-        int i = 0;
-        for (Dataset dataset : content)
-            iterators[i++] = dataset.getAll(graph, subject, property, object);
+        Iterator<Quad>[] iterators = new Iterator[content.length];
+        for (int i = 0; i != content.length; i++)
+            iterators[i] = content[i].getAll(graph, subject, property, object);
         return new ConcatenatedIterator<>(iterators);
     }
 
     @Override
     public Collection<GraphNode> getGraphs() {
         Collection<GraphNode> result = new ArrayList<>();
-        for (Dataset dataset : content) {
-            for (GraphNode candidate : dataset.getGraphs()) {
+        for (int i = 0; i != content.length; i++) {
+            for (GraphNode candidate : content[i].getGraphs()) {
                 if (!result.contains(candidate)) {
                     result.add(candidate);
                 }
@@ -145,32 +160,32 @@ public class AggregateDataset implements Dataset {
     @Override
     public long count() {
         long result = 0;
-        for (Dataset dataset : content)
-            result += dataset.count();
+        for (int i = 0; i != content.length; i++)
+            result += content[i].count();
         return result;
     }
 
     @Override
     public long count(GraphNode graph) {
         long result = 0;
-        for (Dataset dataset : content)
-            result += dataset.count(graph);
+        for (int i = 0; i != content.length; i++)
+            result += content[i].count(graph);
         return result;
     }
 
     @Override
     public long count(SubjectNode subject, Property property, Node object) {
         long result = 0;
-        for (Dataset dataset : content)
-            result += dataset.count(subject, property, object);
+        for (int i = 0; i != content.length; i++)
+            result += content[i].count(subject, property, object);
         return result;
     }
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
         long result = 0;
-        for (Dataset dataset : content)
-            result += dataset.count(graph, subject, property, object);
+        for (int i = 0; i != content.length; i++)
+            result += content[i].count(graph, subject, property, object);
         return result;
     }
 
@@ -201,25 +216,25 @@ public class AggregateDataset implements Dataset {
 
     @Override
     public void clear() {
-        for (Dataset dataset : content)
-            dataset.clear();
+        for (int i = 0; i != content.length; i++)
+            content[i].clear();
     }
 
     @Override
     public void clear(GraphNode graph) {
-        for (Dataset dataset : content)
-            dataset.clear(graph);
+        for (int i = 0; i != content.length; i++)
+            content[i].clear(graph);
     }
 
     @Override
     public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
-        for (Dataset dataset : content)
-            dataset.copy(origin, target, overwrite);
+        for (int i = 0; i != content.length; i++)
+            content[i].copy(origin, target, overwrite);
     }
 
     @Override
     public void move(GraphNode origin, GraphNode target) {
-        for (Dataset dataset : content)
-            dataset.move(origin, target);
+        for (int i = 0; i != content.length; i++)
+            content[i].move(origin, target);
     }
 }

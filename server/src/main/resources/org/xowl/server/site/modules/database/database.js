@@ -14,6 +14,8 @@ angular.module('xOWLServer.database', ['ngRoute'])
 			name: $routeParams.id,
 			status: true
 		}
+		$scope.history = [];
+		$scope.mimeTypes = XOWL_MIME_TYPES;
 
 		$rootScope.xowl.getEntailmentFor(function (code, type, content) {
 			if (code === 200) {
@@ -25,8 +27,10 @@ angular.module('xOWLServer.database', ['ngRoute'])
 		}, $scope.database.name);
 
 		reloadRules($rootScope, $scope, $sce);
+		reloadPrivileges($rootScope, $scope, $sce);
 		document.getElementById("rule-def-new").value = DEFAULT_RULE;
 		document.getElementById("sparql").value = DEFAULT_QUERY;
+		document.getElementById('import-file').addEventListener('change', onFileSelected, false);
 
 		$scope.onSetEntailment = function () {
 			var regime = getEntailment();
@@ -49,6 +53,37 @@ angular.module('xOWLServer.database', ['ngRoute'])
 					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
 				}
 			}, $scope.database.name);
+		}
+
+		$scope.onRevoke = function (access, privilege) {
+			var user = access.user;
+			$rootScope.xowl.revokeDB(function (code, type, content) {
+				if (code === 200) {
+					$scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
+					reloadPrivileges($rootScope, $scope, $sce);
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, privilege, user);
+			if (user === $rootScope.xowl.userName) {
+				reloadUserData($rootScope);
+			}
+		}
+
+		$scope.onGrant = function () {
+			var user = document.getElementById('field-grant-user').value;
+			var privilege = document.getElementById('field-grant-privilege').value;
+			$rootScope.xowl.grantDB(function (code, type, content) {
+				if (code === 200) {
+					$scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
+					reloadPrivileges($rootScope, $scope, $sce);
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, privilege, user);
+			if (user === $rootScope.xowl.userName) {
+				reloadUserData($rootScope);
+			}
 		}
 
 		$scope.onNewRule = function () {
@@ -96,8 +131,25 @@ angular.module('xOWLServer.database', ['ngRoute'])
 			}, $scope.database.name, name);
 		}
 
+		$scope.onViewRule = function (name) {
+			$rootScope.xowl.getDBRuleDefinition(function (code, type, content) {
+				if (code === 200) {
+					document.getElementById("rule-modal-title").innerHTML = $sce.trustAsHtml(name);
+					document.getElementById("rule-modal-definition").value = content;
+					$('#rule-modal').modal('show');
+				} else {
+					$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+				}
+			}, $scope.database.name, name);
+		}
+
 		$scope.onSPARQL = function () {
 			var query = document.getElementById("sparql").value;
+			var date = new Date();
+			$scope.history.push({
+				name: "[" + ($scope.history.length + 1).toString() + "] @ " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds(),
+				query: query
+			});
 			$rootScope.xowl.sparql(function (code, type, content) {
 				if (code === 200) {
 					onSPARQLResults($scope, type, content);
@@ -106,6 +158,53 @@ angular.module('xOWLServer.database', ['ngRoute'])
 				}
 			}, $scope.database.name, query);
 		}
+
+		$scope.onHistory = function (part) {
+			document.getElementById("sparql").value = part.query;
+		}
+
+		$scope.onImport = function () {
+			var file = document.getElementById("import-file").files[0];
+			var selectedMIME = document.getElementById("import-file-type").value;
+			var progressBar = document.getElementById("import-progress");
+			progressBar['aria-valuenow'] = 0;
+			progressBar.style.width = "0%";
+			progressBar.classList.remove("progress-bar-success");
+			progressBar.classList.remove("progress-bar-error");
+			progressBar.innerHTML = null;
+			var reader = new FileReader();
+			reader.onprogress = function (event) {
+				var ratio = 50 * event.loaded / event.total;
+				progressBar['aria-valuenow'] = ratio;
+				progressBar.style.width = ratio.toString() + "%";
+				progressBar.innerHTML = $sce.trustAsHtml("Reading ...");
+			}
+			reader.onloadend = function (event) {
+				if (reader.error !== null) {
+					$scope.messages = $sce.trustAsHtml(getError(reader.error.toString()));
+					progressBar['aria-valuenow'] = 100;
+					progressBar.style.width = "100%";
+					progressBar.classList.add("progress-bar-error");
+					progressBar.innerHTML = $sce.trustAsHtml("Error");
+					return;
+				}
+				progressBar.innerHTML = $sce.trustAsHtml("Sending ...");
+				$rootScope.xowl.upload(function (code, type, content) {
+					if (code === 200) {
+						$scope.messages = $sce.trustAsHtml(getSuccess("Success!"));
+						progressBar.classList.add("progress-bar-success");
+						progressBar.innerHTML = $sce.trustAsHtml("Success!");
+					} else {
+						$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+						progressBar.classList.add("progress-bar-error");
+						progressBar.innerHTML = $sce.trustAsHtml("Error");
+					}
+					progressBar['aria-valuenow'] = 100;
+					progressBar.style.width = "100%";
+				}, $scope.database.name, selectedMIME, reader.result);
+			}
+			reader.readAsBinaryString(file);
+		}
 	}]);
 
 var DEFAULT_RULE =
@@ -113,7 +212,7 @@ var DEFAULT_RULE =
 	"@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.\n" +
 	"@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.\n" +
 	"@prefix owl: <http://www.w3.org/2002/07/owl#>.\n" +
-	"@prefix xowl: <http://xowl.org/store/rules/xowl#>.\n" +
+	"@prefix xowl: <http://xowl.org/store/rules/xowl#>.\n\n" +
 	"rule xowl:myrule distinct {\n" +
 	"    ?x rdf:type ?y\n" +
 	"    NOT (?x rdf:type owl:Class)\n" +
@@ -126,8 +225,40 @@ var DEFAULT_QUERY =
 	"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
 	"PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
 	"PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
-	"PREFIX xowl: <http://xowl.org/store/rules/xowl#>\n" +
+	"PREFIX xowl: <http://xowl.org/store/rules/xowl#>\n\n" +
 	"SELECT DISTINCT ?x ?y WHERE { GRAPH ?g { ?x a ?y } }";
+
+function onFileSelected(evt) {
+    var file = evt.target.files[0];
+	var mime = file.type;
+	var fileType = null;
+	for (var i = 0; i != XOWL_MIME_TYPES.length; i++) {
+		if (XOWL_MIME_TYPES[i].value === mime) {
+			fileType = XOWL_MIME_TYPES[i];
+			break;
+		}
+		for (var j = 0; j != XOWL_MIME_TYPES[i].extensions.length; j++) {
+			var suffix = XOWL_MIME_TYPES[i].extensions[j];
+			if (file.name.indexOf(suffix, file.name.length - suffix.length) !== -1) {
+				fileType = XOWL_MIME_TYPES[i];
+				break;
+			}
+		}
+	}
+	if (fileType !== null) {
+		document.getElementById("import-file-type").value = fileType.value;
+	}
+}
+
+function reloadPrivileges($rootScope, $scope, $sce) {
+	$rootScope.xowl.getDatabasePrivileges(function (code, type, content) {
+        if (code === 200) {
+			$scope.privileges = content;
+        } else {
+			$scope.messages = $sce.trustAsHtml(getErrorFor(code, content));
+        }
+	}, $scope.database.name);
+}
 
 function reloadRules($rootScope, $scope, $sce) {
 	$rootScope.xowl.getDBRules(function (code, type, content) {
@@ -140,7 +271,7 @@ function reloadRules($rootScope, $scope, $sce) {
 			}
 			$rootScope.xowl.getDBActiveRules(function (code, type, content) {
 				for (var i = 0; i != content.length; i++) {
-					for (var j = 0; j != $scope.rules.length; i++) {
+					for (var j = 0; j != $scope.rules.length; j++) {
 						if ($scope.rules[j].name === content[i]) {
 							$scope.rules[j].isActive = true;
 						}

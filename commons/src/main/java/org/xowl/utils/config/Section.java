@@ -20,6 +20,8 @@
 
 package org.xowl.utils.config;
 
+import org.xowl.utils.Files;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
@@ -119,6 +121,19 @@ public class Section {
     }
 
     /**
+     * Removes the specified property - value pair from this section
+     *
+     * @param property A property
+     * @param value    The associated value to remove
+     */
+    public void remove(String property, String value) {
+        List<String> values = properties.get(property);
+        if (values == null)
+            return;
+        values.remove(value);
+    }
+
+    /**
      * Sets the property, removing all previous values, if any
      *
      * @param property A property
@@ -156,11 +171,11 @@ public class Section {
             writer.write("[");
             writer.write(name);
             writer.write("]");
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
         }
         for (String option : keys) {
             for (String value : properties.get(option)) {
-                writer.write(option + " = " + value + System.lineSeparator());
+                writer.write(option + " = " + value + Files.LINE_SEPARATOR);
             }
         }
     }

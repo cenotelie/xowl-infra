@@ -38,7 +38,6 @@
 		<module>store</module>
 		<module>engine</module>
 		<module>server</module>
-		<module>client</module>
 		<module>generator</module>
 	</modules>
 	<build>

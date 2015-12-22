@@ -77,7 +77,7 @@ class CachedLiteralNode extends LiteralNode {
             LiteralNode node = (LiteralNode) o;
             return (Objects.equals(lexical, node.getLexicalValue())
                     && Objects.equals(datatype, node.getDatatype())
-                    && Objects.equals(langTag, node.getLexicalValue()));
+                    && Objects.equals(langTag, node.getLangTag()));
         }
         return false;
     }

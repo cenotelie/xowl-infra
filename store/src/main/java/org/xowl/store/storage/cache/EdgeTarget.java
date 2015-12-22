@@ -85,6 +85,15 @@ class EdgeTarget implements Iterable<GraphNode> {
     }
 
     /**
+     * Gets the number of graphs
+     *
+     * @return The number of graphs
+     */
+    public int getSize() {
+        return size;
+    }
+
+    /**
      * Adds the specified graph (or increment the counter)
      *
      * @param graph A graph
@@ -328,18 +337,33 @@ class EdgeTarget implements Iterable<GraphNode> {
      */
     public Iterator<MQuad> getAll(GraphNode graph) {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new IndexIterator<>(graphs), new Adapter<MQuad>() {
+            return new AdaptingIterator<>(new IndexIterator<GraphNode>(graphs) {
+                @Override
+                public void remove() {
+                    graphs[lastResult] = null;
+                    multiplicities[lastResult] = 0;
+                    size--;
+                }
+            }, new Adapter<MQuad>() {
                 @Override
                 public <X> MQuad adapt(X element) {
-                    int i = (Integer) element;
-                    return new MQuad(graphs[i], multiplicities[i]);
+                    int index = (Integer) element;
+                    return new MQuad(graphs[index], multiplicities[index]);
                 }
             });
         }
 
         for (int i = 0; i != graphs.length; i++) {
             if (graphs[i] != null && RDFUtils.same(graphs[i], graph)) {
-                return new SingleIterator<>(new MQuad(graphs[i], multiplicities[i]));
+                final int index = i;
+                return new SingleIterator<MQuad>(new MQuad(graphs[i], multiplicities[i])) {
+                    @Override
+                    public void remove() {
+                        graphs[index] = null;
+                        multiplicities[index] = 0;
+                        size--;
+                    }
+                };
             }
         }
 

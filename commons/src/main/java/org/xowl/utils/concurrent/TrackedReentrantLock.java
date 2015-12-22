@@ -20,6 +20,7 @@
 
 package org.xowl.utils.concurrent;
 
+import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -53,8 +54,10 @@ public class TrackedReentrantLock extends ReentrantLock implements TrackedLock {
     public void lock() {
         super.lock();
         if (getHoldCount() == 1) {
-            if (LockManager.DEBUG_LEAKS)
+            if (LockManager.DEBUG_LEAKS) {
                 trace = Thread.currentThread().getStackTrace();
+                trace = Arrays.copyOfRange(trace, 1, trace.length);
+            }
             LockManager.register(this);
         }
     }
@@ -74,6 +77,8 @@ public class TrackedReentrantLock extends ReentrantLock implements TrackedLock {
 
     @Override
     public void simpleRelease() {
-        super.unlock();
+        while (isHeldByCurrentThread()) {
+            super.unlock();
+        }
     }
 }

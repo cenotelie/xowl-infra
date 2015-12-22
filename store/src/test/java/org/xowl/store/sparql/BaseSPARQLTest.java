@@ -113,7 +113,7 @@ public abstract class BaseSPARQLTest {
      */
     protected void testPositiveSyntax(String resource) {
         TestLogger logger = new TestLogger();
-        BaseStore store = StoreFactory.newInMemoryStore();
+        BaseStore store = StoreFactory.create().make();
         IRIMapper mapper = new IRIMapper();
         mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/sparql/\\1");
         SPARQLLoader loader = new SPARQLLoader(store);
@@ -135,7 +135,7 @@ public abstract class BaseSPARQLTest {
      */
     protected void testNegativeSyntax(String resource) {
         TestLogger logger = new TestLogger();
-        BaseStore store = StoreFactory.newInMemoryStore();
+        BaseStore store = StoreFactory.create().make();
         IRIMapper mapper = new IRIMapper();
         mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/sparql/\\1");
         SPARQLLoader loader = new SPARQLLoader(store);

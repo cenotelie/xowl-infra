@@ -20,6 +20,8 @@
 
 package org.xowl.utils.config;
 
+import org.xowl.utils.Files;
+
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -147,6 +149,26 @@ public class Configuration {
     }
 
     /**
+     * Removes the specified property - value pair from global section
+     *
+     * @param property A property
+     * @param value    The associated value to remove
+     */
+    public void remove(String property, String value) {
+        global.remove(property, value);
+    }
+
+    /**
+     * Removes the specified property - value pair from the specified section
+     *
+     * @param property A property
+     * @param value    The associated value to remove
+     */
+    public void remove(String section, String property, String value) {
+        getSection(section).remove(property, value);
+    }
+
+    /**
      * Sets the property, removing all previous values, if any
      *
      * @param property A property
@@ -200,7 +222,7 @@ public class Configuration {
             boolean before = !global.isEmpty();
             for (Section section : sections.values()) {
                 if (before)
-                    writer.write(System.lineSeparator());
+                    writer.write(Files.LINE_SEPARATOR);
                 section.save(writer);
                 before = (before || !section.isEmpty());
             }

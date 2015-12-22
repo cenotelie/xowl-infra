@@ -19,6 +19,7 @@
  ******************************************************************************/
 package org.xowl.store.rete;
 
+import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;
 
 import java.io.IOException;
@@ -71,7 +72,9 @@ public class MatchStatus implements Serializable {
     @Override
     public String serializedJSON() {
         StringWriter writer = new StringWriter();
-        writer.write("{ \"steps\": [");
+        writer.write("{ \"type\": \"");
+        writer.write(IOUtils.escapeStringJSON(MatchStatus.class.getCanonicalName()));
+        writer.write("\", \"steps\": [");
         for (int i = 0; i != steps.size(); i++) {
             if (i != 0)
                 writer.write(", ");

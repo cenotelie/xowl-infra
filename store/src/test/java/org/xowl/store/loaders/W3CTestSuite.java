@@ -63,13 +63,13 @@ public abstract class W3CTestSuite {
     @Before
     public void setup() throws IOException {
         logger = new TestLogger();
-        store = StoreFactory.newInMemoryStore();
+        store = StoreFactory.create().make();
         mapper = IRIMapper.getDefault();
     }
 
     @After
     public void cleanup() {
-        store = StoreFactory.newInMemoryStore();
+        store = StoreFactory.create().make();
         logger.reset();
     }
 

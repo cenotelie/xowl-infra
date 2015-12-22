@@ -12,15 +12,58 @@ angular.module('xOWLServer', [
   'xOWLServer.user'
 ])
 
-  .config(['$routeProvider', function ($routeProvider) {
+  .config(['$routeProvider', '$provide', '$httpProvider', function ($routeProvider, $provide, $httpProvider) {
     $routeProvider.otherwise({ redirectTo: '/login' });
+    $provide.factory('xOWLInterceptor', ['$q', '$rootScope', '$timeout', function ($q, $rootScope, $timeout) {
+      $rootScope.onAsync = false;
+      $rootScope.onAsyncLong = false;
+      $rootScope.onAsyncTimeout = null;
+      return {
+        request: function (config) {
+          $rootScope.onAsync = true;
+          $rootScope.onAsyncTimeout = $timeout(function () {
+            $rootScope.onAsyncTimeout = null;
+            $rootScope.onAsyncLong = true;
+          }, 15000);
+          return config;
+        },
+        requestError: function (rejection) {
+          $rootScope.onAsync = false;
+          $rootScope.onAsyncLong = false;
+          if ($rootScope.onAsyncTimeout !== null) {
+            $timeout.cancel($rootScope.onAsyncTimeout);
+            $rootScope.onAsyncTimeout = null;
+          }
+          return $q.reject(rejection);
+        },
+        response: function (response) {
+          $rootScope.onAsync = false;
+          $rootScope.onAsyncLong = false;
+          if ($rootScope.onAsyncTimeout !== null) {
+            $timeout.cancel($rootScope.onAsyncTimeout);
+            $rootScope.onAsyncTimeout = null;
+          }
+          return response;
+        },
+        responseError: function (rejection) {
+          $rootScope.onAsync = false;
+          $rootScope.onAsyncLong = false;
+          if ($rootScope.onAsyncTimeout !== null) {
+            $timeout.cancel($rootScope.onAsyncTimeout);
+            $rootScope.onAsyncTimeout = null;
+          }
+          return $q.reject(rejection);
+        }
+      };
+    }]);
+    $httpProvider.interceptors.push('xOWLInterceptor');
   }])
 
-  .controller('xOWLServerCtrl', ['$rootScope', '$http', function ($rootScope, $http) {
+  .controller('xOWLServerCtrl', ['$rootScope', '$scope', '$http', function ($rootScope, $scope, $http) {
     $rootScope.xowl = new XOWL();
     $rootScope.xowl.$http = $http;
+    reloadUserData($rootScope);
   }]);
-
 
 var MSG_ERROR_BAD_REQUEST = "Oops, wrong request.";
 var MSG_ERROR_UNAUTHORIZED = "You must be logged in to perform this operation.";
@@ -29,10 +72,33 @@ var MSG_ERROR_NOT_FOUND = "Can't find the requested data.";
 var MSG_ERROR_INTERNAL_ERROR = "Something wrong happened ...";
 var MSG_ERROR_CONNECTION = "Error while accessing the server!";
 
+function reloadUserData($rootScope) {
+  $rootScope.databases = [];
+  $rootScope.userPrivileges = [];
+  if ($rootScope.xowl.userName !== null) {
+    $rootScope.xowl.getDatabases(function (code, type, content) {
+      if (code !== 200)
+        return;
+      $rootScope.databases = content;
+      if ($rootScope.databases.length > 5) {
+        $rootScope.databases = $rootScope.databases.slice(0, 6);
+      }
+    });
+    $rootScope.xowl.getUserPrivileges(function (code, type, content) {
+      if (code !== 200)
+        return;
+      $rootScope.userPrivileges = content;
+    }, $rootScope.xowl.userName);
+  }
+}
+
 function getErrorFor(code, content) {
   if (content != null) {
     if (content == '' || (typeof content) == 'undefined')
       content = null;
+  }
+  if (content !== null) {
+    content = content.replace(/\n/g, "<br/>");
   }
   switch (code) {
     case 400:

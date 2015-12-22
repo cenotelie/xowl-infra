@@ -8,10 +8,11 @@
 	<div>
 		<ul class="nav nav-tabs" role="tablist" id="DBTabs">
 			<li role="presentation" class="active"><a href="#tab-data-summary" aria-controls="tab-data-summary" role="tab">Summary</a></li>
-			<li role="presentation"><a href="#tab-data-settings" aria-controls="tab-data-settings" role="tab">Settings</a></li>
-			<li role="presentation"><a href="#tab-data-accesses" aria-controls="tab-data-accesses" role="tab">Accesses</a></li>
-			<li role="presentation"><a href="#tab-data-rules" aria-controls="tab-data-rules" role="tab">Rules</a></li>
 			<li role="presentation"><a href="#tab-data-sparql" aria-controls="tab-data-sparql" role="tab">SPARQL</a></li>
+			<li role="presentation"><a class="tab-db-admin" href="#tab-data-settings" aria-controls="tab-data-settings" role="tab">Settings</a></li>
+			<li role="presentation"><a class="tab-db-admin" href="#tab-data-accesses" aria-controls="tab-data-accesses" role="tab">Accesses</a></li>
+			<li role="presentation"><a class="tab-db-admin" href="#tab-data-rules" aria-controls="tab-data-rules" role="tab">Rules</a></li>
+			<li role="presentation"><a class="tab-db-admin" href="#tab-data-import" aria-controls="tab-data-import" role="tab">Import</a></li>
 		</ul>
 		<div class="tab-content">
 			<div role="tabpanel" class="tab-pane active" id="tab-data-summary">
@@ -42,6 +43,11 @@
 				</div>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-settings">
+				<div class="panel panel-warning" style="margin-top: 20px;">
+					<div class="panel-body">
+						<span class="text-warning">Changing the settings of database <strong>{{database.name}}</strong> requires either the <strong>{{database.name}}</strong>'s administration privilege, or the server administration privilege.</span>
+					</div>
+				</div>
 				<div class="panel panel-info" style="margin-top: 20px;">
 					<div class="panel-heading">Entailment setup</div>
 					<div class="panel-body">
@@ -97,6 +103,11 @@
 				</div>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-accesses">
+				<div class="panel panel-warning" style="margin-top: 20px;">
+					<div class="panel-body">
+						<span class="text-warning">The grant/revocation of privileges to a user for database <strong>{{database.name}}</strong> requires either the <strong>{{database.name}}</strong>'s administration privilege, or the server privilege.</span>
+					</div>
+				</div>
 				<div class="panel panel-info" style="margin-top: 20px;">
 					<div class="panel-heading">
 						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#grant-form" aria-expanded="false" aria-controls="grant-form">Grant privilege</button>
@@ -134,7 +145,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="access in privileges | filter: {user: user_query}">
+						<tr ng-repeat="access in privileges.accesses | filter: {user: user_query}">
 							<td align="center">
 								<div class="dropdown">
 									<button class="btn btn-danger btn-xs dropdown-toggle" type="button" id="menu-revoke" data-toggle="dropdown" aria-haspopup="true"
@@ -149,7 +160,7 @@
 									</ul>
 								</div>
 							</td>
-							<td><a class="item" href="#/database/{{access.user}}"><i class="glyphicon glyphicon-user"></i> {{access.user}}</a></td>
+							<td><a class="item" href="#/user/{{access.user}}"><i class="glyphicon glyphicon-user"></i> {{access.user}}</a></td>
 							<td align="center">
 								<p ng-if="access.isAdmin">
 									<span class="glyphicon glyphicon-ok text-success" aria-hidden="true" title="GRANTED"></span>
@@ -176,6 +187,11 @@
 				</table>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-rules">
+				<div class="panel panel-warning" style="margin-top: 20px;">
+					<div class="panel-body">
+						<span class="text-warning">The management of rules in database <strong>{{database.name}}</strong> requires either the <strong>{{database.name}}</strong>'s administration privilege, or the server privilege.</span>
+					</div>
+				</div>
 				<div class="panel panel-info" style="margin-top: 20px;">
 					<div class="panel-heading">
 						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#rule-form" aria-expanded="false" aria-controls="rule-form">New Rule ...</button>
@@ -212,8 +228,8 @@
 										<span class="caret"></span>
 									</button>
 									<ul class="dropdown-menu" aria-labelledby="menu-rule">
-										<li><a ng-if="rule.isActive" ng-click="onActivateRule(rule.name)">Deactivate</a></li>
-										<li><a ng-if="!rule.isActive" ng-click="onDeactivateRule(rule.name)">Activate</a></li>
+										<li><a ng-if="rule.isActive" ng-click="onDeactivateRule(rule.name)">Deactivate</a></li>
+										<li><a ng-if="!rule.isActive" ng-click="onActivateRule(rule.name)">Activate</a></li>
 										<li role="separator" class="divider"></li>
 										<li><a class="text-danger" ng-click="onRemoveRule(rule.name)">Remove</a></li>
 									</ul>
@@ -225,19 +241,39 @@
 								</p>
 							</td>
 							<td align="left">
-								{{rule.name}}
+								<a class="btn" ng-click="onViewRule(rule.name)">{{rule.name}}</a>
 							</td>
 						</tr>
 					</tbody>
 				</table>
+				<div id="rule-modal" class="modal fade" tabindex="-1" role="dialog">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+								<h4 id="rule-modal-title" class="modal-title"></h4>
+							</div>
+							<div class="modal-body">
+								<textarea class="form-control" rows="15" id="rule-modal-definition"></textarea>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 			<div role="tabpanel" class="tab-pane" id="tab-data-sparql">
 				<div class="panel panel-info" style="margin-top: 20px;">
-					<div class="panel-heading">SPARQL Query</div>
-					<div class="panel-body">
+					<div class="panel-heading">
+						<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#query-form" aria-expanded="false" aria-controls="query-form">SPARQL Query</button>
+						<div class="btn-group" aria-label="main-menu" style="display: inline-block;">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">History <span class="caret"></span></button>
+							<ul class="dropdown-menu">
+								<li ng-repeat="part in history"><a ng-click="onHistory(part)">{{part.name}}</a></li>
+							</ul>
+						</div>
+					</div>
+					<div id="query-form" class="panel-body collapse">
 						<form>
 							<div class="form-group">
-								<label for="sparql">SPARQL Query:</label>
 								<textarea class="form-control" rows="15" id="sparql"></textarea>
 							</div>
 							<button type="submit" class="btn btn-primary" ng-click="onSPARQL()">Send</button>
@@ -249,17 +285,50 @@
 						<table class="table table-bordered table-hover">
 							<thead>
 								<tr>
-									<th ng-repeat="header in data.headers">{{header}}</th>
+									<th ng-repeat="header in data.headers track by $index">{{header}}</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr ng-repeat="row in data.rows">
-									<td ng-repeat="cell in row.cells">
+								<tr ng-repeat="row in data.rows track by $index">
+									<td ng-repeat="cell in row.cells track by $index">
 										{{cell}}
 									</td>
 								</tr>
 							</tbody>
 						</table>
+					</div>
+				</div>
+			</div>
+			<div role="tabpanel" class="tab-pane" id="tab-data-import">
+				<div class="panel panel-warning" style="margin-top: 20px;">
+					<div class="panel-body">
+						<span class="text-warning">The import of data into database <strong>{{database.name}}</strong> requires either the <strong>{{database.name}}</strong>'s administration privilege, or the server privilege.</span>
+					</div>
+				</div>
+				<div class="panel panel-info" style="margin-top: 20px;">
+					<div class="panel-heading">Import content into the database</div>
+					<div class="panel-body">
+						<form>
+							<div class="form-group">
+								<label for="import-file">Select file to import</label>
+								<input type="file" id="import-file" name="import-file" />
+							</div>
+							<div class="form-group">
+								<label for="import-file-type">File type</label>
+								<select id="import-file-type" class="form-control">
+									<option ng-repeat="type in mimeTypes" value="{{type.value}}">{{type.name}}</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label for="import-progress">Upload progress</label>
+								<div class="progress">
+									<div id="import-progress" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+									style="min-width: 2em;">
+									</div>
+								</div>
+							</div>
+							<button type="submit" class="btn btn-primary" ng-click="onImport()">Submit</button>
+						</form>
 					</div>
 				</div>
 			</div>

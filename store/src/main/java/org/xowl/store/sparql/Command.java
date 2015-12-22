@@ -29,6 +29,15 @@ import org.xowl.store.Repository;
  */
 public interface Command {
     /**
+     * The MIME content-type for a SPARQL query
+     */
+    String MIME_SPARQL_QUERY = "application/sparql-query";
+    /**
+     * The MIME content type for a SPARQL update
+     */
+    String MIME_SPARQL_UPDATE = "application/sparql-update";
+
+    /**
      * Executes this command on the specified repository
      *
      * @param repository The repository on which to execute the command

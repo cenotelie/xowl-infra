@@ -23,6 +23,8 @@ import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.storage.Dataset;
+import org.xowl.utils.collections.CloseableIterator;
+import org.xowl.utils.logging.Logger;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -80,7 +82,15 @@ class FactCollection implements Collection<Quad> {
         if (size > -1) {
             return (size == 0);
         } else {
-            boolean empty = !getNewIterator().hasNext();
+            Iterator<Quad> iterator = getNewIterator();
+            boolean empty = !iterator.hasNext();
+            if (iterator instanceof CloseableIterator) {
+                try {
+                    ((CloseableIterator) iterator).close();
+                } catch (Exception exception) {
+                    Logger.DEFAULT.error(exception);
+                }
+            }
             if (empty)
                 size = 0;
             return empty;
@@ -108,7 +118,15 @@ class FactCollection implements Collection<Quad> {
             return false;
         // the quad matches the pattern
         Iterator<Quad> iterator = store.getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-        return iterator.hasNext();
+        boolean result = iterator.hasNext();
+        if (iterator instanceof CloseableIterator) {
+            try {
+                ((CloseableIterator) iterator).close();
+            } catch (Exception exception) {
+                Logger.DEFAULT.error(exception);
+            }
+        }
+        return result;
     }
 
     @Override

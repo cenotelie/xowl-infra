@@ -22,7 +22,6 @@ package org.xowl.server;
 
 import org.xowl.server.db.Controller;
 import org.xowl.server.http.HTTPServer;
-import org.xowl.server.xsp.XSPServer;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.Logger;
 
@@ -31,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * The main program for this server
@@ -53,9 +53,21 @@ public class Program {
      */
     private final ServerConfiguration configuration;
     /**
-     * Marker whether the program should stop
+     * The signalling object for the main thread
+     */
+    private final CountDownLatch signal;
+    /**
+     * Whether the server should stop
      */
     private boolean shouldStop;
+    /**
+     * The top controller for this application
+     */
+    private Controller controller;
+    /**
+     * The HTTP server
+     */
+    private HTTPServer httpServer;
 
     /**
      * Initializes this program
@@ -63,7 +75,8 @@ public class Program {
      * @param args The arguments
      */
     public Program(String[] args) {
-        this.configuration = new ServerConfiguration(args);
+        this.configuration = new ServerConfiguration(args.length >= 1 ? args[0] : null);
+        this.signal = new CountDownLatch(1);
         this.shouldStop = false;
     }
 
@@ -71,54 +84,84 @@ public class Program {
      * Runs this program
      */
     public void run() {
-        // setup and start
-        Controller controller;
+        if (!init())
+            return;
+
+        // register hook for shutdown events
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                shouldStop = true;
+                signal.countDown();
+                onClose();
+            }
+        }, Program.class.getCanonicalName() + ".shutdown"));
+
+        while (!shouldStop) {
+            try {
+                signal.await();
+            } catch (InterruptedException exception) {
+                break;
+            }
+        }
+
+        onClose();
+    }
+
+    /**
+     * Initializes the application
+     *
+     * @return Whether the operation succeeded
+     */
+    private boolean init() {
+        if (!configuration.getDatabasesFolder().exists()) {
+            System.err.println("The repository location does not exist: " + configuration.getDatabasesFolder().getAbsolutePath());
+            System.exit(1);
+            return false;
+        }
         try {
             controller = new Controller(configuration) {
 
                 @Override
                 public void onRequestShutdown() {
                     shouldStop = true;
+                    signal.countDown();
                 }
 
                 @Override
                 public void onRequestRestart() {
                     shouldStop = true;
+                    signal.countDown();
                 }
             };
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
-            return;
+            return false;
         }
-        HTTPServer httpServer = new HTTPServer(configuration, controller);
+        httpServer = new HTTPServer(configuration, controller);
         httpServer.start();
-        XSPServer xspServer = new XSPServer(configuration, controller);
+        return true;
+    }
 
-        while (!shouldStop) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException exception) {
-                break;
-            }
-        }
-
-        // cleanup
+    /**
+     * When this application is closing
+     */
+    private synchronized void onClose() {
+        if (controller == null)
+            return;
         controller.getLogger().info("Shutting down this server ...");
-        try {
-            xspServer.close();
-        } catch (IOException exception) {
-            Logger.DEFAULT.error(exception);
-        }
         try {
             httpServer.close();
         } catch (IOException exception) {
-            Logger.DEFAULT.error(exception);
+            controller.getLogger().error(exception);
         }
         try {
             controller.close();
         } catch (IOException exception) {
-            Logger.DEFAULT.error(exception);
+            controller.getLogger().error(exception);
         }
+        httpServer = null;
+        controller = null;
     }
 
     /**

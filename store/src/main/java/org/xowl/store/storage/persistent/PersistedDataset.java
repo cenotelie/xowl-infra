@@ -295,6 +295,8 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @return Whether the operation succeeded
      */
     public boolean commit() {
+        if (backend.isReadonly())
+            return false;
         boolean success = backend.commit();
         database.commit();
         return success;
@@ -369,9 +371,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        if (subject != null)
+        if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE)
             return getAllOnSingleSubject(graph, subject, property, object);
-        if (graph != null)
+        if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE)
             return getAllOnSingleGraph(graph, property, object);
         return getAllDefault(property, object);
     }
@@ -800,9 +802,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 if (pGraph == null)
                     return 0;
             }
-            if (subject != null)
+            if (pSubject != null)
                 return countOnSingleSubject(pGraph, pSubject, pProperty, pObject);
-            if (graph != null)
+            if (pGraph != null)
                 return countOnSingleGraph(pGraph, pProperty, pObject);
             return countDefault(pProperty, pObject);
         } catch (UnsupportedNodeType exception) {

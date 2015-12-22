@@ -29,6 +29,11 @@ import java.nio.charset.Charset;
  * @author Laurent Wouters
  */
 public class Files {
+    /**
+     * The line separator for all xOWL IO operations
+     */
+    public static final String LINE_SEPARATOR = "\n";
+
     private static final int bufferSize = 1024;
 
     private static final int[] bomUTF8 = new int[]{0xEF, 0xBB, 0xBF};

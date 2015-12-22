@@ -20,11 +20,16 @@
 
 package org.xowl.store;
 
+import org.xowl.hime.redist.ASTNode;
+import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.*;
+import org.xowl.store.storage.NodeManager;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Utility APIs for reading and writing data
@@ -32,6 +37,16 @@ import java.io.Writer;
  * @author Laurent Wouters
  */
 public class IOUtils {
+    /**
+     * The MIME content type for plain text
+     */
+    public static final String MIME_TEXT_PLAIN = "text/plain";
+    /**
+     * The MIME content type for JSON
+     */
+    public static final String MIME_JSON = "application/json";
+
+
     /**
      * String containing the escaped glyphs in absolute uris
      */
@@ -328,5 +343,44 @@ public class IOUtils {
                 writer.write("{\"type\": \"dynamic\"}");
                 break;
         }
+    }
+
+    /**
+     * De-serializes the RDF node from the specified JSON AST node
+     *
+     * @param nodeManager The node manager to use
+     * @param astNode     The AST node to de-serialize from
+     * @return The RDF node
+     */
+    public static Node deserializeJSON(NodeManager nodeManager, ASTNode astNode) {
+        Map<String, String> properties = new HashMap<>();
+        for (ASTNode child : astNode.getChildren()) {
+            String name = child.getChildren().get(0).getValue();
+            String value = child.getChildren().get(1).getValue();
+            properties.put(name, value);
+        }
+        String type = properties.get("type");
+        if (type == null)
+            return null;
+        switch (type) {
+            case "uri":
+                return nodeManager.getIRINode(properties.get("value"));
+            case "bnode":
+                return new BlankNode(Long.parseLong(properties.get("value")));
+            case "literal": {
+                String lexical = properties.get("value");
+                String datatype = properties.get("datatype");
+                String langTag = properties.get("xml:lang");
+                return nodeManager.getLiteralNode(lexical, datatype, langTag);
+            }
+            case "variable":
+                return new VariableNode(properties.get("value"));
+            case "anon": {
+                AnonymousIndividual individual = new AnonymousIndividual();
+                individual.setNodeID(properties.get("value"));
+                return nodeManager.getAnonNode(individual);
+            }
+        }
+        return null;
     }
 }

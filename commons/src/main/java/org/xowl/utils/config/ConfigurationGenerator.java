@@ -20,6 +20,8 @@
 
 package org.xowl.utils.config;
 
+import org.xowl.utils.Files;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -82,53 +84,53 @@ public class ConfigurationGenerator {
         Writer writer = null;
         try {
             writer = org.xowl.utils.Files.getWriter(output);
-            writer.append("/*" + System.lineSeparator());
-            writer.append("WARNING: this file has been automatically generated" + System.lineSeparator());
-            writer.append("*/" + System.lineSeparator());
-            writer.append(System.lineSeparator());
-            writer.append("package " + pack + ";" + System.lineSeparator());
-            writer.append(System.lineSeparator());
-            writer.append("import org.xowl.utils.config.Configuration;" + System.lineSeparator());
-            writer.append("import java.util.ArrayList;" + System.lineSeparator());
-            writer.append("import java.util.List;" + System.lineSeparator());
-            writer.append(System.lineSeparator());
-            writer.append("public class " + name + "{" + System.lineSeparator());
+            writer.append("/*" + Files.LINE_SEPARATOR);
+            writer.append("WARNING: this file has been automatically generated" + Files.LINE_SEPARATOR);
+            writer.append("*/" + Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
+            writer.append("package " + pack + ";" + Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
+            writer.append("import org.xowl.utils.config.Configuration;" + Files.LINE_SEPARATOR);
+            writer.append("import java.util.ArrayList;" + Files.LINE_SEPARATOR);
+            writer.append("import java.util.List;" + Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
+            writer.append("public class " + name + "{" + Files.LINE_SEPARATOR);
             for (String property : properties) {
                 List<String> values = config.getAll(property);
                 if (values.size() == 1) {
-                    writer.append("    public String " + property.replace(".", "_") + ";" + System.lineSeparator());
+                    writer.append("    public String " + property.replace(".", "_") + ";" + Files.LINE_SEPARATOR);
                 } else {
-                    writer.append("    public List<String> " + property.replace(".", "_") + ";" + System.lineSeparator());
+                    writer.append("    public List<String> " + property.replace(".", "_") + ";" + Files.LINE_SEPARATOR);
                 }
             }
-            writer.append("    public " + name + "() {" + System.lineSeparator());
+            writer.append("    public " + name + "() {" + Files.LINE_SEPARATOR);
             for (String property : properties) {
                 List<String> values = config.getAll(property);
                 if (values.size() != 1)
-                    writer.append("        " + property.replace(".", "_") + " = new ArrayList<String>();" + System.lineSeparator());
+                    writer.append("        " + property.replace(".", "_") + " = new ArrayList<String>();" + Files.LINE_SEPARATOR);
             }
-            writer.append("    }" + System.lineSeparator());
-            writer.append("    public " + name + "(Configuration config) {" + System.lineSeparator());
+            writer.append("    }" + Files.LINE_SEPARATOR);
+            writer.append("    public " + name + "(Configuration config) {" + Files.LINE_SEPARATOR);
             for (String property : properties) {
                 List<String> values = config.getAll(property);
                 if (values.size() == 1) {
-                    writer.append("        " + property.replace(".", "_") + " = config.get(\"" + property + "\");" + System.lineSeparator());
+                    writer.append("        " + property.replace(".", "_") + " = config.get(\"" + property + "\");" + Files.LINE_SEPARATOR);
                 } else {
-                    writer.append("        " + property.replace(".", "_") + " = config.getAll(\"" + property + "\");" + System.lineSeparator());
+                    writer.append("        " + property.replace(".", "_") + " = config.getAll(\"" + property + "\");" + Files.LINE_SEPARATOR);
                 }
             }
-            writer.append("    }" + System.lineSeparator());
-            writer.append("    public void save(Configuration config) {" + System.lineSeparator());
+            writer.append("    }" + Files.LINE_SEPARATOR);
+            writer.append("    public void save(Configuration config) {" + Files.LINE_SEPARATOR);
             for (String property : properties) {
                 List<String> values = config.getAll(property);
                 if (values.size() == 1) {
-                    writer.append("        config.add(null, \"" + property + "\", " + property.replace(".", "_") + ");" + System.lineSeparator());
+                    writer.append("        config.add(null, \"" + property + "\", " + property.replace(".", "_") + ");" + Files.LINE_SEPARATOR);
                 } else {
-                    writer.append("        for (String value : " + property.replace(".", "_") + ") config.add(null, \"" + property + "\", value);" + System.lineSeparator());
+                    writer.append("        for (String value : " + property.replace(".", "_") + ") config.add(null, \"" + property + "\", value);" + Files.LINE_SEPARATOR);
                 }
             }
-            writer.append("    }" + System.lineSeparator());
-            writer.append("}" + System.lineSeparator());
+            writer.append("    }" + Files.LINE_SEPARATOR);
+            writer.append("}" + Files.LINE_SEPARATOR);
         } finally {
             if (writer != null)
                 writer.close();

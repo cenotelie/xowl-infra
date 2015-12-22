@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.utils.collections;
 
@@ -32,11 +32,15 @@ public class SparseIterator<T> implements Iterator<T> {
     /**
      * The content to iterate over
      */
-    private final T[] content;
+    protected final T[] content;
     /**
      * The current index
      */
-    private int index;
+    protected int index;
+    /**
+     * The index of the last result
+     */
+    protected int lastIndex;
 
     /**
      * Initializes this iterator
@@ -46,6 +50,7 @@ public class SparseIterator<T> implements Iterator<T> {
     public SparseIterator(T[] content) {
         this.content = content;
         this.index = 0;
+        this.lastIndex = -1;
         while (index != content.length && content[index] == null)
             index++;
     }
@@ -57,6 +62,7 @@ public class SparseIterator<T> implements Iterator<T> {
 
     @Override
     public T next() {
+        lastIndex = index;
         T result = content[index];
         index++;
         while (index != content.length && content[index] == null)
@@ -66,6 +72,6 @@ public class SparseIterator<T> implements Iterator<T> {
 
     @Override
     public void remove() {
-        throw new UnsupportedOperationException();
+        content[lastIndex] = null;
     }
 }

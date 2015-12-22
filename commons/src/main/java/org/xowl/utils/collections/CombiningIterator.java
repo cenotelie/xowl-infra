@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.utils.collections;
 
@@ -33,23 +33,27 @@ public class CombiningIterator<X, Y> implements Iterator<Couple<X, Y>> {
     /**
      * The current result that has been return by the next function
      */
-    private final Couple<X, Y> current;
-    /**
-     * The next result to be returned
-     */
-    private final Couple<X, Y> nextResult;
+    protected final Couple<X, Y> current;
     /**
      * The iterator of values on the left
      */
-    private final Iterator<X> leftIterator;
+    protected final Iterator<X> leftIterator;
+    /**
+     * The next left value for the result
+     */
+    protected X nextLeft;
     /**
      * The current iterator for the right elements
      */
-    private Iterator<Y> rightIterator;
+    protected Iterator<Y> rightIterator;
+    /**
+     * The last right iterator used for the last result
+     */
+    protected Iterator<Y> lastRightIterator;
     /**
      * The adapter to get an iterator of Y for each X item
      */
-    private final Adapter<Iterator<Y>> adapter;
+    protected final Adapter<Iterator<Y>> adapter;
 
     /**
      * Initializes this iterator
@@ -59,7 +63,6 @@ public class CombiningIterator<X, Y> implements Iterator<Couple<X, Y>> {
      */
     public CombiningIterator(Iterator<X> leftIterator, Adapter<Iterator<Y>> adapter) {
         this.current = new Couple<>();
-        this.nextResult = new Couple<>();
         this.leftIterator = leftIterator;
         this.adapter = adapter;
         findNext();
@@ -69,37 +72,33 @@ public class CombiningIterator<X, Y> implements Iterator<Couple<X, Y>> {
      * Finds the next result
      */
     private void findNext() {
-        if (rightIterator != null && rightIterator.hasNext()) {
-            nextResult.y = rightIterator.next();
-        } else {
-            while (leftIterator.hasNext()) {
-                nextResult.x = leftIterator.next();
-                rightIterator = adapter.adapt(nextResult.x);
-                if (rightIterator.hasNext()) {
-                    nextResult.y = rightIterator.next();
-                    return;
-                }
+        while (rightIterator == null || !rightIterator.hasNext()) {
+            if (!leftIterator.hasNext()) {
+                nextLeft = null;
+                rightIterator = null;
+                return;
             }
-            nextResult.x = null;
-            nextResult.y = null;
+            nextLeft = leftIterator.next();
+            rightIterator = adapter.adapt(nextLeft);
         }
     }
 
     @Override
     public boolean hasNext() {
-        return (nextResult.x != null && nextResult.y != null);
+        return (rightIterator != null && rightIterator.hasNext());
     }
 
     @Override
     public Couple<X, Y> next() {
-        current.x = nextResult.x;
-        current.y = nextResult.y;
+        current.x = nextLeft;
+        current.y = rightIterator.next();
+        lastRightIterator = rightIterator;
         findNext();
         return current;
     }
 
     @Override
     public void remove() {
-        throw new UnsupportedOperationException();
+        lastRightIterator.remove();
     }
 }

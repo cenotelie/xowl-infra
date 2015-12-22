@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.utils.collections;
 
@@ -33,11 +33,11 @@ public class AdaptingIterator<T, X> implements Iterator<T> {
     /**
      * The innner iterator
      */
-    private final Iterator<X> content;
+    protected final Iterator<X> content;
     /**
      * The adapter for translating the element
      */
-    private final Adapter<T> adapter;
+    protected final Adapter<T> adapter;
 
     /**
      * Initializes this iterator
@@ -62,6 +62,6 @@ public class AdaptingIterator<T, X> implements Iterator<T> {
 
     @Override
     public void remove() {
-        throw new UnsupportedOperationException();
+        content.remove();
     }
 }

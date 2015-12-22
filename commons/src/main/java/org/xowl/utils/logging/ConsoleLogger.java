@@ -65,7 +65,7 @@ public class ConsoleLogger implements Logger {
             stream = System.err;
         if (message instanceof Exception) {
             Exception ex = (Exception) message;
-            stream.println("[" + level + "] " + ex.getMessage());
+            stream.println("[" + level + "] " + ex.getClass().getName() + (ex.getMessage() != null ? " " + ex.getMessage() : ""));
             for (StackTraceElement element : ex.getStackTrace()) {
                 stream.println("[" + level + "] \t" + element.toString());
             }

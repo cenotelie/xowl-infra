@@ -36,11 +36,25 @@
 
 /**
  * Represents the expected callback for request of the privileges of a user
- * @callback privCallback
+ * @callback userPrivCallback
+ * @param {number} code - The response code
+ * @param {string} type - The response content type
+ * @param {Object} content - The response content
+ * @param {boolean} content.isServerAdmin - Whether the user is a server administrator
+ * @param {Object[]} content.accesses - The privileges granted to the user
+ * @param {string} content.accesses[].database - The database for this privilege
+ * @param {boolean} content.accesses[].isAdmin - Whether the user has admin privileges
+ * @param {boolean} content.accesses[].canWrite - Whether the user can write to the database
+ * @param {boolean} content.accesses[].canRead - Whether the user can read from the database
+ */
+
+/**
+ * Represents the expected callback for request of the privileges of a database
+ * @callback dbPrivCallback
  * @param {number} code - The response code
  * @param {string} type - The response content type
  * @param {Object[]} content - The response content
- * @param {string} content[].database - The database for this privilege
+ * @param {string} content[].user - The user that has access
  * @param {boolean} content[].isAdmin - Whether the user has admin privileges
  * @param {boolean} content[].canWrite - Whether the user can write to the database
  * @param {boolean} content[].canRead - Whether the user can read from the database
@@ -69,6 +83,22 @@
  * @param {Object[]} content.nodes - The explanation nodes
  */
 
+/**
+ * The MIME types of the recognized files
+ * @const
+ */
+var XOWL_MIME_TYPES = [
+	{ name: 'N-Triples', value: 'application/n-triples', extensions: ['.nt'] },
+	{ name: 'N-Quads', value: 'application/n-quads', extensions: ['.nq'] },
+	{ name: 'Turtle', value: 'text/turtle', extensions: ['.ttl'] },
+	{ name: 'TriG', value: 'application/trig', extensions: ['.trig'] },
+	{ name: 'JSON-LD', value: 'application/ld+json', extensions: ['.jsonld'] },
+	{ name: 'RDF/XML', value: 'application/rdf+xml', extensions: ['.rdf'] },
+	{ name: 'Functional OWL2', value: 'text/owl-functional', extensions: ['.ofn', '.fs'] },
+	{ name: 'OWL/XML', value: 'application/owl+xml', extensions: ['.owx', '.owl'] },
+	{ name: 'xOWL RDF Rules', value: 'application/x-xowl-rdft', extensions: ['.rdft'] },
+	{ name: 'xOWL Ontology', value: 'application/x-xowl', extensions: ['.xowl'] }
+];
 
 /**
  * Creates a new XOWL connection
@@ -129,6 +159,10 @@ XOWL.prototype.login = function (callback, login, password) {
 XOWL.prototype.logout = function () {
 	this.authToken = null;
 	this.userName = null;
+	if (this.useLocal) {
+		localStorage.removeItem('xowl.authToken');
+		localStorage.removeItem('xowl.userName');
+	}
 }
 
 /**
@@ -157,7 +191,7 @@ XOWL.prototype.serverRestart = function (callback) {
 XOWL.prototype.getUsers = function (callback) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).results);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -176,7 +210,7 @@ XOWL.prototype.createUser = function (callback, login, pw) {
 }
 
 /**
- * Request the deletion of a new user
+ * Request the deletion of a user
  * @method deleteUser
  * @param {commandCallback} callback - The callback for this request
  * @param {string} login - The login of the user to delete
@@ -208,18 +242,34 @@ XOWL.prototype.resetPassword = function (callback, login, pw) {
 
 /**
  * Requests the list of privileges for a user
- * @param getPrivileges
- * @param {privCallback} callback - The callback for this request
+ * @param getUserPrivileges
+ * @param {userPrivCallback} callback - The callback for this request
  * @param {string} login - The login of the user
  */
-XOWL.prototype.getPrivileges = function (callback, login) {
+XOWL.prototype.getUserPrivileges = function (callback, login) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).results);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
-	}, "ADMIN PRIVILEGES " + login);
+	}, "ADMIN PRIVILEGES FOR " + login);
+}
+
+/**
+ * Requests the list of privileges on a database
+ * @param getDatabasePrivileges
+ * @param {dbPrivCallback} callback - The callback for this request
+ * @param {string} db - The target database
+ */
+XOWL.prototype.getDatabasePrivileges = function (callback, db) {
+	this.command(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content).payload);
+		} else {
+			callback(code, type, content);
+		}
+	}, "ADMIN PRIVILEGES ON " + db);
 }
 
 /**
@@ -274,7 +324,7 @@ XOWL.prototype.revokeServerAdmin = function (callback, login) {
 XOWL.prototype.getDatabases = function (callback) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).results);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -308,7 +358,13 @@ XOWL.prototype.dropDatabase = function (callback, db) {
  * @param {string} db - The name of the database
  */
 XOWL.prototype.getEntailmentFor = function (callback, db) {
-	this.command(callback, "DATABASE " + db + " ENTAILMENT");
+	this.command(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content).payload);
+		} else {
+			callback(code, type, content);
+		}
+	}, "DATABASE " + db + " ENTAILMENT");
 }
 
 /**
@@ -331,7 +387,7 @@ XOWL.prototype.setEntailmentFor = function (callback, db, regime) {
 XOWL.prototype.getDBRules = function (callback, db) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).results);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -347,7 +403,7 @@ XOWL.prototype.getDBRules = function (callback, db) {
 XOWL.prototype.getDBActiveRules = function (callback, db) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).results);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -384,7 +440,7 @@ XOWL.prototype.removeDBRule = function (callback, db, rule) {
  * @param {string} rule - The URI of the rule to activate
  */
 XOWL.prototype.activateDBRule = function (callback, db, rule) {
-	this.command(callback, "DATABASE " + db + " ACTIVATE RULE " + rule);
+	this.command(callback, "DATABASE " + db + " ACTIVATE " + rule);
 }
 
 /**
@@ -395,7 +451,7 @@ XOWL.prototype.activateDBRule = function (callback, db, rule) {
  * @param {string} rule - The URI of the rule to deactivate
  */
 XOWL.prototype.deactivateDBRule = function (callback, db, rule) {
-	this.command(callback, "DATABASE " + db + " DEACTIVATE RULE " + rule);
+	this.command(callback, "DATABASE " + db + " DEACTIVATE " + rule);
 }
 
 /**
@@ -410,6 +466,23 @@ XOWL.prototype.isDBRuleActive = function (callback, db, rule) {
 }
 
 /**
+ * Gets the definition of a database rule
+ * @param getDBRuleDefinition
+ * @param {commandCallback} callback - The callback for this request
+ * @param {string} db - The target database
+ * @param {string} rule - The URI of the rule
+ */
+XOWL.prototype.getDBRuleDefinition = function (callback, db, rule) {
+	this.command(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content).payload);
+		} else {
+			callback(code, type, content);
+		}
+	}, "DATABASE " + db + " RULE " + rule);
+}
+
+/**
  * Requests the matching status of a rule in a database
  * @param getDBRuleStatus
  * @param {statusCallback} callback - The callback for this request
@@ -419,7 +492,7 @@ XOWL.prototype.isDBRuleActive = function (callback, db, rule) {
 XOWL.prototype.getDBRuleStatus = function (callback, db, rule) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).steps);
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -436,7 +509,7 @@ XOWL.prototype.getDBRuleStatus = function (callback, db, rule) {
 XOWL.prototype.explainQuad = function (callback, db, quad) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content));
+			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
@@ -462,6 +535,18 @@ XOWL.prototype.command = function (callback, command) {
  */
 XOWL.prototype.sparql = function (callback, db, sparql) {
 	this.jsSPARQL(callback, db, sparql);
+}
+
+/**
+ * Uploads into a database a piece of content
+ * @method upload
+ * @param {commandCallback} callback - The callback for this request
+ * @param {string} db - The target database
+ * @param {string} contentType - The MIME type of the content to upload
+ * @param {string} content - The content to upload to the database
+ */
+XOWL.prototype.upload = function (callback, db, contentType, content) {
+	this.jsUpload(callback, db, contentType, content);
 }
 
 /**
@@ -507,4 +592,32 @@ XOWL.prototype.jsSPARQL = function (callback, db, sparql) {
 	if (this.authToken !== null)
 		xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
 	xmlHttp.send(sparql);
+}
+
+/**
+ * Uploads into a database a piece of content (pure JS with XMLHttpRequest)
+ * @method jsUpload
+ * @param {commandCallback} callback - The callback for this request
+ * @param {string} db - The target database
+ * @param {string} contentType - The MIME type of the content to upload
+ * @param {string} content - The content to upload to the database
+ */
+XOWL.prototype.jsUpload = function (callback, db, contentType, content) {
+	var xmlHttp = new XMLHttpRequest();
+	xmlHttp.onreadystatechange = function () {
+		if (xmlHttp.readyState == 4) {
+			var ct = xmlHttp.getResponseHeader("Content-Type");
+			callback(xmlHttp.status, ct, xmlHttp.responseText);
+		}
+	}
+	xmlHttp.upload.onprogress = function (event) {
+		var ratio = event.loaded / event.total;
+		callback(0, null, ratio);
+	};
+	xmlHttp.open("POST", this.endpoint + "/db/" + db + "/", true);
+	xmlHttp.setRequestHeader("Accept", "text/plain, application/json");
+	xmlHttp.setRequestHeader("Content-Type", contentType);
+	if (this.authToken !== null)
+		xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
+	xmlHttp.send(content);
 }

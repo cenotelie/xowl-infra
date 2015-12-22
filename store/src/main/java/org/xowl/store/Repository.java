@@ -75,7 +75,7 @@ public class Repository extends AbstractRepository {
      * @return A new default store
      */
     private static BaseStore getDefaultStore() {
-        return StoreFactory.newInMemoryStore();
+        return StoreFactory.create().make();
     }
 
     /**

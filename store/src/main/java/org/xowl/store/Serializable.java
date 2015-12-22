@@ -36,7 +36,7 @@ public interface Serializable {
     /**
      * Gets the JSON representation of this entity
      *
-     * @return The JSON representatio
+     * @return The JSON representation
      */
     String serializedJSON();
 }

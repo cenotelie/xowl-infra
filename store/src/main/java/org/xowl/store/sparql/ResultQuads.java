@@ -83,6 +83,9 @@ public class ResultQuads implements Result {
             case AbstractRepository.SYNTAX_TURTLE:
                 serializer = new TurtleSerializer(writer);
                 break;
+            case AbstractRepository.SYNTAX_TRIG:
+                serializer = new TriGSerializer(writer);
+                break;
             case AbstractRepository.SYNTAX_RDFXML:
                 serializer = new RDFXMLSerializer(writer);
                 break;

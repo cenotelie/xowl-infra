@@ -1,5 +1,5 @@
-/**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+/*******************************************************************************
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -16,7 +16,7 @@
  *
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
- **********************************************************************/
+ ******************************************************************************/
 
 package org.xowl.utils.collections;
 
@@ -32,11 +32,15 @@ public class IndexIterator<T> implements Iterator<Integer> {
     /**
      * The content to iterate over
      */
-    private final T[] content;
+    protected final T[] content;
     /**
-     * The current index
+     * The current index indicating the next result
      */
-    private int index;
+    protected int index;
+    /**
+     * The last result
+     */
+    protected int lastResult;
 
     /**
      * Initializes this iterator
@@ -46,6 +50,7 @@ public class IndexIterator<T> implements Iterator<Integer> {
     public IndexIterator(T[] content) {
         this.content = content;
         this.index = 0;
+        this.lastResult = -1;
         while (index != content.length && content[index] == null)
             index++;
     }
@@ -57,15 +62,15 @@ public class IndexIterator<T> implements Iterator<Integer> {
 
     @Override
     public Integer next() {
-        int result = index;
+        lastResult = index;
         index++;
         while (index != content.length && content[index] == null)
             index++;
-        return result;
+        return lastResult;
     }
 
     @Override
     public void remove() {
-        throw new UnsupportedOperationException();
+        content[lastResult] = null;
     }
 }

@@ -23,6 +23,7 @@ package org.xowl.store.sparql;
 import org.xowl.store.IOUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
+import org.xowl.utils.Files;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -91,13 +92,7 @@ public class ResultSolutions implements Result {
 
     @Override
     public String serializedString() {
-        StringWriter writer = new StringWriter();
-        try {
-            printTSV(writer);
-        } catch (IOException exception) {
-            // cannot happen
-        }
-        return writer.toString();
+        return serializedJSON();
     }
 
     @Override
@@ -142,7 +137,7 @@ public class ResultSolutions implements Result {
             writer.write(variables.get(i).getName());
         }
         for (QuerySolution solution : solutions) {
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
             for (int i = 0; i != variables.size(); i++) {
                 if (i != 0)
                     writer.write(",");
@@ -184,7 +179,7 @@ public class ResultSolutions implements Result {
             writer.write(variables.get(i).getName());
         }
         for (QuerySolution solution : solutions) {
-            writer.write(System.lineSeparator());
+            writer.write(Files.LINE_SEPARATOR);
             for (int i = 0; i != variables.size(); i++) {
                 if (i != 0)
                     writer.write('\t');

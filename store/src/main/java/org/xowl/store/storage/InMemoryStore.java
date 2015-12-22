@@ -35,7 +35,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-class InMemoryStore implements BaseStore {
+class InMemoryStore extends BaseStore {
     /**
      * The store for the nodes
      */
@@ -51,16 +51,6 @@ class InMemoryStore implements BaseStore {
     public InMemoryStore() {
         nodes = new CachedNodes();
         dataset = new CachedDataset();
-    }
-
-    @Override
-    public boolean commit() {
-        throw new UnsupportedOperationException("This store does not support commit/rollback operations");
-    }
-
-    @Override
-    public boolean rollback() {
-        throw new UnsupportedOperationException("This store does not support commit/rollback operations");
     }
 
     @Override
@@ -202,10 +192,5 @@ class InMemoryStore implements BaseStore {
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
         return nodes.getAnonNode(individual);
-    }
-
-    @Override
-    public void close() throws Exception {
-        // do nothing
     }
 }

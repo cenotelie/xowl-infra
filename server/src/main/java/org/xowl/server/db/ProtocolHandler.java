@@ -20,6 +20,7 @@
 
 package org.xowl.server.db;
 
+import org.xowl.store.xsp.*;
 import org.xowl.utils.concurrent.SafeRunnable;
 
 import java.io.IOException;
@@ -60,11 +61,11 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param command The command to execute
      * @return The protocol reply, or null if the client got banned
      */
-    public ProtocolReply execute(String command) {
+    public XSPReply execute(String command) {
         if (command == null)
-            return ProtocolReplyFailure.instance();
+            return XSPReplyFailure.instance();
         if (command.startsWith("AUTH ")) {
-            ProtocolReply reply = runAuth(command);
+            XSPReply reply = runAuth(command);
             if (reply == null)
                 // client got banned
                 onExit();
@@ -72,20 +73,20 @@ public abstract class ProtocolHandler extends SafeRunnable {
         }
         if (command.equals("LOGOUT")) {
             if (user == null)
-                return ProtocolReplyUnauthenticated.instance();
+                return XSPReplyUnauthenticated.instance();
             onExit();
             user = null;
-            return new ProtocolReplySuccess("BYE");
+            return new XSPReplySuccess("BYE");
         }
         if (command.equals("EXIT") || command.equals("BYE")) {
             onExit();
             user = null;
-            return new ProtocolReplySuccess("BYE");
+            return new XSPReplySuccess("BYE");
         }
         if (command.equals("WHOAMI")) {
             if (user == null)
-                return ProtocolReplyUnauthenticated.instance();
-            return new ProtocolReplySuccess(user.getName());
+                return XSPReplyUnauthenticated.instance();
+            return new XSPReplySuccess(user.getName());
         }
         if (command.equals("HELP"))
             return runHelp();
@@ -95,7 +96,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
             return runSPARQL(command);
         if (command.startsWith("DATABASE "))
             return runDB(command);
-        return new ProtocolReplyFailure("UNRECOGNIZED COMMAND");
+        return new XSPReplyFailure("UNRECOGNIZED COMMAND");
     }
 
     /**
@@ -113,7 +114,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
     /**
      * Runs the help command
      */
-    private ProtocolReply runHelp() {
+    private XSPReply runHelp() {
         StringWriter writer = new StringWriter();
         try (InputStream stream = ProtocolHandler.class.getResourceAsStream("/org/xowl/server/help")) {
             byte[] buffer = new byte[1024];
@@ -125,7 +126,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         } catch (IOException exception) {
             logger.error(exception);
         }
-        return new ProtocolReplySuccess(writer.toString());
+        return new XSPReplySuccess(writer.toString());
     }
 
     /**
@@ -135,21 +136,21 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line the authentication command
      * @return The protocol reply
      */
-    private ProtocolReply runAuth(String line) {
+    private XSPReply runAuth(String line) {
         line = line.substring("AUTH ".length());
         int index = line.indexOf(' ');
         if (index == -1)
-            return new ProtocolReplyFailure("INVALID COMMAND");
+            return new XSPReplyFailure("INVALID COMMAND");
         String login = line.substring(0, index);
         String password = line.substring(index + 1);
-        ProtocolReply result = controller.login(getClient(), login, password);
+        XSPReply result = controller.login(getClient(), login, password);
         if (result == null) {
             // client got banned
             return null;
         }
         if (result.isSuccess()) {
-            user = ((ProtocolReplyResult<User>) result).getData();
-            return ProtocolReplySuccess.instance();
+            user = ((XSPReplyResult<User>) result).getData();
+            return XSPReplySuccess.instance();
         }
         return result;
     }
@@ -161,17 +162,17 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runSPARQL(String line) {
+    private XSPReply runSPARQL(String line) {
         line = line.substring("SPARQL ".length());
         int index = line.indexOf(' ');
         if (index == -1)
-            return new ProtocolReplyFailure("INVALID COMMAND");
+            return new XSPReplyFailure("INVALID COMMAND");
         String dbName = line.substring(0, index);
         String sparql = line.substring(index + 1);
-        ProtocolReply database = controller.getDatabase(user, dbName);
+        XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.sparql(user, ((ProtocolReplyResult<Database>) database).getData(), sparql, Collections.<String>emptyList(), Collections.<String>emptyList());
+        return controller.sparql(user, ((XSPReplyResult<Database>) database).getData(), sparql, Collections.<String>emptyList(), Collections.<String>emptyList());
     }
 
     /**
@@ -181,17 +182,17 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runDB(String line) {
+    private XSPReply runDB(String line) {
         line = line.substring("DATABASE ".length());
         int index = line.indexOf(' ');
         if (index == -1)
-            return new ProtocolReplyFailure("INVALID COMMAND");
+            return new XSPReplyFailure("INVALID COMMAND");
         String dbName = line.substring(0, index);
         line = line.substring(index + 1);
-        ProtocolReply dbResult = controller.getDatabase(user, dbName);
+        XSPReply dbResult = controller.getDatabase(user, dbName);
         if (!dbResult.isSuccess())
             return dbResult;
-        Database database = ((ProtocolReplyResult<Database>) dbResult).getData();
+        Database database = ((XSPReplyResult<Database>) dbResult).getData();
         if (line.equals("ENTAILMENT"))
             return runDBGetEntailment(database);
         if (line.startsWith("ENTAILMENT"))
@@ -216,7 +217,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
             return runDBGetRuleStatus(database, line);
         if (line.startsWith("EXPLAIN "))
             return runDBGetExplanation(database, line);
-        return new ProtocolReplyFailure("UNRECOGNIZED COMMAND");
+        return new XSPReplyFailure("UNRECOGNIZED COMMAND");
     }
 
     /**
@@ -226,7 +227,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param database The active database
      * @return The protocol reply
      */
-    private ProtocolReply runDBGetEntailment(Database database) {
+    private XSPReply runDBGetEntailment(Database database) {
         return controller.dbGetEntailmentRegime(user, database);
     }
 
@@ -237,7 +238,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param database The active database
      * @return The protocol reply
      */
-    private ProtocolReply runDBSetEntailment(Database database, String line) {
+    private XSPReply runDBSetEntailment(Database database, String line) {
         String regime = line.substring("ENTAILMENT ".length());
         return controller.dbSetEntailmentRegime(user, database, regime);
     }
@@ -249,7 +250,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param database The active database
      * @return The protocol reply
      */
-    private ProtocolReply runDBListRules(Database database) {
+    private XSPReply runDBListRules(Database database) {
         return controller.dbListAllRules(user, database);
     }
 
@@ -260,7 +261,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param database The active database
      * @return The protocol reply
      */
-    private ProtocolReply runDBListActiveRules(Database database) {
+    private XSPReply runDBListActiveRules(Database database) {
         return controller.dbListActiveRules(user, database);
     }
 
@@ -272,7 +273,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private ProtocolReply runDBAddRule(Database database, String line) {
+    private XSPReply runDBAddRule(Database database, String line) {
         String content = line.substring("ADD RULE ".length());
         return controller.dbAddRule(user, database, content, false);
     }
@@ -285,7 +286,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private ProtocolReply runDBRemoveRule(Database database, String line) {
+    private XSPReply runDBRemoveRule(Database database, String line) {
         String rule = line.substring("REMOVE RULE ".length());
         return controller.dbRemoveRule(user, database, rule);
     }
@@ -298,7 +299,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private ProtocolReply runDBRuleDefinition(Database database, String line) {
+    private XSPReply runDBRuleDefinition(Database database, String line) {
         String rule = line.substring("RULE ".length());
         return controller.dbGetRuleDefinition(user, database, rule);
     }
@@ -311,7 +312,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private ProtocolReply runDBActivateRule(Database database, String line) {
+    private XSPReply runDBActivateRule(Database database, String line) {
         String rule = line.substring("ACTIVATE ".length());
         return controller.dbActivateRule(user, database, rule);
     }
@@ -324,7 +325,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private ProtocolReply runDBDeactivateRule(Database database, String line) {
+    private XSPReply runDBDeactivateRule(Database database, String line) {
         String rule = line.substring("DEACTIVATE ".length());
         return controller.dbDeactivateRule(user, database, rule);
     }
@@ -337,7 +338,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private ProtocolReply runDBIsActiveRule(Database database, String line) {
+    private XSPReply runDBIsActiveRule(Database database, String line) {
         String rule = line.substring("IS ACTIVE ".length());
         return controller.dbIsRuleActive(user, database, rule);
     }
@@ -350,7 +351,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private ProtocolReply runDBGetRuleStatus(Database database, String line) {
+    private XSPReply runDBGetRuleStatus(Database database, String line) {
         String rule = line.substring("STATUS ".length());
         return controller.dbGetRuleStatus(user, database, rule);
     }
@@ -363,7 +364,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private ProtocolReply runDBGetExplanation(Database database, String line) {
+    private XSPReply runDBGetExplanation(Database database, String line) {
         String quad = line.substring("EXPLAIN ".length());
         return controller.dbGetQuadExplanation(user, database, quad);
     }
@@ -374,7 +375,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param command The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdmin(String command) {
+    private XSPReply runAdmin(String command) {
         if (command.equals("ADMIN SHUTDOWN")) {
             onExit();
             return controller.serverShutdown(user);
@@ -394,8 +395,10 @@ public abstract class ProtocolHandler extends SafeRunnable {
             return runAdminChangePassword(command);
         if (command.startsWith("ADMIN RESET PASSWORD "))
             return runAdminResetPassword(command);
-        if (command.startsWith("ADMIN PRIVILEGES "))
+        if (command.startsWith("ADMIN PRIVILEGES FOR "))
             return runAdminGetUserPrivileges(command);
+        if (command.startsWith("ADMIN PRIVILEGES ON "))
+            return runAdminGetDatabasePrivileges(command);
         if (command.startsWith("ADMIN GRANT SERVER ADMIN "))
             return runAdminGrantServerAdmin(command);
         if (command.startsWith("ADMIN REVOKE SERVER ADMIN "))
@@ -420,7 +423,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         if (command.startsWith("ADMIN DROP DATABASE "))
             return runAdminDropDatabase(command);
 
-        return new ProtocolReplyFailure("UNRECOGNIZED COMMAND");
+        return new XSPReplyFailure("UNRECOGNIZED COMMAND");
     }
 
     /**
@@ -429,7 +432,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      *
      * @return The protocol reply
      */
-    private ProtocolReply runAdminListUsers() {
+    private XSPReply runAdminListUsers() {
         return controller.getUsers(user);
     }
 
@@ -440,11 +443,11 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminCreateUser(String line) {
+    private XSPReply runAdminCreateUser(String line) {
         line = line.substring("ADMIN CREATE USER ".length());
         int index = line.indexOf(' ');
         if (index == -1)
-            return new ProtocolReplyFailure("INVALID COMMAND");
+            return new XSPReplyFailure("INVALID COMMAND");
         String login = line.substring(0, index);
         String password = line.substring(index + 1);
         return controller.createUser(user, login, password);
@@ -457,12 +460,12 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminDeleteUser(String line) {
+    private XSPReply runAdminDeleteUser(String line) {
         String login = line.substring("ADMIN DELETE USER ".length());
-        ProtocolReply target = controller.getUser(user, login);
+        XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        return controller.deleteUser(user, ((ProtocolReplyResult<User>) target).getData());
+        return controller.deleteUser(user, ((XSPReplyResult<User>) target).getData());
     }
 
     /**
@@ -472,7 +475,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminChangePassword(String line) {
+    private XSPReply runAdminChangePassword(String line) {
         String password = line.substring("ADMIN CHANGE PASSWORD ".length());
         return controller.changePassword(user, password);
     }
@@ -484,32 +487,47 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminResetPassword(String line) {
+    private XSPReply runAdminResetPassword(String line) {
         line = line.substring("ADMIN RESET PASSWORD ".length());
         int index = line.indexOf(' ');
         if (index == -1)
-            return new ProtocolReplyFailure("INVALID COMMAND");
+            return new XSPReplyFailure("INVALID COMMAND");
         String login = line.substring(0, index);
         String password = line.substring(index + 1);
-        ProtocolReply target = controller.getUser(user, login);
+        XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        return controller.resetPassword(user, ((ProtocolReplyResult<User>) target).getData(), password);
+        return controller.resetPassword(user, ((XSPReplyResult<User>) target).getData(), password);
     }
 
     /**
      * Requests the privileges assigned to a user
-     * Expected command line: ADMIN PRIVILEGES login
+     * Expected command line: ADMIN PRIVILEGES FOR login
      *
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminGetUserPrivileges(String line) {
-        String login = line.substring("ADMIN PRIVILEGES ".length());
-        ProtocolReply target = controller.getUser(user, login);
+    private XSPReply runAdminGetUserPrivileges(String line) {
+        String login = line.substring("ADMIN PRIVILEGES FOR ".length());
+        XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        return controller.getUserPrivileges(user, ((ProtocolReplyResult<User>) target).getData());
+        return controller.getUserPrivileges(user, ((XSPReplyResult<User>) target).getData());
+    }
+
+    /**
+     * Requests the privileges for a database
+     * Expected command line: ADMIN PRIVILEGES ON database
+     *
+     * @param line The command line
+     * @return The protocol reply
+     */
+    private XSPReply runAdminGetDatabasePrivileges(String line) {
+        String dbName = line.substring("ADMIN PRIVILEGES ON ".length());
+        XSPReply target = controller.getDatabase(user, dbName);
+        if (!target.isSuccess())
+            return target;
+        return controller.getDatabasePrivileges(user, ((XSPReplyResult<Database>) target).getData());
     }
 
     /**
@@ -519,12 +537,12 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminGrantServerAdmin(String line) {
+    private XSPReply runAdminGrantServerAdmin(String line) {
         String login = line.substring("ADMIN GRANT SERVER ADMIN ".length());
-        ProtocolReply target = controller.getUser(user, login);
+        XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        return controller.grantServerAdmin(user, ((ProtocolReplyResult<User>) target).getData());
+        return controller.grantServerAdmin(user, ((XSPReplyResult<User>) target).getData());
     }
 
     /**
@@ -534,12 +552,12 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminRevokeServerAdmin(String line) {
+    private XSPReply runAdminRevokeServerAdmin(String line) {
         String login = line.substring("ADMIN REVOKE SERVER ADMIN ".length());
-        ProtocolReply target = controller.getUser(user, login);
+        XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        return controller.revokeServerAdmin(user, ((ProtocolReplyResult<User>) target).getData());
+        return controller.revokeServerAdmin(user, ((XSPReplyResult<User>) target).getData());
     }
 
     /**
@@ -549,20 +567,20 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminGrantDBAdmin(String line) {
+    private XSPReply runAdminGrantDBAdmin(String line) {
         line = line.substring("ADMIN GRANT ADMIN ".length());
         int index = line.indexOf(' ');
         if (index == -1)
-            return new ProtocolReplyFailure("INVALID COMMAND");
+            return new XSPReplyFailure("INVALID COMMAND");
         String login = line.substring(0, index);
         String dbName = line.substring(index + 1);
-        ProtocolReply target = controller.getUser(user, login);
+        XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        ProtocolReply database = controller.getDatabase(user, dbName);
+        XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.grantDBAdmin(user, ((ProtocolReplyResult<User>) target).getData(), ((ProtocolReplyResult<Database>) database).getData());
+        return controller.grantDBAdmin(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
     }
 
     /**
@@ -572,20 +590,20 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminRevokeDBAdmin(String line) {
+    private XSPReply runAdminRevokeDBAdmin(String line) {
         line = line.substring("ADMIN REVOKE ADMIN ".length());
         int index = line.indexOf(' ');
         if (index == -1)
-            return new ProtocolReplyFailure("INVALID COMMAND");
+            return new XSPReplyFailure("INVALID COMMAND");
         String login = line.substring(0, index);
         String dbName = line.substring(index + 1);
-        ProtocolReply target = controller.getUser(user, login);
+        XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        ProtocolReply database = controller.getDatabase(user, dbName);
+        XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.revokeDBAdmin(user, ((ProtocolReplyResult<User>) target).getData(), ((ProtocolReplyResult<Database>) database).getData());
+        return controller.revokeDBAdmin(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
     }
 
     /**
@@ -595,20 +613,20 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminGrantDBRead(String line) {
+    private XSPReply runAdminGrantDBRead(String line) {
         line = line.substring("ADMIN GRANT READ ".length());
         int index = line.indexOf(' ');
         if (index == -1)
-            return new ProtocolReplyFailure("INVALID COMMAND");
+            return new XSPReplyFailure("INVALID COMMAND");
         String login = line.substring(0, index);
         String dbName = line.substring(index + 1);
-        ProtocolReply target = controller.getUser(user, login);
+        XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        ProtocolReply database = controller.getDatabase(user, dbName);
+        XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.grantDBRead(user, ((ProtocolReplyResult<User>) target).getData(), ((ProtocolReplyResult<Database>) database).getData());
+        return controller.grantDBRead(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
     }
 
     /**
@@ -618,20 +636,20 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminRevokeDBRead(String line) {
+    private XSPReply runAdminRevokeDBRead(String line) {
         line = line.substring("ADMIN REVOKE READ ".length());
         int index = line.indexOf(' ');
         if (index == -1)
-            return new ProtocolReplyFailure("INVALID COMMAND");
+            return new XSPReplyFailure("INVALID COMMAND");
         String login = line.substring(0, index);
         String dbName = line.substring(index + 1);
-        ProtocolReply target = controller.getUser(user, login);
+        XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        ProtocolReply database = controller.getDatabase(user, dbName);
+        XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.revokeDBRead(user, ((ProtocolReplyResult<User>) target).getData(), ((ProtocolReplyResult<Database>) database).getData());
+        return controller.revokeDBRead(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
     }
 
     /**
@@ -641,20 +659,20 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminGrantDBWrite(String line) {
+    private XSPReply runAdminGrantDBWrite(String line) {
         line = line.substring("ADMIN GRANT WRITE ".length());
         int index = line.indexOf(' ');
         if (index == -1)
-            return new ProtocolReplyFailure("INVALID COMMAND");
+            return new XSPReplyFailure("INVALID COMMAND");
         String login = line.substring(0, index);
         String dbName = line.substring(index + 1);
-        ProtocolReply target = controller.getUser(user, login);
+        XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        ProtocolReply database = controller.getDatabase(user, dbName);
+        XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.grantDBWrite(user, ((ProtocolReplyResult<User>) target).getData(), ((ProtocolReplyResult<Database>) database).getData());
+        return controller.grantDBWrite(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
     }
 
     /**
@@ -664,20 +682,20 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminRevokeDBWrite(String line) {
+    private XSPReply runAdminRevokeDBWrite(String line) {
         line = line.substring("ADMIN REVOKE WRITE ".length());
         int index = line.indexOf(' ');
         if (index == -1)
-            return new ProtocolReplyFailure("INVALID COMMAND");
+            return new XSPReplyFailure("INVALID COMMAND");
         String login = line.substring(0, index);
         String dbName = line.substring(index + 1);
-        ProtocolReply target = controller.getUser(user, login);
+        XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        ProtocolReply database = controller.getDatabase(user, dbName);
+        XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.revokeDBWrite(user, ((ProtocolReplyResult<User>) target).getData(), ((ProtocolReplyResult<Database>) database).getData());
+        return controller.revokeDBWrite(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
     }
 
     /**
@@ -686,7 +704,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      *
      * @return The protocol reply
      */
-    private ProtocolReply runAdminListDatabases() {
+    private XSPReply runAdminListDatabases() {
         return controller.getDatabases(user);
     }
 
@@ -697,7 +715,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminCreateDatabase(String line) {
+    private XSPReply runAdminCreateDatabase(String line) {
         String name = line.substring("ADMIN CREATE DATABASE ".length());
         return controller.createDatabase(user, name);
     }
@@ -709,11 +727,11 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line The command line
      * @return The protocol reply
      */
-    private ProtocolReply runAdminDropDatabase(String line) {
+    private XSPReply runAdminDropDatabase(String line) {
         String name = line.substring("ADMIN DROP DATABASE ".length());
-        ProtocolReply target = controller.getDatabase(user, name);
-        if (!target.isSuccess() || !(target instanceof ProtocolReplyResult))
+        XSPReply target = controller.getDatabase(user, name);
+        if (!target.isSuccess() || !(target instanceof XSPReplyResult))
             return target;
-        return controller.dropDatabase(user, ((ProtocolReplyResult<Database>) target).getData());
+        return controller.dropDatabase(user, ((XSPReplyResult<Database>) target).getData());
     }
 }

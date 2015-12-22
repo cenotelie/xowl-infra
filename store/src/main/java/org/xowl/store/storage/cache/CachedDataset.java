@@ -68,32 +68,47 @@ public class CachedDataset extends DatasetImpl {
     @Override
     public Iterator<Quad> getAll(final GraphNode graph, final SubjectNode subject, final Property property, final Node object) {
         if (subject == null || subject.getNodeType() == Node.TYPE_VARIABLE) {
-            return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<MQuad>>() {
+            AdaptingIterator<MQuad, Couple<Couple<SubjectNode, EdgeBucket>, MQuad>> result = new AdaptingIterator<>(new CombiningIterator<Couple<SubjectNode, EdgeBucket>, MQuad>(getAllSubjects(), new Adapter<Iterator<MQuad>>() {
                 @Override
                 public <X> Iterator<MQuad> adapt(X element) {
                     Couple<SubjectNode, EdgeBucket> subject = (Couple<SubjectNode, EdgeBucket>) element;
                     return subject.y.getAll(graph, property, object);
                 }
-            }), new Adapter<Quad>() {
+            }) {
                 @Override
-                public <X> Quad adapt(X element) {
+                public void remove() {
+                    lastRightIterator.remove();
+                    if (current.x.y.getSize() == 0)
+                        leftIterator.remove();
+                }
+            }, new Adapter<MQuad>() {
+                @Override
+                public <X> MQuad adapt(X element) {
                     Couple<Couple<SubjectNode, EdgeBucket>, MQuad> result = (Couple<Couple<SubjectNode, EdgeBucket>, MQuad>) element;
                     result.y.setSubject(result.x.x);
                     return result.y;
                 }
             });
+            return (Iterator) result;
         } else {
-            EdgeBucket bucket = getBucketFor(subject);
+            final EdgeBucket bucket = getBucketFor(subject);
             if (bucket == null)
                 return new SingleIterator<>(null);
-            return new AdaptingIterator<>(bucket.getAll(graph, property, object), new Adapter<Quad>() {
+            return new AdaptingIterator<Quad, MQuad>(bucket.getAll(graph, property, object), new Adapter<Quad>() {
                 @Override
                 public <X> Quad adapt(X element) {
                     MQuad quad = (MQuad) element;
                     quad.setSubject(subject);
                     return quad;
                 }
-            });
+            }) {
+                @Override
+                public void remove() {
+                    content.remove();
+                    if (bucket.getSize() == 0)
+                        removeBucketFor(subject);
+                }
+            };
         }
     }
 
@@ -805,28 +820,31 @@ public class CachedDataset extends DatasetImpl {
      * @return An iterator over all the subjects starting edges in the graph
      */
     private Iterator<Couple<SubjectNode, EdgeBucket>> getAllSubjects() {
-        return new ConcatenatedIterator<Couple<SubjectNode, EdgeBucket>>(new Iterator[]{
-                new AdaptingIterator<>(edgesIRI.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
-                    @Override
-                    public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
-                        Map.Entry<IRINode, EdgeBucket> entry = (Map.Entry) element;
-                        return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
-                    }
-                }),
-                new AdaptingIterator<>(edgesBlank.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
-                    @Override
-                    public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
-                        Map.Entry<BlankNode, EdgeBucket> entry = (Map.Entry) element;
-                        return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
-                    }
-                }),
-                new AdaptingIterator<>(edgesAnon.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
-                    @Override
-                    public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
-                        Map.Entry<AnonymousNode, EdgeBucket> entry = (Map.Entry) element;
-                        return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
-                    }
-                })
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<IRINode, EdgeBucket>> iterator1 = new AdaptingIterator<>(edgesIRI.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+            @Override
+            public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
+                Map.Entry<IRINode, EdgeBucket> entry = (Map.Entry) element;
+                return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
+            }
+        });
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<BlankNode, EdgeBucket>> iterator2 = new AdaptingIterator<>(edgesBlank.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+            @Override
+            public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
+                Map.Entry<BlankNode, EdgeBucket> entry = (Map.Entry) element;
+                return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
+            }
+        });
+        AdaptingIterator<Couple<SubjectNode, EdgeBucket>, Map.Entry<AnonymousNode, EdgeBucket>> iterator3 = new AdaptingIterator<>(edgesAnon.entrySet().iterator(), new Adapter<Couple<SubjectNode, EdgeBucket>>() {
+            @Override
+            public <X> Couple<SubjectNode, EdgeBucket> adapt(X element) {
+                Map.Entry<AnonymousNode, EdgeBucket> entry = (Map.Entry) element;
+                return new Couple<SubjectNode, EdgeBucket>(entry.getKey(), entry.getValue());
+            }
+        });
+        return new ConcatenatedIterator<>(new Iterator[]{
+                iterator1,
+                iterator2,
+                iterator3
         });
     }
 
@@ -847,6 +865,25 @@ public class CachedDataset extends DatasetImpl {
 
             default:
                 return null;
+        }
+    }
+
+    /**
+     * Removes the edge bucket for the specified node
+     *
+     * @param node A node
+     */
+    private void removeBucketFor(Node node) {
+        switch (node.getNodeType()) {
+            case Node.TYPE_IRI:
+                edgesIRI.remove(node);
+                break;
+            case Node.TYPE_BLANK:
+                edgesBlank.remove(node);
+                break;
+            case Node.TYPE_ANONYMOUS:
+                edgesAnon.remove(node);
+                break;
         }
     }
 }
