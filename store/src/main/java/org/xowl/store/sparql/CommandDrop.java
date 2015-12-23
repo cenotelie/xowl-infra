@@ -73,6 +73,7 @@ public class CommandDrop implements Command {
             case Single:
                 for (String target : targets)
                     repository.getStore().clear(repository.getStore().getIRINode(target));
+                repository.getStore().commit();
                 break;
             case Named:
                 Collection<GraphNode> targets = repository.getStore().getGraphs();
@@ -80,12 +81,15 @@ public class CommandDrop implements Command {
                     if (target.getNodeType() == Node.TYPE_IRI && !IRIs.GRAPH_DEFAULT.equals(((IRINode) target).getIRIValue()))
                         repository.getStore().clear(target);
                 }
+                repository.getStore().commit();
                 break;
             case Default:
                 repository.getStore().clear(repository.getStore().getIRINode(IRIs.GRAPH_DEFAULT));
+                repository.getStore().commit();
                 break;
             case All:
                 repository.getStore().clear();
+                repository.getStore().commit();
                 break;
         }
         return ResultSuccess.INSTANCE;

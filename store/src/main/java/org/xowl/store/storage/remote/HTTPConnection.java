@@ -135,7 +135,7 @@ public class HTTPConnection implements Connection {
 
     @Override
     public Result sparql(String command) {
-        Response response = request(command, Command.MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + "; " + Result.SYNTAX_JSON);
+        Response response = request(command, Command.MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON);
         if (response == null)
             return new ResultFailure("connection failed");
         if (response.code != HttpURLConnection.HTTP_OK)
@@ -153,6 +153,8 @@ public class HTTPConnection implements Connection {
         if (response.code == HttpURLConnection.HTTP_FORBIDDEN)
             return XSPReplyUnauthorized.instance();
         if (response.code == HttpURLConnection.HTTP_INTERNAL_ERROR)
+            return new XSPReplyFailure(response.body);
+        if (response.code == IOUtils.HTTP_UNKNOWN_ERROR)
             return new XSPReplyFailure(response.body);
         if (response.code != HttpURLConnection.HTTP_OK)
             return new XSPReplyFailure(response.body != null ? response.body : "failure (HTTP " + response.code + ")");
@@ -235,7 +237,9 @@ public class HTTPConnection implements Connection {
         }
         response.type = connection.getContentType();
         if (connection.getContentLengthLong() > 0) {
-            try (InputStream is = connection.getInputStream()) {
+            // for codes 4xx and 5xx, use the error stream
+            // otherwise use the input stream
+            try (InputStream is = ((response.code >= 400 && response.code < 600) ? connection.getErrorStream() : connection.getInputStream())) {
                 BufferedReader rd = new BufferedReader(new InputStreamReader(is));
                 StringBuilder builder = new StringBuilder();
                 char[] buffer = new char[1024];

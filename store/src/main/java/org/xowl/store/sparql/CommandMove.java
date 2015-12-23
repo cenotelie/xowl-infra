@@ -69,6 +69,7 @@ public class CommandMove implements Command {
         GraphNode graphOrigin = repository.getStore().getIRINode(origin);
         GraphNode graphTarget = repository.getStore().getIRINode(target);
         repository.getStore().move(graphOrigin, graphTarget);
+        repository.getStore().commit();
         return ResultSuccess.INSTANCE;
     }
 }

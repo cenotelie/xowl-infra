@@ -65,7 +65,9 @@ public class CommandDeleteWhere implements Command {
             for (QuerySolution solution : solutions)
                 Utils.instantiate(repository, solution, quads, toRemove);
             repository.getStore().insert(Changeset.fromRemoved(toRemove));
+            repository.getStore().commit();
         } catch (UnsupportedNodeType | EvalException exception) {
+            repository.getStore().rollback();
             return new ResultFailure(exception.getMessage());
         }
         return ResultSuccess.INSTANCE;

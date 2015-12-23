@@ -45,6 +45,10 @@ public class IOUtils {
      * The MIME content type for JSON
      */
     public static final String MIME_JSON = "application/json";
+    /**
+     * Unknown error from the server
+     */
+    public static final int HTTP_UNKNOWN_ERROR = 520;
 
 
     /**
