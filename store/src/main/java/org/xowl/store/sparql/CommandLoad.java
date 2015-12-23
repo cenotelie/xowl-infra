@@ -72,6 +72,7 @@ public class CommandLoad implements Command {
     public Result execute(Repository repository) {
         SinkLogger logger = new SinkLogger();
         repository.load(logger, iri, target == null ? IRIs.GRAPH_DEFAULT : target, true);
+        repository.getStore().commit();
         return !logger.isOnError() || isSilent ? ResultSuccess.INSTANCE : ResultFailure.INSTANCE;
     }
 }

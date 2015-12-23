@@ -72,6 +72,7 @@ public class CommandAdd implements Command {
                 }
             }
         }
+        repository.getStore().commit();
         return ResultSuccess.INSTANCE;
     }
 }

@@ -99,7 +99,9 @@ public class CommandModify implements Command {
                 Utils.instantiate(repository, solution, delete, toRemove);
             }
             repository.getStore().insert(Changeset.fromAddedRemoved(toInsert, toRemove));
+            repository.getStore().commit();
         } catch (UnsupportedNodeType | EvalException exception) {
+            repository.getStore().rollback();
             return new ResultFailure(exception.getMessage());
         }
         return ResultSuccess.INSTANCE;
