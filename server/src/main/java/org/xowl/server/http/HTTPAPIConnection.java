@@ -123,6 +123,12 @@ class HTTPAPIConnection extends ProtocolHandler {
     }
 
     @Override
+    protected void onRunFailed(Throwable throwable) {
+        // on failure, attempt to close the connection
+        response(HttpURLConnection.HTTP_INTERNAL_ERROR, throwable.getMessage());
+    }
+
+    @Override
     protected InetAddress getClient() {
         return httpExchange.getRemoteAddress().getAddress();
     }
@@ -146,7 +152,7 @@ class HTTPAPIConnection extends ProtocolHandler {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
             controller.getLogger().error(exception);
-            response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Failed to read the body");
+            response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
             return;
         }
         if (query != null) {
@@ -183,7 +189,7 @@ class HTTPAPIConnection extends ProtocolHandler {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
             controller.getLogger().error(exception);
-            response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Failed to read the body");
+            response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
             return;
         }
         switch (contentType) {
@@ -193,7 +199,7 @@ class HTTPAPIConnection extends ProtocolHandler {
                 break;
             case SPARQL_TYPE_URL_ENCODED:
                 // TODO: decode and implement this
-                response(HttpURLConnection.HTTP_INTERNAL_ERROR, "Not implemented");
+                response(HttpURLConnection.HTTP_NOT_IMPLEMENTED, "Not implemented");
                 break;
             case XSPReply.MIME_XSP_COMMAND:
                 onPostCommand(body);
@@ -303,7 +309,7 @@ class HTTPAPIConnection extends ProtocolHandler {
         }
         if (reply instanceof XSPReplyFailure) {
             httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_TEXT_PLAIN);
-            response(HttpURLConnection.HTTP_INTERNAL_ERROR, reply.getMessage());
+            response(IOUtils.HTTP_UNKNOWN_ERROR, reply.getMessage());
             return;
         }
         if (reply instanceof XSPReplyResult && ((XSPReplyResult)reply).getData() instanceof Result) {
@@ -318,7 +324,7 @@ class HTTPAPIConnection extends ProtocolHandler {
                 // cannot happen
             }
             httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, resultType);
-            response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpURLConnection.HTTP_INTERNAL_ERROR, writer.toString());
+            response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : IOUtils.HTTP_UNKNOWN_ERROR, writer.toString());
             return;
         }
         // general case

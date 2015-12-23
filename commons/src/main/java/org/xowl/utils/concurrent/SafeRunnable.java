@@ -46,8 +46,13 @@ public abstract class SafeRunnable implements Runnable {
     public void run() {
         try {
             doRun();
-        } catch (Throwable exception) {
-            Logger.DEFAULT.error(exception);
+        } catch (Throwable error1) {
+            Logger.DEFAULT.error(error1);
+            try {
+                onRunFailed(error1);
+            } catch (Throwable error2) {
+                // do nothing with this
+            }
         } finally {
             LockManager.cleanup();
         }
@@ -57,4 +62,15 @@ public abstract class SafeRunnable implements Runnable {
      * Effectively run
      */
     public abstract void doRun();
+
+    /**
+     * Event called when the run failed
+     * This method can be used for cleanup when then run failed.
+     * This method is not called when the run method terminate normally
+     *
+     * @param throwable The raised error
+     */
+    protected void onRunFailed(Throwable throwable) {
+        // do nothing
+    }
 }
