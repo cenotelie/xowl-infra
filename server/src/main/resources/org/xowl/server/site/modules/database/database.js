@@ -323,7 +323,7 @@ function onSPARQLResults($scope, type, content) {
 			for (j = 0; j != entity.properties.length; j++) {
 				var property = entity.properties[j];
 				var row = { cells: [] };
-				if (entity.id.startsWith("http://"))
+				if (entity.isIRI)
 					row.cells.push(entity.id);
 				else
 					row.cells.push('_:' + entity.id);

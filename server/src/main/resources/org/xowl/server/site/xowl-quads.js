@@ -38,7 +38,7 @@ function parseNQuads(content) {
         var object = tokens[i + 2];
         var graph = tokens[i + 3];
         var key = subject.type === "iri" ? subject.value : subject.id;
-        var item = key in result ? result[key] : { id: key, properties: [], graph: graph.value };
+        var item = key in result ? result[key] : { id: key, isIRI: subject.type === "iri", properties: [], graph: graph.value };
         item.properties.push({ id: property.value, value: object, graph: graph.value });
         result[key] = item;
         i += 3;
