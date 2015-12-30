@@ -5,8 +5,22 @@ This is the xOWL Infrastructure, a set of components for working with datasets i
 * Manipulate RDF and OWL2 datasets (N-Triples, N-Quads, Turtle, RDF/XML, JSON-LD, OWL/XML, Functional OWL)
 * Query engine with RDF and OWL2 interfaces
 * Rule engine with RDF and OWL2 interfaces
-* Expression and execution of arbitrary behavior in data using Clojure
+* Expression and execution of arbitrary behavior in data using [Clojure](http://clojure.org)
 * Deployable triple store server
+
+xOWL is also the name of the language used to express behavior within OWL2 ontologies.
+xOWL basically enable the inclusion of snippets of [Clojure](http://clojure.org) code as named entities in ontologies.
+In OWL2 ontologies, an entity can be attributed several interpretations: as a class, as an individual (instance), as an object or data property, etc.
+With the xOWL extension, an entity can have a new behavioral interpretation defined in a piece of [Clojure](http://clojure.org) code:
+
+```
+Prefix(xsd: = <http://www.w3.org/2001/XMLSchema#>)
+Prefix( : = <http://xowl.org/engine/tests/Sample#>)
+Ontology( <http://xowl.org/engine/tests/Sample>
+    FunctionDefinition(:hello (fn [] "Hello World"))
+    DataPropertyAssertion(:hasName :hello "A function that says hello.")
+)
+```
 
 ## Java libraries ##
 
@@ -21,6 +35,14 @@ The xOWL Infrastructure can be used as embeddable Java libraries. With Maven, mo
     <scope>compile</scope>
 </dependency>
 ```
+
+For the inclusion of the expression of execution of behavior in ontologies, also include the xowl-engine bundle:
+
+```
+#!xml
+<artifactId>xowl-engine</artifactId>
+```
+
 
 ## Triple Store Server ##
 
@@ -52,7 +74,7 @@ $ sudo service xowl-server restart
 ### Docker image ###
 
 ```
-$ docker pull xowl/xowl-server:1.0-beta2
+$ docker pull xowl/xowl-server:latest
 $ docker run -d -p 3443:3443/tcp --name my-xowl-instance -v /path/to/host/data:/xowl-data xowl-server:latest
 ```
 
