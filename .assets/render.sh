@@ -8,6 +8,7 @@ SCRIPT="$(readlink -f "$0")"
 ASSETS="$(dirname "$SCRIPT")"
 
 inkscape "-e=$ASSETS/xowl-$WIDTH.png" -C -w=$WIDTH -h=$HEIGHT "$ASSETS/xowl.svg"
+convert "$ASSETS/xowl-$WIDTH.png" "png8:$ASSETS/xowl-$WIDTH.png"
 
 ANGLE=0
 ANGLE_INC=2
@@ -22,6 +23,7 @@ do
     NAME="0$COUNTER"
   fi
   inkscape "-e=$ASSETS/xowl_temp_$NAME.png" -C -w=$WIDTH -h=$HEIGHT "$ASSETS/xowl_temp.svg"
+  convert "$ASSETS/xowl_temp_$NAME.png" "png8:$ASSETS/xowl_temp_$NAME.png"
   rm "$ASSETS/xowl_temp.svg"
   ANGLE=$(($ANGLE+$ANGLE_INC))
   COUNTER=$(($COUNTER+1))
