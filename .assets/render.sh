@@ -9,6 +9,8 @@ ASSETS="$(dirname "$SCRIPT")"
 
 inkscape "-e=$ASSETS/xowl-$WIDTH.png" -C -w=$WIDTH -h=$HEIGHT "$ASSETS/xowl.svg"
 convert "$ASSETS/xowl-$WIDTH.png" "png8:$ASSETS/xowl-$WIDTH.png"
+inkscape "-e=$ASSETS/favicon.png" -C -w=32 -h=32 "$ASSETS/xowl.svg"
+convert "$ASSETS/favicon.png" "png8:$ASSETS/favicon.png"
 
 ANGLE=0
 ANGLE_INC=2
