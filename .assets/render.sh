@@ -15,7 +15,7 @@ ANGLE_MAX=30
 COUNTER=0
 while [ $ANGLE -lt $ANGLE_MAX ]
 do
-  sed "s/rotate(0/rotate($ANGLE/g" xowl.svg > "$ASSETS/xowl_temp.svg"
+  sed "s/rotate(0/rotate($ANGLE/g" "$ASSETS/xowl.svg" > "$ASSETS/xowl_temp.svg"
   NAME=$COUNTER
   if [ $COUNTER -lt 10 ]
   then
