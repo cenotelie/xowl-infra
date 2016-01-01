@@ -24,11 +24,14 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.*;
+import org.xowl.store.sparql.Result;
 import org.xowl.store.storage.NodeManager;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,6 +53,112 @@ public class IOUtils {
      */
     public static final int HTTP_UNKNOWN_ERROR = 520;
 
+    /**
+     * A response to an HTTP request
+     */
+    public static class HttpResponse {
+        /**
+         * The HTTP response code
+         */
+        private final int code;
+        /**
+         * The response body, if any
+         */
+        private byte[] bodyBytes;
+        /**
+         * The response body as a string
+         */
+        private String bodyString;
+        /**
+         * The content type for the response body, if any
+         */
+        private final String contentType;
+
+        /**
+         * Gets the HTTP response code
+         *
+         * @return The HTTP response code
+         */
+        public int getCode() {
+            return code;
+        }
+
+        /**
+         * Gets the content type for the response body, if any
+         *
+         * @return the content type for the response body, if any
+         */
+        public String getContentType() {
+            return contentType;
+        }
+
+        /**
+         * Gets the response body, if any, as bytes
+         *
+         * @return The response body, if any, as bytes
+         */
+        public byte[] getBodyAsBytes() {
+            if (bodyBytes != null)
+                return bodyBytes;
+            if (bodyString != null) {
+                bodyBytes = bodyString.getBytes(Charset.forName("UTF-8"));
+                return bodyBytes;
+            }
+            return null;
+        }
+
+        /**
+         * Gets the response body, if any, as a string
+         *
+         * @return The response body, if any, as a string
+         */
+        public String getBodyAsString() {
+            if (bodyString != null)
+                return bodyString;
+            if (bodyBytes != null) {
+                bodyString = new String(bodyBytes, Charset.forName("UTF-8"));
+                return bodyString;
+            }
+            return null;
+        }
+
+        /**
+         * Initializes this response
+         *
+         * @param code The response code
+         */
+        public HttpResponse(int code) {
+            this.code = code;
+            this.contentType = null;
+            this.bodyBytes = null;
+        }
+
+        /**
+         * Initializes this response
+         *
+         * @param code        The response code
+         * @param contentType The response content type, if any
+         * @param body        The response content, if any
+         */
+        public HttpResponse(int code, String contentType, byte[] body) {
+            this.code = code;
+            this.contentType = contentType;
+            this.bodyBytes = body;
+        }
+
+        /**
+         * Initializes this response
+         *
+         * @param code        The response code
+         * @param contentType The response content type, if any
+         * @param body        The response content, if any
+         */
+        public HttpResponse(int code, String contentType, String body) {
+            this.code = code;
+            this.contentType = contentType;
+            this.bodyString = body;
+        }
+    }
 
     /**
      * String containing the escaped glyphs in absolute uris
@@ -386,5 +495,31 @@ public class IOUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Negotiates the content type from the specified requested ones
+     *
+     * @param contentTypes The requested content types by order of preference
+     * @return The accepted content type
+     */
+    public static String httpNegotiateContentType(List<String> contentTypes) {
+        for (String contentType : contentTypes) {
+            switch (contentType) {
+                // The SPARQL result syntaxes
+                case Result.SYNTAX_CSV:
+                case Result.SYNTAX_TSV:
+                case Result.SYNTAX_XML:
+                case Result.SYNTAX_JSON:
+                    // The RDF syntaxes for quads
+                case AbstractRepository.SYNTAX_NTRIPLES:
+                case AbstractRepository.SYNTAX_NQUADS:
+                case AbstractRepository.SYNTAX_TURTLE:
+                case AbstractRepository.SYNTAX_RDFXML:
+                case AbstractRepository.SYNTAX_JSON_LD:
+                    return contentType;
+            }
+        }
+        return AbstractRepository.SYNTAX_NQUADS;
     }
 }

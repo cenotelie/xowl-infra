@@ -51,6 +51,38 @@ import java.util.Map;
  */
 public class ResultUtils {
     /**
+     * Coerce the content type of a SPARQL response depending on the result type
+     *
+     * @param result The SPARQL result
+     * @param type   The negotiated content type
+     * @return The coerced content type
+     */
+    public static String coerceContentType(Result result, String type) {
+        if (result instanceof ResultQuads) {
+            switch (type) {
+                case AbstractRepository.SYNTAX_NTRIPLES:
+                case AbstractRepository.SYNTAX_NQUADS:
+                case AbstractRepository.SYNTAX_TURTLE:
+                case AbstractRepository.SYNTAX_RDFXML:
+                case AbstractRepository.SYNTAX_JSON_LD:
+                    return type;
+                default:
+                    return AbstractRepository.SYNTAX_NQUADS;
+            }
+        } else {
+            switch (type) {
+                case Result.SYNTAX_CSV:
+                case Result.SYNTAX_TSV:
+                case Result.SYNTAX_XML:
+                case Result.SYNTAX_JSON:
+                    return type;
+                default:
+                    return Result.SYNTAX_JSON;
+            }
+        }
+    }
+
+    /**
      * Parses a SPARQL response to a command
      *
      * @param content     The content to parse

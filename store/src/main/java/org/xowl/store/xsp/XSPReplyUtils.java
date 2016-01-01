@@ -23,18 +23,25 @@ package org.xowl.store.xsp;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
+import org.xowl.store.AbstractRepository;
 import org.xowl.store.IOUtils;
 import org.xowl.store.loaders.JSONLDLoader;
+import org.xowl.store.sparql.Result;
+import org.xowl.store.sparql.ResultUtils;
 import org.xowl.store.storage.NodeManager;
 import org.xowl.store.storage.cache.CachedNodes;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.DispatchLogger;
 import org.xowl.utils.logging.Logger;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Utility APIs for the xOWL Server Protocol
@@ -42,6 +49,38 @@ import java.util.Collection;
  * @author Laurent Wouters
  */
 public class XSPReplyUtils {
+    /**
+     * Translates an XSP reply to an HTTP response
+     *
+     * @param reply       The reply
+     * @param acceptTypes The accepted MIME types, if any
+     * @return The HTTP response
+     */
+    public static IOUtils.HttpResponse toHttpResponse(XSPReply reply, List<String> acceptTypes) {
+        if (reply == null)
+            // client got banned
+            return new IOUtils.HttpResponse(HttpURLConnection.HTTP_FORBIDDEN);
+        if (reply instanceof XSPReplyUnauthenticated)
+            return new IOUtils.HttpResponse(HttpURLConnection.HTTP_UNAUTHORIZED);
+        if (reply instanceof XSPReplyUnauthorized)
+            return new IOUtils.HttpResponse(HttpURLConnection.HTTP_FORBIDDEN);
+        if (reply instanceof XSPReplyFailure)
+            return new IOUtils.HttpResponse(IOUtils.HTTP_UNKNOWN_ERROR, IOUtils.MIME_TEXT_PLAIN, reply.getMessage());
+        if (reply instanceof XSPReplyResult && ((XSPReplyResult) reply).getData() instanceof Result) {
+            // special handling for SPARQL
+            Result sparqlResult = (Result) ((XSPReplyResult) reply).getData();
+            String resultType = ResultUtils.coerceContentType(sparqlResult, acceptTypes != null ? IOUtils.httpNegotiateContentType(acceptTypes) : AbstractRepository.SYNTAX_NQUADS);
+            StringWriter writer = new StringWriter();
+            try {
+                sparqlResult.print(writer, resultType);
+            } catch (IOException exception) {
+                // cannot happen
+            }
+            return new IOUtils.HttpResponse(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : IOUtils.HTTP_UNKNOWN_ERROR, resultType, writer.toString());
+        }
+        // general case
+        return new IOUtils.HttpResponse(IOUtils.HTTP_UNKNOWN_ERROR, IOUtils.MIME_JSON, reply.serializedJSON());
+    }
 
     /**
      * Parses a XSP result serialized in JSON

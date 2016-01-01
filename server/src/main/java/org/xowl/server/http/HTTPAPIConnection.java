@@ -28,12 +28,10 @@ import org.xowl.server.db.ProtocolHandler;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.IOUtils;
 import org.xowl.store.sparql.Command;
-import org.xowl.store.sparql.Result;
 import org.xowl.store.xsp.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
@@ -294,41 +292,10 @@ class HTTPAPIConnection extends ProtocolHandler {
      * @param reply The protocol reply
      */
     private void response(XSPReply reply) {
-        if (reply == null) {
-            // client got banned
-            response(HttpURLConnection.HTTP_FORBIDDEN, null);
-            return;
-        }
-        if (reply instanceof XSPReplyUnauthenticated) {
-            response(HttpURLConnection.HTTP_UNAUTHORIZED, null);
-            return;
-        }
-        if (reply instanceof XSPReplyUnauthorized) {
-            response(HttpURLConnection.HTTP_FORBIDDEN, null);
-            return;
-        }
-        if (reply instanceof XSPReplyFailure) {
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_TEXT_PLAIN);
-            response(IOUtils.HTTP_UNKNOWN_ERROR, reply.getMessage());
-            return;
-        }
-        if (reply instanceof XSPReplyResult && ((XSPReplyResult)reply).getData() instanceof Result) {
-            // special handling for SPARQL
-            Result sparqlResult = (Result) ((XSPReplyResult)reply).getData();
-            List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
-            String resultType = Utils.coerceContentType(sparqlResult, Utils.negotiateType(acceptTypes));
-            StringWriter writer = new StringWriter();
-            try {
-                sparqlResult.print(writer, resultType);
-            } catch (IOException exception) {
-                // cannot happen
-            }
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, resultType);
-            response(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : IOUtils.HTTP_UNKNOWN_ERROR, writer.toString());
-            return;
-        }
-        // general case
-        httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, IOUtils.MIME_JSON);
-        response(HttpURLConnection.HTTP_OK, reply.serializedJSON());
+        List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
+        IOUtils.HttpResponse response = XSPReplyUtils.toHttpResponse(reply, acceptTypes);
+        if (response.getContentType() != null)
+            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, response.getContentType());
+        response(response.getCode(), response.getBodyAsString());
     }
 }

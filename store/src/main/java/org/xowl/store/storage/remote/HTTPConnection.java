@@ -50,24 +50,6 @@ import java.security.cert.X509Certificate;
  */
 public class HTTPConnection implements Connection {
     /**
-     * A response to a request
-     */
-    private static class Response {
-        /**
-         * The HTTP response code
-         */
-        public int code;
-        /**
-         * The response body, if any
-         */
-        public String body;
-        /**
-         * The content type for the response body, if any
-         */
-        public String type;
-    }
-
-    /**
      * The SSL context for HTTPS connections
      */
     private final SSLContext sslContext;
@@ -135,40 +117,40 @@ public class HTTPConnection implements Connection {
 
     @Override
     public Result sparql(String command) {
-        Response response = request(command, Command.MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON);
+        IOUtils.HttpResponse response = request(command, Command.MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON);
         if (response == null)
             return new ResultFailure("connection failed");
-        if (response.code != HttpURLConnection.HTTP_OK)
-            return new ResultFailure(response.body != null ? response.body : "failure (HTTP " + response.code + ")");
-        return ResultUtils.parseResponse(response.body, response.type);
+        if (response.getCode() != HttpURLConnection.HTTP_OK)
+            return new ResultFailure(response.getBodyAsString() != null ? response.getBodyAsString() : "failure (HTTP " + response.getCode() + ")");
+        return ResultUtils.parseResponse(response.getBodyAsString(), response.getContentType());
     }
 
     @Override
     public XSPReply xsp(String command) {
-        Response response = request(command, XSPReply.MIME_XSP_COMMAND, Result.SYNTAX_JSON);
+        IOUtils.HttpResponse response = request(command, XSPReply.MIME_XSP_COMMAND, Result.SYNTAX_JSON);
         if (response == null)
             return new XSPReplyNetworkError("connection failed");
-        if (response.code == HttpURLConnection.HTTP_UNAUTHORIZED)
+        if (response.getCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
             return XSPReplyUnauthenticated.instance();
-        if (response.code == HttpURLConnection.HTTP_FORBIDDEN)
+        if (response.getCode() == HttpURLConnection.HTTP_FORBIDDEN)
             return XSPReplyUnauthorized.instance();
-        if (response.code == HttpURLConnection.HTTP_INTERNAL_ERROR)
-            return new XSPReplyFailure(response.body);
-        if (response.code == IOUtils.HTTP_UNKNOWN_ERROR)
-            return new XSPReplyFailure(response.body);
-        if (response.code != HttpURLConnection.HTTP_OK)
-            return new XSPReplyFailure(response.body != null ? response.body : "failure (HTTP " + response.code + ")");
+        if (response.getCode() == HttpURLConnection.HTTP_INTERNAL_ERROR)
+            return new XSPReplyFailure(response.getBodyAsString());
+        if (response.getCode() == IOUtils.HTTP_UNKNOWN_ERROR)
+            return new XSPReplyFailure(response.getBodyAsString());
+        if (response.getCode() != HttpURLConnection.HTTP_OK)
+            return new XSPReplyFailure(response.getBodyAsString() != null ? response.getBodyAsString() : "failure (HTTP " + response.getCode() + ")");
         // the result is OK from hereon
-        if (response.body == null)
+        if (response.getBodyAsString() == null)
             return XSPReplySuccess.instance();
-        if (response.type == null || IOUtils.MIME_TEXT_PLAIN.equals(response.type))
+        if (response.getContentType() == null || IOUtils.MIME_TEXT_PLAIN.equals(response.getContentType()))
             // no response type or plain text
-            return new XSPReplyResult<>(response.body);
-        if (IOUtils.MIME_JSON.equals(response.type))
+            return new XSPReplyResult<>(response.getBodyAsString());
+        if (IOUtils.MIME_JSON.equals(response.getContentType()))
             // pure JSON response
-            return XSPReplyUtils.parseJSONResult(response.body);
+            return XSPReplyUtils.parseJSONResult(response.getBodyAsString());
         // assume SPARQL reply
-        Result sparqlResult = ResultUtils.parseResponse(response.body, response.type);
+        Result sparqlResult = ResultUtils.parseResponse(response.getBodyAsString(), response.getContentType());
         return new XSPReplyResult<>(sparqlResult);
     }
 
@@ -185,7 +167,7 @@ public class HTTPConnection implements Connection {
      * @param accept      The MIME type to accept for the response
      * @return The response, or null if the request failed before reaching the server
      */
-    private Response request(String body, String contentType, String accept) {
+    private IOUtils.HttpResponse request(String body, String contentType, String accept) {
         URL url;
         try {
             url = new URL(endpoint);
@@ -227,19 +209,20 @@ public class HTTPConnection implements Connection {
             }
         }
 
-        Response response = new Response();
+        int code;
         try {
-            response.code = connection.getResponseCode();
+            code = connection.getResponseCode();
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
             connection.disconnect();
             return null;
         }
-        response.type = connection.getContentType();
+        String responseContentType = connection.getContentType();
+        String responseBody = null;
         if (connection.getContentLengthLong() > 0) {
             // for codes 4xx and 5xx, use the error stream
             // otherwise use the input stream
-            try (InputStream is = ((response.code >= 400 && response.code < 600) ? connection.getErrorStream() : connection.getInputStream())) {
+            try (InputStream is = ((code >= 400 && code < 600) ? connection.getErrorStream() : connection.getInputStream())) {
                 BufferedReader rd = new BufferedReader(new InputStreamReader(is));
                 StringBuilder builder = new StringBuilder();
                 char[] buffer = new char[1024];
@@ -249,12 +232,12 @@ public class HTTPConnection implements Connection {
                     read = rd.read(buffer);
                 }
                 rd.close();
-                response.body = builder.toString();
+                responseBody = builder.toString();
             } catch (IOException exception) {
                 Logger.DEFAULT.error(exception);
             }
         }
         connection.disconnect();
-        return response;
+        return new IOUtils.HttpResponse(code, responseContentType, responseBody);
     }
 }
