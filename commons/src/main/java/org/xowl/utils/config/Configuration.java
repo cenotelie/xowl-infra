@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 Laurent Wouters
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -24,10 +24,7 @@ import org.xowl.utils.Files;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a configuration with values associated to properties
@@ -50,6 +47,15 @@ public class Configuration {
     public Configuration() {
         global = new Section(null);
         sections = new HashMap<>();
+    }
+
+    /**
+     * Gets all the named sections in this configuration
+     *
+     * @return The named sections
+     */
+    public Collection<Section> getSections() {
+        return sections.values();
     }
 
     /**
