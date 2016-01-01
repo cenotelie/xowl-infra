@@ -79,7 +79,7 @@ public class XSPReplyUtils {
             return new IOUtils.HttpResponse(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : IOUtils.HTTP_UNKNOWN_ERROR, resultType, writer.toString());
         }
         // general case
-        return new IOUtils.HttpResponse(IOUtils.HTTP_UNKNOWN_ERROR, IOUtils.MIME_JSON, reply.serializedJSON());
+        return new IOUtils.HttpResponse(HttpURLConnection.HTTP_OK, IOUtils.MIME_JSON, reply.serializedJSON());
     }
 
     /**
