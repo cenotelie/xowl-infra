@@ -228,7 +228,7 @@ public class ResultUtils {
                 String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
                 memberName = memberName.substring(1, memberName.length() - 1);
                 ASTNode memberValue = memberNode.getChildren().get(1);
-                if ("vars".equals(memberName)) {
+                if ("bindings".equals(memberName)) {
                     nodeBindings = memberValue;
                     break;
                 }
