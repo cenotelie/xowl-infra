@@ -188,7 +188,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     radical = entry.seek(8).readInt();
                     for (int i = index; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
                         int ek = entry.seek(8 + 4 + 4 + i * 8).readInt();
-                        if (ek != PersistedNode.SERIALIZED_SIZE) {
+                        if (ek != PersistedNode.KEY_NOT_PRESENT) {
                             index = i;
                             return FileStore.getFullKey(radical, ek);
                         }
@@ -1090,11 +1090,16 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
                     int qnode = entry.readInt();
                     int multiplicity = entry.readInt();
+                    if (qnode == PersistedNode.KEY_NOT_PRESENT)
+                        continue;
                     if (qnode == FileStore.getShortKey(bufferQNSubject)) {
                         multiplicity++;
                         entry.seek(i * 8 + 8 + 4 + 4 + 4).writeInt(multiplicity);
                         return;
                     }
+                    count--;
+                    if (count == 0)
+                        break;
                 }
                 bufferQNPrevious = current;
                 current = next;
@@ -1148,6 +1153,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 entry.writeInt(1);
                 entry.writeInt((int) (qnode - radical));
                 entry.writeInt(1);
+                for (int i = 1; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
+                    entry.writeInt((int) PersistedNode.KEY_NOT_PRESENT);
+                    entry.writeInt(0);
+                }
             }
             return key;
         } catch (IOException | StorageException exception) {
@@ -1322,9 +1331,12 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 if (eRadical != radical)
                     continue;
                 int count = entry.readInt();
-                for (int i = 0; i != count; i++) {
+                int c = count;
+                for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
                     int qnode = entry.readInt();
                     int multiplicity = entry.readInt();
+                    if (qnode == PersistedNode.KEY_NOT_PRESENT)
+                        continue;
                     if (qnode == FileStore.getShortKey(bufferQNSubject)) {
                         multiplicity--;
                         if (multiplicity > 0) {
@@ -1334,7 +1346,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         count--;
                         if (count > 0) {
                             entry.seek(i * 8 + 8 + 4 + 4);
-                            entry.writeInt(-1);
+                            entry.writeInt((int) PersistedNode.KEY_NOT_PRESENT);
                             entry.writeInt(0);
                             entry.seek(8 + 4).writeInt(count);
                             return;
@@ -1355,6 +1367,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         backend.remove(current);
                         return;
                     }
+                    c--;
+                    if (c == 0)
+                        break;
                 }
                 bufferQNPrevious = current;
                 current = next;
@@ -1486,32 +1501,36 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             bufferQNPrevious = element.readLong();
             int radical = element.readInt();
             int count = element.readInt();
+            int c = count;
             for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
                 int sk = element.readInt();
                 int multiplicity = element.readInt();
-                if (sk != PersistedNode.SERIALIZED_SIZE) {
-                    long child = FileStore.getFullKey(radical, sk);
-                    int size = bufferRemoved.size();
-                    boolean isEmpty = removeAllOnSubject(child, property, object, graph, bufferDecremented, bufferRemoved);
-                    if (isEmpty) {
-                        try (IOElement subjectEntry = backend.read(child)) {
-                            PersistedNode subject = getNode(subjectEntry.seek(8).readInt(), subjectEntry.readLong());
-                            Map<Long, Long> mapSubjects = mapFor(subject);
-                            mapSubjects.remove(subject.getKey());
-                        } catch (StorageException | UnsupportedNodeType exception) {
-                            Logger.DEFAULT.error(exception);
-                        }
-                    }
-                    multiplicity -= bufferRemoved.size() - size;
-                    if (multiplicity <= 0) {
-                        element.seek(i * GINDEX_ENTRY_SIZE + 8 + 4 + 4);
-                        element.writeInt(-1);
-                        element.writeInt(0);
-                        count--;
-                    } else {
-                        element.seek(i * GINDEX_ENTRY_SIZE + 8 + 4 + 4 + 4).writeInt(multiplicity);
+                if (sk == PersistedNode.SERIALIZED_SIZE)
+                    continue;
+                long child = FileStore.getFullKey(radical, sk);
+                int size = bufferRemoved.size();
+                boolean isEmpty = removeAllOnSubject(child, property, object, graph, bufferDecremented, bufferRemoved);
+                if (isEmpty) {
+                    try (IOElement subjectEntry = backend.read(child)) {
+                        PersistedNode subject = getNode(subjectEntry.seek(8).readInt(), subjectEntry.readLong());
+                        Map<Long, Long> mapSubjects = mapFor(subject);
+                        mapSubjects.remove(subject.getKey());
+                    } catch (StorageException | UnsupportedNodeType exception) {
+                        Logger.DEFAULT.error(exception);
                     }
                 }
+                multiplicity -= bufferRemoved.size() - size;
+                if (multiplicity <= 0) {
+                    element.seek(i * 8 + 8 + 4 + 4);
+                    element.writeInt((int) PersistedNode.KEY_NOT_PRESENT);
+                    element.writeInt(0);
+                    count--;
+                } else {
+                    element.seek(i * 8 + 8 + 4 + 4 + 4).writeInt(multiplicity);
+                }
+                c--;
+                if (c == 0)
+                    break;
             }
             element.seek(8 + 4).writeInt(count);
             return count == 0;

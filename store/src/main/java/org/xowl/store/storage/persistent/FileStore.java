@@ -242,6 +242,8 @@ class FileStore extends IOBackend {
      * @throws StorageException When an IO operation failed
      */
     protected IOElement access(long key, boolean writable) throws StorageException {
+        if (key <= 0)
+            throw new StorageException("Invalid key");
         int index = getFileIndexFor(key);
         int sk = getShortKey(key);
         FileStoreFile file = files.get(index);
