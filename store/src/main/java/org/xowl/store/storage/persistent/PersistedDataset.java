@@ -432,7 +432,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return new SingleIterator<>(null);
         Map<Long, Long> map = pGraph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
         Long bucket = map.get(pGraph.getKey());
-        if (graph == null)
+        if (bucket == null)
             return new SingleIterator<>(null);
         Iterator<Long> iteratorSubjects = new GraphQNodeIterator(backend, bucket);
         return new AdaptingIterator<>(new CombiningIterator<>(iteratorSubjects, new Adapter<Iterator<MQuad>>() {
