@@ -470,6 +470,8 @@ public class IOUtils {
         for (ASTNode child : astNode.getChildren()) {
             String name = child.getChildren().get(0).getValue();
             String value = child.getChildren().get(1).getValue();
+            name = name.substring(1, name.length() - 1);
+            value = value.substring(1, value.length() - 1);
             properties.put(name, value);
         }
         String type = properties.get("type");

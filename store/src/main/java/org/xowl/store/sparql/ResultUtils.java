@@ -239,7 +239,8 @@ public class ResultUtils {
             for (ASTNode nodeSolution : nodeBindings.getChildren()) {
                 List<Couple<VariableNode, Node>> bindings = new ArrayList<>();
                 for (ASTNode nodeBinding : nodeSolution.getChildren()) {
-                    VariableNode variable = variables.get(nodeBinding.getChildren().get(0).getValue());
+                    String varName = nodeBinding.getChildren().get(0).getValue();
+                    VariableNode variable = variables.get(varName.substring(1, varName.length() -1));
                     Node value = IOUtils.deserializeJSON(nodeManager, nodeBinding.getChildren().get(1));
                     bindings.add(new Couple<>(variable, value));
                 }
