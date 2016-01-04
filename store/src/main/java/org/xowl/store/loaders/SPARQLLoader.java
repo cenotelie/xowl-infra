@@ -623,9 +623,9 @@ public class SPARQLLoader {
                 } else if (inner.getSymbol().getID() == SPARQLParser.ID.clause_graph_named) {
                     String iri = loadGraphRef(inner.getChildren().get(0)).y;
                     context.addNamedIRI(iri);
-                } else if (inner.getSymbol().getID() == SPARQLParser.ID.triples_template) {
-                    template = loadGraphPatternTriples(context, inner, null);
                 }
+            } else if (child.getSymbol().getID() == SPARQLParser.ID.triples_template) {
+                template = loadGraphPatternTriples(context, child, null);
             }
         }
         if (template == null)
