@@ -207,11 +207,12 @@ public class RDFUtils {
      * Conversely, negative (removed) quads are present on the right but not on the left.
      * The two sets are assumed to not contain duplicated quads, i.e. the same quad does not appear twice or more in the same set.
      *
-     * @param left  The set of quads on the left
-     * @param right The set of quads on the right
+     * @param left        The set of quads on the left
+     * @param right       The set of quads on the right
+     * @param ignoreGraph Whether to ignore the graph when comparing quads (compare as triples)
      * @return The changeset representing the difference
      */
-    public static Changeset diff(Collection<Quad> left, Collection<Quad> right) {
+    public static Changeset diff(Collection<Quad> left, Collection<Quad> right, boolean ignoreGraph) {
         Quad[] leftArray = left.toArray(new Quad[left.size()]);
         Quad[] rightArray = right.toArray(new Quad[right.size()]);
 
@@ -223,7 +224,7 @@ public class RDFUtils {
             if (leftArray[i].getSubject().getNodeType() != Node.TYPE_BLANK) {
                 // ignore blank nodes at this time
                 for (int j = 0; j != rightArray.length; j++) {
-                    if (rightArray[j] != null && diffSameQuads(leftArray[i], rightArray[j], blanks)) {
+                    if (rightArray[j] != null && diffSameQuads(leftArray[i], rightArray[j], blanks, ignoreGraph)) {
                         leftArray[i] = null;
                         rightArray[j] = null;
                         countLeft--;
@@ -241,7 +242,7 @@ public class RDFUtils {
                 if (leftArray[i] == null)
                     continue;
                 for (int j = 0; j != rightArray.length; j++) {
-                    if (rightArray[j] != null && diffSameQuads(leftArray[i], rightArray[j], blanks)) {
+                    if (rightArray[j] != null && diffSameQuads(leftArray[i], rightArray[j], blanks, ignoreGraph)) {
                         leftArray[i] = null;
                         rightArray[j] = null;
                         countLeft--;
@@ -273,12 +274,13 @@ public class RDFUtils {
     /**
      * Determines whether the specified quads are equivalent, using the given blank node mapping
      *
-     * @param quad1  A quad
-     * @param quad2  Another quad
-     * @param blanks A map of blank nodes
+     * @param quad1       A quad
+     * @param quad2       Another quad
+     * @param blanks      A map of blank nodes
+     * @param ignoreGraph Whether to ignore the graph when comparing quads (compare as triples)
      * @return <code>true</code> if the two quads are equivalent
      */
-    private static boolean diffSameQuads(Quad quad1, Quad quad2, Map<BlankNode, BlankNode> blanks) {
+    private static boolean diffSameQuads(Quad quad1, Quad quad2, Map<BlankNode, BlankNode> blanks, boolean ignoreGraph) {
         GraphNode graph = quad1.getGraph();
         SubjectNode subject = quad1.getSubject();
         Property property = quad1.getProperty();
@@ -291,13 +293,13 @@ public class RDFUtils {
             object = blanks.get(object);
         if (!RDFUtils.same(property, quad2.getProperty()))
             return false;
-        if (graph != null && !RDFUtils.same(graph, quad2.getGraph()))
+        if (!ignoreGraph && graph != null && !RDFUtils.same(graph, quad2.getGraph()))
             return false;
         if (subject != null && !RDFUtils.same(subject, quad2.getSubject()))
             return false;
         if (object != null && !RDFUtils.same(object, quad2.getObject()))
             return false;
-        if (graph == null && quad2.getGraph().getNodeType() != Node.TYPE_BLANK)
+        if (!ignoreGraph && graph == null && quad2.getGraph().getNodeType() != Node.TYPE_BLANK)
             return false;
         if (subject == null && quad2.getSubject().getNodeType() != Node.TYPE_BLANK)
             return false;
