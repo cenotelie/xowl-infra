@@ -28,11 +28,13 @@ import org.xowl.lang.owl2.Ontology;
 import org.xowl.lang.runtime.Entity;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.owl.DynamicNode;
-import org.xowl.store.rdf.IRINode;
-import org.xowl.store.rdf.LiteralNode;
-import org.xowl.store.rdf.Node;
-import org.xowl.store.rdf.Property;
+import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Utility APIs for RDF
@@ -196,5 +198,117 @@ public class RDFUtils {
      */
     public static boolean isRdfType(Property property) {
         return (property.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfType.equals(((IRINode) property).getIRIValue());
+    }
+
+    /**
+     * Computes the difference between two sets of quads
+     * The result is changeset of positive and negative quads in the set difference: left - right.
+     * This means that positive (added) quads are present on the left but not the right.
+     * Conversely, negative (removed) quads are present on the right but not on the left.
+     * The two sets are assumed to not contain duplicated quads, i.e. the same quad does not appear twice or more in the same set.
+     *
+     * @param left  The set of quads on the left
+     * @param right The set of quads on the right
+     * @return The changeset representing the difference
+     */
+    public static Changeset diff(Collection<Quad> left, Collection<Quad> right) {
+        Quad[] leftArray = left.toArray(new Quad[left.size()]);
+        Quad[] rightArray = right.toArray(new Quad[right.size()]);
+
+        Map<BlankNode, BlankNode> blanks = new HashMap<>();
+        int countLeft = leftArray.length;
+        int countRight = rightArray.length;
+
+        for (int i = 0; i != leftArray.length; i++) {
+            if (leftArray[i].getSubject().getNodeType() != Node.TYPE_BLANK) {
+                // ignore blank nodes at this time
+                for (int j = 0; j != rightArray.length; j++) {
+                    if (rightArray[j] != null && diffSameQuads(leftArray[i], rightArray[j], blanks)) {
+                        leftArray[i] = null;
+                        rightArray[j] = null;
+                        countLeft--;
+                        countRight--;
+                        break;
+                    }
+                }
+            }
+        }
+
+        boolean modified = true;
+        while (modified && countLeft > 0 && countRight > 0) {
+            modified = false;
+            for (int i = 0; i != leftArray.length; i++) {
+                if (leftArray[i] == null)
+                    continue;
+                for (int j = 0; j != rightArray.length; j++) {
+                    if (rightArray[j] != null && diffSameQuads(leftArray[i], rightArray[j], blanks)) {
+                        leftArray[i] = null;
+                        rightArray[j] = null;
+                        countLeft--;
+                        countRight--;
+                        modified = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        Collection<Quad> remainingLeft = new ArrayList<>(countLeft);
+        Collection<Quad> remainingRight = new ArrayList<>(countRight);
+        if (countLeft > 0) {
+            for (int i = 0; i != leftArray.length; i++) {
+                if (leftArray[i] != null)
+                    remainingLeft.add(leftArray[i]);
+            }
+        }
+        if (countRight > 0) {
+            for (int i = 0; i != rightArray.length; i++) {
+                if (rightArray[i] != null)
+                    remainingRight.add(rightArray[i]);
+            }
+        }
+        return Changeset.fromAddedRemoved(remainingLeft, remainingRight);
+    }
+
+    /**
+     * Determines whether the specified quads are equivalent, using the given blank node mapping
+     *
+     * @param quad1  A quad
+     * @param quad2  Another quad
+     * @param blanks A map of blank nodes
+     * @return <code>true</code> if the two quads are equivalent
+     */
+    private static boolean diffSameQuads(Quad quad1, Quad quad2, Map<BlankNode, BlankNode> blanks) {
+        GraphNode graph = quad1.getGraph();
+        SubjectNode subject = quad1.getSubject();
+        Property property = quad1.getProperty();
+        Node object = quad1.getObject();
+        if (graph.getNodeType() == Node.TYPE_BLANK)
+            graph = blanks.get(graph);
+        if (subject.getNodeType() == Node.TYPE_BLANK)
+            subject = blanks.get(subject);
+        if (object.getNodeType() == Node.TYPE_BLANK)
+            object = blanks.get(object);
+        if (!RDFUtils.same(property, quad2.getProperty()))
+            return false;
+        if (graph != null && !RDFUtils.same(graph, quad2.getGraph()))
+            return false;
+        if (subject != null && !RDFUtils.same(subject, quad2.getSubject()))
+            return false;
+        if (object != null && !RDFUtils.same(object, quad2.getObject()))
+            return false;
+        if (graph == null && quad2.getGraph().getNodeType() != Node.TYPE_BLANK)
+            return false;
+        if (subject == null && quad2.getSubject().getNodeType() != Node.TYPE_BLANK)
+            return false;
+        if (object == null && quad2.getObject().getNodeType() != Node.TYPE_BLANK)
+            return false;
+        if (graph == null)
+            blanks.put((BlankNode) quad1.getGraph(), (BlankNode) quad2.getGraph());
+        if (subject == null)
+            blanks.put((BlankNode) quad1.getSubject(), (BlankNode) quad2.getSubject());
+        if (object == null)
+            blanks.put((BlankNode) quad1.getObject(), (BlankNode) quad2.getObject());
+        return true;
     }
 }
