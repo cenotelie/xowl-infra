@@ -478,5 +478,7 @@ class FileStore extends IOBackend {
         file.writeInt(LAYOUT_VERSION);
         file.writeInt(0);
         file.writeInt(1);
+        if (!file.commit())
+            throw new StorageException("Failed to initialize the file");
     }
 }
