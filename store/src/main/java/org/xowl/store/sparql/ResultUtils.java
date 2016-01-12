@@ -28,6 +28,7 @@ import org.xowl.store.IOUtils;
 import org.xowl.store.IRIs;
 import org.xowl.store.loaders.*;
 import org.xowl.store.rdf.Node;
+import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.QuerySolution;
 import org.xowl.store.rdf.VariableNode;
 import org.xowl.store.storage.NodeManager;
@@ -39,10 +40,7 @@ import org.xowl.utils.logging.Logger;
 
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Utilities for SPARQL results
@@ -90,9 +88,31 @@ public class ResultUtils {
      * @return The parsed SPARQL result
      */
     public static Result parseResponse(String content, String contentType) {
-        if (content == null)
-            // fail on empty result
-            return new ResultFailure("No response");
+        if (content == null) {
+            // this is probably an empty content
+            if (contentType == null)
+                // no content type, cannot determine what type of response, interpret as absence of repsonse
+                return new ResultFailure("No response");
+            switch (contentType) {
+                // empty quads
+                case AbstractRepository.SYNTAX_NQUADS:
+                case AbstractRepository.SYNTAX_NTRIPLES:
+                case AbstractRepository.SYNTAX_TURTLE:
+                case AbstractRepository.SYNTAX_TRIG:
+                case AbstractRepository.SYNTAX_RDFXML:
+                case AbstractRepository.SYNTAX_JSON_LD:
+                    return new ResultQuads(new ArrayList<Quad>(0));
+                // empty solutions
+                case Result.SYNTAX_JSON:
+                case IOUtils.MIME_JSON:
+                case Result.SYNTAX_CSV:
+                case Result.SYNTAX_TSV:
+                case Result.SYNTAX_XML:
+                    return new ResultSolutions(new SolutionsArray());
+                default:
+                    return new ResultFailure("Cannot handle content " + contentType);
+            }
+        }
         if ("OK".equalsIgnoreCase(content))
             return ResultSuccess.INSTANCE;
         if ("true".equalsIgnoreCase(content))
@@ -119,7 +139,7 @@ public class ResultUtils {
                         }
                     });
                 case Result.SYNTAX_JSON:
-                case "application/json":
+                case IOUtils.MIME_JSON:
                     return parseResponseJSON(content);
                 case Result.SYNTAX_CSV:
                 case Result.SYNTAX_TSV:
