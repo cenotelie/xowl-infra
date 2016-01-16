@@ -142,3 +142,10 @@ function getErrorFor(code, content) {
       return (MSG_ERROR_CONNECTION + (content !== null ? "\n" + content : ""));
   }
 }
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}

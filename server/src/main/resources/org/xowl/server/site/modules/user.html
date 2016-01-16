@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>xOWL Server: My Account</title>
+  <title>xOWL Server: User Edition</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/png" href="../favicon.png" />
@@ -20,7 +20,7 @@
     </span>
     <div style="display: inline-block; margin-left: 50px;">
       <span style="display: inline-block;">
-        <strong>My Account</strong>
+        <strong>User Edition</strong>
       </span>
     </div>
     <div style="float: right; margin-right: 20px;">
@@ -40,19 +40,15 @@
           </div>
           <div class="panel panel-default">
             <div class="panel-body">
-              The table shows the privileges assigned to you. Note that server administrators always have administration privilege on a
-              database.
-            </div>
-          </div>
-          <div class="panel panel-default">
-            <div class="panel-body">
               <table class="table table-bordered table-hover">
                 <thead>
                   <tr>
-                    <th style="width: 25%;">Database</th>
-                    <th style="width: 25%;">Is Admin</th>
-                    <th style="width: 25%;">Can Write</th>
-                    <th style="width: 25%;">Can Read</th>
+                    <tr>
+                      <th style="width: 25%;">Database</th>
+                      <th style="width: 25%;">Is Admin</th>
+                      <th style="width: 25%;">Can Write</th>
+                      <th style="width: 25%;">Can Read</th>
+                    </tr>
                   </tr>
                 </thead>
                 <tbody id="accesses">
@@ -62,11 +58,36 @@
           </div>
         </div>
         <div class="col-md-4">
-          <div class="panel panel-danger">
+          <div class="panel panel-default">
             <div class="panel-heading">
-              Change password
+              Grant access to database
             </div>
             <div class="panel-body">
+              <div class="form-group">
+                <label for="field-grant-db">Database</label>
+                <input type="text" class="form-control" id="field-grant-db" placeholder="name" />
+              </div>
+              <div class="form-group">
+                <label for="field-grant-right">Access</label>
+                <select id="field-grant-right" class="form-control">
+                  <option>READ</option>
+                  <option>WRITE</option>
+                  <option>ADMIN</option>
+                </select>
+              </div>
+              <a class="btn btn-primary" onclick="onGrant()">Grant</a>
+            </div>
+          </div>
+          <div class="panel panel-danger">
+            <div class="panel-heading">
+              Reset password
+            </div>
+            <div class="panel-body">
+              <div class="panel panel-danger">
+                <div class="panel-body">
+                  <span class="text-danger">Beware that resetting the password will make the account inaccessible to the user, unless you tell him/her the new password.</span>
+                </div>
+              </div>
               <div class="form-group">
                 <label for="field-password1">New password</label>
                 <input type="password" class="form-control" id="field-password1" placeholder="password" />
@@ -75,7 +96,20 @@
                 <label for="field-password2">New password (the same)</label>
                 <input type="password" class="form-control" id="field-password2" placeholder="password" />
               </div>
-              <a class="btn btn-danger" onclick="onChangePassword()">Change password</a>
+              <a class="btn btn-danger" onclick="onResetPassword()">Reset password</a>
+            </div>
+          </div>
+          <div class="panel panel-danger">
+            <div class="panel-heading">
+              Delete user
+            </div>
+            <div class="panel-body">
+              <div class="panel panel-danger">
+                <div class="panel-body">
+                  <span class="text-danger">This operation cannot be undone.</span>
+                </div>
+              </div>
+              <a class="btn btn-danger" onclick="onUserDelete()">Delete user</a>
             </div>
           </div>
         </div>
@@ -84,7 +118,7 @@
   </div>
   <script src="../xowl-api-server.js"></script>
   <script src="../xowl-api-ui.js"></script>
-  <script src="account.js"></script>
+  <script src="user.js"></script>
   <script>
     init();
   </script>

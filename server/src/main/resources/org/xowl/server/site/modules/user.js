@@ -2,11 +2,16 @@
 // Provided under LGPL v3
 
 var xowl = new XOWL();
+var userName = getParameterByName("id");
 var FLAG = false;
 
 function init() {
 	if (!xowl.isLoggedIn()) {
 		document.location.href = "../index.html";
+		return;
+	}
+	if (!userName || userName === null || userName === "") {
+		document.location.href = "main.html";
 		return;
 	}
 	document.getElementById("btn-logout").innerHTML = "Logout (" + xowl.getUser() + ")";
@@ -16,7 +21,7 @@ function init() {
 		} else {
 			displayMessage(getErrorFor(type, content));
 		}
-	}, xowl.getUser());
+	}, userName);
 }
 
 function onButtonLogout() {
@@ -24,7 +29,40 @@ function onButtonLogout() {
 	document.location.href = "../index.html";
 }
 
-function onChangePassword() {
+function onGrant() {
+	if (FLAG)
+		return;
+	var database = document.getElementById('field-grant-db').value;
+    var privilege = document.getElementById('field-grant-right').value;
+	if (database === null || database === "" || privilege === null || privilege === "")
+		return;
+	FLAG = true;
+	displayMessage("Granting ...");
+	xowl.grantDB(function (code, type, content) {
+		FLAG = false;
+		if (code === 200) {
+			document.location.reload();
+		} else {
+			displayMessage(getErrorFor(type, content));
+		}
+	}, database, privilege, userName);
+}
+
+function onRevoke(database, privilege) {
+	if (FLAG)
+		return;
+	FLAG = true;
+	displayMessage("Revoking ...");
+	xowl.revokeDB(function (code, type, content) {
+        if (code === 200) {
+			document.location.reload();
+        } else {
+			displayMessage(getErrorFor(type, content));
+        }
+	}, database, privilege, userName);
+}
+
+function onResetPassword() {
 	if (FLAG)
 		return;
 	var password1 = document.getElementById("field-password1").value;
@@ -36,15 +74,30 @@ function onChangePassword() {
 		return;
 	}
 	FLAG = true;
-	displayMessage("Changing password ...");
-	xowl.changePassword(function (code, type, content) {
+	displayMessage("Resetting password ...");
+	xowl.resetPassword(function (code, type, content) {
 		FLAG = false;
 		if (code === 200) {
 			displayMessage(null);
 		} else {
 			displayMessage(getErrorFor(type, content));
 		}
-	}, password1);
+	}, userName, password1);
+}
+
+function onUserDelete() {
+	if (FLAG)
+		return;
+	FLAG = true;
+	displayMessage("Deleting user ...");
+	xowl.deleteUser(function (code, type, content) {
+		FLAG = false;
+		if (code === 200) {
+			document.location.href = "users.html";
+		} else {
+			displayMessage(getErrorFor(type, content));
+		}
+	}, userName);
 }
 
 function renderAccesses(accesses) {
@@ -64,8 +117,35 @@ function renderAccesses(accesses) {
 		cells[3].align = "center";
 		cells[0].appendChild(renderDatabase(accesses[i].database));
 		cells[1].appendChild(renderAccess(accesses[i].isAdmin, false));
+		if (accesses[i].isAdmin) {
+			var btn = renderRevoke();
+			(function (access) {
+				btn.onclick = function () {
+					onRevoke(access.database, "ADMIN");
+				}
+			})(accesses[i]);
+			cells[1].appendChild(btn);
+		}
 		cells[2].appendChild(renderAccess(accesses[i].canWrite, accesses[i].isAdmin));
+		if (accesses[i].canWrite) {
+			var btn = renderRevoke();
+			(function (access) {
+				btn.onclick = function () {
+					onRevoke(access.database, "WRITE");
+				}
+			})(accesses[i]);
+			cells[2].appendChild(btn);
+		}
 		cells[3].appendChild(renderAccess(accesses[i].canRead, accesses[i].isAdmin || accesses[i].canWrite));
+		if (accesses[i].canRead) {
+			var btn = renderRevoke();
+			(function (access) {
+				btn.onclick = function () {
+					onRevoke(access.database, "READ");
+				}
+			})(accesses[i]);
+			cells[3].appendChild(btn);
+		}
 		var row = document.createElement("tr");
 		row.appendChild(cells[0]);
 		row.appendChild(cells[1]);
@@ -109,4 +189,19 @@ function renderAccess(isGranted, isInferred) {
 	} else {
 		return document.createElement("span");
 	}
+}
+
+function renderRevoke() {
+	var span = document.createElement("span");
+	span.classList.add("glyphicon");
+	span.classList.add("glyphicon-minus");
+	span.setAttribute("aria-hidden", "true");
+	var a = document.createElement("a");
+	a.classList.add("btn");
+	a.classList.add("btn-xs");
+	a.classList.add("btn-danger");
+	a.title = "REVOKE";
+	a.style.marginLeft = "20px";
+	a.appendChild(span);
+	return a;
 }

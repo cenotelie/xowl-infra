@@ -9,6 +9,7 @@ function init() {
 		document.location.href = "../index.html";
 		return;
 	}
+	document.getElementById("btn-logout").innerHTML = "Logout (" + xowl.getUser() + ")";
 	displayMessage(null);
 }
 

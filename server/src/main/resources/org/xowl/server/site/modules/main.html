@@ -24,7 +24,7 @@
       </span>
     </div>
     <div style="float: right; margin-right: 20px;">
-      <div><a onclick="onButtonLogout()" style="cursor: pointer;">Logout</a></div>
+      <div><a onclick="onButtonLogout()" style="cursor: pointer;" id="btn-logout">Logout</a></div>
     </div>
     <hr style="margin-top: 5px; margin-bottom: 5px;" />
   </div>
@@ -40,16 +40,34 @@
           </div>
           <div class="panel panel-default">
             <div class="panel-body">
-              <div id="panel-admin-new-db"><a class="btn" href="db-new.html">New database ...</a></div>
-              <table class="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <th>Database</th>
-                  </tr>
-                </thead>
-                <tbody id="databases">
-                </tbody>
-              </table>
+              <div class="container-fluid">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div id="panel-admin-new-db"><a class="btn" href="db-new.html">New database ...</a></div>
+                    <table class="table table-bordered table-hover">
+                      <thead>
+                        <tr>
+                          <th>Database</th>
+                        </tr>
+                      </thead>
+                      <tbody id="databases">
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="col-md-6">
+                    <div id="panel-admin-new-user"><a class="btn" href="user-new.html">New user ...</a></div>
+                    <table class="table table-bordered table-hover">
+                      <thead>
+                        <tr>
+                          <th>User</th>
+                        </tr>
+                      </thead>
+                      <tbody id="users">
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -57,7 +75,7 @@
           <div class="panel panel-default">
             <div class="panel-body">
               <div><a class="btn" href="account.html">My account</a></div>
-              <div><a class="btn" href="users.html">Manage users</a></div>
+              <div><a class="btn" onclick="onButtonLogout()">Logout</a></div>
             </div>
           </div>
           <div class="panel panel-warning" id="panel-admin-server">
