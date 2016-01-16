@@ -30,6 +30,14 @@ function init() {
 	document.getElementById("btn-logout").innerHTML = "Logout (" + xowl.getUser() + ")";
 	document.getElementById("placeholder-db").appendChild(document.createTextNode(dbName));
 	document.getElementById("field-rule-definition").value = DEFAULT_RULE;
+	document.getElementById('import-file').addEventListener('change', onFileSelected, false);
+	var typesField = document.getElementById("import-file-type");
+	for (var i = 0; i != MIME_TYPES.length; i++) {
+		var option = document.createElement("option");
+		option.value = MIME_TYPES[i].value;
+		option.appendChild(document.createTextNode(MIME_TYPES[i].name));
+		typesField.appendChild(option);
+	}
 	xowl.getEntailmentFor(function (code, type, content) {
 		if (code === 200) {
 			document.getElementById('field-entailment').value = content;
@@ -126,8 +134,71 @@ function onDrop() {
 	}, dbName);
 }
 
-function onImport() {
+function onFileSelected(evt) {
+    var file = evt.target.files[0];
+	var mime = file.type;
+	var fileType = null;
+	for (var i = 0; i != MIME_TYPES.length; i++) {
+		if (MIME_TYPES[i].value === mime) {
+			fileType = MIME_TYPES[i];
+			break;
+		}
+		for (var j = 0; j != MIME_TYPES[i].extensions.length; j++) {
+			var suffix = MIME_TYPES[i].extensions[j];
+			if (file.name.indexOf(suffix, file.name.length - suffix.length) !== -1) {
+				fileType = MIME_TYPES[i];
+				break;
+			}
+		}
+	}
+	if (fileType !== null) {
+		document.getElementById("import-file-type").value = fileType.value;
+	}
+}
 
+function onImport() {
+	if (FLAG)
+		return;
+	if (document.getElementById("import-file").files.length == 0)
+		return;
+	var file = document.getElementById("import-file").files[0];
+	var selectedMIME = document.getElementById("import-file-type").value;
+	var progressBar = document.getElementById("import-progress");
+	progressBar['aria-valuenow'] = 0;
+	progressBar.style.width = "0%";
+	progressBar.classList.remove("progress-bar-success");
+	progressBar.classList.remove("progress-bar-error");
+	progressBar.innerHTML = null;
+	var reader = new FileReader();
+	reader.onprogress = function (event) {
+		var ratio = 50 * event.loaded / event.total;
+		progressBar['aria-valuenow'] = ratio;
+		progressBar.style.width = ratio.toString() + "%";
+		displayMessage("Reading ...");
+	}
+	reader.onloadend = function (event) {
+		if (reader.error !== null) {
+			displayMessage("Error: " + reader.error.toString());
+			progressBar['aria-valuenow'] = 100;
+			progressBar.style.width = "100%";
+			progressBar.classList.add("progress-bar-error");
+			return;
+		}
+		displayMessage("Sending ...");
+		xowl.upload(function (code, type, content) {
+			if (code === 200) {
+				alert("OK");
+				displayMessage(null);
+				progressBar.classList.add("progress-bar-success");
+			} else {
+				displayMessage(getErrorFor(code, content));
+				progressBar.classList.add("progress-bar-error");
+			}
+			progressBar['aria-valuenow'] = 100;
+			progressBar.style.width = "100%";
+		}, dbName, selectedMIME, reader.result);
+	}
+	reader.readAsBinaryString(file);
 }
 
 function onGrant() {
