@@ -4,7 +4,7 @@
 var xowl = new XOWL();
 
 function init() {
-	document.getElementById("loader").style.display = "none";
+	displayMessage(null);
 }
 
 function onLoginButton() {

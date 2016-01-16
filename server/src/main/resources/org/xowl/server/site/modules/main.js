@@ -86,5 +86,5 @@ function renderDatabases(databases) {
 		row.appendChild(cell);
 		table.appendChild(row);
 	}
-	document.getElementById("loader").style.display = "none";
+	displayMessage(null);
 }

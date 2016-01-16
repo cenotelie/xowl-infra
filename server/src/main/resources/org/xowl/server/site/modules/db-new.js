@@ -9,7 +9,7 @@ function init() {
 		document.location.href = "../index.html";
 		return;
 	}
-	document.getElementById("loader").style.display = "none";
+	displayMessage(null);
 }
 
 function onButtonLogout() {

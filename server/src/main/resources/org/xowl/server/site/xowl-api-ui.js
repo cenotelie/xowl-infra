@@ -103,6 +103,10 @@ function rdfToDom(value) {
 }
 
 function displayMessage(text) {
+  if (text === null) {
+    document.getElementById("loader").style.display = "none";
+    return;
+  }
   var parts = text.split("\n");
   var span = document.getElementById("loader-text");
   while (span.hasChildNodes())

@@ -53,5 +53,5 @@ function renderUsers(users) {
 		row.appendChild(cell);
 		table.appendChild(row);
 	}
-	document.getElementById("loader").style.display = "none";
+	displayMessage(null);
 }
