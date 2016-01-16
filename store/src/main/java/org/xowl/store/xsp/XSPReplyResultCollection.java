@@ -20,6 +20,7 @@
 
 package org.xowl.store.xsp;
 
+import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;
 
 import java.util.Collection;
@@ -89,8 +90,11 @@ public class XSPReplyResultCollection<T> implements XSPReply {
             first = false;
             if (obj instanceof Serializable)
                 builder.append(((Serializable) obj).serializedJSON());
-            else
-                builder.append(obj.toString());
+            else {
+                builder.append("\"");
+                builder.append(IOUtils.escapeStringJSON(obj.toString()));
+                builder.append("\"");
+            }
         }
         builder.append("]}");
         return builder.toString();

@@ -15,6 +15,7 @@ function init() {
 		return;
 	}
 	document.getElementById("btn-logout").innerHTML = "Logout (" + xowl.getUser() + ")";
+	document.getElementById("placeholder-user").appendChild(document.createTextNode(userName));
 	xowl.getUserPrivileges(function (code, type, content) {
 		if (code === 200) {
 			renderAccesses(content.accesses);
@@ -93,7 +94,7 @@ function onUserDelete() {
 	xowl.deleteUser(function (code, type, content) {
 		FLAG = false;
 		if (code === 200) {
-			document.location.href = "users.html";
+			document.location.href = "main.html";
 		} else {
 			displayMessage(getErrorFor(type, content));
 		}

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>xOWL Server: DB Edition</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="../favicon.png" />
+  <link rel="stylesheet" type="text/css" href="../vendors/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="../vendors/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="../app.css">
+</head>
+
+<body>
+  <div class="header">
+    <span style="margin-left: 5px; display: inline-block;">
+      <img class="img-responsive" src="../assets/xowl.svg" width="25px" style="display: inline-block;"/>
+      xOWL Server
+    </span>
+    <div style="display: inline-block; margin-left: 50px;">
+      <span style="display: inline-block;">
+        <ol class="breadcrumb">
+          <li><a href="main.html">Home</a></li>
+          <li class="active">Database Edition</li>
+        </ol>
+      </span>
+    </div>
+    <div style="float: right; margin-right: 20px;">
+      <div><a onclick="onButtonLogout()" style="cursor: pointer;" id="btn-logout">Logout</a></div>
+    </div>
+    <hr style="margin-top: 5px; margin-bottom: 5px;" />
+  </div>
+  <div class="body">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default" id="loader">
+            <div class="panel-body">
+              <img src="../assets/xowl.gif" width="32" height="32" />
+              <span id="loader-text">Loading ...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <div style="margin-bottom: 10px;">
+                Settings for database <strong id="placeholder-db"></strong>.
+              </div>
+              <div style="margin-bottom: 10px;">
+                <form class="form-inline">
+                  <div class="form-group">
+                    <label for="field-entailment">Entailment:</label>
+                    <select id="field-entailment" class="form-control">
+                      <option value="none">No entailment</option>
+                      <option value="simple">Simple interpretation</option>
+                      <option value="RDF">RDF interpretation</option>
+                      <option value="RDFS">RDFS interpretation</option>
+                      <option value="OWL2_RDF">OWL2, RDF-based interpretation</option>
+                      <option value="OWL2_DIRECT">OWL2, direct interpretation</option>
+                    </select>
+                  </div>
+                  <a class="btn btn-primary" onclick="onSetEntailment()">Update</a>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <div><a class="btn" onclick="onSPARQL()">SPARQL</a></div>
+              <div><a class="btn" onclick="onDrop()">Drop this database (cannot be undone)</a></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <a style="cursor: pointer;" onclick="toggleImport()">Import content</a>
+            </div>
+            <div class="panel-body" id="panel-import" style="display: none;">
+              <form>
+                <div class="form-group">
+                  <label for="import-file">Select file to import</label>
+                  <input type="file" id="import-file" name="import-file" />
+                </div>
+                <div class="form-group">
+                  <label for="import-file-type">File type</label>
+                  <select id="import-file-type" class="form-control">
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="import-progress">Upload progress</label>
+                  <div class="progress">
+                    <div id="import-progress" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                    style="min-width: 2em;">
+                    </div>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary" onclick="onImport()">Submit</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-8">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <table class="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <tr>
+                      <th style="width: 25%;">User</th>
+                      <th style="width: 25%;">Is Admin</th>
+                      <th style="width: 25%;">Can Write</th>
+                      <th style="width: 25%;">Can Read</th>
+                    </tr>
+                  </tr>
+                </thead>
+                <tbody id="accesses">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <a style="cursor: pointer;" onclick="toggleGrant()">Grant access to user</a>
+            </div>
+            <div class="panel-body" id="panel-grant" style="display: none;">
+              <div class="form-group">
+                <label for="field-grant-user">User</label>
+                <input type="text" class="form-control" id="field-grant-user" placeholder="name" />
+              </div>
+              <div class="form-group">
+                <label for="field-grant-right">Access</label>
+                <select id="field-grant-right" class="form-control">
+                  <option>READ</option>
+                  <option>WRITE</option>
+                  <option>ADMIN</option>
+                </select>
+              </div>
+              <a class="btn btn-primary" onclick="onGrant()">Grant</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-8">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <table class="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <th style="width: 15%;">Action</th>
+                    <th style="width: 70%;">Rule</th>
+                    <th style="width: 15%;">Active</th>
+                  </tr>
+                </thead>
+                <tbody id="rules">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <a style="cursor: pointer;" onclick="toggleRule()">Create new rule</a>
+            </div>
+            <div class="panel-body" id="panel-rule" style="display: none;">
+              <div class="form-group">
+                <label for="field-rule-definition">Definition</label>
+                <textarea class="form-control" rows="10" id="field-rule-definition"></textarea>
+              </div>
+              <a class="btn btn-primary" onclick="onCreateRule()">Create rule</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../xowl-api-server.js"></script>
+  <script src="../xowl-api-ui.js"></script>
+  <script src="db.js"></script>
+  <script>
+    init();
+  </script>
+</body>
+
+</html>

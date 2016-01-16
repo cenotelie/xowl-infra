@@ -67,23 +67,6 @@
  */
 
 /**
- * The MIME types of the recognized files
- * @const
- */
-var XOWL_MIME_TYPES = [
-	{ name: 'N-Triples', value: 'application/n-triples', extensions: ['.nt'] },
-	{ name: 'N-Quads', value: 'application/n-quads', extensions: ['.nq'] },
-	{ name: 'Turtle', value: 'text/turtle', extensions: ['.ttl'] },
-	{ name: 'TriG', value: 'application/trig', extensions: ['.trig'] },
-	{ name: 'JSON-LD', value: 'application/ld+json', extensions: ['.jsonld'] },
-	{ name: 'RDF/XML', value: 'application/rdf+xml', extensions: ['.rdf'] },
-	{ name: 'Functional OWL2', value: 'text/owl-functional', extensions: ['.ofn', '.fs'] },
-	{ name: 'OWL/XML', value: 'application/owl+xml', extensions: ['.owx', '.owl'] },
-	{ name: 'xOWL RDF Rules', value: 'application/x-xowl-rdft', extensions: ['.rdft'] },
-	{ name: 'xOWL Ontology', value: 'application/x-xowl', extensions: ['.xowl'] }
-];
-
-/**
  * Creates a new XOWL connection
  * @class
  * @param {string} [endpoint] - The xOWL server endpoint to use, defaults to '/api'
