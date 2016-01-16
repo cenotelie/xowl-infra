@@ -12,11 +12,10 @@
   margin-top: 5px;
 }
 
-.tab-admin {
-  background-color: #EE6666;
-  color: white;
-}
-
-.tab-db-admin {
-  background-color: #CCCC66;
+.breadcrumb {
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  margin-bottom: 0px;
 }

@@ -3,13 +3,13 @@
 
 <head>
   <meta charset="utf-8">
-  <title>xOWL Server: Administration</title>
+  <title>xOWL Server: Home</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/png" href="../favicon.png" />
-  <link rel="stylesheet" href="../app.css">
   <link rel="stylesheet" type="text/css" href="../vendors/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="../vendors/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="../app.css">
 </head>
 
 <body>
@@ -20,11 +20,10 @@
     </span>
     <div style="display: inline-block; margin-left: 50px;">
       <span style="display: inline-block;">
-        <strong>Server Administration</strong>
+        <ol class="breadcrumb">
+          <li class="active">Home</li>
+        </ol>
       </span>
-    </div>
-    <div style="float: right; margin-right: 20px;">
-      <div><a onclick="onButtonLogout()" style="cursor: pointer;" id="btn-logout">Logout</a></div>
     </div>
     <hr style="margin-top: 5px; margin-bottom: 5px;" />
   </div>
@@ -75,7 +74,7 @@
           <div class="panel panel-default">
             <div class="panel-body">
               <div><a class="btn" href="account.html">My account</a></div>
-              <div><a class="btn" onclick="onButtonLogout()">Logout</a></div>
+              <div><a class="btn" onclick="onButtonLogout()" id="btn-logout">Logout</a></div>
             </div>
           </div>
           <div class="panel panel-warning" id="panel-admin-server">
