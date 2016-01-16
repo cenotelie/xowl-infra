@@ -1,22 +1,5 @@
-/*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation, either version 3
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General
- * Public License along with this program.
- * If not, see <http://www.gnu.org/licenses/>.
- *
- * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
- ******************************************************************************/
+// Copyright (c) 2015 Laurent Wouters
+// Provided under LGPL v3
 
 /**
  * Represents the expected callback for request to an xOWL enpoint
@@ -117,6 +100,25 @@ function XOWL(endpoint, useLocal) {
 		this.authToken = null;
 		this.userName = null;
 	}
+}
+
+/**
+ * Determines whether the user is logged in.
+ * This checks whether the an authentication token is stored
+ * @method isLoggedIn
+ * @return {boolean} Whether a user is logged in
+ */
+XOWL.prototype.isLoggedIn = function () {
+	return (this.authToken !== null && this.userName !== null);
+}
+
+/**
+ * Gets the name of the logged in user, if any
+ * @method getUser
+ * @return {string} The name of the logged in user, or null
+ */
+XOWL.prototype.getUser = function () {
+	return this.userName;
 }
 
 /**

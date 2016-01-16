@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="xOWLServer">
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
@@ -13,59 +13,53 @@
 </head>
 
 <body>
-  <div ng-controller="xOWLServerCtrl" class="header">
+  <div class="header">
     <span style="margin-left: 5px; display: inline-block;">
-      <img ng-if="!onAsync" class="img-responsive" src="assets/xowl.png" width="25px" style="display: inline-block;"/>
-      <img ng-if="onAsync" class="img-responsive" src="assets/xowl.gif" width="25px" style="display: inline-block;"/>
+      <img class="img-responsive" src="assets/xowl.svg" width="25px" style="display: inline-block;"/>
       xOWL Server
     </span>
-    <div ng-if="xowl.userName != null" style="display: inline-block; margin-left: 50px;">
-      <div class="btn-group" role="toolbar" aria-label="main-menu" style="display: inline-block;">
-        <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Databases <span class="caret"></span></button>
-        <ul class="dropdown-menu">
-          <li><a href="#databases">Browse all ...</a></li>
-          <li role="separator" class="divider"></li>
-          <li ng-repeat="database in databases"><a href="#/database/{{database.name}}">{{database.name}}</a></li>
-        </ul>
-      </div>
-      <div class="btn-group" role="toolbar" aria-label="main-menu" style="display: inline-block;">
-        <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manage <span class="caret"></span></button>
-        <ul class="dropdown-menu">
-          <li><a href="#account">My account</a></li>
-          <li><a href="#server">Server</a></li>
-          <li><a href="#users">Users</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="#login" ng-click="onLogoutButton()">Logout</a></li>
-        </ul>
-      </div>
-      <span style="display: inline-block; margin-left: 50px;">
-        Connected as <strong>{{xowl.userName}}</strong>
+    <div style="display: inline-block; margin-left: 50px;">
+      <span style="display: inline-block;">
+        <strong>Login</strong>
       </span>
     </div>
     <hr style="margin-top: 5px; margin-bottom: 5px;" />
   </div>
-  <div ng-if="onAsync && onAsyncLong" class="async-marker">
-    <img class="img-responsive" src="assets/xowl.gif" width="128px" />
-    <div>
-      <span>This operation is<br/>taking some time ...</span>
+  <div class="body">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-default" id="loader">
+            <div class="panel-body">
+              <img src="assets/xowl.gif" width="32" height="32" />
+              <span id="loader-text">Loading ...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <form>
+            <div class="form-group">
+              <label for="field-login">Login</label>
+              <input type="text" class="form-control" id="field-login" placeholder="Login" />
+            </div>
+            <div class="form-group">
+              <label for="field-password">Password</label>
+              <input type="password" class="form-control" id="field-password" placeholder="Password" />
+            </div>
+            <a class="btn btn-primary" onclick="onLoginButton()">Login</a>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="body" ng-view></div>
-  <script src="vendors/jquery-2.1.4.min.js"></script>
-  <script src="vendors/angular.min.js"></script>
-  <script src="vendors/angular-route.min.js"></script>
-  <script src="vendors/bootstrap.min.js"></script>
-  <script src="app.js"></script>
-  <script src="xowl-api.js"></script>
-  <script src="xowl-api-angular.js"></script>
-  <script src="xowl-quads.js"></script>
-  <script src="modules/login/login.js"></script>
-  <script src="modules/server/server.js"></script>
-  <script src="modules/account/account.js"></script>
-  <script src="modules/databases/databases.js"></script>
-  <script src="modules/database/database.js"></script>
-  <script src="modules/users/users.js"></script>
-  <script src="modules/user/user.js"></script>
+  <script src="xowl-api-server.js"></script>
+  <script src="xowl-api-ui.js"></script>
+  <script src="index.js"></script>
+  <script>
+    init();
+  </script>
 </body>
 
 </html>
