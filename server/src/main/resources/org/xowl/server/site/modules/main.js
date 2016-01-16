@@ -12,6 +12,7 @@ function init() {
 	document.getElementById("btn-logout").innerHTML = "Logout (" + xowl.getUser() + ")";
 	document.getElementById("panel-admin-server").style.display = "none";
 	document.getElementById("panel-admin-new-db").style.display = "none";
+	document.getElementById("panel-admin-new-user").style.display = "none";
 	xowl.getUserPrivileges(function (code, type, content) {
 		if (code === 200) {
 			if (content.isServerAdmin) {
