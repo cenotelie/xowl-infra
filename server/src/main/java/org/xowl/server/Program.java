@@ -28,6 +28,8 @@ import org.xowl.utils.logging.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -191,13 +193,21 @@ public class Program {
      * @return The encoded text
      */
     public static String encode(byte[] bytes) {
-        char[] chars = new char[bytes.length * 2];
-        int j = 0;
-        for (int i = 0; i != bytes.length; i++) {
-            chars[j++] = HEX[(bytes[i] & 0xF0) >>> 4];
-            chars[j++] = HEX[bytes[i] & 0x0F];
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+            bytes = md.digest(bytes);
+            char[] chars = new char[bytes.length * 2];
+            int j = 0;
+            for (int i = 0; i != bytes.length; i++) {
+                chars[j++] = HEX[(bytes[i] & 0xF0) >>> 4];
+                chars[j++] = HEX[bytes[i] & 0x0F];
+            }
+            return new String(chars);
+        } catch(NoSuchAlgorithmException exception) {
+            Logger.DEFAULT.error(exception);
+            return null;
         }
-        return new String(chars);
     }
 
     /**
