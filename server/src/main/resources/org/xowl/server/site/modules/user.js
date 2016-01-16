@@ -89,6 +89,8 @@ function onResetPassword() {
 function onUserDelete() {
 	if (FLAG)
 		return;
+	if (!confirm("Delete user " + userName + " (user's privileges will be lost)?"))
+		return;
 	FLAG = true;
 	displayMessage("Deleting user ...");
 	xowl.deleteUser(function (code, type, content) {

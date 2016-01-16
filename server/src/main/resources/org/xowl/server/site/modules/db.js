@@ -112,6 +112,8 @@ function onSPARQL() {
 function onDrop() {
 	if (FLAG)
 		return;
+	if (!confirm("Drop database " + dbName + " (data will be erased)?"))
+		return;
 	FLAG = true;
 	displayMessage("Dropping database ...");
 	xowl.dropDatabase(function (code, type, content) {
