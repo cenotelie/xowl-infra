@@ -16,6 +16,8 @@ function init() {
 	}
 	document.getElementById("btn-logout").innerHTML = "Logout (" + xowl.getUser() + ")";
 	document.getElementById("placeholder-user").appendChild(document.createTextNode(userName));
+	document.getElementById("placeholder-user").href = "user.html?id=" + encodeURIComponent(userName);
+	document.getElementById("placeholder-user2").appendChild(document.createTextNode(userName));
 	xowl.getUserPrivileges(function (code, type, content) {
 		if (code === 200) {
 			renderAccesses(content.accesses);
