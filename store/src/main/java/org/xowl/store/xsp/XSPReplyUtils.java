@@ -82,6 +82,8 @@ public class XSPReplyUtils {
         return new IOUtils.HttpResponse(HttpURLConnection.HTTP_OK, IOUtils.MIME_JSON, reply.serializedJSON());
     }
 
+
+
     /**
      * Parses a XSP result serialized in JSON
      *
@@ -117,11 +119,21 @@ public class XSPReplyUtils {
         if ("array".equals(parseResult.getRoot().getSymbol().getName()))
             return new XSPReplyFailure("Unexpected JSON format");
 
+        return parseJSONResult(parseResult.getRoot());
+    }
+
+    /**
+     * Parses a XSP result serialized in JSON
+     *
+     * @param root The content
+     * @return The result
+     */
+    public static XSPReply parseJSONResult(ASTNode root) {
         ASTNode nodeIsSuccess = null;
         ASTNode nodeMessage = null;
         ASTNode nodeCause = null;
         ASTNode nodePayload = null;
-        for (ASTNode memberNode : parseResult.getRoot().getChildren()) {
+        for (ASTNode memberNode : root.getChildren()) {
             String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
             memberName = memberName.substring(1, memberName.length() - 1);
             ASTNode memberValue = memberNode.getChildren().get(1);
