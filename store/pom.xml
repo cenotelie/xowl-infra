@@ -19,6 +19,18 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
+			<groupId>xml-apis</groupId>
+			<artifactId>xml-apis</artifactId>
+			<version>1.4.01</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>xml-resolver</groupId>
+			<artifactId>xml-resolver</artifactId>
+			<version>1.2</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
@@ -58,6 +70,19 @@
 					<forkCount>1</forkCount>
 					<reuseForks>false</reuseForks>
 					<argLine>-Xmx2048m</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>3.0.1</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Import-Package>!sun.*,*</Import-Package>
+						<Embed-Dependency>xercesImpl;inline=true,xml-apis;inline=true,xml-resolver;inline=true,mapdb;inline=true</Embed-Dependency>
+						<Embed-Transitive>false</Embed-Transitive>
+					</instructions>
 				</configuration>
 			</plugin>
 		</plugins>
