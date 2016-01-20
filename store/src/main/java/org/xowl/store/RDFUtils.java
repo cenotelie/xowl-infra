@@ -30,6 +30,7 @@ import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
+import org.xowl.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -146,7 +147,8 @@ public class RDFUtils {
         } else if (element instanceof DynamicExpression) {
             return new DynamicNode((DynamicExpression) element);
         } else {
-            throw new IllegalArgumentException("OWL element " + element.getClass().getName() + " cannot be mapped to a RDF node");
+            Couple<String, String> data = Datatypes.toLiteral(element);
+            return store.getLiteralNode(data.x, data.y, null);
         }
     }
 

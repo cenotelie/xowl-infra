@@ -20,6 +20,7 @@
 
 package org.xowl.store.entailment;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.xowl.store.EntailmentRegime;
 
@@ -28,6 +29,7 @@ import org.xowl.store.EntailmentRegime;
  *
  * @author Laurent Wouters
  */
+@Ignore("Not ready yet")
 public class RDFTest extends BaseRDFTest {
     @Test
     public void test_datatypes_intensional_xsd_integer_decimal_compatible() {
