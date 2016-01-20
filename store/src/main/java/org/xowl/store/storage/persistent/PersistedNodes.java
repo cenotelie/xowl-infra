@@ -20,6 +20,9 @@
 
 package org.xowl.store.storage.persistent;
 
+import org.mapdb.Atomic;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
 import org.xowl.lang.owl2.AnonymousIndividual;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.BlankNode;
@@ -33,7 +36,6 @@ import org.xowl.utils.logging.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.sql.*;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -46,7 +48,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     /**
      * The suffix for the index file
      */
-    private static final String FILE_DATA = "nodes_data.db";
+    private static final String FILE_DATA = "nodes_data.bin";
     /**
      * The suffix for the index file
      */
@@ -82,9 +84,29 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     private static final int ENTRY_LITERAL_SIZE = 8 + 8 + 8 + 8 + 8;
 
     /**
-     * The database connection
+     * The backing storing the nodes' data
      */
-    private final Connection connection;
+    private final FileStore backend;
+    /**
+     * The charset to use for reading and writing the strings
+     */
+    private final Charset charset;
+    /**
+     * The database backing the index
+     */
+    private final DB database;
+    /**
+     * The hash map associating string hash code to their bucket
+     */
+    private final Map<Integer, Long> mapStrings;
+    /**
+     * The hash map associating the key to the lexical value of a literals to the bucket of literals with the same lexical value
+     */
+    private final Map<Long, Long> mapLiterals;
+    /**
+     * The next blank value
+     */
+    private final Atomic.Long nextBlank;
     /**
      * Cache of instantiated IRI nodes
      */
@@ -111,18 +133,12 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @throws StorageException When the storage is in a bad state
      */
     public PersistedNodes(File directory, boolean isReadonly) throws IOException, StorageException {
-        Connection connection = null;
-        boolean isEmpty = false;
-        try {
-            File target = new File(directory, FILE_DATA);
-            isEmpty = !target.exists();
-            connection = DriverManager.getConnection("jdbc:sqlite:" + target.getAbsolutePath());
-        } catch (SQLException exception) {
-            Logger.DEFAULT.error(exception);
-        }
-        this.connection = connection;
-        if (isEmpty)
-            initializeDB(connection);
+        backend = new FileStore(directory, FILE_DATA, isReadonly);
+        charset = Charset.forName("UTF-8");
+        database = dbMaker(directory, isReadonly).make();
+        mapStrings = database.hashMap(NAME_STRING_MAP);
+        mapLiterals = database.hashMap(NAME_LITERAL_MAP);
+        nextBlank = database.atomicLong(NAME_NEXT_BLANK);
         cacheNodeIRIs = new PersistedNodeCache<>();
         cacheNodeBlanks = new PersistedNodeCache<>();
         cacheNodeAnons = new PersistedNodeCache<>();
@@ -130,19 +146,17 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     }
 
     /**
-     * Initializes the database
-     * @param connection The connection to the database
+     * Gets the mapDB database maker for this store
+     *
+     * @param directory  The parent directory containing the backing files
+     * @param isReadonly Whether this store is in readonly mode
+     * @return The DB maker
      */
-    private static boolean initializeDB(Connection connection) {
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate("create table iris (id long, hash integer, value string, refcount long)");
-            statement.executeUpdate("create table literals (id long, lexhash integer, lexical string, datatype string, language string, refcount long)");
-            statement.executeUpdate("create table blank (nextid long)");
-            return true;
-        } catch (SQLException exception) {
-            Logger.DEFAULT.error(exception);
-            return false;
-        }
+    private static DBMaker.Maker dbMaker(File directory, boolean isReadonly) {
+        DBMaker.Maker maker = DBMaker.fileDB(new File(directory, FILE_INDEX));
+        if (isReadonly)
+            maker = maker.readOnly();
+        return maker;
     }
 
     /**
@@ -164,14 +178,10 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @throws StorageException When the page version does not match the expected one
      */
     public String retrieveString(long key) throws IOException, StorageException {
-        try (Statement statement = connection.createStatement()) {
-            ResultSet result = statement.executeQuery("select value from iris where id=" + key);
-            if (!result.next())
-                return null;
-            return result.getString(1);
-        } catch (SQLException exception) {
-            Logger.DEFAULT.error(exception);
-            return null;
+        try (IOElement element = backend.read(key)) {
+            int length = element.seek(16).readInt();
+            byte[] data = element.readBytes(length);
+            return new String(data, charset);
         }
     }
 
@@ -182,9 +192,11 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @param modifier The modifier for the reference counter
      */
     public void onRefCountString(long key, int modifier) {
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate("update iris set refcount = refcount + " + modifier + " where id = " + key);
-        } catch (SQLException exception) {
+        try (IOElement element = backend.access(key)) {
+            long counter = element.seek(8).readLong();
+            counter += modifier;
+            element.seek(8).writeLong(counter);
+        } catch (IOException | StorageException exception) {
             Logger.DEFAULT.error(exception);
         }
     }
