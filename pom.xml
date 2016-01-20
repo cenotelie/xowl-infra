@@ -3,7 +3,7 @@
 	<groupId>org.xowl.infra</groupId>
 	<artifactId>xowl-infra</artifactId>
 	<packaging>pom</packaging>
-	<version>1.0-beta4</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>xOWL Infrastructure</name>
 	<description>Infrastructure for the storage, manipulation and execution of xOWL ontologies</description>
 	<url>https://xowl.org/</url>
@@ -29,7 +29,7 @@
 		<connection>scm:hg:https://bitbucket.org/laurentw/xowl</connection>
 		<developerConnection>scm:hg:ssh://hg@bitbucket.org:laurentw/xowl</developerConnection>
 		<url>https://bitbucket.org/laurentw/xowl</url>
-		<tag>v1.0-beta4</tag>
+		<tag>HEAD</tag>
 	</scm>
 	<distributionManagement>
 		<snapshotRepository>
