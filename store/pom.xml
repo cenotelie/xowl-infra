@@ -9,7 +9,7 @@
 	<artifactId>xowl-store</artifactId>
 	<packaging>bundle</packaging>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>xOWL Store</name>
+	<name>xOWL Infra - Store</name>
 	<description>Provides storage and querying facilities for xOWL ontologies and RDF graphs</description>
 	<dependencies>
 		<dependency>

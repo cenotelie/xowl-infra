@@ -9,7 +9,7 @@
 	<artifactId>xowl-commons</artifactId>
 	<packaging>bundle</packaging>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>xOWL Commons</name>
+	<name>xOWL Infra - Commons</name>
 	<description>Common utilities for the xOWL packages</description>
 	<dependencies>
 		<dependency>

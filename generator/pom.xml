@@ -9,7 +9,7 @@
 	<artifactId>xowl-generator</artifactId>
 	<packaging>bundle</packaging>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>xOWL Code Generator</name>
+	<name>xOWL Infra - Code Generator</name>
 	<description>Provides code generation facilities for the implementation of OWL2 ontologies</description>
 	<dependencies>
 		<dependency>

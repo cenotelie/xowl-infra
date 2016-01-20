@@ -9,7 +9,7 @@
 	<artifactId>xowl-engine</artifactId>
 	<packaging>bundle</packaging>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>xOWL Engine</name>
+	<name>xOWL Infra - Engine</name>
 	<description>Provides facilities for the execution of xOWL ontologies</description>
 	<dependencies>
 		<dependency>
