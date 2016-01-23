@@ -27,6 +27,7 @@ import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.Dataset;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.utils.collections.Couple;
+import org.xowl.utils.logging.Logger;
 
 import java.util.*;
 
@@ -201,6 +202,26 @@ public class RuleEngine implements ChangeListener {
     public void remove(Rule rule) {
         rete.removeRule(rules.get(rule));
         rules.remove(rule);
+        List<Quad> positives = new ArrayList<>();
+        List<Quad> negatives = new ArrayList<>();
+        Iterator<Map.Entry<Token, ExecutedRule>> iterator = executed.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Token, ExecutedRule> entry = iterator.next();
+            ExecutedRule execution = entry.getValue();
+            if (execution.rule == rule) {
+                if (!process(positives, negatives, execution.rule, execution.token, execution.specials)) {
+                    Logger.DEFAULT.error("Failed to process the changeset for rule " + execution.rule.getIRI());
+                }
+                iterator.remove();
+            }
+        }
+        if (!positives.isEmpty() || !negatives.isEmpty()) {
+            try {
+                outputStore.insert(Changeset.fromAddedRemoved(negatives, positives));
+            } catch (UnsupportedNodeType ex) {
+                Logger.DEFAULT.error(ex);
+            }
+        }
     }
 
     /**
@@ -263,7 +284,7 @@ public class RuleEngine implements ChangeListener {
                 try {
                     outputStore.insert(Changeset.fromAddedRemoved(bufferPositives, bufferNegatives));
                 } catch (UnsupportedNodeType ex) {
-                    // TODO: report this
+                    Logger.DEFAULT.error(ex);
                 }
                 bufferPositives.clear();
                 bufferNegatives.clear();
@@ -308,7 +329,7 @@ public class RuleEngine implements ChangeListener {
                 // recreate the changeset
                 Changeset changeset = process(data.rule, data.token, data.specials);
                 if (changeset == null) {
-                    // TODO: report this
+                    Logger.DEFAULT.error("Failed to process the changeset for rule " + data.rule.getIRI());
                     continue;
                 }
                 bufferPositives.addAll(changeset.getRemoved());
@@ -340,7 +361,7 @@ public class RuleEngine implements ChangeListener {
             Map<Node, Node> specials = new HashMap<>();
             Changeset changeset = process(entry.getValue(), entry.getKey(), specials);
             if (changeset == null) {
-                // TODO: report this
+                Logger.DEFAULT.error("Failed to process the changeset for rule " + entry.getValue().getIRI());
                 continue;
             }
             ExecutedRule data = new ExecutedRule(entry.getValue(), entry.getKey(), specials.isEmpty() ? null : specials);
@@ -361,31 +382,47 @@ public class RuleEngine implements ChangeListener {
     private Changeset process(Rule rule, Token token, Map<Node, Node> specials) {
         List<Quad> positives = new ArrayList<>();
         List<Quad> negatives = new ArrayList<>();
+        if (process(positives, negatives, rule, token, specials))
+            return Changeset.fromAddedRemoved(positives, negatives);
+        return null;
+    }
+
+    /**
+     * Processes the specified rule with the specified token fot the generation of the changeset
+     *
+     * @param positives The buffer for positive quads
+     * @param negatives The buffer for negative quads
+     * @param rule      The rule to generate a changeset from
+     * @param token     The token providing the bindings
+     * @param specials  The mapping of special nodes in the consequents
+     * @return Whether the operation is successful
+     */
+    private boolean process(List<Quad> positives, List<Quad> negatives, Rule rule, Token token, Map<Node, Node> specials) {
         for (Quad quad : rule.getConsequentTargetPositives()) {
             Quad result = process(rule, quad, token, specials);
             if (result == null)
-                return null;
+                return false;
             positives.add(result);
         }
         for (Quad quad : rule.getConsequentMetaPositives()) {
             Quad result = process(rule, quad, token, specials);
             if (result == null)
-                return null;
+                return false;
             positives.add(result);
         }
         for (Quad quad : rule.getConsequentTargetNegatives()) {
             Quad result = process(rule, quad, token, specials);
             if (result == null)
-                return null;
+                return false;
             negatives.add(result);
         }
         for (Quad quad : rule.getConsequentMetaNegatives()) {
             Quad result = process(rule, quad, token, specials);
             if (result == null)
-                return null;
+                return false;
             negatives.add(result);
         }
-        return Changeset.fromAddedRemoved(positives, negatives);
+        return true;
     }
 
     /**
