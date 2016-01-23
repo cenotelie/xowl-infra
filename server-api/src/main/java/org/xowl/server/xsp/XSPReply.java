@@ -18,47 +18,32 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.xsp;
+package org.xowl.server.xsp;
 
-import org.xowl.store.IOUtils;
+import org.xowl.store.Serializable;
 
 /**
- * Implements a reply to a xOWL server protocol request when a network error occurred (for any reason)
+ * Represents a reply to a request in the xOWL server protocol
  *
  * @author Laurent Wouters
  */
-public class XSPReplyNetworkError implements XSPReply {
+public interface XSPReply extends Serializable {
     /**
-     * The message associated to the failure
+     * The MIME content type for an XSP command
      */
-    private final String message;
+    String MIME_XSP_COMMAND = "application/x-xowl-xsp";
 
     /**
-     * Initializes this reply
+     * Gets whether the reply is a success
      *
-     * @param message The message associated to the failure
+     * @return Whether the reply is a success
      */
-    public XSPReplyNetworkError(String message) {
-        this.message = message;
-    }
+    boolean isSuccess();
 
-    @Override
-    public boolean isSuccess() {
-        return false;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
-    @Override
-    public String serializedString() {
-        return "ERROR: " + message;
-    }
-
-    @Override
-    public String serializedJSON() {
-        return "{ \"isSuccess\": false, \"message\": \"" + (message == null ? "" : IOUtils.escapeStringJSON(message)) + "\", \"cause\": \"NETWORK_ERROR\" }";
-    }
+    /**
+     * Gets the message, if any
+     *
+     * @return The message, if any
+     */
+    String getMessage();
 }

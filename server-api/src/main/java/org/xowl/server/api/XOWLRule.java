@@ -18,54 +18,34 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.xsp;
+package org.xowl.server.api;
+
+import org.xowl.store.Serializable;
 
 /**
- * Implements a reply to a xOWL server protocol request when the user is not authenticated
+ * Represents a rule on a database
  *
  * @author Laurent Wouters
  */
-public class XSPReplyUnauthenticated implements XSPReply {
+public interface XOWLRule extends Serializable {
     /**
-     * The singleton instance
-     */
-    private static XSPReplyUnauthenticated INSTANCE = null;
-
-    /**
-     * Gets the singleton instance
+     * Gets the name (IRI) of this rule
      *
-     * @return The singleton instance
+     * @return The name of this rule
      */
-    public synchronized static XSPReplyUnauthenticated instance() {
-        if (INSTANCE == null)
-            return new XSPReplyUnauthenticated();
-        return INSTANCE;
-    }
+    String getName();
 
     /**
-     * Initializes this instance
+     * Gets whether this rule is active
+     *
+     * @return Whether this rule is active
      */
-    private XSPReplyUnauthenticated() {
+    boolean isActive();
 
-    }
-
-    @Override
-    public boolean isSuccess() {
-        return false;
-    }
-
-    @Override
-    public String getMessage() {
-        return "UNAUTHENTICATED";
-    }
-
-    @Override
-    public String serializedString() {
-        return "UNAUTHENTICATED";
-    }
-
-    @Override
-    public String serializedJSON() {
-        return "{ \"isSuccess\": false, \"message\": \"UNAUTHENTICATED\", \"cause\": \"UNAUTHENTICATED\" }";
-    }
+    /**
+     * Gets the definition of this rule
+     *
+     * @return The definition of this rule
+     */
+    String getDefinition();
 }

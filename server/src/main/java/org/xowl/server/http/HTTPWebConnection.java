@@ -23,8 +23,8 @@ package org.xowl.server.http;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.server.Program;
-import org.xowl.server.db.Controller;
-import org.xowl.server.db.ProtocolHandler;
+import org.xowl.server.api.Controller;
+import org.xowl.server.api.ProtocolHandler;
 
 import java.io.IOException;
 import java.io.InputStream;

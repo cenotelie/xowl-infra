@@ -18,62 +18,54 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.xsp;
-
-import org.xowl.store.IOUtils;
-import org.xowl.store.Serializable;
+package org.xowl.server.xsp;
 
 /**
- * Implements a successful reply to a xOWL server request with an object of type T as a response
+ * Implements a reply to a xOWL server protocol request when the user is not authorized to perform the request
  *
- * @param <T> The type of return data
  * @author Laurent Wouters
  */
-public class XSPReplyResult<T> implements XSPReply {
+public class XSPReplyUnauthorized implements XSPReply {
     /**
-     * The payload
+     * The singleton instance
      */
-    private final T data;
+    private static XSPReplyUnauthorized INSTANCE = null;
 
     /**
-     * Gets the payload
+     * Gets the singleton instance
      *
-     * @return The payload
+     * @return The singleton instance
      */
-    public T getData() {
-        return data;
+    public synchronized static XSPReplyUnauthorized instance() {
+        if (INSTANCE == null)
+            return new XSPReplyUnauthorized();
+        return INSTANCE;
     }
 
     /**
-     * Initializes this result
-     *
-     * @param data The payload
+     * Initializes this instance
      */
-    public XSPReplyResult(T data) {
-        this.data = data;
+    private XSPReplyUnauthorized() {
+
     }
 
     @Override
     public boolean isSuccess() {
-        return true;
+        return false;
     }
 
     @Override
     public String getMessage() {
-        return serializedString();
+        return "UNAUTHORIZED";
     }
 
     @Override
     public String serializedString() {
-        return data == null ? "NO DATA" : data.toString();
+        return "UNAUTHORIZED";
     }
 
     @Override
     public String serializedJSON() {
-        if (data == null)
-            return "{ \"isSuccess\": false, \"message\": \"NO DATA\", \"payload\": \"\" }";
-        if (data instanceof Serializable)
-            return "{ \"isSuccess\": true, \"message\": \"\", \"payload\": " + ((Serializable) data).serializedJSON() + " }";
-        return "{ \"isSuccess\": true, \"message\": \"\", \"payload\": \"" + IOUtils.escapeStringJSON(data.toString()) + "\" }";
+        return "{ \"isSuccess\": false, \"message\": \"UNAUTHORIZED\", \"cause\": \"UNAUTHORIZED\" }";
     }
 }

@@ -18,22 +18,30 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server.db;
+package org.xowl.server.api.impl;
 
 import org.xowl.server.Program;
 import org.xowl.server.ServerConfiguration;
+import org.xowl.server.api.XOWLDatabase;
+import org.xowl.server.api.XOWLRule;
+import org.xowl.server.api.base.BaseDatabase;
+import org.xowl.server.api.base.BaseRule;
+import org.xowl.server.xsp.*;
 import org.xowl.store.*;
 import org.xowl.store.Serializable;
 import org.xowl.store.loaders.NQuadsLoader;
 import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.RDFTLoader;
+import org.xowl.store.loaders.SPARQLLoader;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.rdf.Rule;
 import org.xowl.store.rdf.RuleExplanation;
 import org.xowl.store.rete.MatchStatus;
+import org.xowl.store.sparql.Command;
+import org.xowl.store.sparql.Result;
+import org.xowl.store.sparql.ResultSuccess;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.StoreFactory;
-import org.xowl.store.xsp.*;
 import org.xowl.utils.config.Configuration;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.ConsoleLogger;
@@ -42,14 +50,14 @@ import org.xowl.utils.logging.Logger;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents a database hosted on this server
  *
  * @author Laurent Wouters
  */
-public class Database implements Serializable, Closeable {
+public class ServerDatabase extends BaseDatabase implements Serializable, Closeable {
     /**
      * The configuration file for a repository
      */
@@ -90,27 +98,23 @@ public class Database implements Serializable, Closeable {
     /**
      * The database's location
      */
-    final File location;
+    private final File location;
     /**
      * The logger
      */
-    final Logger logger;
+    private final Logger logger;
     /**
      * The repository
      */
-    final Repository repository;
+    private final Repository repository;
     /**
      * The current configuration for this database
      */
-    final Configuration configuration;
+    private final Configuration configuration;
     /**
      * The proxy object representing this database
      */
-    final ProxyObject proxy;
-    /**
-     * The cached name
-     */
-    private String name;
+    private final ProxyObject proxy;
 
     /**
      * Initializes this database (as the admin database)
@@ -119,7 +123,8 @@ public class Database implements Serializable, Closeable {
      * @param location   The database's location
      * @throws IOException When the location cannot be accessed
      */
-    public Database(ServerConfiguration confServer, File location) throws IOException {
+    public ServerDatabase(ServerConfiguration confServer, File location) throws IOException {
+        super(confServer.getAdminDBName());
         this.location = location;
         this.logger = new ConsoleLogger();
         this.configuration = new Configuration();
@@ -136,7 +141,8 @@ public class Database implements Serializable, Closeable {
      * @param proxy    The proxy object representing this database
      * @throws IOException When the location cannot be accessed
      */
-    public Database(File location, ProxyObject proxy) throws IOException {
+    public ServerDatabase(File location, ProxyObject proxy) throws IOException {
+        super((String) proxy.getDataValue(Schema.ADMIN_NAME));
         this.location = location;
         this.logger = new ConsoleLogger();
         this.configuration = new Configuration();
@@ -193,68 +199,96 @@ public class Database implements Serializable, Closeable {
         return result;
     }
 
-    /**
-     * Gets the name of this user
-     *
-     * @return The name of this user
-     */
-    public String getName() {
-        if (name != null)
-            return name;
-        name = (String) proxy.getDataValue(Schema.ADMIN_NAME);
-        return name;
+    @Override
+    public XSPReply sparql(XOWLDatabase database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
+        BufferedLogger bufferedLogger = new BufferedLogger();
+        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
+        if (defaultIRIs == null)
+            defaultIRIs = Collections.emptyList();
+        if (namedIRIs == null)
+            namedIRIs = Collections.emptyList();
+        SPARQLLoader loader = new SPARQLLoader(repository.getStore(), defaultIRIs, namedIRIs);
+        List<Command> commands = loader.load(dispatchLogger, new StringReader(sparql));
+        if (commands == null) {
+            // ill-formed request
+            dispatchLogger.error("Failed to parse and load the request");
+            return new XSPReplyFailure(Program.getLog(bufferedLogger));
+        }
+        Result result = ResultSuccess.INSTANCE;
+        for (Command command : commands) {
+            result = command.execute(repository);
+            if (result.isFailure()) {
+                break;
+            }
+        }
+        return new XSPReplyResult<>(result);
     }
 
-    /**
-     * Gets the active entailment regime
-     *
-     * @return The active entailment regime
-     */
-    public EntailmentRegime getEntailmentRegime() {
-        return repository.getEntailmentRegime();
+    @Override
+    public XSPReply getEntailmentRegime() {
+        return new XSPReplyResult<>(repository.getEntailmentRegime());
     }
 
-    /**
-     * Sets the active entailment regime
-     *
-     * @param regime The active entailment regime
-     */
-    public void setEntailmentRegime(EntailmentRegime regime) {
+    @Override
+    public XSPReply setEntailmentRegime(EntailmentRegime regime) {
         repository.setEntailmentRegime(logger, regime);
         configuration.set(CONFIG_ENTAILMENT, regime.toString());
         try {
             configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Charset.forName("UTF-8"));
         } catch (IOException exception) {
             logger.error(exception);
+            return new XSPReplyFailure(exception.getMessage());
         }
         repository.getStore().commit();
+        return XSPReplySuccess.instance();
     }
 
-    /**
-     * Gets all the rules in this database
-     *
-     * @return The protocol reply
-     */
-    public XSPReply getAllRules() {
-        return new XSPReplyResultCollection<>(configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES));
+    public XSPReply setEntailmentRegime(String regime) {
+        EntailmentRegime value = EntailmentRegime.valueOf(regime);
+        if (value == null)
+            return new XSPReplyFailure("Unexpected regime name");
+        return setEntailmentRegime(value);
     }
 
-    /**
-     * Gets the active rules
-     *
-     * @return The protocol reply
-     */
-    public XSPReply getActiveRules() {
-        return new XSPReplyResultCollection<>(configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES));
+    @Override
+    public XSPReply getRule(String name) {
+        Collection<String> names = configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES);
+        Collection<String> actives = configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES);
+        if (!names.contains(name))
+            return new XSPReplyFailure("Rule does not exist");
+        File folder = new File(location, REPO_RULES);
+        File file = new File(folder, Program.encode(name.getBytes(Charset.forName("UTF-8"))));
+        try (FileInputStream stream = new FileInputStream(file)) {
+            byte[] content = Program.load(stream);
+            String definition = new String(content, Charset.forName("UTF-8"));
+            return new XSPReplyResult<>(new BaseRule(name, definition, actives.contains(name)));
+        } catch (IOException exception) {
+            logger.error(exception);
+            return new XSPReplyFailure(exception.getMessage());
+        }
     }
 
-    /**
-     * Adds a new rule to this database
-     *
-     * @param content  The rule's definition
-     * @param activate Whether to activate the rule
-     * @return The protocol reply
-     */
+    @Override
+    public XSPReply getRules() {
+        Collection<String> names = configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES);
+        Collection<String> actives = configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES);
+        Collection<BaseRule> rules = new ArrayList<>(names.size());
+        for (String name : names) {
+            File folder = new File(location, REPO_RULES);
+            File file = new File(folder, Program.encode(name.getBytes(Charset.forName("UTF-8"))));
+            try (FileInputStream stream = new FileInputStream(file)) {
+                byte[] content = Program.load(stream);
+                String definition = new String(content, Charset.forName("UTF-8"));
+                rules.add(new BaseRule(name, definition, actives.contains(name)));
+            } catch (IOException exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
+        return new XSPReplyResultCollection<>(rules);
+    }
+
+    @Override
     public XSPReply addRule(String content, boolean activate) {
         File folder = new File(location, REPO_RULES);
         if (!folder.exists()) {
@@ -282,7 +316,7 @@ public class Database implements Serializable, Closeable {
             stream.flush();
         } catch (IOException exception) {
             logger.error(exception);
-            return XSPReplyFailure.instance();
+            return new XSPReplyFailure(exception.getMessage());
         }
 
         configuration.add(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, rule.getIRI());
@@ -295,19 +329,17 @@ public class Database implements Serializable, Closeable {
         } catch (IOException exception) {
             logger.error(exception);
         }
-        return new XSPReplyResult<>(rule.getIRI());
+        return new XSPReplyResult<>(new BaseRule(rule.getIRI(), content, activate));
     }
 
-    /**
-     * Removes a rule from this database
-     * If the rule is active, it is first deactivated
-     *
-     * @param iri The IRI of a rule
-     * @return The protocol reply
-     */
+    @Override
+    public XSPReply removeRule(XOWLRule rule) {
+        return removeRule(rule.getName());
+    }
+
     public XSPReply removeRule(String iri) {
         if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
-            return new XSPReplyFailure("Not in this database");
+            return new XSPReplyFailure("Rule does not exist");
         configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).remove(iri);
         if (configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri)) {
             configuration.remove(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
@@ -321,41 +353,19 @@ public class Database implements Serializable, Closeable {
 
         File folder = new File(location, REPO_RULES);
         File file = new File(folder, Program.encode(iri.getBytes(Charset.forName("UTF-8"))));
-        file.delete();
+        if (!file.delete())
+            logger.error("Failed to delete " + file.getAbsolutePath());
         return XSPReplySuccess.instance();
     }
 
-    /**
-     * Gets the definition of a rule
-     *
-     * @param iri The IRI of a rule
-     * @return The protocol reply
-     */
-    public XSPReply getRuleDefinition(String iri) {
-        if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
-            return new XSPReplyFailure("Not in this database");
-
-        File folder = new File(location, REPO_RULES);
-        File file = new File(folder, Program.encode(iri.getBytes(Charset.forName("UTF-8"))));
-        try (FileInputStream stream = new FileInputStream(file)) {
-            byte[] content = Program.load(stream);
-            String definition = new String(content, Charset.forName("UTF-8"));
-            return new XSPReplyResult<>(definition);
-        } catch (IOException exception) {
-            logger.error(exception);
-            return XSPReplyFailure.instance();
-        }
+    @Override
+    public XSPReply activateRule(XOWLRule rule) {
+        return activateRule(rule.getName());
     }
 
-    /**
-     * Activates a rule in this database
-     *
-     * @param iri The IRI of a rule
-     * @return The protocol reply
-     */
     public XSPReply activateRule(String iri) {
         if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
-            return new XSPReplyFailure("Not in this database");
+            return new XSPReplyFailure("Rule does not exist");
         if (configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri))
             return new XSPReplyFailure("Already active");
 
@@ -393,15 +403,14 @@ public class Database implements Serializable, Closeable {
         }
     }
 
-    /**
-     * Deactivates a rule in this database
-     *
-     * @param iri The IRI of a rule
-     * @return The protocol reply
-     */
+    @Override
+    public XSPReply deactivateRule(XOWLRule rule) {
+        return deactivateRule(rule.getName());
+    }
+
     public XSPReply deactivateRule(String iri) {
         if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
-            return new XSPReplyFailure("Not in this database");
+            return new XSPReplyFailure("Rule does not exist");
         if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri))
             return new XSPReplyFailure("Not active");
 
@@ -415,22 +424,11 @@ public class Database implements Serializable, Closeable {
         return XSPReplySuccess.instance();
     }
 
-    /**
-     * Gets whether a rule is active in this database
-     *
-     * @param iri The IRI of a rule
-     * @return The protocol reply
-     */
-    public XSPReply isRuleActive(String iri) {
-        return new XSPReplyResult<>(configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri));
+    @Override
+    public XSPReply getRuleStatus(XOWLRule rule) {
+        return getRuleStatus(rule.getName());
     }
 
-    /**
-     * Gets the matching status of a rule
-     *
-     * @param iri The IRI of a rule
-     * @return The protocol reply
-     */
     public XSPReply getRuleStatus(String iri) {
         if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri))
             return new XSPReplyFailure("Not active");
@@ -440,17 +438,19 @@ public class Database implements Serializable, Closeable {
         return new XSPReplyResult<>(result);
     }
 
-    /**
-     * Gets an explanation about how the specified quad appeared in the database
-     *
-     * @param content The quad to investigate
-     * @return The protocol reply
-     */
-    public XSPReply getExplanation(String content) {
+    @Override
+    public XSPReply getQuadExplanation(Quad quad) {
+        if (quad.getGraph() == null)
+            return new XSPReplyFailure("Quad must have a graph");
+        RuleExplanation explanation = repository.getRDFRuleEngine().explain(quad);
+        return new XSPReplyResult<>(explanation);
+    }
+
+    public XSPReply getQuadExplanation(String quad) {
         BufferedLogger bufferedLogger = new BufferedLogger();
         DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
         NQuadsLoader loader = new NQuadsLoader(repository.getStore());
-        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(content), null, IRIs.GRAPH_DEFAULT);
+        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(quad), null, IRIs.GRAPH_DEFAULT);
         if (result == null) {
             // ill-formed request
             dispatchLogger.error("Failed to parse and load the quad");
@@ -458,11 +458,12 @@ public class Database implements Serializable, Closeable {
         }
         if (result.getQuads().size() != 1)
             return new XSPReplyFailure("Expected one quad");
-        Quad quad = result.getQuads().get(0);
-        if (quad.getGraph() == null)
-            return new XSPReplyFailure("Quad must have a graph");
-        RuleExplanation explanation = repository.getRDFRuleEngine().explain(quad);
-        return new XSPReplyResult<>(explanation);
+        return getQuadExplanation(result.getQuads().get(0));
+    }
+
+    @Override
+    public XSPReply upload(String syntax, String content) {
+        return XSPReplyFailure.instance();
     }
 
     @Override
@@ -472,20 +473,5 @@ public class Database implements Serializable, Closeable {
         } catch (Exception exception) {
             logger.error(exception);
         }
-    }
-
-    @Override
-    public String toString() {
-        return getName();
-    }
-
-    @Override
-    public String serializedString() {
-        return getName();
-    }
-
-    @Override
-    public String serializedJSON() {
-        return "{\"type\": \"" + IOUtils.escapeStringJSON(Database.class.getCanonicalName()) + "\", \"name\": \"" + IOUtils.escapeStringJSON(getName()) + "\"}";
     }
 }

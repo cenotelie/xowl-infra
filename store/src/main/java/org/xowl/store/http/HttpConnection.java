@@ -18,16 +18,9 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage.remote;
+package org.xowl.store.http;
 
 import org.apache.xerces.impl.dv.util.Base64;
-import org.xowl.store.AbstractRepository;
-import org.xowl.store.IOUtils;
-import org.xowl.store.sparql.Command;
-import org.xowl.store.sparql.Result;
-import org.xowl.store.sparql.ResultFailure;
-import org.xowl.store.sparql.ResultUtils;
-import org.xowl.store.xsp.*;
 import org.xowl.utils.logging.Logger;
 
 import javax.net.ssl.*;
@@ -44,11 +37,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
- * Manages a connection to a remote endpoint
+ * Represents a basic HTTP connection
  *
  * @author Laurent Wouters
  */
-public class HTTPConnection implements Connection {
+public class HttpConnection implements Closeable {
     /**
      * The SSL context for HTTPS connections
      */
@@ -69,11 +62,11 @@ public class HTTPConnection implements Connection {
     /**
      * Initializes this connection
      *
-     * @param endpoint URI of the endpoint
+     * @param endpoint URI of the endpoint (base target URI)
      * @param login    Login for the endpoint, if any, used for an HTTP Basic authentication
      * @param password Password for the endpoint, if any, used for an HTTP Basic authentication
      */
-    public HTTPConnection(String endpoint, String login, String password) {
+    public HttpConnection(String endpoint, String login, String password) {
         SSLContext sc = null;
         try {
             sc = SSLContext.getInstance("SSL");
@@ -116,61 +109,23 @@ public class HTTPConnection implements Connection {
     }
 
     @Override
-    public Result sparql(String command) {
-        IOUtils.HttpResponse response = request(command, Command.MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON);
-        if (response == null)
-            return new ResultFailure("connection failed");
-        if (response.getCode() != HttpURLConnection.HTTP_OK)
-            return new ResultFailure(response.getBodyAsString() != null ? response.getBodyAsString() : "failure (HTTP " + response.getCode() + ")");
-        return ResultUtils.parseResponse(response.getBodyAsString(), response.getContentType());
-    }
-
-    @Override
-    public XSPReply xsp(String command) {
-        IOUtils.HttpResponse response = request(command, XSPReply.MIME_XSP_COMMAND, Result.SYNTAX_JSON);
-        if (response == null)
-            return new XSPReplyNetworkError("connection failed");
-        if (response.getCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
-            return XSPReplyUnauthenticated.instance();
-        if (response.getCode() == HttpURLConnection.HTTP_FORBIDDEN)
-            return XSPReplyUnauthorized.instance();
-        if (response.getCode() == HttpURLConnection.HTTP_INTERNAL_ERROR)
-            return new XSPReplyFailure(response.getBodyAsString());
-        if (response.getCode() == IOUtils.HTTP_UNKNOWN_ERROR)
-            return new XSPReplyFailure(response.getBodyAsString());
-        if (response.getCode() != HttpURLConnection.HTTP_OK)
-            return new XSPReplyFailure(response.getBodyAsString() != null ? response.getBodyAsString() : "failure (HTTP " + response.getCode() + ")");
-        // the result is OK from hereon
-        if (response.getBodyAsString() == null)
-            return XSPReplySuccess.instance();
-        if (response.getContentType() == null || IOUtils.MIME_TEXT_PLAIN.equals(response.getContentType()))
-            // no response type or plain text
-            return new XSPReplyResult<>(response.getBodyAsString());
-        if (IOUtils.MIME_JSON.equals(response.getContentType()))
-            // pure JSON response
-            return XSPReplyUtils.parseJSONResult(response.getBodyAsString());
-        // assume SPARQL reply
-        Result sparqlResult = ResultUtils.parseResponse(response.getBodyAsString(), response.getContentType());
-        return new XSPReplyResult<>(sparqlResult);
-    }
-
-    @Override
     public void close() throws IOException {
         // nothing to do, HTTP connections are one-shot
     }
 
     /**
-     * Sends an HTTP request to the endpoint
+     * Sends an HTTP request to the endpoint, completed with an URI complement
      *
-     * @param body        The request body
-     * @param contentType The request body content type
-     * @param accept      The MIME type to accept for the response
+     * @param uriComplement The URI complement to append to the original endpoint URI, if any
+     * @param body          The request body
+     * @param contentType   The request body content type
+     * @param accept        The MIME type to accept for the response
      * @return The response, or null if the request failed before reaching the server
      */
-    private IOUtils.HttpResponse request(String body, String contentType, String accept) {
+    public HttpResponse request(String uriComplement, String body, String contentType, String accept) {
         URL url;
         try {
-            url = new URL(endpoint);
+            url = new URL((endpoint != null ? endpoint : "") + (uriComplement != null ? uriComplement : ""));
         } catch (MalformedURLException exception) {
             Logger.DEFAULT.error(exception);
             return null;
@@ -238,6 +193,6 @@ public class HTTPConnection implements Connection {
             }
         }
         connection.disconnect();
-        return new IOUtils.HttpResponse(code, responseContentType, responseBody);
+        return new HttpResponse(code, responseContentType, responseBody);
     }
 }

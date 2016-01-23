@@ -18,10 +18,8 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server.db;
+package org.xowl.server.api;
 
-import org.xowl.store.IOUtils;
-import org.xowl.store.ProxyObject;
 import org.xowl.store.Serializable;
 
 /**
@@ -29,49 +27,11 @@ import org.xowl.store.Serializable;
  *
  * @author Laurent Wouters
  */
-public class User implements Serializable {
-    /**
-     * The proxy object representing this user
-     */
-    final ProxyObject proxy;
-    /**
-     * The cached name
-     */
-    private String name;
-
-    /**
-     * Initializes this user
-     *
-     * @param proxy The proxy object representing this user
-     */
-    public User(ProxyObject proxy) {
-        this.proxy = proxy;
-    }
-
+public interface XOWLUser extends Serializable {
     /**
      * Gets the name of this user
      *
      * @return The name of this user
      */
-    public String getName() {
-        if (name != null)
-            return name;
-        name = (String) proxy.getDataValue(Schema.ADMIN_NAME);
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        return getName();
-    }
-
-    @Override
-    public String serializedString() {
-        return getName();
-    }
-
-    @Override
-    public String serializedJSON() {
-        return "{\"type\": \"" + IOUtils.escapeStringJSON(User.class.getCanonicalName()) + "\", \"name\": \"" + IOUtils.escapeStringJSON(getName()) + "\"}";
-    }
+    String getName();
 }

@@ -18,23 +18,30 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage.remote;
+package org.xowl.server.api;
 
-import org.xowl.store.sparql.Result;
+import org.xowl.store.Serializable;
 
-import java.io.Closeable;
+import java.util.Collection;
 
 /**
- * Represents a connection to a remote SPARQL endpoint
+ * Represents the privileges on a database
  *
  * @author Laurent Wouters
  */
-public interface Connection extends Closeable {
+public interface XOWLDatabasePrivileges extends Serializable {
     /**
-     * Sends a SPARQL command to the remote host
+     * Gets the relevant users
      *
-     * @param command The SPARQL command
-     * @return The result
+     * @return The relevant users
      */
-    Result sparql(String command);
+    Collection<XOWLUser> getUsers();
+
+    /**
+     * Gets the privilege associated to the specified user
+     *
+     * @param user A user
+     * @return The associated privilege
+     */
+    int getPrivilegeFor(XOWLUser user);
 }

@@ -22,13 +22,13 @@ package org.xowl.server.http;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
-import org.xowl.server.db.Controller;
-import org.xowl.server.db.Database;
-import org.xowl.server.db.ProtocolHandler;
+import org.xowl.server.api.Controller;
+import org.xowl.server.api.XOWLDatabase;
+import org.xowl.server.api.ProtocolHandler;
 import org.xowl.store.AbstractRepository;
-import org.xowl.store.IOUtils;
+import org.xowl.store.http.HttpResponse;
 import org.xowl.store.sparql.Command;
-import org.xowl.store.xsp.*;
+import org.xowl.server.xsp.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -88,7 +88,7 @@ class HTTPAPIConnection extends ProtocolHandler {
         }
 
         String resource = httpExchange.getRequestURI().getPath().substring("/api".length());
-        Database database = null;
+        XOWLDatabase database = null;
         if (resource.startsWith("/db/")) {
             // requesting a specified database
             String dbName = resource.substring(4);
@@ -101,7 +101,7 @@ class HTTPAPIConnection extends ProtocolHandler {
                 response(HttpURLConnection.HTTP_FORBIDDEN, null);
                 return;
             }
-            database = ((XSPReplyResult<Database>) dbReply).getData();
+            database = ((XSPReplyResult<XOWLDatabase>) dbReply).getData();
         }
 
         if (Objects.equals(method, "GET")) {
@@ -141,7 +141,7 @@ class HTTPAPIConnection extends ProtocolHandler {
      *
      * @param database The target database
      */
-    private void onGetSPARQL(Database database) {
+    private void onGetSPARQL(XOWLDatabase database) {
         Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
         List<String> vQuery = params.get("query");
         String query = vQuery == null ? null : vQuery.get(0);
@@ -175,7 +175,7 @@ class HTTPAPIConnection extends ProtocolHandler {
      *
      * @param database The target database
      */
-    private void onPost(Database database) {
+    private void onPost(XOWLDatabase database) {
         Headers rHeaders = httpExchange.getRequestHeaders();
         String contentType = Utils.getRequestContentType(rHeaders);
         if (contentType == null) {
@@ -226,7 +226,7 @@ class HTTPAPIConnection extends ProtocolHandler {
      * @param database The target database
      * @param body     The request body
      */
-    private void onPostSPARQL(Database database, String body) {
+    private void onPostSPARQL(XOWLDatabase database, String body) {
         if (database == null) {
             response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
         } else {
@@ -255,7 +255,7 @@ class HTTPAPIConnection extends ProtocolHandler {
      * @param contentType The request content type
      * @param body        The request body
      */
-    private void onPostData(Database database, String contentType, String body) {
+    private void onPostData(XOWLDatabase database, String contentType, String body) {
         if (database == null) {
             response(HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
         } else {
@@ -293,7 +293,7 @@ class HTTPAPIConnection extends ProtocolHandler {
      */
     private void response(XSPReply reply) {
         List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
-        IOUtils.HttpResponse response = XSPReplyUtils.toHttpResponse(reply, acceptTypes);
+        HttpResponse response = XSPReplyUtils.toHttpResponse(reply, acceptTypes);
         if (response.getContentType() != null)
             httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, response.getContentType());
         response(response.getCode(), response.getBodyAsString());

@@ -18,9 +18,11 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server.db;
+package org.xowl.server.api.impl;
 
-import org.xowl.store.xsp.*;
+import org.xowl.server.api.*;
+import org.xowl.server.api.XOWLDatabase;
+import org.xowl.server.xsp.*;
 import org.xowl.utils.concurrent.SafeRunnable;
 
 import java.io.IOException;
@@ -39,18 +41,18 @@ public abstract class ProtocolHandler extends SafeRunnable {
     /**
      * The backend server controller
      */
-    protected final Controller controller;
+    protected final org.xowl.server.api.Controller controller;
     /**
      * The currently authenticated user, if any
      */
-    protected User user;
+    protected XOWLUser user;
 
     /**
      * Initializes this instance
      *
      * @param controller The backend server controller
      */
-    public ProtocolHandler(Controller controller) {
+    public ProtocolHandler(org.xowl.server.api.Controller controller) {
         super(controller.getLogger());
         this.controller = controller;
     }
@@ -116,7 +118,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      */
     private XSPReply runHelp() {
         StringWriter writer = new StringWriter();
-        try (InputStream stream = ProtocolHandler.class.getResourceAsStream("/org/xowl/server/help")) {
+        try (InputStream stream = org.xowl.server.api.ProtocolHandler.class.getResourceAsStream("/org/xowl/server/help")) {
             byte[] buffer = new byte[1024];
             int read = stream.read(buffer);
             while (read > 0) {
@@ -149,7 +151,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
             return null;
         }
         if (result.isSuccess()) {
-            user = ((XSPReplyResult<User>) result).getData();
+            user = ((XSPReplyResult<XOWLUser>) result).getData();
             return XSPReplySuccess.instance();
         }
         return result;
@@ -172,7 +174,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.sparql(user, ((XSPReplyResult<Database>) database).getData(), sparql, Collections.<String>emptyList(), Collections.<String>emptyList());
+        return controller.sparql(user, ((XSPReplyResult<XOWLDatabase>) database).getData(), sparql, Collections.<String>emptyList(), Collections.<String>emptyList());
     }
 
     /**
@@ -192,7 +194,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply dbResult = controller.getDatabase(user, dbName);
         if (!dbResult.isSuccess())
             return dbResult;
-        Database database = ((XSPReplyResult<Database>) dbResult).getData();
+        XOWLDatabase database = ((XSPReplyResult<XOWLDatabase>) dbResult).getData();
         if (line.equals("ENTAILMENT"))
             return runDBGetEntailment(database);
         if (line.startsWith("ENTAILMENT"))
@@ -227,7 +229,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param database The active database
      * @return The protocol reply
      */
-    private XSPReply runDBGetEntailment(Database database) {
+    private XSPReply runDBGetEntailment(XOWLDatabase database) {
         return controller.dbGetEntailmentRegime(user, database);
     }
 
@@ -238,7 +240,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param database The active database
      * @return The protocol reply
      */
-    private XSPReply runDBSetEntailment(Database database, String line) {
+    private XSPReply runDBSetEntailment(XOWLDatabase database, String line) {
         String regime = line.substring("ENTAILMENT ".length());
         return controller.dbSetEntailmentRegime(user, database, regime);
     }
@@ -250,7 +252,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param database The active database
      * @return The protocol reply
      */
-    private XSPReply runDBListRules(Database database) {
+    private XSPReply runDBListRules(XOWLDatabase database) {
         return controller.dbListAllRules(user, database);
     }
 
@@ -261,7 +263,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param database The active database
      * @return The protocol reply
      */
-    private XSPReply runDBListActiveRules(Database database) {
+    private XSPReply runDBListActiveRules(XOWLDatabase database) {
         return controller.dbListActiveRules(user, database);
     }
 
@@ -273,7 +275,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private XSPReply runDBAddRule(Database database, String line) {
+    private XSPReply runDBAddRule(XOWLDatabase database, String line) {
         String content = line.substring("ADD RULE ".length());
         return controller.dbAddRule(user, database, content, false);
     }
@@ -286,7 +288,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private XSPReply runDBRemoveRule(Database database, String line) {
+    private XSPReply runDBRemoveRule(XOWLDatabase database, String line) {
         String rule = line.substring("REMOVE RULE ".length());
         return controller.dbRemoveRule(user, database, rule);
     }
@@ -299,7 +301,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private XSPReply runDBRuleDefinition(Database database, String line) {
+    private XSPReply runDBRuleDefinition(XOWLDatabase database, String line) {
         String rule = line.substring("RULE ".length());
         return controller.dbGetRuleDefinition(user, database, rule);
     }
@@ -312,7 +314,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private XSPReply runDBActivateRule(Database database, String line) {
+    private XSPReply runDBActivateRule(XOWLDatabase database, String line) {
         String rule = line.substring("ACTIVATE ".length());
         return controller.dbActivateRule(user, database, rule);
     }
@@ -325,7 +327,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private XSPReply runDBDeactivateRule(Database database, String line) {
+    private XSPReply runDBDeactivateRule(XOWLDatabase database, String line) {
         String rule = line.substring("DEACTIVATE ".length());
         return controller.dbDeactivateRule(user, database, rule);
     }
@@ -338,7 +340,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private XSPReply runDBIsActiveRule(Database database, String line) {
+    private XSPReply runDBIsActiveRule(XOWLDatabase database, String line) {
         String rule = line.substring("IS ACTIVE ".length());
         return controller.dbIsRuleActive(user, database, rule);
     }
@@ -351,7 +353,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private XSPReply runDBGetRuleStatus(Database database, String line) {
+    private XSPReply runDBGetRuleStatus(XOWLDatabase database, String line) {
         String rule = line.substring("STATUS ".length());
         return controller.dbGetRuleStatus(user, database, rule);
     }
@@ -364,7 +366,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
      * @param line     The command line
      * @return The protocol reply
      */
-    private XSPReply runDBGetExplanation(Database database, String line) {
+    private XSPReply runDBGetExplanation(XOWLDatabase database, String line) {
         String quad = line.substring("EXPLAIN ".length());
         return controller.dbGetQuadExplanation(user, database, quad);
     }
@@ -465,7 +467,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        return controller.deleteUser(user, ((XSPReplyResult<User>) target).getData());
+        return controller.deleteUser(user, ((XSPReplyResult<XOWLUser>) target).getData());
     }
 
     /**
@@ -497,7 +499,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        return controller.resetPassword(user, ((XSPReplyResult<User>) target).getData(), password);
+        return controller.resetPassword(user, ((XSPReplyResult<XOWLUser>) target).getData(), password);
     }
 
     /**
@@ -512,7 +514,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        return controller.getUserPrivileges(user, ((XSPReplyResult<User>) target).getData());
+        return controller.getUserPrivileges(user, ((XSPReplyResult<XOWLUser>) target).getData());
     }
 
     /**
@@ -527,7 +529,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply target = controller.getDatabase(user, dbName);
         if (!target.isSuccess())
             return target;
-        return controller.getDatabasePrivileges(user, ((XSPReplyResult<Database>) target).getData());
+        return controller.getDatabasePrivileges(user, ((XSPReplyResult<XOWLDatabase>) target).getData());
     }
 
     /**
@@ -542,7 +544,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        return controller.grantServerAdmin(user, ((XSPReplyResult<User>) target).getData());
+        return controller.grantServerAdmin(user, ((XSPReplyResult<XOWLUser>) target).getData());
     }
 
     /**
@@ -557,7 +559,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply target = controller.getUser(user, login);
         if (!target.isSuccess())
             return target;
-        return controller.revokeServerAdmin(user, ((XSPReplyResult<User>) target).getData());
+        return controller.revokeServerAdmin(user, ((XSPReplyResult<XOWLUser>) target).getData());
     }
 
     /**
@@ -580,7 +582,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.grantDBAdmin(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
+        return controller.grantDBAdmin(user, ((XSPReplyResult<XOWLUser>) target).getData(), ((XSPReplyResult<XOWLDatabase>) database).getData());
     }
 
     /**
@@ -603,7 +605,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.revokeDBAdmin(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
+        return controller.revokeDBAdmin(user, ((XSPReplyResult<XOWLUser>) target).getData(), ((XSPReplyResult<XOWLDatabase>) database).getData());
     }
 
     /**
@@ -626,7 +628,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.grantDBRead(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
+        return controller.grantDBRead(user, ((XSPReplyResult<XOWLUser>) target).getData(), ((XSPReplyResult<XOWLDatabase>) database).getData());
     }
 
     /**
@@ -649,7 +651,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.revokeDBRead(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
+        return controller.revokeDBRead(user, ((XSPReplyResult<XOWLUser>) target).getData(), ((XSPReplyResult<XOWLDatabase>) database).getData());
     }
 
     /**
@@ -672,7 +674,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.grantDBWrite(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
+        return controller.grantDBWrite(user, ((XSPReplyResult<XOWLUser>) target).getData(), ((XSPReplyResult<XOWLDatabase>) database).getData());
     }
 
     /**
@@ -695,7 +697,7 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply database = controller.getDatabase(user, dbName);
         if (!database.isSuccess())
             return database;
-        return controller.revokeDBWrite(user, ((XSPReplyResult<User>) target).getData(), ((XSPReplyResult<Database>) database).getData());
+        return controller.revokeDBWrite(user, ((XSPReplyResult<XOWLUser>) target).getData(), ((XSPReplyResult<XOWLDatabase>) database).getData());
     }
 
     /**
@@ -732,6 +734,6 @@ public abstract class ProtocolHandler extends SafeRunnable {
         XSPReply target = controller.getDatabase(user, name);
         if (!target.isSuccess() || !(target instanceof XSPReplyResult))
             return target;
-        return controller.dropDatabase(user, ((XSPReplyResult<Database>) target).getData());
+        return controller.dropDatabase(user, ((XSPReplyResult<XOWLDatabase>) target).getData());
     }
 }

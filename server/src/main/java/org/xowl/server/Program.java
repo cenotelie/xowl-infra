@@ -20,7 +20,7 @@
 
 package org.xowl.server;
 
-import org.xowl.server.db.Controller;
+import org.xowl.server.api.Controller;
 import org.xowl.server.http.HTTPServer;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.Logger;
@@ -204,7 +204,7 @@ public class Program {
                 chars[j++] = HEX[bytes[i] & 0x0F];
             }
             return new String(chars);
-        } catch(NoSuchAlgorithmException exception) {
+        } catch (NoSuchAlgorithmException exception) {
             Logger.DEFAULT.error(exception);
             return null;
         }

@@ -22,7 +22,7 @@ package org.xowl.store.storage;
 
 import org.xowl.store.storage.persistent.StorageException;
 import org.xowl.store.storage.remote.Connection;
-import org.xowl.store.storage.remote.HTTPConnection;
+import org.xowl.store.storage.remote.SPARQLConnection;
 import org.xowl.utils.logging.Logger;
 
 import java.io.File;
@@ -223,7 +223,7 @@ public class StoreFactory {
                 case Remote: {
                     Connection connection = null;
                     if (httpEndpoint != null)
-                        connection = new HTTPConnection(httpEndpoint, remoteLogin, remotePassword);
+                        connection = new SPARQLConnection(httpEndpoint, remoteLogin, remotePassword);
                     primary = new RemoteStore(connection, isReadonly);
                     break;
                 }

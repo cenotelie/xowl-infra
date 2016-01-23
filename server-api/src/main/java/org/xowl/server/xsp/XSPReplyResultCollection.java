@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.xsp;
+package org.xowl.server.xsp;
 
 import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;

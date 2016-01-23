@@ -18,49 +18,49 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.xsp;
+package org.xowl.server.xsp;
 
 import org.xowl.store.IOUtils;
 
 /**
- * Implements a simple successful reply to a xOWL server request
+ * Implements a reply to a xOWL server protocol request when the request failed
  *
  * @author Laurent Wouters
  */
-public class XSPReplySuccess implements XSPReply {
+public class XSPReplyFailure implements XSPReply {
     /**
      * The singleton instance
      */
-    private static XSPReplySuccess INSTANCE = null;
+    private static XSPReplyFailure INSTANCE = null;
 
     /**
      * Gets the default instance
      *
      * @return The default instance
      */
-    public synchronized static XSPReplySuccess instance() {
+    public synchronized static XSPReplyFailure instance() {
         if (INSTANCE == null)
-            return new XSPReplySuccess("OK");
+            return new XSPReplyFailure("FAILED");
         return INSTANCE;
     }
 
     /**
-     * The associated message
+     * The message associated to the failure
      */
     private final String message;
 
     /**
-     * Initializes this success
+     * Initializes this reply
      *
-     * @param message The associated message
+     * @param message The message associated to the failure
      */
-    public XSPReplySuccess(String message) {
+    public XSPReplyFailure(String message) {
         this.message = message;
     }
 
     @Override
     public boolean isSuccess() {
-        return true;
+        return false;
     }
 
     @Override
@@ -70,11 +70,11 @@ public class XSPReplySuccess implements XSPReply {
 
     @Override
     public String serializedString() {
-        return message == null ? "OK" : ("OK: " + message);
+        return "ERROR: " + message;
     }
 
     @Override
     public String serializedJSON() {
-        return "{ \"isSuccess\": true, \"message\": \"" + (message == null ? "" : IOUtils.escapeStringJSON(message)) + "\" }";
+        return "{ \"isSuccess\": false, \"message\": \"" + (message == null ? "" : IOUtils.escapeStringJSON(message)) + "\" }";
     }
 }

@@ -18,11 +18,18 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.server.db;
+package org.xowl.server.api.impl;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.xowl.server.Program;
 import org.xowl.server.ServerConfiguration;
+import org.xowl.server.api.*;
+import org.xowl.server.api.XOWLDatabasePrivileges;
+import org.xowl.server.api.Schema;
+import org.xowl.server.api.XOWLUserPrivileges;
+import org.xowl.server.api.impl.Schema;
+import org.xowl.server.api.impl.ServerDatabase;
+import org.xowl.server.api.impl.ServerUser;
 import org.xowl.store.EntailmentRegime;
 import org.xowl.store.IRIs;
 import org.xowl.store.ProxyObject;
@@ -32,7 +39,7 @@ import org.xowl.store.rdf.Quad;
 import org.xowl.store.sparql.Command;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultSuccess;
-import org.xowl.store.xsp.*;
+import org.xowl.server.xsp.*;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.ConsoleLogger;
 import org.xowl.utils.logging.DispatchLogger;
@@ -50,7 +57,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public abstract class Controller implements Closeable {
+public abstract class Controller implements XOWLServer, Closeable {
     /**
      * The data about a client
      */
@@ -76,11 +83,11 @@ public abstract class Controller implements Closeable {
     /**
      * The currently hosted repositories
      */
-    private final Map<String, Database> databases;
+    private final Map<String, ServerDatabase> databases;
     /**
      * The administration database
      */
-    private final Database adminDB;
+    private final XOWLDatabase adminDB;
     /**
      * The map of clients with failed login attempts
      */
@@ -88,7 +95,7 @@ public abstract class Controller implements Closeable {
     /**
      * The map of current users on this server
      */
-    private final Map<String, User> users;
+    private final Map<String, ServerUser> users;
 
     /**
      * Gets current configuration
@@ -114,7 +121,7 @@ public abstract class Controller implements Closeable {
      * @param login A login
      * @return The user
      */
-    public User user(String login) {
+    public XOWLUser user(String login) {
         return users.get(login);
     }
 
@@ -124,13 +131,13 @@ public abstract class Controller implements Closeable {
      * @param proxy A proxy
      * @return The user
      */
-    public User user(ProxyObject proxy) {
+    public XOWLUser user(ProxyObject proxy) {
         synchronized (users) {
-            for (User user : users.values()) {
+            for (XOWLUser user : users.values()) {
                 if (user.proxy == proxy)
                     return user;
             }
-            User user = new User(proxy);
+            XOWLUser user = new XOWLUser(proxy);
             users.put(user.getName(), user);
             return user;
         }
@@ -142,7 +149,7 @@ public abstract class Controller implements Closeable {
      * @param name The name of a database
      * @return The database, or null if it is unknown
      */
-    private Database database(String name) {
+    private XOWLDatabase database(String name) {
         synchronized (databases) {
             return databases.get(name);
         }
@@ -154,9 +161,9 @@ public abstract class Controller implements Closeable {
      * @param proxy A proxy
      * @return The database, or null if it is unknown
      */
-    private Database database(ProxyObject proxy) {
+    private XOWLDatabase database(ProxyObject proxy) {
         synchronized (databases) {
-            for (Database db : databases.values()) {
+            for (XOWLDatabase db : databases.values()) {
                 if (db.proxy == proxy)
                     return db;
             }
@@ -180,28 +187,28 @@ public abstract class Controller implements Closeable {
             isEmpty = children == null || children.length == 0;
         }
         logger.info("Initializing the controller");
-        adminDB = new Database(configuration, configuration.getDatabasesFolder());
+        adminDB = new XOWLDatabase(configuration, configuration.getDatabasesFolder());
         databases.put(configuration.getAdminDBName(), adminDB);
         clients = new HashMap<>();
         users = new HashMap<>();
         if (isEmpty) {
-            adminDB.proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(Schema.ADMIN_DATABASE));
-            adminDB.proxy.setValue(Schema.ADMIN_NAME, configuration.getAdminDBName());
-            adminDB.proxy.setValue(Schema.ADMIN_LOCATION, ".");
-            User admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
+            adminDB.proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(org.xowl.server.api.Schema.ADMIN_DATABASE));
+            adminDB.proxy.setValue(org.xowl.server.api.Schema.ADMIN_NAME, configuration.getAdminDBName());
+            adminDB.proxy.setValue(org.xowl.server.api.Schema.ADMIN_LOCATION, ".");
+            XOWLUser admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
             users.put(admin.getName(), admin);
-            admin.proxy.addValue(Schema.ADMIN_ADMINOF, adminDB.proxy);
+            admin.proxy.addValue(org.xowl.server.api.Schema.ADMIN_ADMINOF, adminDB.proxy);
             adminDB.repository.getStore().commit();
         } else {
-            ProxyObject classDB = adminDB.repository.resolveProxy(Schema.ADMIN_DATABASE);
+            ProxyObject classDB = adminDB.repository.resolveProxy(org.xowl.server.api.Schema.ADMIN_DATABASE);
             for (ProxyObject poDB : classDB.getInstances()) {
                 if (poDB == adminDB.proxy)
                     continue;
                 logger.info("Found database " + poDB.getIRIString());
-                String name = (String) poDB.getDataValue(Schema.ADMIN_NAME);
-                String location = (String) poDB.getDataValue(Schema.ADMIN_LOCATION);
+                String name = (String) poDB.getDataValue(org.xowl.server.api.Schema.ADMIN_NAME);
+                String location = (String) poDB.getDataValue(org.xowl.server.api.Schema.ADMIN_LOCATION);
                 try {
-                    Database db = new Database(new File(configuration.getDatabasesFolder(), location), poDB);
+                    XOWLDatabase db = new XOWLDatabase(new File(configuration.getDatabasesFolder(), location), poDB);
                     databases.put(name, db);
                     logger.info("Loaded database " + poDB.getIRIString() + " as " + name);
                 } catch (IOException exception) {
@@ -266,13 +273,13 @@ public abstract class Controller implements Closeable {
             logger.info("Login failure for " + login + " from " + client.toString());
             return banned ? null : XSPReplyFailure.instance();
         }
-        String userIRI = Schema.ADMIN_GRAPH_USERS + login;
+        String userIRI = org.xowl.server.api.Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
         String hash = null;
         synchronized (adminDB) {
             proxy = adminDB.repository.getProxy(userIRI);
             if (proxy != null)
-                hash = (String) proxy.getDataValue(Schema.ADMIN_PASSWORD);
+                hash = (String) proxy.getDataValue(org.xowl.server.api.Schema.ADMIN_PASSWORD);
         }
         if (proxy == null) {
             boolean banned = onLoginFailure(client);
@@ -287,11 +294,11 @@ public abstract class Controller implements Closeable {
             synchronized (clients) {
                 clients.remove(client);
             }
-            User user;
+            XOWLUser user;
             synchronized (users) {
                 user = users.get(login);
                 if (user == null) {
-                    user = new User(proxy);
+                    user = new XOWLUser(proxy);
                     users.put(login, user);
                 }
             }
@@ -350,8 +357,8 @@ public abstract class Controller implements Closeable {
      * @param database A database
      * @return Whether the user is an administrator of the database
      */
-    private boolean checkIsDBAdmin(User user, Database database) {
-        return checkIsAllowed(user.proxy, database.proxy, Schema.ADMIN_ADMINOF);
+    private boolean checkIsDBAdmin(XOWLUser user, XOWLDatabase database) {
+        return checkIsAllowed(user.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_ADMINOF);
     }
 
     /**
@@ -360,8 +367,8 @@ public abstract class Controller implements Closeable {
      * @param user A user
      * @return Whether the user is a server administrator
      */
-    private boolean checkIsServerAdmin(User user) {
-        return checkIsAllowed(user.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF);
+    private boolean checkIsServerAdmin(XOWLUser user) {
+        return checkIsAllowed(user.proxy, adminDB.proxy, org.xowl.server.api.Schema.ADMIN_ADMINOF);
     }
 
     /**
@@ -370,7 +377,7 @@ public abstract class Controller implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply serverShutdown(User client) {
+    public XSPReply serverShutdown(XOWLUser client) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
@@ -385,7 +392,7 @@ public abstract class Controller implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply serverRestart(User client) {
+    public XSPReply serverRestart(XOWLUser client) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
@@ -401,27 +408,27 @@ public abstract class Controller implements Closeable {
      * @param login  The user's login
      * @return The protocol reply
      */
-    public XSPReply getUser(User client, String login) {
+    public XSPReply getUser(XOWLUser client, String login) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (client.getName().equals(login))
             return new XSPReplyResult<>(client);
         if (!checkIsServerAdmin(client))
             return XSPReplyUnauthorized.instance();
-        String userIRI = Schema.ADMIN_GRAPH_USERS + login;
+        String userIRI = org.xowl.server.api.Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
         String name = null;
         synchronized (adminDB) {
             proxy = adminDB.repository.getProxy(userIRI);
             if (proxy != null)
-                name = (String) proxy.getDataValue(Schema.ADMIN_NAME);
+                name = (String) proxy.getDataValue(org.xowl.server.api.Schema.ADMIN_NAME);
         }
         if (proxy == null)
             return new XSPReplyFailure("User does not exist");
         synchronized (users) {
-            User result = users.get(name);
+            XOWLUser result = users.get(name);
             if (result == null) {
-                result = new User(proxy);
+                result = new XOWLUser(proxy);
                 users.put(name, result);
             }
             return new XSPReplyResult<>(result);
@@ -434,18 +441,18 @@ public abstract class Controller implements Closeable {
      * @param client The client requesting the information
      * @return The protocol reply
      */
-    public XSPReply getUsers(User client) {
+    public XSPReply getUsers(XOWLUser client) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        Collection<User> result = new ArrayList<>();
+        Collection<XOWLUser> result = new ArrayList<>();
         synchronized (adminDB) {
-            ProxyObject classUser = adminDB.repository.resolveProxy(Schema.ADMIN_USER);
+            ProxyObject classUser = adminDB.repository.resolveProxy(org.xowl.server.api.Schema.ADMIN_USER);
             for (ProxyObject poUser : classUser.getInstances()) {
-                String name = (String) poUser.getDataValue(Schema.ADMIN_NAME);
+                String name = (String) poUser.getDataValue(org.xowl.server.api.Schema.ADMIN_NAME);
                 synchronized (users) {
-                    User user = users.get(name);
+                    XOWLUser user = users.get(name);
                     if (user == null) {
-                        user = new User(poUser);
+                        user = new XOWLUser(poUser);
                         users.put(name, user);
                     }
                     result.add(user);
@@ -463,7 +470,7 @@ public abstract class Controller implements Closeable {
      * @param password The password
      * @return The protocol reply
      */
-    public XSPReply createUser(User client, String login, String password) {
+    public XSPReply createUser(XOWLUser client, String login, String password) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
@@ -472,7 +479,7 @@ public abstract class Controller implements Closeable {
             return new XSPReplyFailure("Login does not meet requirements ([_a-zA-Z0-9]+)");
         if (password.length() < configuration.getSecurityMinPasswordLength())
             return new XSPReplyFailure("Password does not meet requirements (min length " + configuration.getSecurityMinPasswordLength() + ")");
-        User user = doCreateUser(login, password);
+        XOWLUser user = doCreateUser(login, password);
         if (user == null)
             return new XSPReplyFailure("User already exists");
         return new XSPReplyResult<>(user);
@@ -485,20 +492,20 @@ public abstract class Controller implements Closeable {
      * @param password The password for the new user
      * @return The created user
      */
-    private User doCreateUser(String login, String password) {
-        String userIRI = Schema.ADMIN_GRAPH_USERS + login;
+    private XOWLUser doCreateUser(String login, String password) {
+        String userIRI = org.xowl.server.api.Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
         synchronized (adminDB) {
             proxy = adminDB.repository.getProxy(userIRI);
             if (proxy != null)
                 return null;
             proxy = adminDB.repository.resolveProxy(userIRI);
-            proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(Schema.ADMIN_USER));
-            proxy.setValue(Schema.ADMIN_NAME, login);
-            proxy.setValue(Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
+            proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(org.xowl.server.api.Schema.ADMIN_USER));
+            proxy.setValue(org.xowl.server.api.Schema.ADMIN_NAME, login);
+            proxy.setValue(org.xowl.server.api.Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
             adminDB.repository.getStore().commit();
         }
-        User result = new User(proxy);
+        XOWLUser result = new XOWLUser(proxy);
         synchronized (users) {
             users.put(login, result);
         }
@@ -512,7 +519,7 @@ public abstract class Controller implements Closeable {
      * @param toDelete The user to delete
      * @return The protocol reply
      */
-    public XSPReply deleteUser(User client, User toDelete) {
+    public XSPReply deleteUser(XOWLUser client, XOWLUser toDelete) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
@@ -534,12 +541,12 @@ public abstract class Controller implements Closeable {
      * @param password The new password
      * @return The protocol reply
      */
-    public XSPReply changePassword(User user, String password) {
+    public XSPReply changePassword(XOWLUser user, String password) {
         if (password.length() < configuration.getSecurityMinPasswordLength())
             return new XSPReplyFailure("Password does not meet requirements");
         synchronized (adminDB) {
-            user.proxy.removeAllValues(Schema.ADMIN_PASSWORD);
-            user.proxy.setValue(Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
+            user.proxy.removeAllValues(org.xowl.server.api.Schema.ADMIN_PASSWORD);
+            user.proxy.setValue(org.xowl.server.api.Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
             adminDB.repository.getStore().commit();
         }
         return XSPReplySuccess.instance();
@@ -553,7 +560,7 @@ public abstract class Controller implements Closeable {
      * @param password The new password
      * @return The protocol reply
      */
-    public XSPReply resetPassword(User client, User target, String password) {
+    public XSPReply resetPassword(XOWLUser client, XOWLUser target, String password) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
@@ -568,22 +575,22 @@ public abstract class Controller implements Closeable {
      * @param target The target user
      * @return The protocol reply
      */
-    public XSPReply getUserPrivileges(User client, User target) {
+    public XSPReply getUserPrivileges(XOWLUser client, XOWLUser target) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (client == target || checkIsServerAdmin(client)) {
-            UserPrivileges result = new UserPrivileges(checkIsServerAdmin(target));
-            for (ProxyObject value : target.proxy.getObjectValues(Schema.ADMIN_ADMINOF)) {
-                Database database = database(value);
-                result.add(database, Schema.PRIVILEGE_ADMIN);
+            XOWLUserPrivileges result = new XOWLUserPrivileges(checkIsServerAdmin(target));
+            for (ProxyObject value : target.proxy.getObjectValues(org.xowl.server.api.Schema.ADMIN_ADMINOF)) {
+                XOWLDatabase database = database(value);
+                result.add(database, org.xowl.server.api.Schema.PRIVILEGE_ADMIN);
             }
-            for (ProxyObject value : target.proxy.getObjectValues(Schema.ADMIN_CANWRITE)) {
-                Database database = database(value);
-                result.add(database, Schema.PRIVILEGE_WRITE);
+            for (ProxyObject value : target.proxy.getObjectValues(org.xowl.server.api.Schema.ADMIN_CANWRITE)) {
+                XOWLDatabase database = database(value);
+                result.add(database, org.xowl.server.api.Schema.PRIVILEGE_WRITE);
             }
-            for (ProxyObject value : target.proxy.getObjectValues(Schema.ADMIN_CANREAD)) {
-                Database database = database(value);
-                result.add(database, Schema.PRIVILEGE_READ);
+            for (ProxyObject value : target.proxy.getObjectValues(org.xowl.server.api.Schema.ADMIN_CANREAD)) {
+                XOWLDatabase database = database(value);
+                result.add(database, org.xowl.server.api.Schema.PRIVILEGE_READ);
             }
             return new XSPReplyResult<>(result);
         }
@@ -597,11 +604,11 @@ public abstract class Controller implements Closeable {
      * @param target The target user
      * @return The protocol reply
      */
-    public XSPReply grantServerAdmin(User client, User target) {
+    public XSPReply grantServerAdmin(XOWLUser client, XOWLUser target) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client)) {
-            boolean success = changeUserPrivilege(target.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF, true);
+            boolean success = changeUserPrivilege(target.proxy, adminDB.proxy, org.xowl.server.api.Schema.ADMIN_ADMINOF, true);
             return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
         }
         return XSPReplyUnauthorized.instance();
@@ -614,11 +621,11 @@ public abstract class Controller implements Closeable {
      * @param target The target user
      * @return The protocol reply
      */
-    public XSPReply revokeServerAdmin(User client, User target) {
+    public XSPReply revokeServerAdmin(XOWLUser client, XOWLUser target) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client)) {
-            boolean success = changeUserPrivilege(target.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF, false);
+            boolean success = changeUserPrivilege(target.proxy, adminDB.proxy, org.xowl.server.api.Schema.ADMIN_ADMINOF, false);
             return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
         }
         return XSPReplyUnauthorized.instance();
@@ -632,11 +639,11 @@ public abstract class Controller implements Closeable {
      * @param database The database
      * @return The protocol reply
      */
-    public XSPReply grantDBAdmin(User client, User user, Database database) {
+    public XSPReply grantDBAdmin(XOWLUser client, XOWLUser user, XOWLDatabase database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
-            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_ADMINOF, true);
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_ADMINOF, true);
             return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
         }
         return XSPReplyUnauthorized.instance();
@@ -650,11 +657,11 @@ public abstract class Controller implements Closeable {
      * @param database The database
      * @return The protocol reply
      */
-    public XSPReply revokeDBAdmin(User client, User user, Database database) {
+    public XSPReply revokeDBAdmin(XOWLUser client, XOWLUser user, XOWLDatabase database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
-            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_ADMINOF, false);
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_ADMINOF, false);
             return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
         }
         return XSPReplyUnauthorized.instance();
@@ -668,11 +675,11 @@ public abstract class Controller implements Closeable {
      * @param database The database
      * @return The protocol reply
      */
-    public XSPReply grantDBRead(User client, User user, Database database) {
+    public XSPReply grantDBRead(XOWLUser client, XOWLUser user, XOWLDatabase database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
-            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANREAD, true);
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANREAD, true);
             return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
         }
         return XSPReplyUnauthorized.instance();
@@ -686,11 +693,11 @@ public abstract class Controller implements Closeable {
      * @param database The database
      * @return The protocol reply
      */
-    public XSPReply revokeDBRead(User client, User user, Database database) {
+    public XSPReply revokeDBRead(XOWLUser client, XOWLUser user, XOWLDatabase database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
-            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANREAD, false);
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANREAD, false);
             return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
         }
         return XSPReplyUnauthorized.instance();
@@ -705,11 +712,11 @@ public abstract class Controller implements Closeable {
      * @param database The database
      * @return The protocol reply
      */
-    public XSPReply grantDBWrite(User client, User user, Database database) {
+    public XSPReply grantDBWrite(XOWLUser client, XOWLUser user, XOWLDatabase database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
-            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANWRITE, true);
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANWRITE, true);
             return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
         }
         return XSPReplyUnauthorized.instance();
@@ -723,11 +730,11 @@ public abstract class Controller implements Closeable {
      * @param database The database
      * @return The protocol reply
      */
-    public XSPReply revokeDBWrite(User client, User user, Database database) {
+    public XSPReply revokeDBWrite(XOWLUser client, XOWLUser user, XOWLDatabase database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
-            boolean success = changeUserPrivilege(user.proxy, database.proxy, Schema.ADMIN_CANWRITE, false);
+            boolean success = changeUserPrivilege(user.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANWRITE, false);
             return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
         }
         return XSPReplyUnauthorized.instance();
@@ -766,16 +773,16 @@ public abstract class Controller implements Closeable {
      * @param name   The name of a database
      * @return The protocol reply
      */
-    public XSPReply getDatabase(User client, String name) {
+    public XSPReply getDatabase(XOWLUser client, String name) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        Database database = database(name);
+        XOWLDatabase database = database(name);
         if (database == null)
             return XSPReplyFailure.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, database)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE))
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANREAD)
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANWRITE))
             return new XSPReplyResult<>(database);
         return XSPReplyUnauthorized.instance();
     }
@@ -786,20 +793,20 @@ public abstract class Controller implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply getDatabases(User client) {
+    public XSPReply getDatabases(XOWLUser client) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        Collection<Database> result = new ArrayList<>();
+        Collection<XOWLDatabase> result = new ArrayList<>();
         synchronized (databases) {
             if (checkIsServerAdmin(client)) {
                 result.addAll(databases.values());
                 return new XSPReplyResultCollection<>(result);
             }
-            for (Database database : databases.values()) {
+            for (XOWLDatabase database : databases.values()) {
                 if (checkIsServerAdmin(client)
                         || checkIsDBAdmin(client, database)
-                        || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)
-                        || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE))
+                        || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANREAD)
+                        || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANWRITE))
                     result.add(database);
             }
         }
@@ -813,7 +820,7 @@ public abstract class Controller implements Closeable {
      * @param name   The name of the database
      * @return The protocol reply
      */
-    public XSPReply createDatabase(User client, String name) {
+    public XSPReply createDatabase(XOWLUser client, String name) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
@@ -822,16 +829,16 @@ public abstract class Controller implements Closeable {
             return new XSPReplyFailure("Database name does not match requirements ([_a-zA-Z0-9]+)");
 
         synchronized (databases) {
-            Database result = databases.get(name);
+            XOWLDatabase result = databases.get(name);
             if (result != null)
                 return new XSPReplyFailure("The database already exists");
             File folder = new File(configuration.getDatabasesFolder(), name);
             try {
-                ProxyObject proxy = adminDB.repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + name);
-                proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(Schema.ADMIN_DATABASE));
-                proxy.setValue(Schema.ADMIN_NAME, name);
-                proxy.setValue(Schema.ADMIN_LOCATION, name);
-                result = new Database(folder, proxy);
+                ProxyObject proxy = adminDB.repository.resolveProxy(org.xowl.server.api.Schema.ADMIN_GRAPH_DBS + name);
+                proxy.setValue(Vocabulary.rdfType, adminDB.repository.resolveProxy(org.xowl.server.api.Schema.ADMIN_DATABASE));
+                proxy.setValue(org.xowl.server.api.Schema.ADMIN_NAME, name);
+                proxy.setValue(org.xowl.server.api.Schema.ADMIN_LOCATION, name);
+                result = new XOWLDatabase(folder, proxy);
                 adminDB.repository.getStore().commit();
                 result.repository.getStore().commit();
                 databases.put(name, result);
@@ -849,7 +856,7 @@ public abstract class Controller implements Closeable {
      * @param database The database to drop
      * @return The protocol reply
      */
-    public XSPReply dropDatabase(User client, Database database) {
+    public XSPReply dropDatabase(XOWLUser client, XOWLDatabase database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (database == adminDB)
@@ -857,7 +864,7 @@ public abstract class Controller implements Closeable {
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
             synchronized (databases) {
                 databases.remove(database.getName());
-                File folder = new File(configuration.getDatabasesFolder(), (String) database.proxy.getDataValue(Schema.ADMIN_LOCATION));
+                File folder = new File(configuration.getDatabasesFolder(), (String) database.proxy.getDataValue(org.xowl.server.api.Schema.ADMIN_LOCATION));
                 try {
                     database.close();
                 } catch (IOException exception) {
@@ -882,22 +889,22 @@ public abstract class Controller implements Closeable {
      * @param target The target database
      * @return The protocol reply
      */
-    public XSPReply getDatabasePrivileges(User client, Database target) {
+    public XSPReply getDatabasePrivileges(XOWLUser client, XOWLDatabase target) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, target)) {
-            DatabasePrivileges result = new DatabasePrivileges();
-            for (ProxyObject value : target.proxy.getObjectsFrom(Schema.ADMIN_ADMINOF)) {
-                User user = user(value);
-                result.add(user, Schema.PRIVILEGE_ADMIN);
+            XOWLDatabasePrivileges result = new XOWLDatabasePrivileges();
+            for (ProxyObject value : target.proxy.getObjectsFrom(org.xowl.server.api.Schema.ADMIN_ADMINOF)) {
+                XOWLUser user = user(value);
+                result.add(user, org.xowl.server.api.Schema.PRIVILEGE_ADMIN);
             }
-            for (ProxyObject value : target.proxy.getObjectsFrom(Schema.ADMIN_CANWRITE)) {
-                User user = user(value);
-                result.add(user, Schema.PRIVILEGE_WRITE);
+            for (ProxyObject value : target.proxy.getObjectsFrom(org.xowl.server.api.Schema.ADMIN_CANWRITE)) {
+                XOWLUser user = user(value);
+                result.add(user, org.xowl.server.api.Schema.PRIVILEGE_WRITE);
             }
-            for (ProxyObject value : target.proxy.getObjectsFrom(Schema.ADMIN_CANREAD)) {
-                User user = user(value);
-                result.add(user, Schema.PRIVILEGE_READ);
+            for (ProxyObject value : target.proxy.getObjectsFrom(org.xowl.server.api.Schema.ADMIN_CANREAD)) {
+                XOWLUser user = user(value);
+                result.add(user, org.xowl.server.api.Schema.PRIVILEGE_READ);
             }
             return new XSPReplyResult<>(result);
         }
@@ -914,13 +921,13 @@ public abstract class Controller implements Closeable {
      * @param namedIRIs   The context's named IRIs
      * @return The protocol reply
      */
-    public XSPReply sparql(User client, Database database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
+    public XSPReply sparql(XOWLUser client, XOWLDatabase database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, database)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANREAD)) {
             BufferedLogger bufferedLogger = new BufferedLogger();
             DispatchLogger dispatchLogger = new DispatchLogger(database.logger, bufferedLogger);
             if (defaultIRIs == null)
@@ -954,13 +961,13 @@ public abstract class Controller implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply dbGetEntailmentRegime(User client, Database database) {
+    public XSPReply dbGetEntailmentRegime(XOWLUser client, XOWLDatabase database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, database)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANREAD)) {
             return new XSPReplyResult<>(database.getEntailmentRegime());
         } else {
             return XSPReplyUnauthorized.instance();
@@ -975,7 +982,7 @@ public abstract class Controller implements Closeable {
      * @param regime   The entailment regime
      * @return The protocol reply
      */
-    public XSPReply dbSetEntailmentRegime(User client, Database database, String regime) {
+    public XSPReply dbSetEntailmentRegime(XOWLUser client, XOWLDatabase database, String regime) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
@@ -993,13 +1000,13 @@ public abstract class Controller implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply dbListAllRules(User client, Database database) {
+    public XSPReply dbListAllRules(XOWLUser client, XOWLDatabase database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, database)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANREAD)) {
             return database.getAllRules();
         } else {
             return XSPReplyUnauthorized.instance();
@@ -1013,13 +1020,13 @@ public abstract class Controller implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply dbListActiveRules(User client, Database database) {
+    public XSPReply dbListActiveRules(XOWLUser client, XOWLDatabase database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, database)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANREAD)) {
             return database.getActiveRules();
         } else {
             return XSPReplyUnauthorized.instance();
@@ -1035,7 +1042,7 @@ public abstract class Controller implements Closeable {
      * @param activate Whether to readily activate the rule
      * @return The protocol reply
      */
-    public XSPReply dbAddRule(User client, Database database, String content, boolean activate) {
+    public XSPReply dbAddRule(XOWLUser client, XOWLDatabase database, String content, boolean activate) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
@@ -1053,7 +1060,7 @@ public abstract class Controller implements Closeable {
      * @param rule     The rule's IRI
      * @return The protocol reply
      */
-    public XSPReply dbRemoveRule(User client, Database database, String rule) {
+    public XSPReply dbRemoveRule(XOWLUser client, XOWLDatabase database, String rule) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
@@ -1071,7 +1078,7 @@ public abstract class Controller implements Closeable {
      * @param rule     The rule's IRI
      * @return The protocol reply
      */
-    public XSPReply dbGetRuleDefinition(User client, Database database, String rule) {
+    public XSPReply dbGetRuleDefinition(XOWLUser client, XOWLDatabase database, String rule) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
@@ -1089,7 +1096,7 @@ public abstract class Controller implements Closeable {
      * @param rule     The rule's IRI
      * @return The protocol reply
      */
-    public XSPReply dbActivateRule(User client, Database database, String rule) {
+    public XSPReply dbActivateRule(XOWLUser client, XOWLDatabase database, String rule) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
@@ -1107,7 +1114,7 @@ public abstract class Controller implements Closeable {
      * @param rule     The rule's IRI
      * @return The protocol reply
      */
-    public XSPReply dbDeactivateRule(User client, Database database, String rule) {
+    public XSPReply dbDeactivateRule(XOWLUser client, XOWLDatabase database, String rule) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
@@ -1125,13 +1132,13 @@ public abstract class Controller implements Closeable {
      * @param rule     The rule's IRI
      * @return The protocol reply
      */
-    public XSPReply dbIsRuleActive(User client, Database database, String rule) {
+    public XSPReply dbIsRuleActive(XOWLUser client, XOWLDatabase database, String rule) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, database)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANREAD)) {
             return database.isRuleActive(rule);
         } else {
             return XSPReplyUnauthorized.instance();
@@ -1146,13 +1153,13 @@ public abstract class Controller implements Closeable {
      * @param rule     The rule's IRI
      * @return The protocol reply
      */
-    public XSPReply dbGetRuleStatus(User client, Database database, String rule) {
+    public XSPReply dbGetRuleStatus(XOWLUser client, XOWLDatabase database, String rule) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, database)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANREAD)) {
             return database.getRuleStatus(rule);
         } else {
             return XSPReplyUnauthorized.instance();
@@ -1167,12 +1174,12 @@ public abstract class Controller implements Closeable {
      * @param quad     The quad serialization
      * @return The protocol reply
      */
-    public XSPReply dbGetQuadExplanation(User client, Database database, String quad) {
+    public XSPReply dbGetQuadExplanation(XOWLUser client, XOWLDatabase database, String quad) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, database)
-                || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, database.proxy, org.xowl.server.api.Schema.ADMIN_CANWRITE)
                 || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)) {
             return database.getExplanation(quad);
         } else {
@@ -1189,7 +1196,7 @@ public abstract class Controller implements Closeable {
      * @param content  The content
      * @return The protocol reply
      */
-    public XSPReply upload(User client, Database database, String syntax, String content) {
+    public XSPReply upload(XOWLUser client, XOWLDatabase database, String syntax, String content) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, database)) {
@@ -1210,7 +1217,7 @@ public abstract class Controller implements Closeable {
     @Override
     public void close() throws IOException {
         logger.info("Closing all databases ...");
-        for (Map.Entry<String, Database> entry : databases.entrySet()) {
+        for (Map.Entry<String, XOWLDatabase> entry : databases.entrySet()) {
             logger.info("Closing database " + entry.getKey());
             try {
                 entry.getValue().close();

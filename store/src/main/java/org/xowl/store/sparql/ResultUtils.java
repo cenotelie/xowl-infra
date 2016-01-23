@@ -104,7 +104,7 @@ public class ResultUtils {
                     return new ResultQuads(new ArrayList<Quad>(0));
                 // empty solutions
                 case Result.SYNTAX_JSON:
-                case IOUtils.MIME_JSON:
+                case MIME_JSON:
                 case Result.SYNTAX_CSV:
                 case Result.SYNTAX_TSV:
                 case Result.SYNTAX_XML:
@@ -139,7 +139,7 @@ public class ResultUtils {
                         }
                     });
                 case Result.SYNTAX_JSON:
-                case IOUtils.MIME_JSON:
+                case MIME_JSON:
                     return parseResponseJSON(content);
                 case Result.SYNTAX_CSV:
                 case Result.SYNTAX_TSV:

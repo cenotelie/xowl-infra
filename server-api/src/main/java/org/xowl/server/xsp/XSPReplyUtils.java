@@ -18,13 +18,15 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.xsp;
+package org.xowl.server.xsp;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.IOUtils;
+import org.xowl.store.http.HttpConstants;
+import org.xowl.store.http.HttpResponse;
 import org.xowl.store.loaders.JSONLDLoader;
 import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultUtils;
@@ -59,16 +61,16 @@ public class XSPReplyUtils {
      * @param acceptTypes The accepted MIME types, if any
      * @return The HTTP response
      */
-    public static IOUtils.HttpResponse toHttpResponse(XSPReply reply, List<String> acceptTypes) {
+    public static HttpResponse toHttpResponse(XSPReply reply, List<String> acceptTypes) {
         if (reply == null)
             // client got banned
-            return new IOUtils.HttpResponse(HttpURLConnection.HTTP_FORBIDDEN);
+            return new HttpResponse(HttpURLConnection.HTTP_FORBIDDEN);
         if (reply instanceof XSPReplyUnauthenticated)
-            return new IOUtils.HttpResponse(HttpURLConnection.HTTP_UNAUTHORIZED);
+            return new HttpResponse(HttpURLConnection.HTTP_UNAUTHORIZED);
         if (reply instanceof XSPReplyUnauthorized)
-            return new IOUtils.HttpResponse(HttpURLConnection.HTTP_FORBIDDEN);
+            return new HttpResponse(HttpURLConnection.HTTP_FORBIDDEN);
         if (reply instanceof XSPReplyFailure)
-            return new IOUtils.HttpResponse(IOUtils.HTTP_UNKNOWN_ERROR, IOUtils.MIME_TEXT_PLAIN, reply.getMessage());
+            return new HttpResponse(HttpConstants.HTTP_UNKNOWN_ERROR, HttpConstants.MIME_TEXT_PLAIN, reply.getMessage());
         if (reply instanceof XSPReplyResult && ((XSPReplyResult) reply).getData() instanceof Result) {
             // special handling for SPARQL
             Result sparqlResult = (Result) ((XSPReplyResult) reply).getData();
@@ -79,10 +81,10 @@ public class XSPReplyUtils {
             } catch (IOException exception) {
                 // cannot happen
             }
-            return new IOUtils.HttpResponse(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : IOUtils.HTTP_UNKNOWN_ERROR, resultType, writer.toString());
+            return new HttpResponse(sparqlResult.isSuccess() ? HttpURLConnection.HTTP_OK : HttpConstants.HTTP_UNKNOWN_ERROR, resultType, writer.toString());
         }
         // general case
-        return new IOUtils.HttpResponse(HttpURLConnection.HTTP_OK, IOUtils.MIME_JSON, reply.serializedJSON());
+        return new HttpResponse(HttpURLConnection.HTTP_OK, HttpConstants.MIME_JSON, reply.serializedJSON());
     }
 
 

@@ -18,23 +18,24 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage.remote;
-
-import org.xowl.store.sparql.Result;
-
-import java.io.Closeable;
+package org.xowl.store.http;
 
 /**
- * Represents a connection to a remote SPARQL endpoint
+ * Constants for using the HTTP protocol
  *
  * @author Laurent Wouters
  */
-public interface Connection extends Closeable {
+public interface HttpConstants {
     /**
-     * Sends a SPARQL command to the remote host
-     *
-     * @param command The SPARQL command
-     * @return The result
+     * The MIME content type for plain text
      */
-    Result sparql(String command);
+    String MIME_TEXT_PLAIN = "text/plain";
+    /**
+     * The MIME content type for JSON
+     */
+    String MIME_JSON = "application/json";
+    /**
+     * Unknown error from the server
+     */
+    int HTTP_UNKNOWN_ERROR = 520;
 }

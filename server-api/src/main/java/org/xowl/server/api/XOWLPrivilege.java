@@ -18,23 +18,28 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.store.storage.remote;
-
-import org.xowl.store.sparql.Result;
-
-import java.io.Closeable;
+package org.xowl.server.api;
 
 /**
- * Represents a connection to a remote SPARQL endpoint
+ * Represents a privilege on a database or server
  *
  * @author Laurent Wouters
  */
-public interface Connection extends Closeable {
+public interface XOWLPrivilege {
     /**
-     * Sends a SPARQL command to the remote host
-     *
-     * @param command The SPARQL command
-     * @return The result
+     * No privilege
      */
-    Result sparql(String command);
+    int NONE = 0;
+    /**
+     * Can read data but not write
+     */
+    int READ = 1;
+    /**
+     * Can write data (implies READ)
+     */
+    int WRITE = 2;
+    /**
+     * Can perform administrative operations (implies WRITE and READ)
+     */
+    int ADMIN = 4;
 }
