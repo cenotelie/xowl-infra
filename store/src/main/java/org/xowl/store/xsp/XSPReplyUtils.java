@@ -38,10 +38,13 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utility APIs for the xOWL Server Protocol
@@ -81,7 +84,6 @@ public class XSPReplyUtils {
         // general case
         return new IOUtils.HttpResponse(HttpURLConnection.HTTP_OK, IOUtils.MIME_JSON, reply.serializedJSON());
     }
-
 
 
     /**
@@ -175,19 +177,12 @@ public class XSPReplyUtils {
             // this is a success
             if (nodePayload != null) {
                 if ("array".equals(nodePayload.getSymbol().getName())) {
-                    Collection<Object> payload = new ArrayList<>(nodePayload.getChildren().size());
-                    for (ASTNode child : nodePayload.getChildren()) {
-                        Object element = loadXSPObject(child);
-                        if (element == null)
-                            return new XSPReplyFailure("Unexpected JSON format");
-                        payload.add(element);
-                    }
+                    List<Object> payload = new ArrayList<>(nodePayload.getChildren().size());
+                    for (ASTNode child : nodePayload.getChildren())
+                        payload.add(getJSONObject(child));
                     return new XSPReplyResultCollection<>(payload);
                 } else {
-                    Object payload = loadXSPObject(nodePayload);
-                    if (payload == null)
-                        return new XSPReplyFailure("Unexpected JSON format");
-                    return new XSPReplyResult<>(payload);
+                    return new XSPReplyResult<>(getJSONObject(nodePayload));
                 }
             } else {
                 if (nodeMessage == null)
@@ -200,22 +195,32 @@ public class XSPReplyUtils {
     }
 
     /**
-     * Loads an XSP object from the specified AST root
+     * Gets an object representing the specified JSON object
      *
-     * @param root The AST root node for an object
-     * @return The object, or null if it is not recognized
+     * @param node The root AST for the object
+     * @return The JSON object
      */
-    private static Object loadXSPObject(ASTNode root) {
-        if ("array".equals(root.getSymbol().getName()))
-            return null;
-
-        String value = root.getValue();
-        if (value != null)
+    private static Object getJSONObject(ASTNode node) {
+        // is this an array ?
+        if ("array".equals(node.getSymbol().getName())) {
+            List<Object> value = new ArrayList<>();
+            for (ASTNode child : node.getChildren()) {
+                value.add(getJSONObject(child));
+            }
             return value;
-
+        }
+        // is this a simple value ?
+        String value = node.getValue();
+        if (value != null) {
+            if (value.startsWith("\"")) {
+                value = IOUtils.unescape(value);
+                return value.substring(1, value.length() - 1);
+            }
+            return value;
+        }
+        // this is an object, does it have a type
         ASTNode nodeType = null;
-        ASTNode nodeName = null;
-        for (ASTNode memberNode : root.getChildren()) {
+        for (ASTNode memberNode : node.getChildren()) {
             String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
             memberName = memberName.substring(1, memberName.length() - 1);
             ASTNode memberValue = memberNode.getChildren().get(1);
@@ -223,35 +228,30 @@ public class XSPReplyUtils {
                 case "type":
                     nodeType = memberValue;
                     break;
-                case "name":
-                    nodeName = memberValue;
-                    break;
             }
         }
-
-        if (nodeType == null)
-            return null;
-        String type = IOUtils.unescape(nodeType.getValue());
-        type = type.substring(1, type.length() - 1);
-
-        switch (type) {
-            case "org.xowl.server.db.User":
-            case "org.xowl.server.db.Database":
-                if (nodeName == null)
-                    return null;
-                String name = IOUtils.unescape(nodeName.getValue());
-                return name.substring(1, name.length() - 1);
-            case "org.xowl.server.db.UserPrivileges":
-            case "org.xowl.server.db.DatabasePrivileges":
-                // TODO: implement this
-                return null;
-            case "org.xowl.store.rdf.RuleExplanation":
-                // TODO: implement this
-                return null;
-            case "org.xowl.store.rete.MatchStatus":
-                // TODO: implement this
-                return null;
+        if (nodeType != null) {
+            // we have a type
+            String type = IOUtils.unescape(nodeType.getValue());
+            type = type.substring(1, type.length() - 1);
+            try {
+                // try to instantiate the corresponding class
+                Class<?> clazz = Class.forName(type);
+                Constructor constructor = clazz.getConstructor(ASTNode.class);
+                if (constructor.isAccessible())
+                    return constructor.newInstance(node);
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException exception) {
+                // do nothing
+            }
         }
-        return null;
+        // fallback to mapping the properties
+        Map<String, Object> properties = new HashMap<>();
+        for (ASTNode memberNode : node.getChildren()) {
+            String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
+            memberName = memberName.substring(1, memberName.length() - 1);
+            ASTNode memberValue = memberNode.getChildren().get(1);
+            properties.put(memberName, getJSONObject(memberValue));
+        }
+        return properties;
     }
 }
