@@ -415,7 +415,7 @@ public class URIUtils {
                 String sub = original.substring(i, i + 2);
                 byte[] bytes = sub.getBytes(Charset.forName("UTF-8"));
                 for (int j = 0; j != bytes.length; j++) {
-                    int n = (int) bytes[i] & 0xff;
+                    int n = (int) bytes[j] & 0xff;
                     builder.append("%");
                     if (n < 0x10) {
                         builder.append("0");
@@ -428,7 +428,7 @@ public class URIUtils {
             } else {
                 byte[] bytes = Character.toString(c).getBytes(Charset.forName("UTF-8"));
                 for (int j = 0; j != bytes.length; j++) {
-                    int n = (int) bytes[i] & 0xff;
+                    int n = (int) bytes[j] & 0xff;
                     builder.append("%");
                     if (n < 0x10) {
                         builder.append("0");
