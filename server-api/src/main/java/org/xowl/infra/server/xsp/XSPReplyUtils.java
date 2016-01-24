@@ -114,18 +114,37 @@ public class XSPReplyUtils {
         // handle other failures
         if (response.getCode() != HttpURLConnection.HTTP_OK)
             return new XSPReplyFailure(response.getBodyAsString() != null ? response.getBodyAsString() : "failure (HTTP " + response.getCode() + ")");
-        // the result is OK from hereon
-        if (response.getBodyAsString() == null)
-            return XSPReplySuccess.instance();
-        if (response.getContentType() == null || HttpConstants.MIME_TEXT_PLAIN.equals(response.getContentType()))
-            // no response type or plain text
-            return new XSPReplyResult<>(response.getBodyAsString());
-        if (HttpConstants.MIME_JSON.equals(response.getContentType()))
-            // pure JSON response
-            return XSPReplyUtils.parseJSONResult(response.getBodyAsString(), factory);
-        // assume SPARQL reply
-        Result sparqlResult = ResultUtils.parseResponse(response.getBodyAsString(), response.getContentType());
-        return new XSPReplyResult<>(sparqlResult);
+        if (response.getContentType() != null && !response.getContentType().isEmpty()) {
+            // we've got a content type
+            if (response.getBodyAsString() != null && !response.getBodyAsString().isEmpty()) {
+                // we have content
+                if (HttpConstants.MIME_JSON.equals(response.getContentType()))
+                    // pure JSON response
+                    return XSPReplyUtils.parseJSONResult(response.getBodyAsString(), factory);
+                if (HttpConstants.MIME_TEXT_PLAIN.equals(response.getContentType()))
+                    // plain text
+                    return new XSPReplyResult<>(response.getBodyAsString());
+                // assume SPARQL
+                Result sparqlResult = ResultUtils.parseResponse(response.getBodyAsString(), response.getContentType());
+                return new XSPReplyResult<>(sparqlResult);
+            } else {
+                // no content but content type is defined
+                if (HttpConstants.MIME_JSON.equals(response.getContentType()) || HttpConstants.MIME_TEXT_PLAIN.equals(response.getContentType()))
+                    return XSPReplySuccess.instance();
+                // assume empty SPARQL
+                Result sparqlResult = ResultUtils.parseResponse(null, response.getContentType());
+                return new XSPReplyResult<>(sparqlResult);
+            }
+        } else {
+            // no content type
+            if (response.getBodyAsString() != null && !response.getBodyAsString().isEmpty()) {
+                // too bad we have content ...
+                // assume plain text
+                return new XSPReplyResult<>(response.getBodyAsString());
+            } else {
+                return XSPReplySuccess.instance();
+            }
+        }
     }
 
     /**
