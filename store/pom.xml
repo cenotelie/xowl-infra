@@ -3,12 +3,12 @@
 	<parent>
 		<groupId>org.xowl.infra</groupId>
 		<artifactId>xowl-infra</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>1.0-beta5</version>
 	</parent>
 	<groupId>org.xowl.infra</groupId>
 	<artifactId>xowl-store</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0-beta5</version>
 	<name>xOWL Infra - Store</name>
 	<description>Provides storage and querying facilities for xOWL ontologies and RDF graphs</description>
 	<dependencies>
@@ -44,13 +44,13 @@
 		<dependency>
 			<groupId>org.xowl.infra</groupId>
 			<artifactId>xowl-commons</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.0-beta5</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.xowl.infra</groupId>
 			<artifactId>xowl-lang</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.0-beta5</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
