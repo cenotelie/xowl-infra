@@ -46,7 +46,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>org.xowl.server.Program</mainClass>
+							<mainClass>org.xowl.infra.server.Program</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
