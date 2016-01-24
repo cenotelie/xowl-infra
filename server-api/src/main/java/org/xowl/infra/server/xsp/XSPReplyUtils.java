@@ -23,6 +23,7 @@ package org.xowl.infra.server.xsp;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
+import org.xowl.infra.server.api.XOWLFactory;
 import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.http.HttpConstants;
@@ -40,8 +41,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,8 +70,10 @@ public class XSPReplyUtils {
             return new HttpResponse(HttpURLConnection.HTTP_FORBIDDEN);
         if (reply instanceof XSPReplyNotFound)
             return new HttpResponse(HttpURLConnection.HTTP_NOT_FOUND);
-        if (reply instanceof XSPReplyFailure)
+        // other failures
+        if (!reply.isSuccess())
             return new HttpResponse(HttpConstants.HTTP_UNKNOWN_ERROR, HttpConstants.MIME_TEXT_PLAIN, reply.getMessage());
+        // handle special case of SPARQL
         if (reply instanceof XSPReplyResult && ((XSPReplyResult) reply).getData() instanceof Result) {
             // special handling for SPARQL
             Result sparqlResult = (Result) ((XSPReplyResult) reply).getData();
@@ -89,14 +90,52 @@ public class XSPReplyUtils {
         return new HttpResponse(HttpURLConnection.HTTP_OK, HttpConstants.MIME_JSON, reply.serializedJSON());
     }
 
+    /**
+     * Translates an HTTP response to an XSP reply
+     *
+     * @param response The response
+     * @param factory  The factory to use
+     * @return The XSP reply
+     */
+    public static XSPReply fromHttpResponse(HttpResponse response, XOWLFactory factory) {
+        if (response == null)
+            return XSPReplyNetworkError.instance();
+        // handle special HTTP codes
+        if (response.getCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
+            return XSPReplyUnauthenticated.instance();
+        if (response.getCode() == HttpURLConnection.HTTP_FORBIDDEN)
+            return XSPReplyUnauthorized.instance();
+        if (response.getCode() == HttpURLConnection.HTTP_NOT_FOUND)
+            return XSPReplyNotFound.instance();
+        if (response.getCode() == HttpURLConnection.HTTP_INTERNAL_ERROR)
+            return new XSPReplyFailure(response.getBodyAsString());
+        if (response.getCode() == HttpConstants.HTTP_UNKNOWN_ERROR)
+            return new XSPReplyFailure(response.getBodyAsString());
+        // handle other failures
+        if (response.getCode() != HttpURLConnection.HTTP_OK)
+            return new XSPReplyFailure(response.getBodyAsString() != null ? response.getBodyAsString() : "failure (HTTP " + response.getCode() + ")");
+        // the result is OK from hereon
+        if (response.getBodyAsString() == null)
+            return XSPReplySuccess.instance();
+        if (response.getContentType() == null || HttpConstants.MIME_TEXT_PLAIN.equals(response.getContentType()))
+            // no response type or plain text
+            return new XSPReplyResult<>(response.getBodyAsString());
+        if (HttpConstants.MIME_JSON.equals(response.getContentType()))
+            // pure JSON response
+            return XSPReplyUtils.parseJSONResult(response.getBodyAsString(), factory);
+        // assume SPARQL reply
+        Result sparqlResult = ResultUtils.parseResponse(response.getBodyAsString(), response.getContentType());
+        return new XSPReplyResult<>(sparqlResult);
+    }
 
     /**
      * Parses a XSP result serialized in JSON
      *
      * @param content The content
+     * @param factory The factory to use
      * @return The result
      */
-    public static XSPReply parseJSONResult(String content) {
+    public static XSPReply parseJSONResult(String content, XOWLFactory factory) {
         NodeManager nodeManager = new CachedNodes();
         JSONLDLoader loader = new JSONLDLoader(nodeManager) {
             @Override
@@ -125,16 +164,17 @@ public class XSPReplyUtils {
         if ("array".equals(parseResult.getRoot().getSymbol().getName()))
             return new XSPReplyFailure("Unexpected JSON format");
 
-        return parseJSONResult(parseResult.getRoot());
+        return parseJSONResult(parseResult.getRoot(), factory);
     }
 
     /**
      * Parses a XSP result serialized in JSON
      *
-     * @param root The content
+     * @param root    The content
+     * @param factory The factory to use
      * @return The result
      */
-    public static XSPReply parseJSONResult(ASTNode root) {
+    public static XSPReply parseJSONResult(ASTNode root, XOWLFactory factory) {
         ASTNode nodeIsSuccess = null;
         ASTNode nodeMessage = null;
         ASTNode nodeCause = null;
@@ -172,11 +212,13 @@ public class XSPReplyUtils {
             else if ("NOT FOUND".equals(cause))
                 return XSPReplyNotFound.instance();
             else if ("NETWORK ERROR".equals(cause)) {
-                String msg = "";
+                String msg = null;
                 if (nodeMessage != null) {
                     msg = IOUtils.unescape(nodeMessage.getValue());
                     msg = msg.substring(1, msg.length() - 1);
                 }
+                if (msg == null)
+                    return XSPReplyNetworkError.instance();
                 return new XSPReplyNetworkError(msg);
             } else
                 return new XSPReplyFailure(cause);
@@ -192,10 +234,10 @@ public class XSPReplyUtils {
                 if ("array".equals(nodePayload.getSymbol().getName())) {
                     List<Object> payload = new ArrayList<>(nodePayload.getChildren().size());
                     for (ASTNode child : nodePayload.getChildren())
-                        payload.add(getJSONObject(child));
+                        payload.add(getJSONObject(child, factory));
                     return new XSPReplyResultCollection<>(payload);
                 } else {
-                    return new XSPReplyResult<>(getJSONObject(nodePayload));
+                    return new XSPReplyResult<>(getJSONObject(nodePayload, factory));
                 }
             } else {
                 if (nodeMessage == null)
@@ -210,15 +252,16 @@ public class XSPReplyUtils {
     /**
      * Gets an object representing the specified JSON object
      *
-     * @param node The root AST for the object
+     * @param node    The root AST for the object
+     * @param factory The factory to use
      * @return The JSON object
      */
-    private static Object getJSONObject(ASTNode node) {
+    private static Object getJSONObject(ASTNode node, XOWLFactory factory) {
         // is this an array ?
         if ("array".equals(node.getSymbol().getName())) {
             List<Object> value = new ArrayList<>();
             for (ASTNode child : node.getChildren()) {
-                value.add(getJSONObject(child));
+                value.add(getJSONObject(child, factory));
             }
             return value;
         }
@@ -247,15 +290,9 @@ public class XSPReplyUtils {
             // we have a type
             String type = IOUtils.unescape(nodeType.getValue());
             type = type.substring(1, type.length() - 1);
-            try {
-                // try to instantiate the corresponding class
-                Class<?> clazz = Class.forName(type);
-                Constructor constructor = clazz.getConstructor(ASTNode.class);
-                if (constructor.isAccessible())
-                    return constructor.newInstance(node);
-            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException exception) {
-                // do nothing
-            }
+            Object result = factory.newObject(type, node);
+            if (result != null)
+                return result;
         }
         // fallback to mapping the properties
         Map<String, Object> properties = new HashMap<>();
@@ -263,7 +300,7 @@ public class XSPReplyUtils {
             String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
             memberName = memberName.substring(1, memberName.length() - 1);
             ASTNode memberValue = memberNode.getChildren().get(1);
-            properties.put(memberName, getJSONObject(memberValue));
+            properties.put(memberName, getJSONObject(memberValue, factory));
         }
         return properties;
     }

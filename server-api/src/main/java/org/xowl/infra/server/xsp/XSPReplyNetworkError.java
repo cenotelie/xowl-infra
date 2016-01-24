@@ -29,6 +29,22 @@ import org.xowl.infra.store.IOUtils;
  */
 public class XSPReplyNetworkError implements XSPReply {
     /**
+     * The singleton instance
+     */
+    private static XSPReplyNetworkError INSTANCE = null;
+
+    /**
+     * Gets the singleton instance
+     *
+     * @return The singleton instance
+     */
+    public synchronized static XSPReplyNetworkError instance() {
+        if (INSTANCE == null)
+            return new XSPReplyNetworkError("Connection failure");
+        return INSTANCE;
+    }
+
+    /**
      * The message associated to the failure
      */
     private final String message;

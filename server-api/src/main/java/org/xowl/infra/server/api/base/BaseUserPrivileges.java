@@ -201,7 +201,7 @@ public class BaseUserPrivileges implements XOWLUserPrivileges {
     @Override
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder("{\"type\": \"");
-        builder.append(IOUtils.escapeStringJSON(BaseUserPrivileges.class.getCanonicalName()));
+        builder.append(IOUtils.escapeStringJSON(XOWLUserPrivileges.class.getCanonicalName()));
         builder.append("\", \"isServerAdmin\": ");
         builder.append(isServerAdmin);
         builder.append(", \"accesses\": [");

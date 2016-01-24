@@ -117,12 +117,13 @@ public class HttpConnection implements Closeable {
      * Sends an HTTP request to the endpoint, completed with an URI complement
      *
      * @param uriComplement The URI complement to append to the original endpoint URI, if any
-     * @param body          The request body
-     * @param contentType   The request body content type
-     * @param accept        The MIME type to accept for the response
+     * @param method        The HTTP method to use, if any
+     * @param body          The request body, if any
+     * @param contentType   The request body content type, if any
+     * @param accept        The MIME type to accept for the response, if any
      * @return The response, or null if the request failed before reaching the server
      */
-    public HttpResponse request(String uriComplement, String body, String contentType, String accept) {
+    public HttpResponse request(String uriComplement, String method, String body, String contentType, String accept) {
         URL url;
         try {
             url = new URL((endpoint != null ? endpoint : "") + (uriComplement != null ? uriComplement : ""));
@@ -144,13 +145,15 @@ public class HttpConnection implements Closeable {
             ((HttpsURLConnection) connection).setSSLSocketFactory(sslContext.getSocketFactory());
         }
         try {
-            connection.setRequestMethod("POST");
+            connection.setRequestMethod(method == null || method.isEmpty() ? "GET" : method);
         } catch (ProtocolException exception) {
             Logger.DEFAULT.error(exception);
             return null;
         }
-        connection.setRequestProperty("Content-Type", contentType);
-        connection.setRequestProperty("Accept", accept);
+        if (contentType != null)
+            connection.setRequestProperty("Content-Type", contentType);
+        if (accept != null)
+            connection.setRequestProperty("Accept", accept);
         if (authToken != null)
             connection.setRequestProperty("Authorization", "Basic " + authToken);
         connection.setUseCaches(false);

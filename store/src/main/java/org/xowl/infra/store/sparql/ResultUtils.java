@@ -26,6 +26,7 @@ import org.xowl.hime.redist.ParseResult;
 import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.IRIs;
+import org.xowl.infra.store.http.HttpConstants;
 import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
@@ -104,7 +105,7 @@ public class ResultUtils {
                     return new ResultQuads(new ArrayList<Quad>(0));
                 // empty solutions
                 case Result.SYNTAX_JSON:
-                case "application/json":
+                case HttpConstants.MIME_JSON:
                 case Result.SYNTAX_CSV:
                 case Result.SYNTAX_TSV:
                 case Result.SYNTAX_XML:
@@ -139,7 +140,7 @@ public class ResultUtils {
                         }
                     });
                 case Result.SYNTAX_JSON:
-                case "application/json":
+                case HttpConstants.MIME_JSON:
                     return parseResponseJSON(content);
                 case Result.SYNTAX_CSV:
                 case Result.SYNTAX_TSV:

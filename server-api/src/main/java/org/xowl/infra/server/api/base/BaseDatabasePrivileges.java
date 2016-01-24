@@ -186,7 +186,7 @@ public class BaseDatabasePrivileges implements XOWLDatabasePrivileges {
     @Override
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder("{\"type\": \"");
-        builder.append(IOUtils.escapeStringJSON(BaseUserPrivileges.class.getCanonicalName()));
+        builder.append(IOUtils.escapeStringJSON(XOWLDatabasePrivileges.class.getCanonicalName()));
         builder.append("\", \"accesses\": [");
         for (int i = 0; i != users.length; i++) {
             if (users[i] == null)

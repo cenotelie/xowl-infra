@@ -118,7 +118,7 @@ public class BaseRule implements XOWLRule {
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                IOUtils.escapeStringJSON(BaseRule.class.getCanonicalName()) +
+                IOUtils.escapeStringJSON(XOWLRule.class.getCanonicalName()) +
                 "\", \"name\": \"" +
                 IOUtils.escapeStringJSON(name) +
                 "\", \"definition\": \"" +

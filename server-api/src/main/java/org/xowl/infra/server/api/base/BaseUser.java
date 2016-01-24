@@ -76,6 +76,16 @@ public class BaseUser implements XOWLUser {
 
     @Override
     public String serializedJSON() {
-        return "{\"type\": \"" + IOUtils.escapeStringJSON(BaseUser.class.getCanonicalName()) + "\", \"name\": \"" + IOUtils.escapeStringJSON(getName()) + "\"}";
+        return "{\"type\": \"" + IOUtils.escapeStringJSON(XOWLUser.class.getCanonicalName()) + "\", \"name\": \"" + IOUtils.escapeStringJSON(getName()) + "\"}";
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof XOWLUser && name.equals(((XOWLUser) obj).getName());
     }
 }
