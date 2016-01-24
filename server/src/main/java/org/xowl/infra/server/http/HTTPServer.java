@@ -23,7 +23,7 @@ package org.xowl.infra.server.http;
 import com.sun.net.httpserver.*;
 import org.xowl.infra.server.SSLManager;
 import org.xowl.infra.server.ServerConfiguration;
-import org.xowl.infra.server.api.impl.ServerController;
+import org.xowl.infra.server.impl.ServerController;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 

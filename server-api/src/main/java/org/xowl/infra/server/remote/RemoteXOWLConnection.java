@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.infra.server;
+package org.xowl.infra.server.remote;
 
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.http.HttpConstants;

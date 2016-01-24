@@ -20,7 +20,7 @@
 
 package org.xowl.infra.server;
 
-import org.xowl.infra.server.api.impl.ServerController;
+import org.xowl.infra.server.impl.ServerController;
 import org.xowl.infra.server.http.HTTPServer;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logger;

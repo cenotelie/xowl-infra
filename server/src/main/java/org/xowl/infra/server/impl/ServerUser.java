@@ -18,7 +18,7 @@
  * Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.infra.server.api.impl;
+package org.xowl.infra.server.impl;
 
 import org.xowl.infra.server.api.base.BaseUser;
 import org.xowl.infra.store.ProxyObject;
