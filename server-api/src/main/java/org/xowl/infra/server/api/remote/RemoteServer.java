@@ -29,6 +29,7 @@ import org.xowl.infra.server.api.base.BaseUserPrivileges;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.EntailmentRegime;
+import org.xowl.infra.store.URIUtils;
 import org.xowl.infra.store.http.HttpConnection;
 import org.xowl.infra.store.http.HttpConstants;
 import org.xowl.infra.store.rdf.Quad;
@@ -115,7 +116,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     public XSPReply getUser(String login) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + login, "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + URIUtils.encodeComponent(login), "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
@@ -129,70 +130,72 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     public XSPReply createUser(String login, String password) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + login, "PUT", password, XSPReply.MIME_XSP_COMMAND, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + URIUtils.encodeComponent(login), "PUT", password, XSPReply.MIME_XSP_COMMAND, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply deleteUser(XOWLUser toDelete) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + toDelete.getName(), "DELETE", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + URIUtils.encodeComponent(toDelete.getName()), "DELETE", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply changePassword(String password) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + currentUser, "PUT", password, XSPReply.MIME_XSP_COMMAND, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + URIUtils.encodeComponent(currentUser), "PUT", password, XSPReply.MIME_XSP_COMMAND, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply resetPassword(XOWLUser target, String password) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + target.getName(), "PUT", password, XSPReply.MIME_XSP_COMMAND, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + URIUtils.encodeComponent(target.getName()), "PUT", password, XSPReply.MIME_XSP_COMMAND, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply getPrivileges(XOWLUser user) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + user.getName() + "/privileges", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + URIUtils.encodeComponent(user.getName()) + "/privileges", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply grantServerAdmin(XOWLUser target) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + target.getName() + "/privileges?action=grant&server=&access=ADMIN", "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + URIUtils.encodeComponent(target.getName()) + "/privileges?action=grant&server=&access=ADMIN", "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply revokeServerAdmin(XOWLUser target) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + target.getName() + "/privileges?action=revoke&server=&access=ADMIN", "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + URIUtils.encodeComponent(target.getName()) + "/privileges?action=revoke&server=&access=ADMIN", "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply grantDB(XOWLUser user, XOWLDatabase database, int privilege) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + user.getName() + "/privileges?action=grant&db=" + database.getName() + "&access=ADMIN", "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        String access = privilege == XOWLPrivilege.ADMIN ? "ADMIN" : (privilege == XOWLPrivilege.WRITE ? "WRITE" : (privilege == XOWLPrivilege.READ ? "READ" : "NONE"));
+        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + URIUtils.encodeComponent(user.getName()) + "/privileges?action=grant&db=" + URIUtils.encodeComponent(database.getName()) + "&access=" + access, "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply revokeDB(XOWLUser user, XOWLDatabase database, int privilege) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + user.getName() + "/privileges?action=revoke&db=" + database.getName() + "&access=ADMIN", "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        String access = privilege == XOWLPrivilege.ADMIN ? "ADMIN" : (privilege == XOWLPrivilege.WRITE ? "WRITE" : (privilege == XOWLPrivilege.READ ? "READ" : "NONE"));
+        return XSPReplyUtils.fromHttpResponse(connection.request("/user/" + URIUtils.encodeComponent(user.getName()) + "/privileges?action=revoke&db=" + URIUtils.encodeComponent(database.getName()) + "&access=" + access, "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply getDatabase(String name) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + name, "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(name), "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
@@ -206,21 +209,21 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     public XSPReply createDatabase(String name) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + name, "PUT", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(name), "PUT", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply dropDatabase(XOWLDatabase database) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database.getName(), "DELETE", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database.getName()), "DELETE", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override
     public XSPReply getPrivileges(XOWLDatabase database) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database.getName() + "/privileges", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database.getName()) + "/privileges", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**
@@ -239,7 +242,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
             return new XSPReplyFailure("The specification of default graphs is not supported");
         if (namedIRIs != null && !namedIRIs.isEmpty())
             return new XSPReplyFailure("The specification of named graphs is not supported");
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database + "/sparql", "POST", sparql, Command.MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/sparql", "POST", sparql, Command.MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON), this);
     }
 
     /**
@@ -251,7 +254,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     XSPReply getEntailmentRegime(String database) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database + "/entailment", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/entailment", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**
@@ -264,7 +267,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     XSPReply setEntailmentRegime(String database, EntailmentRegime regime) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database + "/entailment", "PUT", regime.toString(), XSPReply.MIME_XSP_COMMAND, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/entailment", "PUT", regime.toString(), XSPReply.MIME_XSP_COMMAND, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**
@@ -277,7 +280,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     XSPReply getRule(String database, String name) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database + "/rules?id=" + name, "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/rules?id=" + URIUtils.encodeComponent(name), "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**
@@ -289,7 +292,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     XSPReply getRules(String database) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database + "/rules", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/rules", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**
@@ -303,7 +306,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     XSPReply addRule(String database, String content, boolean activate) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database + "/rules" + (activate ? "?active=" : ""), "PUT", content, XSPReply.MIME_XSP_COMMAND, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/rules" + (activate ? "?active=" : ""), "PUT", content, XSPReply.MIME_XSP_COMMAND, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**
@@ -316,7 +319,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     XSPReply removeRule(String database, XOWLRule rule) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database + "/rules?id=" + rule.getName(), "DELETE", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/rules?id=" + URIUtils.encodeComponent(rule.getName()), "DELETE", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**
@@ -329,7 +332,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     XSPReply activateRule(String database, XOWLRule rule) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database + "/rules?id=" + rule.getName() + "&action=activate", "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/rules?id=" + URIUtils.encodeComponent(rule.getName()) + "&action=activate", "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**
@@ -342,7 +345,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     XSPReply deactivateRule(String database, XOWLRule rule) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database + "/rules?id=" + rule.getName() + "&action=deactivate", "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/rules?id=" + URIUtils.encodeComponent(rule.getName()) + "&action=deactivate", "POST", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**
@@ -355,7 +358,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     XSPReply getRuleStatus(String database, XOWLRule rule) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database + "/rules?id=" + rule.getName() + "&status=", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/rules?id=" + URIUtils.encodeComponent(rule.getName()) + "&status=", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**
@@ -371,7 +374,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
         StringWriter writer = new StringWriter();
         NQuadsSerializer serializer = new NQuadsSerializer(writer);
         serializer.serialize(Logger.DEFAULT, new SingleIterator<>(quad));
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database + "/explain?quad=" + writer.toString() + "&status=", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/explain?quad=" + URIUtils.encodeComponent(writer.toString()) + "&status=", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**
@@ -385,7 +388,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     XSPReply upload(String database, String syntax, String content) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + database, "POST", content, syntax, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database), "POST", content, syntax, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     @Override

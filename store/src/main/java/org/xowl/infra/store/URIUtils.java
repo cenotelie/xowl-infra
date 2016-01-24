@@ -20,6 +20,7 @@
 
 package org.xowl.infra.store;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -394,5 +395,48 @@ public class URIUtils {
      */
     private static boolean isLegalCharacter(char c) {
         return (!Character.isWhitespace(c) && !Character.isISOControl(c) && c != '<' && c != '>');
+    }
+
+    /**
+     * Encodes an URI component
+     *
+     * @param original The original value
+     * @return The encoded value
+     */
+    public static String encodeComponent(String original) {
+        if (original == null)
+            return null;
+        if (original.isEmpty())
+            return original;
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i != original.length(); i++) {
+            char c = original.charAt(i);
+            if (Character.isHighSurrogate(c)) {
+                String sub = original.substring(i, i + 2);
+                byte[] bytes = sub.getBytes(Charset.forName("UTF-8"));
+                for (int j = 0; j != bytes.length; j++) {
+                    int n = (int) bytes[i] & 0xff;
+                    builder.append("%");
+                    if (n < 0x10) {
+                        builder.append("0");
+                    }
+                    builder.append(Integer.toString(n, 16));
+                }
+                i++;
+            } else if (c == '-' || c == '_' || c == '.' || c == '!' || c == '~' || c == '*' || c == '\'' || c == '(' || c == ')' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+                builder.append(c);
+            } else {
+                byte[] bytes = Character.toString(c).getBytes(Charset.forName("UTF-8"));
+                for (int j = 0; j != bytes.length; j++) {
+                    int n = (int) bytes[i] & 0xff;
+                    builder.append("%");
+                    if (n < 0x10) {
+                        builder.append("0");
+                    }
+                    builder.append(Integer.toString(n, 16));
+                }
+            }
+        }
+        return builder.toString();
     }
 }
