@@ -36,7 +36,7 @@ import java.util.Scanner;
  *
  * @author Laurent Wouters
  */
-class SSLManager {
+public class SSLManager {
     /**
      * The alias for generated certificates
      */

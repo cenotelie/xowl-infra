@@ -25,7 +25,7 @@ package org.xowl.infra.server.impl;
  *
  * @author Laurent Wouters
  */
-interface Schema {
+public interface Schema {
     /**
      * The User concept in the administration database
      */

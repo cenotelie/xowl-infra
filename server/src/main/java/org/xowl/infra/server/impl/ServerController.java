@@ -42,7 +42,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class ServerController implements Closeable {
+public class ServerController implements Closeable {
     /**
      * The data about a client
      */

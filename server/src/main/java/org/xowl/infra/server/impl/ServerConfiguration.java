@@ -33,7 +33,7 @@ import java.nio.charset.Charset;
  *
  * @author Laurent Wouters
  */
-class ServerConfiguration {
+public class ServerConfiguration {
     /**
      * Location in the resources of the default configuration file
      */

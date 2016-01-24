@@ -54,7 +54,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-class ServerDatabase extends BaseDatabase implements Serializable, Closeable {
+public class ServerDatabase extends BaseDatabase implements Serializable, Closeable {
     /**
      * The configuration file for a repository
      */
