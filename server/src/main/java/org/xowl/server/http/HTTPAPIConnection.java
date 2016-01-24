@@ -27,8 +27,8 @@ import org.xowl.server.api.impl.ServerController;
 import org.xowl.server.api.impl.ServerUser;
 import org.xowl.server.xsp.XSPReply;
 import org.xowl.server.xsp.XSPReplyUtils;
-import org.xowl.store.EntailmentRegime;
-import org.xowl.store.http.HttpResponse;
+import org.xowl.infra.store.EntailmentRegime;
+import org.xowl.infra.store.http.HttpResponse;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
 
 import java.io.IOException;

@@ -24,7 +24,7 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.server.api.XOWLDatabasePrivileges;
 import org.xowl.server.api.XOWLPrivilege;
 import org.xowl.server.api.XOWLUser;
-import org.xowl.store.IOUtils;
+import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.utils.Files;
 
 import java.util.ArrayList;

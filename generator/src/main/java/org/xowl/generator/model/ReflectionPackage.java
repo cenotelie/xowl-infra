@@ -25,7 +25,7 @@ import org.xowl.infra.lang.runtime.Class;
 import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.infra.lang.runtime.Interpretation;
 import org.xowl.infra.lang.runtime.Property;
-import org.xowl.store.Vocabulary;
+import org.xowl.infra.store.Vocabulary;
 
 import java.io.IOException;
 

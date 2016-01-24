@@ -20,7 +20,7 @@
 
 package org.xowl.server.api;
 
-import org.xowl.store.Serializable;
+import org.xowl.infra.store.Serializable;
 
 import java.util.Collection;
 

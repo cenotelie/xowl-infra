@@ -20,7 +20,7 @@
 
 package org.xowl.server.xsp;
 
-import org.xowl.store.Serializable;
+import org.xowl.infra.store.Serializable;
 
 /**
  * Represents a reply to a request in the xOWL server protocol

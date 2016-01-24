@@ -20,7 +20,7 @@
 
 package org.xowl.server.xsp;
 
-import org.xowl.store.IOUtils;
+import org.xowl.infra.store.IOUtils;
 
 /**
  * Implements a reply to a xOWL server protocol request when a network error occurred (for any reason)

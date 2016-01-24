@@ -20,7 +20,7 @@
 
 package org.xowl.server.xsp;
 
-import org.xowl.store.IOUtils;
+import org.xowl.infra.store.IOUtils;
 
 /**
  * Implements a simple successful reply to a xOWL server request

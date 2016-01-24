@@ -22,10 +22,8 @@ package org.xowl.engine;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xowl.store.AbstractRepository;
-import org.xowl.store.Repository;
-
-import java.io.IOException;
+import org.xowl.infra.store.AbstractRepository;
+import org.xowl.infra.store.Repository;
 
 /**
  * Testing the execution of xOWL ontologies with Clojure

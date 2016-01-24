@@ -22,7 +22,7 @@ package org.xowl.generator;
 
 import org.xowl.generator.builder.Builder;
 import org.xowl.generator.model.Model;
-import org.xowl.store.owl.DirectSemantics;
+import org.xowl.infra.store.owl.DirectSemantics;
 import org.xowl.infra.utils.logging.ConsoleLogger;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.collections.Couple;

@@ -25,9 +25,9 @@ import org.xowl.server.api.XOWLDatabase;
 import org.xowl.server.api.XOWLRule;
 import org.xowl.server.xsp.XSPReply;
 import org.xowl.server.xsp.XSPReplyFailure;
-import org.xowl.store.EntailmentRegime;
-import org.xowl.store.IOUtils;
-import org.xowl.store.rdf.Quad;
+import org.xowl.infra.store.EntailmentRegime;
+import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.store.rdf.Quad;
 
 import java.util.List;
 

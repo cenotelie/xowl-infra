@@ -20,8 +20,8 @@
 
 package org.xowl.server.xsp;
 
-import org.xowl.store.IOUtils;
-import org.xowl.store.Serializable;
+import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.store.Serializable;
 
 /**
  * Implements a successful reply to a xOWL server request with an object of type T as a response

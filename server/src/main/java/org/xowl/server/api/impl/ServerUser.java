@@ -21,7 +21,7 @@
 package org.xowl.server.api.impl;
 
 import org.xowl.server.api.base.BaseUser;
-import org.xowl.store.ProxyObject;
+import org.xowl.infra.store.ProxyObject;
 
 /**
  * Represents a user on this server

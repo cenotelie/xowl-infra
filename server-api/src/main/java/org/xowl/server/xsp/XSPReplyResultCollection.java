@@ -20,8 +20,8 @@
 
 package org.xowl.server.xsp;
 
-import org.xowl.store.IOUtils;
-import org.xowl.store.Serializable;
+import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.store.Serializable;
 
 import java.util.Collection;
 import java.util.Collections;

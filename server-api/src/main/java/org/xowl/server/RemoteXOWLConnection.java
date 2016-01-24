@@ -21,11 +21,11 @@
 package org.xowl.server;
 
 import org.xowl.server.xsp.*;
-import org.xowl.store.http.HttpConstants;
-import org.xowl.store.http.HttpResponse;
-import org.xowl.store.sparql.Result;
-import org.xowl.store.sparql.ResultUtils;
-import org.xowl.store.storage.remote.SPARQLConnection;
+import org.xowl.infra.store.http.HttpConstants;
+import org.xowl.infra.store.http.HttpResponse;
+import org.xowl.infra.store.sparql.Result;
+import org.xowl.infra.store.sparql.ResultUtils;
+import org.xowl.infra.store.storage.remote.SPARQLConnection;
 
 import java.net.HttpURLConnection;
 

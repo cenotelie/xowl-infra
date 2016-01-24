@@ -26,9 +26,9 @@ import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
 import org.xowl.infra.lang.actions.FunctionExpression;
 import org.xowl.infra.lang.owl2.Axiom;
 import org.xowl.infra.lang.owl2.IRI;
-import org.xowl.store.loaders.XOWLDeserializer;
-import org.xowl.store.loaders.XOWLLexer;
-import org.xowl.store.loaders.XOWLParser;
+import org.xowl.infra.store.loaders.XOWLDeserializer;
+import org.xowl.infra.store.loaders.XOWLLexer;
+import org.xowl.infra.store.loaders.XOWLParser;
 
 /**
  * The specialized xOWL deserializer that handles Clojure code

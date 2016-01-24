@@ -21,9 +21,9 @@
 package org.xowl.server.api;
 
 import org.xowl.server.xsp.XSPReply;
-import org.xowl.store.EntailmentRegime;
-import org.xowl.store.Serializable;
-import org.xowl.store.rdf.Quad;
+import org.xowl.infra.store.EntailmentRegime;
+import org.xowl.infra.store.Serializable;
+import org.xowl.infra.store.rdf.Quad;
 
 import java.util.List;
 

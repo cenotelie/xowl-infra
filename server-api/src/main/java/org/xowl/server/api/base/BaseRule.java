@@ -22,7 +22,7 @@ package org.xowl.server.api.base;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.server.api.XOWLRule;
-import org.xowl.store.IOUtils;
+import org.xowl.infra.store.IOUtils;
 
 /**
  * The base implementation of a rule

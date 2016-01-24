@@ -21,7 +21,7 @@
 package org.xowl.generator.model;
 
 import org.xowl.infra.lang.runtime.Datatype;
-import org.xowl.store.Vocabulary;
+import org.xowl.infra.store.Vocabulary;
 
 import java.util.HashMap;
 import java.util.Map;

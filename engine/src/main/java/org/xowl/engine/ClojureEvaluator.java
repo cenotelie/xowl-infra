@@ -28,9 +28,9 @@ import org.xowl.infra.lang.actions.OpaqueExpression;
 import org.xowl.infra.lang.owl2.*;
 import org.xowl.infra.lang.runtime.*;
 import org.xowl.infra.lang.runtime.Literal;
-import org.xowl.store.Evaluator;
-import org.xowl.store.ProxyObject;
-import org.xowl.store.Vocabulary;
+import org.xowl.infra.store.Evaluator;
+import org.xowl.infra.store.ProxyObject;
+import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.Files;
 
 import java.io.IOException;
