@@ -4,7 +4,6 @@
 var xowl = new XOWL();
 var dbName = getParameterByName("id");
 var FLAG = false;
-var RULE_TOGGLE = {};
 var DEFAULT_RULE =
 	"@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.\n" +
 	"@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.\n" +
@@ -50,13 +49,6 @@ function init() {
 					xowl.getDBRules(function (code, type, content) {
 						if (code === 200) {
 							renderRules(content);
-							xowl.getDBActiveRules(function (code, type, content) {
-								if (code === 200) {
-									renderActiveRules(content);
-								} else {
-									displayMessage(getErrorFor(type, content));
-								}
-							}, dbName);
 						} else {
 							displayMessage(getErrorFor(type, content));
 						}
@@ -262,7 +254,7 @@ function onDeleteRule(rule) {
         } else {
 			displayMessage(getErrorFor(type, content));
         }
-	}, dbName, rule);
+	}, dbName, rule.name);
 }
 
 function onActivateRule(rule) {
@@ -276,7 +268,7 @@ function onActivateRule(rule) {
         } else {
 			displayMessage(getErrorFor(type, content));
         }
-	}, dbName, rule);
+	}, dbName, rule.name);
 }
 
 function onDeactivateRule(rule) {
@@ -290,7 +282,7 @@ function onDeactivateRule(rule) {
         } else {
 			displayMessage(getErrorFor(type, content));
         }
-	}, dbName, rule);
+	}, dbName, rule.name);
 }
 
 function renderAccesses(accesses) {
@@ -401,7 +393,7 @@ function renderRevoke() {
 
 function renderRules(rules) {
 	rules.sort(function (a, b) {
-		return a.localeCompare(b);
+		return a.name.localeCompare(b.name);
 	});
 	var table = document.getElementById("rules");
 	for (var i = 0; i != rules.length; i++) {
@@ -417,15 +409,16 @@ function renderRules(rules) {
 			}
 		})(rules[i]);
 		var toggle = renderRuleToggle();
+		if (rules[i].isActive)
+		    toggle.classList.add("toggle-button-selected");
 		(function (rule) {
 			toggle.onclick = function () {
-				if (toggle.classList.contains("toggle-button-selected"))
+				if (rule.isActive)
 					onDeactivateRule(rule);
 				else
 					onActivateRule(rule);
 			}
 		})(rules[i]);
-		RULE_TOGGLE[rules[i]] = toggle;
 		cells[0].appendChild(revoke);
 		cells[1].appendChild(renderRuleName(rules[i]));
 		cells[2].appendChild(toggle);
@@ -438,19 +431,10 @@ function renderRules(rules) {
 	displayMessage(null);
 }
 
-function renderActiveRules(rules) {
-	for (var i = 0; i != rules.length; i++) {
-		if (RULE_TOGGLE.hasOwnProperty(rules[i])) {
-			RULE_TOGGLE[rules[i]].classList.add("toggle-button-selected");
-		}
-	}
-	displayMessage(null);
-}
-
 function renderRuleName(rule) {
 	var a = document.createElement("a");
-	a.href = "rule.html?db=" + encodeURIComponent(dbName) + "&rule=" + encodeURIComponent(rule);
-	a.appendChild(document.createTextNode(rule));
+	a.href = "rule.html?db=" + encodeURIComponent(dbName) + "&rule=" + encodeURIComponent(rule.name);
+	a.appendChild(document.createTextNode(rule.name));
 	return a;
 }
 

@@ -37,7 +37,7 @@ public class ServerConfiguration {
     /**
      * Location in the resources of the default configuration file
      */
-    private static final String FILE_DEFAULT = "/org/xowl/server/config/default.ini";
+    private static final String FILE_DEFAULT = "/org/xowl/infra/server/config/default.ini";
     /**
      * Name of the configuration file in a startup folder
      */

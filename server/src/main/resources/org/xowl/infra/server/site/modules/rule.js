@@ -18,9 +18,9 @@ function init() {
 	document.getElementById("placeholder-db").appendChild(document.createTextNode(dbName));
 	document.getElementById("placeholder-db").href = "db.html?id=" + encodeURIComponent(dbName);
 	document.getElementById("placeholder-rule").appendChild(document.createTextNode(rule));
-	xowl.getDBRuleDefinition(function (code, type, content) {
+	xowl.getDBRule(function (code, type, content) {
 		if (code === 200) {
-			document.getElementById("field-rule-definition").value = content;
+			document.getElementById("field-rule-definition").value = content.definition;
 			displayMessage(null);
 		} else {
 			displayMessage(getErrorFor(type, content));
