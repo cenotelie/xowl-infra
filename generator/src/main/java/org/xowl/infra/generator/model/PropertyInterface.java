@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.generator.model;
+package org.xowl.infra.generator.model;
 
 import java.io.IOException;
 import java.io.Writer;

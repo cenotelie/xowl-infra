@@ -17,7 +17,7 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.generator.builder;
+package org.xowl.infra.generator.builder;
 
 import java.io.BufferedInputStream;
 import java.io.File;

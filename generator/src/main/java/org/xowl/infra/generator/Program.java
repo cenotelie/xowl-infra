@@ -18,10 +18,10 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.generator;
+package org.xowl.infra.generator;
 
-import org.xowl.generator.builder.Builder;
-import org.xowl.generator.model.Model;
+import org.xowl.infra.generator.builder.Builder;
+import org.xowl.infra.generator.model.Model;
 import org.xowl.infra.store.owl.DirectSemantics;
 import org.xowl.infra.utils.logging.ConsoleLogger;
 import org.xowl.infra.utils.logging.Logger;

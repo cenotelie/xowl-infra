@@ -17,7 +17,7 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
-package org.xowl.generator;
+package org.xowl.infra.generator;
 
 import org.junit.Assert;
 import org.junit.Test;

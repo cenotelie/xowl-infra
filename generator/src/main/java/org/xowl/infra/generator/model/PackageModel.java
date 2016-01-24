@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.generator.model;
+package org.xowl.infra.generator.model;
 
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.runtime.Class;

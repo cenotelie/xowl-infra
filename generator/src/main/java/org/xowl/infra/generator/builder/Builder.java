@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
 
-package org.xowl.generator.builder;
+package org.xowl.infra.generator.builder;
 
 import javax.tools.*;
 import java.io.File;

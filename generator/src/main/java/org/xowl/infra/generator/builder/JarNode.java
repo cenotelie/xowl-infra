@@ -1,5 +1,5 @@
 /**********************************************************************
- * Copyright (c) 2014 Laurent Wouters
+ * Copyright (c) 2015 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -17,52 +17,32 @@
  * Contributors:
  *     Laurent Wouters - lwouters@xowl.org
  **********************************************************************/
+package org.xowl.infra.generator.builder;
 
-package org.xowl.generator;
-
-import org.xowl.infra.utils.logging.Logger;
+import java.io.File;
+import java.util.jar.JarOutputStream;
 
 /**
- * Error logger for the tests
+ * Represents a node for a jar file
+ *
+ * @author Laurent Wouters
  */
-public class TestLogger implements Logger {
-
+interface JarNode {
     /**
-     * The status of this error
-     */
-    private boolean onError;
-
-    /**
-     * Determines whether this logger is on error
+     * Adds an entry for a file
      *
-     * @return Whether this logger is on error
+     * @param path  The full path for the entry
+     * @param parts The parts within the path
+     * @param index The index of the current part
+     * @param file  The file for the entry
      */
-    public boolean isOnError() {
-        return onError;
-    }
+    void add(String path, String[] parts, int index, File file);
 
     /**
-     * Resets the status of this logger
+     * Creates the entry in the specified stream
+     *
+     * @param stream The stream
+     * @throws java.io.IOException When a serialization error occurs
      */
-    public void reset() {
-        onError = false;
-    }
-
-    @Override
-    public void debug(Object message) {
-
-    }
-
-    @Override
-    public void info(Object message) {
-    }
-
-    @Override
-    public void warning(Object message) {
-    }
-
-    @Override
-    public void error(Object message) {
-        onError = true;
-    }
+    void createEntry(JarOutputStream stream) throws java.io.IOException;
 }
