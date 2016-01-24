@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.infra.server;
+package org.xowl.infra.server.impl;
 
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
@@ -36,7 +36,7 @@ import java.util.Scanner;
  *
  * @author Laurent Wouters
  */
-public class SSLManager {
+class SSLManager {
     /**
      * The alias for generated certificates
      */

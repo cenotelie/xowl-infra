@@ -28,7 +28,7 @@ import org.xowl.infra.store.ProxyObject;
  *
  * @author Laurent Wouters
  */
-public class ServerUser extends BaseUser {
+class ServerUser extends BaseUser {
     /**
      * The proxy object representing this user
      */

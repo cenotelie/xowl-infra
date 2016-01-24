@@ -21,8 +21,6 @@
 package org.xowl.infra.server.impl;
 
 import org.mindrot.jbcrypt.BCrypt;
-import org.xowl.infra.server.Program;
-import org.xowl.infra.server.ServerConfiguration;
 import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.api.base.BaseDatabasePrivileges;
@@ -44,7 +42,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class ServerController implements Closeable {
+class ServerController implements Closeable {
     /**
      * The data about a client
      */

@@ -18,7 +18,7 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.infra.server;
+package org.xowl.infra.server.impl;
 
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.Logger;
@@ -33,7 +33,7 @@ import java.nio.charset.Charset;
  *
  * @author Laurent Wouters
  */
-public class ServerConfiguration {
+class ServerConfiguration {
     /**
      * Location in the resources of the default configuration file
      */

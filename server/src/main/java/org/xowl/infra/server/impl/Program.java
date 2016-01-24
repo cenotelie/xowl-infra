@@ -18,9 +18,8 @@
  *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
-package org.xowl.infra.server;
+package org.xowl.infra.server.impl;
 
-import org.xowl.infra.server.impl.ServerController;
 import org.xowl.infra.server.http.HTTPServer;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logger;

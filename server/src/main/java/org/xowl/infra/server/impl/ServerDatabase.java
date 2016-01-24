@@ -20,8 +20,6 @@
 
 package org.xowl.infra.server.impl;
 
-import org.xowl.infra.server.Program;
-import org.xowl.infra.server.ServerConfiguration;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.base.BaseDatabase;
 import org.xowl.infra.server.api.base.BaseRule;
@@ -56,7 +54,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class ServerDatabase extends BaseDatabase implements Serializable, Closeable {
+class ServerDatabase extends BaseDatabase implements Serializable, Closeable {
     /**
      * The configuration file for a repository
      */
