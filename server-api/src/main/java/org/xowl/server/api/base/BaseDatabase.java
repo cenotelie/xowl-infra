@@ -77,7 +77,7 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply sparql(XOWLDatabase database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
+    public XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         return XSPReplyFailure.instance();
     }
 

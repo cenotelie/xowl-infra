@@ -43,13 +43,12 @@ public interface XOWLDatabase extends Serializable {
     /**
      * Executes a SPARQL command
      *
-     * @param database    The target database
      * @param sparql      The SPARQL command(s)
      * @param defaultIRIs The context's default IRIs
      * @param namedIRIs   The context's named IRIs
      * @return The protocol reply
      */
-    XSPReply sparql(XOWLDatabase database, String sparql, List<String> defaultIRIs, List<String> namedIRIs);
+    XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs);
 
     /**
      * Gets the entailment regime

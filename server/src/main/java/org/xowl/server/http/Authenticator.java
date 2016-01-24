@@ -24,7 +24,7 @@ import com.sun.net.httpserver.BasicAuthenticator;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
-import org.xowl.server.api.Controller;
+import org.xowl.server.api.impl.ServerController;
 import org.xowl.server.xsp.XSPReply;
 
 import java.net.HttpURLConnection;
@@ -40,7 +40,7 @@ class Authenticator extends BasicAuthenticator {
     /**
      * The current controller
      */
-    private final Controller controller;
+    private final ServerController controller;
 
     /**
      * Initializes this authenticator
@@ -48,7 +48,7 @@ class Authenticator extends BasicAuthenticator {
      * @param controller The current controller
      * @param realm      The security realm
      */
-    public Authenticator(Controller controller, String realm) {
+    public Authenticator(ServerController controller, String realm) {
         super(realm);
         this.controller = controller;
     }

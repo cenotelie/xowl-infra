@@ -20,26 +20,33 @@
 
 package org.xowl.server.xsp;
 
-import org.xowl.store.IOUtils;
-
 /**
- * Implements a reply to a xOWL server protocol request when a network error occurred (for any reason)
+ * Implements a reply to a xOWL server protocol request when a requested resource is not found
  *
  * @author Laurent Wouters
  */
-public class XSPReplyNetworkError implements XSPReply {
+public class XSPReplyNotFound implements XSPReply {
     /**
-     * The message associated to the failure
+     * The singleton instance
      */
-    private final String message;
+    private static XSPReplyNotFound INSTANCE = null;
 
     /**
-     * Initializes this reply
+     * Gets the singleton instance
      *
-     * @param message The message associated to the failure
+     * @return The singleton instance
      */
-    public XSPReplyNetworkError(String message) {
-        this.message = message;
+    public synchronized static XSPReplyNotFound instance() {
+        if (INSTANCE == null)
+            return new XSPReplyNotFound();
+        return INSTANCE;
+    }
+
+    /**
+     * Initializes this instance
+     */
+    private XSPReplyNotFound() {
+
     }
 
     @Override
@@ -49,16 +56,16 @@ public class XSPReplyNetworkError implements XSPReply {
 
     @Override
     public String getMessage() {
-        return message;
+        return "NOT FOUND";
     }
 
     @Override
     public String serializedString() {
-        return "ERROR: " + message;
+        return "NOT FOUND";
     }
 
     @Override
     public String serializedJSON() {
-        return "{ \"isSuccess\": false, \"message\": \"" + (message == null ? "" : IOUtils.escapeStringJSON(message)) + "\", \"cause\": \"NETWORK ERROR\" }";
+        return "{ \"isSuccess\": false, \"message\": \"NOT FOUND\", \"cause\": \"NOT FOUND\" }";
     }
 }

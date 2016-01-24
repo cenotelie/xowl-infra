@@ -32,7 +32,16 @@ public class ServerUser extends BaseUser {
     /**
      * The proxy object representing this user
      */
-    final ProxyObject proxy;
+    private final ProxyObject proxy;
+
+    /**
+     * Gets the proxy object representing this user
+     *
+     * @return The proxy object representing this user
+     */
+    public ProxyObject getProxy() {
+        return proxy;
+    }
 
     /**
      * Initializes this user

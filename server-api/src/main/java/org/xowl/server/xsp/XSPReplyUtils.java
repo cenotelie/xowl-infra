@@ -69,6 +69,8 @@ public class XSPReplyUtils {
             return new HttpResponse(HttpURLConnection.HTTP_UNAUTHORIZED);
         if (reply instanceof XSPReplyUnauthorized)
             return new HttpResponse(HttpURLConnection.HTTP_FORBIDDEN);
+        if (reply instanceof XSPReplyNotFound)
+            return new HttpResponse(HttpURLConnection.HTTP_NOT_FOUND);
         if (reply instanceof XSPReplyFailure)
             return new HttpResponse(HttpConstants.HTTP_UNKNOWN_ERROR, HttpConstants.MIME_TEXT_PLAIN, reply.getMessage());
         if (reply instanceof XSPReplyResult && ((XSPReplyResult) reply).getData() instanceof Result) {
@@ -167,7 +169,16 @@ public class XSPReplyUtils {
                 return XSPReplyUnauthenticated.instance();
             else if ("UNAUTHORIZED".equals(cause))
                 return XSPReplyUnauthorized.instance();
-            else
+            else if ("NOT FOUND".equals(cause))
+                return XSPReplyNotFound.instance();
+            else if ("NETWORK ERROR".equals(cause)) {
+                String msg = "";
+                if (nodeMessage != null) {
+                    msg = IOUtils.unescape(nodeMessage.getValue());
+                    msg = msg.substring(1, msg.length() - 1);
+                }
+                return new XSPReplyNetworkError(msg);
+            } else
                 return new XSPReplyFailure(cause);
         } else if (!isSuccess) {
             if (nodeMessage == null)

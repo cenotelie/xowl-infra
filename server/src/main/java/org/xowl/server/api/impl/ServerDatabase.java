@@ -22,7 +22,6 @@ package org.xowl.server.api.impl;
 
 import org.xowl.server.Program;
 import org.xowl.server.ServerConfiguration;
-import org.xowl.server.api.XOWLDatabase;
 import org.xowl.server.api.XOWLRule;
 import org.xowl.server.api.base.BaseDatabase;
 import org.xowl.server.api.base.BaseRule;
@@ -117,6 +116,24 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     private final ProxyObject proxy;
 
     /**
+     * Gets the repository backing this database
+     *
+     * @return The repository backing this database
+     */
+    public Repository getRepository() {
+        return repository;
+    }
+
+    /**
+     * Gets the proxy object representing this database
+     *
+     * @return The proxy object representing this database
+     */
+    public ProxyObject getProxy() {
+        return proxy;
+    }
+
+    /**
      * Initializes this database (as the admin database)
      *
      * @param confServer The server configuration
@@ -200,7 +217,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     }
 
     @Override
-    public XSPReply sparql(XOWLDatabase database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
+    public XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         BufferedLogger bufferedLogger = new BufferedLogger();
         DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
         if (defaultIRIs == null)
@@ -463,7 +480,15 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
 
     @Override
     public XSPReply upload(String syntax, String content) {
-        return XSPReplyFailure.instance();
+        BufferedLogger bufferedLogger = new BufferedLogger();
+        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
+        repository.loadResource(dispatchLogger, new StringReader(content), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT, syntax);
+        if (!bufferedLogger.getErrorMessages().isEmpty()) {
+            repository.getStore().rollback();
+            return new XSPReplyFailure(Program.getLog(bufferedLogger));
+        }
+        repository.getStore().commit();
+        return XSPReplySuccess.instance();
     }
 
     @Override

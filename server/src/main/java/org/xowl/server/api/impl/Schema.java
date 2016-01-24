@@ -25,7 +25,7 @@ package org.xowl.server.api.impl;
  *
  * @author Laurent Wouters
  */
-public interface Schema {
+interface Schema {
     /**
      * The User concept in the administration database
      */
@@ -66,17 +66,4 @@ public interface Schema {
      * The Database graph in the administration database
      */
     String ADMIN_GRAPH_DBS = "http://xowl.org/server/db#";
-
-    /**
-     * Flag for the ADMIN privilege
-     */
-    int PRIVILEGE_ADMIN = 1;
-    /**
-     * Flag for the WRITE privilege
-     */
-    int PRIVILEGE_WRITE = (1 << 1);
-    /**
-     * Flag for the READ privilege
-     */
-    int PRIVILEGE_READ = (1 << 2);
 }

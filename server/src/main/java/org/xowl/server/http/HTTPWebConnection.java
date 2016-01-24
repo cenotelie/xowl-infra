@@ -23,14 +23,13 @@ package org.xowl.server.http;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.server.Program;
-import org.xowl.server.api.Controller;
-import org.xowl.server.api.ProtocolHandler;
+import org.xowl.utils.concurrent.SafeRunnable;
+import org.xowl.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +40,7 @@ import java.util.Objects;
  *
  * @author Laurent Wouters
  */
-class HTTPWebConnection extends ProtocolHandler implements Runnable {
+class HTTPWebConnection extends SafeRunnable implements Runnable {
     /**
      * The HTTP exchange to treat
      */
@@ -50,11 +49,11 @@ class HTTPWebConnection extends ProtocolHandler implements Runnable {
     /**
      * Initializes this connection
      *
-     * @param controller The current controller
-     * @param exchange   The HTTP exchange to treat
+     * @param logger   The logger to use
+     * @param exchange The HTTP exchange to treat
      */
-    public HTTPWebConnection(Controller controller, HttpExchange exchange) {
-        super(controller);
+    public HTTPWebConnection(Logger logger, HttpExchange exchange) {
+        super(logger);
         this.httpExchange = exchange;
     }
 
@@ -80,13 +79,9 @@ class HTTPWebConnection extends ProtocolHandler implements Runnable {
     }
 
     @Override
-    protected InetAddress getClient() {
-        return httpExchange.getRemoteAddress().getAddress();
-    }
-
-    @Override
-    protected void onExit() {
-        // do nothing
+    protected void onRunFailed(Throwable throwable) {
+        // on failure, attempt to close the connection
+        response(HttpURLConnection.HTTP_INTERNAL_ERROR, throwable.getMessage());
     }
 
     /**
@@ -135,12 +130,12 @@ class HTTPWebConnection extends ProtocolHandler implements Runnable {
         try {
             httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, buffer.length);
         } catch (IOException exception) {
-            controller.getLogger().error(exception);
+            logger.error(exception);
         }
         try (OutputStream output = httpExchange.getResponseBody()) {
             output.write(buffer);
         } catch (IOException exception) {
-            controller.getLogger().error(exception);
+            logger.error(exception);
         }
     }
 
@@ -157,12 +152,12 @@ class HTTPWebConnection extends ProtocolHandler implements Runnable {
         try {
             httpExchange.sendResponseHeaders(code, buffer.length);
         } catch (IOException exception) {
-            controller.getLogger().error(exception);
+            logger.error(exception);
         }
         try (OutputStream stream = httpExchange.getResponseBody()) {
             stream.write(buffer);
         } catch (IOException exception) {
-            controller.getLogger().error(exception);
+            logger.error(exception);
         }
     }
 }

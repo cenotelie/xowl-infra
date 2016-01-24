@@ -20,7 +20,7 @@
 
 package org.xowl.server;
 
-import org.xowl.server.api.Controller;
+import org.xowl.server.api.impl.ServerController;
 import org.xowl.server.http.HTTPServer;
 import org.xowl.utils.logging.BufferedLogger;
 import org.xowl.utils.logging.Logger;
@@ -65,7 +65,7 @@ public class Program {
     /**
      * The top controller for this application
      */
-    private Controller controller;
+    private ServerController controller;
     /**
      * The HTTP server
      */
@@ -122,7 +122,7 @@ public class Program {
             return false;
         }
         try {
-            controller = new Controller(configuration) {
+            controller = new ServerController(configuration) {
 
                 @Override
                 public void onRequestShutdown() {

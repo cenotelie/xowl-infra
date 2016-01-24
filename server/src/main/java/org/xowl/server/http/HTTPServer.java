@@ -23,7 +23,7 @@ package org.xowl.server.http;
 import com.sun.net.httpserver.*;
 import org.xowl.server.SSLManager;
 import org.xowl.server.ServerConfiguration;
-import org.xowl.server.api.Controller;
+import org.xowl.server.api.impl.ServerController;
 import org.xowl.utils.collections.Couple;
 import org.xowl.utils.logging.Logger;
 
@@ -74,6 +74,10 @@ public class HTTPServer implements Closeable {
      * The pool of executor threads
      */
     private final ThreadPoolExecutor executorPool;
+    /**
+     * The logger to use
+     */
+    private final Logger logger;
 
     /**
      * Initializes this server
@@ -81,9 +85,10 @@ public class HTTPServer implements Closeable {
      * @param configuration The current configuration
      * @param controller    The current controller
      */
-    public HTTPServer(ServerConfiguration configuration, final Controller controller) {
+    public HTTPServer(ServerConfiguration configuration, final ServerController controller) {
         controller.getLogger().info("Initializing the HTTPS server ...");
         this.configuration = configuration;
+        this.logger = controller.getLogger();
         SSLContext sslContext = null;
         Couple<KeyStore, String> ssl = SSLManager.getKeyStore(configuration);
         if (ssl != null) {
@@ -125,7 +130,7 @@ public class HTTPServer implements Closeable {
             server.createContext("/web/", new HttpHandler() {
                 @Override
                 public void handle(HttpExchange httpExchange) throws IOException {
-                    ((new HTTPWebConnection(controller, httpExchange))).run();
+                    ((new HTTPWebConnection(logger, httpExchange))).run();
                 }
             });
             server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {

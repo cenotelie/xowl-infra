@@ -85,7 +85,7 @@ class Utils {
      * @return The parameters
      */
     public static Map<String, List<String>> getRequestParameters(URI uri) {
-        Map<String, List<java.lang.String>> result = new HashMap<>();
+        Map<String, List<String>> result = new HashMap<>();
         String query = uri.getRawQuery();
         if (query == null || query.isEmpty())
             return result;
