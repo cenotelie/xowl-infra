@@ -21,7 +21,7 @@
 package org.xowl.store.rdf;
 
 import org.xowl.store.RDFUtils;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;

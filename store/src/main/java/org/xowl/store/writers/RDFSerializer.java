@@ -20,7 +20,7 @@
 package org.xowl.store.writers;
 
 import org.xowl.store.rdf.Quad;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.util.Iterator;
 

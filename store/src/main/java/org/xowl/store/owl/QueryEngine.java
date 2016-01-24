@@ -19,7 +19,7 @@
  ******************************************************************************/
 package org.xowl.store.owl;
 
-import org.xowl.lang.owl2.Axiom;
+import org.xowl.infra.lang.owl2.Axiom;
 import org.xowl.store.Evaluator;
 import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.GraphNode;

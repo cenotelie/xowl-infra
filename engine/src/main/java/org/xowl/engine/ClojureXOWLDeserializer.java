@@ -22,10 +22,10 @@ package org.xowl.engine;
 
 import clojure.java.api.Clojure;
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.lang.actions.FunctionDefinitionAxiom;
-import org.xowl.lang.actions.FunctionExpression;
-import org.xowl.lang.owl2.Axiom;
-import org.xowl.lang.owl2.IRI;
+import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
+import org.xowl.infra.lang.actions.FunctionExpression;
+import org.xowl.infra.lang.owl2.Axiom;
+import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.store.loaders.XOWLDeserializer;
 import org.xowl.store.loaders.XOWLLexer;
 import org.xowl.store.loaders.XOWLParser;

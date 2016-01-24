@@ -21,14 +21,14 @@
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.lang.actions.FunctionDefinitionAxiom;
-import org.xowl.lang.actions.FunctionExpression;
-import org.xowl.lang.actions.OpaqueExpression;
-import org.xowl.lang.owl2.Axiom;
-import org.xowl.lang.owl2.EntityExpression;
-import org.xowl.lang.owl2.LiteralExpression;
-import org.xowl.lang.rules.Assertion;
-import org.xowl.lang.rules.Rule;
+import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
+import org.xowl.infra.lang.actions.FunctionExpression;
+import org.xowl.infra.lang.actions.OpaqueExpression;
+import org.xowl.infra.lang.owl2.Axiom;
+import org.xowl.infra.lang.owl2.EntityExpression;
+import org.xowl.infra.lang.owl2.LiteralExpression;
+import org.xowl.infra.lang.rules.Assertion;
+import org.xowl.infra.lang.rules.Rule;
 
 /**
  * Implements the deserialization of xOWL ontologies

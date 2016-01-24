@@ -27,7 +27,7 @@ import org.xowl.store.URIUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
-import org.xowl.utils.Files;
+import org.xowl.infra.utils.Files;
 
 import java.io.IOException;
 import java.io.Reader;

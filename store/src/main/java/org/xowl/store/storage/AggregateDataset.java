@@ -21,7 +21,7 @@
 package org.xowl.store.storage;
 
 import org.xowl.store.rdf.*;
-import org.xowl.utils.collections.ConcatenatedIterator;
+import org.xowl.infra.utils.collections.ConcatenatedIterator;
 
 import java.util.*;
 

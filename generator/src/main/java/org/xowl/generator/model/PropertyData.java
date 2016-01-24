@@ -20,8 +20,8 @@
 
 package org.xowl.generator.model;
 
-import org.xowl.lang.runtime.Class;
-import org.xowl.lang.runtime.*;
+import org.xowl.infra.lang.runtime.Class;
+import org.xowl.infra.lang.runtime.*;
 import org.xowl.store.Vocabulary;
 
 import java.util.ArrayList;

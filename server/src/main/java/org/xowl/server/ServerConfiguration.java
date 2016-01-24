@@ -20,8 +20,8 @@
 
 package org.xowl.server;
 
-import org.xowl.utils.config.Configuration;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.config.Configuration;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;

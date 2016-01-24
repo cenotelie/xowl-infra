@@ -24,8 +24,8 @@ package org.xowl.store.writers;
 import org.xowl.store.RDFUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
-import org.xowl.utils.collections.Couple;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.util.*;
 

@@ -23,7 +23,7 @@ package org.xowl.store.storage.persistent;
 import org.mapdb.Atomic;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
-import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.BlankNode;
 import org.xowl.store.rdf.IRINode;
@@ -31,7 +31,7 @@ import org.xowl.store.rdf.LiteralNode;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.storage.UnsupportedNodeType;
 import org.xowl.store.storage.impl.NodeManagerImpl;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;

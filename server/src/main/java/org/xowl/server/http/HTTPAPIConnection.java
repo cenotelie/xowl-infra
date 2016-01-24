@@ -29,7 +29,7 @@ import org.xowl.server.xsp.XSPReply;
 import org.xowl.server.xsp.XSPReplyUtils;
 import org.xowl.store.EntailmentRegime;
 import org.xowl.store.http.HttpResponse;
-import org.xowl.utils.concurrent.SafeRunnable;
+import org.xowl.infra.utils.concurrent.SafeRunnable;
 
 import java.io.IOException;
 import java.io.OutputStream;

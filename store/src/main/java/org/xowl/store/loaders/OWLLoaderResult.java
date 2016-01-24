@@ -20,9 +20,9 @@
 
 package org.xowl.store.loaders;
 
-import org.xowl.lang.owl2.Annotation;
-import org.xowl.lang.owl2.Axiom;
-import org.xowl.lang.rules.Rule;
+import org.xowl.infra.lang.owl2.Annotation;
+import org.xowl.infra.lang.owl2.Axiom;
+import org.xowl.infra.lang.rules.Rule;
 
 import java.util.ArrayList;
 import java.util.Collection;

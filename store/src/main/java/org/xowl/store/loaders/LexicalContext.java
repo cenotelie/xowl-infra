@@ -19,7 +19,7 @@
  ******************************************************************************/
 package org.xowl.store.loaders;
 
-import org.xowl.lang.actions.QueryVariable;
+import org.xowl.infra.lang.actions.QueryVariable;
 
 import java.util.HashMap;
 import java.util.Map;

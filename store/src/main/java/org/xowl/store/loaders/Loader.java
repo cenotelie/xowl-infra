@@ -21,7 +21,7 @@
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ParseResult;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Reader;
 

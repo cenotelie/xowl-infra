@@ -20,11 +20,11 @@
 
 package org.xowl.store.storage;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.*;
-import org.xowl.utils.collections.LockingIterator;
-import org.xowl.utils.concurrent.TrackedReentrantLock;
+import org.xowl.infra.utils.collections.LockingIterator;
+import org.xowl.infra.utils.concurrent.TrackedReentrantLock;
 
 import java.util.Collection;
 import java.util.Iterator;

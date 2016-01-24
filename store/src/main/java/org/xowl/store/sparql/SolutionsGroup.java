@@ -21,8 +21,8 @@
 package org.xowl.store.sparql;
 
 import org.xowl.store.rdf.QuerySolution;
-import org.xowl.utils.collections.ConcatenatedIterator;
-import org.xowl.utils.collections.SingleIterator;
+import org.xowl.infra.utils.collections.ConcatenatedIterator;
+import org.xowl.infra.utils.collections.SingleIterator;
 
 import java.util.ArrayList;
 import java.util.Collection;

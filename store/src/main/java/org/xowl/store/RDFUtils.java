@@ -20,17 +20,17 @@
 
 package org.xowl.store;
 
-import org.xowl.lang.actions.DynamicExpression;
-import org.xowl.lang.owl2.AnonymousIndividual;
-import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Literal;
-import org.xowl.lang.owl2.Ontology;
-import org.xowl.lang.runtime.Entity;
+import org.xowl.infra.lang.actions.DynamicExpression;
+import org.xowl.infra.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.lang.owl2.IRI;
+import org.xowl.infra.lang.owl2.Literal;
+import org.xowl.infra.lang.owl2.Ontology;
+import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.NodeManager;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -141,8 +141,8 @@ public class RDFUtils {
         } else if (element instanceof Literal) {
             Literal literal = (Literal) element;
             return store.getLiteralNode(literal.getLexicalValue(), literal.getMemberOf().getHasValue(), literal.getLangTag());
-        } else if (element instanceof org.xowl.lang.runtime.Literal) {
-            org.xowl.lang.runtime.Literal literal = (org.xowl.lang.runtime.Literal) element;
+        } else if (element instanceof org.xowl.infra.lang.runtime.Literal) {
+            org.xowl.infra.lang.runtime.Literal literal = (org.xowl.infra.lang.runtime.Literal) element;
             return store.getLiteralNode(literal.getLexicalValue(), literal.getMemberOf().getInterpretationOf().getHasIRI().getHasValue(), literal.getLangTag());
         } else if (element instanceof DynamicExpression) {
             return new DynamicNode((DynamicExpression) element);

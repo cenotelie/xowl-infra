@@ -21,7 +21,7 @@
 package org.xowl.store.http;
 
 import org.apache.xerces.impl.dv.util.Base64;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logger;
 
 import javax.net.ssl.*;
 import java.io.*;

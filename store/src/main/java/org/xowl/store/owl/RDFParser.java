@@ -19,7 +19,7 @@
  ******************************************************************************/
 package org.xowl.store.owl;
 
-import org.xowl.lang.owl2.*;
+import org.xowl.infra.lang.owl2.*;
 import org.xowl.store.RDFUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;

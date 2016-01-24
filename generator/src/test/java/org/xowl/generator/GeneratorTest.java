@@ -21,7 +21,7 @@ package org.xowl.generator;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xowl.utils.config.Configuration;
+import org.xowl.infra.utils.config.Configuration;
 
 /**
  * Tests for the generator

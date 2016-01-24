@@ -20,35 +20,35 @@
 
 package org.xowl.store.owl;
 
-import org.xowl.lang.actions.*;
-import org.xowl.lang.owl2.*;
-import org.xowl.lang.owl2.DataAllValuesFrom;
-import org.xowl.lang.owl2.DataExactCardinality;
-import org.xowl.lang.owl2.DataHasValue;
-import org.xowl.lang.owl2.DataMaxCardinality;
-import org.xowl.lang.owl2.DataMinCardinality;
-import org.xowl.lang.owl2.DataPropertyAssertion;
-import org.xowl.lang.owl2.DataSomeValuesFrom;
-import org.xowl.lang.owl2.DatatypeRestriction;
-import org.xowl.lang.owl2.Literal;
-import org.xowl.lang.owl2.ObjectAllValuesFrom;
-import org.xowl.lang.owl2.ObjectExactCardinality;
-import org.xowl.lang.owl2.ObjectHasSelf;
-import org.xowl.lang.owl2.ObjectHasValue;
-import org.xowl.lang.owl2.ObjectMaxCardinality;
-import org.xowl.lang.owl2.ObjectMinCardinality;
-import org.xowl.lang.owl2.ObjectPropertyAssertion;
-import org.xowl.lang.owl2.ObjectSomeValuesFrom;
-import org.xowl.lang.runtime.Class;
-import org.xowl.lang.runtime.*;
+import org.xowl.infra.lang.actions.*;
+import org.xowl.infra.lang.owl2.*;
+import org.xowl.infra.lang.owl2.DataAllValuesFrom;
+import org.xowl.infra.lang.owl2.DataExactCardinality;
+import org.xowl.infra.lang.owl2.DataHasValue;
+import org.xowl.infra.lang.owl2.DataMaxCardinality;
+import org.xowl.infra.lang.owl2.DataMinCardinality;
+import org.xowl.infra.lang.owl2.DataPropertyAssertion;
+import org.xowl.infra.lang.owl2.DataSomeValuesFrom;
+import org.xowl.infra.lang.owl2.DatatypeRestriction;
+import org.xowl.infra.lang.owl2.Literal;
+import org.xowl.infra.lang.owl2.ObjectAllValuesFrom;
+import org.xowl.infra.lang.owl2.ObjectExactCardinality;
+import org.xowl.infra.lang.owl2.ObjectHasSelf;
+import org.xowl.infra.lang.owl2.ObjectHasValue;
+import org.xowl.infra.lang.owl2.ObjectMaxCardinality;
+import org.xowl.infra.lang.owl2.ObjectMinCardinality;
+import org.xowl.infra.lang.owl2.ObjectPropertyAssertion;
+import org.xowl.infra.lang.owl2.ObjectSomeValuesFrom;
+import org.xowl.infra.lang.runtime.Class;
+import org.xowl.infra.lang.runtime.*;
 import org.xowl.store.Evaluator;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.loaders.OWLLoaderResult;
 import org.xowl.store.rdf.*;
 import org.xowl.store.rdf.Property;
 import org.xowl.store.storage.BaseStore;
-import org.xowl.utils.collections.Adapter;
-import org.xowl.utils.collections.AdaptingIterator;
+import org.xowl.infra.utils.collections.Adapter;
+import org.xowl.infra.utils.collections.AdaptingIterator;
 
 import java.util.*;
 
@@ -975,7 +975,7 @@ public class Translator {
      * @return The RDF node representing the expression
      * @throws TranslationException When the runtime class is not a named class
      */
-    protected SubjectNode translateClassRuntime(org.xowl.lang.runtime.Class expression) throws TranslationException {
+    protected SubjectNode translateClassRuntime(org.xowl.infra.lang.runtime.Class expression) throws TranslationException {
         // Here an OWL Class is expected to be a named Class
         if (expression.getInterpretationOf() == null)
             throw new TranslationException("Cannot translate anonymous entities");
@@ -1366,7 +1366,7 @@ public class Translator {
      * @return The RDF node representing the expression
      * @throws TranslationException when a runtime object property is not named
      */
-    protected SubjectNode translateObjectPropertyRuntime(org.xowl.lang.runtime.ObjectProperty expression) throws TranslationException {
+    protected SubjectNode translateObjectPropertyRuntime(org.xowl.infra.lang.runtime.ObjectProperty expression) throws TranslationException {
         if (expression.getInterpretationOf() == null)
             throw new TranslationException("Cannot translate anonymous entities");
         return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
@@ -1398,7 +1398,7 @@ public class Translator {
             if (evaluator != null)
                 return translateDataPropertyRuntime(evaluator.evalDataProperty(expression));
             else
-                return context.resolve((QueryVariable) expression, org.xowl.lang.runtime.DataProperty.class);
+                return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.DataProperty.class);
         }
         if (expression instanceof DynamicExpression) {
             if (evaluator != null)
@@ -1444,7 +1444,7 @@ public class Translator {
             if (evaluator != null)
                 return translateDatatype(evaluator.evalDatatype(expression));
             else
-                return context.resolve((QueryVariable) expression, org.xowl.lang.runtime.Datatype.class);
+                return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.Datatype.class);
         }
         if (expression instanceof DynamicExpression) {
             if (evaluator != null)
@@ -1610,14 +1610,14 @@ public class Translator {
                 if (ind instanceof NamedIndividual)
                     return translateNamedIndividual((NamedIndividual) ind);
             } else
-                return context.resolve((org.xowl.lang.actions.QueryVariable) expression, org.xowl.lang.runtime.Individual.class);
+                return context.resolve((org.xowl.infra.lang.actions.QueryVariable) expression, org.xowl.infra.lang.runtime.Individual.class);
         }
         if (expression instanceof DynamicExpression) {
             if (evaluator != null) {
                 Individual ind = evaluator.evalIndividual(expression);
                 if (ind instanceof AnonymousIndividual)
                     return translateAnonymousIndividual((AnonymousIndividual) ind);
-                if (ind instanceof org.xowl.lang.runtime.NamedIndividual)
+                if (ind instanceof org.xowl.infra.lang.runtime.NamedIndividual)
                     return translateNamedIndividual((NamedIndividual) ind);
             } else
                 return getDynamicNode((DynamicExpression) expression, Individual.class);
@@ -1673,7 +1673,7 @@ public class Translator {
             if (evaluator != null)
                 return translateLiteralRuntime(evaluator.evalLiteral(expression));
             else
-                return context.resolve((QueryVariable) expression, org.xowl.lang.runtime.Literal.class);
+                return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.Literal.class);
         }
         if (expression instanceof DynamicExpression) {
             if (evaluator != null)
@@ -1691,7 +1691,7 @@ public class Translator {
      * @param expression A runtime literal
      * @return The RDF node representing the expression
      */
-    protected LiteralNode translateLiteralRuntime(org.xowl.lang.runtime.Literal expression) {
+    protected LiteralNode translateLiteralRuntime(org.xowl.infra.lang.runtime.Literal expression) {
         return store.getLiteralNode(expression.getLexicalValue(), expression.getMemberOf().getInterpretationOf().getHasIRI().getHasValue(), expression.getLangTag());
     }
 

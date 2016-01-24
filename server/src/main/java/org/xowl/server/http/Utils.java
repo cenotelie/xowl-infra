@@ -22,8 +22,8 @@ package org.xowl.server.http;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
-import org.xowl.utils.collections.Couple;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

@@ -20,7 +20,7 @@
 
 package org.xowl.generator.model;
 
-import org.xowl.lang.runtime.Datatype;
+import org.xowl.infra.lang.runtime.Datatype;
 import org.xowl.store.Vocabulary;
 
 import java.util.HashMap;

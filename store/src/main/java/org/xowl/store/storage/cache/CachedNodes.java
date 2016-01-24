@@ -20,7 +20,7 @@
 
 package org.xowl.store.storage.cache;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.BlankNode;
 import org.xowl.store.rdf.IRINode;

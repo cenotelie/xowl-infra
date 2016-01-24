@@ -24,11 +24,11 @@ import org.xowl.store.rdf.*;
 import org.xowl.store.storage.cache.CachedDataset;
 import org.xowl.store.storage.impl.DatasetImpl;
 import org.xowl.store.storage.impl.MQuad;
-import org.xowl.utils.collections.Adapter;
-import org.xowl.utils.collections.AdaptingIterator;
-import org.xowl.utils.collections.ConcatenatedIterator;
-import org.xowl.utils.collections.SkippableIterator;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.collections.Adapter;
+import org.xowl.infra.utils.collections.AdaptingIterator;
+import org.xowl.infra.utils.collections.ConcatenatedIterator;
+import org.xowl.infra.utils.collections.SkippableIterator;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;

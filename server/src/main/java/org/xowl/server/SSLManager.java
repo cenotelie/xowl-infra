@@ -20,8 +20,8 @@
 
 package org.xowl.server;
 
-import org.xowl.utils.collections.Couple;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.*;
 import java.security.KeyStore;

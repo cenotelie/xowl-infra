@@ -22,7 +22,7 @@ package org.xowl.store.rdf;
 
 import org.xowl.store.IOUtils;
 import org.xowl.store.Serializable;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.io.IOException;
 import java.io.StringWriter;

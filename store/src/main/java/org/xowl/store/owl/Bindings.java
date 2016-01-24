@@ -20,7 +20,7 @@
 
 package org.xowl.store.owl;
 
-import org.xowl.lang.actions.QueryVariable;
+import org.xowl.infra.lang.actions.QueryVariable;
 
 import java.util.Collection;
 import java.util.HashMap;

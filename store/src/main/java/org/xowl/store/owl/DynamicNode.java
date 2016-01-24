@@ -20,7 +20,7 @@
 
 package org.xowl.store.owl;
 
-import org.xowl.lang.actions.DynamicExpression;
+import org.xowl.infra.lang.actions.DynamicExpression;
 import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Property;
 import org.xowl.store.rdf.SubjectNode;

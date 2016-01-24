@@ -23,7 +23,7 @@ package org.xowl.store.storage;
 import org.xowl.store.storage.persistent.StorageException;
 import org.xowl.store.storage.remote.Connection;
 import org.xowl.store.storage.remote.SPARQLConnection;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;

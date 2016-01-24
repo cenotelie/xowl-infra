@@ -20,11 +20,11 @@
 
 package org.xowl.generator.model;
 
-import org.xowl.lang.owl2.Ontology;
-import org.xowl.lang.runtime.Class;
-import org.xowl.lang.runtime.Entity;
-import org.xowl.lang.runtime.Interpretation;
-import org.xowl.lang.runtime.Property;
+import org.xowl.infra.lang.owl2.Ontology;
+import org.xowl.infra.lang.runtime.Class;
+import org.xowl.infra.lang.runtime.Entity;
+import org.xowl.infra.lang.runtime.Interpretation;
+import org.xowl.infra.lang.runtime.Property;
 
 import java.io.File;
 import java.io.IOException;

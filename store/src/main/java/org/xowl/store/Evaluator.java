@@ -20,12 +20,12 @@
 
 package org.xowl.store;
 
-import org.xowl.lang.actions.DynamicExpression;
-import org.xowl.lang.actions.FunctionExpression;
-import org.xowl.lang.owl2.*;
-import org.xowl.lang.runtime.Class;
-import org.xowl.lang.runtime.*;
-import org.xowl.lang.runtime.Literal;
+import org.xowl.infra.lang.actions.DynamicExpression;
+import org.xowl.infra.lang.actions.FunctionExpression;
+import org.xowl.infra.lang.owl2.*;
+import org.xowl.infra.lang.runtime.Class;
+import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.lang.runtime.Literal;
 
 import java.util.Map;
 

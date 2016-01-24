@@ -24,7 +24,7 @@ import org.xowl.store.rdf.GraphNode;
 import org.xowl.store.rdf.Property;
 import org.xowl.store.rdf.SubjectNode;
 import org.xowl.store.storage.UnsupportedNodeType;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.io.IOException;
 import java.io.Writer;

@@ -32,8 +32,8 @@ import org.xowl.store.loaders.W3CTestSuite;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.StoreFactory;
-import org.xowl.utils.logging.Logger;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.io.*;
 import java.util.*;

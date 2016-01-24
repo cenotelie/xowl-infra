@@ -26,8 +26,8 @@ import org.xowl.store.rete.*;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.Dataset;
 import org.xowl.store.storage.UnsupportedNodeType;
-import org.xowl.utils.collections.Couple;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.util.*;
 

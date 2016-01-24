@@ -26,9 +26,8 @@ import org.xowl.store.RDFUtils;
 import org.xowl.store.Vocabulary;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
-import org.xowl.utils.Files;
-import org.xowl.utils.collections.Couple;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Writer;

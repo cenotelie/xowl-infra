@@ -32,9 +32,9 @@ import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultUtils;
 import org.xowl.store.storage.NodeManager;
 import org.xowl.store.storage.cache.CachedNodes;
-import org.xowl.utils.logging.BufferedLogger;
-import org.xowl.utils.logging.DispatchLogger;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.BufferedLogger;
+import org.xowl.infra.utils.logging.DispatchLogger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;

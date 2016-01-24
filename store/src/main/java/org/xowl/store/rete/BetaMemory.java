@@ -23,10 +23,10 @@ package org.xowl.store.rete;
 import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
-import org.xowl.utils.collections.Adapter;
-import org.xowl.utils.collections.AdaptingIterator;
-import org.xowl.utils.collections.CombiningIterator;
-import org.xowl.utils.collections.SparseIterator;
+import org.xowl.infra.utils.collections.Adapter;
+import org.xowl.infra.utils.collections.AdaptingIterator;
+import org.xowl.infra.utils.collections.CombiningIterator;
+import org.xowl.infra.utils.collections.SparseIterator;
 
 import java.util.*;
 
@@ -129,7 +129,7 @@ class BetaMemory implements TokenHolder {
                 return new AdaptingIterator<>(coupleIterator, new Adapter<Token>() {
                     @Override
                     public <X> Token adapt(X element) {
-                        return ((org.xowl.utils.collections.Couple<Map.Entry<Token, Token[]>, Token>) element).y;
+                        return ((org.xowl.infra.utils.collections.Couple<Map.Entry<Token, Token[]>, Token>) element).y;
                     }
                 });
             }

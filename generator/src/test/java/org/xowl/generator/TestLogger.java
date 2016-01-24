@@ -20,7 +20,7 @@
 
 package org.xowl.generator;
 
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logger;
 
 /**
  * Error logger for the tests

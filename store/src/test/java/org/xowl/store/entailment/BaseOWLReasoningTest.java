@@ -20,7 +20,7 @@
 package org.xowl.store.entailment;
 
 import org.junit.Assert;
-import org.xowl.lang.owl2.Ontology;
+import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.store.EntailmentRegime;
 import org.xowl.store.Repository;
 import org.xowl.store.TestLogger;

@@ -25,7 +25,7 @@ import org.xowl.server.api.XOWLDatabase;
 import org.xowl.server.api.XOWLPrivilege;
 import org.xowl.server.api.XOWLUserPrivileges;
 import org.xowl.store.IOUtils;
-import org.xowl.utils.Files;
+import org.xowl.infra.utils.Files;
 
 import java.util.ArrayList;
 import java.util.Arrays;

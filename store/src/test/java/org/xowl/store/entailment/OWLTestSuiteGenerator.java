@@ -22,7 +22,7 @@ package org.xowl.store.entailment;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;
 import org.xowl.store.TestLogger;
-import org.xowl.utils.Files;
+import org.xowl.infra.utils.Files;
 
 import java.io.IOException;
 import java.io.Writer;

@@ -21,7 +21,7 @@ package org.xowl.store.writers;
 
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.storage.UnsupportedNodeType;
-import org.xowl.utils.Files;
+import org.xowl.infra.utils.Files;
 
 import java.io.IOException;
 import java.io.Writer;

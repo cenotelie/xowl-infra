@@ -41,11 +41,11 @@ import org.xowl.store.sparql.Result;
 import org.xowl.store.sparql.ResultSuccess;
 import org.xowl.store.storage.BaseStore;
 import org.xowl.store.storage.StoreFactory;
-import org.xowl.utils.config.Configuration;
-import org.xowl.utils.logging.BufferedLogger;
-import org.xowl.utils.logging.ConsoleLogger;
-import org.xowl.utils.logging.DispatchLogger;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.config.Configuration;
+import org.xowl.infra.utils.logging.BufferedLogger;
+import org.xowl.infra.utils.logging.ConsoleLogger;
+import org.xowl.infra.utils.logging.DispatchLogger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.*;
 import java.nio.charset.Charset;

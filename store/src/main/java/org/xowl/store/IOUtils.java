@@ -21,7 +21,7 @@
 package org.xowl.store;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.store.owl.AnonymousNode;
 import org.xowl.store.rdf.*;
 import org.xowl.store.sparql.Result;

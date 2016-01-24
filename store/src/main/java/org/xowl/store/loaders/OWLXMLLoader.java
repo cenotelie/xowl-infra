@@ -24,11 +24,11 @@ import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xowl.hime.redist.ParseResult;
-import org.xowl.lang.owl2.*;
+import org.xowl.infra.lang.owl2.*;
 import org.xowl.store.IOUtils;
 import org.xowl.store.URIUtils;
 import org.xowl.store.Vocabulary;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Reader;
 import java.util.*;

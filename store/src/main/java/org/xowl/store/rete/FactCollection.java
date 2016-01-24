@@ -23,8 +23,8 @@ import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.storage.Dataset;
-import org.xowl.utils.collections.CloseableIterator;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.collections.CloseableIterator;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.util.Collection;
 import java.util.Iterator;

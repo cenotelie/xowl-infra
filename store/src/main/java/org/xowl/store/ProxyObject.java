@@ -19,13 +19,13 @@
  ******************************************************************************/
 package org.xowl.store;
 
-import org.xowl.lang.owl2.IRI;
-import org.xowl.lang.owl2.Ontology;
+import org.xowl.infra.lang.owl2.IRI;
+import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
 import org.xowl.store.storage.UnsupportedNodeType;
-import org.xowl.utils.collections.*;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.collections.*;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -19,7 +19,7 @@
  ******************************************************************************/
 package org.xowl.store.owl;
 
-import org.xowl.lang.owl2.Axiom;
+import org.xowl.infra.lang.owl2.Axiom;
 
 import java.util.ArrayList;
 import java.util.Collection;

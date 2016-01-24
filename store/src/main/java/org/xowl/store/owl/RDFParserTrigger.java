@@ -21,7 +21,7 @@ package org.xowl.store.owl;
 
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.VariableNode;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.Collection;
 import java.util.HashMap;

@@ -22,7 +22,7 @@ package org.xowl.store.sparql;
 
 import org.xowl.store.Repository;
 import org.xowl.store.rdf.VariableNode;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.List;

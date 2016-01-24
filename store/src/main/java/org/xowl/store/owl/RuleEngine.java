@@ -19,10 +19,10 @@
  ******************************************************************************/
 package org.xowl.store.owl;
 
-import org.xowl.lang.owl2.Axiom;
-import org.xowl.lang.owl2.Ontology;
-import org.xowl.lang.rules.Assertion;
-import org.xowl.lang.rules.Rule;
+import org.xowl.infra.lang.owl2.Axiom;
+import org.xowl.infra.lang.owl2.Ontology;
+import org.xowl.infra.lang.rules.Assertion;
+import org.xowl.infra.lang.rules.Rule;
 import org.xowl.store.Evaluator;
 import org.xowl.store.IRIs;
 import org.xowl.store.RDFUtils;
@@ -31,7 +31,7 @@ import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.VariableNode;
 import org.xowl.store.rete.Token;
 import org.xowl.store.storage.BaseStore;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.*;
 

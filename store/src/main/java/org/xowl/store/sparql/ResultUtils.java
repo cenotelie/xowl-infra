@@ -33,10 +33,10 @@ import org.xowl.store.rdf.QuerySolution;
 import org.xowl.store.rdf.VariableNode;
 import org.xowl.store.storage.NodeManager;
 import org.xowl.store.storage.cache.CachedNodes;
-import org.xowl.utils.collections.Couple;
-import org.xowl.utils.logging.BufferedLogger;
-import org.xowl.utils.logging.DispatchLogger;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.BufferedLogger;
+import org.xowl.infra.utils.logging.DispatchLogger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Reader;
 import java.io.StringReader;

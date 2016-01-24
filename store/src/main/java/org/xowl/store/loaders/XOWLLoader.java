@@ -23,8 +23,8 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.hime.redist.parsers.InitializationException;
-import org.xowl.utils.Files;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;

@@ -21,9 +21,9 @@
 package org.xowl.store.rete;
 
 import org.xowl.store.rdf.Quad;
-import org.xowl.utils.collections.Adapter;
-import org.xowl.utils.collections.AdaptingIterator;
-import org.xowl.utils.collections.SkippableIterator;
+import org.xowl.infra.utils.collections.Adapter;
+import org.xowl.infra.utils.collections.AdaptingIterator;
+import org.xowl.infra.utils.collections.SkippableIterator;
 
 import java.util.*;
 

@@ -26,7 +26,7 @@ import org.xowl.store.storage.cache.CachedDataset;
 import org.xowl.store.storage.impl.DatasetImpl;
 import org.xowl.store.storage.impl.MQuad;
 import org.xowl.store.storage.persistent.PersistedDataset;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;

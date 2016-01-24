@@ -21,7 +21,7 @@
 package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.lang.owl2.*;
+import org.xowl.infra.lang.owl2.*;
 import org.xowl.store.IOUtils;
 import org.xowl.store.URIUtils;
 import org.xowl.store.Vocabulary;

@@ -20,7 +20,7 @@
 
 package org.xowl.store.storage;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.store.IRIs;
 import org.xowl.store.RDFUtils;
 import org.xowl.store.owl.AnonymousNode;

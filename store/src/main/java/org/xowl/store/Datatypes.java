@@ -20,9 +20,9 @@
 
 package org.xowl.store;
 
-import org.xowl.lang.owl2.Literal;
+import org.xowl.infra.lang.owl2.Literal;
 import org.xowl.store.rdf.LiteralNode;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -462,7 +462,7 @@ public class Datatypes {
      * @param literal The literal
      * @return The corresponding native value
      */
-    public static Object toNative(org.xowl.lang.runtime.Literal literal) {
+    public static Object toNative(org.xowl.infra.lang.runtime.Literal literal) {
         return toNative(literal.getLexicalValue(), literal.getMemberOf().getInterpretationOf().getHasIRI().getHasValue());
     }
 

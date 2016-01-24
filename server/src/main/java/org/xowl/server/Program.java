@@ -22,8 +22,8 @@ package org.xowl.server;
 
 import org.xowl.server.api.impl.ServerController;
 import org.xowl.server.http.HTTPServer;
-import org.xowl.utils.logging.BufferedLogger;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.BufferedLogger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;

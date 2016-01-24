@@ -23,8 +23,8 @@ package org.xowl.server.http;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.server.Program;
-import org.xowl.utils.concurrent.SafeRunnable;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.concurrent.SafeRunnable;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;

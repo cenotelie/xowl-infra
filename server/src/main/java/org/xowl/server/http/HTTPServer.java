@@ -24,8 +24,8 @@ import com.sun.net.httpserver.*;
 import org.xowl.server.SSLManager;
 import org.xowl.server.ServerConfiguration;
 import org.xowl.server.api.impl.ServerController;
-import org.xowl.utils.collections.Couple;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logger;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;

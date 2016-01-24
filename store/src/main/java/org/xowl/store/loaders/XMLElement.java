@@ -26,9 +26,9 @@ import org.w3c.dom.NodeList;
 import org.xowl.store.IOUtils;
 import org.xowl.store.URIUtils;
 import org.xowl.store.Vocabulary;
-import org.xowl.utils.collections.Adapter;
-import org.xowl.utils.collections.AdaptingIterator;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Adapter;
+import org.xowl.infra.utils.collections.AdaptingIterator;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.*;
 

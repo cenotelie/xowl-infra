@@ -24,7 +24,7 @@ import org.xowl.store.ProxyObject;
 import org.xowl.store.Repository;
 import org.xowl.store.TestLogger;
 import org.xowl.store.Vocabulary;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.List;

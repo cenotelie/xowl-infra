@@ -20,7 +20,7 @@
 
 package org.xowl.generator.model;
 
-import org.xowl.lang.runtime.*;
+import org.xowl.infra.lang.runtime.*;
 
 import java.io.IOException;
 import java.io.Writer;

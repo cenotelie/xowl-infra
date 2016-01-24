@@ -20,14 +20,14 @@
 
 package org.xowl.store.sparql;
 
-import org.xowl.lang.actions.DynamicExpression;
-import org.xowl.lang.owl2.IRI;
+import org.xowl.infra.lang.actions.DynamicExpression;
+import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.store.Datatypes;
 import org.xowl.store.RDFUtils;
 import org.xowl.store.Repository;
 import org.xowl.store.owl.DynamicNode;
 import org.xowl.store.rdf.*;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.*;
 

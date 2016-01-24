@@ -23,7 +23,7 @@ package org.xowl.store.sparql;
 import org.xowl.store.AbstractRepository;
 import org.xowl.store.rdf.Quad;
 import org.xowl.store.writers.*;
-import org.xowl.utils.logging.SinkLogger;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.IOException;
 import java.io.StringWriter;

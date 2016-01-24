@@ -29,7 +29,7 @@ import org.xowl.store.loaders.W3CTestSuite;
 import org.xowl.store.loaders.RDFLoaderResult;
 import org.xowl.store.loaders.RDFTLoader;
 import org.xowl.store.storage.UnsupportedNodeType;
-import org.xowl.utils.logging.SinkLogger;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.StringReader;
 import java.util.ArrayList;

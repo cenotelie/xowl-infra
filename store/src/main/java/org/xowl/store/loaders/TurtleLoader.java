@@ -23,7 +23,7 @@ package org.xowl.store.loaders;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.parsers.BaseLRParser;
 import org.xowl.store.storage.NodeManager;
-import org.xowl.utils.Files;
+import org.xowl.infra.utils.Files;
 
 import java.io.IOException;
 import java.io.Reader;

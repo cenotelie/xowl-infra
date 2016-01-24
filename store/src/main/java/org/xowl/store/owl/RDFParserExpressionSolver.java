@@ -19,7 +19,7 @@
  ******************************************************************************/
 package org.xowl.store.owl;
 
-import org.xowl.lang.owl2.Expression;
+import org.xowl.infra.lang.owl2.Expression;
 
 /**
  * Represent a solver of OWL2 expressions for parsing OWL2 axioms from a RDF graph

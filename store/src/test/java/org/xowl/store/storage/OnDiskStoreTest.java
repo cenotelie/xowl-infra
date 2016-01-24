@@ -26,7 +26,7 @@ import org.xowl.store.IRIs;
 import org.xowl.store.Repository;
 import org.xowl.store.TestLogger;
 import org.xowl.store.rdf.Quad;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

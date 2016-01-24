@@ -22,16 +22,16 @@ package org.xowl.engine;
 
 import clojure.lang.Compiler;
 import clojure.lang.*;
-import org.xowl.lang.actions.DynamicExpression;
-import org.xowl.lang.actions.FunctionExpression;
-import org.xowl.lang.actions.OpaqueExpression;
-import org.xowl.lang.owl2.*;
-import org.xowl.lang.runtime.*;
-import org.xowl.lang.runtime.Literal;
+import org.xowl.infra.lang.actions.DynamicExpression;
+import org.xowl.infra.lang.actions.FunctionExpression;
+import org.xowl.infra.lang.actions.OpaqueExpression;
+import org.xowl.infra.lang.owl2.*;
+import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.lang.runtime.Literal;
 import org.xowl.store.Evaluator;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Vocabulary;
-import org.xowl.utils.Files;
+import org.xowl.infra.utils.Files;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -198,7 +198,7 @@ public class ClojureEvaluator implements Evaluator {
     }
 
     @Override
-    public org.xowl.lang.runtime.Class evalClass(ClassExpression expression) {
+    public org.xowl.infra.lang.runtime.Class evalClass(ClassExpression expression) {
         return null;
     }
 

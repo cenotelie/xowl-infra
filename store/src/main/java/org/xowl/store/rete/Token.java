@@ -23,7 +23,7 @@ package org.xowl.store.rete;
 import org.xowl.store.RDFUtils;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.VariableNode;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;

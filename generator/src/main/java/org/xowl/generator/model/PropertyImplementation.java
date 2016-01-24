@@ -20,8 +20,8 @@
 
 package org.xowl.generator.model;
 
-import org.xowl.lang.runtime.Literal;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.lang.runtime.Literal;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Writer;

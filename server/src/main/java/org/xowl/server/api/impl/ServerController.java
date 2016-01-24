@@ -30,8 +30,8 @@ import org.xowl.server.api.base.BaseUserPrivileges;
 import org.xowl.server.xsp.*;
 import org.xowl.store.ProxyObject;
 import org.xowl.store.Vocabulary;
-import org.xowl.utils.logging.ConsoleLogger;
-import org.xowl.utils.logging.Logger;
+import org.xowl.infra.utils.logging.ConsoleLogger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Closeable;
 import java.io.File;

@@ -24,7 +24,7 @@ import org.xowl.store.Repository;
 import org.xowl.store.rdf.Node;
 import org.xowl.store.rdf.QuerySolution;
 import org.xowl.store.rdf.VariableNode;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 

@@ -20,7 +20,7 @@
 
 package org.xowl.store.owl;
 
-import org.xowl.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.store.rdf.SubjectNode;
 
 /**

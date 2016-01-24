@@ -22,7 +22,7 @@ package org.xowl.store.sparql;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 /**
  * All SPARQL tests

@@ -22,7 +22,7 @@ package org.xowl.store.sparql;
 
 import org.xowl.store.IRIs;
 import org.xowl.store.Repository;
-import org.xowl.utils.logging.SinkLogger;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 /**
  * Represents the SPARQL LOAD command.

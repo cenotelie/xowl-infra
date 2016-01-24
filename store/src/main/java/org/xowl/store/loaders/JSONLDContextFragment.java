@@ -22,7 +22,7 @@ package org.xowl.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.store.Vocabulary;
-import org.xowl.utils.collections.Couple;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.*;
 
