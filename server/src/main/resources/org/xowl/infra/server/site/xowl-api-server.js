@@ -1,78 +1,6 @@
 // Copyright (c) 2015 Laurent Wouters
 // Provided under LGPL v3
 
-/**
- * Represents the expected callback for request to an xOWL enpoint
- * @callback commandCallback
- * @param {number} code - The response code
- * @param {string} type - The response content type
- * @param {string} content - The response content
- */
-
-/**
- * Represents the expected callback for request of a list to an xOWL enpoint
- * @callback listCallback
- * @param {number} code - The response code
- * @param {string} type - The response content type
- * @param {string[]} content - The response content
- */
-
-/**
- * Represents the expected callback for request of the privileges of a user
- * @callback userPrivCallback
- * @param {number} code - The response code
- * @param {string} type - The response content type
- * @param {Object} content - The response content
- * @param {boolean} content.isServerAdmin - Whether the user is a server administrator
- * @param {Object[]} content.accesses - The privileges granted to the user
- * @param {string} content.accesses[].database - The database for this privilege
- * @param {boolean} content.accesses[].isAdmin - Whether the user has admin privileges
- * @param {boolean} content.accesses[].canWrite - Whether the user can write to the database
- * @param {boolean} content.accesses[].canRead - Whether the user can read from the database
- */
-
-/**
- * Represents the expected callback for request of the privileges of a database
- * @callback dbPrivCallback
- * @param {number} code - The response code
- * @param {string} type - The response content type
- * @param {Object[]} content - The response content
- * @param {string} content[].user - The user that has access
- * @param {boolean} content[].isAdmin - Whether the user has admin privileges
- * @param {boolean} content[].canWrite - Whether the user can write to the database
- * @param {boolean} content[].canRead - Whether the user can read from the database
- */
-
-/**
- * Represents the expected callback for request of the matching status of a rule
- * @callback statusCallback
- * @param {number} code - The response code
- * @param {string} type - The response content type
- * @param {Object[]} steps - The matching steps
- * @param {Object} steps[].pattern.subject - The subject of the pattern matched at this step
- * @param {Object} steps[].pattern.property - The property of the pattern matched at this step
- * @param {Object} steps[].pattern.object - The object of the pattern matched at this step
- * @param {Object} steps[].pattern.graph - The graph of the pattern matched at this step
- * @param {Object[]} steps[].bindings - The bindings at this step
- */
-
-/**
- * Represents the expected callback for request of the explanation of a quad
- * @callback explainCallback
- * @param {number} code - The response code
- * @param {string} type - The response content type
- * @param {Object} content - The explanation
- * @param {number} content.root - The index of the root explanation node
- * @param {Object[]} content.nodes - The explanation nodes
- */
-
-/**
- * Creates a new XOWL connection
- * @class
- * @param {string} [endpoint] - The xOWL server endpoint to use, defaults to '/api'
- * @param {boolean} [useLocal] - Whether to use the browser local storage for persistency, default to true
- * @return {void}
- */
 function XOWL(endpoint, useLocal) {
 	this.endpoint = (!endpoint) ? '/api' : endpoint;
 	this.useLocal = (!useLocal) ? true : useLocal;
@@ -85,33 +13,14 @@ function XOWL(endpoint, useLocal) {
 	}
 }
 
-/**
- * Determines whether the user is logged in.
- * This checks whether the an authentication token is stored
- * @method isLoggedIn
- * @return {boolean} Whether a user is logged in
- */
 XOWL.prototype.isLoggedIn = function () {
 	return (this.authToken !== null && this.userName !== null);
 }
 
-/**
- * Gets the name of the logged in user, if any
- * @method getUser
- * @return {string} The name of the logged in user, or null
- */
 XOWL.prototype.getUser = function () {
 	return this.userName;
 }
 
-/**
- * Tries to login onto the xOWL server endpoint.
- * If successful, the authentication token is kept.
- * @method login
- * @param {commandCallback} callback - The callback for this request
- * @param {string} login - The user login
- * @param {string} password - The user password
- */
 XOWL.prototype.login = function (callback, login, password) {
 	var _self = this;
 	var token = window.btoa(unescape(encodeURIComponent(login + ':' + password)));
@@ -134,13 +43,9 @@ XOWL.prototype.login = function (callback, login, password) {
 			}
 			callback(code, type, content);
 		}
-	}, "WHOAMI");
+	}, "/whoami", "GET", null, "");
 }
 
-/**
- * Clears up any stored information about a logged-in user, if any
- * @method logout
- */
 XOWL.prototype.logout = function () {
 	this.authToken = null;
 	this.userName = null;
@@ -150,29 +55,14 @@ XOWL.prototype.logout = function () {
 	}
 }
 
-/**
- * Request the xOWL server shutdown
- * @method serverShutdown
- * @param {commandCallback} callback - The callback for this request
- */
 XOWL.prototype.serverShutdown = function (callback) {
-	this.command(callback, "ADMIN SHUTDOWN");
+	this.command(callback, "/server?action=shutdown", "POST", null, "");
 }
 
-/**
- * Request the xOWL server restart
- * @method serverRestart
- * @param {commandCallback} callback - The callback for this request
- */
 XOWL.prototype.serverRestart = function (callback) {
-	this.command(callback, "ADMIN RESTART");
+	this.command(callback, "/server?action=restart", "POST", null, "");
 }
 
-/**
- * Requests the list of the users on the xOWL server
- * @param getUsers
- * @param {listCallback} callback - The callback for this request
- */
 XOWL.prototype.getUsers = function (callback) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
@@ -180,57 +70,25 @@ XOWL.prototype.getUsers = function (callback) {
 		} else {
 			callback(code, type, content);
 		}
-	}, "ADMIN LIST USERS");
+	}, "/users", "GET", null, "");
 }
 
-/**
- * Request the creation of a new user
- * @method createUser
- * @param {commandCallback} callback - The callback for this request
- * @param {string} login - The login for the new user
- * @param {string} pw - The password for the new user
- */
 XOWL.prototype.createUser = function (callback, login, pw) {
-	this.command(callback, "ADMIN CREATE USER " + login + " " + pw);
+	this.command(callback, "/user/" + encodeURIComponent(login), "PUT", null, pw);
 }
 
-/**
- * Request the deletion of a user
- * @method deleteUser
- * @param {commandCallback} callback - The callback for this request
- * @param {string} login - The login of the user to delete
- */
 XOWL.prototype.deleteUser = function (callback, login) {
-	this.command(callback, "ADMIN DELETE USER " + login);
+	this.command(callback, "/user/" + encodeURIComponent(login), "DELETE", null, "");
 }
 
-/**
- * Request the change of the password for the current user (identified by the current auth token)
- * @method changePassword
- * @param {commandCallback} callback - The callback for this request
- * @param {string} pw - The new password for the user
- */
 XOWL.prototype.changePassword = function (callback, pw) {
-	this.command(callback, "ADMIN CHANGE PASSWORD " + pw);
+	this.command(callback, "/user/" + encodeURIComponent(this.getUser()), "PUT", null, pw);
 }
 
-/**
- * Request the reset of the password of another user
- * @method resetPassword
- * @param {commandCallback} callback - The callback for this request
- * @param {string} login - The login of the user to reset the password for
- * @param {string} pw - The new password for the user
- */
 XOWL.prototype.resetPassword = function (callback, login, pw) {
-	this.command(callback, "ADMIN RESET PASSWORD " + login + " " + pw);
+	this.command(callback, "/user/" + encodeURIComponent(login), "PUT", null, pw);
 }
 
-/**
- * Requests the list of privileges for a user
- * @param getUserPrivileges
- * @param {userPrivCallback} callback - The callback for this request
- * @param {string} login - The login of the user
- */
 XOWL.prototype.getUserPrivileges = function (callback, login) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
@@ -238,15 +96,9 @@ XOWL.prototype.getUserPrivileges = function (callback, login) {
 		} else {
 			callback(code, type, content);
 		}
-	}, "ADMIN PRIVILEGES FOR " + login);
+	}, "/user/" + encodeURIComponent(login) + "/privileges", "GET", null, "");
 }
 
-/**
- * Requests the list of privileges on a database
- * @param getDatabasePrivileges
- * @param {dbPrivCallback} callback - The callback for this request
- * @param {string} db - The target database
- */
 XOWL.prototype.getDatabasePrivileges = function (callback, db) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
@@ -254,58 +106,25 @@ XOWL.prototype.getDatabasePrivileges = function (callback, db) {
 		} else {
 			callback(code, type, content);
 		}
-	}, "ADMIN PRIVILEGES ON " + db);
+	}, "/db/" + encodeURIComponent(db) + "/privileges", "GET", null, "");
 }
 
-/**
- * Requests the grant of a privilege to a user for a database
- * @param grantDB
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} right - The right to grant, one of ADMIN, WRITE and READ
- * @param {string} login - The login of the user
- */
 XOWL.prototype.grantDB = function (callback, db, right, login) {
-	this.command(callback, "ADMIN GRANT " + right + " " + login + " " + db);
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/privileges?action=grant&user=" + encodeURIComponent(logged) + "&access=" + encodeURIComponent(right), "POST", null, "");
 }
 
-/**
- * Requests the revoke of a privilege to a user for a database
- * @param revokeDB
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} right - The right to revoke, one of ADMIN, WRITE and READ
- * @param {string} login - The login of the user
- */
 XOWL.prototype.revokeDB = function (callback, db, right, login) {
-	this.command(callback, "ADMIN REVOKE " + right + " " + login + " " + db);
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/privileges?action=revoke&user=" + encodeURIComponent(logged) + "&access=" + encodeURIComponent(right), "POST", null, "");
 }
 
-/**
- * Requests the grant of server administration privileges to a user
- * @param grantServerAdmin
- * @param {commandCallback} callback - The callback for this request
- * @param {string} login - The login of the user
- */
 XOWL.prototype.grantServerAdmin = function (callback, login) {
-	this.command(callback, "ADMIN GRANT SERVER ADMIN " + login);
+	this.command(callback, "/user/" + encodeURIComponent(login) + "/privileges?action=grant&server=&access=" + encodeURIComponent(right), "POST", null, "");
 }
 
-/**
- * Requests the revoke of server administration privileges to a user
- * @param revokeServerAdmin
- * @param {commandCallback} callback - The callback for this request
- * @param {string} login - The login of the user
- */
 XOWL.prototype.revokeServerAdmin = function (callback, login) {
-	this.command(callback, "ADMIN REVOKE SERVER ADMIN " + login);
+	this.command(callback, "/user/" + encodeURIComponent(login) + "/privileges?action=revoke&server=&access=" + encodeURIComponent(right), "POST", null, "");
 }
 
-/**
- * Requests the list of the databases on the xOWL server
- * @param getDatabases
- * @param {listCallback} callback - The callback for this request
- */
 XOWL.prototype.getDatabases = function (callback) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
@@ -313,35 +132,17 @@ XOWL.prototype.getDatabases = function (callback) {
 		} else {
 			callback(code, type, content);
 		}
-	}, "ADMIN LIST DATABASES");
+	}, "/databases", "GET", null, "");
 }
 
-/**
- * Requests the creation of a new database
- * @param createDatabase
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The name of the database to create
- */
 XOWL.prototype.createDatabase = function (callback, db) {
-	this.command(callback, "ADMIN CREATE DATABASE " + db);
+	this.command(callback, "/db/" + encodeURIComponent(db), "PUT", null, "");
 }
 
-/**
- * Requests the drop of a database
- * @param dropDatabase
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The name of the database to drop
- */
 XOWL.prototype.dropDatabase = function (callback, db) {
-	this.command(callback, "ADMIN DROP DATABASE " + db);
+	this.command(callback, "/db/" + encodeURIComponent(db), "DELETE", null, "");
 }
 
-/**
- * Gets the entailment regime currently activated on a database
- * @param getEntailmentFor
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The name of the database
- */
 XOWL.prototype.getEntailmentFor = function (callback, db) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
@@ -349,26 +150,13 @@ XOWL.prototype.getEntailmentFor = function (callback, db) {
 		} else {
 			callback(code, type, content);
 		}
-	}, "DATABASE " + db + " ENTAILMENT");
+	}, "/db/" + encodeURIComponent(db) + "/entailment", "GET", null, "");
 }
 
-/**
- * Sets the entailment regime on a database
- * @param setEntailmentFor
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The name of the database
- * @param {string} regime - The regime to activate, one of: none, simple, RDF, RDFS, OWL2_RDF, OWL2_DIRECT
- */
 XOWL.prototype.setEntailmentFor = function (callback, db, regime) {
-	this.command(callback, "DATABASE " + db + " ENTAILMENT " + regime);
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/entailment", "PUT", null, regime);
 }
 
-/**
- * Requests the list of all the rules (active or not) in a database
- * @param getDBRules
- * @param {listCallback} callback - The callback for this request
- * @param {string} db - The target database
- */
 XOWL.prototype.getDBRules = function (callback, db) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
@@ -376,121 +164,45 @@ XOWL.prototype.getDBRules = function (callback, db) {
 		} else {
 			callback(code, type, content);
 		}
-	}, "DATABASE " + db + " LIST RULES");
+	}, "/db/" + encodeURIComponent(db) + "/rules", "GET", null, "");
 }
 
-/**
- * Requests the list of all the active rules in a database
- * @param getDBActiveRules
- * @param {listCallback} callback - The callback for this request
- * @param {string} db - The target database
- */
-XOWL.prototype.getDBActiveRules = function (callback, db) {
+XOWL.prototype.getDBRule = function (callback, db, rule) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
 			callback(code, "application/json", JSON.parse(content).payload);
 		} else {
 			callback(code, type, content);
 		}
-	}, "DATABASE " + db + " LIST ACTIVE RULES");
+	}, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule), "GET", null, "");
 }
 
-/**
- * Adds a new (inactive) rule to a database
- * @param addDBRule
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} rule - The definition of the rule to add
- */
 XOWL.prototype.addDBRule = function (callback, db, rule) {
-	this.command(callback, "DATABASE " + db + " ADD RULE " + rule);
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/rules", "PUT", null, rule);
 }
 
-/**
- * Removes an existing rule from a database. If the rule is active it is first deactivated.
- * @param removeDBRule
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} rule - The URI of the rule to remove
- */
 XOWL.prototype.removeDBRule = function (callback, db, rule) {
-	this.command(callback, "DATABASE " + db + " REMOVE RULE " + rule);
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule), "DELETE", null, rule);
 }
 
-/**
- * Activates an existing inactive rule in a database
- * @param activateDBRule
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} rule - The URI of the rule to activate
- */
 XOWL.prototype.activateDBRule = function (callback, db, rule) {
-	this.command(callback, "DATABASE " + db + " ACTIVATE " + rule);
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule) + "&action=activate", "POST", null, rule);
 }
 
-/**
- * Deactivates an existing active rule in a database
- * @param deactivateDBRule
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} rule - The URI of the rule to deactivate
- */
 XOWL.prototype.deactivateDBRule = function (callback, db, rule) {
-	this.command(callback, "DATABASE " + db + " DEACTIVATE " + rule);
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule) + "&action=deactivate", "POST", null, rule);
 }
 
-/**
- * Gets wether a database rule is currently active
- * @param isDBRuleActive
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} rule - The URI of the rule
- */
-XOWL.prototype.isDBRuleActive = function (callback, db, rule) {
-	this.command(callback, "DATABASE " + db + " IS ACTIVE " + rule);
-}
-
-/**
- * Gets the definition of a database rule
- * @param getDBRuleDefinition
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} rule - The URI of the rule
- */
-XOWL.prototype.getDBRuleDefinition = function (callback, db, rule) {
-	this.command(function (code, type, content) {
-		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
-		} else {
-			callback(code, type, content);
-		}
-	}, "DATABASE " + db + " RULE " + rule);
-}
-
-/**
- * Requests the matching status of a rule in a database
- * @param getDBRuleStatus
- * @param {statusCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} rule - The URI of the rule
- */
 XOWL.prototype.getDBRuleStatus = function (callback, db, rule) {
 	this.command(function (code, type, content) {
-		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
-		} else {
-			callback(code, type, content);
-		}
-	}, "DATABASE " + db + " STATUS " + rule);
+    		if (code === 200) {
+    			callback(code, "application/json", JSON.parse(content).payload);
+    		} else {
+    			callback(code, type, content);
+    		}
+    	}, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule) + "&status=", "GET", null, "");
 }
 
-/**
- * Requests the explanation of the how a quad has been produced in a database
- * @param explainQuad
- * @param {explainCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} quad - The quad to explain
- */
 XOWL.prototype.explainQuad = function (callback, db, quad) {
 	this.command(function (code, type, content) {
 		if (code === 200) {
@@ -498,49 +210,18 @@ XOWL.prototype.explainQuad = function (callback, db, quad) {
 		} else {
 			callback(code, type, content);
 		}
-	}, "DATABASE " + db + " EXPLAIN " + quad);
+	}, "/db/" + encodeURIComponent(db) + "/explain?quad=" + encodeURIComponent(quad), "GET", null, "");
 }
 
-/**
- * Executes a xOWL Server Protocol command
- * @method jsCommand
- * @param {commandCallback} callback - The callback for this request
- * @param {string} command - The command for the server
- */
-XOWL.prototype.command = function (callback, command) {
-	this.jsCommand(callback, command);
-}
-
-/**
- * Executes a SPARQL query on a database
- * @method sparql
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} sparql - The SPARQL query
- */
-XOWL.prototype.sparql = function (callback, db, sparql) {
-	this.jsSPARQL(callback, db, sparql);
-}
-
-/**
- * Uploads into a database a piece of content
- * @method upload
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} contentType - The MIME type of the content to upload
- * @param {string} content - The content to upload to the database
- */
 XOWL.prototype.upload = function (callback, db, contentType, content) {
-	this.jsUpload(callback, db, contentType, content);
+	this.command(callback, "/db/" + encodeURIComponent(db), "POST", contentType, content);
 }
 
-/**
- * Executes a xOWL Server Protocol command (pure JS with XMLHttpRequest)
- * @method jsCommand
- * @param {commandCallback} callback - The callback for this request
- * @param {string} command - The command for the server
- */
-XOWL.prototype.jsCommand = function (callback, command) {
+XOWL.prototype.command = function (callback, complement, method, contentType, content) {
+	this.jsCommand(callback, complement, method, contentType, content);
+}
+
+XOWL.prototype.jsCommand = function (callback, complement, method, contentType, content) {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.onreadystatechange = function () {
 		if (xmlHttp.readyState == 4) {
@@ -548,21 +229,21 @@ XOWL.prototype.jsCommand = function (callback, command) {
 			callback(xmlHttp.status, ct, xmlHttp.responseText)
 		}
 	}
-	xmlHttp.open("POST", this.endpoint, true);
+	xmlHttp.open(method, this.endpoint + complement, true);
 	xmlHttp.setRequestHeader("Accept", "text/plain, application/json");
-	xmlHttp.setRequestHeader("Content-Type", "application/x-xowl-xsp");
+	if (contentType !== null)
+	    xmlHttp.setRequestHeader("Content-Type", contentType);
+	else
+	    xmlHttp.setRequestHeader("Content-Type", "application/x-xowl-xsp");
 	if (this.authToken !== null)
 		xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
-	xmlHttp.send(command);
+	xmlHttp.send(content);
 }
 
-/**
- * Executes a SPARQL query on a database (pure JS with XMLHttpRequest)
- * @method jsSPARQL
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} sparql - The SPARQL query
- */
+XOWL.prototype.sparql = function (callback, db, sparql) {
+	this.jsSPARQL(callback, db, sparql);
+}
+
 XOWL.prototype.jsSPARQL = function (callback, db, sparql) {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.onreadystatechange = function () {
@@ -571,38 +252,10 @@ XOWL.prototype.jsSPARQL = function (callback, db, sparql) {
 			callback(xmlHttp.status, ct, xmlHttp.responseText)
 		}
 	}
-	xmlHttp.open("POST", this.endpoint + "/db/" + db + "/", true);
+	xmlHttp.open("POST", this.endpoint + "/db/" + db + "/sparql", true);
 	xmlHttp.setRequestHeader("Accept", "application/n-quads, application/sparql-results+json");
 	xmlHttp.setRequestHeader("Content-Type", "application/sparql-query");
 	if (this.authToken !== null)
 		xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
 	xmlHttp.send(sparql);
-}
-
-/**
- * Uploads into a database a piece of content (pure JS with XMLHttpRequest)
- * @method jsUpload
- * @param {commandCallback} callback - The callback for this request
- * @param {string} db - The target database
- * @param {string} contentType - The MIME type of the content to upload
- * @param {string} content - The content to upload to the database
- */
-XOWL.prototype.jsUpload = function (callback, db, contentType, content) {
-	var xmlHttp = new XMLHttpRequest();
-	xmlHttp.onreadystatechange = function () {
-		if (xmlHttp.readyState == 4) {
-			var ct = xmlHttp.getResponseHeader("Content-Type");
-			callback(xmlHttp.status, ct, xmlHttp.responseText);
-		}
-	}
-	xmlHttp.upload.onprogress = function (event) {
-		var ratio = event.loaded / event.total;
-		callback(0, null, ratio);
-	};
-	xmlHttp.open("POST", this.endpoint + "/db/" + db + "/", true);
-	xmlHttp.setRequestHeader("Accept", "text/plain, application/json");
-	xmlHttp.setRequestHeader("Content-Type", contentType);
-	if (this.authToken !== null)
-		xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
-	xmlHttp.send(content);
 }
