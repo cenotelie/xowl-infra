@@ -177,7 +177,8 @@ public class HttpConnection implements Closeable {
         }
         String responseContentType = connection.getContentType();
         String responseBody = null;
-        if (connection.getContentLengthLong() > 0) {
+        if (connection.getContentLengthLong() == -1 || connection.getContentLengthLong() > 0) {
+            // if the content length is unknown or if there is content
             // for codes 4xx and 5xx, use the error stream
             // otherwise use the input stream
             try (InputStream is = ((code >= 400 && code < 600) ? connection.getErrorStream() : connection.getInputStream())) {
