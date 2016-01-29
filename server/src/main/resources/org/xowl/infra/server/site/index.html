@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="stylesheet" type="text/css" href="vendors/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="vendors/bootstrap-theme.min.css">
-  <link rel="stylesheet" href="../app.css">
+  <link rel="stylesheet" href="app.css">
 </head>
 
 <body>
@@ -20,7 +20,7 @@
     </span>
     <hr style="margin-top: 5px; margin-bottom: 5px;" />
   </div>
-  <div class="body">
+  <div class="body" style="width: 50%; margin-left: 25%;">
     <div class="container-fluid">
       <div class="row">
         <div class="col-md-12">
@@ -34,7 +34,7 @@
       </div>
       <div class="row">
         <div class="col-md-12">
-          <form>
+          <form onsubmit="return onLoginButton()">
             <div class="form-group">
               <label for="field-login">Login</label>
               <input type="text" class="form-control" id="field-login" placeholder="Login" />
@@ -43,7 +43,7 @@
               <label for="field-password">Password</label>
               <input type="password" class="form-control" id="field-password" placeholder="Password" />
             </div>
-            <a class="btn btn-primary" onclick="onLoginButton()">Login</a>
+            <button type="submit" class="btn btn-primary" onclick="onLoginButton()">Login</button>
           </form>
         </div>
       </div>
