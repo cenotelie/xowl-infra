@@ -222,6 +222,8 @@ XOWL.prototype.command = function (callback, complement, method, contentType, co
 }
 
 XOWL.prototype.jsCommand = function (callback, complement, method, contentType, content) {
+	if (this.authToken === null)
+		callback(401, "text/plain", "");
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.onreadystatechange = function () {
 		if (xmlHttp.readyState == 4) {
@@ -235,8 +237,8 @@ XOWL.prototype.jsCommand = function (callback, complement, method, contentType, 
 	    xmlHttp.setRequestHeader("Content-Type", contentType);
 	else
 	    xmlHttp.setRequestHeader("Content-Type", "application/x-xowl-xsp");
-	if (this.authToken !== null)
-		xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
+	xmlHttp.withCredentials = true;
+	xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
 	xmlHttp.send(content);
 }
 
@@ -245,6 +247,8 @@ XOWL.prototype.sparql = function (callback, db, sparql) {
 }
 
 XOWL.prototype.jsSPARQL = function (callback, db, sparql) {
+	if (this.authToken === null)
+		callback(401, "text/plain", "");
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.onreadystatechange = function () {
 		if (xmlHttp.readyState == 4) {
@@ -255,7 +259,7 @@ XOWL.prototype.jsSPARQL = function (callback, db, sparql) {
 	xmlHttp.open("POST", this.endpoint + "/db/" + db + "/sparql", true);
 	xmlHttp.setRequestHeader("Accept", "application/n-quads, application/sparql-results+json");
 	xmlHttp.setRequestHeader("Content-Type", "application/sparql-query");
-	if (this.authToken !== null)
-		xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
+	xmlHttp.withCredentials = true;
+	xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
 	xmlHttp.send(sparql);
 }

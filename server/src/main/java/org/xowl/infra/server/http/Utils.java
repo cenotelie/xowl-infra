@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -159,13 +159,19 @@ class Utils {
     /**
      * Setups the headers of the specified HTTP response in order to enable Cross-Origin Resource Sharing
      *
-     * @param headers The response headers
+     * @param requestHeaders  The response headers
+     * @param responseHeaders The response headers
      */
-    public static void enableCORS(Headers headers) {
-        headers.put("Access-Control-Allow-Methods", Arrays.asList("GET", "POST", "OPTIONS"));
-        headers.put("Access-Control-Allow-Headers", Arrays.asList("Accept", "Content-Type", "Cache-Control"));
-        headers.put("Access-Control-Allow-Origin", Arrays.asList("*"));
-        headers.put("Access-Control-Allow-Credentials", Arrays.asList("true"));
-        headers.put("Cache-Control", Arrays.asList("no-cache"));
+    public static void enableCORS(Headers requestHeaders, Headers responseHeaders) {
+        String origin = requestHeaders.getFirst("Origin");
+        if (origin == null) {
+            // the request is from the same host
+            origin = requestHeaders.getFirst("Host");
+        }
+        responseHeaders.put("Access-Control-Allow-Methods", Arrays.asList("GET", "POST", "OPTIONS"));
+        responseHeaders.put("Access-Control-Allow-Headers", Arrays.asList("Accept", "Content-Type", "Authorization", "Cache-Control"));
+        responseHeaders.put("Access-Control-Allow-Origin", Arrays.asList(origin));
+        responseHeaders.put("Access-Control-Allow-Credentials", Arrays.asList("true"));
+        responseHeaders.put("Cache-Control", Arrays.asList("no-cache"));
     }
 }

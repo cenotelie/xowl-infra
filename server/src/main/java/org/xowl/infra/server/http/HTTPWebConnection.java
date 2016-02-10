@@ -125,8 +125,7 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
      * @param buffer The buffer containing the resource
      */
     private void serveResource(byte[] buffer) {
-        Headers headers = httpExchange.getResponseHeaders();
-        Utils.enableCORS(headers);
+        Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
         try {
             httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, buffer.length);
         } catch (IOException exception) {
@@ -147,8 +146,7 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
      */
     private void response(int code, String message) {
         byte[] buffer = message != null ? message.getBytes(Charset.forName("UTF-8")) : new byte[0];
-        Headers headers = httpExchange.getResponseHeaders();
-        Utils.enableCORS(headers);
+        Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
         try {
             httpExchange.sendResponseHeaders(code, buffer.length);
         } catch (IOException exception) {

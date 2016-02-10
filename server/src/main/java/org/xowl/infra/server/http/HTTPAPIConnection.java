@@ -508,8 +508,7 @@ class HTTPAPIConnection extends SafeRunnable {
      */
     private int response(int code, String message) {
         byte[] buffer = message != null ? message.getBytes(Charset.forName("UTF-8")) : new byte[0];
-        Headers headers = httpExchange.getResponseHeaders();
-        Utils.enableCORS(headers);
+        Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
         try {
             httpExchange.sendResponseHeaders(code, buffer.length);
         } catch (IOException exception) {
