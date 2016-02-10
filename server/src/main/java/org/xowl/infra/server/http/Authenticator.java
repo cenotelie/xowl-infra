@@ -58,29 +58,23 @@ class Authenticator extends BasicAuthenticator {
         InetAddress client = httpExchange.getRemoteAddress().getAddress();
         Headers requestHeaders = httpExchange.getRequestHeaders();
         String headerAuth = requestHeaders.getFirst("Authorization");
-        if (headerAuth == null) {
-            Headers responseHeaders = httpExchange.getResponseHeaders();
-            responseHeaders.set("WWW-Authenticate", "Basic realm=\"" + this.realm + "\"");
-            return new Retry(HttpURLConnection.HTTP_UNAUTHORIZED);
-        } else {
+        if (headerAuth != null) {
             int index = headerAuth.indexOf(32);
             if (index != -1 && headerAuth.substring(0, index).equals("Basic")) {
                 byte[] buffer = Base64.getDecoder().decode(headerAuth.substring(index + 1));
                 String authToken = new String(buffer);
                 int indexColon = authToken.indexOf(58);
-                String login = authToken.substring(0, indexColon);
-                String password = authToken.substring(indexColon + 1);
-                if (checkCredentials(client, login, password)) {
-                    return new Success(new HttpPrincipal(login, this.realm));
-                } else {
-                    Headers responseHeaders = httpExchange.getResponseHeaders();
-                    responseHeaders.set("WWW-Authenticate", "Basic realm=\"" + this.realm + "\"");
-                    return new Failure(HttpURLConnection.HTTP_UNAUTHORIZED);
+                if (indexColon != -1) {
+                    String login = authToken.substring(0, indexColon);
+                    String password = authToken.substring(indexColon + 1);
+                    if (checkCredentials(client, login, password))
+                        return new Success(new HttpPrincipal(login, this.realm));
                 }
-            } else {
-                return new Failure(HttpURLConnection.HTTP_UNAUTHORIZED);
             }
         }
+        Headers responseHeaders = httpExchange.getResponseHeaders();
+        responseHeaders.set("WWW-Authenticate", "Basic realm=\"" + this.realm + "\"");
+        return new Failure(HttpURLConnection.HTTP_UNAUTHORIZED);
     }
 
     /**

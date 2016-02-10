@@ -222,7 +222,7 @@ XOWL.prototype.command = function (callback, complement, method, contentType, co
 }
 
 XOWL.prototype.jsCommand = function (callback, complement, method, contentType, content) {
-	if (this.authToken === null)
+	if (this.authToken === null || this.authToken == "")
 		callback(401, "text/plain", "");
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.onreadystatechange = function () {
@@ -247,7 +247,7 @@ XOWL.prototype.sparql = function (callback, db, sparql) {
 }
 
 XOWL.prototype.jsSPARQL = function (callback, db, sparql) {
-	if (this.authToken === null)
+	if (this.authToken === null || this.authToken == "")
 		callback(401, "text/plain", "");
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.onreadystatechange = function () {
