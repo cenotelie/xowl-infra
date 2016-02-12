@@ -337,6 +337,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         configuration.add(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, rule.getIRI());
         if (activate) {
             repository.getRDFRuleEngine().add(rule);
+            repository.getRDFRuleEngine().flush();
             configuration.add(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, rule.getIRI());
         }
         try {
@@ -411,6 +412,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
             RDFLoaderResult result = loader.loadRDF(logger, new InputStreamReader(stream, Charset.forName("UTF-8")), RULES_RESOURCE, null);
             rule = result.getRules().get(0);
             repository.getRDFRuleEngine().add(rule);
+            repository.getRDFRuleEngine().flush();
             return true;
         } catch (IOException exception) {
             logger.error(exception);
