@@ -67,33 +67,37 @@ public class LockingIterator<T> implements CloseableIterator {
 
     @Override
     public boolean hasNext() {
+        boolean result = false;
         try {
-            boolean result = inner.hasNext();
-            if (!result) {
+            result = inner.hasNext();
+        } finally {
+            if (!result)
                 release();
-            }
-            return result;
-        } catch (Exception exception) {
-            release();
-            throw exception;
         }
+        return result;
     }
 
     @Override
     public T next() {
+        T result = null;
         try {
-            T result = inner.next();
+            result = inner.next();
             hasNext();
-            return result;
-        } catch (Exception exception) {
-            release();
-            throw exception;
+        } finally {
+            if (result == null)
+                release();
         }
+        return result;
     }
 
     @Override
     public void remove() {
-        inner.remove();
+        try {
+            inner.remove();
+        } catch (Throwable throwable) {
+            release();
+            throw throwable;
+        }
     }
 
     @Override

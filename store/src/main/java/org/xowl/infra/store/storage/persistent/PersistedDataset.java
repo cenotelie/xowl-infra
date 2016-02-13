@@ -1151,7 +1151,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
                 entry.writeInt(radical);
                 entry.writeInt(1);
-                entry.writeInt((int) (qnode - radical));
+                entry.writeInt(FileStore.getShortKey(qnode));
                 entry.writeInt(1);
                 for (int i = 1; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
                     entry.writeInt((int) PersistedNode.KEY_NOT_PRESENT);
