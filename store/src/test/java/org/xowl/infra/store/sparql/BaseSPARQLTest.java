@@ -32,6 +32,7 @@ import org.xowl.infra.store.loaders.W3CTestSuite;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.collections.Couple;
 
@@ -118,7 +119,7 @@ public abstract class BaseSPARQLTest {
         mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/sparql/\\1");
         SPARQLLoader loader = new SPARQLLoader(store);
         try (InputStream stream = BaseSPARQLTest.class.getResourceAsStream(mapper.get(resource))) {
-            InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
+            InputStreamReader reader = new InputStreamReader(stream, Files.CHARSET);
             List<Command> commands = loader.load(logger, reader);
             Assert.assertFalse("Errors while loading", logger.isOnError());
             Assert.assertNotNull("Errors while loading", commands);
@@ -140,7 +141,7 @@ public abstract class BaseSPARQLTest {
         mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/sparql/\\1");
         SPARQLLoader loader = new SPARQLLoader(store);
         try (InputStream stream = BaseSPARQLTest.class.getResourceAsStream(mapper.get(resource))) {
-            InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
+            InputStreamReader reader = new InputStreamReader(stream, Files.CHARSET);
             List<Command> commands = loader.load(logger, reader);
             Assert.assertTrue("Failed to report error while loading", logger.isOnError());
             Assert.assertNull("Failed to return null on incorrect loading", commands);
@@ -536,7 +537,7 @@ public abstract class BaseSPARQLTest {
      */
     private String readResource(String resource) {
         try (InputStream stream = BaseSPARQLTest.class.getResourceAsStream(resource)) {
-            InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
+            InputStreamReader reader = new InputStreamReader(stream, Files.CHARSET);
             char[] buffer = new char[1024];
             StringBuilder builder = new StringBuilder();
             int read = reader.read(buffer);

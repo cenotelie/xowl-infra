@@ -20,12 +20,13 @@
 
 package org.xowl.infra.generator.builder;
 
+import org.xowl.infra.utils.Files;
+
 import javax.tools.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
@@ -109,7 +110,7 @@ public class Builder {
         if (directory.exists())
             deleteDirectory(directory);
         directory.mkdir();
-        OutputStreamWriter writer = new OutputStreamWriter(System.out, Charset.forName("UTF-8"));
+        OutputStreamWriter writer = new OutputStreamWriter(System.out, Files.CHARSET);
         List<String> options = buildJavacParameters();
         JavaCompiler.CompilationTask task = ToolProvider.getSystemJavaCompiler().getTask(writer, fileManager, null, options, null, fileManager.getJavaFileObjectsFromFiles(buildSourcesList()));
         task.call();

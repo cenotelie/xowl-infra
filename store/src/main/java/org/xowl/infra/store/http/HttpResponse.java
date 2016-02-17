@@ -20,7 +20,7 @@
 
 package org.xowl.infra.store.http;
 
-import java.nio.charset.Charset;
+import org.xowl.infra.utils.Files;
 
 /**
  * A response to an HTTP request
@@ -72,7 +72,7 @@ public class HttpResponse {
         if (bodyBytes != null)
             return bodyBytes;
         if (bodyString != null) {
-            bodyBytes = bodyString.getBytes(Charset.forName("UTF-8"));
+            bodyBytes = bodyString.getBytes(Files.CHARSET);
             return bodyBytes;
         }
         return null;
@@ -87,7 +87,7 @@ public class HttpResponse {
         if (bodyString != null)
             return bodyString;
         if (bodyBytes != null) {
-            bodyString = new String(bodyBytes, Charset.forName("UTF-8"));
+            bodyString = new String(bodyBytes, Files.CHARSET);
             return bodyString;
         }
         return null;

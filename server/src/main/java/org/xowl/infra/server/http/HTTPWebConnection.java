@@ -22,6 +22,7 @@ package org.xowl.infra.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.infra.server.impl.Program;
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -29,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -144,7 +144,7 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
      * @param message The response body message
      */
     private void response(int code, String message) {
-        byte[] buffer = message != null ? message.getBytes(Charset.forName("UTF-8")) : new byte[0];
+        byte[] buffer = message != null ? message.getBytes(Files.CHARSET) : new byte[0];
         Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
         try {
             httpExchange.sendResponseHeaders(code, buffer.length);

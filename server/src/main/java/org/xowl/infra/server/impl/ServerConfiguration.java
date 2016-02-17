@@ -20,13 +20,13 @@
 
 package org.xowl.infra.server.impl;
 
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 
 /**
  * Represents the configuration of the server
@@ -70,7 +70,7 @@ public class ServerConfiguration {
         confFile = new Configuration();
         InputStream stream = Program.class.getResourceAsStream(FILE_DEFAULT);
         try {
-            confDefault.load(stream, Charset.forName("UTF-8"));
+            confDefault.load(stream, Files.CHARSET);
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
         }
@@ -78,7 +78,7 @@ public class ServerConfiguration {
         File file = new File(startupLocation, FILE_NAME);
         try {
             if (file.exists()) {
-                confFile.load(file.getAbsolutePath(), Charset.forName("UTF-8"));
+                confFile.load(file.getAbsolutePath(), Files.CHARSET);
             }
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
@@ -261,7 +261,7 @@ public class ServerConfiguration {
         confFile.add("security", "keyStore", location);
         confFile.add("security", "keyStorePassword", password);
         try {
-            confFile.save(new File(startupLocation, FILE_NAME).getAbsolutePath(), Charset.forName("UTF-8"));
+            confFile.save(new File(startupLocation, FILE_NAME).getAbsolutePath(), Files.CHARSET);
         } catch (IOException exception) {
             Logger.DEFAULT.error(exception);
         }

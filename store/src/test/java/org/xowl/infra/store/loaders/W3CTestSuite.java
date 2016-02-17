@@ -29,13 +29,13 @@ import org.xowl.infra.store.TestLogger;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -125,7 +125,7 @@ public abstract class W3CTestSuite {
                 return reader;
             // expect a local test resource
             InputStream stream = W3CTestSuite.class.getResourceAsStream(resource);
-            return new InputStreamReader(stream, Charset.forName("UTF-8"));
+            return new InputStreamReader(stream, Files.CHARSET);
         } catch (IOException exception) {
             Assert.fail(exception.getMessage());
             return null;

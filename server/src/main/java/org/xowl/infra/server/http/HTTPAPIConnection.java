@@ -29,12 +29,12 @@ import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyUtils;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.http.HttpResponse;
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -507,7 +507,7 @@ class HTTPAPIConnection extends SafeRunnable {
      * @return The response code
      */
     private int response(int code, String message) {
-        byte[] buffer = message != null ? message.getBytes(Charset.forName("UTF-8")) : new byte[0];
+        byte[] buffer = message != null ? message.getBytes(Files.CHARSET) : new byte[0];
         Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
         try {
             httpExchange.sendResponseHeaders(code, buffer.length);

@@ -31,6 +31,7 @@ import org.xowl.infra.store.rdf.LiteralNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.storage.impl.NodeManagerImpl;
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
@@ -134,7 +135,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      */
     public PersistedNodes(File directory, boolean isReadonly) throws IOException, StorageException {
         backend = new FileStore(directory, FILE_DATA, isReadonly);
-        charset = Charset.forName("UTF-8");
+        charset = Files.CHARSET;
         database = dbMaker(directory, isReadonly).make();
         mapStrings = database.hashMap(NAME_STRING_MAP);
         mapLiterals = database.hashMap(NAME_LITERAL_MAP);

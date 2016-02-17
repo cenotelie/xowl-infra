@@ -24,12 +24,12 @@ import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.writers.*;
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.jar.JarFile;
 
@@ -111,16 +111,6 @@ public abstract class AbstractRepository {
      */
     public static final String SYNTAX_TRIG = "application/trig";
     public static final String EXT_TRIG = ".trig";
-
-
-    /**
-     * The default encoding to use for reading and writing resources
-     */
-    public static final String RESOURCE_ENCODING = "UTF-8";
-    /**
-     * The charset to use for reading and writing resources
-     */
-    private static final Charset RESOURCE_CHARSET = Charset.forName(RESOURCE_ENCODING);
 
 
     /**
@@ -705,18 +695,18 @@ public abstract class AbstractRepository {
         if (resource.startsWith(SCHEME_HTTP)) {
             URL url = new URL(resource);
             URLConnection connection = url.openConnection();
-            return new InputStreamReader(connection.getInputStream(), RESOURCE_CHARSET);
+            return new InputStreamReader(connection.getInputStream(), Files.CHARSET);
         } else if (resource.startsWith(SCHEME_RESOURCE)) {
             InputStream stream = Repository.class.getResourceAsStream(resource.substring(SCHEME_RESOURCE.length()));
-            return new InputStreamReader(stream, RESOURCE_CHARSET);
+            return new InputStreamReader(stream, Files.CHARSET);
         } else if (resource.startsWith(SCHEME_JAR)) {
             String parts[] = resource.substring(SCHEME_JAR.length()).split("!");
             JarFile jar = new JarFile(parts[0]);
             InputStream stream = jar.getInputStream(jar.getEntry(parts[1]));
-            return new InputStreamReader(stream, RESOURCE_CHARSET);
+            return new InputStreamReader(stream, Files.CHARSET);
         } else if (resource.startsWith(SCHEME_FILE)) {
             FileInputStream stream = new FileInputStream(resource.substring(SCHEME_FILE.length()));
-            return new InputStreamReader(stream, RESOURCE_CHARSET);
+            return new InputStreamReader(stream, Files.CHARSET);
         } else {
             return null;
         }
@@ -733,7 +723,7 @@ public abstract class AbstractRepository {
         if (resource.startsWith(SCHEME_HTTP)) {
             URL url = new URL(resource);
             URLConnection connection = url.openConnection();
-            return new OutputStreamWriter(connection.getOutputStream(), RESOURCE_CHARSET);
+            return new OutputStreamWriter(connection.getOutputStream(), Files.CHARSET);
         } else if (resource.startsWith(SCHEME_RESOURCE)) {
             // cannot write to resources
             return null;
@@ -742,7 +732,7 @@ public abstract class AbstractRepository {
             return null;
         } else if (resource.startsWith(SCHEME_FILE)) {
             FileOutputStream stream = new FileOutputStream(resource.substring(SCHEME_FILE.length()));
-            return new OutputStreamWriter(stream, RESOURCE_CHARSET);
+            return new OutputStreamWriter(stream, Files.CHARSET);
         } else {
             return null;
         }

@@ -22,6 +22,7 @@ package org.xowl.infra.server.http;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -57,7 +58,7 @@ class Utils {
             }
             buffer = output.toByteArray();
             output.close();
-            return new String(buffer, "UTF-8");
+            return new String(buffer, Files.CHARSET);
         }
     }
 
@@ -97,14 +98,14 @@ class Utils {
             String value = null;
             if (param.length > 0) {
                 try {
-                    key = URLDecoder.decode(param[0], "UTF-8");
+                    key = URLDecoder.decode(param[0], Files.CHARSET.name());
                 } catch (UnsupportedEncodingException exception) {
                     Logger.DEFAULT.error(exception);
                 }
             }
             if (param.length > 1) {
                 try {
-                    value = URLDecoder.decode(param[1], "UTF-8");
+                    value = URLDecoder.decode(param[1], Files.CHARSET.name());
                 } catch (UnsupportedEncodingException exception) {
                     Logger.DEFAULT.error(exception);
                 }

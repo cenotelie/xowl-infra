@@ -39,6 +39,7 @@ import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultSuccess;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.ConsoleLogger;
@@ -46,7 +47,6 @@ import org.xowl.infra.utils.logging.DispatchLogger;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -181,7 +181,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         }
         File configFile = new File(location, REPO_CONF_NAME);
         if (configFile.exists()) {
-            configuration.load(configFile.getAbsolutePath(), Charset.forName("UTF-8"));
+            configuration.load(configFile.getAbsolutePath(), Files.CHARSET);
         }
         String cBackend = configuration.get(CONFIG_STORAGE);
         return Objects.equals(cBackend, CONFIG_STORAGE_MEMORY) ?
@@ -249,7 +249,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         repository.setEntailmentRegime(logger, regime);
         configuration.set(CONFIG_ENTAILMENT, regime.toString());
         try {
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Charset.forName("UTF-8"));
+            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
         } catch (IOException exception) {
             logger.error(exception);
             return new XSPReplyFailure(exception.getMessage());
@@ -275,7 +275,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         File file = new File(folder, IOUtils.hashSHA1(name));
         try (FileInputStream stream = new FileInputStream(file)) {
             byte[] content = Program.load(stream);
-            String definition = new String(content, Charset.forName("UTF-8"));
+            String definition = new String(content, Files.CHARSET);
             return new XSPReplyResult<>(new BaseRule(name, definition, actives.contains(name)));
         } catch (IOException exception) {
             logger.error(exception);
@@ -293,7 +293,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
             File file = new File(folder, IOUtils.hashSHA1(name));
             try (FileInputStream stream = new FileInputStream(file)) {
                 byte[] content = Program.load(stream);
-                String definition = new String(content, Charset.forName("UTF-8"));
+                String definition = new String(content, Files.CHARSET);
                 rules.add(new BaseRule(name, definition, actives.contains(name)));
             } catch (IOException exception) {
                 logger.error(exception);
@@ -327,7 +327,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         String name = IOUtils.hashSHA1(rule.getIRI());
         File file = new File(folder, name);
         try (FileOutputStream stream = new FileOutputStream(file)) {
-            stream.write(content.getBytes(Charset.forName("UTF-8")));
+            stream.write(content.getBytes(Files.CHARSET));
             stream.flush();
         } catch (IOException exception) {
             logger.error(exception);
@@ -341,7 +341,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
             configuration.add(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, rule.getIRI());
         }
         try {
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Charset.forName("UTF-8"));
+            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
         } catch (IOException exception) {
             logger.error(exception);
         }
@@ -362,7 +362,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
             repository.getRDFRuleEngine().remove(iri);
         }
         try {
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Charset.forName("UTF-8"));
+            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
         } catch (IOException exception) {
             logger.error(exception);
         }
@@ -390,7 +390,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         }
         try {
             configuration.add(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Charset.forName("UTF-8"));
+            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
         } catch (IOException exception) {
             logger.error(exception);
         }
@@ -409,7 +409,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         Rule rule;
         try (FileInputStream stream = new FileInputStream(file)) {
             RDFTLoader loader = new RDFTLoader(repository.getStore());
-            RDFLoaderResult result = loader.loadRDF(logger, new InputStreamReader(stream, Charset.forName("UTF-8")), RULES_RESOURCE, null);
+            RDFLoaderResult result = loader.loadRDF(logger, new InputStreamReader(stream, Files.CHARSET), RULES_RESOURCE, null);
             rule = result.getRules().get(0);
             repository.getRDFRuleEngine().add(rule);
             repository.getRDFRuleEngine().flush();
@@ -433,7 +433,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
 
         try {
             configuration.remove(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Charset.forName("UTF-8"));
+            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
         } catch (IOException exception) {
             logger.error(exception);
         }

@@ -26,6 +26,7 @@ import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.utils.Files;
 
 import java.io.*;
 import java.util.Iterator;
@@ -75,12 +76,7 @@ public class W3CTestSuiteGenerator {
         TestLogger logger = new TestLogger();
 
         InputStream stream = W3CTestSuite.class.getResourceAsStream(manifest);
-        Reader reader = null;
-        try {
-            reader = new InputStreamReader(stream, "UTF-8");
-        } catch (UnsupportedEncodingException ex) {
-            Assert.fail(ex.toString());
-        }
+        Reader reader = reader = new InputStreamReader(stream, Files.CHARSET);
         Loader loader = new TurtleLoader(store);
         RDFLoaderResult input = loader.loadRDF(logger, reader, BASE_LOCATION, BASE_LOCATION);
         try {

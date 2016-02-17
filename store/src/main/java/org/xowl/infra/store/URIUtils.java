@@ -20,7 +20,8 @@
 
 package org.xowl.infra.store;
 
-import java.nio.charset.Charset;
+import org.xowl.infra.utils.Files;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -413,7 +414,7 @@ public class URIUtils {
             char c = original.charAt(i);
             if (Character.isHighSurrogate(c)) {
                 String sub = original.substring(i, i + 2);
-                byte[] bytes = sub.getBytes(Charset.forName("UTF-8"));
+                byte[] bytes = sub.getBytes(Files.CHARSET);
                 for (int j = 0; j != bytes.length; j++) {
                     int n = (int) bytes[j] & 0xff;
                     builder.append("%");
@@ -426,7 +427,7 @@ public class URIUtils {
             } else if (c == '-' || c == '_' || c == '.' || c == '!' || c == '~' || c == '*' || c == '\'' || c == '(' || c == ')' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
                 builder.append(c);
             } else {
-                byte[] bytes = Character.toString(c).getBytes(Charset.forName("UTF-8"));
+                byte[] bytes = Character.toString(c).getBytes(Files.CHARSET);
                 for (int j = 0; j != bytes.length; j++) {
                     int n = (int) bytes[j] & 0xff;
                     builder.append("%");
