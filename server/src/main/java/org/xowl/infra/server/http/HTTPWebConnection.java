@@ -20,7 +20,6 @@
 
 package org.xowl.infra.server.http;
 
-import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.infra.server.impl.Program;
 import org.xowl.infra.utils.concurrent.SafeRunnable;

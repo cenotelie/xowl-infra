@@ -20,6 +20,7 @@
 
 package org.xowl.infra.server.impl;
 
+import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -85,7 +86,7 @@ public class SSLManager {
         SecureRandom random = new SecureRandom();
         byte[] buffer = new byte[20];
         random.nextBytes(buffer);
-        String password = Program.encode(buffer);
+        String password = IOUtils.hashSHA1(buffer);
 
         try {
             if (target.exists() && !target.delete()) {

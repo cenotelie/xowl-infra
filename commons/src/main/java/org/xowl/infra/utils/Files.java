@@ -33,6 +33,10 @@ public class Files {
      * The line separator for all xOWL IO operations
      */
     public static final String LINE_SEPARATOR = "\n";
+    /**
+     * The charset to use for xOWL
+     */
+    public static final Charset CHARSET = Charset.forName("UTF-8");
 
     private static final int bufferSize = 1024;
 

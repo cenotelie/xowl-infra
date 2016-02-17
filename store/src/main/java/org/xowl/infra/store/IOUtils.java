@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -26,9 +26,13 @@ import org.xowl.infra.store.owl.AnonymousNode;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -402,5 +406,95 @@ public class IOUtils {
             }
         }
         return AbstractRepository.SYNTAX_NQUADS;
+    }
+
+    /**
+     * The map for base 64 decoding
+     */
+    private static final int[] BASE64_MAP = new int[]{
+            /*000*/0, 0, 0, 0, 0, 0, 0, 0,
+            /*008*/0, 0, 0, 0, 0, 0, 0, 0,
+            /*016*/0, 0, 0, 0, 0, 0, 0, 0,
+            /*024*/0, 0, 0, 0, 0, 0, 0, 0,
+            /*032*/0, 0, 0, 0, 0, 0, 0, 0,
+            /*040*/0, 0, 0, 62, 0, 0, 0, 63,
+            /*048*/52, 53, 54, 55, 56, 57, 58, 59,
+            /*056*/60, 61, 0, 0, 0, 64, 0, 0,
+            /*064*/0, 0, 1, 2, 3, 4, 5, 6,
+            /*072*/7, 8, 9, 10, 11, 12, 13, 14,
+            /*080*/15, 16, 17, 18, 19, 20, 21, 22,
+            /*088*/23, 24, 25, 0, 0, 0, 0, 0,
+            /*096*/0, 26, 27, 28, 29, 30, 31, 32,
+            /*104*/33, 34, 35, 36, 37, 38, 39, 40,
+            /*112*/41, 42, 43, 44, 45, 46, 47, 48,
+            /*120*/48, 50, 51, 0, 0, 0, 0, 0
+    };
+
+    /**
+     * Decodes a base64 string
+     *
+     * @param input The input string
+     * @return The decoded string
+     */
+    public static String decodeBase64(String input) {
+        char[] chars = input.toCharArray();
+        int index = input.indexOf('=');
+        int length = ((chars.length * 3) / 4) - (index > 0 ? chars.length - index : 0);
+        byte result[] = new byte[length];
+        int b0, b1, b2, b3;
+        index = 0;
+        for (int i = 0; i < chars.length; i += 4) {
+            b0 = BASE64_MAP[chars[i]];
+            b1 = BASE64_MAP[chars[i + 1]];
+            b2 = BASE64_MAP[chars[i + 2]];
+            b3 = BASE64_MAP[chars[i + 3]];
+            result[index++] = (byte) ((b0 << 2) | (b1 >> 4));
+            if (b2 < 64) {
+                result[index++] = (byte) ((b1 << 4) | (b2 >> 2));
+                if (b3 < 64) {
+                    result[index++] = (byte) ((b2 << 6) | b3);
+                }
+            }
+        }
+        return new String(result, Files.CHARSET);
+    }
+
+    /**
+     * Hexadecimal characters
+     */
+    private static final char[] HEXA_CHARS = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+    /**
+     * Computes the SHA1 hash of a string and serializes this hash as a string
+     *
+     * @param input The string to hash
+     * @return The SHA1 hash as a string
+     */
+    public static String hashSHA1(String input) {
+        return hashSHA1(input.getBytes(Files.CHARSET));
+    }
+
+    /**
+     * Computes the SHA1 hash of bytes and serializes this hash as a string
+     *
+     * @param input The bytes to hash
+     * @return The SHA1 hash as a string
+     */
+    public static String hashSHA1(byte[] input) {
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+            byte[] bytes = md.digest(input);
+            char[] chars = new char[bytes.length * 2];
+            int j = 0;
+            for (int i = 0; i != bytes.length; i++) {
+                chars[j++] = HEXA_CHARS[(bytes[i] & 0xF0) >>> 4];
+                chars[j++] = HEXA_CHARS[bytes[i] & 0x0F];
+            }
+            return new String(chars);
+        } catch (NoSuchAlgorithmException exception) {
+            Logger.DEFAULT.error(exception);
+            return "";
+        }
     }
 }

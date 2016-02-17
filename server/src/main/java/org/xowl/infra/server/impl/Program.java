@@ -21,14 +21,11 @@
 package org.xowl.infra.server.impl;
 
 import org.xowl.infra.server.http.HTTPServer;
-import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -163,50 +160,6 @@ public class Program {
         }
         httpServer = null;
         controller = null;
-    }
-
-    /**
-     * Gets the content of the log
-     *
-     * @param logger The logger
-     * @return The content of the log
-     */
-    public static String getLog(BufferedLogger logger) {
-        StringBuilder builder = new StringBuilder();
-        for (Object error : logger.getErrorMessages()) {
-            builder.append(error.toString());
-            builder.append("\n");
-        }
-        return builder.toString();
-    }
-
-    /**
-     * Hexadecimal characters
-     */
-    private static final char[] HEX = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
-    /**
-     * Encodes a series of bytes
-     *
-     * @param bytes The bytes to encode
-     * @return The encoded text
-     */
-    public static String encode(byte[] bytes) {
-        MessageDigest md;
-        try {
-            md = MessageDigest.getInstance("SHA-1");
-            bytes = md.digest(bytes);
-            char[] chars = new char[bytes.length * 2];
-            int j = 0;
-            for (int i = 0; i != bytes.length; i++) {
-                chars[j++] = HEX[(bytes[i] & 0xF0) >>> 4];
-                chars[j++] = HEX[bytes[i] & 0x0F];
-            }
-            return new String(chars);
-        } catch (NoSuchAlgorithmException exception) {
-            Logger.DEFAULT.error(exception);
-            return null;
-        }
     }
 
     /**

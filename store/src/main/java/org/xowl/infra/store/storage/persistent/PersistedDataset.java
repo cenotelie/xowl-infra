@@ -116,6 +116,11 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }
             return value;
         }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     /**
@@ -211,6 +216,11 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 Logger.DEFAULT.error(exception);
             }
             return value;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
         }
     }
 

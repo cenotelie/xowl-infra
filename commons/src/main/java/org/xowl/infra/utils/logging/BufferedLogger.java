@@ -20,6 +20,8 @@
 
 package org.xowl.infra.utils.logging;
 
+import org.xowl.infra.utils.Files;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -121,5 +123,19 @@ public class BufferedLogger implements Logger {
     @Override
     public void error(Object message) {
         msgError.add(message);
+    }
+
+    /**
+     * Gets all the errors in this log as a string
+     *
+     * @return The content of the log
+     */
+    public String getErrorsAsString() {
+        StringBuilder builder = new StringBuilder();
+        for (Object error : getErrorMessages()) {
+            builder.append(error.toString());
+            builder.append(Files.LINE_SEPARATOR);
+        }
+        return builder.toString();
     }
 }

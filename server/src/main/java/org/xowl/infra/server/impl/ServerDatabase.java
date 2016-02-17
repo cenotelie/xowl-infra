@@ -227,7 +227,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         if (commands == null) {
             // ill-formed request
             dispatchLogger.error("Failed to parse and load the request");
-            return new XSPReplyFailure(Program.getLog(bufferedLogger));
+            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
         }
         Result result = ResultSuccess.INSTANCE;
         for (Command command : commands) {
@@ -272,7 +272,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         if (!names.contains(name))
             return new XSPReplyFailure("Rule does not exist");
         File folder = new File(location, REPO_RULES);
-        File file = new File(folder, Program.encode(name.getBytes(Charset.forName("UTF-8"))));
+        File file = new File(folder, IOUtils.hashSHA1(name));
         try (FileInputStream stream = new FileInputStream(file)) {
             byte[] content = Program.load(stream);
             String definition = new String(content, Charset.forName("UTF-8"));
@@ -290,7 +290,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         Collection<BaseRule> rules = new ArrayList<>(names.size());
         for (String name : names) {
             File folder = new File(location, REPO_RULES);
-            File file = new File(folder, Program.encode(name.getBytes(Charset.forName("UTF-8"))));
+            File file = new File(folder, IOUtils.hashSHA1(name));
             try (FileInputStream stream = new FileInputStream(file)) {
                 byte[] content = Program.load(stream);
                 String definition = new String(content, Charset.forName("UTF-8"));
@@ -318,13 +318,13 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         if (result == null) {
             // ill-formed request
             dispatchLogger.error("Failed to parse and load the rules");
-            return new XSPReplyFailure(Program.getLog(bufferedLogger));
+            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
         }
         if (result.getRules().size() != 1)
             return new XSPReplyFailure("Expected one rule");
 
         Rule rule = result.getRules().get(0);
-        String name = Program.encode(rule.getIRI().getBytes(Charset.forName("UTF-8")));
+        String name = IOUtils.hashSHA1(rule.getIRI());
         File file = new File(folder, name);
         try (FileOutputStream stream = new FileOutputStream(file)) {
             stream.write(content.getBytes(Charset.forName("UTF-8")));
@@ -368,7 +368,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         }
 
         File folder = new File(location, REPO_RULES);
-        File file = new File(folder, Program.encode(iri.getBytes(Charset.forName("UTF-8"))));
+        File file = new File(folder, IOUtils.hashSHA1(iri));
         if (!file.delete())
             logger.error("Failed to delete " + file.getAbsolutePath());
         return XSPReplySuccess.instance();
@@ -405,7 +405,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
      */
     private boolean doActivateRule(String iri) {
         File folder = new File(location, REPO_RULES);
-        File file = new File(folder, Program.encode(iri.getBytes(Charset.forName("UTF-8"))));
+        File file = new File(folder, IOUtils.hashSHA1(iri));
         Rule rule;
         try (FileInputStream stream = new FileInputStream(file)) {
             RDFTLoader loader = new RDFTLoader(repository.getStore());
@@ -471,7 +471,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         if (result == null) {
             // ill-formed request
             dispatchLogger.error("Failed to parse and load the quad");
-            return new XSPReplyFailure(Program.getLog(bufferedLogger));
+            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
         }
         if (result.getQuads().size() != 1)
             return new XSPReplyFailure("Expected one quad");
@@ -485,7 +485,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         repository.loadResource(dispatchLogger, new StringReader(content), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT, syntax);
         if (!bufferedLogger.getErrorMessages().isEmpty()) {
             repository.getStore().rollback();
-            return new XSPReplyFailure(Program.getLog(bufferedLogger));
+            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
         }
         repository.getStore().commit();
         return XSPReplySuccess.instance();
