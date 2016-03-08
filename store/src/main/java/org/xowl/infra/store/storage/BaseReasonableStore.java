@@ -123,7 +123,7 @@ class BaseReasonableStore extends BaseStore {
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph) {
-        if (graph == null)
+        if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE)
             return getAll();
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
             return volatileStore.getAll(graph);
@@ -137,7 +137,7 @@ class BaseReasonableStore extends BaseStore {
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        if (graph == null)
+        if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE)
             return getAll(subject, property, object);
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
             return volatileStore.getAll(graph, subject, property, object);
@@ -156,7 +156,7 @@ class BaseReasonableStore extends BaseStore {
 
     @Override
     public long count(GraphNode graph) {
-        if (graph == null)
+        if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE)
             return count();
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
             return volatileStore.count(graph);
@@ -170,7 +170,7 @@ class BaseReasonableStore extends BaseStore {
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        if (graph == null)
+        if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE)
             return count(subject, property, object);
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
             return volatileStore.count(graph, subject, property, object);
