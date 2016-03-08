@@ -3,12 +3,12 @@
 	<parent>
 		<groupId>org.xowl.infra</groupId>
 		<artifactId>xowl-infra</artifactId>
-		<version>1.0.1</version>
+		<version>1.0.2-SNAPSHOT</version>
 	</parent>
 	<groupId>org.xowl.infra</groupId>
 	<artifactId>xowl-lang</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.1</version>
+	<version>1.0.2-SNAPSHOT</version>
 	<name>xOWL Infra - Language Impl</name>
 	<description>Java implementation of the xOWL language concepts</description>
 	<build>
