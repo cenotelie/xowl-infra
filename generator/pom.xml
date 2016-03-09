@@ -3,12 +3,12 @@
 	<parent>
 		<groupId>org.xowl.infra</groupId>
 		<artifactId>xowl-infra</artifactId>
-		<version>1.0.2</version>
+		<version>1.0.3-SNAPSHOT</version>
 	</parent>
 	<groupId>org.xowl.infra</groupId>
 	<artifactId>xowl-generator</artifactId>
 	<packaging>bundle</packaging>
-	<version>1.0.2</version>
+	<version>1.0.3-SNAPSHOT</version>
 	<name>xOWL Infra - Code Generator</name>
 	<description>Provides code generation facilities for the implementation of OWL2 ontologies</description>
 	<dependencies>
@@ -21,7 +21,7 @@
 		<dependency>
 			<groupId>org.xowl.infra</groupId>
 			<artifactId>xowl-store</artifactId>
-			<version>1.0.2</version>
+			<version>1.0.3-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
