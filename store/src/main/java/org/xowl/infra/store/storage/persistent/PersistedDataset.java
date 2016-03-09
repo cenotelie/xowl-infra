@@ -1350,7 +1350,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     if (qnode == FileStore.getShortKey(bufferQNSubject)) {
                         multiplicity--;
                         if (multiplicity > 0) {
-                            entry.seek(i * 8 + 8 + 4 + 4 + 4).writeLong(multiplicity);
+                            entry.seek(i * 8 + 8 + 4 + 4 + 4).writeInt(multiplicity);
                             return;
                         }
                         count--;
