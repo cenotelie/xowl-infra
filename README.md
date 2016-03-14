@@ -31,24 +31,27 @@ The xOWL Infrastructure can be used as embeddable Java libraries. With Maven, mo
 <dependency>
     <groupId>org.xowl.infra</groupId>
     <artifactId>xowl-store</artifactId>
-    <version>1.0-beta2</version>
+    <version>1.0.2</version>
     <scope>compile</scope>
 </dependency>
 ```
 
-For the inclusion of the expression of execution of behavior in ontologies, also include the xowl-engine bundle:
+For the inclusion of the expression and execution of behavior in ontologies, also include the xowl-engine bundle:
 
 ```
 #!xml
 <artifactId>xowl-engine</artifactId>
 ```
 
+All libraries in the xOWL Infrastructure and their dependencies are OSGi bundles that can be readily deployed on OSGi platforms such as [Apache Felix](http://felix.apache.org/), or [Eclipse Equinox](http://www.eclipse.org/equinox/).
 
 ## Triple Store Server ##
 
 To use the xOWL Infrastructure as a triple store server, either use the downloadable distribution, or the Docker image.
 
 ### Downloadable distribution ###
+
+[Download](https://bitbucket.org/xowl/xowl-infra/downloads) the distribution and launch with (Java 8 required):
 
 ```
 $ java -jar xowl-server.jar
@@ -57,7 +60,7 @@ $ java -jar xowl-server.jar
 With a web-browser, go to [https://localhost:3443/web/](https://localhost:3443/web/).
 The default administrator login and password are `admin` and `admin`.
 
-To install the xOWL server as a daemon, simply run (sudo will be asked for):
+To install the xOWL triple store server as a linux daemon, simply run (sudo will be asked for):
 
 ```
 $ ./install-daemon.sh
@@ -74,8 +77,7 @@ $ sudo service xowl-server restart
 ### Docker image ###
 
 ```
-$ docker pull xowl/xowl-server:latest
-$ docker run -d -p 3443:3443/tcp --name my-xowl-instance -v /path/to/host/data:/xowl-data xowl-server:latest
+$ docker run -d -p 3443:3443/tcp --name my-xowl-instance -v /path/to/host/data:/xowl-data xowl/xowl-server:latest
 ```
 
 Replace the `/path/to/host/data` to a path where to store the databases on your system.
@@ -92,10 +94,16 @@ Refers to the `LICENSE.txt` file at the root of the repository for the full text
 
 ### Build Java libraries ###
 
-To only build the xOWL libraries as a set of Java libraries, use maven:
+To simply build the xOWL libraries, use maven (GPG key required):
 
 ```
 $ mvn clean install
+```
+
+Or without GPG signing:
+
+```
+$ mvn clean install -Dgpg.skip=true
 ```
 
 ### Build redistributable artifacts ###
