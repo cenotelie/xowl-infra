@@ -1,4 +1,4 @@
-# README #
+# xOWL Infrastructure - Store #
 
 This component implements the base infrastructure for storing and manipulating datasets.
 It can be used to embed semantic web capabilities in an application:

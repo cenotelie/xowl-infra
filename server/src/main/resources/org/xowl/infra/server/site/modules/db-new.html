@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>xOWL Server: DB Creation</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="../favicon.png" />
+  <link rel="stylesheet" type="text/css" href="../vendors/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="../vendors/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="../app.css">
+</head>
+
+<body>
+  <div class="header">
+    <span style="margin-left: 5px; display: inline-block;">
+      <img class="img-responsive" src="../assets/xowl.svg" width="25px" style="display: inline-block;"/>
+      xOWL Server
+    </span>
+    <div style="display: inline-block; margin-left: 50px;">
+      <span style="display: inline-block;">
+        <ol class="breadcrumb">
+          <li><a href="main.html">Home</a></li>
+          <li class="active">Database Creation</li>
+        </ol>
+      </span>
+    </div>
+    <div style="float: right; margin-right: 20px;">
+      <div><a onclick="onButtonLogout()" style="cursor: pointer;" id="btn-logout">Logout</a></div>
+    </div>
+    <hr style="margin-top: 5px; margin-bottom: 5px;" />
+  </div>
+  <div class="body">
+    <div class="panel panel-default" id="loader">
+      <div class="panel-body">
+        <img src="../assets/xowl.gif" width="32" height="32" />
+        <span id="loader-text">Loading ...</span>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <form>
+          <div class="form-group">
+            <label for="field-name">Name</label>
+            <input type="text" class="form-control" id="field-name" placeholder="name" />
+          </div>
+          <a class="btn btn-primary" onclick="onCreateDB()">Create</a>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script src="../xowl-api-server.js"></script>
+  <script src="../xowl-api-ui.js"></script>
+  <script src="db-new.js"></script>
+  <script>
+    init();
+  </script>
+</body>
+
+</html>
