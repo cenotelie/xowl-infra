@@ -199,7 +199,7 @@ public abstract class BaseSPARQLTest {
      */
     private void compare(Result result, String expected) {
         if (result instanceof ResultYesNo) {
-
+            Assert.fail("Not implemented");
         } else if (result instanceof ResultSolutions) {
             compareSolutions((ResultSolutions) result, expected);
         } else if (result instanceof ResultQuads) {
