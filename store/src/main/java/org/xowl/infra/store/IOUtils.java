@@ -400,6 +400,7 @@ public class IOUtils {
                 case AbstractRepository.SYNTAX_NTRIPLES:
                 case AbstractRepository.SYNTAX_NQUADS:
                 case AbstractRepository.SYNTAX_TURTLE:
+                case AbstractRepository.SYNTAX_TRIG:
                 case AbstractRepository.SYNTAX_RDFXML:
                 case AbstractRepository.SYNTAX_JSON_LD:
                     return contentType;

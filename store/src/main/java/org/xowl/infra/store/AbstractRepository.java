@@ -460,6 +460,7 @@ public abstract class AbstractRepository {
     private void exportResource(Logger logger, Writer writer, String resourceIRI, String syntax) {
         switch (syntax) {
             case SYNTAX_NQUADS:
+            case SYNTAX_TRIG:
             case SYNTAX_JSON_LD:{
                 RDFSerializer serializer = newRDFSerializer(syntax, writer);
                 exportResourceRDF(logger, serializer);
