@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -42,7 +42,7 @@ package org.xowl.infra.store.storage.persistent;
  *
  * @author Laurent Wouters
  */
-class FileStorePage {
+class FileStoreFilePage {
     /**
      * The version of the page layout to use
      */
@@ -71,24 +71,12 @@ class FileStorePage {
     /**
      * The maximum size of the payload of an entry in a page
      */
-    public static final int MAX_ENTRY_SIZE = FileStoreFile.BLOCK_SIZE - PAGE_HEADER_SIZE - PAGE_ENTRY_INDEX_SIZE;
+    public static final int MAX_ENTRY_SIZE = BLOCK_SIZE - PAGE_HEADER_SIZE - PAGE_ENTRY_INDEX_SIZE;
     /**
      * The number of bytes required in addition to an entry's payload
      */
     public static final int ENTRY_OVERHEAD = PAGE_ENTRY_INDEX_SIZE;
 
-    /**
-     * The backend store
-     */
-    private final FileStoreFile backend;
-    /**
-     * The location in the backend
-     */
-    private final long location;
-    /**
-     * The radical of keys emitted by this page
-     */
-    private final int keyRadical;
     /**
      * The current flags
      */
@@ -106,89 +94,50 @@ class FileStorePage {
      */
     private char startData;
 
-    /**
-     * Initializes this page
-     *
-     * @param backend    The backend to use
-     * @param location   The location of the page in the backend
-     * @param keyRadical The radical of keys emitted by this page
-     * @throws StorageException When the page version does not match the expected one
-     */
-    public FileStorePage(FileStoreFile backend, long location, int keyRadical) throws StorageException {
-        this.backend = backend;
-        this.location = location;
-        this.keyRadical = keyRadical;
-        backend.seek(location);
-        char version = backend.readChar();
+    @Override
+    protected void onLoaded() throws StorageException {
+        char version = readChar(0);
         if (version == 0) {
             // this is a new page
-            flags = 0;
+            flags = FLAG_REUSE_EMPTY_ENTRIES;
             startFreeSpace = PAGE_HEADER_SIZE;
-            startData = (char) FileStoreFile.BLOCK_SIZE;
+            startData = (char) BLOCK_SIZE;
         } else if (version != PAGE_LAYOUT_VERSION) {
             throw new StorageException("Invalid page layout version " + Integer.toHexString(version) + ", expected " + Integer.toHexString(PAGE_LAYOUT_VERSION));
         } else {
-            flags = backend.readChar();
-            entryCount = backend.readChar();
-            startFreeSpace = backend.readChar();
-            startData = backend.readChar();
+            flags = readChar(2);
+            entryCount = readChar(4);
+            startFreeSpace = readChar(6);
+            startData = readChar(8);
         }
-    }
-
-    /**
-     * Sets the page to reuse the space of entries that have been removed
-     */
-    public void setReuseEmptyEntries() {
-        flags = (char) (flags | FLAG_REUSE_EMPTY_ENTRIES);
-    }
-
-    /**
-     * Gets the location of this page
-     *
-     * @return The location of this page
-     */
-    public long getLocation() {
-        return location;
-    }
-
-    /**
-     * Gets the index of this page within its parent file
-     *
-     * @return The index of this page
-     */
-    public int getIndex() {
-        return (keyRadical >> 16);
-    }
-
-    /**
-     * Gets the number of entries in this page
-     *
-     * @return The number of entries in this page
-     */
-    public int getEntryCount() {
-        return entryCount;
     }
 
     /**
      * Gets the amount of free space for entry payloads in this page
      *
+     * @param pool The transaction pool to use
+     * @param time The current time
      * @return The amount of free space
      * @throws StorageException When an IO operation failed
      */
-    public int getFreeSpace() throws StorageException {
+    public int getFreeSpace(IOTransationPool pool, long time) throws StorageException {
         int result = 0;
         if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
             // we can reuse empty entries and there are at least one
-            char entryIndex = 0;
-            backend.seek(location + PAGE_HEADER_SIZE);
-            while (entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
-                char eOffset = backend.readChar();
-                char eLength = backend.readChar();
-                if (eOffset == 0) {
-                    result += eLength;
+            try (IOTransaction transaction = pool.begin(this, 0, BLOCK_SIZE, false, time)) {
+                if (transaction != null) {
+                    char entryIndex = 0;
+                    transaction.seek(PAGE_HEADER_SIZE);
+                    while (entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
+                        char eOffset = transaction.readChar();
+                        char eLength = transaction.readChar();
+                        if (eOffset == 0) {
+                            result += eLength;
+                        }
+                    }
+                    return result;
                 }
             }
-            return result;
         }
         result += startData - startFreeSpace - PAGE_ENTRY_INDEX_SIZE;
         return result;
@@ -197,23 +146,29 @@ class FileStorePage {
     /**
      * Gets whether this page can store a content of the specified size
      *
+     * @param pool The transaction pool to use
+     * @param time The current time
      * @param length The length of the content to store
      * @return true if the content can be stored
      * @throws StorageException When an IO operation failed
      */
-    public boolean canStore(int length) throws StorageException {
+    public boolean canStore(IOTransationPool pool, long time, int length) throws StorageException {
         if (length > MAX_ENTRY_SIZE)
             return false;
         if ((flags & FLAG_REUSE_EMPTY_ENTRIES) == FLAG_REUSE_EMPTY_ENTRIES && entryCount > (startFreeSpace - PAGE_HEADER_SIZE) >>> 2) {
             // we can reuse empty entries and there are at least one
-            char entryIndex = 0;
-            backend.seek(location + PAGE_HEADER_SIZE);
-            while (entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
-                char eOffset = backend.readChar();
-                char eLength = backend.readChar();
-                if (eOffset == 0 && eLength >= length) {
-                    // reuse this entry
-                    return true;
+            try (IOTransaction transaction = pool.begin(this, 0, BLOCK_SIZE, false, time)) {
+                if (transaction != null) {
+                    char entryIndex = 0;
+                    transaction.seek(PAGE_HEADER_SIZE);
+                    while (entryIndex * PAGE_ENTRY_INDEX_SIZE + PAGE_HEADER_SIZE < startFreeSpace) {
+                        char eOffset = transaction.readChar();
+                        char eLength = transaction.readChar();
+                        if (eOffset == 0 && eLength >= length) {
+                            // reuse this entry
+                            return true;
+                        }
+                    }
                 }
             }
             // no suitable empty entry

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -23,18 +23,11 @@ package org.xowl.infra.store.storage.persistent;
 import java.io.Closeable;
 
 /**
- * API for elements that can be read form and written to
+ * API for elements that can be read from and written to
  *
  * @author Laurent Wouters
  */
 interface IOElement extends Closeable {
-    /**
-     * Gets the current index in this element
-     *
-     * @return The current index in this element
-     */
-    long getIndex();
-
     /**
      * Gets the size of this element
      *
@@ -43,158 +36,186 @@ interface IOElement extends Closeable {
     long getSize();
 
     /**
-     * Positions the index of this element
-     *
-     * @param index The new index
-     * @return The element
-     */
-    IOElement seek(long index);
-
-    /**
-     * Resets the index in this element to its initial position
-     *
-     * @return The element
-     */
-    IOElement reset();
-
-    /**
      * Gets whether the specified amount of bytes can be read at the current index
      *
+     * @param index  The index within this element for this operation
      * @param length The number of bytes to read
      * @return true if this is legal to read
      */
-    boolean canRead(int length);
+    boolean canRead(long index, int length);
+
+    /**
+     * Prepare for reading operations
+     *
+     * @param time The current time
+     * @return Whether the operation succeeded
+     */
+    boolean onReadBegin(long time);
+
+    /**
+     * Ends a reading operation on this block
+     */
+    void onReadEnd();
+
+    /**
+     * Prepare for writing operations
+     *
+     * @param time The current time
+     * @return Whether the operation succeeded
+     */
+    boolean onWriteBegin(long time);
+
+    /**
+     * Ends a writing operation on this block
+     */
+    void onWriteEnd();
 
     /**
      * Reads a single byte at the current index
      *
+     * @param index The index within this element for this operation
      * @return The byte
      * @throws StorageException When an IO operation failed
      */
-    byte readByte() throws StorageException;
+    byte readByte(long index) throws StorageException;
 
     /**
      * Reads a specified number of bytes a the current index
      *
+     * @param index  The index within this element for this operation
      * @param length The number of bytes to read
      * @return The bytes
      * @throws StorageException When an IO operation failed
      */
-    byte[] readBytes(int length) throws StorageException;
+    byte[] readBytes(long index, int length) throws StorageException;
 
     /**
      * Reads a specified number of bytes a the current index
      *
+     * @param index  The index within this element for this operation
      * @param buffer The buffer to fill
-     * @param index  The index in the buffer to start filling at
+     * @param start  The index in the buffer to start filling at
      * @param length The number of bytes to read
      * @throws StorageException When an IO operation failed
      */
-    void readBytes(byte[] buffer, int index, int length) throws StorageException;
+    void readBytes(long index, byte[] buffer, int start, int length) throws StorageException;
 
     /**
      * Reads a single char at the current index
      *
+     * @param index The index within this element for this operation
      * @return The char
      * @throws StorageException When an IO operation failed
      */
-    char readChar() throws StorageException;
+    char readChar(long index) throws StorageException;
 
     /**
      * Reads a single int at the current index
      *
+     * @param index The index within this element for this operation
      * @return The int
      * @throws StorageException When an IO operation failed
      */
-    int readInt() throws StorageException;
+    int readInt(long index) throws StorageException;
 
     /**
      * Reads a single long at the current index
      *
+     * @param index The index within this element for this operation
      * @return The long
      * @throws StorageException When an IO operation failed
      */
-    long readLong() throws StorageException;
+    long readLong(long index) throws StorageException;
 
     /**
      * Reads a single float at the current index
      *
+     * @param index The index within this element for this operation
      * @return The float
      * @throws StorageException When an IO operation failed
      */
-    float readFloat() throws StorageException;
+    float readFloat(long index) throws StorageException;
 
     /**
      * Reads a single double at the current index
      *
+     * @param index The index within this element for this operation
      * @return The double
      * @throws StorageException When an IO operation failed
      */
-    double readDouble() throws StorageException;
+    double readDouble(long index) throws StorageException;
 
     /**
      * Writes a single byte at the current index
      *
+     * @param index The index within this element for this operation
      * @param value The byte to write
      * @throws StorageException When an IO operation failed
      */
-    void writeByte(byte value) throws StorageException;
+    void writeByte(long index, byte value) throws StorageException;
 
     /**
      * Writes bytes at the current index
      *
+     * @param index The index within this element for this operation
      * @param value The bytes to write
      * @throws StorageException When an IO operation failed
      */
-    void writeBytes(byte[] value) throws StorageException;
+    void writeBytes(long index, byte[] value) throws StorageException;
 
     /**
      * Writes bytes at the current index
      *
+     * @param index  The index within this element for this operation
      * @param buffer The buffer with the bytes to write
-     * @param index  The index in the buffer to start writing from
+     * @param start  The index in the buffer to start writing from
      * @param length The number of bytes to write
      * @throws StorageException When an IO operation failed
      */
-    void writeBytes(byte[] buffer, int index, int length) throws StorageException;
+    void writeBytes(long index, byte[] buffer, int start, int length) throws StorageException;
 
     /**
      * Writes a single char at the current index
      *
+     * @param index The index within this element for this operation
      * @param value The char to write
      * @throws StorageException When an IO operation failed
      */
-    void writeChar(char value) throws StorageException;
+    void writeChar(long index, char value) throws StorageException;
 
     /**
      * Writes a single int at the current index
      *
+     * @param index The index within this element for this operation
      * @param value The int to write
      * @throws StorageException When an IO operation failed
      */
-    void writeInt(int value) throws StorageException;
+    void writeInt(long index, int value) throws StorageException;
 
     /**
      * Writes a single long at the current index
      *
+     * @param index The index within this element for this operation
      * @param value The long to write
      * @throws StorageException When an IO operation failed
      */
-    void writeLong(long value) throws StorageException;
+    void writeLong(long index, long value) throws StorageException;
 
     /**
      * Writes a single float at the current index
      *
+     * @param index The index within this element for this operation
      * @param value The float to write
      * @throws StorageException When an IO operation failed
      */
-    void writeFloat(float value) throws StorageException;
+    void writeFloat(long index, float value) throws StorageException;
 
     /**
      * Writes a single double at the current index
      *
+     * @param index The index within this element for this operation
      * @param value The double to write
      * @throws StorageException When an IO operation failed
      */
-    void writeDouble(double value) throws StorageException;
+    void writeDouble(long index, double value) throws StorageException;
 }

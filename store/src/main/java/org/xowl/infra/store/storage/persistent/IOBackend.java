@@ -24,11 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The base implementation of an IO backend
+ * The base implementation of an IO backend that supports transactions
  *
  * @author Laurent Wouters
  */
-class IOBackend implements AutoCloseable {
+abstract class IOBackend implements IOElement {
     /**
      * The backend is ready
      */
@@ -50,10 +50,7 @@ class IOBackend implements AutoCloseable {
      */
     public static final int STATE_ERROR = 4;
 
-    /**
-     * The maximum number of transactions
-     */
-    private static final int MAX_TRANSACTION_COUNT = 16;
+
 
     /**
      * Represents a transaction within this store

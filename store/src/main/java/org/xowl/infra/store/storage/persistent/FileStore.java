@@ -247,7 +247,7 @@ class FileStore extends IOBackend {
         int index = getFileIndexFor(key);
         int sk = getShortKey(key);
         FileStoreFile file = files.get(index);
-        FileStorePage page = file.getPageFor(sk);
+        FileStoreFilePage page = file.getPageFor(sk);
         int length = page.positionFor(sk);
         return transaction(file, file.getIndex(), length, !isReadonly && writable);
     }
@@ -263,7 +263,7 @@ class FileStore extends IOBackend {
     public long add(int entrySize) throws IOException, StorageException {
         if (isReadonly)
             throw new StorageException("The store is read only");
-        if (entrySize > FileStorePage.MAX_ENTRY_SIZE)
+        if (entrySize > FileStoreFilePage.MAX_ENTRY_SIZE)
             throw new StorageException("The entry is too large for this store");
         FileStoreFile file = files.get(files.size() - 1);
         long result = provision(files.size() - 1, file, entrySize);
@@ -310,14 +310,14 @@ class FileStore extends IOBackend {
                 if (blockIndex == -1)
                     // this is a free block slot
                     continue;
-                if (blockRemaining >= entrySize + FileStorePage.ENTRY_OVERHEAD) {
+                if (blockRemaining >= entrySize + FileStoreFilePage.ENTRY_OVERHEAD) {
                     // the entry could fit in the page
-                    FileStorePage page = file.getPage(blockIndex);
+                    FileStoreFilePage page = file.getPage(blockIndex);
                     if (!page.canStore(entrySize))
                         continue;
                     long key = getFullKey(fileIndex, page.registerEntry(entrySize));
                     blockRemaining -= entrySize;
-                    blockRemaining -= FileStorePage.ENTRY_OVERHEAD;
+                    blockRemaining -= FileStoreFilePage.ENTRY_OVERHEAD;
                     if (blockRemaining >= THRESHOLD_BLOCK_FULL) {
                         header.seek(HEADER_PREAMBLE_SIZE + i * HEADER_OPEN_BLOCK_ENTRY_SIZE + 4);
                         header.writeInt(blockRemaining);
@@ -333,10 +333,10 @@ class FileStore extends IOBackend {
             // cannot fit in an open block
             if (nextFreeBlock >= MAX_BLOCKS_PER_FILE)
                 return PersistedNode.KEY_NOT_PRESENT;
-            FileStorePage page = file.getPage(nextFreeBlock);
+            FileStoreFilePage page = file.getPage(nextFreeBlock);
             page.setReuseEmptyEntries();
             nextFreeBlock++;
-            int remaining = FileStorePage.MAX_ENTRY_SIZE - entrySize - FileStorePage.ENTRY_OVERHEAD;
+            int remaining = FileStoreFilePage.MAX_ENTRY_SIZE - entrySize - FileStoreFilePage.ENTRY_OVERHEAD;
             if (remaining >= THRESHOLD_BLOCK_FULL) {
                 header.seek(HEADER_PREAMBLE_SIZE);
                 boolean found = false;
@@ -377,7 +377,7 @@ class FileStore extends IOBackend {
      */
     private void clear(FileStoreFile file, int key) throws StorageException {
         try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, true)) {
-            FileStorePage page = file.getPageFor(key);
+            FileStoreFilePage page = file.getPageFor(key);
             int length = page.removeEntry(key);
             header.seek(8);
             int openBlockCount = header.readInt();
@@ -387,7 +387,7 @@ class FileStore extends IOBackend {
                 int blockRemaining = header.readInt();
                 if (blockIndex == page.getIndex()) {
                     // already open
-                    blockRemaining += length + FileStorePage.ENTRY_OVERHEAD;
+                    blockRemaining += length + FileStoreFilePage.ENTRY_OVERHEAD;
                     header.seek(HEADER_PREAMBLE_SIZE + i * HEADER_OPEN_BLOCK_ENTRY_SIZE + 4);
                     header.writeInt(blockRemaining);
                     return;
