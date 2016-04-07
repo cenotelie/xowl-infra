@@ -29,6 +29,23 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Represents a block in a file
+ * A block may be interpreted as a page of entries, in which case the block has the following layout:
+ * Page general layout:
+ * - header
+ * - entry array (fill down from just after the header)
+ * - ... free space
+ * - data content (fill up from the bottom of the page)
+ * <p/>
+ * Header layout:
+ * - Layout version (2 bytes)
+ * - Flags (2 bytes)
+ * - Number of entries (2 bytes)
+ * - Offset to start of free space (2 bytes)
+ * - Offset to start of data content (2 bytes)
+ * <p/>
+ * Entry layout:
+ * - offset (2 bytes)
+ * - length (2 bytes)
  *
  * @author Laurent Wouters
  */
@@ -66,6 +83,38 @@ class FileStoreFileBlock implements IOElement {
      * The block is currently used by a read operation
      */
     public static final int BLOCK_STATE_READING = 4;
+
+    /**
+     * The version of the page layout to use
+     */
+    public static final char PAGE_LAYOUT_VERSION = 1;
+    /**
+     * The size of the page header in bytes
+     * char: Layout version (2 bytes)
+     * char: Flags (2 bytes)
+     * char: Number of entries (2 bytes)
+     * char: Offset to start of free space (2 bytes)
+     * char: Offset to start of data content (2 bytes)
+     */
+    public static final int PAGE_HEADER_SIZE = 2 + 2 + 2 + 2 + 2;
+    /**
+     * The size of an entry in the entry table of a page (in bytes)
+     * char: offset (2 bytes)
+     * char: length (2 bytes)
+     */
+    public static final int PAGE_ENTRY_INDEX_SIZE = 2 + 2;
+    /**
+     * Flag whether the page shall reuse the space of removed entries
+     */
+    public static final char FLAG_REUSE_EMPTY_ENTRIES = 0x0001;
+    /**
+     * The maximum size of the payload of an entry in a page
+     */
+    public static final int MAX_ENTRY_SIZE = BLOCK_SIZE - PAGE_HEADER_SIZE - PAGE_ENTRY_INDEX_SIZE;
+    /**
+     * The number of bytes required in addition to an entry's payload
+     */
+    public static final int ENTRY_OVERHEAD = PAGE_ENTRY_INDEX_SIZE;
 
     /**
      * The state of this block
@@ -182,6 +231,30 @@ class FileStoreFileBlock implements IOElement {
     }
 
     /**
+     * Rollbacks any outstanding changes
+     *
+     * @param channel The originating file channel
+     * @param time    The current time
+     * @return Whether the operation succeeded
+     */
+    public boolean rollback(FileChannel channel, long time) {
+        if (!isDirty)
+            return true;
+        if (!onWriteBegin(time))
+            return false;
+        boolean success = true;
+        try (FileLock lock = channel.lock()) {
+            channel.position(location);
+            channel.read(buffer);
+            isDirty = false;
+        } catch (IOException exception) {
+            success = false;
+        }
+        onWriteEnd();
+        return success;
+    }
+
+    /**
      * Reclaims this block
      * Commits any outstanding changes to the backing file
      *
@@ -200,13 +273,13 @@ class FileStoreFileBlock implements IOElement {
                 try (FileLock lock = channel.lock()) {
                     channel.position(location);
                     channel.write(buffer);
+                    channel.force(false);
                     isDirty = false;
                 } catch (IOException exception) {
                     onWriteEnd();
                     return false;
                 }
                 location = -1;
-                lastHit = time;
                 return state.compareAndSet(BLOCK_STATE_LOCKED, BLOCK_STATE_FREE);
             }
             // if the state is ready is is successfully locked for reclamation
@@ -398,6 +471,7 @@ class FileStoreFileBlock implements IOElement {
 
     @Override
     public void close() throws IOException {
-        // do nothing
+        location = -1;
+        isDirty = false;
     }
 }

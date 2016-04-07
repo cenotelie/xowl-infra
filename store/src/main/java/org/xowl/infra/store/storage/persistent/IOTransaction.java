@@ -121,7 +121,9 @@ class IOTransaction implements Closeable {
     public byte readByte() throws StorageException {
         if (!canRead(1))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        return backend.readByte(index);
+        byte value = backend.readByte(index);
+        index++;
+        return value;
     }
 
     /**
@@ -134,7 +136,9 @@ class IOTransaction implements Closeable {
     public byte[] readBytes(int length) throws StorageException {
         if (!canRead(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        return backend.readBytes(index, length);
+        byte[] value = backend.readBytes(index, length);
+        index += length;
+        return value;
     }
 
     /**
@@ -149,6 +153,7 @@ class IOTransaction implements Closeable {
         if (!canRead(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         backend.readBytes(index, buffer, start, length);
+        index += length;
     }
 
     /**
@@ -160,7 +165,9 @@ class IOTransaction implements Closeable {
     public char readChar() throws StorageException {
         if (!canRead(2))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        return backend.readChar(index);
+        char value = backend.readChar(index);
+        index += 2;
+        return value;
     }
 
     /**
@@ -172,7 +179,9 @@ class IOTransaction implements Closeable {
     public int readInt() throws StorageException {
         if (!canRead(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        return backend.readInt(index);
+        int value = backend.readInt(index);
+        index += 4;
+        return value;
     }
 
     /**
@@ -184,7 +193,9 @@ class IOTransaction implements Closeable {
     public long readLong() throws StorageException {
         if (!canRead(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        return backend.readLong(index);
+        long value = backend.readLong(index);
+        index += 8;
+        return value;
     }
 
     /**
@@ -196,7 +207,9 @@ class IOTransaction implements Closeable {
     public float readFloat() throws StorageException {
         if (!canRead(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        return backend.readFloat(index);
+        float value = backend.readFloat(index);
+        index += 4;
+        return value;
     }
 
     /**
@@ -208,7 +221,9 @@ class IOTransaction implements Closeable {
     public double readDouble() throws StorageException {
         if (!canRead(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        return backend.readDouble(index);
+        double value = backend.readDouble(index);
+        index += 8;
+        return value;
     }
 
     /**
@@ -221,6 +236,7 @@ class IOTransaction implements Closeable {
         if (!writable || !withinBounds(1))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeByte(index, value);
+        index++;
     }
 
     /**
@@ -233,6 +249,7 @@ class IOTransaction implements Closeable {
         if (!writable || !withinBounds(value.length))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeBytes(index, value);
+        index += value.length;
     }
 
     /**
@@ -247,6 +264,7 @@ class IOTransaction implements Closeable {
         if (!writable || !withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeBytes(index, buffer, start, length);
+        index += length;
     }
 
     /**
@@ -259,6 +277,7 @@ class IOTransaction implements Closeable {
         if (!writable || !withinBounds(2))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeChar(index, value);
+        index += 2;
     }
 
     /**
@@ -271,6 +290,7 @@ class IOTransaction implements Closeable {
         if (!writable || !withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeInt(index, value);
+        index += 4;
     }
 
     /**
@@ -283,6 +303,7 @@ class IOTransaction implements Closeable {
         if (!writable || !withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeLong(index, value);
+        index += 8;
     }
 
     /**
@@ -295,6 +316,7 @@ class IOTransaction implements Closeable {
         if (!writable || !withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeFloat(index, value);
+        index += 4;
     }
 
     /**
@@ -307,6 +329,7 @@ class IOTransaction implements Closeable {
         if (!writable || !withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeDouble(index, value);
+        index += 8;
     }
 
     @Override

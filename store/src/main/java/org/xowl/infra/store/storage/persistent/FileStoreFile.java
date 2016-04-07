@@ -27,18 +27,61 @@ import java.nio.file.StandardOpenOption;
 
 /**
  * Represents a persisted binary file
+ * A file is composed of blocks (or pages)
+ * The first block has a special structure with the following layout
+ * - int32: Magic identifier for the store
+ * - int32: Layout version
+ * - int32: Number of open blocks (blocks that contain data but are not full)
+ * - int32: Index of the next block to open (in number of block)
+ * - array of block entries:
+ * - int32: Index of the block
+ * - int32: Remaining free space
  *
  * @author Laurent Wouters
  */
 class FileStoreFile {
     /**
-     * The mask for the index of a block
+     * Magic identifier of the type of store
      */
-    private static final long INDEX_MASK_UPPER = ~FileStoreFileBlock.INDEX_MASK_LOWER;
+    private static final int FILE_MAGIC_ID = 0x784F574C;
+    /**
+     * The layout version
+     */
+    private static final int FILE_LAYOUT_VERSION = 1;
+    /**
+     * The size of the header in the preambule block
+     * int: Magic identifier for the store
+     * int: Layout version
+     * int: Number of open blocks (blocks that contain data but are not full)
+     * int: Index of the next block to open (in number of block)
+     */
+    private static final int FILE_PREAMBULE_HEADER_SIZE = 4 + 4 + 4 + 4;
+    /**
+     * The size of an open block entry in the preambule
+     * int: Index of the block
+     * int: Remaining free space
+     */
+    private static final int FILE_PREAMBULE_ENTRY_SIZE = 4 + 4;
+    /**
+     * The number of remaining bytes below which a block is considered full
+     */
+    private static final int BLOCK_FULL_THRESHOLD = 24;
+    /**
+     * The maximum number of open blocks in a file
+     */
+    private static final int FILE_MAX_OPEN_BLOCKS = (FileStoreFileBlock.BLOCK_SIZE - FILE_PREAMBULE_HEADER_SIZE) / FILE_PREAMBULE_ENTRY_SIZE;
+    /**
+     * The maximum number of blocks per file
+     */
+    private static final int FILE_MAX_BLOCKS = 1 << 16;
     /**
      * The maximum number of loaded blocks
      */
-    private static final int MAX_LOADED_BLOCKS = 256;
+    private static final int FILE_MAX_LOADED_BLOCKS = 256;
+    /**
+     * The mask for the index of a block
+     */
+    private static final long INDEX_MASK_UPPER = ~FileStoreFileBlock.INDEX_MASK_LOWER;
 
     /**
      * Whether the file is in readonly mode
@@ -74,8 +117,9 @@ class FileStoreFile {
      *
      * @param file The file location
      * @throws IOException When the backing file cannot be accessed
+     * @throws StorageException When the initialization failed
      */
-    public FileStoreFile(File file) throws IOException {
+    public FileStoreFile(File file) throws IOException, StorageException {
         this(file, false);
     }
 
@@ -85,17 +129,35 @@ class FileStoreFile {
      * @param file       The file location
      * @param isReadonly Whether this store is in readonly mode
      * @throws IOException When the backing file cannot be accessed
+     * @throws StorageException When the initialization failed
      */
-    public FileStoreFile(File file, boolean isReadonly) throws IOException {
+    public FileStoreFile(File file, boolean isReadonly) throws IOException, StorageException {
         this.isReadonly = isReadonly;
         this.channel = newChannel(file, isReadonly);
         this.transations = new IOTransationPool();
-        this.blocks = new FileStoreFileBlock[MAX_LOADED_BLOCKS];
-        for (int i = 0; i != MAX_LOADED_BLOCKS; i++)
+        this.blocks = new FileStoreFileBlock[FILE_MAX_LOADED_BLOCKS];
+        for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++)
             this.blocks[i] = new FileStoreFileBlock();
         this.blockCount = 0;
         this.size = channel.size();
         this.time = Long.MIN_VALUE;
+        if (size == 0 && !isReadonly)
+            initialize();
+    }
+
+    /**
+     * Initializes this file with the default preambule
+     *
+     * @throws StorageException When an IO error occurred
+     */
+    private void initialize() throws StorageException {
+        try (IOTransaction transaction = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, true)) {
+            transaction.writeInt(FILE_MAGIC_ID);
+            transaction.writeInt(FILE_LAYOUT_VERSION);
+            transaction.writeInt(0);
+            transaction.writeInt(1);
+        }
+        commit();
     }
 
     /**
@@ -122,21 +184,9 @@ class FileStoreFile {
     public boolean commit() {
         boolean success = true;
         for (int i = 0; i != blockCount; i++) {
-            if (blockIsDirty[i]) {
-                boolean successBlock = true;
-                if (blockPages[i] != null) {
-                    successBlock = blockPages[i].onCommit();
-                }
-                try {
-                    blockBuffers[i].position(0);
-                    channel.position(blockLocations[i]);
-                    channel.write(blockBuffers[i]);
-                } catch (IOException exception) {
-                    successBlock = false;
-                }
-                if (successBlock)
-                    blockIsDirty[i] = false;
-                success &= successBlock;
+            if (blocks[i].getLocation() >= 0) {
+                success &= blocks[i].commit(channel, time);
+                time++;
             }
         }
         try {
@@ -155,19 +205,9 @@ class FileStoreFile {
     public boolean rollback() {
         boolean success = true;
         for (int i = 0; i != blockCount; i++) {
-            if (blockIsDirty[i]) {
-                boolean successBlock = true;
-                // reload the block
-                if (blockLocations[i] < getSize()) {
-                    try {
-                        blockBuffers[i].position(0);
-                        channel.position(blockLocations[i]);
-                        channel.read(blockBuffers[i]);
-                    } catch (IOException exception) {
-                        successBlock = false;
-                    }
-                }
-                success &= successBlock;
+            if (blocks[i].getLocation() >= 0) {
+                success &= blocks[i].rollback(channel, time);
+                time++;
             }
         }
         return success;
@@ -180,59 +220,132 @@ class FileStoreFile {
      * @throws IOException When an IO operation failed
      */
     public void close() throws IOException {
-        for (int i = 0; i != MAX_LOADED_BLOCKS; i++) {
-            blockBuffers[i] = null;
-            blockLocations[i] = -1;
-            blockLastHits[i] = 0;
-            blockIsDirty[i] = false;
-            blockPages[i] = null;
-        }
         channel.close();
+        for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++)
+            blocks[i].close();
     }
 
     /**
-     * Gets the page that contains the specified location
+     * Tries to allocate an entry of the specified size in this file
      *
-     * @param location A location
-     * @return The page that contains the specified location
-     * @throws StorageException When the page version does not match the expected one
-     */
-    public FileStoreFilePage getPageAt(long location) throws StorageException {
-        return getPage((int) ((location & INDEX_MASK_UPPER) / BLOCK_SIZE));
-    }
-
-    /**
-     * Gets the page that contains the specified key
-     *
-     * @param key A key
-     * @return The page that contains the specified key
-     * @throws StorageException When the page version does not match the expected one
-     */
-    public FileStoreFilePage getPageFor(int key) throws StorageException {
-        return getPage(key >> 16);
-    }
-
-    /**
-     * Gets an access to the entry for the specified key
-     *
-     * @param key The file-local key to an entry
-     * @return The IO element that can be used for reading and writing
+     * @param entrySize The size of the entry
+     * @return The key to the entry, or -1 if it cannot be allocated
      * @throws StorageException When an IO operation failed
      */
-    public IOTransaction access(int key) throws StorageException {
-        return access(key, true);
+    public int allocateEntry(int entrySize) throws StorageException {
+        try (IOTransaction transaction = accessRaw(0, FileStoreFileBlock.BLOCK_SIZE, true)) {
+            transaction.seek(8);
+            int openBlockCount = header.readInt();
+            int nextFreeBlock = header.readInt();
+            for (int i = 0; i != openBlockCount; i++) {
+                int blockIndex = header.readInt();
+                int blockRemaining = header.readInt();
+                if (blockIndex == -1)
+                    // this is a free block slot
+                    continue;
+                if (blockRemaining >= entrySize + FileStoreFilePage.ENTRY_OVERHEAD) {
+                    // the entry could fit in the page
+                    FileStoreFilePage page = file.getPage(blockIndex);
+                    if (!page.canStore(entrySize))
+                        continue;
+                    long key = getFullKey(fileIndex, page.registerEntry(entrySize));
+                    blockRemaining -= entrySize;
+                    blockRemaining -= FileStoreFilePage.ENTRY_OVERHEAD;
+                    if (blockRemaining >= BLOCK_FULL_THRESHOLD) {
+                        header.seek(FILE_PREAMBLE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE + 4);
+                        header.writeInt(blockRemaining);
+                    } else {
+                        header.seek(FILE_PREAMBLE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE);
+                        header.writeInt(-1);
+                        header.writeInt(0);
+                    }
+                    return key;
+                }
+            }
+
+            // cannot fit in an open block
+            if (nextFreeBlock >= FILE_MAX_BLOCKS)
+                return PersistedNode.KEY_NOT_PRESENT;
+            FileStoreFilePage page = file.getPage(nextFreeBlock);
+            page.setReuseEmptyEntries();
+            nextFreeBlock++;
+            int remaining = FileStoreFilePage.MAX_ENTRY_SIZE - entrySize - FileStoreFilePage.ENTRY_OVERHEAD;
+            if (remaining >= BLOCK_FULL_THRESHOLD) {
+                header.seek(FILE_PREAMBLE_HEADER_SIZE);
+                boolean found = false;
+                for (int i = 0; i != openBlockCount; i++) {
+                    int blockIndex = header.readInt();
+                    header.readInt();
+                    if (blockIndex == -1) {
+                        header.seek(FILE_PREAMBLE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE);
+                        header.writeInt(nextFreeBlock - 1);
+                        header.writeInt(remaining);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found && openBlockCount < FILE_MAX_OPEN_BLOCKS) {
+                    header.seek(FILE_PREAMBLE_HEADER_SIZE + openBlockCount * FILE_PREAMBULE_ENTRY_SIZE);
+                    header.writeInt(nextFreeBlock - 1);
+                    header.writeInt(remaining);
+                    openBlockCount++;
+                }
+            }
+            header.seek(8);
+            header.writeInt(openBlockCount);
+            header.writeInt(nextFreeBlock);
+            return getFullKey(fileIndex, page.registerEntry(entrySize));
+        } catch (IOException exception) {
+            // an IOException cannot happen
+            return PersistedNode.KEY_NOT_PRESENT;
+        }
     }
 
     /**
-     * Gets a reading access to the entry for the specified key
+     * Clears an entry from a file
      *
-     * @param key The file-local key to an entry
-     * @return The IO element that can be used for reading
+     * @param file The backend file containing the entry
+     * @param key  The key of the entry to remove
      * @throws StorageException When an IO operation failed
      */
-    public IOTransaction read(int key) throws StorageException {
-        return access(key, false);
+    private void clearEntry(FileStoreFile file, int key) throws StorageException {
+        try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, true)) {
+            FileStoreFilePage page = file.getPageFor(key);
+            int length = page.removeEntry(key);
+            header.seek(8);
+            int openBlockCount = header.readInt();
+            int nextFreeBlock = header.readInt();
+            for (int i = 0; i != openBlockCount; i++) {
+                int blockIndex = header.readInt();
+                int blockRemaining = header.readInt();
+                if (blockIndex == page.getIndex()) {
+                    // already open
+                    blockRemaining += length + FileStoreFilePage.ENTRY_OVERHEAD;
+                    header.seek(FILE_PREAMBLE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE + 4);
+                    header.writeInt(blockRemaining);
+                    return;
+                }
+            }
+            // the block was not open
+            if (openBlockCount < FILE_MAX_OPEN_BLOCKS) {
+                int remaining = page.getFreeSpace();
+                if (remaining >= BLOCK_FULL_THRESHOLD) {
+                    header.seek(FILE_PREAMBLE_HEADER_SIZE + openBlockCount * FILE_PREAMBULE_ENTRY_SIZE);
+                    header.writeInt(page.getIndex());
+                    header.writeInt(remaining);
+                    openBlockCount++;
+                    header.seek(8);
+                    header.writeInt(openBlockCount);
+                    header.writeInt(nextFreeBlock);
+                }
+            }
+        } catch (IOException exception) {
+            // an IOException cannot happen
+        }
     }
+
+
+
 
     /**
      * Gets an access to the entry for the specified key
@@ -242,8 +355,43 @@ class FileStoreFile {
      * @return The IO element that can be used for reading and writing
      * @throws StorageException When an IO operation failed
      */
-    protected IOTransaction access(int key, boolean writable) throws StorageException {
+    public IOTransaction accessEntry(int key, boolean writable) throws StorageException {
+        if (key <= 0)
+            throw new StorageException("Invalid key");
+        FileStoreFileBlock block = getBlockFor(keyBlockLocation(key));
+        long offset;
+        long length;
+        try (IOTransaction transaction = transations.begin(block, 0, FileStoreFileBlock.PAGE_HEADER_SIZE, false, time)) {
+            time++;
+            int entryIndex = keyEntryIndex(key);
+            transaction.seek(FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE);
+            offset = transaction.readChar();
+            length = transaction.readChar();
+        }
+        if (offset == 0 || length == 0)
+            throw new StorageException("The entry for the specified key has been removed");
+        IOTransaction transaction = transations.begin(block, offset, length, !isReadonly && writable, time);
+        time++;
+        return transaction;
+    }
 
+    /**
+     * Access the content of this file through a transaction
+     * A transaction must be within the boundaries of a block.
+     * @param index The index within this file of the reserved area for the transaction
+     * @param length The length of the reserved area for the transaction
+     * @param writable Whether the transaction shall allow writing
+     * @return The transaction
+     * @throws StorageException When the requested transaction cannot be fulfilled
+     */
+    public IOTransaction accessRaw(long index, long length, boolean writable) throws StorageException {
+        long targetLocation = index & INDEX_MASK_UPPER;
+        if (index - targetLocation + length > FileStoreFileBlock.BLOCK_SIZE)
+            throw new StorageException("IO transaction cannot cross block boundaries");
+        FileStoreFileBlock block = getBlockFor(index);
+        IOTransaction transaction = transations.begin(block, index - targetLocation, length, !isReadonly && writable, time);
+        time++;
+        return transaction;
     }
 
     /**
@@ -261,7 +409,7 @@ class FileStoreFile {
             }
         }
         // we need to load the block
-        for (int i = blockCount; i != MAX_LOADED_BLOCKS; i++) {
+        for (int i = blockCount; i != FILE_MAX_LOADED_BLOCKS; i++) {
             if (blocks[i].getLocation() == -1 && blocks[i].reserve(targetLocation, channel, size, time)) {
                 time++;
                 size = Math.max(size, targetLocation + FileStoreFileBlock.BLOCK_SIZE);
@@ -272,7 +420,7 @@ class FileStoreFile {
         while (true) {
             int minIndex = -1;
             long minTime = Long.MAX_VALUE;
-            for (int i = 0; i != MAX_LOADED_BLOCKS; i++) {
+            for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++) {
                 long t = blocks[i].getLastHit();
                 if (t < minTime) {
                     minIndex = i;
@@ -281,7 +429,7 @@ class FileStoreFile {
             }
             if (minIndex >= 0
                     && blocks[minIndex].getLastHit() == minTime
-                    && blocks[minIndex].reclaim()) {
+                    && blocks[minIndex].reclaim(channel, time)) {
                 if (blocks[minIndex].reserve(targetLocation, channel, size, time)) {
                     time++;
                     size = Math.max(size, targetLocation + FileStoreFileBlock.BLOCK_SIZE);
@@ -289,5 +437,23 @@ class FileStoreFile {
                 }
             }
         }
+    }
+
+    /**
+     * Gets the location of the block referred to by the specified file-local key
+     * @param key The file-local key to an entry
+     * @return The location (index within this file) of the corresponding block
+     */
+    private static long keyBlockLocation(int key) {
+        return (key >> 16) * FileStoreFileBlock.BLOCK_SIZE;
+    }
+
+    /**
+     * Gets the index of the entry referred to by the specified file-local key
+     * @param key The file-local key to an entry
+     * @return The index of the entry within the associated block
+     */
+    private static int keyEntryIndex(int key) {
+        return (key & 0xFFFF);
     }
 }
