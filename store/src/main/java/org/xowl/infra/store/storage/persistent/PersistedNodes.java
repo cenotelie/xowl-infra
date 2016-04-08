@@ -179,7 +179,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @throws StorageException When the page version does not match the expected one
      */
     public String retrieveString(long key) throws IOException, StorageException {
-        try (IOElement element = backend.read(key)) {
+        try (IOTransaction element = backend.read(key)) {
             int length = element.seek(16).readInt();
             byte[] data = element.readBytes(length);
             return new String(data, charset);
@@ -193,11 +193,11 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @param modifier The modifier for the reference counter
      */
     public void onRefCountString(long key, int modifier) {
-        try (IOElement element = backend.access(key)) {
+        try (IOTransaction element = backend.access(key)) {
             long counter = element.seek(8).readLong();
             counter += modifier;
             element.seek(8).writeLong(counter);
-        } catch (IOException | StorageException exception) {
+        } catch (StorageException exception) {
             Logger.DEFAULT.error(exception);
         }
     }
@@ -215,7 +215,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         byte[] buffer = data.getBytes(charset);
         long candidate = bucket;
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
-            try (IOElement entry = backend.read(candidate)) {
+            try (IOTransaction entry = backend.read(candidate)) {
                 long next = entry.readLong();
                 long count = entry.readLong();
                 int size = entry.readInt();
@@ -244,7 +244,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         long previous = PersistedNode.KEY_NOT_PRESENT;
         long candidate = bucket;
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
-            try (IOElement entry = backend.read(candidate)) {
+            try (IOTransaction entry = backend.read(candidate)) {
                 long next = entry.readLong();
                 int size = entry.seek(16).readInt();
                 if (size == buffer.length) {
@@ -257,14 +257,14 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             }
         }
         long result = backend.add(buffer.length + ENTRY_STRING_OVERHEAD);
-        try (IOElement entry = backend.access(result)) {
+        try (IOTransaction entry = backend.access(result)) {
             entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
             entry.writeLong(0);
             entry.writeInt(buffer.length);
             entry.writeBytes(buffer);
         }
         if (previous != PersistedNode.KEY_NOT_PRESENT) {
-            try (IOElement previousEntry = backend.access(previous)) {
+            try (IOTransaction previousEntry = backend.access(previous)) {
                 previousEntry.writeLong(result);
             }
         }
@@ -317,7 +317,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         long keyLexical;
         long keyDatatype;
         long keyLangTag;
-        try (IOElement entry = backend.read(key)) {
+        try (IOTransaction entry = backend.read(key)) {
             entry.seek(16);
             keyLexical = entry.readLong();
             keyDatatype = entry.readLong();
@@ -337,11 +337,11 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @param modifier The modifier for the reference counter
      */
     public void onRefCountLiteral(long key, int modifier) {
-        try (IOElement element = backend.access(key)) {
+        try (IOTransaction element = backend.access(key)) {
             long counter = element.seek(8).readLong();
             counter += modifier;
             element.seek(8).writeLong(counter);
-        } catch (IOException | StorageException exception) {
+        } catch (StorageException exception) {
             Logger.DEFAULT.error(exception);
         }
     }
@@ -373,7 +373,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 return PersistedNode.KEY_NOT_PRESENT;
             try {
                 long result = backend.add(ENTRY_LITERAL_SIZE);
-                try (IOElement entry = backend.access(result)) {
+                try (IOTransaction entry = backend.access(result)) {
                     entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
                     entry.writeLong(0);
                     entry.writeLong(keyLexical);
@@ -390,7 +390,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             long previous = PersistedNode.KEY_NOT_PRESENT;
             long candidate = bucket;
             while (candidate != PersistedNode.KEY_NOT_PRESENT) {
-                try (IOElement entry = backend.access(candidate)) {
+                try (IOTransaction entry = backend.access(candidate)) {
                     long next = entry.readLong();
                     long count = entry.readLong();
                     entry.seek(24);
@@ -400,7 +400,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                         return candidate;
                     previous = candidate;
                     candidate = next;
-                } catch (IOException | StorageException exception) {
+                } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                     return PersistedNode.KEY_NOT_PRESENT;
                 }
@@ -410,10 +410,10 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 return PersistedNode.KEY_NOT_PRESENT;
             try {
                 long result = backend.add(ENTRY_LITERAL_SIZE);
-                try (IOElement entry = backend.access(previous)) {
+                try (IOTransaction entry = backend.access(previous)) {
                     entry.writeLong(result);
                 }
-                try (IOElement entry = backend.access(result)) {
+                try (IOTransaction entry = backend.access(result)) {
                     entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
                     entry.writeLong(0);
                     entry.writeLong(keyLexical);
