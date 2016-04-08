@@ -261,11 +261,11 @@ class FileStoreFile {
     public int allocateEntry(int entrySize) throws StorageException {
         try (IOTransaction transaction = accessRaw(0, FileStoreFileBlock.BLOCK_SIZE, true)) {
             transaction.seek(8);
-            int openBlockCount = header.readInt();
-            int nextFreeBlock = header.readInt();
+            int openBlockCount = transaction.readInt();
+            int nextFreeBlock = transaction.readInt();
             for (int i = 0; i != openBlockCount; i++) {
-                int blockIndex = header.readInt();
-                int blockRemaining = header.readInt();
+                int blockIndex = transaction.readInt();
+                int blockRemaining = transaction.readInt();
                 if (blockIndex == -1)
                     // this is a free block slot
                     continue;
@@ -327,46 +327,149 @@ class FileStoreFile {
         }
     }
 
+
     /**
-     * Clears an entry from a file
+     * Clears an entry from this file
      *
-     * @param file The backend file containing the entry
-     * @param key  The key of the entry to remove
+     * @param key The file-local key to the entry to remove
      * @throws StorageException When an IO operation failed
      */
-    private void clearEntry(FileStoreFile file, int key) throws StorageException {
-        try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, true)) {
-            FileStoreFilePage page = file.getPageFor(key);
-            int length = page.removeEntry(key);
-            header.seek(8);
-            int openBlockCount = header.readInt();
-            int nextFreeBlock = header.readInt();
+    public void removeEntry(int key) throws StorageException {
+        int pageIndex = keyPageIndex(key);
+        int remaining = pageRemoveEntry(pageIndex, keyEntryIndex(key));
+        if (remaining == -1)
+            return;
+        try (IOTransaction transaction = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, true)) {
+            if (transaction == null)
+                return;
+            int openBlockCount = transaction.seek(8).readInt();
+            transaction.readInt();
             for (int i = 0; i != openBlockCount; i++) {
-                int blockIndex = header.readInt();
-                int blockRemaining = header.readInt();
-                if (blockIndex == page.getIndex()) {
+                int blockIndex = transaction.readInt();
+                if (blockIndex == pageIndex) {
                     // already open
-                    blockRemaining += length + FileStoreFilePage.ENTRY_OVERHEAD;
-                    header.seek(FILE_PREAMBLE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE + 4);
-                    header.writeInt(blockRemaining);
+                    transaction.seek(FILE_PREAMBULE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE + 4);
+                    transaction.writeInt(remaining);
                     return;
                 }
             }
             // the block was not open
             if (openBlockCount < FILE_MAX_OPEN_BLOCKS) {
-                int remaining = page.getFreeSpace();
                 if (remaining >= BLOCK_FULL_THRESHOLD) {
-                    header.seek(FILE_PREAMBLE_HEADER_SIZE + openBlockCount * FILE_PREAMBULE_ENTRY_SIZE);
-                    header.writeInt(page.getIndex());
-                    header.writeInt(remaining);
+                    transaction.seek(FILE_PREAMBULE_HEADER_SIZE + openBlockCount * FILE_PREAMBULE_ENTRY_SIZE);
+                    transaction.writeInt(remaining);
+                    transaction.writeInt(remaining);
                     openBlockCount++;
-                    header.seek(8);
-                    header.writeInt(openBlockCount);
-                    header.writeInt(nextFreeBlock);
+                    transaction.seek(8);
+                    transaction.writeInt(openBlockCount);
                 }
             }
-        } catch (IOException exception) {
-            // an IOException cannot happen
+        }
+    }
+
+    /**
+     * Tries to store an entry of the specified size in the given page
+     *
+     * @param pageIndex The index of the page
+     * @param length    The length of the entry to register
+     * @return The key to be used to retrieve the data, or -1 if the entry cannot be allocated
+     * @throws StorageException When an IO operation failed
+     */
+    private int pageTryStoreEntry(int pageIndex, int length) throws StorageException {
+        try (IOTransaction transaction = accessRaw(pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH, FileStoreFileBlock.BLOCK_SIZE, true)) {
+            if (transaction == null)
+                return -1;
+            char entryCount = transaction.seek(4).readChar();
+            char startFreeSpace = transaction.readChar();
+            char startData = transaction.readChar();
+            if (entryCount > (startFreeSpace - FileStoreFileBlock.PAGE_HEADER_SIZE) >>> 2) {
+                // there is at least one empty entry
+                char entryIndex = 0;
+                char dataOffset = (char) FileStoreFileBlock.BLOCK_SIZE;
+                transaction.seek(FileStoreFileBlock.PAGE_HEADER_SIZE);
+                while (entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE + FileStoreFileBlock.PAGE_HEADER_SIZE < startFreeSpace) {
+                    char eOffset = transaction.readChar();
+                    char eLength = transaction.readChar();
+                    if (eOffset == 0 && eLength >= length) {
+                        // reuse this entry
+                        transaction.seek(entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE + FileStoreFileBlock.PAGE_HEADER_SIZE);
+                        transaction.writeChar((char) (dataOffset - eLength));
+                        entryCount++;
+                        transaction.seek(4).writeChar(entryCount);
+                        return keyLocal(pageIndex, entryIndex);
+                    }
+                    dataOffset -= eLength;
+                }
+            }
+            if (startData - startFreeSpace - length - FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE < 0)
+                // cannot store the entry
+                return -1;
+            // write a new entry
+            transaction.seek(startFreeSpace);
+            transaction.writeChar((char) (startData - length));
+            transaction.writeChar((char) length);
+            int key = keyLocal(pageIndex, entryCount);
+            transaction.seek(4).writeChar((char) (entryCount + 1));
+            transaction.writeChar((char) (startFreeSpace + FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE));
+            transaction.writeChar((char) (startData - length));
+            return key;
+        }
+    }
+
+    /**
+     * Removes an entry for a page
+     *
+     * @param pageIndex  The index of the page
+     * @param entryIndex The index within the page of the entry to remove
+     * @return The remaning free space in the page
+     * @throws StorageException When an IO operation failed
+     */
+    private int pageRemoveEntry(int pageIndex, int entryIndex) throws StorageException {
+        try (IOTransaction transaction = accessRaw(pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH, FileStoreFileBlock.BLOCK_SIZE, true)) {
+            if (transaction == null)
+                return -1;
+            char entryCount = transaction.seek(4).readChar();
+            char startFreeSpace = transaction.readChar();
+            char startData = transaction.readChar();
+            if (entryIndex < 0 || entryIndex >= (startFreeSpace - FileStoreFileBlock.PAGE_HEADER_SIZE) >>> 2)
+                throw new StorageException("The entry for the specified key is not in this page");
+            transaction.seek(FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE);
+            char offset = transaction.readChar();
+            char length = transaction.readChar();
+            if (offset == 0 || length == 0)
+                throw new StorageException("The entry for the specified key has been removed");
+            if (offset < startData) {
+                // not the last entry in this page
+                // simply marks this entry as empty by erasing the offset
+                transaction.seek(FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE);
+                transaction.writeChar('\0');
+            } else {
+                // here this is the last entry in this page
+                do {
+                    startFreeSpace -= FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE;
+                    startData += length;
+                    entryCount--;
+                    // go to the previous entry and get its info
+                    entryIndex--;
+                    transaction.seek(FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE);
+                    offset = transaction.readChar();
+                    length = transaction.readChar();
+                } while (offset == 0 && entryIndex >= 0);
+                transaction.seek(4).writeChar(entryCount);
+                transaction.writeChar(startFreeSpace);
+                transaction.writeChar(startData);
+            }
+            // compute the remaining free space
+            int remainingSpace = 0;
+            transaction.seek(FileStoreFileBlock.PAGE_HEADER_SIZE);
+            for (int i = 0; i != entryCount; i++) {
+                char eOffset = transaction.readChar();
+                char eLength = transaction.readChar();
+                if (eOffset == 0)
+                    remainingSpace += eLength;
+            }
+            remainingSpace += startData - startFreeSpace;
+            return remainingSpace;
         }
     }
 
@@ -484,7 +587,17 @@ class FileStoreFile {
      * @return The location (index within this file) of the corresponding block
      */
     private static long keyBlockLocation(int key) {
-        return (key >> 16) * FileStoreFileBlock.BLOCK_SIZE;
+        return (key >> 16) << FileStoreFileBlock.BLOCK_INDEX_LENGTH;
+    }
+
+    /**
+     * Gets the index of the page that stores the entry referred to by the specified file-local key
+     *
+     * @param key The file-local key to an entry
+     * @return The index of the page that stores the entry
+     */
+    private static int keyPageIndex(int key) {
+        return (key >> 16);
     }
 
     /**
@@ -495,5 +608,16 @@ class FileStoreFile {
      */
     private static int keyEntryIndex(int key) {
         return (key & 0xFFFF);
+    }
+
+    /**
+     * Gets the file-local key to an entry
+     *
+     * @param pageIndex  The index of the page that stores the entry
+     * @param entryIndex The index of the entry within the block
+     * @return The file-local key
+     */
+    private static int keyLocal(int pageIndex, int entryIndex) {
+        return (pageIndex << 16) | entryIndex;
     }
 }
