@@ -55,11 +55,13 @@ class IOTransationPool {
      * @param length   The length of the allowed span
      * @param writable Whether the transaction allows writing
      * @return The new transaction, or null if it cannot be prepared
+     * @throws StorageException When the backend is in a bad state
      */
-    public IOTransaction begin(IOElement backend, long location, long length, boolean writable) {
+    public IOTransaction begin(IOElement backend, long location, long length, boolean writable) throws StorageException {
         IOTransaction transaction = resolveTransaction();
         transaction.setup(backend, location, length, writable);
-        if (writable && !backend.lock()) {
+        if (writable) {
+            backend.lock();
             returnTransaction(transaction);
             return null;
         }

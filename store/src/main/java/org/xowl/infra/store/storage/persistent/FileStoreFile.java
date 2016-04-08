@@ -118,10 +118,9 @@ class FileStoreFile {
      * Initializes this data file
      *
      * @param file The file location
-     * @throws IOException      When the backing file cannot be accessed
      * @throws StorageException When the initialization failed
      */
-    public FileStoreFile(File file) throws IOException, StorageException {
+    public FileStoreFile(File file) throws StorageException {
         this(file, false);
     }
 
@@ -130,10 +129,9 @@ class FileStoreFile {
      *
      * @param file       The file location
      * @param isReadonly Whether this store is in readonly mode
-     * @throws IOException      When the backing file cannot be accessed
      * @throws StorageException When the initialization failed
      */
-    public FileStoreFile(File file, boolean isReadonly) throws IOException, StorageException {
+    public FileStoreFile(File file, boolean isReadonly) throws StorageException {
         this.isReadonly = isReadonly;
         this.channel = newChannel(file, isReadonly);
         this.transations = new IOTransationPool();
@@ -141,7 +139,7 @@ class FileStoreFile {
         for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++)
             this.blocks[i] = new FileStoreFileBlock();
         this.blockCount = new AtomicInteger(0);
-        this.size = new AtomicLong(channel.size());
+        this.size = new AtomicLong(initSize());
         this.time = new AtomicLong(Long.MIN_VALUE + 1);
         if (size.get() == 0 && !isReadonly)
             initialize();
@@ -160,6 +158,20 @@ class FileStoreFile {
             transaction.writeInt(1);
         }
         commit();
+    }
+
+    /**
+     * Gets the current size of the file channel
+     *
+     * @return The current size
+     * @throws StorageException When an IO error occurred
+     */
+    private long initSize() throws StorageException {
+        try {
+            return channel.size();
+        } catch (IOException exception) {
+            throw new StorageException(exception, "Failed to access the file channel");
+        }
     }
 
     /**
@@ -192,63 +204,67 @@ class FileStoreFile {
      * @param file       The file location
      * @param isReadonly Whether this store is in readonly mode
      * @return The file channel
-     * @throws IOException When the backing file cannot be accessed
+     * @throws StorageException When the backing file cannot be accessed
      */
-    private static FileChannel newChannel(File file, boolean isReadonly) throws IOException {
-        if (file.exists() && !file.canWrite())
-            isReadonly = true;
-        return isReadonly
-                ? FileChannel.open(file.toPath(), StandardOpenOption.READ)
-                : FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
+    private static FileChannel newChannel(File file, boolean isReadonly) throws StorageException {
+        try {
+            if (file.exists() && !file.canWrite())
+                isReadonly = true;
+            return isReadonly
+                    ? FileChannel.open(file.toPath(), StandardOpenOption.READ)
+                    : FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
+        } catch (IOException exception) {
+            throw new StorageException(exception, "Failed to create a channel to " + file.getAbsolutePath());
+        }
     }
 
     /**
      * Commits any outstanding changes
      *
-     * @return Whether the operation fully succeeded
+     * @throws StorageException When an IO operation failed
      */
-    public boolean commit() {
-        boolean success = true;
+    public void commit() throws StorageException {
         for (int i = 0; i != blockCount.get(); i++) {
             if (blocks[i].getLocation() >= 0) {
-                success &= blocks[i].commit(channel, time.get());
+                blocks[i].commit(channel, time.get());
                 tick();
             }
         }
         try {
             channel.force(true);
         } catch (IOException exception) {
-            success = false;
+            throw new StorageException(exception, "Failed to write back");
         }
-        return success;
     }
 
     /**
      * Rollback outstanding changes
      *
-     * @return Whether the operation fully succeeded
+     * @throws StorageException When an IO operation failed
      */
-    public boolean rollback() {
-        boolean success = true;
+    public void rollback() throws StorageException {
         for (int i = 0; i != blockCount.get(); i++) {
             if (blocks[i].getLocation() >= 0) {
-                success &= blocks[i].rollback(channel, time.get());
+                blocks[i].rollback(channel, time.get());
                 tick();
             }
         }
-        return success;
     }
 
     /**
      * Closes the file.
      * Any outstanding changes will be lost
      *
-     * @throws IOException When an IO operation failed
+     * @throws StorageException When an IO operation failed
      */
-    public void close() throws IOException {
-        channel.close();
-        for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++)
-            blocks[i].close();
+    public void close() throws StorageException {
+        try {
+            channel.close();
+            for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++)
+                blocks[i].close();
+        } catch (IOException exception) {
+            throw new StorageException(exception, "Failed to close the file channel");
+        }
     }
 
     /**
@@ -552,8 +568,9 @@ class FileStoreFile {
      *
      * @param index The requested index in this file
      * @return The corresponding block
+     * @throws StorageException When an IO error occurs
      */
-    private FileStoreFileBlock getBlockFor(long index) {
+    private FileStoreFileBlock getBlockFor(long index) throws StorageException {
         // is the block loaded
         long targetLocation = index & INDEX_MASK_UPPER;
         for (int i = 0; i != blockCount.get(); i++) {

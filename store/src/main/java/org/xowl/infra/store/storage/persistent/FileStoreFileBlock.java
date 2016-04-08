@@ -189,38 +189,55 @@ class FileStoreFileBlock implements IOElement {
      * @param fileSize The current size of the file
      * @param time     The current time
      * @return The reservation status
+     * @throws StorageException When an IO error occurs
      */
-    public boolean reserve(long location, FileChannel channel, long fileSize, long time) {
-        int current = state.get();
-        if (current == BLOCK_STATE_FREE && state.compareAndSet(BLOCK_STATE_FREE, BLOCK_STATE_RESERVED)) {
-            // the block is free and reserved
-            this.location = location;
-            this.isDirty = false;
-            if (this.location < fileSize) {
-                try (FileLock lock = channel.lock()) {
-                    channel.position(location);
-                    channel.read(buffer);
-                } catch (IOException exception) {
-                    zeroes();
-                }
-            } else {
-                zeroes();
-            }
-            touch(time);
-            state.compareAndSet(BLOCK_STATE_RESERVED, BLOCK_STATE_READY);
-            return true;
-        }
+    public boolean reserve(long location, FileChannel channel, long fileSize, long time) throws StorageException {
         while (true) {
-            if (this.location != location)
+            if (this.location != -1 && this.location != location)
+                // the block was reserved for another location in the meantime
                 return false;
-            current = state.get();
+            int current = state.get();
             if (current >= BLOCK_STATE_READY) {
+                // the block was made ready by another thread
                 touch(time);
                 return true;
             }
-            if (current < BLOCK_STATE_RESERVED)
-                return false;
+            if (current == BLOCK_STATE_FREE && reserveFromFree(location, channel, fileSize, time))
+                // the block was free and the reservation went ok
+                return true;
         }
+    }
+
+    /**
+     * Tries to reserve this block for location assuming it is free
+     *
+     * @param location The location for the block
+     * @param channel  The originating file channel
+     * @param fileSize The current size of the file
+     * @param time     The current time
+     * @return Whether the operation was successful
+     * @throws StorageException When an IO error occurs
+     */
+    private boolean reserveFromFree(long location, FileChannel channel, long fileSize, long time) throws StorageException {
+        if (!state.compareAndSet(BLOCK_STATE_FREE, BLOCK_STATE_RESERVED))
+            return false;
+        // the block is free and reserved
+        this.location = location;
+        this.isDirty = false;
+        if (this.location < fileSize) {
+            try (FileLock lock = channel.lock()) {
+                channel.position(location);
+                channel.read(buffer);
+            } catch (IOException exception) {
+                state.compareAndSet(BLOCK_STATE_RESERVED, BLOCK_STATE_FREE);
+                throw new StorageException(exception, "Failed to read from the backend file");
+            }
+        } else {
+            zeroes();
+        }
+        touch(time);
+        state.compareAndSet(BLOCK_STATE_RESERVED, BLOCK_STATE_READY);
+        return true;
     }
 
     /**
@@ -229,11 +246,13 @@ class FileStoreFileBlock implements IOElement {
      * @param location The expected location for this block
      * @param time     The current time
      * @return true if the shared use is granted, false if the effective location of this block was not the expected one
+     * @throws StorageException When the block is in a bad state
      */
-    public boolean useShared(long location, long time) {
+    public boolean useShared(long location, long time) throws StorageException {
         while (true) {
             int current = state.get();
             if (current < BLOCK_STATE_READY)
+                // the block may have been reclaimed in the meantime
                 return false;
             if (current == BLOCK_STATE_READY) {
                 if (state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_SHARED_USE)) {
@@ -241,6 +260,7 @@ class FileStoreFileBlock implements IOElement {
                         touch(time);
                         return true;
                     }
+                    // this is the wrong location, release the block and fail
                     releaseShared();
                     return false;
                 }
@@ -250,6 +270,7 @@ class FileStoreFileBlock implements IOElement {
                         touch(time);
                         return true;
                     }
+                    // this is the wrong location, release the block and fail
                     releaseShared();
                     return false;
                 }
@@ -260,42 +281,43 @@ class FileStoreFileBlock implements IOElement {
     /**
      * Releases a share use of this block
      *
-     * @return Whether the operation succeeded
+     * @throws StorageException When the block is in a bad state
      */
-    public boolean releaseShared() {
+    public void releaseShared() throws StorageException {
         while (true) {
             int current = state.get();
             if (current <= BLOCK_STATE_READY)
-                return false;
+                throw new StorageException("Bad block state");
             else if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_READY))
-                return true;
+                return;
             else if (current > BLOCK_STATE_SHARED_USE && state.compareAndSet(current, current - 1))
-                return true;
+                return;
         }
     }
 
     /**
      * Attempt to get an exclusive use of this block
      *
-     * @return true if the exclusive use is granted, false if the effective location of this block was not the expected one
+     * @throws StorageException When the block is in a bad state
      */
-    public boolean useExclusive() {
+    public void useExclusive() throws StorageException {
         while (true) {
             int current = state.get();
             if (current <= BLOCK_STATE_READY)
-                return false;
+                throw new StorageException("Bad block state");
             if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_EXCLUSIVE_USE))
-                return true;
+                return;
         }
     }
 
     /**
      * Releases the exclusive use of this block
      *
-     * @return Whether the operation succeeded
+     * @throws StorageException When the block is in a bad state
      */
-    public boolean releaseExclusive() {
-        return state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_SHARED_USE);
+    public void releaseExclusive() throws StorageException {
+        if (!state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_SHARED_USE))
+            throw new StorageException("Bad block state");
     }
 
     /**
@@ -306,12 +328,12 @@ class FileStoreFileBlock implements IOElement {
      * @param location The expected location for this block
      * @param time     The current time
      * @return Whether the block was reclaimed
+     * @throws StorageException When an IO error occurs
      */
-    public boolean reclaim(FileChannel channel, long location, long time) {
+    public boolean reclaim(FileChannel channel, long location, long time) throws StorageException {
         if (!useShared(location, time))
             return false;
-        if (!useExclusive())
-            return false;
+        useExclusive();
         if (isDirty) {
             try (FileLock lock = channel.lock()) {
                 channel.position(location);
@@ -321,7 +343,7 @@ class FileStoreFileBlock implements IOElement {
             } catch (IOException exception) {
                 releaseExclusive();
                 releaseShared();
-                return false;
+                throw new StorageException(exception, "Failed to write to the backend file");
             }
 
         }
@@ -335,13 +357,12 @@ class FileStoreFileBlock implements IOElement {
      * @param channel The originating file channel
      * @param time    The current time
      * @return Whether the operation succeeded
+     * @throws StorageException When an IO error occurs
      */
-    public boolean commit(FileChannel channel, long time) {
+    public boolean commit(FileChannel channel, long time) throws StorageException {
         if (!useShared(location, time))
             return false;
-        if (!useExclusive())
-            return false;
-        boolean success = true;
+        useExclusive();
         if (isDirty) {
             try (FileLock lock = channel.lock()) {
                 channel.position(location);
@@ -349,12 +370,14 @@ class FileStoreFileBlock implements IOElement {
                 channel.force(false);
                 isDirty = false;
             } catch (IOException exception) {
-                success = false;
+                releaseExclusive();
+                releaseShared();
+                throw new StorageException(exception, "Failed to write to the backend file");
             }
         }
         releaseExclusive();
         releaseShared();
-        return success;
+        return true;
     }
 
     /**
@@ -363,25 +386,26 @@ class FileStoreFileBlock implements IOElement {
      * @param channel The originating file channel
      * @param time    The current time
      * @return Whether the operation succeeded
+     * @throws StorageException When an IO error occurs
      */
-    public boolean rollback(FileChannel channel, long time) {
+    public boolean rollback(FileChannel channel, long time) throws StorageException {
         if (!useShared(location, time))
             return false;
-        if (!useExclusive())
-            return false;
-        boolean success = true;
+        useExclusive();
         if (isDirty) {
             try (FileLock lock = channel.lock()) {
                 channel.position(location);
                 channel.read(buffer);
                 isDirty = false;
             } catch (IOException exception) {
-                success = false;
+                releaseExclusive();
+                releaseShared();
+                throw new StorageException(exception, "Failed to read from the backend file");
             }
         }
         releaseExclusive();
         releaseShared();
-        return success;
+        return true;
     }
 
     /**
@@ -404,22 +428,22 @@ class FileStoreFileBlock implements IOElement {
     }
 
     @Override
-    public boolean lock() {
-        return useExclusive();
+    public void lock() throws StorageException {
+        useExclusive();
     }
 
     @Override
-    public boolean release() {
+    public void release() throws StorageException {
         while (true) {
             int current = state.get();
             if (current <= BLOCK_STATE_READY)
-                return false;
+                throw new StorageException("Bad block state");
             else if (current == BLOCK_STATE_EXCLUSIVE_USE && state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_READY))
-                return true;
+                return;
             else if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_READY))
-                return true;
+                return;
             else if (current > BLOCK_STATE_SHARED_USE && state.compareAndSet(current, current - 1))
-                return true;
+                return;
         }
     }
 
@@ -525,7 +549,7 @@ class FileStoreFileBlock implements IOElement {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         location = -1;
         isDirty = false;
     }

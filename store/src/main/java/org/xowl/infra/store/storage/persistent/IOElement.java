@@ -31,16 +31,16 @@ interface IOElement extends Closeable {
     /**
      * Attempts to lock this element for an exclusive use
      *
-     * @return Whether the attempt is successful
+     * @throws StorageException When the block is in a bad state
      */
-    boolean lock();
+    void lock() throws StorageException;
 
     /**
      * Attempts to release this element when an exclusive use has finished
      *
-     * @return Whether the attempt is successful
+     * @throws StorageException When the block is in a bad state
      */
-    boolean release();
+    void release() throws StorageException;
 
     /**
      * Gets the size of this element

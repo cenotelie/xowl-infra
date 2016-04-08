@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -33,5 +33,15 @@ public class StorageException extends Exception {
      */
     public StorageException(String message) {
         super(message);
+    }
+
+    /**
+     * Initializes this exception
+     *
+     * @param cause   The original exception
+     * @param message The exception's message
+     */
+    public StorageException(Exception cause, String message) {
+        super(message, cause);
     }
 }
