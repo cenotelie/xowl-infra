@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -27,57 +27,10 @@ import java.util.List;
 
 /**
  * A store of binary data backed by files
- * This class is NOT thread safe.
- * <p/>
- * Each data file is composed of blocks (or pages)
- * - First block:
- * - int32: Magic identifier for the store
- * - int32: Layout version
- * - int32: Number of open blocks (blocks that contain data but are not full)
- * - int32: Index of the next block to open (in number of block)
- * - array of block entries:
- * - int32: Index of the block
- * - int32: Remaining free space
  *
  * @author Laurent Wouters
  */
-class FileStore extends IOBackend {
-    /**
-     * Magic identifier of the type of store
-     */
-    private static final int MAGIC_ID = 0x784F574C;
-    /**
-     * The layout version
-     */
-    private static final int LAYOUT_VERSION = 1;
-    /**
-     * The number of remaining bytes below which a block is considered full
-     */
-    private static final int THRESHOLD_BLOCK_FULL = 24;
-    /**
-     * The maximum number of open blocks in a file
-     */
-    private static final int MAX_OPEN_BLOCKS = (FileStoreFile.BLOCK_SIZE - 16) / 8;
-    /**
-     * The maximum number of blocks per file
-     */
-    private static final int MAX_BLOCKS_PER_FILE = 1 << 16;
-    /**
-     * The size of the preamble in the header
-     * int: Magic identifier for the store
-     * int: Layout version
-     * int: Number of open blocks (blocks that contain data but are not full)
-     * int: Index of the next block to open (in number of block)
-     */
-    private static final int HEADER_PREAMBLE_SIZE = 4 + 4 + 4 + 4;
-    /**
-     * The size of an open block entry in the header
-     * int: Index of the block
-     * int: Remaining free space
-     */
-    private static final int HEADER_OPEN_BLOCK_ENTRY_SIZE = 4 + 4;
-
-
+class FileStore {
     /**
      * The directory containing the backing files
      */
@@ -122,13 +75,6 @@ class FileStore extends IOBackend {
         File candidate = new File(directory, getNameFor(name, index));
         while (candidate.exists()) {
             FileStoreFile child = new FileStoreFile(candidate, isReadonly);
-            child.seek(0);
-            int temp = child.readInt();
-            if (temp != MAGIC_ID)
-                throw new StorageException("Unsupported backing file (" + Integer.toHexString(temp) + "), expected " + Integer.toHexString(MAGIC_ID));
-            temp = child.readInt();
-            if (temp != LAYOUT_VERSION)
-                throw new StorageException("Unsupported layout version (" + Integer.toHexString(temp) + "), expected " + Integer.toHexString(LAYOUT_VERSION));
             files.add(child);
             index++;
             candidate = new File(directory, getNameFor(name, index));
@@ -136,7 +82,6 @@ class FileStore extends IOBackend {
         if (files.isEmpty() && !isReadonly) {
             // initializes
             FileStoreFile first = new FileStoreFile(candidate, false);
-            initializeFile(first);
             files.add(first);
         }
     }
@@ -147,12 +92,10 @@ class FileStore extends IOBackend {
      * @return Whether the operation succeeded
      */
     public boolean commit() {
-        state = STATE_COMMITTING;
         boolean success = true;
         for (FileStoreFile child : files) {
             success &= child.commit();
         }
-        state = (success ? STATE_READY : STATE_ERROR);
         return success;
     }
 
@@ -162,26 +105,26 @@ class FileStore extends IOBackend {
      * @return Whether the operation fully succeeded
      */
     public boolean rollback() {
-        state = STATE_COMMITTING;
         boolean success = true;
         for (FileStoreFile child : files) {
             success &= child.rollback();
         }
-        state = (success ? STATE_READY : STATE_ERROR);
         return success;
     }
 
-    @Override
-    public void close() throws IOException {
-        state = STATE_CLOSING;
-        for (FileStoreFile child : files) {
-            try {
-                child.close();
-            } catch (IOException exception) {
-                // do nothing
+    /**
+     * Closes this store
+     */
+    public void close() {
+        synchronized (files) {
+            for (FileStoreFile child : files) {
+                try {
+                    child.close();
+                } catch (IOException exception) {
+                    // do nothing
+                }
             }
         }
-        state = STATE_CLOSED;
     }
 
     /**
@@ -190,25 +133,24 @@ class FileStore extends IOBackend {
     public void clear() {
         if (isReadonly)
             return;
-        state = STATE_COMMITTING;
-        for (int i = 0; i != files.size(); i++) {
+        synchronized (files) {
+            for (int i = 0; i != files.size(); i++) {
+                try {
+                    files.get(i).close();
+                } catch (IOException exception) {
+                    // do nothing
+                }
+                File target = new File(directory, getNameFor(name, i));
+                target.delete();
+            }
+            files.clear();
             try {
-                files.get(i).close();
-            } catch (IOException exception) {
+                FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false);
+                files.add(first);
+            } catch (StorageException | IOException exception) {
                 // do nothing
             }
-            File target = new File(directory, getNameFor(name, i));
-            target.delete();
         }
-        files.clear();
-        try {
-            FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false);
-            initializeFile(first);
-            files.add(first);
-        } catch (StorageException | IOException exception) {
-            // do nothing
-        }
-        state = STATE_READY;
     }
 
     /**
@@ -218,7 +160,7 @@ class FileStore extends IOBackend {
      * @return The IO element that can be used for reading and writing
      * @throws StorageException When an IO operation failed
      */
-    public IOElement access(long key) throws StorageException {
+    public IOTransaction access(long key) throws StorageException {
         return access(key, true);
     }
 
@@ -229,7 +171,7 @@ class FileStore extends IOBackend {
      * @return The IO element that can be used for reading
      * @throws StorageException When an IO operation failed
      */
-    public IOElement read(long key) throws StorageException {
+    public IOTransaction read(long key) throws StorageException {
         return access(key, false);
     }
 
@@ -241,15 +183,10 @@ class FileStore extends IOBackend {
      * @return The IO element that can be used for reading and writing
      * @throws StorageException When an IO operation failed
      */
-    protected IOElement access(long key, boolean writable) throws StorageException {
+    protected IOTransaction access(long key, boolean writable) throws StorageException {
         if (key <= 0)
             throw new StorageException("Invalid key");
-        int index = getFileIndexFor(key);
-        int sk = getShortKey(key);
-        FileStoreFile file = files.get(index);
-        FileStoreFilePage page = file.getPageFor(sk);
-        int length = page.positionFor(sk);
-        return transaction(file, file.getIndex(), length, !isReadonly && writable);
+        return files.get(getFileIndexFor(key)).accessEntry(getShortKey(key), writable);
     }
 
     /**
@@ -263,15 +200,16 @@ class FileStore extends IOBackend {
     public long add(int entrySize) throws IOException, StorageException {
         if (isReadonly)
             throw new StorageException("The store is read only");
-        if (entrySize > FileStoreFilePage.MAX_ENTRY_SIZE)
+        if (entrySize > FileStoreFileBlock.MAX_ENTRY_SIZE)
             throw new StorageException("The entry is too large for this store");
         FileStoreFile file = files.get(files.size() - 1);
-        long result = provision(files.size() - 1, file, entrySize);
+        int result = file.allocateEntry(entrySize);
         if (result == -1) {
-            file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false);
-            initializeFile(file);
-            files.add(file);
-            result = provision(files.size() - 1, file, entrySize);
+            synchronized (files) {
+                file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false);
+                files.add(file);
+                result = file.allocateEntry(entrySize);
+            }
         }
         return result;
     }
@@ -285,130 +223,7 @@ class FileStore extends IOBackend {
     public void remove(long key) throws StorageException {
         if (isReadonly)
             throw new StorageException("The store is read only");
-        int index = getFileIndexFor(key);
-        FileStoreFile file = files.get(index);
-        clear(file, getShortKey(key));
-    }
-
-    /**
-     * Provisions an entry of the specified size in a file
-     *
-     * @param fileIndex The index of the backend file to write to
-     * @param file      The backend file to write to
-     * @param entrySize The size of the entry to write
-     * @return The key for retrieving the data
-     * @throws StorageException When an IO operation failed
-     */
-    private long provision(int fileIndex, FileStoreFile file, int entrySize) throws StorageException {
-        try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, true)) {
-            header.seek(8);
-            int openBlockCount = header.readInt();
-            int nextFreeBlock = header.readInt();
-            for (int i = 0; i != openBlockCount; i++) {
-                int blockIndex = header.readInt();
-                int blockRemaining = header.readInt();
-                if (blockIndex == -1)
-                    // this is a free block slot
-                    continue;
-                if (blockRemaining >= entrySize + FileStoreFilePage.ENTRY_OVERHEAD) {
-                    // the entry could fit in the page
-                    FileStoreFilePage page = file.getPage(blockIndex);
-                    if (!page.canStore(entrySize))
-                        continue;
-                    long key = getFullKey(fileIndex, page.registerEntry(entrySize));
-                    blockRemaining -= entrySize;
-                    blockRemaining -= FileStoreFilePage.ENTRY_OVERHEAD;
-                    if (blockRemaining >= THRESHOLD_BLOCK_FULL) {
-                        header.seek(HEADER_PREAMBLE_SIZE + i * HEADER_OPEN_BLOCK_ENTRY_SIZE + 4);
-                        header.writeInt(blockRemaining);
-                    } else {
-                        header.seek(HEADER_PREAMBLE_SIZE + i * HEADER_OPEN_BLOCK_ENTRY_SIZE);
-                        header.writeInt(-1);
-                        header.writeInt(0);
-                    }
-                    return key;
-                }
-            }
-
-            // cannot fit in an open block
-            if (nextFreeBlock >= MAX_BLOCKS_PER_FILE)
-                return PersistedNode.KEY_NOT_PRESENT;
-            FileStoreFilePage page = file.getPage(nextFreeBlock);
-            page.setReuseEmptyEntries();
-            nextFreeBlock++;
-            int remaining = FileStoreFilePage.MAX_ENTRY_SIZE - entrySize - FileStoreFilePage.ENTRY_OVERHEAD;
-            if (remaining >= THRESHOLD_BLOCK_FULL) {
-                header.seek(HEADER_PREAMBLE_SIZE);
-                boolean found = false;
-                for (int i = 0; i != openBlockCount; i++) {
-                    int blockIndex = header.readInt();
-                    header.readInt();
-                    if (blockIndex == -1) {
-                        header.seek(HEADER_PREAMBLE_SIZE + i * HEADER_OPEN_BLOCK_ENTRY_SIZE);
-                        header.writeInt(nextFreeBlock - 1);
-                        header.writeInt(remaining);
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found && openBlockCount < MAX_OPEN_BLOCKS) {
-                    header.seek(HEADER_PREAMBLE_SIZE + openBlockCount * HEADER_OPEN_BLOCK_ENTRY_SIZE);
-                    header.writeInt(nextFreeBlock - 1);
-                    header.writeInt(remaining);
-                    openBlockCount++;
-                }
-            }
-            header.seek(8);
-            header.writeInt(openBlockCount);
-            header.writeInt(nextFreeBlock);
-            return getFullKey(fileIndex, page.registerEntry(entrySize));
-        } catch (IOException exception) {
-            // an IOException cannot happen
-            return PersistedNode.KEY_NOT_PRESENT;
-        }
-    }
-
-    /**
-     * Clears an entry from a file
-     *
-     * @param file The backend file containing the entry
-     * @param key  The key of the entry to remove
-     * @throws StorageException When an IO operation failed
-     */
-    private void clear(FileStoreFile file, int key) throws StorageException {
-        try (IOElement header = transaction(file, 0, FileStoreFile.BLOCK_SIZE, true)) {
-            FileStoreFilePage page = file.getPageFor(key);
-            int length = page.removeEntry(key);
-            header.seek(8);
-            int openBlockCount = header.readInt();
-            int nextFreeBlock = header.readInt();
-            for (int i = 0; i != openBlockCount; i++) {
-                int blockIndex = header.readInt();
-                int blockRemaining = header.readInt();
-                if (blockIndex == page.getIndex()) {
-                    // already open
-                    blockRemaining += length + FileStoreFilePage.ENTRY_OVERHEAD;
-                    header.seek(HEADER_PREAMBLE_SIZE + i * HEADER_OPEN_BLOCK_ENTRY_SIZE + 4);
-                    header.writeInt(blockRemaining);
-                    return;
-                }
-            }
-            // the block was not open
-            if (openBlockCount < MAX_OPEN_BLOCKS) {
-                int remaining = page.getFreeSpace();
-                if (remaining >= THRESHOLD_BLOCK_FULL) {
-                    header.seek(HEADER_PREAMBLE_SIZE + openBlockCount * HEADER_OPEN_BLOCK_ENTRY_SIZE);
-                    header.writeInt(page.getIndex());
-                    header.writeInt(remaining);
-                    openBlockCount++;
-                    header.seek(8);
-                    header.writeInt(openBlockCount);
-                    header.writeInt(nextFreeBlock);
-                }
-            }
-        } catch (IOException exception) {
-            // an IOException cannot happen
-        }
+        files.get(getFileIndexFor(key)).removeEntry(getShortKey(key));
     }
 
     /**
@@ -464,21 +279,5 @@ class FileStore extends IOBackend {
      */
     public static long getFullKey(int radical, int shortKey) {
         return (((long) radical << 32) | (long) shortKey);
-    }
-
-    /**
-     * Initializes a backing file
-     *
-     * @param file The file to initialize
-     * @throws StorageException When an IO error occurred
-     */
-    private static void initializeFile(FileStoreFile file) throws StorageException {
-        file.seek(0);
-        file.writeInt(MAGIC_ID);
-        file.writeInt(LAYOUT_VERSION);
-        file.writeInt(0);
-        file.writeInt(1);
-        if (!file.commit())
-            throw new StorageException("Failed to initialize the file");
     }
 }
