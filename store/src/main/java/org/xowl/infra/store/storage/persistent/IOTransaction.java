@@ -328,4 +328,9 @@ abstract class IOTransaction implements Closeable {
         backend.writeDouble(index, value);
         index += 8;
     }
+
+    @Override
+    public void close() {
+        // do nothing here
+    }
 }

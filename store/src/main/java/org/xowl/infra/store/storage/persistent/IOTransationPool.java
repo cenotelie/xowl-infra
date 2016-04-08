@@ -80,8 +80,7 @@ class IOTransationPool {
         return new IOTransaction() {
             @Override
             public void close() {
-                if (writable)
-                    backend.release();
+                backend.release();
                 returnTransaction(this);
             }
         };

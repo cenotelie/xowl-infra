@@ -1,21 +1,21 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- * <p>
+ *
  * Contributors:
- * Laurent Wouters - lwouters@xowl.org
+ *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
 package org.xowl.infra.store.storage.persistent;
@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Represents a persisted binary file
@@ -102,21 +104,21 @@ class FileStoreFile {
     /**
      * The number of currently loaded blocks
      */
-    private volatile int blockCount;
+    private final AtomicInteger blockCount;
     /**
      * The total size of this file
      */
-    private volatile long size;
+    private final AtomicLong size;
     /**
      * The current time
      */
-    private volatile long time;
+    private final AtomicLong time;
 
     /**
      * Initializes this data file
      *
      * @param file The file location
-     * @throws IOException When the backing file cannot be accessed
+     * @throws IOException      When the backing file cannot be accessed
      * @throws StorageException When the initialization failed
      */
     public FileStoreFile(File file) throws IOException, StorageException {
@@ -128,7 +130,7 @@ class FileStoreFile {
      *
      * @param file       The file location
      * @param isReadonly Whether this store is in readonly mode
-     * @throws IOException When the backing file cannot be accessed
+     * @throws IOException      When the backing file cannot be accessed
      * @throws StorageException When the initialization failed
      */
     public FileStoreFile(File file, boolean isReadonly) throws IOException, StorageException {
@@ -138,10 +140,10 @@ class FileStoreFile {
         this.blocks = new FileStoreFileBlock[FILE_MAX_LOADED_BLOCKS];
         for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++)
             this.blocks[i] = new FileStoreFileBlock();
-        this.blockCount = 0;
-        this.size = channel.size();
-        this.time = Long.MIN_VALUE;
-        if (size == 0 && !isReadonly)
+        this.blockCount = new AtomicInteger(0);
+        this.size = new AtomicLong(channel.size());
+        this.time = new AtomicLong(Long.MIN_VALUE + 1);
+        if (size.get() == 0 && !isReadonly)
             initialize();
     }
 
@@ -158,6 +160,30 @@ class FileStoreFile {
             transaction.writeInt(1);
         }
         commit();
+    }
+
+    /**
+     * Extends the size of this file to the specified one
+     *
+     * @param newSize The new size
+     * @return The final size
+     */
+    private long extendSizeTo(long newSize) {
+        while (true) {
+            long current = size.get();
+            long target = Math.max(current, newSize);
+            if (size.compareAndSet(current, target))
+                return target;
+        }
+    }
+
+    /**
+     * Ticks the time of this file
+     *
+     * @return The new time
+     */
+    private long tick() {
+        return time.incrementAndGet();
     }
 
     /**
@@ -183,10 +209,10 @@ class FileStoreFile {
      */
     public boolean commit() {
         boolean success = true;
-        for (int i = 0; i != blockCount; i++) {
+        for (int i = 0; i != blockCount.get(); i++) {
             if (blocks[i].getLocation() >= 0) {
-                success &= blocks[i].commit(channel, time);
-                time++;
+                success &= blocks[i].commit(channel, time.get());
+                tick();
             }
         }
         try {
@@ -204,10 +230,10 @@ class FileStoreFile {
      */
     public boolean rollback() {
         boolean success = true;
-        for (int i = 0; i != blockCount; i++) {
+        for (int i = 0; i != blockCount.get(); i++) {
             if (blocks[i].getLocation() >= 0) {
-                success &= blocks[i].rollback(channel, time);
-                time++;
+                success &= blocks[i].rollback(channel, time.get());
+                tick();
             }
         }
         return success;
@@ -344,9 +370,6 @@ class FileStoreFile {
         }
     }
 
-
-
-
     /**
      * Gets an access to the entry for the specified key
      *
@@ -361,25 +384,32 @@ class FileStoreFile {
         FileStoreFileBlock block = getBlockFor(keyBlockLocation(key));
         long offset;
         long length;
-        try (IOTransaction transaction = transations.begin(block, 0, FileStoreFileBlock.PAGE_HEADER_SIZE, false, time)) {
-            time++;
+        try (IOTransaction transaction = transations.begin(block, 0, FileStoreFileBlock.PAGE_HEADER_SIZE, false)) {
+            if (transaction == null) {
+                block.releaseShared();
+                return null;
+            }
             int entryIndex = keyEntryIndex(key);
             transaction.seek(FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE);
             offset = transaction.readChar();
             length = transaction.readChar();
         }
-        if (offset == 0 || length == 0)
+        if (offset == 0 || length == 0) {
+            block.releaseShared();
             throw new StorageException("The entry for the specified key has been removed");
-        IOTransaction transaction = transations.begin(block, offset, length, !isReadonly && writable, time);
-        time++;
+        }
+        IOTransaction transaction = transations.begin(block, offset, length, !isReadonly && writable);
+        if (transaction == null)
+            block.releaseShared();
         return transaction;
     }
 
     /**
      * Access the content of this file through a transaction
      * A transaction must be within the boundaries of a block.
-     * @param index The index within this file of the reserved area for the transaction
-     * @param length The length of the reserved area for the transaction
+     *
+     * @param index    The index within this file of the reserved area for the transaction
+     * @param length   The length of the reserved area for the transaction
      * @param writable Whether the transaction shall allow writing
      * @return The transaction
      * @throws StorageException When the requested transaction cannot be fulfilled
@@ -389,8 +419,9 @@ class FileStoreFile {
         if (index - targetLocation + length > FileStoreFileBlock.BLOCK_SIZE)
             throw new StorageException("IO transaction cannot cross block boundaries");
         FileStoreFileBlock block = getBlockFor(index);
-        IOTransaction transaction = transations.begin(block, index - targetLocation, length, !isReadonly && writable, time);
-        time++;
+        IOTransaction transaction = transations.begin(block, index - targetLocation, length, !isReadonly && writable);
+        if (transaction == null)
+            block.releaseShared();
         return transaction;
     }
 
@@ -398,22 +429,26 @@ class FileStoreFile {
      * Acquires the block for the specified index in this file
      *
      * @param index The requested index in this file
-     * @return The index of the corresponding block
+     * @return The corresponding block
      */
     private FileStoreFileBlock getBlockFor(long index) {
         // is the block loaded
         long targetLocation = index & INDEX_MASK_UPPER;
-        for (int i = 0; i != blockCount; i++) {
-            if (blocks[i].getLocation() == targetLocation) {
+        for (int i = 0; i != blockCount.get(); i++) {
+            if (blocks[i].getLocation() == targetLocation && blocks[i].useShared(targetLocation, time.get())) {
+                tick();
                 return blocks[i];
             }
         }
         // we need to load the block
-        for (int i = blockCount; i != FILE_MAX_LOADED_BLOCKS; i++) {
-            if (blocks[i].getLocation() == -1 && blocks[i].reserve(targetLocation, channel, size, time)) {
-                time++;
-                size = Math.max(size, targetLocation + FileStoreFileBlock.BLOCK_SIZE);
-                return blocks[i];
+        for (int i = blockCount.get(); i != FILE_MAX_LOADED_BLOCKS; i++) {
+            if (blocks[i].getLocation() == -1 && blocks[i].reserve(targetLocation, channel, size.get(), time.get())) {
+                tick();
+                extendSizeTo(Math.max(size.get(), targetLocation + FileStoreFileBlock.BLOCK_SIZE));
+                if (blocks[i].useShared(targetLocation, time.get())) {
+                    tick();
+                    return blocks[i];
+                }
             }
         }
         // no free block, look for a clean block to reclaim
@@ -429,11 +464,14 @@ class FileStoreFile {
             }
             if (minIndex >= 0
                     && blocks[minIndex].getLastHit() == minTime
-                    && blocks[minIndex].reclaim(channel, time)) {
-                if (blocks[minIndex].reserve(targetLocation, channel, size, time)) {
-                    time++;
-                    size = Math.max(size, targetLocation + FileStoreFileBlock.BLOCK_SIZE);
-                    return blocks[minIndex];
+                    && blocks[minIndex].reclaim(channel, targetLocation, time.get())) {
+                if (blocks[minIndex].reserve(targetLocation, channel, size.get(), time.get())) {
+                    tick();
+                    extendSizeTo(Math.max(size.get(), targetLocation + FileStoreFileBlock.BLOCK_SIZE));
+                    if (blocks[minIndex].useShared(targetLocation, time.get())) {
+                        tick();
+                        return blocks[minIndex];
+                    }
                 }
             }
         }
@@ -441,6 +479,7 @@ class FileStoreFile {
 
     /**
      * Gets the location of the block referred to by the specified file-local key
+     *
      * @param key The file-local key to an entry
      * @return The location (index within this file) of the corresponding block
      */
@@ -450,6 +489,7 @@ class FileStoreFile {
 
     /**
      * Gets the index of the entry referred to by the specified file-local key
+     *
      * @param key The file-local key to an entry
      * @return The index of the entry within the associated block
      */

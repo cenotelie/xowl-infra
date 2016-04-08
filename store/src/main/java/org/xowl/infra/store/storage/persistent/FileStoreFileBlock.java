@@ -414,7 +414,17 @@ class FileStoreFileBlock implements IOElement {
 
     @Override
     public boolean release() {
-        return releaseExclusive();
+        while (true) {
+            int current = state.get();
+            if (current <= BLOCK_STATE_READY)
+                return false;
+            else if (current == BLOCK_STATE_EXCLUSIVE_USE && state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_READY))
+                return true;
+            else if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_READY))
+                return true;
+            else if (current > BLOCK_STATE_SHARED_USE && state.compareAndSet(current, current - 1))
+                return true;
+        }
     }
 
     @Override
