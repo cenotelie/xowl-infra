@@ -46,6 +46,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Entry layout:
  * - offset (2 bytes)
  * - length (2 bytes)
+ * <p>
+ * State machine of a block:
+ * reserve:          Free --&gt; Reserved --&gt; Ready
+ * useShared:        Ready        --&gt; SharedUse(0)
+ * useShared:        SharedUse(n) --&gt; SharedUse(n+1)
+ * releaseShared:    SharedUse(n) --&gt; SharedUse(n-1)
+ * releaseShared:    SharedUse(0) --&gt; Ready
+ * useExclusive:     SharedUse(0) --&gt; ExclusiveUse
+ * releaseExclusive: ExclusiveUse --&gt; SharedUse(0)
+ * reclaim:      Ready --&gt; Free
  *
  * @author Laurent Wouters
  */
@@ -76,13 +86,13 @@ class FileStoreFileBlock implements IOElement {
      */
     public static final int BLOCK_STATE_READY = 2;
     /**
-     * The block is locked by a writing operation
+     * The block is used in an exclusive IO operation
      */
-    public static final int BLOCK_STATE_LOCKED = 3;
+    public static final int BLOCK_STATE_EXCLUSIVE_USE = 3;
     /**
-     * The block is currently used by a read operation
+     * The block is used by one or more users in a shared manner
      */
-    public static final int BLOCK_STATE_READING = 4;
+    public static final int BLOCK_STATE_SHARED_USE = 4;
 
     /**
      * The version of the page layout to use
@@ -167,6 +177,15 @@ class FileStoreFileBlock implements IOElement {
     }
 
     /**
+     * Touches this block
+     *
+     * @param time The current time
+     */
+    private void touch(long time) {
+        lastHit = Math.max(lastHit, time);
+    }
+
+    /**
      * Tries to reserve this block
      *
      * @param location The location for the block
@@ -180,7 +199,6 @@ class FileStoreFileBlock implements IOElement {
         if (current == BLOCK_STATE_FREE && state.compareAndSet(BLOCK_STATE_FREE, BLOCK_STATE_RESERVED)) {
             // the block is free and reserved
             this.location = location;
-            this.lastHit = time;
             this.isDirty = false;
             if (this.location < fileSize) {
                 try (FileLock lock = channel.lock()) {
@@ -192,6 +210,7 @@ class FileStoreFileBlock implements IOElement {
             } else {
                 zeroes();
             }
+            touch(time);
             state.compareAndSet(BLOCK_STATE_RESERVED, BLOCK_STATE_READY);
             return true;
         }
@@ -199,11 +218,119 @@ class FileStoreFileBlock implements IOElement {
             if (this.location != location)
                 return false;
             current = state.get();
-            if (current >= BLOCK_STATE_READY)
+            if (current >= BLOCK_STATE_READY) {
+                touch(time);
                 return true;
+            }
             if (current < BLOCK_STATE_RESERVED)
                 return false;
         }
+    }
+
+    /**
+     * Attempt to get a shared use of this block for the specified expected location
+     *
+     * @param location The expected location for this block
+     * @param time     The current time
+     * @return true if the shared use is granted, false if the effective location of this block was not the expected one
+     */
+    public boolean useShared(long location, long time) {
+        while (true) {
+            int current = state.get();
+            if (current < BLOCK_STATE_READY)
+                return false;
+            if (current == BLOCK_STATE_READY) {
+                if (state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_SHARED_USE)) {
+                    if (this.location == location) {
+                        touch(time);
+                        return true;
+                    }
+                    releaseShared();
+                    return false;
+                }
+            } else if (current >= BLOCK_STATE_SHARED_USE) {
+                if (state.compareAndSet(current, current + 1)) {
+                    if (this.location == location) {
+                        touch(time);
+                        return true;
+                    }
+                    releaseShared();
+                    return false;
+                }
+            }
+        }
+    }
+
+    /**
+     * Releases a share use of this block
+     *
+     * @return Whether the operation succeeded
+     */
+    public boolean releaseShared() {
+        while (true) {
+            int current = state.get();
+            if (current <= BLOCK_STATE_READY)
+                return false;
+            else if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_READY))
+                return true;
+            else if (current > BLOCK_STATE_SHARED_USE && state.compareAndSet(current, current - 1))
+                return true;
+        }
+    }
+
+    /**
+     * Attempt to get an exclusive use of this block
+     *
+     * @return true if the exclusive use is granted, false if the effective location of this block was not the expected one
+     */
+    public boolean useExclusive() {
+        while (true) {
+            int current = state.get();
+            if (current <= BLOCK_STATE_READY)
+                return false;
+            if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_EXCLUSIVE_USE))
+                return true;
+        }
+    }
+
+    /**
+     * Releases the exclusive use of this block
+     *
+     * @return Whether the operation succeeded
+     */
+    public boolean releaseExclusive() {
+        return state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_SHARED_USE);
+    }
+
+    /**
+     * Reclaims this block
+     * Commits any outstanding changes to the backing file
+     *
+     * @param channel  The originating file channel
+     * @param location The expected location for this block
+     * @param time     The current time
+     * @return Whether the block was reclaimed
+     */
+    public boolean reclaim(FileChannel channel, long location, long time) {
+        if (!useShared(location, time))
+            return false;
+        if (!useExclusive())
+            return false;
+        if (isDirty) {
+            try (FileLock lock = channel.lock()) {
+                channel.position(location);
+                channel.write(buffer);
+                channel.force(false);
+                isDirty = false;
+            } catch (IOException exception) {
+                releaseExclusive();
+                releaseShared();
+                return false;
+            }
+
+        }
+        this.location = -1;
+        return state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_FREE);
     }
 
     /**
@@ -214,19 +341,23 @@ class FileStoreFileBlock implements IOElement {
      * @return Whether the operation succeeded
      */
     public boolean commit(FileChannel channel, long time) {
-        if (!isDirty)
-            return true;
-        if (!onWriteBegin(time))
+        if (!useShared(location, time))
+            return false;
+        if (!useExclusive())
             return false;
         boolean success = true;
-        try (FileLock lock = channel.lock()) {
-            channel.position(location);
-            channel.write(buffer);
-            isDirty = false;
-        } catch (IOException exception) {
-            success = false;
+        if (isDirty) {
+            try (FileLock lock = channel.lock()) {
+                channel.position(location);
+                channel.write(buffer);
+                channel.force(false);
+                isDirty = false;
+            } catch (IOException exception) {
+                success = false;
+            }
         }
-        onWriteEnd();
+        releaseExclusive();
+        releaseShared();
         return success;
     }
 
@@ -238,56 +369,23 @@ class FileStoreFileBlock implements IOElement {
      * @return Whether the operation succeeded
      */
     public boolean rollback(FileChannel channel, long time) {
-        if (!isDirty)
-            return true;
-        if (!onWriteBegin(time))
+        if (!useShared(location, time))
+            return false;
+        if (!useExclusive())
             return false;
         boolean success = true;
-        try (FileLock lock = channel.lock()) {
-            channel.position(location);
-            channel.read(buffer);
-            isDirty = false;
-        } catch (IOException exception) {
-            success = false;
+        if (isDirty) {
+            try (FileLock lock = channel.lock()) {
+                channel.position(location);
+                channel.read(buffer);
+                isDirty = false;
+            } catch (IOException exception) {
+                success = false;
+            }
         }
-        onWriteEnd();
+        releaseExclusive();
+        releaseShared();
         return success;
-    }
-
-    /**
-     * Reclaims this block
-     * Commits any outstanding changes to the backing file
-     *
-     * @return Whether the block was reclaimed
-     */
-    public boolean reclaim(FileChannel channel, long time) {
-        int current = state.get();
-        while (true) {
-            // if the current block is not usable, exit
-            if (current < BLOCK_STATE_READY)
-                return false;
-            // block is dirty, try to lock, commit and reclaim in one go
-            if (isDirty) {
-                if (!onWriteBegin(time))
-                    return false;
-                try (FileLock lock = channel.lock()) {
-                    channel.position(location);
-                    channel.write(buffer);
-                    channel.force(false);
-                    isDirty = false;
-                } catch (IOException exception) {
-                    onWriteEnd();
-                    return false;
-                }
-                location = -1;
-                return state.compareAndSet(BLOCK_STATE_LOCKED, BLOCK_STATE_FREE);
-            }
-            // if the state is ready is is successfully locked for reclamation
-            if (current == BLOCK_STATE_READY && state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_FREE)) {
-                location = -1;
-                return true;
-            }
-        }
     }
 
     /**
@@ -310,6 +408,16 @@ class FileStoreFileBlock implements IOElement {
     }
 
     @Override
+    public boolean lock() {
+        return useExclusive();
+    }
+
+    @Override
+    public boolean release() {
+        return releaseExclusive();
+    }
+
+    @Override
     public long getSize() {
         return BLOCK_SIZE;
     }
@@ -317,65 +425,6 @@ class FileStoreFileBlock implements IOElement {
     @Override
     public boolean canRead(long index, int length) {
         return (index + length <= BLOCK_SIZE);
-    }
-
-    @Override
-    public boolean onReadBegin(long time) {
-        while (true) {
-            int current = state.get();
-            // if the current block is not usable, exit
-            if (current < BLOCK_STATE_READY)
-                return false;
-            // if the block is being locked for writing, retry
-            if (current == BLOCK_STATE_LOCKED)
-                continue;
-            // if the block is ready but not used, try to set it as reading
-            if (current == BLOCK_STATE_READY && state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_READING)) {
-                lastHit = time;
-                return true;
-            }
-            // if the block is being read, try to increment
-            if (current >= BLOCK_STATE_READING && state.compareAndSet(current, current + 1)) {
-                lastHit = time;
-                return true;
-            }
-        }
-    }
-
-    @Override
-    public void onReadEnd() {
-        while (true) {
-            int current = state.get();
-            // if this is the only read operation, back to the ready state
-            if (current == BLOCK_STATE_READING && state.compareAndSet(BLOCK_STATE_READING, BLOCK_STATE_READY))
-                return;
-            // there is more than one reading operation, decrement
-            if (current > BLOCK_STATE_READING && state.compareAndSet(current, current - 1))
-                return;
-        }
-    }
-
-    @Override
-    public boolean onWriteBegin(long time) {
-        while (true) {
-            int current = state.get();
-            // if the current block is not usable, exit
-            if (current < BLOCK_STATE_READY)
-                return false;
-            // if the block is being locked for writing, retry
-            if (current == BLOCK_STATE_LOCKED)
-                continue;
-            // if the block is ready but not used, try to set it as reading
-            if (current == BLOCK_STATE_READY && state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_LOCKED)) {
-                lastHit = time;
-                return true;
-            }
-        }
-    }
-
-    @Override
-    public void onWriteEnd() {
-        state.compareAndSet(BLOCK_STATE_LOCKED, BLOCK_STATE_READY);
     }
 
     @Override

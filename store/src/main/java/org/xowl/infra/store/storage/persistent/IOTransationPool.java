@@ -54,14 +54,16 @@ class IOTransationPool {
      * @param location The location of the span for this transaction within the backend
      * @param length   The length of the allowed span
      * @param writable Whether the transaction allows writing
-     * @param time     The current time
      * @return The new transaction, or null if it cannot be prepared
      */
-    public IOTransaction begin(IOElement backend, long location, long length, boolean writable, long time) {
+    public IOTransaction begin(IOElement backend, long location, long length, boolean writable) {
         IOTransaction transaction = resolveTransaction();
-        if (transaction.setup(backend, location, length, writable, time))
-            return transaction;
-        return null;
+        transaction.setup(backend, location, length, writable);
+        if (writable && !backend.lock()) {
+            returnTransaction(transaction);
+            return null;
+        }
+        return transaction;
     }
 
     /**
@@ -78,7 +80,8 @@ class IOTransationPool {
         return new IOTransaction() {
             @Override
             public void close() {
-                super.close();
+                if (writable)
+                    backend.release();
                 returnTransaction(this);
             }
         };

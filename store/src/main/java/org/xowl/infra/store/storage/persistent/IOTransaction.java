@@ -30,7 +30,7 @@ import java.io.Closeable;
  *
  * @author Laurent Wouters
  */
-class IOTransaction implements Closeable {
+abstract class IOTransaction implements Closeable {
     /**
      * The backing IO element
      */
@@ -69,16 +69,13 @@ class IOTransaction implements Closeable {
      * @param location The location of the span for this transaction within the backend
      * @param length   The length of the allowed span
      * @param writable Whether the transaction allows writing
-     * @param time     The current time
-     * @return Whether the operation succeeded
      */
-    public boolean setup(IOElement backend, long location, long length, boolean writable, long time) {
+    public void setup(IOElement backend, long location, long length, boolean writable) {
         this.backend = backend;
         this.location = location;
         this.length = length;
         this.writable = writable;
         this.index = location;
-        return writable ? backend.onWriteBegin(time) : backend.onReadBegin(time);
     }
 
     /**
@@ -330,13 +327,5 @@ class IOTransaction implements Closeable {
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeDouble(index, value);
         index += 8;
-    }
-
-    @Override
-    public void close() {
-        if (writable)
-            backend.onWriteEnd();
-        else
-            backend.onReadEnd();
     }
 }

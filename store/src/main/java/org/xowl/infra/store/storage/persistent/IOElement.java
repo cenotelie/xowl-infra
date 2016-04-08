@@ -29,6 +29,20 @@ import java.io.Closeable;
  */
 interface IOElement extends Closeable {
     /**
+     * Attempts to lock this element for an exclusive use
+     *
+     * @return Whether the attempt is successful
+     */
+    boolean lock();
+
+    /**
+     * Attempts to release this element when an exclusive use has finished
+     *
+     * @return Whether the attempt is successful
+     */
+    boolean release();
+
+    /**
      * Gets the size of this element
      *
      * @return The size of this element, or -1 if the operation failed
@@ -43,32 +57,6 @@ interface IOElement extends Closeable {
      * @return true if this is legal to read
      */
     boolean canRead(long index, int length);
-
-    /**
-     * Prepare for reading operations
-     *
-     * @param time The current time
-     * @return Whether the operation succeeded
-     */
-    boolean onReadBegin(long time);
-
-    /**
-     * Ends a reading operation on this block
-     */
-    void onReadEnd();
-
-    /**
-     * Prepare for writing operations
-     *
-     * @param time The current time
-     * @return Whether the operation succeeded
-     */
-    boolean onWriteBegin(long time);
-
-    /**
-     * Ends a writing operation on this block
-     */
-    void onWriteEnd();
 
     /**
      * Reads a single byte at the current index
