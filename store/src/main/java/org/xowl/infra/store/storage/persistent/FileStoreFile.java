@@ -36,8 +36,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * - int32: Number of open blocks (blocks that contain data but are not full)
  * - int32: Index of the next block to open (in number of block)
  * - array of block entries:
- * - int32: Index of the block
- * - int32: Remaining free space
+ * - char: Index of the block
+ * - char: Remaining free space
  *
  * @author Laurent Wouters
  */
@@ -60,10 +60,10 @@ class FileStoreFile {
     private static final int FILE_PREAMBULE_HEADER_SIZE = 4 + 4 + 4 + 4;
     /**
      * The size of an open block entry in the preambule
-     * int: Index of the block
-     * int: Remaining free space
+     * char: Index of the block
+     * char: Remaining free space
      */
-    private static final int FILE_PREAMBULE_ENTRY_SIZE = 4 + 4;
+    private static final int FILE_PREAMBULE_ENTRY_SIZE = 2 + 2;
     /**
      * The number of remaining bytes below which a block is considered full
      */
@@ -260,30 +260,36 @@ class FileStoreFile {
      */
     public int allocateEntry(int entrySize) throws StorageException {
         try (IOTransaction transaction = accessRaw(0, FileStoreFileBlock.BLOCK_SIZE, true)) {
+            if (transaction == null)
+                return -1;
             transaction.seek(8);
             int openBlockCount = transaction.readInt();
             int nextFreeBlock = transaction.readInt();
-            for (int i = 0; i != openBlockCount; i++) {
-                int blockIndex = transaction.readInt();
-                int blockRemaining = transaction.readInt();
-                if (blockIndex == -1)
+            int inspected = 0;
+            for (int i = 0; i != FILE_MAX_OPEN_BLOCKS; i++) {
+                if (inspected >= openBlockCount)
+                    break;
+                char blockIndex = transaction.readChar();
+                char blockRemaining = transaction.readChar();
+                if (blockIndex == 0)
                     // this is a free block slot
                     continue;
-                if (blockRemaining >= entrySize + FileStoreFilePage.ENTRY_OVERHEAD) {
+                inspected++;
+                if (blockRemaining >= entrySize + FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE) {
                     // the entry could fit in the page
-                    FileStoreFilePage page = file.getPage(blockIndex);
-                    if (!page.canStore(entrySize))
+                    int key = pageTryStoreEntry(blockIndex, entrySize);
+                    if (key == -1)
                         continue;
-                    long key = getFullKey(fileIndex, page.registerEntry(entrySize));
                     blockRemaining -= entrySize;
-                    blockRemaining -= FileStoreFilePage.ENTRY_OVERHEAD;
+                    blockRemaining -= FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE;
                     if (blockRemaining >= BLOCK_FULL_THRESHOLD) {
-                        header.seek(FILE_PREAMBLE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE + 4);
-                        header.writeInt(blockRemaining);
+                        transaction.seek(FILE_PREAMBULE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE + 2);
+                        transaction.writeChar(blockRemaining);
                     } else {
-                        header.seek(FILE_PREAMBLE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE);
-                        header.writeInt(-1);
-                        header.writeInt(0);
+                        transaction.seek(FILE_PREAMBULE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE);
+                        transaction.writeChar('\0');
+                        transaction.writeChar('\0');
+                        transaction.seek(8).writeInt(openBlockCount - 1);
                     }
                     return key;
                 }
@@ -291,42 +297,19 @@ class FileStoreFile {
 
             // cannot fit in an open block
             if (nextFreeBlock >= FILE_MAX_BLOCKS)
-                return PersistedNode.KEY_NOT_PRESENT;
-            FileStoreFilePage page = file.getPage(nextFreeBlock);
-            page.setReuseEmptyEntries();
-            nextFreeBlock++;
-            int remaining = FileStoreFilePage.MAX_ENTRY_SIZE - entrySize - FileStoreFilePage.ENTRY_OVERHEAD;
-            if (remaining >= BLOCK_FULL_THRESHOLD) {
-                header.seek(FILE_PREAMBLE_HEADER_SIZE);
-                boolean found = false;
-                for (int i = 0; i != openBlockCount; i++) {
-                    int blockIndex = header.readInt();
-                    header.readInt();
-                    if (blockIndex == -1) {
-                        header.seek(FILE_PREAMBLE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE);
-                        header.writeInt(nextFreeBlock - 1);
-                        header.writeInt(remaining);
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found && openBlockCount < FILE_MAX_OPEN_BLOCKS) {
-                    header.seek(FILE_PREAMBLE_HEADER_SIZE + openBlockCount * FILE_PREAMBULE_ENTRY_SIZE);
-                    header.writeInt(nextFreeBlock - 1);
-                    header.writeInt(remaining);
-                    openBlockCount++;
-                }
-            }
-            header.seek(8);
-            header.writeInt(openBlockCount);
-            header.writeInt(nextFreeBlock);
-            return getFullKey(fileIndex, page.registerEntry(entrySize));
-        } catch (IOException exception) {
-            // an IOException cannot happen
-            return PersistedNode.KEY_NOT_PRESENT;
+                return -1;
+            if (!pageInitialize(nextFreeBlock))
+                return -1;
+            int key = pageTryStoreEntry(nextFreeBlock, entrySize);
+            if (key == -1)
+                return -1;
+            int remaining = FileStoreFileBlock.MAX_ENTRY_SIZE - entrySize - FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE;
+            pageMarkOpen(transaction, nextFreeBlock, remaining);
+            transaction.seek(8 + 4);
+            transaction.writeInt(nextFreeBlock + 1);
+            return key;
         }
     }
-
 
     /**
      * Clears an entry from this file
@@ -342,30 +325,66 @@ class FileStoreFile {
         try (IOTransaction transaction = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, true)) {
             if (transaction == null)
                 return;
-            int openBlockCount = transaction.seek(8).readInt();
-            transaction.readInt();
-            for (int i = 0; i != openBlockCount; i++) {
-                int blockIndex = transaction.readInt();
-                if (blockIndex == pageIndex) {
-                    // already open
-                    transaction.seek(FILE_PREAMBULE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE + 4);
-                    transaction.writeInt(remaining);
-                    return;
-                }
+            pageMarkOpen(transaction, pageIndex, remaining);
+        }
+    }
+
+    /**
+     * Marks a page as open
+     *
+     * @param transaction The current transaction
+     * @param pageIndex   The page to mark as open
+     * @param remaining   The remaining space in the page
+     * @throws StorageException When an IO operation failed
+     */
+    private void pageMarkOpen(IOTransaction transaction, int pageIndex, int remaining) throws StorageException {
+        int openBlockCount = transaction.seek(8).readInt();
+        transaction.readInt();
+        int inspected = 0;
+        for (int i = 0; i != FILE_MAX_OPEN_BLOCKS; i++) {
+            if (inspected >= openBlockCount)
+                break;
+            char blockIndex = transaction.readChar();
+            if (blockIndex > 0)
+                inspected++;
+            if (blockIndex == pageIndex) {
+                // already open
+                transaction.writeChar((char) remaining);
+                return;
             }
-            // the block was not open
-            if (openBlockCount < FILE_MAX_OPEN_BLOCKS) {
-                if (remaining >= BLOCK_FULL_THRESHOLD) {
-                    transaction.seek(FILE_PREAMBULE_HEADER_SIZE + openBlockCount * FILE_PREAMBULE_ENTRY_SIZE);
-                    transaction.writeInt(remaining);
-                    transaction.writeInt(remaining);
-                    openBlockCount++;
-                    transaction.seek(8);
-                    transaction.writeInt(openBlockCount);
-                }
+            transaction.readChar();
+        }
+        // the block was not open
+        if (openBlockCount < FILE_MAX_OPEN_BLOCKS) {
+            if (remaining >= BLOCK_FULL_THRESHOLD) {
+                transaction.seek(FILE_PREAMBULE_HEADER_SIZE + openBlockCount * FILE_PREAMBULE_ENTRY_SIZE);
+                transaction.writeChar((char) pageIndex);
+                transaction.writeChar((char) remaining);
+                transaction.seek(8).writeInt(openBlockCount + 1);
             }
         }
     }
+
+    /**
+     * Initializes a page
+     *
+     * @param pageIndex The index of the page to initialize
+     * @return Whether the operation succeeded
+     * @throws StorageException When an IO operation failed
+     */
+    private boolean pageInitialize(int pageIndex) throws StorageException {
+        try (IOTransaction transaction = accessRaw(pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH, FileStoreFileBlock.BLOCK_SIZE, true)) {
+            if (transaction == null)
+                return false;
+            transaction.writeChar(FileStoreFileBlock.PAGE_LAYOUT_VERSION);
+            transaction.writeChar(FileStoreFileBlock.PAGE_FLAG_REUSE_EMPTY_ENTRIES);
+            transaction.writeChar('\0');
+            transaction.writeChar((char) FileStoreFileBlock.PAGE_HEADER_SIZE);
+            transaction.writeChar((char) FileStoreFileBlock.BLOCK_SIZE);
+            return true;
+        }
+    }
+
 
     /**
      * Tries to store an entry of the specified size in the given page

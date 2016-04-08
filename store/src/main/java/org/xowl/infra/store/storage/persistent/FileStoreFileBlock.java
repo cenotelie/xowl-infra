@@ -116,15 +116,11 @@ class FileStoreFileBlock implements IOElement {
     /**
      * Flag whether the page shall reuse the space of removed entries
      */
-    public static final char FLAG_REUSE_EMPTY_ENTRIES = 0x0001;
+    public static final char PAGE_FLAG_REUSE_EMPTY_ENTRIES = 0x0001;
     /**
      * The maximum size of the payload of an entry in a page
      */
     public static final int MAX_ENTRY_SIZE = BLOCK_SIZE - PAGE_HEADER_SIZE - PAGE_ENTRY_INDEX_SIZE;
-    /**
-     * The number of bytes required in addition to an entry's payload
-     */
-    public static final int ENTRY_OVERHEAD = PAGE_ENTRY_INDEX_SIZE;
 
     /**
      * The state of this block
