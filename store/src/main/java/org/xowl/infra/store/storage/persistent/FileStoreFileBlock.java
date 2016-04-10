@@ -154,7 +154,7 @@ class FileStoreFileBlock implements IOElement {
     /**
      * The associated buffer
      */
-    private final ByteBuffer buffer;
+    private ByteBuffer buffer;
     /**
      * The location of this block in the parent file
      */
@@ -191,7 +191,7 @@ class FileStoreFileBlock implements IOElement {
      */
     public FileStoreFileBlock() {
         this.state = new AtomicInteger(BLOCK_STATE_FREE);
-        this.buffer = ByteBuffer.allocate(BLOCK_SIZE);
+        this.buffer = null;
         this.location = -1;
         this.lastHit = Long.MIN_VALUE;
         this.isDirty = false;
@@ -248,6 +248,8 @@ class FileStoreFileBlock implements IOElement {
             return false;
         // the block was free and is now reserved
         this.location = location;
+        if (this.buffer == null)
+            this.buffer = ByteBuffer.allocate(BLOCK_SIZE);
         this.isDirty = false;
         if (this.location < fileSize) {
             try (FileLock lock = channel.lock()) {
@@ -379,7 +381,7 @@ class FileStoreFileBlock implements IOElement {
     }
 
     /**
-     * Commits any outstanding changes to the backing file
+     * Flushes any outstanding changes to the backend file
      *
      * @param channel The originating file channel
      * @param time    The current time

@@ -119,6 +119,15 @@ class FileStoreFile {
     private final AtomicLong time;
 
     /**
+     * Gets the size of this file
+     *
+     * @return The size of this file
+     */
+    public long getSize() {
+        return size.get();
+    }
+
+    /**
      * Initializes this data file
      *
      * @param file The file location
@@ -238,7 +247,7 @@ class FileStoreFile {
     }
 
     /**
-     * Commits any outstanding changes
+     * Flushes any outstanding changes to the backend file
      *
      * @throws StorageException When an IO operation failed
      */
