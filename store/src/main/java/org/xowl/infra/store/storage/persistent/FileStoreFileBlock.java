@@ -123,6 +123,31 @@ class FileStoreFileBlock implements IOElement {
     public static final int MAX_ENTRY_SIZE = BLOCK_SIZE - PAGE_HEADER_SIZE - PAGE_ENTRY_INDEX_SIZE;
 
     /**
+     * Gets the name of the block state
+     *
+     * @param state The block state
+     * @return The associated name
+     */
+    private static String stateName(int state) {
+        if (state < 0)
+            return "INVALID(" + state + ")";
+        switch (state) {
+            case BLOCK_STATE_FREE:
+                return "READY";
+            case BLOCK_STATE_RESERVED:
+                return "RESERVED";
+            case BLOCK_STATE_READY:
+                return "READY";
+            case BLOCK_STATE_EXCLUSIVE_USE:
+                return "EXCLUSIVE_USE";
+            case BLOCK_STATE_SHARED_USE:
+                return "SHARED_USE(0)";
+            default:
+                return "SHARED_USE(" + state + ")";
+        }
+    }
+
+    /**
      * The state of this block
      */
     private final AtomicInteger state;
@@ -230,7 +255,7 @@ class FileStoreFileBlock implements IOElement {
                 channel.read(buffer);
             } catch (IOException exception) {
                 state.compareAndSet(BLOCK_STATE_RESERVED, BLOCK_STATE_FREE);
-                throw new StorageException(exception, "Failed to read from the backend file");
+                throw new StorageException(exception, "Failed to read block at 0x" + Long.toHexString(location));
             }
         } else {
             zeroes();
@@ -286,8 +311,8 @@ class FileStoreFileBlock implements IOElement {
     public void releaseShared() throws StorageException {
         while (true) {
             int current = state.get();
-            if (current <= BLOCK_STATE_READY)
-                throw new StorageException("Bad block state");
+            if (current <= BLOCK_STATE_EXCLUSIVE_USE)
+                throw new StorageException("Bad block state: " + stateName(current) + ", expected SHARED_USE");
             else if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_READY))
                 return;
             else if (current > BLOCK_STATE_SHARED_USE && state.compareAndSet(current, current - 1))
@@ -304,7 +329,7 @@ class FileStoreFileBlock implements IOElement {
         while (true) {
             int current = state.get();
             if (current <= BLOCK_STATE_READY)
-                throw new StorageException("Bad block state");
+                throw new StorageException("Bad block state: " + stateName(current) + ", expected SHARED_USE");
             if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_EXCLUSIVE_USE))
                 return;
         }
@@ -316,8 +341,9 @@ class FileStoreFileBlock implements IOElement {
      * @throws StorageException When the block is in a bad state
      */
     public void releaseExclusive() throws StorageException {
+        int current = state.get();
         if (!state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_SHARED_USE))
-            throw new StorageException("Bad block state");
+            throw new StorageException("Bad block state: " + stateName(current) + ", expected EXCLUSIVE_USE");
     }
 
     /**
@@ -343,7 +369,7 @@ class FileStoreFileBlock implements IOElement {
             } catch (IOException exception) {
                 releaseExclusive();
                 releaseShared();
-                throw new StorageException(exception, "Failed to write to the backend file");
+                throw new StorageException(exception, "Failed to write block at 0x" + Long.toHexString(location));
             }
 
         }
@@ -372,7 +398,7 @@ class FileStoreFileBlock implements IOElement {
             } catch (IOException exception) {
                 releaseExclusive();
                 releaseShared();
-                throw new StorageException(exception, "Failed to write to the backend file");
+                throw new StorageException(exception, "Failed to write block at 0x" + Long.toHexString(location));
             }
         }
         releaseExclusive();
@@ -400,7 +426,7 @@ class FileStoreFileBlock implements IOElement {
             } catch (IOException exception) {
                 releaseExclusive();
                 releaseShared();
-                throw new StorageException(exception, "Failed to read from the backend file");
+                throw new StorageException(exception, "Failed to read block at 0x" + Long.toHexString(location));
             }
         }
         releaseExclusive();
@@ -437,7 +463,7 @@ class FileStoreFileBlock implements IOElement {
         while (true) {
             int current = state.get();
             if (current <= BLOCK_STATE_READY)
-                throw new StorageException("Bad block state");
+                throw new StorageException("Bad block state: " + stateName(current) + ", expected SHARED_USE or EXCLUSIVE_USE");
             else if (current == BLOCK_STATE_EXCLUSIVE_USE && state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_READY))
                 return;
             else if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_READY))

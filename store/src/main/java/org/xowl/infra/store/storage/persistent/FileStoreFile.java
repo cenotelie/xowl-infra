@@ -86,6 +86,10 @@ class FileStoreFile {
     private static final long INDEX_MASK_UPPER = ~FileStoreFileBlock.INDEX_MASK_LOWER;
 
     /**
+     * The file name
+     */
+    private final String fileName;
+    /**
      * Whether the file is in readonly mode
      */
     private final boolean isReadonly;
@@ -132,6 +136,7 @@ class FileStoreFile {
      * @throws StorageException When the initialization failed
      */
     public FileStoreFile(File file, boolean isReadonly) throws StorageException {
+        this.fileName = file.getAbsolutePath();
         this.isReadonly = isReadonly;
         this.channel = newChannel(file, isReadonly);
         this.transations = new IOTransationPool();
@@ -141,23 +146,37 @@ class FileStoreFile {
         this.blockCount = new AtomicInteger(0);
         this.size = new AtomicLong(initSize());
         this.time = new AtomicLong(Long.MIN_VALUE + 1);
-        if (size.get() == 0 && !isReadonly)
-            initialize();
+        initialize();
     }
 
     /**
-     * Initializes this file with the default preambule
+     * Initializes this file
      *
      * @throws StorageException When an IO error occurred
      */
     private void initialize() throws StorageException {
-        try (IOTransaction transaction = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, true)) {
-            transaction.writeInt(FILE_MAGIC_ID);
-            transaction.writeInt(FILE_LAYOUT_VERSION);
-            transaction.writeInt(0);
-            transaction.writeInt(1);
+        if (size.get() == 0) {
+            if (isReadonly)
+                throw new StorageException("File is empty but open as read-only: " + fileName);
+            // the file is empty and not read-only
+            try (IOTransaction transaction = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, true)) {
+                transaction.writeInt(FILE_MAGIC_ID);
+                transaction.writeInt(FILE_LAYOUT_VERSION);
+                transaction.writeInt(0);
+                transaction.writeInt(1);
+            }
+            commit();
+        } else {
+            // file is not empty, verify the header
+            try (IOTransaction transaction = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, false)) {
+                int magic = transaction.readInt();
+                if (magic != FILE_MAGIC_ID)
+                    throw new StorageException("Invalid file header, expected 0x" + Integer.toHexString(FILE_MAGIC_ID) + ", got 0x" + Integer.toHexString(magic) + ": " + fileName);
+                int layout = transaction.readInt();
+                if (layout != FILE_LAYOUT_VERSION)
+                    throw new StorageException("Invalid file layout, expected 0x" + Integer.toHexString(FILE_LAYOUT_VERSION) + ", got 0x" + Integer.toHexString(layout) + ": " + fileName);
+            }
         }
-        commit();
     }
 
     /**
@@ -170,7 +189,7 @@ class FileStoreFile {
         try {
             return channel.size();
         } catch (IOException exception) {
-            throw new StorageException(exception, "Failed to access the file channel");
+            throw new StorageException(exception, "Failed to access file " + fileName);
         }
     }
 
@@ -226,14 +245,13 @@ class FileStoreFile {
     public void commit() throws StorageException {
         for (int i = 0; i != blockCount.get(); i++) {
             if (blocks[i].getLocation() >= 0) {
-                blocks[i].commit(channel, time.get());
-                tick();
+                blocks[i].commit(channel, tick());
             }
         }
         try {
             channel.force(true);
         } catch (IOException exception) {
-            throw new StorageException(exception, "Failed to write back");
+            throw new StorageException(exception, "Failed to write back to " + fileName);
         }
     }
 
@@ -245,8 +263,7 @@ class FileStoreFile {
     public void rollback() throws StorageException {
         for (int i = 0; i != blockCount.get(); i++) {
             if (blocks[i].getLocation() >= 0) {
-                blocks[i].rollback(channel, time.get());
-                tick();
+                blocks[i].rollback(channel, tick());
             }
         }
     }
@@ -263,7 +280,7 @@ class FileStoreFile {
             for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++)
                 blocks[i].close();
         } catch (IOException exception) {
-            throw new StorageException(exception, "Failed to close the file channel");
+            throw new StorageException(exception, "Failed to close file " + fileName);
         }
     }
 
@@ -275,6 +292,9 @@ class FileStoreFile {
      * @throws StorageException When an IO operation failed
      */
     public int allocateEntry(int entrySize) throws StorageException {
+        if (entrySize > FileStoreFileBlock.MAX_ENTRY_SIZE)
+            throw new StorageException("Entry is too big (" + entrySize + "), max is " + FileStoreFileBlock.MAX_ENTRY_SIZE);
+
         try (IOTransaction transaction = accessRaw(0, FileStoreFileBlock.BLOCK_SIZE, true)) {
             if (transaction == null)
                 return -1;
@@ -334,14 +354,20 @@ class FileStoreFile {
      * @throws StorageException When an IO operation failed
      */
     public void removeEntry(int key) throws StorageException {
-        int pageIndex = keyPageIndex(key);
-        int remaining = pageRemoveEntry(pageIndex, keyEntryIndex(key));
+        long blockLocation = keyPageLocation(key);
+        int entryIndex = keyEntryIndex(key);
+        if (blockLocation >= size.get() // the block is not allocated
+                || blockLocation <= 0 // cannot have entries in the first block
+                || entryIndex < 0) // invalid entry index
+            throw new StorageException("Invalid key (0x" + Integer.toHexString(key) + ")");
+
+        int remaining = pageRemoveEntry(blockLocation, entryIndex);
         if (remaining == -1)
             return;
         try (IOTransaction transaction = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, true)) {
             if (transaction == null)
                 return;
-            pageMarkOpen(transaction, pageIndex, remaining);
+            pageMarkOpen(transaction, keyPageIndex(key), remaining);
         }
     }
 
@@ -454,19 +480,19 @@ class FileStoreFile {
     /**
      * Removes an entry for a page
      *
-     * @param pageIndex  The index of the page
-     * @param entryIndex The index within the page of the entry to remove
-     * @return The remaning free space in the page
+     * @param pageLocation The location of the page
+     * @param entryIndex   The index within the page of the entry to remove
+     * @return The remaining free space in the page
      * @throws StorageException When an IO operation failed
      */
-    private int pageRemoveEntry(int pageIndex, int entryIndex) throws StorageException {
-        try (IOTransaction transaction = accessRaw(pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH, FileStoreFileBlock.BLOCK_SIZE, true)) {
+    private int pageRemoveEntry(long pageLocation, int entryIndex) throws StorageException {
+        try (IOTransaction transaction = accessRaw(pageLocation, FileStoreFileBlock.BLOCK_SIZE, true)) {
             if (transaction == null)
                 return -1;
             char entryCount = transaction.seek(4).readChar();
             char startFreeSpace = transaction.readChar();
             char startData = transaction.readChar();
-            if (entryIndex < 0 || entryIndex >= (startFreeSpace - FileStoreFileBlock.PAGE_HEADER_SIZE) >>> 2)
+            if (entryIndex >= (startFreeSpace - FileStoreFileBlock.PAGE_HEADER_SIZE) >>> 2)
                 throw new StorageException("The entry for the specified key is not in this page");
             transaction.seek(FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE);
             char offset = transaction.readChar();
@@ -517,9 +543,14 @@ class FileStoreFile {
      * @throws StorageException When an IO operation failed
      */
     public IOTransaction accessEntry(int key, boolean writable) throws StorageException {
-        if (key <= 0)
-            throw new StorageException("Invalid key");
-        FileStoreFileBlock block = getBlockFor(keyBlockLocation(key));
+        long blockLocation = keyPageLocation(key);
+        int entryIndex = keyEntryIndex(key);
+        if (blockLocation >= size.get() // the block is not allocated
+                || blockLocation <= 0 // cannot have entries in the first block
+                || entryIndex < 0) // invalid entry index
+            throw new StorageException("Invalid key (0x" + Integer.toHexString(key) + ")");
+
+        FileStoreFileBlock block = getBlockFor(blockLocation);
         long offset;
         long length;
         try (IOTransaction transaction = transations.begin(block, 0, FileStoreFileBlock.PAGE_HEADER_SIZE, false)) {
@@ -527,7 +558,6 @@ class FileStoreFile {
                 block.releaseShared();
                 return null;
             }
-            int entryIndex = keyEntryIndex(key);
             transaction.seek(FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE);
             offset = transaction.readChar();
             length = transaction.readChar();
@@ -574,18 +604,15 @@ class FileStoreFile {
         // is the block loaded
         long targetLocation = index & INDEX_MASK_UPPER;
         for (int i = 0; i != blockCount.get(); i++) {
-            if (blocks[i].getLocation() == targetLocation && blocks[i].useShared(targetLocation, time.get())) {
-                tick();
+            if (blocks[i].getLocation() == targetLocation && blocks[i].useShared(targetLocation, tick())) {
                 return blocks[i];
             }
         }
         // we need to load the block
         for (int i = blockCount.get(); i != FILE_MAX_LOADED_BLOCKS; i++) {
-            if (blocks[i].getLocation() == -1 && blocks[i].reserve(targetLocation, channel, size.get(), time.get())) {
-                tick();
+            if (blocks[i].getLocation() == -1 && blocks[i].reserve(targetLocation, channel, size.get(), tick())) {
                 extendSizeTo(Math.max(size.get(), targetLocation + FileStoreFileBlock.BLOCK_SIZE));
-                if (blocks[i].useShared(targetLocation, time.get())) {
-                    tick();
+                if (blocks[i].useShared(targetLocation, tick())) {
                     return blocks[i];
                 }
             }
@@ -603,12 +630,10 @@ class FileStoreFile {
             }
             if (minIndex >= 0
                     && blocks[minIndex].getLastHit() == minTime
-                    && blocks[minIndex].reclaim(channel, targetLocation, time.get())) {
-                if (blocks[minIndex].reserve(targetLocation, channel, size.get(), time.get())) {
-                    tick();
+                    && blocks[minIndex].reclaim(channel, targetLocation, tick())) {
+                if (blocks[minIndex].reserve(targetLocation, channel, size.get(), tick())) {
                     extendSizeTo(Math.max(size.get(), targetLocation + FileStoreFileBlock.BLOCK_SIZE));
-                    if (blocks[minIndex].useShared(targetLocation, time.get())) {
-                        tick();
+                    if (blocks[minIndex].useShared(targetLocation, tick())) {
                         return blocks[minIndex];
                     }
                 }
@@ -617,13 +642,13 @@ class FileStoreFile {
     }
 
     /**
-     * Gets the location of the block referred to by the specified file-local key
+     * Gets the location of the page referred to by the specified file-local key
      *
      * @param key The file-local key to an entry
-     * @return The location (index within this file) of the corresponding block
+     * @return The location (index within this file) of the corresponding page
      */
-    private static long keyBlockLocation(int key) {
-        return (key >> 16) << FileStoreFileBlock.BLOCK_INDEX_LENGTH;
+    private static long keyPageLocation(int key) {
+        return ((long) keyPageIndex(key)) << FileStoreFileBlock.BLOCK_INDEX_LENGTH;
     }
 
     /**
