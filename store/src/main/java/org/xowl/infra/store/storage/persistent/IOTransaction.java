@@ -20,6 +20,8 @@
 
 package org.xowl.infra.store.storage.persistent;
 
+import org.xowl.infra.utils.logging.Logger;
+
 import java.io.Closeable;
 
 /**
@@ -34,23 +36,23 @@ abstract class IOTransaction implements Closeable {
     /**
      * The backing IO element
      */
-    protected IOElement backend;
+    private IOElement backend;
     /**
      * The location in the backend
      */
-    protected long location;
+    private long location;
     /**
      * The length of the proxy in the backend
      */
-    protected long length;
+    private long length;
     /**
      * Whether the transaction allows writing
      */
-    protected boolean writable;
+    private boolean writable;
     /**
      * The current index in the backend
      */
-    protected long index;
+    private long index;
 
     /**
      * Gets whether the specified number of bytes at the current index are within the allowed bounds
@@ -58,8 +60,8 @@ abstract class IOTransaction implements Closeable {
      * @param length A number of bytes
      * @return true if the bytes are within the bounds
      */
-    protected boolean withinBounds(int length) {
-        return (index >= location && index + length <= location + length);
+    private boolean withinBounds(int length) {
+        return (index >= location && index + length <= location + this.length);
     }
 
     /**
@@ -70,7 +72,7 @@ abstract class IOTransaction implements Closeable {
      * @param length   The length of the allowed span
      * @param writable Whether the transaction allows writing
      */
-    public void setup(IOElement backend, long location, long length, boolean writable) {
+    void setup(IOElement backend, long location, long length, boolean writable) {
         this.backend = backend;
         this.location = location;
         this.length = length;
@@ -79,10 +81,21 @@ abstract class IOTransaction implements Closeable {
     }
 
     /**
-     * Positions the index of this element
+     * Event when the transaction is closing
+     */
+    void onClose() {
+        try {
+            backend.release();
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+        }
+    }
+
+    /**
+     * Positions the index of this transaction
      *
      * @param index The new index
-     * @return The element
+     * @return This transaction
      */
     public IOTransaction seek(long index) {
         this.index = location + index;
@@ -90,12 +103,23 @@ abstract class IOTransaction implements Closeable {
     }
 
     /**
-     * Resets the index in this element to its initial position
+     * Resets the index in this transaction to its initial position
      *
-     * @return The element
+     * @return This transaction
      */
     public IOTransaction reset() {
         this.index = location;
+        return this;
+    }
+
+    /**
+     * Moves the index of this transaction
+     *
+     * @param offset The offset to move from
+     * @return This transaction
+     */
+    public IOTransaction skip(long offset) {
+        this.index += offset;
         return this;
     }
 
@@ -331,6 +355,6 @@ abstract class IOTransaction implements Closeable {
 
     @Override
     public void close() {
-        // do nothing here
+        onClose();
     }
 }

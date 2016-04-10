@@ -87,11 +87,7 @@ class IOTransationPool {
         return new IOTransaction() {
             @Override
             public void close() {
-                try {
-                    backend.release();
-                } catch (StorageException exception) {
-                    Logger.DEFAULT.error(exception);
-                }
+                onClose();
                 returnTransaction(this);
             }
         };
