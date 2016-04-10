@@ -453,11 +453,6 @@ class FileStoreFileBlock implements IOElement {
     }
 
     @Override
-    public boolean canRead(long index, int length) {
-        return (index + length <= BLOCK_SIZE);
-    }
-
-    @Override
     public byte readByte(long index) throws StorageException {
         return buffer.get((int) (index & INDEX_MASK_LOWER));
     }

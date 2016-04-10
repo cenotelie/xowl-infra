@@ -55,16 +55,6 @@ abstract class IOTransaction implements Closeable {
     private long index;
 
     /**
-     * Gets whether the specified number of bytes at the current index are within the allowed bounds
-     *
-     * @param length A number of bytes
-     * @return true if the bytes are within the bounds
-     */
-    private boolean withinBounds(int length) {
-        return (index >= location && index + length <= location + this.length);
-    }
-
-    /**
      * Setups this transaction before using it
      *
      * @param backend  The backend IO element
@@ -92,9 +82,38 @@ abstract class IOTransaction implements Closeable {
     }
 
     /**
-     * Positions the index of this transaction
+     * Gets the current index of this transaction
+     * The index is local to this transaction, meaning that 0 represents the start of the transaction window in the associated backend.
      *
-     * @param index The new index
+     * @return The current transaction index
+     */
+    public long getIndex() {
+        return (index - location);
+    }
+
+    /**
+     * Gets the length of this transaction window in the associated backend
+     *
+     * @return The length of this transaction window
+     */
+    public long getLength() {
+        return length;
+    }
+
+    /**
+     * Gets whether this transaction allows writing
+     *
+     * @return Whether the transaction allows writing
+     */
+    public boolean isWritable() {
+        return writable;
+    }
+
+    /**
+     * Positions the index of this transaction
+     * The index is local to this transaction, meaning that 0 represents the start of the transaction window in the associated backend.
+     *
+     * @param index The new transaction index
      * @return This transaction
      */
     public IOTransaction seek(long index) {
@@ -103,7 +122,8 @@ abstract class IOTransaction implements Closeable {
     }
 
     /**
-     * Resets the index in this transaction to its initial position
+     * Resets the index of this transaction to its initial position
+     * The index is local to this transaction, meaning that 0 represents the start of the transaction window in the associated backend.
      *
      * @return This transaction
      */
@@ -114,6 +134,7 @@ abstract class IOTransaction implements Closeable {
 
     /**
      * Moves the index of this transaction
+     * The index is local to this transaction, meaning that 0 represents the start of the transaction window in the associated backend.
      *
      * @param offset The offset to move from
      * @return This transaction
@@ -124,13 +145,13 @@ abstract class IOTransaction implements Closeable {
     }
 
     /**
-     * Gets whether the specified amount of bytes can be read at the current index
+     * Gets whether the specified number of bytes at the current index are within the allowed bounds
      *
-     * @param length The number of bytes to read
-     * @return true if this is legal to read
+     * @param length A number of bytes
+     * @return true if the bytes are within the bounds
      */
-    public boolean canRead(int length) {
-        return (withinBounds(length) && backend.canRead(index, length));
+    private boolean withinBounds(int length) {
+        return (index >= location && index + length <= location + this.length);
     }
 
     /**
@@ -140,7 +161,7 @@ abstract class IOTransaction implements Closeable {
      * @throws StorageException When an IO operation failed
      */
     public byte readByte() throws StorageException {
-        if (!canRead(1))
+        if (!withinBounds(1))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         byte value = backend.readByte(index);
         index++;
@@ -155,7 +176,7 @@ abstract class IOTransaction implements Closeable {
      * @throws StorageException When an IO operation failed
      */
     public byte[] readBytes(int length) throws StorageException {
-        if (!canRead(length))
+        if (!withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         byte[] value = backend.readBytes(index, length);
         index += length;
@@ -171,7 +192,7 @@ abstract class IOTransaction implements Closeable {
      * @throws StorageException When an IO operation failed
      */
     public void readBytes(byte[] buffer, int start, int length) throws StorageException {
-        if (!canRead(length))
+        if (!withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         backend.readBytes(index, buffer, start, length);
         index += length;
@@ -184,7 +205,7 @@ abstract class IOTransaction implements Closeable {
      * @throws StorageException When an IO operation failed
      */
     public char readChar() throws StorageException {
-        if (!canRead(2))
+        if (!withinBounds(2))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         char value = backend.readChar(index);
         index += 2;
@@ -198,7 +219,7 @@ abstract class IOTransaction implements Closeable {
      * @throws StorageException When an IO operation failed
      */
     public int readInt() throws StorageException {
-        if (!canRead(4))
+        if (!withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         int value = backend.readInt(index);
         index += 4;
@@ -212,7 +233,7 @@ abstract class IOTransaction implements Closeable {
      * @throws StorageException When an IO operation failed
      */
     public long readLong() throws StorageException {
-        if (!canRead(8))
+        if (!withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         long value = backend.readLong(index);
         index += 8;
@@ -226,7 +247,7 @@ abstract class IOTransaction implements Closeable {
      * @throws StorageException When an IO operation failed
      */
     public float readFloat() throws StorageException {
-        if (!canRead(4))
+        if (!withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         float value = backend.readFloat(index);
         index += 4;
@@ -240,7 +261,7 @@ abstract class IOTransaction implements Closeable {
      * @throws StorageException When an IO operation failed
      */
     public double readDouble() throws StorageException {
-        if (!canRead(8))
+        if (!withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         double value = backend.readDouble(index);
         index += 8;

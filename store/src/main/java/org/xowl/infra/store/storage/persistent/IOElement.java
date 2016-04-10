@@ -50,15 +50,6 @@ interface IOElement extends Closeable {
     long getSize();
 
     /**
-     * Gets whether the specified amount of bytes can be read at the current index
-     *
-     * @param index  The index within this element for this operation
-     * @param length The number of bytes to read
-     * @return true if this is legal to read
-     */
-    boolean canRead(long index, int length);
-
-    /**
      * Reads a single byte at the current index
      *
      * @param index The index within this element for this operation

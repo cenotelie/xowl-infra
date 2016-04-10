@@ -20,6 +20,7 @@
 
 package org.xowl.infra.store.storage.persistent;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -41,7 +42,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author Laurent Wouters
  */
-class FileStoreFile {
+class FileStoreFile implements Closeable {
     /**
      * Magic identifier of the type of store
      */
@@ -253,9 +254,7 @@ class FileStoreFile {
      */
     public void flush() throws StorageException {
         for (int i = 0; i != blockCount.get(); i++) {
-            if (blocks[i].getLocation() >= 0) {
-                blocks[i].flush(channel, tick());
-            }
+            blocks[i].flush(channel, tick());
         }
         try {
             channel.force(true);
@@ -264,20 +263,9 @@ class FileStoreFile {
         }
     }
 
-    /**
-     * Closes the file.
-     * Any outstanding changes will be lost
-     *
-     * @throws StorageException When an IO operation failed
-     */
-    public void close() throws StorageException {
-        try {
-            channel.close();
-            for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++)
-                blocks[i].close();
-        } catch (IOException exception) {
-            throw new StorageException(exception, "Failed to close file " + fileName);
-        }
+    @Override
+    public void close() throws IOException {
+        channel.close();
     }
 
     /**
