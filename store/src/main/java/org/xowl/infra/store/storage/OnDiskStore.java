@@ -84,9 +84,7 @@ class OnDiskStore extends BaseStore {
     @Override
     public boolean rollback() {
         cacheDataset.rollback();
-        boolean success = persistedNodes.rollback();
-        success &= persistedDataset.rollback();
-        return success;
+        return true;
     }
 
     @Override

@@ -267,7 +267,6 @@ class OnDiskStoreCache extends DatasetImpl {
         try {
             persisted.insert(diff.getChangeset());
         } catch (UnsupportedNodeType exception) {
-            persisted.rollback();
             Logger.DEFAULT.error(exception);
         }
         diff.commit();
