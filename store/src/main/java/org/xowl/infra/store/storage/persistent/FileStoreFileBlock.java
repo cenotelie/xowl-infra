@@ -23,7 +23,6 @@ package org.xowl.infra.store.storage.persistent;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -252,10 +251,15 @@ class FileStoreFileBlock implements IOElement {
             this.buffer = ByteBuffer.allocate(BLOCK_SIZE);
         this.isDirty = false;
         if (this.location < fileSize) {
-            try (FileLock lock = channel.lock()) {
+            try {
+                int total = 0;
                 buffer.position(0);
-                channel.position(location);
-                channel.read(buffer);
+                while (total < BLOCK_SIZE) {
+                    int read = channel.read(buffer, location + total);
+                    if (read == -1)
+                        throw new IOException("Unexpected end of stream");
+                    total += read;
+                }
             } catch (IOException exception) {
                 state.compareAndSet(BLOCK_STATE_RESERVED, BLOCK_STATE_FREE);
                 throw new StorageException(exception, "Failed to read block at 0x" + Long.toHexString(location));
@@ -363,21 +367,7 @@ class FileStoreFileBlock implements IOElement {
         if (!useShared(location, time))
             // reclaimed for another location
             return false;
-        useExclusive();
-        if (isDirty) {
-            try (FileLock lock = channel.lock()) {
-                buffer.position(0);
-                channel.position(location);
-                channel.write(buffer);
-                channel.force(false);
-                isDirty = false;
-            } catch (IOException exception) {
-                releaseExclusive();
-                releaseShared();
-                throw new StorageException(exception, "Failed to write block at 0x" + Long.toHexString(location));
-            }
-
-        }
+        serializeBlock(channel);
         this.location = -1;
         return state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_FREE);
     }
@@ -393,13 +383,28 @@ class FileStoreFileBlock implements IOElement {
         if (!useShared(location, time))
             // reclaimed for another location
             return;
+        serializeBlock(channel);
+        releaseExclusive();
+        releaseShared();
+    }
+
+    /**
+     * Serializes this block to the underlying file channel
+     *
+     * @param channel The originating file channel
+     * @throws StorageException When an IO error occurs
+     */
+    private void serializeBlock(FileChannel channel) throws StorageException {
         useExclusive();
         if (isDirty) {
-            try (FileLock lock = channel.lock()) {
+            try {
                 buffer.position(0);
-                channel.position(location);
-                channel.write(buffer);
-                channel.force(false);
+                int total = 0;
+                buffer.position(0);
+                while (total < BLOCK_SIZE) {
+                    int written = channel.write(buffer, location + total);
+                    total += written;
+                }
                 isDirty = false;
             } catch (IOException exception) {
                 releaseExclusive();
@@ -407,8 +412,6 @@ class FileStoreFileBlock implements IOElement {
                 throw new StorageException(exception, "Failed to write block at 0x" + Long.toHexString(location));
             }
         }
-        releaseExclusive();
-        releaseShared();
     }
 
     /**

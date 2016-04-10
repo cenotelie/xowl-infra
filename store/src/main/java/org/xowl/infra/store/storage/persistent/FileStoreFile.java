@@ -131,16 +131,6 @@ class FileStoreFile implements Closeable {
     /**
      * Initializes this data file
      *
-     * @param file The file location
-     * @throws StorageException When the initialization failed
-     */
-    public FileStoreFile(File file) throws StorageException {
-        this(file, false, false);
-    }
-
-    /**
-     * Initializes this data file
-     *
      * @param file       The file location
      * @param isReadonly Whether this store is in readonly mode
      * @throws StorageException When the initialization failed
