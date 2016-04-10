@@ -253,6 +253,7 @@ class FileStoreFileBlock implements IOElement {
         this.isDirty = false;
         if (this.location < fileSize) {
             try (FileLock lock = channel.lock()) {
+                buffer.position(0);
                 channel.position(location);
                 channel.read(buffer);
             } catch (IOException exception) {
@@ -365,6 +366,7 @@ class FileStoreFileBlock implements IOElement {
         useExclusive();
         if (isDirty) {
             try (FileLock lock = channel.lock()) {
+                buffer.position(0);
                 channel.position(location);
                 channel.write(buffer);
                 channel.force(false);
@@ -394,6 +396,7 @@ class FileStoreFileBlock implements IOElement {
         useExclusive();
         if (isDirty) {
             try (FileLock lock = channel.lock()) {
+                buffer.position(0);
                 channel.position(location);
                 channel.write(buffer);
                 channel.force(false);

@@ -36,14 +36,14 @@ import java.nio.file.Files;
 public class FileStoreFileTest {
     @Test
     public void testGetSizeEmpty() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             Assert.assertEquals("Unexpected length", 0, pf.getSize());
         }
     }
 
     @Test
     public void testGetSizeSingleBlock() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 1, true)) {
                 transaction.writeByte((byte) 5);
             }
@@ -53,7 +53,7 @@ public class FileStoreFileTest {
 
     @Test
     public void testGetSizeDoubleBlock() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 1, true)) {
                 transaction.writeByte((byte) 5);
             }
@@ -67,14 +67,14 @@ public class FileStoreFileTest {
     @Test
     public void testGetSizeAfterReload() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 1, true)) {
                 transaction.writeByte((byte) 5);
             }
             pf.flush();
         }
 
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             Assert.assertEquals("Unexpected length", FileStoreFileBlock.BLOCK_SIZE, pf.getSize());
         }
     }
@@ -82,11 +82,11 @@ public class FileStoreFileTest {
     @Test
     public void testGetSizeAfterReloadEmpty() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             pf.flush();
         }
 
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             Assert.assertEquals("Unexpected length", 0, pf.getSize());
         }
     }
@@ -94,7 +94,7 @@ public class FileStoreFileTest {
 
     @Test
     public void testGetIndexOnCreation() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 1, true)) {
                 Assert.assertEquals("Unexpected index", 0, transaction.getIndex());
             }
@@ -103,7 +103,7 @@ public class FileStoreFileTest {
 
     @Test
     public void testGetIndexAfterSeek() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 1, true)) {
                 transaction.seek(FileStoreFileBlock.BLOCK_SIZE + 4);
                 Assert.assertEquals("Unexpected index", FileStoreFileBlock.BLOCK_SIZE + 4, transaction.getIndex());
@@ -113,7 +113,7 @@ public class FileStoreFileTest {
 
     @Test
     public void testGetIndexAfterWriteByte() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.seek(4);
                 transaction.writeByte((byte) 5);
@@ -124,7 +124,7 @@ public class FileStoreFileTest {
 
     @Test
     public void testGetIndexAfterWriteBytes() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.seek(4);
                 transaction.writeBytes(new byte[]{0x5, 0x6, 0x7});
@@ -135,7 +135,7 @@ public class FileStoreFileTest {
 
     @Test
     public void testGetIndexAfterWriteChar() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.seek(4);
                 transaction.writeChar('a');
@@ -146,7 +146,7 @@ public class FileStoreFileTest {
 
     @Test
     public void testGetIndexAfterWriteInt() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.seek(4);
                 transaction.writeInt(55);
@@ -157,7 +157,7 @@ public class FileStoreFileTest {
 
     @Test
     public void testGetIndexAfterWriteLong() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.seek(4);
                 transaction.writeLong(0x00BB00AA00FF00EEL);
@@ -168,7 +168,7 @@ public class FileStoreFileTest {
 
     @Test
     public void testGetIndexAfterWriteFloat() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.seek(4);
                 transaction.writeFloat(5.5f);
@@ -179,7 +179,7 @@ public class FileStoreFileTest {
 
     @Test
     public void testGetIndexAfterWriteDouble() throws IOException, StorageException {
-        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"))) {
+        try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.seek(4);
                 transaction.writeDouble(5.5f);
@@ -191,7 +191,7 @@ public class FileStoreFileTest {
     @Test
     public void testWriteSimpleByte() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 1, true)) {
                 transaction.writeByte((byte) 5);
             }
@@ -207,14 +207,14 @@ public class FileStoreFileTest {
     @Test
     public void testReadSimpleByte() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeByte((byte) 5);
             }
             pf.flush();
         }
 
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, false)) {
                 Assert.assertEquals("Unexpected content", 5, transaction.readByte());
             }
@@ -224,7 +224,7 @@ public class FileStoreFileTest {
     @Test
     public void testWriteSimpleBytes() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeBytes(new byte[]{0x5, 0x6, 0x7});
             }
@@ -242,14 +242,14 @@ public class FileStoreFileTest {
     @Test
     public void testReadSimpleBytes() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeBytes(new byte[]{0x5, 0x6, 0x7});
             }
             pf.flush();
         }
 
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 Assert.assertEquals("Unexpected content", 5, transaction.readByte());
                 Assert.assertEquals("Unexpected content", 6, transaction.readByte());
@@ -261,7 +261,7 @@ public class FileStoreFileTest {
     @Test
     public void testWriteSimpleChar() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeChar((char) 0xBBCC);
             }
@@ -278,14 +278,14 @@ public class FileStoreFileTest {
     @Test
     public void testReadSimpleChar() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeChar((char) 0xBBCC);
             }
             pf.flush();
         }
 
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, false)) {
                 Assert.assertEquals("Unexpected content", (char) 0xBBCC, transaction.readChar());
             }
@@ -295,7 +295,7 @@ public class FileStoreFileTest {
     @Test
     public void testWriteSimpleInt() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeInt(55);
             }
@@ -312,14 +312,14 @@ public class FileStoreFileTest {
     @Test
     public void testReadSimpleInt() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeInt(55);
             }
             pf.flush();
         }
 
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, false)) {
                 Assert.assertEquals("Unexpected content", 55, transaction.readInt());
             }
@@ -329,7 +329,7 @@ public class FileStoreFileTest {
     @Test
     public void testWriteSimpleLong() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeLong(0x00BB00AA00FF00EEL);
             }
@@ -346,14 +346,14 @@ public class FileStoreFileTest {
     @Test
     public void testReadSimpleLong() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeLong(0x00BB00AA00FF00EEL);
             }
             pf.flush();
         }
 
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, false)) {
                 Assert.assertEquals("Unexpected content", 0x00BB00AA00FF00EEL, transaction.readLong());
             }
@@ -363,7 +363,7 @@ public class FileStoreFileTest {
     @Test
     public void testWriteSimpleFloat() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeFloat(5.5f);
             }
@@ -380,14 +380,14 @@ public class FileStoreFileTest {
     @Test
     public void testReadSimpleFloat() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeFloat(5.5f);
             }
             pf.flush();
         }
 
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, false)) {
                 Assert.assertTrue("Unexpected content", 5.5f == transaction.readFloat());
             }
@@ -397,7 +397,7 @@ public class FileStoreFileTest {
     @Test
     public void testWriteSimpleDouble() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeDouble(5.5d);
             }
@@ -414,14 +414,14 @@ public class FileStoreFileTest {
     @Test
     public void testReadSimpleDouble() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeDouble(5.5d);
             }
             pf.flush();
         }
 
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, false)) {
                 Assert.assertTrue("Unexpected content", 5.5d == transaction.readDouble());
             }
@@ -431,7 +431,7 @@ public class FileStoreFileTest {
     @Test
     public void testWriteWithinBlock() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeInt(55);
                 transaction.skip(4);
@@ -453,7 +453,7 @@ public class FileStoreFileTest {
     @Test
     public void testWriteTwoBlock() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeInt(55);
             }
@@ -475,7 +475,7 @@ public class FileStoreFileTest {
     @Test
     public void testReadWrittenData() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeInt(55);
             }
@@ -494,7 +494,7 @@ public class FileStoreFileTest {
     @Test
     public void testReload() throws IOException, StorageException {
         File file = File.createTempFile("test", ".bin");
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, true)) {
                 transaction.writeInt(55);
             }
@@ -504,7 +504,7 @@ public class FileStoreFileTest {
             pf.flush();
         }
 
-        try (FileStoreFile pf = new FileStoreFile(file)) {
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
             try (IOTransaction transaction = pf.accessRaw(0, 12, false)) {
                 Assert.assertEquals("Unexpected content", 55, transaction.readInt());
             }

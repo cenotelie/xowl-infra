@@ -135,7 +135,7 @@ class FileStoreFile implements Closeable {
      * @throws StorageException When the initialization failed
      */
     public FileStoreFile(File file) throws StorageException {
-        this(file, false);
+        this(file, false, false);
     }
 
     /**
@@ -146,6 +146,18 @@ class FileStoreFile implements Closeable {
      * @throws StorageException When the initialization failed
      */
     public FileStoreFile(File file, boolean isReadonly) throws StorageException {
+        this(file, isReadonly, false);
+    }
+
+    /**
+     * Initializes this data file
+     *
+     * @param file       The file location
+     * @param isReadonly Whether this store is in readonly mode
+     * @param noInit     Whether to skip the file initialization
+     * @throws StorageException When the initialization failed
+     */
+    FileStoreFile(File file, boolean isReadonly, boolean noInit) throws StorageException {
         this.fileName = file.getAbsolutePath();
         this.isReadonly = isReadonly;
         this.channel = newChannel(file, isReadonly);
@@ -156,7 +168,8 @@ class FileStoreFile implements Closeable {
         this.blockCount = new AtomicInteger(0);
         this.size = new AtomicLong(initSize());
         this.time = new AtomicLong(Long.MIN_VALUE + 1);
-        initialize();
+        if (!noInit)
+            initialize();
     }
 
     /**
@@ -595,6 +608,7 @@ class FileStoreFile implements Closeable {
         // we need to load the block
         for (int i = blockCount.get(); i != FILE_MAX_LOADED_BLOCKS; i++) {
             if (blocks[i].getLocation() == -1 && blocks[i].reserve(targetLocation, channel, size.get(), tick())) {
+                blockCount.incrementAndGet();
                 extendSizeTo(Math.max(size.get(), targetLocation + FileStoreFileBlock.BLOCK_SIZE));
                 if (blocks[i].useShared(targetLocation, tick())) {
                     return blocks[i];
