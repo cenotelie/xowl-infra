@@ -121,7 +121,7 @@ class FileStore {
             for (FileStoreFile child : files) {
                 try {
                     child.close();
-                } catch (StorageException exception) {
+                } catch (IOException exception) {
                     Logger.DEFAULT.error(exception);
                 }
             }
@@ -138,7 +138,7 @@ class FileStore {
             for (int i = 0; i != files.size(); i++) {
                 try {
                     files.get(i).close();
-                } catch (StorageException exception) {
+                } catch (IOException exception) {
                     Logger.DEFAULT.error(exception);
                 }
                 File target = new File(directory, getNameFor(name, i));
