@@ -39,6 +39,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * - array of block entries:
  * - char: Index of the block
  * - char: Remaining free space
+ * <p>
+ * This structure is thread-safe and uses a lock-free synchronization scheme.
+ * When IO operations consists of reading, writing and removing entries in pages, this structure ensures the consistency of the book-keeping data.
  *
  * @author Laurent Wouters
  */
@@ -582,47 +585,102 @@ class FileStoreFile implements Closeable {
 
     /**
      * Acquires the block for the specified index in this file
+     * This method ensures that:
+     * 1) Only one block object can be assigned to a location in the file
+     * 2) When a block object is returned, it corresponds to the requested location
+     * 3) ... and will continue to do so until the transaction finishes using it
      *
      * @param index The requested index in this file
      * @return The corresponding block
      * @throws StorageException When an IO error occurs
      */
     private FileStoreFileBlock getBlockFor(long index) throws StorageException {
-        // is the block loaded
         long targetLocation = index & INDEX_MASK_UPPER;
+        if (blockCount.get() < FILE_MAX_LOADED_BLOCKS)
+            return getBlockForNotFull(targetLocation);
+        else
+            return getBlockForPoolFull(targetLocation);
+    }
+
+    /**
+     * Acquires the block for the specified index in this file when the pool of blocks is not full yet
+     *
+     * @param targetLocation The location of the requested block in this file
+     * @return The corresponding block
+     * @throws StorageException When an IO error occurs
+     */
+    private FileStoreFileBlock getBlockForNotFull(long targetLocation) throws StorageException {
+        // look for the block
         for (int i = 0; i != blockCount.get(); i++) {
+            // is this the block we are looking for?
             if (blocks[i].getLocation() == targetLocation && blocks[i].useShared(targetLocation, tick())) {
+                // yes and we locked it
                 return blocks[i];
             }
         }
-        // we need to load the block
-        for (int i = blockCount.get(); i != FILE_MAX_LOADED_BLOCKS; i++) {
-            if (blocks[i].getLocation() == -1 && blocks[i].reserve(targetLocation, channel, size.get(), tick())) {
+        // try to allocate one of the free block
+        int count = blockCount.get();
+        while (count < FILE_MAX_LOADED_BLOCKS) {
+            // get the last block
+            FileStoreFileBlock target = blocks[count];
+            // try to reserve it
+            if (target.reserve(targetLocation, channel, size.get(), tick())) {
+                // this is the block
+                // update the file data
                 blockCount.incrementAndGet();
                 extendSizeTo(Math.max(size.get(), targetLocation + FileStoreFileBlock.BLOCK_SIZE));
-                if (blocks[i].useShared(targetLocation, tick())) {
+                if (target.useShared(targetLocation, tick())) {
+                    // we got the block
+                    return target;
+                }
+            }
+            // retry with the next block
+            count = blockCount.get();
+        }
+        // now the pool if full ... fallback
+        return getBlockForPoolFull(targetLocation);
+    }
+
+    /**
+     * Acquires the block for the specified index in this file when the pool of blocks is full
+     *
+     * @param targetLocation The location of the requested block in this file
+     * @return The corresponding block
+     * @throws StorageException When an IO error occurs
+     */
+    private FileStoreFileBlock getBlockForPoolFull(long targetLocation) throws StorageException {
+        while (true) {
+            // keep track of the oldest block
+            int oldestIndex = -1;
+            long oldestTime = Long.MAX_VALUE;
+            long oldestLocation = -1;
+            for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++) {
+                // is this the block we are looking for?
+                if (blocks[i].getLocation() == targetLocation && blocks[i].useShared(targetLocation, tick())) {
+                    // yes and we locked it
                     return blocks[i];
                 }
-            }
-        }
-        // no free block, look for a clean block to reclaim
-        while (true) {
-            int minIndex = -1;
-            long minTime = Long.MAX_VALUE;
-            for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++) {
+                // is this the oldest block
                 long t = blocks[i].getLastHit();
-                if (t < minTime) {
-                    minIndex = i;
-                    minTime = t;
+                if (t < oldestTime) {
+                    oldestIndex = i;
+                    oldestTime = t;
+                    oldestLocation = blocks[i].getLocation();
                 }
             }
-            if (minIndex >= 0
-                    && blocks[minIndex].getLastHit() == minTime
-                    && blocks[minIndex].reclaim(channel, targetLocation, tick())) {
-                if (blocks[minIndex].reserve(targetLocation, channel, size.get(), tick())) {
+            // we did not find the block, try to reclaim the block
+            FileStoreFileBlock target = blocks[oldestIndex];
+            if (target.getLastHit() == oldestTime // the time did not change
+                    && target.getLocation() == oldestLocation // still the same location
+                    && target.reclaim(channel, oldestLocation, tick()) // try to reclaim
+                    ) {
+                // the block was successfully reclaimed, reserve it
+                if (target.reserve(targetLocation, channel, size.get(), tick())) {
+                    // update the file data
                     extendSizeTo(Math.max(size.get(), targetLocation + FileStoreFileBlock.BLOCK_SIZE));
-                    if (blocks[minIndex].useShared(targetLocation, tick())) {
-                        return blocks[minIndex];
+                    if (target.useShared(targetLocation, tick())) {
+                        // we got the block
+                        return target;
                     }
                 }
             }

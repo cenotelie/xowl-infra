@@ -46,15 +46,36 @@ import java.util.concurrent.atomic.AtomicInteger;
  * - offset (2 bytes)
  * - length (2 bytes)
  * <p>
- * State machine of a block:
- * reserve:          Free --&gt; Reserved --&gt; Ready
- * useShared:        Ready        --&gt; SharedUse(0)
- * useShared:        SharedUse(n) --&gt; SharedUse(n+1)
- * releaseShared:    SharedUse(n) --&gt; SharedUse(n-1)
- * releaseShared:    SharedUse(0) --&gt; Ready
- * useExclusive:     SharedUse(0) --&gt; ExclusiveUse
- * releaseExclusive: ExclusiveUse --&gt; SharedUse(0)
- * reclaim:      Ready --&gt; Free
+ * A block is designed to be thread-safe when it is accessed through a transaction.
+ * Multiple threads can read from the block at the same time, but only one thread can lock and write to it at any given time.
+ * Writing to the block prevents other threads from reading.
+ * This structure assumes:
+ * 1) A high number of read compared to a low number of write
+ * 2) The quick release of the block when a write has exclusive use
+ * This structure uses lock-free mechanisms for thread safety and uses a state-machine to track its use:
+ * <p>
+ * +--------------+------------------------------------------------------------+
+ * | State        | Description                                                |
+ * +--------------+------------------------------------------------------------+
+ * | Free         | The block is not assigned to a location in the file        |
+ * | Reserved     | The block is reserved for a location and being initialized |
+ * | Ready        | The block is ready for read and write operations           |
+ * | ExclusiveUse | The block is reserved for an exclusive operation (write)   |
+ * | SharedUse(n) | The block is used in a non-exclusive manner (read)         |
+ * +--------------+------------------------------------------------------------+
+ * <p>
+ * +------------------+------------------------------------+
+ * | Operation        | Transition from state to state     |
+ * +------------------+------------------------------------+
+ * | reserve:         | Free --&gt; Reserved --&gt; Ready  |
+ * | useShared:       | Ready        --&gt; SharedUse(0)   |
+ * | useShared:       | SharedUse(n) --&gt; SharedUse(n+1) |
+ * | releaseShared:   | SharedUse(n) --&gt; SharedUse(n-1) |
+ * | releaseShared:   | SharedUse(0) --&gt; Ready          |
+ * | useExclusive:    | SharedUse(0) --&gt; ExclusiveUse   |
+ * | releaseExclusive:| ExclusiveUse --&gt; SharedUse(0)   |
+ * | reclaim:         | Ready --&gt; Free                  |
+ * +------------------+------------------------------------+
  *
  * @author Laurent Wouters
  */
