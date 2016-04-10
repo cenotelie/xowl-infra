@@ -103,27 +103,7 @@ class FileStore {
         synchronized (files) {
             for (FileStoreFile child : files) {
                 try {
-                    child.commit();
-                } catch (StorageException exception) {
-                    Logger.DEFAULT.error(exception);
-                    success = false;
-                }
-            }
-        }
-        return success;
-    }
-
-    /**
-     * Rollback outstanding changes
-     *
-     * @return Whether the operation fully succeeded
-     */
-    public boolean rollback() {
-        boolean success = true;
-        synchronized (files) {
-            for (FileStoreFile child : files) {
-                try {
-                    child.rollback();
+                    child.flush();
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                     success = false;

@@ -358,6 +358,7 @@ class FileStoreFileBlock implements IOElement {
      */
     public boolean reclaim(FileChannel channel, long location, long time) throws StorageException {
         if (!useShared(location, time))
+            // reclaimed for another location
             return false;
         useExclusive();
         if (isDirty) {
@@ -382,12 +383,12 @@ class FileStoreFileBlock implements IOElement {
      *
      * @param channel The originating file channel
      * @param time    The current time
-     * @return Whether the operation succeeded
      * @throws StorageException When an IO error occurs
      */
-    public boolean commit(FileChannel channel, long time) throws StorageException {
+    public void flush(FileChannel channel, long time) throws StorageException {
         if (!useShared(location, time))
-            return false;
+            // reclaimed for another location
+            return;
         useExclusive();
         if (isDirty) {
             try (FileLock lock = channel.lock()) {
@@ -403,35 +404,6 @@ class FileStoreFileBlock implements IOElement {
         }
         releaseExclusive();
         releaseShared();
-        return true;
-    }
-
-    /**
-     * Rollbacks any outstanding changes
-     *
-     * @param channel The originating file channel
-     * @param time    The current time
-     * @return Whether the operation succeeded
-     * @throws StorageException When an IO error occurs
-     */
-    public boolean rollback(FileChannel channel, long time) throws StorageException {
-        if (!useShared(location, time))
-            return false;
-        useExclusive();
-        if (isDirty) {
-            try (FileLock lock = channel.lock()) {
-                channel.position(location);
-                channel.read(buffer);
-                isDirty = false;
-            } catch (IOException exception) {
-                releaseExclusive();
-                releaseShared();
-                throw new StorageException(exception, "Failed to read block at 0x" + Long.toHexString(location));
-            }
-        }
-        releaseExclusive();
-        releaseShared();
-        return true;
     }
 
     /**

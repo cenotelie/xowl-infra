@@ -76,7 +76,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeByte((byte) 5);
-        pf.commit();
+        pf.flush();
         pf.close();
 
         pf = new FileStoreFile(file);
@@ -88,7 +88,7 @@ public class FileStoreFileTest {
     public void testGetSizeAfterReloadEmpty() throws IOException {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
-        pf.commit();
+        pf.flush();
         pf.close();
 
         pf = new FileStoreFile(file);
@@ -190,7 +190,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeByte((byte) 5);
-        pf.commit();
+        pf.flush();
         pf.close();
         Assert.assertTrue("File has not been created", file.exists());
         Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE, file.length());
@@ -204,7 +204,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeByte((byte) 5);
-        pf.commit();
+        pf.flush();
         pf.close();
 
         pf = new FileStoreFile(file);
@@ -217,7 +217,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeBytes(new byte[]{0x5, 0x6, 0x7});
-        pf.commit();
+        pf.flush();
         pf.close();
         Assert.assertTrue("File has not been created", file.exists());
         Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE, file.length());
@@ -233,7 +233,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeBytes(new byte[]{0x5, 0x6, 0x7});
-        pf.commit();
+        pf.flush();
         pf.close();
 
         pf = new FileStoreFile(file);
@@ -248,7 +248,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeChar((char) 0xBBCC);
-        pf.commit();
+        pf.flush();
         pf.close();
         Assert.assertTrue("File has not been created", file.exists());
         Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE, file.length());
@@ -263,7 +263,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeChar((char) 0xBBCC);
-        pf.commit();
+        pf.flush();
         pf.close();
 
         pf = new FileStoreFile(file);
@@ -276,7 +276,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeInt(55);
-        pf.commit();
+        pf.flush();
         pf.close();
         Assert.assertTrue("File has not been created", file.exists());
         Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE, file.length());
@@ -291,7 +291,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeInt(55);
-        pf.commit();
+        pf.flush();
         pf.close();
 
         pf = new FileStoreFile(file);
@@ -304,7 +304,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeLong(0x00BB00AA00FF00EEL);
-        pf.commit();
+        pf.flush();
         pf.close();
         Assert.assertTrue("File has not been created", file.exists());
         Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE, file.length());
@@ -319,7 +319,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeLong(0x00BB00AA00FF00EEL);
-        pf.commit();
+        pf.flush();
         pf.close();
 
         pf = new FileStoreFile(file);
@@ -332,7 +332,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeFloat(5.5f);
-        pf.commit();
+        pf.flush();
         pf.close();
         Assert.assertTrue("File has not been created", file.exists());
         Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE, file.length());
@@ -347,7 +347,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeFloat(5.5f);
-        pf.commit();
+        pf.flush();
         pf.close();
 
         pf = new FileStoreFile(file);
@@ -360,7 +360,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeDouble(5.5d);
-        pf.commit();
+        pf.flush();
         pf.close();
         Assert.assertTrue("File has not been created", file.exists());
         Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE, file.length());
@@ -375,7 +375,7 @@ public class FileStoreFileTest {
         File file = File.createTempFile("test", ".bin");
         FileStoreFile pf = new FileStoreFile(file);
         pf.writeDouble(5.5d);
-        pf.commit();
+        pf.flush();
         pf.close();
 
         pf = new FileStoreFile(file);
@@ -390,7 +390,7 @@ public class FileStoreFileTest {
         pf.writeInt(55);
         pf.seek(8);
         pf.writeInt(66);
-        pf.commit();
+        pf.flush();
         pf.close();
         Assert.assertTrue("File has not been created", file.exists());
         Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE, file.length());
@@ -409,7 +409,7 @@ public class FileStoreFileTest {
         pf.writeInt(55);
         pf.seekNextBlock();
         pf.writeInt(66);
-        pf.commit();
+        pf.flush();
         pf.close();
         Assert.assertTrue("File has not been created", file.exists());
         Assert.assertEquals("Unexpected file length", (long) FileStoreFile.BLOCK_SIZE * 2, file.length());
@@ -443,7 +443,7 @@ public class FileStoreFileTest {
         pf.seekNextBlock();
         pf.writeInt(66);
         pf.seek(0);
-        pf.commit();
+        pf.flush();
         pf.close();
 
         pf = new FileStoreFile(file);

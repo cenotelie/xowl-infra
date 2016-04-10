@@ -165,7 +165,7 @@ class FileStoreFile {
                 transaction.writeInt(0);
                 transaction.writeInt(1);
             }
-            commit();
+            flush();
         } else {
             // file is not empty, verify the header
             try (IOTransaction transaction = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, false)) {
@@ -242,29 +242,16 @@ class FileStoreFile {
      *
      * @throws StorageException When an IO operation failed
      */
-    public void commit() throws StorageException {
+    public void flush() throws StorageException {
         for (int i = 0; i != blockCount.get(); i++) {
             if (blocks[i].getLocation() >= 0) {
-                blocks[i].commit(channel, tick());
+                blocks[i].flush(channel, tick());
             }
         }
         try {
             channel.force(true);
         } catch (IOException exception) {
             throw new StorageException(exception, "Failed to write back to " + fileName);
-        }
-    }
-
-    /**
-     * Rollback outstanding changes
-     *
-     * @throws StorageException When an IO operation failed
-     */
-    public void rollback() throws StorageException {
-        for (int i = 0; i != blockCount.get(); i++) {
-            if (blocks[i].getLocation() >= 0) {
-                blocks[i].rollback(channel, tick());
-            }
         }
     }
 
