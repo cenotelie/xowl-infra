@@ -49,7 +49,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     /**
      * The suffix for the index file
      */
-    private static final String FILE_DATA = "nodes_data.bin";
+    private static final String FILE_DATA = "nodes_data";
     /**
      * The suffix for the index file
      */
@@ -382,7 +382,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 }
                 mapLiterals.put(keyLexical, result);
                 return result;
-            } catch (IOException | StorageException exception) {
+            } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
                 return PersistedNode.KEY_NOT_PRESENT;
             }
@@ -421,7 +421,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                     entry.writeLong(keyLangTag);
                 }
                 return result;
-            } catch (IOException | StorageException exception) {
+            } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
                 return PersistedNode.KEY_NOT_PRESENT;
             }
@@ -544,17 +544,6 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             return false;
         boolean success = backend.commit();
         database.commit();
-        return success;
-    }
-
-    /**
-     * Rollback the outstanding changes to this store
-     *
-     * @return Whether the operation succeeded
-     */
-    public boolean rollback() {
-        boolean success = backend.rollback();
-        database.rollback();
         return success;
     }
 

@@ -195,10 +195,9 @@ class FileStore {
      *
      * @param entrySize The size of the entry to write
      * @return The key for retrieving the data
-     * @throws IOException      When a new file cannot be allocated
      * @throws StorageException When an IO operation failed
      */
-    public long add(int entrySize) throws IOException, StorageException {
+    public long add(int entrySize) throws StorageException {
         if (isReadonly)
             throw new StorageException("The store is read only");
         if (entrySize > FileStoreFileBlock.MAX_ENTRY_SIZE)
