@@ -20,6 +20,8 @@
 
 package org.xowl.infra.store.storage.persistent;
 
+import org.xowl.infra.utils.logging.Logger;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -82,7 +84,11 @@ class IOTransationPool {
         return new IOTransaction() {
             @Override
             public void close() {
-                backend.release();
+                try {
+                    backend.release();
+                } catch (StorageException exception) {
+                    Logger.DEFAULT.error(exception);
+                }
                 returnTransaction(this);
             }
         };

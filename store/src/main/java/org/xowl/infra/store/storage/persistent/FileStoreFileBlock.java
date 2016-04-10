@@ -221,7 +221,7 @@ class FileStoreFileBlock implements IOElement {
     private boolean reserveFromFree(long location, FileChannel channel, long fileSize, long time) throws StorageException {
         if (!state.compareAndSet(BLOCK_STATE_FREE, BLOCK_STATE_RESERVED))
             return false;
-        // the block is free and reserved
+        // the block was free and is now reserved
         this.location = location;
         this.isDirty = false;
         if (this.location < fileSize) {
