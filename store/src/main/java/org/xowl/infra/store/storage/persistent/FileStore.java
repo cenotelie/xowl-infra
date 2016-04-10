@@ -20,6 +20,8 @@
 
 package org.xowl.infra.store.storage.persistent;
 
+import org.xowl.infra.utils.logging.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +33,11 @@ import java.util.List;
  * @author Laurent Wouters
  */
 class FileStore {
+    /**
+     * The suffix of store files
+     */
+    private static final String FILE_SUFFIX = ".xowl";
+
     /**
      * The directory containing the backing files
      */
@@ -93,8 +100,15 @@ class FileStore {
      */
     public boolean commit() {
         boolean success = true;
-        for (FileStoreFile child : files) {
-            success &= child.commit();
+        synchronized (files) {
+            for (FileStoreFile child : files) {
+                try {
+                    child.commit();
+                } catch (StorageException exception) {
+                    Logger.DEFAULT.error(exception);
+                    success = false;
+                }
+            }
         }
         return success;
     }
@@ -106,8 +120,15 @@ class FileStore {
      */
     public boolean rollback() {
         boolean success = true;
-        for (FileStoreFile child : files) {
-            success &= child.rollback();
+        synchronized (files) {
+            for (FileStoreFile child : files) {
+                try {
+                    child.rollback();
+                } catch (StorageException exception) {
+                    Logger.DEFAULT.error(exception);
+                    success = false;
+                }
+            }
         }
         return success;
     }
@@ -120,8 +141,8 @@ class FileStore {
             for (FileStoreFile child : files) {
                 try {
                     child.close();
-                } catch (IOException exception) {
-                    // do nothing
+                } catch (StorageException exception) {
+                    Logger.DEFAULT.error(exception);
                 }
             }
         }
@@ -137,18 +158,20 @@ class FileStore {
             for (int i = 0; i != files.size(); i++) {
                 try {
                     files.get(i).close();
-                } catch (IOException exception) {
-                    // do nothing
+                } catch (StorageException exception) {
+                    Logger.DEFAULT.error(exception);
                 }
                 File target = new File(directory, getNameFor(name, i));
-                target.delete();
+                if (!target.delete()) {
+                    Logger.DEFAULT.error("Failed to delete file " + target.getAbsolutePath());
+                }
             }
             files.clear();
             try {
                 FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false);
                 files.add(first);
-            } catch (StorageException | IOException exception) {
-                // do nothing
+            } catch (StorageException exception) {
+                Logger.DEFAULT.error(exception);
             }
         }
     }
@@ -184,8 +207,6 @@ class FileStore {
      * @throws StorageException When an IO operation failed
      */
     protected IOTransaction access(long key, boolean writable) throws StorageException {
-        if (key <= 0)
-            throw new StorageException("Invalid key");
         return files.get(getFileIndexFor(key)).accessEntry(getShortKey(key), writable);
     }
 
@@ -234,10 +255,10 @@ class FileStore {
      * @return The name of the file
      */
     private static String getNameFor(String radical, int index) {
-        String suffix = Integer.toString(index);
-        while (suffix.length() < 3)
-            suffix = "0" + suffix;
-        return radical + suffix;
+        String num = Integer.toString(index);
+        while (num.length() < 3)
+            num = "0" + num;
+        return radical + num + FILE_SUFFIX;
     }
 
     /**
