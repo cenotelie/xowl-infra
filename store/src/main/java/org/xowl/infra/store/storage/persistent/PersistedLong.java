@@ -49,12 +49,39 @@ class PersistedLong {
      */
     public PersistedLong(FileStore store, long entry) throws StorageException {
         this.store = store;
-        this.entry = store.isEmpty() ? store.add(8) : entry;
-        if (this.entry != entry)
-            throw new StorageException("Failed to initialize the empty store for this data");
+        this.entry = entry;
         try (IOTransaction transaction = store.read(entry)) {
             this.cache = transaction.readLong();
         }
+    }
+
+    /**
+     * Initializes this persisted value
+     *
+     * @param store The backing store
+     * @param entry The entry in the store
+     * @param cache The initial value for the cache
+     */
+    private PersistedLong(FileStore store, long entry, long cache) {
+        this.store = store;
+        this.entry = entry;
+        this.cache = cache;
+    }
+
+    /**
+     * Creates a new persisted value
+     *
+     * @param store     The backing store
+     * @param initValue The initial value
+     * @return The persisted value
+     * @throws StorageException When an IO error occur
+     */
+    public static PersistedLong create(FileStore store, long initValue) throws StorageException {
+        long entry = store.add(8);
+        try (IOTransaction transaction = store.access(entry)) {
+            transaction.writeLong(initValue);
+        }
+        return new PersistedLong(store, entry, initValue);
     }
 
     /**

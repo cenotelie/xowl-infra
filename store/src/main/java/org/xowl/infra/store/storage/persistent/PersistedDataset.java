@@ -306,7 +306,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     public boolean commit() {
         if (backend.isReadonly())
             return false;
-        boolean success = backend.commit();
+        boolean success = backend.flush();
         database.commit();
         return success;
     }

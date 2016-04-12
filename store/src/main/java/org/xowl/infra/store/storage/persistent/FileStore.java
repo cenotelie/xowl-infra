@@ -103,11 +103,13 @@ class FileStore {
     }
 
     /**
-     * Commits the outstanding data
+     * Flushes any outstanding changes to the backing files
      *
      * @return Whether the operation succeeded
      */
-    public boolean commit() {
+    public boolean flush() {
+        if (isReadonly)
+            return true;
         boolean success = true;
         synchronized (files) {
             for (FileStoreFile child : files) {

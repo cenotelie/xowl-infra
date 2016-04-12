@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Laurent Wouters
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -20,9 +20,6 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import org.mapdb.Atomic;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.owl.AnonymousNode;
 import org.xowl.infra.store.rdf.BlankNode;
@@ -38,7 +35,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Map;
 
 /**
  * Represents a persistent store of nodes
@@ -47,25 +43,21 @@ import java.util.Map;
  */
 public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     /**
-     * The suffix for the index file
+     * The common radical for the files that store the data
      */
-    private static final String FILE_DATA = "nodes_data";
+    private static final String FILE_NAME = "nodes";
     /**
-     * The suffix for the index file
+     * Entry for the next blank value data
      */
-    private static final String FILE_INDEX = "nodes_index.bin";
+    private static final long DATA_NEXT_BLANK_ENTRY = 0x00010000L;
     /**
-     * Name of the hash map for the strings
+     * Entry for the string map data
      */
-    private static final String NAME_STRING_MAP = "string-buckets";
+    private static final long DATA_STRING_MAP_ENTRY = 0x00010001L;
     /**
-     * Name of the hash map for the literals
+     * Entry for the literal map data
      */
-    private static final String NAME_LITERAL_MAP = "literal-buckets";
-    /**
-     * Name of the data for the next blank value
-     */
-    private static final String NAME_NEXT_BLANK = "blank-next";
+    private static final long DATA_LITERAL_MAP_ENTRY = 0x00010002L;
 
     /**
      * The size of the overhead for a string entry
@@ -85,29 +77,25 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     private static final int ENTRY_LITERAL_SIZE = 8 + 8 + 8 + 8 + 8;
 
     /**
-     * The backing storing the nodes' data
+     * The backing store for the nodes' data
      */
-    private final FileStore backend;
+    private final FileStore store;
     /**
      * The charset to use for reading and writing the strings
      */
     private final Charset charset;
     /**
-     * The database backing the index
+     * The next blank value
      */
-    private final DB database;
+    private final PersistedLong nextBlank;
     /**
      * The hash map associating string hash code to their bucket
      */
-    private final Map<Integer, Long> mapStrings;
+    private final PersistedMap mapStrings;
     /**
      * The hash map associating the key to the lexical value of a literals to the bucket of literals with the same lexical value
      */
-    private final Map<Long, Long> mapLiterals;
-    /**
-     * The next blank value
-     */
-    private final Atomic.Long nextBlank;
+    private final PersistedMap mapLiterals;
     /**
      * Cache of instantiated IRI nodes
      */
@@ -134,30 +122,27 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @throws StorageException When the storage is in a bad state
      */
     public PersistedNodes(File directory, boolean isReadonly) throws IOException, StorageException {
-        backend = new FileStore(directory, FILE_DATA, isReadonly);
+        store = new FileStore(directory, FILE_NAME, isReadonly);
         charset = Files.CHARSET;
-        database = dbMaker(directory, isReadonly).make();
-        mapStrings = database.hashMap(NAME_STRING_MAP);
-        mapLiterals = database.hashMap(NAME_LITERAL_MAP);
-        nextBlank = database.atomicLong(NAME_NEXT_BLANK);
+        PersistedLong tempNextBlank;
+        PersistedMap tempStringMap;
+        PersistedMap tempLiteralsMap;
+        if (store.isEmpty()) {
+            tempNextBlank = PersistedLong.create(store, 0);
+            tempStringMap = PersistedMap.create(store);
+            tempLiteralsMap = PersistedMap.create(store);
+        } else {
+            tempNextBlank = new PersistedLong(store, DATA_NEXT_BLANK_ENTRY);
+            tempStringMap = new PersistedMap(store, DATA_STRING_MAP_ENTRY);
+            tempLiteralsMap = new PersistedMap(store, DATA_LITERAL_MAP_ENTRY);
+        }
+        nextBlank = tempNextBlank;
+        mapStrings = tempStringMap;
+        mapLiterals = tempLiteralsMap;
         cacheNodeIRIs = new PersistedNodeCache<>();
         cacheNodeBlanks = new PersistedNodeCache<>();
         cacheNodeAnons = new PersistedNodeCache<>();
         cacheNodeLiterals = new PersistedNodeCache<>();
-    }
-
-    /**
-     * Gets the mapDB database maker for this store
-     *
-     * @param directory  The parent directory containing the backing files
-     * @param isReadonly Whether this store is in readonly mode
-     * @return The DB maker
-     */
-    private static DBMaker.Maker dbMaker(File directory, boolean isReadonly) {
-        DBMaker.Maker maker = DBMaker.fileDB(new File(directory, FILE_INDEX));
-        if (isReadonly)
-            maker = maker.readOnly();
-        return maker;
     }
 
     /**
@@ -179,7 +164,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @throws StorageException When the page version does not match the expected one
      */
     public String retrieveString(long key) throws IOException, StorageException {
-        try (IOTransaction element = backend.read(key)) {
+        try (IOTransaction element = store.read(key)) {
             int length = element.seek(16).readInt();
             byte[] data = element.readBytes(length);
             return new String(data, charset);
@@ -193,7 +178,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @param modifier The modifier for the reference counter
      */
     public void onRefCountString(long key, int modifier) {
-        try (IOTransaction element = backend.access(key)) {
+        try (IOTransaction element = store.access(key)) {
             long counter = element.seek(8).readLong();
             counter += modifier;
             element.seek(8).writeLong(counter);
@@ -215,7 +200,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         byte[] buffer = data.getBytes(charset);
         long candidate = bucket;
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
-            try (IOTransaction entry = backend.read(candidate)) {
+            try (IOTransaction entry = store.read(candidate)) {
                 long next = entry.readLong();
                 long count = entry.readLong();
                 int size = entry.readInt();
@@ -244,7 +229,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         long previous = PersistedNode.KEY_NOT_PRESENT;
         long candidate = bucket;
         while (candidate != PersistedNode.KEY_NOT_PRESENT) {
-            try (IOTransaction entry = backend.read(candidate)) {
+            try (IOTransaction entry = store.read(candidate)) {
                 long next = entry.readLong();
                 int size = entry.seek(16).readInt();
                 if (size == buffer.length) {
@@ -256,15 +241,15 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 candidate = next;
             }
         }
-        long result = backend.add(buffer.length + ENTRY_STRING_OVERHEAD);
-        try (IOTransaction entry = backend.access(result)) {
+        long result = store.add(buffer.length + ENTRY_STRING_OVERHEAD);
+        try (IOTransaction entry = store.access(result)) {
             entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
             entry.writeLong(0);
             entry.writeInt(buffer.length);
             entry.writeBytes(buffer);
         }
         if (previous != PersistedNode.KEY_NOT_PRESENT) {
-            try (IOTransaction previousEntry = backend.access(previous)) {
+            try (IOTransaction previousEntry = store.access(previous)) {
                 previousEntry.writeLong(result);
             }
         }
@@ -317,7 +302,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         long keyLexical;
         long keyDatatype;
         long keyLangTag;
-        try (IOTransaction entry = backend.read(key)) {
+        try (IOTransaction entry = store.read(key)) {
             entry.seek(16);
             keyLexical = entry.readLong();
             keyDatatype = entry.readLong();
@@ -337,7 +322,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @param modifier The modifier for the reference counter
      */
     public void onRefCountLiteral(long key, int modifier) {
-        try (IOTransaction element = backend.access(key)) {
+        try (IOTransaction element = store.access(key)) {
             long counter = element.seek(8).readLong();
             counter += modifier;
             element.seek(8).writeLong(counter);
@@ -372,8 +357,8 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             if (!doInsert)
                 return PersistedNode.KEY_NOT_PRESENT;
             try {
-                long result = backend.add(ENTRY_LITERAL_SIZE);
-                try (IOTransaction entry = backend.access(result)) {
+                long result = store.add(ENTRY_LITERAL_SIZE);
+                try (IOTransaction entry = store.access(result)) {
                     entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
                     entry.writeLong(0);
                     entry.writeLong(keyLexical);
@@ -390,7 +375,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             long previous = PersistedNode.KEY_NOT_PRESENT;
             long candidate = bucket;
             while (candidate != PersistedNode.KEY_NOT_PRESENT) {
-                try (IOTransaction entry = backend.access(candidate)) {
+                try (IOTransaction entry = store.access(candidate)) {
                     long next = entry.readLong();
                     long count = entry.readLong();
                     entry.seek(24);
@@ -409,11 +394,11 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             if (!doInsert)
                 return PersistedNode.KEY_NOT_PRESENT;
             try {
-                long result = backend.add(ENTRY_LITERAL_SIZE);
-                try (IOTransaction entry = backend.access(previous)) {
+                long result = store.add(ENTRY_LITERAL_SIZE);
+                try (IOTransaction entry = store.access(previous)) {
                     entry.writeLong(result);
                 }
-                try (IOTransaction entry = backend.access(result)) {
+                try (IOTransaction entry = store.access(result)) {
                     entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
                     entry.writeLong(0);
                     entry.writeLong(keyLexical);
@@ -535,16 +520,12 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     }
 
     /**
-     * Commits the outstanding changes to this store
+     * Flushes any outstanding changes to the backing files
      *
      * @return Whether the operation succeeded
      */
-    public boolean commit() {
-        if (backend.isReadonly())
-            return false;
-        boolean success = backend.commit();
-        database.commit();
-        return success;
+    public boolean flush() {
+        return store.flush();
     }
 
     @Override
@@ -559,7 +540,12 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
 
     @Override
     public BlankNode getBlankNode() {
-        return getBlankNodeFor(nextBlank.getAndIncrement());
+        try {
+            return getBlankNodeFor(nextBlank.getAndIncrement());
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return null;
+        }
     }
 
     @Override
@@ -582,7 +568,6 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        backend.close();
-        database.close();
+        store.close();
     }
 }

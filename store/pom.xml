@@ -37,11 +37,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.mapdb</groupId>
-			<artifactId>mapdb</artifactId>
-			<version>2.0-beta8</version>
-		</dependency>
-		<dependency>
 			<groupId>org.xowl.infra</groupId>
 			<artifactId>xowl-commons</artifactId>
 			<version>1.0.3-SNAPSHOT</version>
@@ -80,7 +75,7 @@
 				<configuration>
 					<instructions>
 						<Import-Package>!sun.*,*</Import-Package>
-						<Embed-Dependency>xercesImpl;inline=true,xml-apis;inline=true,xml-resolver;inline=true,mapdb;inline=true</Embed-Dependency>
+						<Embed-Dependency>xercesImpl;inline=true,xml-apis;inline=true,xml-resolver;inline=true</Embed-Dependency>
 						<Embed-Transitive>false</Embed-Transitive>
 					</instructions>
 				</configuration>
