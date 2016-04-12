@@ -94,6 +94,15 @@ class FileStore {
     }
 
     /**
+     * Gets whether this store is empty
+     *
+     * @return Whether this store is empty
+     */
+    public boolean isEmpty() {
+        return files.size() == 1 && files.get(0).getSize() <= FileStoreFileBlock.BLOCK_SIZE;
+    }
+
+    /**
      * Commits the outstanding data
      *
      * @return Whether the operation succeeded
