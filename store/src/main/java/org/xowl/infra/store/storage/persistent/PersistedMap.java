@@ -20,12 +20,20 @@
 
 package org.xowl.infra.store.storage.persistent;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Implements a (long -> long) map that is persisted in files
  *
  * @author Laurent Wouters
  */
 class PersistedMap {
+    /**
+     * The value when a key is not found
+     */
+    public static final long KEY_NOT_FOUND = 0xFFFFFFFFFFFFFFFFL;
+
     /**
      * The backing store
      */
@@ -54,10 +62,10 @@ class PersistedMap {
      * Gets the value associated to key
      *
      * @param key The requested key
-     * @return The associated value, or -1 when the key is not present
+     * @return The associated value, or KEY_NOT_FOUND when the key is not present
      */
     public long get(long key) {
-        return -1;
+        return KEY_NOT_FOUND;
     }
 
     /**
@@ -75,9 +83,106 @@ class PersistedMap {
      * Removes the entry for the specified key
      *
      * @param key The key
-     * @return The value that was associated to the key, or -1 if there was none
+     * @return The value that was associated to the key, or KEY_NOT_FOUND if there was none
      */
     public long remove(long key) {
-        return -1;
+        return KEY_NOT_FOUND;
+    }
+
+    /**
+     * Removes all entries from this map
+     */
+    public void clear() {
+
+    }
+
+    /**
+     * Gets an iterator over the entries in this map
+     *
+     * @return An iterator over the entries
+     */
+    public Iterator entries() {
+        return null;
+    }
+
+    /**
+     * An iterator over entries in the map
+     */
+    public class Iterator implements java.util.Iterator<Map.Entry<Long, Long>> {
+        /**
+         * The key for the current entry
+         */
+        private long currentEntryKey;
+        /**
+         * The value for the current entry
+         */
+        private long currentEntryValue;
+
+        /**
+         * Finds the next entry
+         *
+         * @return Whether there is a next entry
+         */
+        private boolean findNext() {
+            // TODO: implement this
+            return false;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return currentEntryKey != KEY_NOT_FOUND;
+        }
+
+        @Override
+        public Map.Entry<Long, Long> next() {
+            Map.Entry<Long, Long> result = new HashMap.SimpleImmutableEntry<>(currentEntryKey, currentEntryValue);
+            findNext();
+            return result;
+        }
+
+        @Override
+        public void remove() {
+            // TODO: implement removal
+        }
+
+        /**
+         * Gets the key for the current entry
+         *
+         * @return The key for the current entry
+         */
+        public long currentKey() {
+            return currentEntryKey;
+        }
+
+        /**
+         * Gets the value for the current entry
+         *
+         * @return The value for the current entry
+         */
+        public long currentValue() {
+            return currentEntryValue;
+        }
+
+        /**
+         * Gets the next key
+         *
+         * @return The next key
+         */
+        public long nextKey() {
+            long result = currentEntryKey;
+            findNext();
+            return result;
+        }
+
+        /**
+         * Gets the next value
+         *
+         * @return The next value
+         */
+        public long nextValue() {
+            long result = currentEntryValue;
+            findNext();
+            return result;
+        }
     }
 }

@@ -77,7 +77,7 @@ class OnDiskStore extends BaseStore {
     public boolean commit() {
         cacheDataset.commit();
         boolean success = persistedNodes.flush();
-        success &= persistedDataset.commit();
+        success &= persistedDataset.flush();
         return success;
     }
 
