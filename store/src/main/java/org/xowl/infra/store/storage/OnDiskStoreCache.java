@@ -270,7 +270,7 @@ class OnDiskStoreCache extends DatasetImpl {
             Logger.DEFAULT.error(exception);
         }
         diff.commit();
-        persisted.commit();
+        persisted.flush();
     }
 
     /**
