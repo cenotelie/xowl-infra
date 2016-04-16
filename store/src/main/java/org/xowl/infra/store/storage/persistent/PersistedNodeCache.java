@@ -73,7 +73,7 @@ class PersistedNodeCache<T extends PersistedNode> {
             if (keys[i] == key) {
                 T result = nodes[i].get();
                 if (result == null) {
-                    keys[i] = PersistedNode.KEY_NOT_PRESENT;
+                    keys[i] = FileStore.KEY_NULL;
                     nodes[i] = null;
                 }
                 return result;
@@ -83,7 +83,7 @@ class PersistedNodeCache<T extends PersistedNode> {
             if (keys[i] == key) {
                 T result = nodes[i].get();
                 if (result == null) {
-                    keys[i] = PersistedNode.KEY_NOT_PRESENT;
+                    keys[i] = FileStore.KEY_NULL;
                     nodes[i] = null;
                 }
                 return result;

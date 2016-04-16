@@ -56,10 +56,6 @@ class PersistedBlankNode extends BlankNode implements PersistedNode {
     }
 
     @Override
-    public void modifyRefCount(int modifier) {
-    }
-
-    @Override
     public boolean equals(Object o) {
         return (o instanceof BlankNode) && (getBlankID() == ((BlankNode) o).getBlankID());
     }

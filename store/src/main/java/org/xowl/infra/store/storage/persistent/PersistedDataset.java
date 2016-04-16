@@ -112,12 +112,12 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         public QNodeIterator(FileStore backend, long entry) {
             this.backend = backend;
             next = entry;
-            value = PersistedNode.KEY_NOT_PRESENT;
+            value = FileStore.KEY_NULL;
         }
 
         @Override
         public boolean hasNext() {
-            return next != PersistedNode.KEY_NOT_PRESENT;
+            return next != FileStore.KEY_NULL;
         }
 
         @Override
@@ -180,9 +180,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 this.next = findNext();
             } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
-                this.next = PersistedNode.KEY_NOT_PRESENT;
+                this.next = FileStore.KEY_NULL;
             }
-            this.value = PersistedNode.KEY_NOT_PRESENT;
+            this.value = FileStore.KEY_NULL;
         }
 
         /**
@@ -198,15 +198,15 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     try (IOTransaction entry = backend.read(keyEntry)) {
                         keyEntry = entry.readLong();
                     }
-                    if (keyEntry == PersistedNode.KEY_NOT_PRESENT)
-                        return PersistedNode.KEY_NOT_PRESENT;
+                    if (keyEntry == FileStore.KEY_NULL)
+                        return FileStore.KEY_NULL;
                     index = 0;
                 }
                 try (IOTransaction entry = backend.read(keyEntry)) {
                     radical = entry.seek(8).readInt();
                     for (int i = index; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
                         int ek = entry.seek(8 + 4 + 4 + i * 8).readInt();
-                        if (ek != PersistedNode.KEY_NOT_PRESENT) {
+                        if (ek != FileStore.KEY_NULL) {
                             index = i;
                             return FileStore.getFullKey(radical, ek);
                         }
@@ -217,7 +217,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
 
         @Override
         public boolean hasNext() {
-            return next != PersistedNode.KEY_NOT_PRESENT;
+            return next != FileStore.KEY_NULL;
         }
 
         @Override
@@ -359,13 +359,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 return 0;
             bufferQNSubject = bucket;
             long target = lookupQNode(bufferQNSubject, property, false);
-            if (target == PersistedNode.KEY_NOT_PRESENT)
+            if (target == FileStore.KEY_NULL)
                 return 0;
             target = lookupQNode(target, object, false);
-            if (target == PersistedNode.KEY_NOT_PRESENT)
+            if (target == FileStore.KEY_NULL)
                 return 0;
             target = lookupQNode(target, graph, false);
-            if (target == PersistedNode.KEY_NOT_PRESENT)
+            if (target == FileStore.KEY_NULL)
                 return 0;
             try (IOTransaction entry = store.access(target)) {
                 return entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
@@ -557,7 +557,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (pProperty == null)
             return new SingleIterator<>(null);
         long current = bucket;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             try (IOTransaction entry = store.read(current)) {
                 current = entry.readLong();
                 int type = entry.readInt();
@@ -631,7 +631,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (pObject == null)
             return new SingleIterator<>(null);
         long current = bucket;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             try (IOTransaction entry = store.read(current)) {
                 current = entry.readLong();
                 int type = entry.readInt();
@@ -690,7 +690,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (pGraph == null)
             return new SingleIterator<>(null);
         long current = bucket;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             try (IOTransaction entry = store.read(current)) {
                 current = entry.readLong();
                 int type = entry.readInt();
@@ -763,14 +763,14 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return 0;
         long result = 0;
         long current = bucket;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             try (IOTransaction entry = store.read(current)) {
                 long next = entry.readLong();
                 int count = entry.seek(8 + 4).readInt();
                 for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
                     int eK = entry.readInt();
                     int mult = entry.readInt();
-                    if (eK != PersistedNode.KEY_NOT_PRESENT) {
+                    if (eK != FileStore.KEY_NULL) {
                         result += mult;
                         count--;
                         if (count <= 0)
@@ -865,7 +865,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 return 0;
             long result = 0;
             long current = bucket;
-            while (current != PersistedNode.KEY_NOT_PRESENT) {
+            while (current != FileStore.KEY_NULL) {
                 try (IOTransaction entry = store.read(current)) {
                     current = entry.readLong();
                     int radical = entry.readInt();
@@ -873,7 +873,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
                         int sk = entry.readInt();
                         entry.readInt();
-                        if (sk != PersistedNode.KEY_NOT_PRESENT) {
+                        if (sk != FileStore.KEY_NULL) {
                             long child = FileStore.getFullKey(radical, sk);
                             try (IOTransaction subjectEntry = store.read(child)) {
                                 child = subjectEntry.seek(8 + 4 + 8).readLong();
@@ -945,8 +945,8 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     private long countOnProperty(long bucket, PersistedNode graph, PersistedNode property, PersistedNode object) {
         long result = 0;
         long current = bucket;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
-            long child = PersistedNode.KEY_NOT_PRESENT;
+        while (current != FileStore.KEY_NULL) {
+            long child = FileStore.KEY_NULL;
             try (IOTransaction element = store.read(current)) {
                 current = element.readLong();
                 if (property == null || (property.getNodeType() == element.readInt() && property.getKey() == element.readLong())) {
@@ -956,7 +956,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 Logger.DEFAULT.error(exception);
                 return result;
             }
-            if (child != PersistedNode.KEY_NOT_PRESENT)
+            if (child != FileStore.KEY_NULL)
                 result += countOnObject(child, graph, object);
         }
         return result;
@@ -973,8 +973,8 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     private long countOnObject(long bucket, PersistedNode graph, PersistedNode object) {
         long result = 0;
         long current = bucket;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
-            long child = PersistedNode.KEY_NOT_PRESENT;
+        while (current != FileStore.KEY_NULL) {
+            long child = FileStore.KEY_NULL;
             try (IOTransaction element = store.read(current)) {
                 current = element.readLong();
                 if (object == null || (object.getNodeType() == element.readInt() && object.getKey() == element.readLong())) {
@@ -984,7 +984,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 Logger.DEFAULT.error(exception);
                 return result;
             }
-            if (child != PersistedNode.KEY_NOT_PRESENT)
+            if (child != FileStore.KEY_NULL)
                 result += countOnGraph(child, graph);
         }
         return result;
@@ -1000,7 +1000,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     private long countOnGraph(long bucket, PersistedNode graph) {
         long result = 0;
         long current = bucket;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             try (IOTransaction element = store.read(current)) {
                 current = element.readLong();
                 if (graph == null || (graph.getNodeType() == element.readInt() && graph.getKey() == element.readLong()))
@@ -1055,7 +1055,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             target = lookupQNode(target, graph, true);
             try (IOTransaction entry = store.access(target)) {
                 long value = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
-                if (value == PersistedNode.KEY_NOT_PRESENT) {
+                if (value == FileStore.KEY_NULL) {
                     entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(1);
                     return ADD_RESULT_NEW;
                 } else {
@@ -1087,22 +1087,22 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return;
         }
         // look for an appropriate entry
-        long emptyEntry = PersistedNode.KEY_NOT_PRESENT;
-        bufferQNPrevious = PersistedNode.KEY_NOT_PRESENT;
+        long emptyEntry = FileStore.KEY_NULL;
+        bufferQNPrevious = FileStore.KEY_NULL;
         long current = bucket;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             try (IOTransaction entry = store.access(current)) {
                 long next = entry.readLong();
                 int eRadical = entry.readInt();
                 if (eRadical != radical)
                     continue;
                 int count = entry.readInt();
-                if (emptyEntry == PersistedNode.KEY_NOT_PRESENT && count < GINDEX_ENTRY_MAX_ITEM_COUNT)
+                if (emptyEntry == FileStore.KEY_NULL && count < GINDEX_ENTRY_MAX_ITEM_COUNT)
                     emptyEntry = current;
                 for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
                     int qnode = entry.readInt();
                     int multiplicity = entry.readInt();
-                    if (qnode == PersistedNode.KEY_NOT_PRESENT)
+                    if (qnode == FileStore.KEY_NULL)
                         continue;
                     if (qnode == FileStore.getShortKey(bufferQNSubject)) {
                         multiplicity++;
@@ -1121,13 +1121,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }
         }
         // not found in an entry
-        if (emptyEntry != PersistedNode.KEY_NOT_PRESENT) {
+        if (emptyEntry != FileStore.KEY_NULL) {
             try (IOTransaction entry = store.access(emptyEntry)) {
                 int count = entry.seek(12).readInt();
                 for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
                     int qnode = entry.readInt();
                     entry.readInt();
-                    if (qnode == PersistedNode.KEY_NOT_PRESENT) {
+                    if (qnode == FileStore.KEY_NULL) {
                         entry.seek(i * 8 + 8 + 4 + 4);
                         entry.writeInt(FileStore.getShortKey(bufferQNSubject));
                         entry.writeInt(1);
@@ -1160,20 +1160,20 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try {
             long key = store.add(GINDEX_ENTRY_SIZE);
             try (IOTransaction entry = store.access(key)) {
-                entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+                entry.writeLong(FileStore.KEY_NULL);
                 entry.writeInt(radical);
                 entry.writeInt(1);
                 entry.writeInt(FileStore.getShortKey(qnode));
                 entry.writeInt(1);
                 for (int i = 1; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
-                    entry.writeInt((int) PersistedNode.KEY_NOT_PRESENT);
+                    entry.writeInt((int) FileStore.KEY_NULL);
                     entry.writeInt(0);
                 }
             }
             return key;
         } catch (StorageException exception) {
             Logger.DEFAULT.error(exception);
-            return PersistedNode.KEY_NOT_PRESENT;
+            return FileStore.KEY_NULL;
         }
     }
 
@@ -1216,15 +1216,15 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }
             bufferQNSubject = bucket;
             long bufferQNProperty = lookupQNode(bufferQNSubject, property, false);
-            if (bufferQNProperty == PersistedNode.KEY_NOT_PRESENT)
+            if (bufferQNProperty == FileStore.KEY_NULL)
                 return REMOVE_RESULT_NOT_FOUND;
             long keyPropertyPrevious = bufferQNPrevious;
             long bufferQNObject = lookupQNode(bufferQNProperty, object, false);
-            if (bufferQNObject == PersistedNode.KEY_NOT_PRESENT)
+            if (bufferQNObject == FileStore.KEY_NULL)
                 return REMOVE_RESULT_NOT_FOUND;
             long keyObjectPrevious = bufferQNPrevious;
             long bufferQNGraph = lookupQNode(bufferQNObject, graph, false);
-            if (bufferQNGraph == PersistedNode.KEY_NOT_PRESENT)
+            if (bufferQNGraph == FileStore.KEY_NULL)
                 return REMOVE_RESULT_NOT_FOUND;
             long keyGraphPrevious = bufferQNPrevious;
             try (IOTransaction entry = store.access(bufferQNGraph)) {
@@ -1243,7 +1243,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }
             if (keyGraphPrevious == bufferQNObject) {
                 // the previous of the graph is the object
-                if (next == PersistedNode.KEY_NOT_PRESENT) {
+                if (next == FileStore.KEY_NULL) {
                     // the last one
                     store.remove(bufferQNGraph);
                 } else {
@@ -1267,7 +1267,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }
             if (keyObjectPrevious == bufferQNProperty) {
                 // the previous of the object is the property
-                if (next == PersistedNode.KEY_NOT_PRESENT) {
+                if (next == FileStore.KEY_NULL) {
                     // the last one
                     store.remove(bufferQNObject);
                 } else {
@@ -1291,7 +1291,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }
             if (keyPropertyPrevious == bufferQNSubject) {
                 // the previous of the property is the subject
-                if (next == PersistedNode.KEY_NOT_PRESENT) {
+                if (next == FileStore.KEY_NULL) {
                     // the last one
                     store.remove(bufferQNProperty);
                 } else {
@@ -1334,9 +1334,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return;
         }
         // look for an appropriate entry
-        bufferQNPrevious = PersistedNode.KEY_NOT_PRESENT;
+        bufferQNPrevious = FileStore.KEY_NULL;
         long current = bucket;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             try (IOTransaction entry = store.access(current)) {
                 long next = entry.readLong();
                 int eRadical = entry.readInt();
@@ -1347,7 +1347,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
                     int qnode = entry.readInt();
                     int multiplicity = entry.readInt();
-                    if (qnode == PersistedNode.KEY_NOT_PRESENT)
+                    if (qnode == FileStore.KEY_NULL)
                         continue;
                     if (qnode == FileStore.getShortKey(bufferQNSubject)) {
                         multiplicity--;
@@ -1358,14 +1358,14 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         count--;
                         if (count > 0) {
                             entry.seek(i * 8 + 8 + 4 + 4);
-                            entry.writeInt((int) PersistedNode.KEY_NOT_PRESENT);
+                            entry.writeInt((int) FileStore.KEY_NULL);
                             entry.writeInt(0);
                             entry.seek(8 + 4).writeInt(count);
                             return;
                         }
-                        if (bufferQNPrevious == PersistedNode.KEY_NOT_PRESENT) {
+                        if (bufferQNPrevious == FileStore.KEY_NULL) {
                             // this is the first entry for this index
-                            if (next == PersistedNode.KEY_NOT_PRESENT) {
+                            if (next == FileStore.KEY_NULL) {
                                 // this is the sole entry
                                 map.remove(graph.getKey());
                             } else {
@@ -1460,10 +1460,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (bucket == PersistedMap.KEY_NOT_FOUND)
             return;
         long newBucket = bucket;
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             boolean empty = removeAllOnSingleGraphPage(current, graph, property, object, bufferDecremented, bufferRemoved);
             next = bufferQNPrevious;
             if (empty) {
@@ -1472,10 +1472,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                if (previous == FileStore.KEY_NULL) {
                     // the first element
                     newBucket = next;
-                    current = PersistedNode.KEY_NOT_PRESENT;
+                    current = FileStore.KEY_NULL;
                 } else {
                     try (IOTransaction element = store.access(previous)) {
                         element.writeLong(next);
@@ -1489,7 +1489,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             current = next;
         }
 
-        if (newBucket == PersistedNode.KEY_NOT_PRESENT) {
+        if (newBucket == FileStore.KEY_NULL) {
             // graph completely removed
             map.remove(graph.getKey());
         } else if (newBucket != bucket) {
@@ -1534,7 +1534,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 multiplicity -= bufferRemoved.size() - size;
                 if (multiplicity <= 0) {
                     element.seek(i * 8 + 8 + 4 + 4);
-                    element.writeInt((int) PersistedNode.KEY_NOT_PRESENT);
+                    element.writeInt((int) FileStore.KEY_NULL);
                     element.writeInt(0);
                     count--;
                 } else {
@@ -1627,7 +1627,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         for (int i = sizeRemoved; i != bufferRemoved.size(); i++)
             bufferRemoved.get(i).setSubject(rSubject);
 
-        if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+        if (newChild == FileStore.KEY_NULL) {
             // the child bucket is empty
             try {
                 store.remove(subjectKey);
@@ -1656,13 +1656,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param graph             The graph to match
      * @param bufferDecremented The buffer of decremented quads
      * @param bufferRemoved     The buffer of removed quads
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long removeAllOnProperty(long bucket, PersistedNode property, PersistedNode object, PersistedNode graph, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             long child;
             int type;
             long key;
@@ -1692,17 +1692,17 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = sizeRemoved; i != bufferRemoved.size(); i++)
                 bufferRemoved.get(i).setProperty(rProperty);
 
-            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+            if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
                     store.remove(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                if (previous == FileStore.KEY_NULL) {
                     // this is the first one
                     bucket = next;
-                    current = PersistedNode.KEY_NOT_PRESENT;
+                    current = FileStore.KEY_NULL;
                 } else {
                     try (IOTransaction element = store.access(previous)) {
                         element.writeLong(next);
@@ -1736,13 +1736,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param graph             The graph to match
      * @param bufferDecremented The buffer of decremented quads
      * @param bufferRemoved     The buffer of removed quads
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long removeAllOnObject(long bucket, PersistedNode object, PersistedNode graph, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             long child;
             int type;
             long key;
@@ -1772,17 +1772,17 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = sizeRemoved; i != bufferRemoved.size(); i++)
                 bufferRemoved.get(i).setObject(rObject);
 
-            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+            if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
                     store.remove(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                if (previous == FileStore.KEY_NULL) {
                     // this is the first one
                     bucket = next;
-                    current = PersistedNode.KEY_NOT_PRESENT;
+                    current = FileStore.KEY_NULL;
                 } else {
                     try (IOTransaction element = store.access(previous)) {
                         element.writeLong(next);
@@ -1815,13 +1815,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param graph             The graph to match
      * @param bufferDecremented The buffer of decremented quads
      * @param bufferRemoved     The buffer of removed quads
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long removeAllOnGraph(long bucket, PersistedNode graph, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             PersistedNode removedGraph = null;
             try (IOTransaction element = store.access(current)) {
                 next = element.readLong();
@@ -1867,7 +1867,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     } catch (StorageException exception) {
                         Logger.DEFAULT.error(exception);
                     }
-                    if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                    if (previous == FileStore.KEY_NULL) {
                         // this is the first one
                         return next;
                     } else {
@@ -1885,7 +1885,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             current = next;
         }
         if (graph == null)
-            return PersistedNode.KEY_NOT_PRESENT;
+            return FileStore.KEY_NULL;
         return bucket;
     }
 
@@ -1925,8 +1925,8 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
-            next = PersistedNode.KEY_NOT_PRESENT;
+        while (current != FileStore.KEY_NULL) {
+            next = FileStore.KEY_NULL;
             try (IOTransaction element = store.read(current)) {
                 next = element.readLong();
                 int radical = element.readInt();
@@ -1986,7 +1986,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             ((PersistedNode) quad.getGraph()).decrementRefCount();
         }
 
-        if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+        if (newChild == FileStore.KEY_NULL) {
             // the child bucket is empty
             try {
                 store.remove(key);
@@ -2012,13 +2012,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param bucket The bucket of properties
      * @param graph  The graph to match
      * @param buffer The buffer of quads
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long clearOnProperty(long bucket, PersistedNode graph, List<MQuad> buffer) {
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             long child;
             Property property;
             try (IOTransaction element = store.read(current)) {
@@ -2035,17 +2035,17 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = size; i != buffer.size(); i++)
                 buffer.get(i).setProperty(property);
 
-            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+            if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
                     store.remove(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                if (previous == FileStore.KEY_NULL) {
                     // this is the first one
                     bucket = next;
-                    current = PersistedNode.KEY_NOT_PRESENT;
+                    current = FileStore.KEY_NULL;
                 } else {
                     try (IOTransaction element = store.access(previous)) {
                         element.writeLong(next);
@@ -2077,13 +2077,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param bucket The bucket of objects
      * @param graph  The graph to match
      * @param buffer The buffer of quads
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long clearOnObject(long bucket, PersistedNode graph, List<MQuad> buffer) {
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             long child;
             Node object;
             try (IOTransaction element = store.read(current)) {
@@ -2100,17 +2100,17 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = size; i != buffer.size(); i++)
                 buffer.get(i).setObject(object);
 
-            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+            if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
                     store.remove(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                if (previous == FileStore.KEY_NULL) {
                     // this is the first one
                     bucket = next;
-                    current = PersistedNode.KEY_NOT_PRESENT;
+                    current = FileStore.KEY_NULL;
                 } else {
                     try (IOTransaction element = store.access(previous)) {
                         element.writeLong(next);
@@ -2142,13 +2142,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param bucket The bucket of graphs
      * @param graph  The graph to match
      * @param buffer The buffer of quads
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long clearOnGraph(long bucket, PersistedNode graph, List<MQuad> buffer) {
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             boolean found = false;
             try (IOTransaction element = store.read(current)) {
                 next = element.readLong();
@@ -2180,7 +2180,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                if (previous == FileStore.KEY_NULL) {
                     // this is the first one
                     return next;
                 } else {
@@ -2197,7 +2197,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             current = next;
         }
         if (graph == null)
-            return PersistedNode.KEY_NOT_PRESENT;
+            return FileStore.KEY_NULL;
         return bucket;
     }
 
@@ -2300,7 +2300,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         for (int i = sizeNew; i != bufferNew.size(); i++)
             bufferNew.get(i).setSubject(subject);
 
-        if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+        if (newChild == FileStore.KEY_NULL) {
             // the child bucket is empty
             try {
                 store.remove(key);
@@ -2329,13 +2329,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
      * @param overwrite Whether to overwrite quads from the target graph
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long copyOnProperty(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             long child;
             Property property;
             try (IOTransaction element = store.read(current)) {
@@ -2355,17 +2355,17 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = sizeNew; i != bufferNew.size(); i++)
                 bufferNew.get(i).setProperty(property);
 
-            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+            if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
                     store.remove(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                if (previous == FileStore.KEY_NULL) {
                     // this is the first one
                     bucket = next;
-                    current = PersistedNode.KEY_NOT_PRESENT;
+                    current = FileStore.KEY_NULL;
                 } else {
                     try (IOTransaction element = store.access(previous)) {
                         element.writeLong(next);
@@ -2400,13 +2400,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
      * @param overwrite Whether to overwrite quads from the target graph
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long copyOnObject(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             long child;
             Node object;
             try (IOTransaction element = store.read(current)) {
@@ -2426,17 +2426,17 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = sizeNew; i != bufferNew.size(); i++)
                 bufferNew.get(i).setObject(object);
 
-            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+            if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
                     store.remove(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                if (previous == FileStore.KEY_NULL) {
                     // this is the first one
                     bucket = next;
-                    current = PersistedNode.KEY_NOT_PRESENT;
+                    current = FileStore.KEY_NULL;
                 } else {
                     try (IOTransaction element = store.access(previous)) {
                         element.writeLong(next);
@@ -2471,34 +2471,34 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
      * @param overwrite Whether to overwrite quads from the target graph
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long copyOnGraph(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
-        long keyOrigin = PersistedNode.KEY_NOT_PRESENT;
-        long keyTargetPrevious = PersistedNode.KEY_NOT_PRESENT;
-        long keyTarget = PersistedNode.KEY_NOT_PRESENT;
-        long keyTargetNext = PersistedNode.KEY_NOT_PRESENT;
+        long keyOrigin = FileStore.KEY_NULL;
+        long keyTargetPrevious = FileStore.KEY_NULL;
+        long keyTarget = FileStore.KEY_NULL;
+        long keyTargetNext = FileStore.KEY_NULL;
         long targetMultiplicity = 0;
 
         // traverse the bucket
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             try (IOTransaction element = store.read(current)) {
                 next = element.readLong();
                 int type = element.readInt();
                 long key = element.readLong();
                 if (type == origin.getNodeType() && key == origin.getKey()) {
                     keyOrigin = current;
-                    if (keyTarget != PersistedNode.KEY_NOT_PRESENT)
+                    if (keyTarget != FileStore.KEY_NULL)
                         break;
                 } else if (type == target.getNodeType() && key == target.getKey()) {
                     keyTarget = current;
                     keyTargetPrevious = previous;
                     keyTargetNext = next;
                     targetMultiplicity = element.readLong();
-                    if (keyOrigin != PersistedNode.KEY_NOT_PRESENT)
+                    if (keyOrigin != FileStore.KEY_NULL)
                         break;
                 }
             } catch (StorageException exception) {
@@ -2509,9 +2509,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             current = next;
         }
 
-        if (keyOrigin != PersistedNode.KEY_NOT_PRESENT) {
+        if (keyOrigin != FileStore.KEY_NULL) {
             // if the origin graph is present, copy
-            if (keyTarget == PersistedNode.KEY_NOT_PRESENT) {
+            if (keyTarget == FileStore.KEY_NULL) {
                 // insert the target graph
                 try {
                     keyTarget = newEntry(target);
@@ -2531,7 +2531,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 Logger.DEFAULT.error(exception);
                 return bucket;
             }
-        } else if (overwrite && keyTarget != PersistedNode.KEY_NOT_PRESENT) {
+        } else if (overwrite && keyTarget != FileStore.KEY_NULL) {
             // the target graph is there but not the old one and we must overwrite
             // we need to remove this
             bufferOld.add(new MQuad((GraphNode) target, targetMultiplicity));
@@ -2541,7 +2541,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 Logger.DEFAULT.error(exception);
                 return bucket;
             }
-            if (keyTargetPrevious == PersistedNode.KEY_NOT_PRESENT) {
+            if (keyTargetPrevious == FileStore.KEY_NULL) {
                 // target is the first node
                 return keyTargetNext;
             } else {
@@ -2653,7 +2653,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         for (int i = sizeNew; i != bufferNew.size(); i++)
             bufferNew.get(i).setSubject(subject);
 
-        if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+        if (newChild == FileStore.KEY_NULL) {
             // the child bucket is empty
             try {
                 store.remove(key);
@@ -2681,13 +2681,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param target    The target graph
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long moveOnProperty(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             long child;
             Property property;
             try (IOTransaction element = store.read(current)) {
@@ -2707,17 +2707,17 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = sizeNew; i != bufferNew.size(); i++)
                 bufferNew.get(i).setProperty(property);
 
-            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+            if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
                     store.remove(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                if (previous == FileStore.KEY_NULL) {
                     // this is the first one
                     bucket = next;
-                    current = PersistedNode.KEY_NOT_PRESENT;
+                    current = FileStore.KEY_NULL;
                 } else {
                     try (IOTransaction element = store.access(previous)) {
                         element.writeLong(next);
@@ -2751,13 +2751,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param target    The target graph
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long moveOnObject(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             long child;
             Node object;
             try (IOTransaction element = store.read(current)) {
@@ -2777,17 +2777,17 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             for (int i = sizeNew; i != bufferNew.size(); i++)
                 bufferNew.get(i).setObject(object);
 
-            if (newChild == PersistedNode.KEY_NOT_PRESENT) {
+            if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
                     store.remove(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
-                if (previous == PersistedNode.KEY_NOT_PRESENT) {
+                if (previous == FileStore.KEY_NULL) {
                     // this is the first one
                     bucket = next;
-                    current = PersistedNode.KEY_NOT_PRESENT;
+                    current = FileStore.KEY_NULL;
                 } else {
                     try (IOTransaction element = store.access(previous)) {
                         element.writeLong(next);
@@ -2821,23 +2821,23 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param target    The target graph
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
-     * @return The key to the new bucket head, or KEY_NOT_PRESENT if all the bucket is emptied
+     * @return The key to the new bucket head, or KEY_NULL if all the bucket is emptied
      */
     private long moveOnGraph(long bucket, PersistedNode origin, PersistedNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
-        long keyOriginPrevious = PersistedNode.KEY_NOT_PRESENT;
-        long keyOrigin = PersistedNode.KEY_NOT_PRESENT;
-        long keyOriginNext = PersistedNode.KEY_NOT_PRESENT;
+        long keyOriginPrevious = FileStore.KEY_NULL;
+        long keyOrigin = FileStore.KEY_NULL;
+        long keyOriginNext = FileStore.KEY_NULL;
         long originMultiplicity = 0;
-        long keyTargetPrevious = PersistedNode.KEY_NOT_PRESENT;
-        long keyTarget = PersistedNode.KEY_NOT_PRESENT;
-        long keyTargetNext = PersistedNode.KEY_NOT_PRESENT;
+        long keyTargetPrevious = FileStore.KEY_NULL;
+        long keyTarget = FileStore.KEY_NULL;
+        long keyTargetNext = FileStore.KEY_NULL;
         long targetMultiplicity = 0;
 
         // traverse the bucket
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long current = bucket;
         long next;
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             try (IOTransaction element = store.read(current)) {
                 next = element.readLong();
                 int type = element.readInt();
@@ -2847,14 +2847,14 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     keyOriginPrevious = previous;
                     keyOriginNext = next;
                     originMultiplicity = element.readLong();
-                    if (keyTarget != PersistedNode.KEY_NOT_PRESENT)
+                    if (keyTarget != FileStore.KEY_NULL)
                         break;
                 } else if (type == target.getNodeType() && key == target.getKey()) {
                     keyTarget = current;
                     keyTargetPrevious = previous;
                     keyTargetNext = next;
                     targetMultiplicity = element.readLong();
-                    if (keyOrigin != PersistedNode.KEY_NOT_PRESENT)
+                    if (keyOrigin != FileStore.KEY_NULL)
                         break;
                 }
             } catch (StorageException exception) {
@@ -2865,11 +2865,11 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             current = next;
         }
 
-        if (keyOrigin != PersistedNode.KEY_NOT_PRESENT) {
+        if (keyOrigin != FileStore.KEY_NULL) {
             // if the origin graph is present, move
             // remove the origin
             bufferOld.add(new MQuad((GraphNode) origin, originMultiplicity));
-            if (keyTarget != PersistedNode.KEY_NOT_PRESENT) {
+            if (keyTarget != FileStore.KEY_NULL) {
                 // the target graph is also here, increment it
                 try (IOTransaction element = store.access(keyTarget)) {
                     element.seek(8 + 4 + 8).writeLong(targetMultiplicity + 1);
@@ -2884,7 +2884,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     Logger.DEFAULT.error(exception);
                     return bucket;
                 }
-                if (keyOriginPrevious == PersistedNode.KEY_NOT_PRESENT) {
+                if (keyOriginPrevious == FileStore.KEY_NULL) {
                     // target is the first node
                     return keyOriginNext;
                 } else {
@@ -2909,7 +2909,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     return bucket;
                 }
             }
-        } else if (keyTarget != PersistedNode.KEY_NOT_PRESENT) {
+        } else if (keyTarget != FileStore.KEY_NULL) {
             // the target graph is there but not the old one
             // we need to remove this
             bufferOld.add(new MQuad((GraphNode) target, targetMultiplicity));
@@ -2919,7 +2919,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 Logger.DEFAULT.error(exception);
                 return bucket;
             }
-            if (keyTargetPrevious == PersistedNode.KEY_NOT_PRESENT) {
+            if (keyTargetPrevious == FileStore.KEY_NULL) {
                 // target is the first node
                 return keyTargetNext;
             } else {
@@ -2977,9 +2977,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try (IOTransaction entry = store.read(from)) {
             current = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
         }
-        if (current == PersistedNode.KEY_NOT_PRESENT) {
+        if (current == FileStore.KEY_NULL) {
             if (!resolve)
-                return PersistedNode.KEY_NOT_PRESENT;
+                return FileStore.KEY_NULL;
             // not here
             current = newEntry(node);
             try (IOTransaction entry = store.access(from)) {
@@ -2988,7 +2988,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return current;
         }
         // follow the chain
-        while (current != PersistedNode.KEY_NOT_PRESENT) {
+        while (current != FileStore.KEY_NULL) {
             try (IOTransaction entry = store.read(current)) {
                 long next = entry.readLong();
                 if (node.getNodeType() == entry.readInt() && node.getKey() == entry.readLong()) {
@@ -3000,7 +3000,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         }
         // not present => new entry
         if (!resolve)
-            return PersistedNode.KEY_NOT_PRESENT;
+            return FileStore.KEY_NULL;
         current = newEntry(node);
         try (IOTransaction entry = store.access(bufferQNPrevious)) {
             entry.writeLong(current);
@@ -3018,10 +3018,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     private long newEntry(PersistedNode node) throws StorageException {
         long key = store.add(QUAD_ENTRY_SIZE);
         try (IOTransaction entry = store.access(key)) {
-            entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+            entry.writeLong(FileStore.KEY_NULL);
             entry.writeInt(node.getNodeType());
             entry.writeLong(node.getKey());
-            entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+            entry.writeLong(FileStore.KEY_NULL);
         }
         return key;
     }

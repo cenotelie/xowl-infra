@@ -29,11 +29,6 @@ import org.xowl.infra.store.rdf.Node;
  */
 interface PersistedNode extends Node {
     /**
-     * The key for absent values in a store
-     */
-    long KEY_NOT_PRESENT = -1;
-
-    /**
      * The size in bytes of the serialized form of a node
      * int: node type
      * long: key to node data
@@ -63,11 +58,4 @@ interface PersistedNode extends Node {
      * Decrements the reference count for this node
      */
     void decrementRefCount();
-
-    /**
-     * Modifies the reference count for this node
-     *
-     * @param modifier The modifier for the count
-     */
-    void modifyRefCount(int modifier);
 }

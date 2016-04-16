@@ -32,7 +32,7 @@ class PersistedMap {
     /**
      * The value when a key is not found
      */
-    public static final long KEY_NOT_FOUND = 0xFFFFFFFFFFFFFFFFL;
+    public static final long KEY_NOT_FOUND = FileStore.KEY_NULL;
 
     /**
      * The backing store

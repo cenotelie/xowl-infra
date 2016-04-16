@@ -146,16 +146,6 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     }
 
     /**
-     * Gets the hash code for the string data
-     *
-     * @param data The string
-     * @return The hash code
-     */
-    private static int hash(String data) {
-        return data.hashCode();
-    }
-
-    /**
      * Reads the string at the specified index
      *
      * @param key The key to the string
@@ -177,7 +167,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @param key      The key to the string
      * @param modifier The modifier for the reference counter
      */
-    public void onRefCountString(long key, int modifier) {
+    void onRefCountString(long key, int modifier) {
         try (IOTransaction element = store.access(key)) {
             long counter = element.seek(8).readLong();
             counter += modifier;
@@ -192,14 +182,14 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      *
      * @param bucket The key to the bucket for this string
      * @param data   The string to get the key for
-     * @return The key for the string, or KEY_NOT_PRESENT if it is not in this store
+     * @return The key for the string, or KEY_NULL if it is not in this store
      * @throws IOException      When an IO operation failed
      * @throws StorageException When the page version does not match the expected one
      */
     private long lookupString(long bucket, String data) throws IOException, StorageException {
         byte[] buffer = data.getBytes(charset);
         long candidate = bucket;
-        while (candidate != PersistedNode.KEY_NOT_PRESENT) {
+        while (candidate != FileStore.KEY_NULL) {
             try (IOTransaction entry = store.read(candidate)) {
                 long next = entry.readLong();
                 long count = entry.readLong();
@@ -212,13 +202,13 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 candidate = next;
             }
         }
-        return PersistedNode.KEY_NOT_PRESENT;
+        return FileStore.KEY_NULL;
     }
 
     /**
      * Stores the specified string in this backend
      *
-     * @param bucket The key to the bucket for this string, or KEY_NOT_PRESENT if it must be created
+     * @param bucket The key to the bucket for this string, or KEY_NULL if it must be created
      * @param data   The string to store
      * @return The key to the stored string
      * @throws IOException      When an IO operation failed
@@ -226,9 +216,9 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      */
     private long addString(long bucket, String data) throws IOException, StorageException {
         byte[] buffer = data.getBytes(charset);
-        long previous = PersistedNode.KEY_NOT_PRESENT;
+        long previous = FileStore.KEY_NULL;
         long candidate = bucket;
-        while (candidate != PersistedNode.KEY_NOT_PRESENT) {
+        while (candidate != FileStore.KEY_NULL) {
             try (IOTransaction entry = store.read(candidate)) {
                 long next = entry.readLong();
                 int size = entry.seek(16).readInt();
@@ -243,12 +233,12 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         }
         long result = store.add(buffer.length + ENTRY_STRING_OVERHEAD);
         try (IOTransaction entry = store.access(result)) {
-            entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+            entry.writeLong(FileStore.KEY_NULL);
             entry.writeLong(0);
             entry.writeInt(buffer.length);
             entry.writeBytes(buffer);
         }
-        if (previous != PersistedNode.KEY_NOT_PRESENT) {
+        if (previous != FileStore.KEY_NULL) {
             try (IOTransaction previousEntry = store.access(previous)) {
                 previousEntry.writeLong(result);
             }
@@ -265,27 +255,26 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      */
     private long getKeyForString(String data, boolean doInsert) {
         if (data == null)
-            return PersistedNode.KEY_NOT_PRESENT;
-        int hash = hash(data);
-        Long bucket = mapStrings.get(hash);
-        if (bucket == null && !doInsert)
-            return PersistedNode.KEY_NOT_PRESENT;
+            return FileStore.KEY_NULL;
+        long bucket = mapStrings.get(data.hashCode());
+        if (bucket == PersistedMap.KEY_NOT_FOUND && !doInsert)
+            return FileStore.KEY_NULL;
         if (doInsert) {
             try {
-                long result = addString(bucket == null ? PersistedNode.KEY_NOT_PRESENT : bucket, data);
-                if (bucket == null)
-                    mapStrings.put(hash, result);
+                long result = addString(bucket == PersistedMap.KEY_NOT_FOUND ? FileStore.KEY_NULL : bucket, data);
+                if (bucket == PersistedMap.KEY_NOT_FOUND)
+                    mapStrings.put(data.hashCode(), result);
                 return result;
             } catch (IOException | StorageException exception) {
                 Logger.DEFAULT.error(exception);
-                return PersistedNode.KEY_NOT_PRESENT;
+                return FileStore.KEY_NULL;
             }
         } else {
             try {
                 return lookupString(bucket, data);
             } catch (IOException | StorageException exception) {
                 Logger.DEFAULT.error(exception);
-                return PersistedNode.KEY_NOT_PRESENT;
+                return FileStore.KEY_NULL;
             }
         }
     }
@@ -309,9 +298,9 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             keyLangTag = entry.readLong();
         }
         return new String[]{
-                keyLexical == PersistedNode.KEY_NOT_PRESENT ? "" : retrieveString(keyLexical),
-                keyDatatype == PersistedNode.KEY_NOT_PRESENT ? null : retrieveString(keyDatatype),
-                keyLangTag == PersistedNode.KEY_NOT_PRESENT ? null : retrieveString(keyLangTag)
+                keyLexical == FileStore.KEY_NULL ? "" : retrieveString(keyLexical),
+                keyDatatype == FileStore.KEY_NULL ? null : retrieveString(keyDatatype),
+                keyLangTag == FileStore.KEY_NULL ? null : retrieveString(keyLangTag)
         };
     }
 
@@ -344,22 +333,22 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     private long getKeyForLiteral(String lexical, String datatype, String langTag, boolean doInsert) {
         lexical = lexical == null ? "" : lexical;
         long keyLexical = getKeyForString(lexical, doInsert);
-        long keyDatatype = datatype == null ? PersistedNode.KEY_NOT_PRESENT : getKeyForString(datatype, doInsert);
-        long keyLangTag = langTag == null ? PersistedNode.KEY_NOT_PRESENT : getKeyForString(langTag, doInsert);
+        long keyDatatype = datatype == null ? FileStore.KEY_NULL : getKeyForString(datatype, doInsert);
+        long keyLangTag = langTag == null ? FileStore.KEY_NULL : getKeyForString(langTag, doInsert);
         if (!doInsert
-                && (keyLexical == PersistedNode.KEY_NOT_PRESENT
-                || (datatype != null && keyDatatype == PersistedNode.KEY_NOT_PRESENT)
-                || (langTag != null && keyLangTag == PersistedNode.KEY_NOT_PRESENT)))
-            return PersistedNode.KEY_NOT_PRESENT;
-        Long bucket = mapLiterals.get(keyLexical);
-        if (bucket == null) {
+                && (keyLexical == FileStore.KEY_NULL
+                || (datatype != null && keyDatatype == FileStore.KEY_NULL)
+                || (langTag != null && keyLangTag == FileStore.KEY_NULL)))
+            return FileStore.KEY_NULL;
+        long bucket = mapLiterals.get(keyLexical);
+        if (bucket == PersistedMap.KEY_NOT_FOUND) {
             // this is the first literal with this lexem
             if (!doInsert)
-                return PersistedNode.KEY_NOT_PRESENT;
+                return FileStore.KEY_NULL;
             try {
                 long result = store.add(ENTRY_LITERAL_SIZE);
                 try (IOTransaction entry = store.access(result)) {
-                    entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+                    entry.writeLong(FileStore.KEY_NULL);
                     entry.writeLong(0);
                     entry.writeLong(keyLexical);
                     entry.writeLong(keyDatatype);
@@ -369,12 +358,12 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 return result;
             } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
-                return PersistedNode.KEY_NOT_PRESENT;
+                return FileStore.KEY_NULL;
             }
         } else {
-            long previous = PersistedNode.KEY_NOT_PRESENT;
+            long previous = FileStore.KEY_NULL;
             long candidate = bucket;
-            while (candidate != PersistedNode.KEY_NOT_PRESENT) {
+            while (candidate != FileStore.KEY_NULL) {
                 try (IOTransaction entry = store.access(candidate)) {
                     long next = entry.readLong();
                     long count = entry.readLong();
@@ -387,19 +376,19 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                     candidate = next;
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
-                    return PersistedNode.KEY_NOT_PRESENT;
+                    return FileStore.KEY_NULL;
                 }
             }
             // did not found an existing literal
             if (!doInsert)
-                return PersistedNode.KEY_NOT_PRESENT;
+                return FileStore.KEY_NULL;
             try {
                 long result = store.add(ENTRY_LITERAL_SIZE);
                 try (IOTransaction entry = store.access(previous)) {
                     entry.writeLong(result);
                 }
                 try (IOTransaction entry = store.access(result)) {
-                    entry.writeLong(PersistedNode.KEY_NOT_PRESENT);
+                    entry.writeLong(FileStore.KEY_NULL);
                     entry.writeLong(0);
                     entry.writeLong(keyLexical);
                     entry.writeLong(keyDatatype);
@@ -408,7 +397,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 return result;
             } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
-                return PersistedNode.KEY_NOT_PRESENT;
+                return FileStore.KEY_NULL;
             }
         }
     }
@@ -458,7 +447,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @return The IRI node for the specified key
      */
     public PersistedIRINode getIRINodeFor(long key) {
-        if (key == PersistedNode.KEY_NOT_PRESENT)
+        if (key == FileStore.KEY_NULL)
             return null;
         PersistedIRINode result = cacheNodeIRIs.get(key);
         if (result == null) {
@@ -475,7 +464,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @return The Blank node for the specified key
      */
     public PersistedBlankNode getBlankNodeFor(long key) {
-        if (key == PersistedNode.KEY_NOT_PRESENT)
+        if (key == FileStore.KEY_NULL)
             return null;
         PersistedBlankNode result = cacheNodeBlanks.get(key);
         if (result == null) {
@@ -492,7 +481,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @return The Anonymous node for the specified key
      */
     public PersistedAnonNode getAnonNodeFor(long key) {
-        if (key == PersistedNode.KEY_NOT_PRESENT)
+        if (key == FileStore.KEY_NULL)
             return null;
         PersistedAnonNode result = cacheNodeAnons.get(key);
         if (result == null) {
@@ -509,7 +498,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @return The Literal node for the specified key
      */
     public PersistedLiteralNode getLiteralNodeFor(long key) {
-        if (key == PersistedNode.KEY_NOT_PRESENT)
+        if (key == FileStore.KEY_NULL)
             return null;
         PersistedLiteralNode result = cacheNodeLiterals.get(key);
         if (result == null) {

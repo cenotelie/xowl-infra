@@ -34,6 +34,11 @@ import java.util.List;
  */
 class FileStore {
     /**
+     * The null entry key, denotes the absence of value for a key
+     */
+    public static final long KEY_NULL = 0xFFFFFFFFFFFFFFFFL;
+
+    /**
      * The suffix of store files
      */
     private static final String FILE_SUFFIX = ".xowl";
@@ -54,15 +59,6 @@ class FileStore {
      * Whether this store is in readonly mode
      */
     private final boolean isReadonly;
-
-    /**
-     * Gets whether this store is in readonly mode
-     *
-     * @return Whether this store is in readonly mode
-     */
-    public boolean isReadonly() {
-        return isReadonly;
-    }
 
     /**
      * Initializes this store
@@ -198,6 +194,8 @@ class FileStore {
      * @throws StorageException When an IO operation failed
      */
     protected IOTransaction access(long key, boolean writable) throws StorageException {
+        if (key == KEY_NULL)
+            throw new StorageException("Invalid key (null key)");
         return files.get(getFileIndexFor(key)).accessEntry(getShortKey(key), writable);
     }
 
@@ -234,6 +232,8 @@ class FileStore {
     public void remove(long key) throws StorageException {
         if (isReadonly)
             throw new StorageException("The store is read only");
+        if (key == KEY_NULL)
+            throw new StorageException("Invalid key (null key)");
         files.get(getFileIndexFor(key)).removeEntry(getShortKey(key));
     }
 
