@@ -26,6 +26,21 @@ import java.util.Map;
 /**
  * Implements a (long -> long) map that is persisted in files
  *
+ * The map is composed of two parts: a B+ tree for the lower part of the keys and an index for the upper part.
+ * To resolve a key, the upper part of the key is checked against the index to get the entry for the B+ tree root for the lower part.
+ * The entry's value is then in the B+ tree accessed through this root.
+ *
+ * An index entry has the layout:
+ * long: next entry
+ * long[count] key to the B+ tree for the associated index
+ *
+ * A B+ tree node has the layout:
+ * long: next sibling
+ * char: count
+ * char: flags
+ * int[b]: keys
+ * long[b]: values
+ *
  * @author Laurent Wouters
  */
 class PersistedMap {
@@ -33,6 +48,24 @@ class PersistedMap {
      * The value when a key is not found
      */
     public static final long KEY_NOT_FOUND = FileStore.KEY_NULL;
+
+    /**
+     * The number of entries in an index
+     */
+    private static final int INDEX_ENTRY_COUNT = 8;
+    /**
+     * The size of an index entry
+     */
+    private static final int INDEX_SIZE = 8 + INDEX_ENTRY_COUNT * 8;
+
+    /**
+     * The fan-out factor of the B+ tree
+     */
+    private static final int BTREE_NODE_SPAN = 16;
+    /**
+     * The size of a B+ tree node
+     */
+    private static final int BTREE_NODE_SIZE = 8 + 2 + 2 + BTREE_NODE_SPAN * (4 + 8);
 
     /**
      * The backing store
@@ -54,8 +87,15 @@ class PersistedMap {
         this.mapHead = mapHead;
     }
 
-    public static PersistedMap create(FileStore store) {
-        return null;
+    /**
+     * Creates a new persisted map
+     * @param store The backing store
+     * @return The persisted map
+     * @throws StorageException When an IO error occur
+     */
+    public static PersistedMap create(FileStore store) throws StorageException {
+        long mapHead = allocateIndex(store);
+        return new PersistedMap(store, mapHead);
     }
 
     /**
@@ -103,6 +143,49 @@ class PersistedMap {
      */
     public Iterator entries() {
         return null;
+    }
+
+
+    /**
+     * Gets the tree head that corresponds to the specified radical
+     * @param radical The radical
+     * @param resolve Whether to create the tree head if it does not exist
+     * @return The tree head
+     */
+    private long getTreeHead(int radical, boolean resolve) {
+
+    }
+
+    /**
+     * Allocates an index node in the specified store
+     * @param store The store
+     * @return The key to the index node
+     * @throws StorageException When an IO error occur
+     */
+    private static long allocateIndex(FileStore store) throws StorageException {
+        long key = store.add(INDEX_SIZE);
+        try (IOTransaction transaction = store.access(key)) {
+            transaction.writeLong(FileStore.KEY_NULL);
+            for (int i=0; i != INDEX_ENTRY_COUNT; i++) {
+                transaction.writeLong(FileStore.KEY_NULL);
+            }
+        }
+        return key;
+    }
+
+    /**
+     * Allocates a B+ tree node in the associated store
+     * @return The key to the node
+     * @throws StorageException When an IO error occur
+     */
+    private long allocateTreeNode() throws StorageException {
+        long key = store.add(BTREE_NODE_SIZE);
+        try (IOTransaction transaction = store.access(key)) {
+            transaction.writeLong(FileStore.KEY_NULL);
+            transaction.writeChar('\0');
+            transaction.writeChar('\0');
+        }
+        return key;
     }
 
     /**

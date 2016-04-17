@@ -101,15 +101,6 @@ abstract class IOTransaction implements Closeable {
     }
 
     /**
-     * Gets whether this transaction allows writing
-     *
-     * @return Whether the transaction allows writing
-     */
-    public boolean isWritable() {
-        return writable;
-    }
-
-    /**
      * Positions the index of this transaction
      * The index is local to this transaction, meaning that 0 represents the start of the transaction window in the associated backend.
      *
