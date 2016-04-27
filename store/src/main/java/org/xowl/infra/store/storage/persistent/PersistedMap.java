@@ -174,6 +174,7 @@ class PersistedMap {
             }
             currentStart += INDEX_ENTRY_COUNT;
         }
+        return FileStore.KEY_NULL;
     }
 
 
