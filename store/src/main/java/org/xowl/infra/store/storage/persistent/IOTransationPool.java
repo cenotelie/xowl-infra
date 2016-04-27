@@ -38,7 +38,7 @@ class IOTransationPool {
     /**
      * The pool of free transaction objects
      */
-    private final AtomicReference<IOTransaction>[] poolTransactions;
+    private final AtomicReference<IOAccess>[] poolTransactions;
 
     /**
      * Initializes this pool
@@ -58,8 +58,8 @@ class IOTransationPool {
      * @param writable Whether the transaction allows writing
      * @return The new transaction, or null if it cannot be prepared
      */
-    public IOTransaction begin(IOElement backend, long location, long length, boolean writable) {
-        IOTransaction transaction = resolveTransaction();
+    public IOAccess begin(IOElement backend, long location, long length, boolean writable) {
+        IOAccess transaction = resolveTransaction();
         transaction.setup(backend, location, length, writable);
         if (writable) {
             try {
@@ -78,13 +78,13 @@ class IOTransationPool {
      *
      * @return A free transaction object
      */
-    private IOTransaction resolveTransaction() {
+    private IOAccess resolveTransaction() {
         for (int i = 0; i != poolTransactions.length; i++) {
-            IOTransaction candidate = poolTransactions[i].get();
+            IOAccess candidate = poolTransactions[i].get();
             if (candidate != null && poolTransactions[i].compareAndSet(candidate, null))
                 return candidate;
         }
-        return new IOTransaction() {
+        return new IOAccess() {
             @Override
             public void close() {
                 onClose();
@@ -98,9 +98,9 @@ class IOTransationPool {
      *
      * @param transaction The transaction object
      */
-    private void returnTransaction(IOTransaction transaction) {
+    private void returnTransaction(IOAccess transaction) {
         for (int i = 0; i != poolTransactions.length; i++) {
-            IOTransaction candidate = poolTransactions[i].get();
+            IOAccess candidate = poolTransactions[i].get();
             if (candidate == null && poolTransactions[i].compareAndSet(null, transaction))
                 return;
         }

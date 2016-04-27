@@ -25,14 +25,15 @@ import org.xowl.infra.utils.logging.Logger;
 import java.io.Closeable;
 
 /**
- * Base API for an IO transaction on an IOElement
- * The transaction defines a span within the backend that can be accessed.
+ * Base API for a controlled access to an IOElement
+ * The access defines a span within the backend element that can be accessed.
  * Only operations within this span are allowed.
- * The beginning of the span is a mapped to the 0 index of the transaction element.
+ * The beginning of the span is a mapped to the 0 index of this access element.
+ * The access element keeps track of its current index within the span and will automatically update it upon reading and writing.
  *
  * @author Laurent Wouters
  */
-abstract class IOTransaction implements Closeable {
+abstract class IOAccess implements Closeable {
     /**
      * The backing IO element
      */
@@ -107,7 +108,7 @@ abstract class IOTransaction implements Closeable {
      * @param index The new transaction index
      * @return This transaction
      */
-    public IOTransaction seek(long index) {
+    public IOAccess seek(long index) {
         this.index = location + index;
         return this;
     }
@@ -118,7 +119,7 @@ abstract class IOTransaction implements Closeable {
      *
      * @return This transaction
      */
-    public IOTransaction reset() {
+    public IOAccess reset() {
         this.index = location;
         return this;
     }
@@ -130,7 +131,7 @@ abstract class IOTransaction implements Closeable {
      * @param offset The offset to move from
      * @return This transaction
      */
-    public IOTransaction skip(long offset) {
+    public IOAccess skip(long offset) {
         this.index += offset;
         return this;
     }

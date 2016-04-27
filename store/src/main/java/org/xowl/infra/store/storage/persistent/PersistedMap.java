@@ -152,9 +152,38 @@ class PersistedMap {
      * @param resolve Whether to create the tree head if it does not exist
      * @return The tree head
      */
-    private long getTreeHead(int radical, boolean resolve) {
+    private long getTreeHead(int radical, boolean resolve) throws StorageException {
+        int currentStart = 0;
+        long current = mapHead;
+        while (radical >= currentStart + INDEX_ENTRY_COUNT) {
+            long next;
+            try (IOAccess transaction = store.read(current)) {
+                next = transaction.readLong();
+            }
+            if (next == FileStore.KEY_NULL) {
+                if (!resolve)
+                    return FileStore.KEY_NULL;
+                try (IOAccess transaction = store.access(current)) {
+                    next = transaction.readLong();
+                    if (next == FileStore.KEY_NULL) {
+                        next = allocateIndex(store);
+                        transaction.reset().writeLong(next);
+                    }
+                }
 
+            }
+            currentStart += INDEX_ENTRY_COUNT;
+        }
     }
+
+
+
+
+
+
+
+
+
 
     /**
      * Allocates an index node in the specified store
@@ -164,7 +193,7 @@ class PersistedMap {
      */
     private static long allocateIndex(FileStore store) throws StorageException {
         long key = store.add(INDEX_SIZE);
-        try (IOTransaction transaction = store.access(key)) {
+        try (IOAccess transaction = store.access(key)) {
             transaction.writeLong(FileStore.KEY_NULL);
             for (int i=0; i != INDEX_ENTRY_COUNT; i++) {
                 transaction.writeLong(FileStore.KEY_NULL);
@@ -180,13 +209,15 @@ class PersistedMap {
      */
     private long allocateTreeNode() throws StorageException {
         long key = store.add(BTREE_NODE_SIZE);
-        try (IOTransaction transaction = store.access(key)) {
+        try (IOAccess transaction = store.access(key)) {
             transaction.writeLong(FileStore.KEY_NULL);
             transaction.writeChar('\0');
             transaction.writeChar('\0');
         }
         return key;
     }
+
+
 
     /**
      * An iterator over entries in the map

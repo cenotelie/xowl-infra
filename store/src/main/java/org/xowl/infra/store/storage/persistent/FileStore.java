@@ -170,7 +170,7 @@ class FileStore {
      * @return The IO element that can be used for reading and writing
      * @throws StorageException When an IO operation failed
      */
-    public IOTransaction access(long key) throws StorageException {
+    public IOAccess access(long key) throws StorageException {
         return access(key, true);
     }
 
@@ -181,7 +181,7 @@ class FileStore {
      * @return The IO element that can be used for reading
      * @throws StorageException When an IO operation failed
      */
-    public IOTransaction read(long key) throws StorageException {
+    public IOAccess read(long key) throws StorageException {
         return access(key, false);
     }
 
@@ -193,7 +193,7 @@ class FileStore {
      * @return The IO element that can be used for reading and writing
      * @throws StorageException When an IO operation failed
      */
-    protected IOTransaction access(long key, boolean writable) throws StorageException {
+    protected IOAccess access(long key, boolean writable) throws StorageException {
         if (key == KEY_NULL)
             throw new StorageException("Invalid key (null key)");
         return files.get(getFileIndexFor(key)).accessEntry(getShortKey(key), writable);
