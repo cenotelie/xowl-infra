@@ -79,7 +79,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Laurent Wouters
  */
-class FileStoreFileBlock implements IOElement {
+class FileStoreFileBlock implements IOBackend, AutoCloseable {
     /**
      * The number of bits to use in order to represent an index within a block
      */
@@ -455,28 +455,14 @@ class FileStoreFileBlock implements IOElement {
     }
 
     @Override
-    public void lock() throws StorageException {
-        useExclusive();
+    public void onNewAccess(IOAccess access) throws StorageException {
+        // do nothing here, the block was marked as used by the parent file
     }
 
     @Override
-    public void release() throws StorageException {
-        while (true) {
-            int current = state.get();
-            if (current <= BLOCK_STATE_READY)
-                throw new StorageException("Bad block state: " + stateName(current) + ", expected SHARED_USE or EXCLUSIVE_USE");
-            else if (current == BLOCK_STATE_EXCLUSIVE_USE && state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_READY))
-                return;
-            else if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_READY))
-                return;
-            else if (current > BLOCK_STATE_SHARED_USE && state.compareAndSet(current, current - 1))
-                return;
-        }
-    }
-
-    @Override
-    public long getSize() {
-        return BLOCK_SIZE;
+    public void onAccessTerminated(IOAccess access) throws StorageException {
+        // release a shared use
+        releaseShared();
     }
 
     @Override

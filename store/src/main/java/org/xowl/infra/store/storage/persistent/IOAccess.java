@@ -22,10 +22,8 @@ package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.logging.Logger;
 
-import java.io.Closeable;
-
 /**
- * Base API for a controlled access to an IOElement
+ * Base API for a controlled access to an IO backend element
  * The access defines a span within the backend element that can be accessed.
  * Only operations within this span are allowed.
  * The beginning of the span is a mapped to the 0 index of this access element.
@@ -33,37 +31,37 @@ import java.io.Closeable;
  *
  * @author Laurent Wouters
  */
-abstract class IOAccess implements Closeable {
+abstract class IOAccess implements AutoCloseable {
     /**
      * The backing IO element
      */
-    private IOElement backend;
+    protected IOBackend backend;
     /**
      * The location in the backend
      */
-    private long location;
+    protected long location;
     /**
      * The length of the proxy in the backend
      */
-    private long length;
+    protected long length;
     /**
-     * Whether the transaction allows writing
+     * Whether the access allows writing
      */
-    private boolean writable;
+    protected boolean writable;
     /**
      * The current index in the backend
      */
     private long index;
 
     /**
-     * Setups this transaction before using it
+     * Setups this access before using it
      *
      * @param backend  The backend IO element
-     * @param location The location of the span for this transaction within the backend
+     * @param location The location of the span for this access within the backend
      * @param length   The length of the allowed span
-     * @param writable Whether the transaction allows writing
+     * @param writable Whether the access allows writing
      */
-    void setup(IOElement backend, long location, long length, boolean writable) {
+    protected void setupIOData(IOBackend backend, long location, long length, boolean writable) {
         this.backend = backend;
         this.location = location;
         this.length = length;
@@ -71,42 +69,49 @@ abstract class IOAccess implements Closeable {
         this.index = location;
     }
 
-    /**
-     * Event when the transaction is closing
-     */
-    void onClose() {
+    @Override
+    public void close() {
         try {
-            backend.release();
+            backend.onAccessTerminated(this);
         } catch (StorageException exception) {
             Logger.DEFAULT.error(exception);
         }
     }
 
     /**
-     * Gets the current index of this transaction
-     * The index is local to this transaction, meaning that 0 represents the start of the transaction window in the associated backend.
+     * Gets the location of this access in the backend
      *
-     * @return The current transaction index
+     * @return The location of this access in the backend
+     */
+    public long getLocation() {
+        return location;
+    }
+
+    /**
+     * Gets the current index of this access
+     * The index is local to this access, meaning that 0 represents the start of the access window in the associated backend.
+     *
+     * @return The current access index
      */
     public long getIndex() {
         return (index - location);
     }
 
     /**
-     * Gets the length of this transaction window in the associated backend
+     * Gets the length of this access window in the associated backend
      *
-     * @return The length of this transaction window
+     * @return The length of this access window
      */
     public long getLength() {
         return length;
     }
 
     /**
-     * Positions the index of this transaction
-     * The index is local to this transaction, meaning that 0 represents the start of the transaction window in the associated backend.
+     * Positions the index of this access
+     * The index is local to this access, meaning that 0 represents the start of the access window in the associated backend.
      *
-     * @param index The new transaction index
-     * @return This transaction
+     * @param index The new access index
+     * @return This access
      */
     public IOAccess seek(long index) {
         this.index = location + index;
@@ -114,10 +119,10 @@ abstract class IOAccess implements Closeable {
     }
 
     /**
-     * Resets the index of this transaction to its initial position
-     * The index is local to this transaction, meaning that 0 represents the start of the transaction window in the associated backend.
+     * Resets the index of this access to its initial position
+     * The index is local to this access, meaning that 0 represents the start of the access window in the associated backend.
      *
-     * @return This transaction
+     * @return This access
      */
     public IOAccess reset() {
         this.index = location;
@@ -125,11 +130,11 @@ abstract class IOAccess implements Closeable {
     }
 
     /**
-     * Moves the index of this transaction
-     * The index is local to this transaction, meaning that 0 represents the start of the transaction window in the associated backend.
+     * Moves the index of this access
+     * The index is local to this access, meaning that 0 represents the start of the access window in the associated backend.
      *
      * @param offset The offset to move from
-     * @return This transaction
+     * @return This access
      */
     public IOAccess skip(long offset) {
         this.index += offset;
@@ -364,10 +369,5 @@ abstract class IOAccess implements Closeable {
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeDouble(index, value);
         index += 8;
-    }
-
-    @Override
-    public void close() {
-        onClose();
     }
 }

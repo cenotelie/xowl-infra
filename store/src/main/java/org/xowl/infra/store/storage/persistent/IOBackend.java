@@ -20,34 +20,27 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import java.io.Closeable;
-
 /**
- * API for elements that can be read from and written to
+ * Represents an element that can be read from and written to
  *
  * @author Laurent Wouters
  */
-interface IOElement extends Closeable {
+interface IOBackend {
     /**
-     * Attempts to lock this element for an exclusive use
+     * Event when an access is going to happen for this backend
      *
-     * @throws StorageException When the block is in a bad state
+     * @param access The access
+     * @throws StorageException When the backend is in a bad state
      */
-    void lock() throws StorageException;
+    void onNewAccess(IOAccess access) throws StorageException;
 
     /**
-     * Attempts to release this element when an exclusive use has finished
+     * Event when an access is terminated for this backend
      *
-     * @throws StorageException When the block is in a bad state
+     * @param access The access
+     * @throws StorageException When the backend is in a bad state
      */
-    void release() throws StorageException;
-
-    /**
-     * Gets the size of this element
-     *
-     * @return The size of this element, or -1 if the operation failed
-     */
-    long getSize();
+    void onAccessTerminated(IOAccess access) throws StorageException;
 
     /**
      * Reads a single byte at the current index
