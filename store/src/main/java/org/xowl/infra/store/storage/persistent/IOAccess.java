@@ -107,6 +107,17 @@ abstract class IOAccess implements AutoCloseable {
     }
 
     /**
+     * Gets whether this access is disjoint from the specified one
+     *
+     * @param access An access
+     * @return Whether the two access are disjoint
+     */
+    protected boolean disjoints(IOAccessOrdered access) {
+        return (this.location + this.length <= access.location) // this is completely before parameter
+                || (access.location + access.length <= this.location); // parameter is completely before this
+    }
+
+    /**
      * Positions the index of this access
      * The index is local to this access, meaning that 0 represents the start of the access window in the associated backend.
      *

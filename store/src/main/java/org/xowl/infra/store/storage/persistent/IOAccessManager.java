@@ -35,7 +35,7 @@ class IOAccessManager {
     /**
      * A pool-able access
      */
-    private static class Access extends IOAccessTreeNode {
+    private static class Access extends IOAccessOrdered {
         /**
          * The manager for this access object
          */
@@ -77,7 +77,7 @@ class IOAccessManager {
     /**
      * The root of the interval tree for the current accesses
      */
-    private final AtomicReference<IOAccessTreeNode> root;
+    private final AtomicReference<IOAccessOrdered> root;
 
     /**
      * Initializes this pool
@@ -100,7 +100,7 @@ class IOAccessManager {
     public IOAccess get(IOBackend backend, long location, long length, boolean writable) {
         Access result = poolResolve();
         result.setupIOData(backend, location, length, writable);
-        IOAccessTreeNode.insert(root, result);
+        IOAccessOrdered.insert(root, result);
         return result;
     }
 
@@ -110,7 +110,7 @@ class IOAccessManager {
      * @param access The access
      */
     private void onAccessEnd(Access access) {
-        IOAccessTreeNode.insert(root, access);
+        IOAccessOrdered.remove(root, access);
         poolReturn(access);
     }
 
@@ -141,6 +141,7 @@ class IOAccessManager {
                 return;
             if (accessPoolSize.compareAndSet(size, size + 1)) {
                 accessPool[size] = access;
+                break;
             }
         }
     }
