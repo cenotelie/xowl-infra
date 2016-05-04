@@ -510,4 +510,27 @@ public class FileStoreFileTest {
             }
         }
     }
+
+    @Test
+    public void testConcurrentWriteRead() throws IOException, StorageException {
+        File file = File.createTempFile("test", ".bin");
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
+            IOAccess access1 = pf.accessRaw(0, 4, true);
+            IOAccess access2 = pf.accessRaw(4, 4, true);
+            access1.writeInt(4);
+            access2.writeInt(5);
+            access1.close();
+            access2.close();
+            pf.flush();
+        }
+
+        try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
+            IOAccess access1 = pf.accessRaw(0, 4, false);
+            IOAccess access2 = pf.accessRaw(4, 4, false);
+            Assert.assertEquals("Unexpected content", 4, access1.readInt());
+            Assert.assertEquals("Unexpected content", 5, access2.readInt());
+            access1.close();
+            access2.close();
+        }
+    }
 }
