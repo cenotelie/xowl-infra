@@ -701,7 +701,7 @@ class FileStoreFile implements Closeable {
      * @return The index of the page that stores the entry
      */
     private static int keyPageIndex(int key) {
-        return (key >> 16);
+        return (key >>> 16);
     }
 
     /**

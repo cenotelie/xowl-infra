@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 
 /**
- * Tests the PersistedFile class
+ * Tests the FileStoreFile class
  *
  * @author Laurent Wouters
  */
