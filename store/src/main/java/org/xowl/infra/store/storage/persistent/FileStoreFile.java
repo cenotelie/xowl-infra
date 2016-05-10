@@ -540,14 +540,14 @@ class FileStoreFile implements Closeable {
         FileStoreFileBlock block = getBlockFor(blockLocation);
         long offset;
         long length;
-        try (IOAccess access = accessManager.get(block, 0, FileStoreFileBlock.PAGE_HEADER_SIZE, false)) {
+        try (IOAccess access = accessManager.get(block, FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE, 4, false)) {
             if (access == null) {
                 block.releaseShared();
                 return null;
             }
-            access.seek(FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE);
             offset = access.readChar();
             length = access.readChar();
+            block.useShared(blockLocation, tick());
         }
         if (offset == 0 || length == 0) {
             block.releaseShared();
@@ -574,7 +574,7 @@ class FileStoreFile implements Closeable {
         if (index - targetLocation + length > FileStoreFileBlock.BLOCK_SIZE)
             throw new StorageException("IO access cannot cross block boundaries");
         FileStoreFileBlock block = getBlockFor(index);
-        IOAccess access = accessManager.get(block, index - targetLocation, length, !isReadonly && writable);
+        IOAccess access = accessManager.get(block, index, length, !isReadonly && writable);
         if (access == null)
             block.releaseShared();
         return access;

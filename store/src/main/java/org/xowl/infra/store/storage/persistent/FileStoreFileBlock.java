@@ -160,7 +160,7 @@ class FileStoreFileBlock implements IOBackend, AutoCloseable {
             case BLOCK_STATE_SHARED_USE:
                 return "SHARED_USE(0)";
             default:
-                return "SHARED_USE(" + state + ")";
+                return "SHARED_USE(" + (state - BLOCK_STATE_SHARED_USE) + ")";
         }
     }
 
