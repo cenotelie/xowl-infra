@@ -66,13 +66,9 @@ class FileStoreFile implements Closeable {
      */
     private static final int FILE_PREAMBULE_ENTRY_SIZE = 2 + 2;
     /**
-     * The ratio of used space in a block above which it can be considered as full
-     */
-    private static final float BLOCK_FULL_THRESHOLD_RATIO = 0.95f;
-    /**
      * The number of remaining bytes in a block below which it is considered as full
      */
-    private static final int BLOCK_FULL_THRESHOLD_SIZE = (int)((FileStoreFileBlock.BLOCK_SIZE - FileStoreFileBlock.PAGE_HEADER_SIZE) * (1 - BLOCK_FULL_THRESHOLD_RATIO));
+    private static final int BLOCK_FULL_THRESHOLD_SIZE = 100;
     /**
      * The maximum number of open blocks in a file
      */
@@ -287,8 +283,6 @@ class FileStoreFile implements Closeable {
             throw new StorageException("Entry is too big (" + entrySize + "), max is " + FileStoreFileBlock.MAX_ENTRY_SIZE);
 
         try (IOAccess access = accessRaw(0, FileStoreFileBlock.BLOCK_SIZE, true)) {
-            if (access == null)
-                return -1;
             access.seek(8);
             int openBlockCount = access.readChar();
             int nextFreeBlock = access.readChar();
@@ -355,8 +349,6 @@ class FileStoreFile implements Closeable {
         if (remaining == -1)
             return;
         try (IOAccess access = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, true)) {
-            if (access == null)
-                return;
             pageMarkOpen(access, keyPageIndex(key), remaining);
         }
     }
@@ -405,31 +397,46 @@ class FileStoreFile implements Closeable {
      * @throws StorageException When an IO operation failed
      */
     private boolean pageInitialize(int pageIndex) throws StorageException {
-        try (IOAccess access = accessRaw(pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH, FileStoreFileBlock.BLOCK_SIZE, true)) {
-            if (access == null)
-                return false;
-            access.writeChar(FileStoreFileBlock.PAGE_LAYOUT_VERSION);
-            access.writeChar(FileStoreFileBlock.PAGE_FLAG_REUSE_EMPTY_ENTRIES);
+        try (IOAccess access = accessRaw(pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH, FileStoreFileBlock.PAGE_HEADER_SIZE, true)) {
             access.writeChar('\0');
+            access.writeChar((char)FileStoreFileBlock.MAX_ENTRY_SIZE);
             access.writeChar((char) FileStoreFileBlock.PAGE_HEADER_SIZE);
             access.writeChar((char) FileStoreFileBlock.BLOCK_SIZE);
             return true;
         }
     }
 
-
     /**
      * Tries to store an entry of the specified size in the given page
      *
      * @param pageIndex The index of the page
      * @param length    The length of the entry to register
-     * @return The key to be used to retrieve the data, or -1 if the entry cannot be allocated
+     * @return The bit field composed of: uint16 the remaining max size, and uint16 the entry index in the block; or -1 if the operation fails
+     * The key to be used to retrieve the data, or -1 if the entry cannot be allocated
      * @throws StorageException When an IO operation failed
      */
     private int pageTryStoreEntry(int pageIndex, int length) throws StorageException {
-        try (IOAccess access = accessRaw(pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH, FileStoreFileBlock.BLOCK_SIZE, true)) {
-            if (access == null)
+        FileStoreFileBlock block = getBlockFor(pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH);
+
+
+        block.releaseShared();
+
+
+        try (IOAccess access = accessRaw(pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH, FileStoreFileBlock.PAGE_HEADER_SIZE, true)) {
+            // gather the block data
+            char entryCount = access.seek(4).readChar();
+            char maxSize = access.readChar();
+            char startFreeSpace = access.readChar();
+            char startData = access.readChar();
+
+            if (maxSize < length)
                 return -1;
+
+
+
+        }
+
+        try (IOAccess access = accessRaw(pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH, FileStoreFileBlock.BLOCK_SIZE, true)) {
             char entryCount = access.seek(4).readChar();
             char startFreeSpace = access.readChar();
             char startData = access.readChar();
@@ -477,8 +484,6 @@ class FileStoreFile implements Closeable {
      */
     private int pageRemoveEntry(long pageLocation, int entryIndex) throws StorageException {
         try (IOAccess access = accessRaw(pageLocation, FileStoreFileBlock.BLOCK_SIZE, true)) {
-            if (access == null)
-                return -1;
             char entryCount = access.seek(4).readChar();
             char startFreeSpace = access.readChar();
             char startData = access.readChar();
@@ -556,10 +561,7 @@ class FileStoreFile implements Closeable {
             block.releaseShared();
             throw new StorageException("The entry for the specified key has been removed");
         }
-        IOAccess access = accessManager.get(block, offset, length, !isReadonly && writable);
-        if (access == null)
-            block.releaseShared();
-        return access;
+        return accessManager.get(block, offset, length, !isReadonly && writable);
     }
 
     /**
@@ -577,10 +579,7 @@ class FileStoreFile implements Closeable {
         if (index - targetLocation + length > FileStoreFileBlock.BLOCK_SIZE)
             throw new StorageException("IO access cannot cross block boundaries");
         FileStoreFileBlock block = getBlockFor(index);
-        IOAccess access = accessManager.get(block, index, length, !isReadonly && writable);
-        if (access == null)
-            block.releaseShared();
-        return access;
+        return accessManager.get(block, index, length, !isReadonly && writable);
     }
 
     /**

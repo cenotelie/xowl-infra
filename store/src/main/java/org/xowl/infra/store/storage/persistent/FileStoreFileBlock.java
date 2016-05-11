@@ -33,9 +33,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * - data content (fill up from the bottom of the page)
  * <p/>
  * Header layout:
- * - Layout version (2 bytes)
- * - Flags (2 bytes)
  * - Number of entries (2 bytes)
+ * - Max entry size for this page (2 bytes)
  * - Offset to start of free space (2 bytes)
  * - Offset to start of data content (2 bytes)
  * <p/>
@@ -112,28 +111,19 @@ class FileStoreFileBlock implements IOBackend, AutoCloseable {
     public static final int BLOCK_STATE_SHARED_USE = 4;
 
     /**
-     * The version of the page layout to use
-     */
-    public static final char PAGE_LAYOUT_VERSION = 1;
-    /**
      * The size of the page header in bytes
-     * char: Layout version (2 bytes)
-     * char: Flags (2 bytes)
      * char: Number of entries (2 bytes)
+     * char: Max entry size for this page
      * char: Offset to start of free space (2 bytes)
      * char: Offset to start of data content (2 bytes)
      */
-    public static final int PAGE_HEADER_SIZE = 2 + 2 + 2 + 2 + 2;
+    public static final int PAGE_HEADER_SIZE = 2 + 2 + 2 + 2;
     /**
      * The size of an entry in the entry table of a page (in bytes)
      * char: offset (2 bytes)
      * char: length (2 bytes)
      */
     public static final int PAGE_ENTRY_INDEX_SIZE = 2 + 2;
-    /**
-     * Flag whether the page shall reuse the space of removed entries
-     */
-    public static final char PAGE_FLAG_REUSE_EMPTY_ENTRIES = 0x0001;
     /**
      * The maximum size of the payload of an entry in a page
      */
