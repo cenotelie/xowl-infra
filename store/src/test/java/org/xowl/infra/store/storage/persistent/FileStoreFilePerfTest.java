@@ -87,9 +87,9 @@ public class FileStoreFilePerfTest {
                             exception.printStackTrace();
                         }
                     }
-                });
+                }, FileStoreFilePerfTest.class.getCanonicalName() + ".Thread." + i);
                 threads.add(thread);
-                thread.run();
+                thread.start();
             }
 
             for (Thread thread : threads) {

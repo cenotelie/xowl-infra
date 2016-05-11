@@ -55,10 +55,10 @@ class FileStoreFile implements Closeable {
      * The size of the header in the preambule block
      * int: Magic identifier for the store
      * int: Layout version
-     * int: Number of open blocks (blocks that contain data but are not full)
-     * int: Index of the next block to open (in number of block)
+     * char: Number of open blocks (blocks that contain data but are not full)
+     * char: Index of the next block to open (in number of block)
      */
-    private static final int FILE_PREAMBULE_HEADER_SIZE = 4 + 4 + 4 + 4;
+    private static final int FILE_PREAMBULE_HEADER_SIZE = 4 + 4 + 2 + 2;
     /**
      * The size of an open block entry in the preambule
      * char: Index of the block
@@ -66,9 +66,13 @@ class FileStoreFile implements Closeable {
      */
     private static final int FILE_PREAMBULE_ENTRY_SIZE = 2 + 2;
     /**
-     * The number of remaining bytes below which a block is considered full
+     * The ratio of used space in a block above which it can be considered as full
      */
-    private static final int BLOCK_FULL_THRESHOLD = 24;
+    private static final float BLOCK_FULL_THRESHOLD_RATIO = 0.95f;
+    /**
+     * The number of remaining bytes in a block below which it is considered as full
+     */
+    private static final int BLOCK_FULL_THRESHOLD_SIZE = (int)((FileStoreFileBlock.BLOCK_SIZE - FileStoreFileBlock.PAGE_HEADER_SIZE) * (1 - BLOCK_FULL_THRESHOLD_RATIO));
     /**
      * The maximum number of open blocks in a file
      */
@@ -175,8 +179,8 @@ class FileStoreFile implements Closeable {
             try (IOAccess access = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, true)) {
                 access.writeInt(FILE_MAGIC_ID);
                 access.writeInt(FILE_LAYOUT_VERSION);
-                access.writeInt(0);
-                access.writeInt(1);
+                access.writeChar((char)0);
+                access.writeChar((char)1);
             }
             flush();
         } else {
@@ -286,8 +290,8 @@ class FileStoreFile implements Closeable {
             if (access == null)
                 return -1;
             access.seek(8);
-            int openBlockCount = access.readInt();
-            int nextFreeBlock = access.readInt();
+            int openBlockCount = access.readChar();
+            int nextFreeBlock = access.readChar();
             int inspected = 0;
             for (int i = 0; i != FILE_MAX_OPEN_BLOCKS; i++) {
                 if (inspected >= openBlockCount)
@@ -305,14 +309,14 @@ class FileStoreFile implements Closeable {
                         continue;
                     blockRemaining -= entrySize;
                     blockRemaining -= FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE;
-                    if (blockRemaining >= BLOCK_FULL_THRESHOLD) {
+                    if (blockRemaining >= BLOCK_FULL_THRESHOLD_SIZE) {
                         access.seek(FILE_PREAMBULE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE + 2);
                         access.writeChar(blockRemaining);
                     } else {
                         access.seek(FILE_PREAMBULE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE);
                         access.writeChar('\0');
                         access.writeChar('\0');
-                        access.seek(8).writeInt(openBlockCount - 1);
+                        access.seek(8).writeChar((char)(openBlockCount - 1));
                     }
                     return key;
                 }
@@ -328,8 +332,7 @@ class FileStoreFile implements Closeable {
                 return -1;
             int remaining = FileStoreFileBlock.MAX_ENTRY_SIZE - entrySize - FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE;
             pageMarkOpen(access, nextFreeBlock, remaining);
-            access.seek(8 + 4);
-            access.writeInt(nextFreeBlock + 1);
+            access.seek(8 + 2).writeChar((char)(nextFreeBlock + 1));
             return key;
         }
     }
@@ -367,8 +370,8 @@ class FileStoreFile implements Closeable {
      * @throws StorageException When an IO operation failed
      */
     private void pageMarkOpen(IOAccess access, int pageIndex, int remaining) throws StorageException {
-        int openBlockCount = access.seek(8).readInt();
-        access.readInt();
+        int openBlockCount = access.seek(8).readChar();
+        access.readChar();
         int inspected = 0;
         for (int i = 0; i != FILE_MAX_OPEN_BLOCKS; i++) {
             if (inspected >= openBlockCount)
@@ -385,11 +388,11 @@ class FileStoreFile implements Closeable {
         }
         // the block was not open
         if (openBlockCount < FILE_MAX_OPEN_BLOCKS) {
-            if (remaining >= BLOCK_FULL_THRESHOLD) {
+            if (remaining >= BLOCK_FULL_THRESHOLD_SIZE) {
                 access.seek(FILE_PREAMBULE_HEADER_SIZE + openBlockCount * FILE_PREAMBULE_ENTRY_SIZE);
                 access.writeChar((char) pageIndex);
                 access.writeChar((char) remaining);
-                access.seek(8).writeInt(openBlockCount + 1);
+                access.seek(8).writeChar((char)(openBlockCount + 1));
             }
         }
     }
