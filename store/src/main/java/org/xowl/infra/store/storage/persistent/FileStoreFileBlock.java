@@ -544,8 +544,7 @@ class FileStoreFileBlock implements IOBackend, AutoCloseable {
     }
 
     @Override
-    public void close() {
-        location = -1;
-        isDirty = false;
+    public void close() throws StorageException {
+        releaseShared();
     }
 }
