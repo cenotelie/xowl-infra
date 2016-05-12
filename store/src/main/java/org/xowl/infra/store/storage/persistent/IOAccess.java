@@ -49,6 +49,10 @@ abstract class IOAccess implements AutoCloseable {
      * The current index in the backend
      */
     private long index;
+    /**
+     * Whether the access shall advance backward (default is forward)
+     */
+    private boolean backward;
 
     /**
      * Setups this access before using it
@@ -64,6 +68,7 @@ abstract class IOAccess implements AutoCloseable {
         this.length = length;
         this.writable = writable;
         this.index = location;
+        this.backward = false;
     }
 
     @Override
@@ -101,6 +106,24 @@ abstract class IOAccess implements AutoCloseable {
      */
     public long getLength() {
         return length;
+    }
+
+    /**
+     * Gets whether the access advances in a backward fashion in the backend
+     *
+     * @return Whether the access advances in a  backward fashion
+     */
+    public boolean isBackward() {
+        return backward;
+    }
+
+    /**
+     * Sets whether the access shall advance in a backward fashion in the backend
+     *
+     * @param backward Whether the access shall advances in a backward fashion
+     */
+    public void setBackend(boolean backward) {
+        this.backward = backward;
     }
 
     /**
@@ -169,7 +192,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!withinBounds(1))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         byte value = backend.readByte(index);
-        index++;
+        index += (backward ? -1 : 1);
         return value;
     }
 
@@ -184,7 +207,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         byte[] value = backend.readBytes(index, length);
-        index += length;
+        index += (backward ? -length : length);
         return value;
     }
 
@@ -200,7 +223,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         backend.readBytes(index, buffer, start, length);
-        index += length;
+        index += (backward ? -length : length);
     }
 
     /**
@@ -213,7 +236,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!withinBounds(2))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         char value = backend.readChar(index);
-        index += 2;
+        index += (backward ? -2 : 2);
         return value;
     }
 
@@ -227,7 +250,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         int value = backend.readInt(index);
-        index += 4;
+        index += (backward ? -4 : 4);
         return value;
     }
 
@@ -241,7 +264,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         long value = backend.readLong(index);
-        index += 8;
+        index += (backward ? -8 : 8);
         return value;
     }
 
@@ -255,7 +278,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         float value = backend.readFloat(index);
-        index += 4;
+        index += (backward ? -4 : 4);
         return value;
     }
 
@@ -269,7 +292,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
         double value = backend.readDouble(index);
-        index += 8;
+        index += (backward ? -8 : 8);
         return value;
     }
 
@@ -283,7 +306,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!writable || !withinBounds(1))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeByte(index, value);
-        index++;
+        index += (backward ? -1 : 1);
     }
 
     /**
@@ -296,7 +319,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!writable || !withinBounds(value.length))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeBytes(index, value);
-        index += value.length;
+        index += (backward ? -value.length : value.length);
     }
 
     /**
@@ -311,7 +334,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!writable || !withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeBytes(index, buffer, start, length);
-        index += length;
+        index += (backward ? -length : length);
     }
 
     /**
@@ -324,7 +347,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!writable || !withinBounds(2))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeChar(index, value);
-        index += 2;
+        index += (backward ? -2 : 2);
     }
 
     /**
@@ -337,7 +360,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!writable || !withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeInt(index, value);
-        index += 4;
+        index += (backward ? -4 : 4);
     }
 
     /**
@@ -350,7 +373,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!writable || !withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeLong(index, value);
-        index += 8;
+        index += (backward ? -8 : 8);
     }
 
     /**
@@ -363,7 +386,7 @@ abstract class IOAccess implements AutoCloseable {
         if (!writable || !withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeFloat(index, value);
-        index += 4;
+        index += (backward ? -4 : 4);
     }
 
     /**
@@ -376,6 +399,6 @@ abstract class IOAccess implements AutoCloseable {
         if (!writable || !withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
         backend.writeDouble(index, value);
-        index += 8;
+        index += (backward ? -8 : 8);
     }
 }
