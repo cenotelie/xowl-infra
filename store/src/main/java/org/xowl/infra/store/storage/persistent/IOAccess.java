@@ -122,7 +122,7 @@ abstract class IOAccess implements AutoCloseable {
      *
      * @param backward Whether the access shall advances in a backward fashion
      */
-    public void setBackend(boolean backward) {
+    public void setBackward(boolean backward) {
         this.backward = backward;
     }
 
