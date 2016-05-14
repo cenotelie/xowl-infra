@@ -401,4 +401,9 @@ abstract class IOAccess implements AutoCloseable {
     @Override
     public void close() {
     }
+
+    @Override
+    public String toString() {
+        return "Access" + Integer.toString(hashCode()) + " [0x" + Long.toHexString(location) + ", 0x" + Long.toHexString(location + length) + ")";
+    }
 }

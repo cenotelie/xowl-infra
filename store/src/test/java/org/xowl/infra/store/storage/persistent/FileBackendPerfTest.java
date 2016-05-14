@@ -31,7 +31,7 @@ public class FileBackendPerfTest {
     /**
      * Numbers of threads
      */
-    private static final int THREAD_COUNT = 8;
+    private static final int THREAD_COUNT = 2;
     /**
      * The number of write per batch
      */

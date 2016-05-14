@@ -19,7 +19,6 @@ package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.logging.Logger;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -65,11 +64,7 @@ class IOAccessManager {
     /**
      * The pool of free access objects
      */
-    private final Access[] accessPool;
-    /**
-     * The number of pooled elements
-     */
-    private final AtomicInteger accessPoolSize;
+    private final AtomicReference<Access>[] accessPool;
     /**
      * The root of the interval tree for the current accesses
      */
@@ -82,8 +77,9 @@ class IOAccessManager {
      */
     public IOAccessManager(IOBackend backend) {
         this.backend = backend;
-        this.accessPool = new Access[POOL_SIZE];
-        this.accessPoolSize = new AtomicInteger(0);
+        this.accessPool = new AtomicReference[POOL_SIZE];
+        for (int i = 0; i != POOL_SIZE; i++)
+            accessPool[i] = new AtomicReference<>(null);
         this.root = new AtomicReference<>(null);
     }
 
@@ -148,13 +144,12 @@ class IOAccessManager {
      * @return A free access object
      */
     private Access poolResolve() {
-        while (true) {
-            int size = accessPoolSize.get();
-            if (size <= 0)
-                return new Access(this);
-            if (accessPoolSize.compareAndSet(size, size - 1))
-                return accessPool[size - 1];
+        for (int i = 0; i != POOL_SIZE; i++) {
+            Access access = accessPool[i].get();
+            if (access != null && accessPool[i].compareAndSet(access, null))
+                return access;
         }
+        return new Access(this);
     }
 
     /**
@@ -163,14 +158,9 @@ class IOAccessManager {
      * @param access The access object
      */
     private void poolReturn(Access access) {
-        while (true) {
-            int size = accessPoolSize.get();
-            if (size >= POOL_SIZE)
+        for (int i = 0; i != POOL_SIZE; i++) {
+            if (accessPool[i].compareAndSet(null, access))
                 return;
-            if (accessPoolSize.compareAndSet(size, size + 1)) {
-                accessPool[size] = access;
-                break;
-            }
         }
     }
 }
