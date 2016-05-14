@@ -20,16 +20,20 @@ package org.xowl.infra.store.storage.persistent;
 import java.io.File;
 
 /**
- * Represents a persisted binary file
+ * Represents a persisted binary file used for storing objects
  * A file is composed of blocks (or pages)
  * The first block has a special structure with the following layout
- * - int32: Magic identifier for the store
- * - int32: Layout version
- * - int32: Number of open blocks (blocks that contain data but are not full)
- * - int32: Index of the next block to open (in number of block)
- * - array of block entries:
- * - char: Index of the block
- * - char: Remaining free space
+ * - int: Magic identifier for the store
+ * - int: Layout version
+ * - int: Start offset to free space
+ * - int: Number of pools of reusable objects
+ * - Array pool heads:
+ * - int: Size of the objects in this pool
+ * - int: Index of the first reusable object in the pool
+ * <p>
+ * An object stored in this file has the layout:
+ * - header: char: object size
+ * - content: the object
  * <p>
  * This structure is thread-safe and uses a lock-free synchronization scheme.
  * When IO operations consists of reading, writing and removing entries in pages, this structure ensures the consistency of the book-keeping data.
@@ -46,40 +50,39 @@ class FileStoreFile extends FileBackend {
      */
     private static final int FILE_LAYOUT_VERSION = 1;
     /**
-     * The size of the header in the preambule block
+     * The size of the header in the preamble block
      * int: Magic identifier for the store
      * int: Layout version
-     * char: Number of open blocks (blocks that contain data but are not full)
-     * char: Index of the next block to open (in number of block)
+     * int: Start offset to free space
+     * int: Number of pools of reusable objects
      */
-    private static final int FILE_PREAMBULE_HEADER_SIZE = 4 + 4 + 2 + 2;
+    private static final int FILE_PREAMBLE_HEADER_SIZE = 4 + 4 + 4 + 4;
     /**
-     * The size of an open block entry in the preambule
+     * The size of an open block entry in the preamble
      * char: Index of the block
      * char: Remaining free space
      */
-    private static final int FILE_PREAMBULE_ENTRY_SIZE = 2 + 2;
+    private static final int FILE_PREAMBLE_ENTRY_SIZE = 4 + 4;
     /**
-     * The number of remaining bytes in a block below which it is considered as full
+     * The maximum size of a file
      */
-    private static final int BLOCK_FULL_THRESHOLD_SIZE = 100;
+    private static final int FILE_MAX_SIZE = 1 << (16 + FileBlock.BLOCK_INDEX_LENGTH);
     /**
-     * The maximum number of open blocks in a file
+     * The maximum number of pools in this store
      */
-    private static final int FILE_MAX_OPEN_BLOCKS = (FileBlock.BLOCK_SIZE - FILE_PREAMBULE_HEADER_SIZE) / FILE_PREAMBULE_ENTRY_SIZE;
+    private static final int FILE_MAX_POOLS = (FileBlock.BLOCK_SIZE - FILE_PREAMBLE_HEADER_SIZE) / FILE_PREAMBLE_ENTRY_SIZE;
     /**
-     * The maximum number of blocks per file
+     * Size of the header for each object stored in a file
      */
-    private static final int FILE_MAX_BLOCKS = 1 << 16;
+    private static final int FILE_OBJECT_HEADER_SIZE = 2;
     /**
-     * The maximum number of loaded blocks
+     * Minimum size of objects in this store
      */
-    private static final int FILE_MAX_LOADED_BLOCKS = 256;
+    private static final int FILE_OBJECT_MIN_SIZE = 8 - FILE_OBJECT_HEADER_SIZE;
     /**
-     * The mask for the index of a block
+     * Maximum size of objects in this store
      */
-    private static final long INDEX_MASK_UPPER = ~FileBlock.INDEX_MASK_LOWER;
-
+    private static final int FILE_OBJECT_MAX_SIZE = FileBlock.BLOCK_SIZE - FILE_OBJECT_HEADER_SIZE;
 
     /**
      * Initializes this data file
@@ -107,16 +110,16 @@ class FileStoreFile extends FileBackend {
             if (isReadonly)
                 throw new StorageException("FileBackend is empty but open as read-only: " + fileName);
             // the file is empty and not read-only
-            try (IOAccess access = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, true)) {
+            try (IOAccess access = access(0, FILE_PREAMBLE_HEADER_SIZE, true)) {
                 access.writeInt(FILE_MAGIC_ID);
                 access.writeInt(FILE_LAYOUT_VERSION);
-                access.writeChar((char) 0);
-                access.writeChar((char) 1);
+                access.writeInt(FileBlock.BLOCK_SIZE);
+                access.writeInt((char) 0);
             }
             flush();
         } else {
             // file is not empty, verify the header
-            try (IOAccess access = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, false)) {
+            try (IOAccess access = access(0, FILE_PREAMBLE_HEADER_SIZE, false)) {
                 int magic = access.readInt();
                 if (magic != FILE_MAGIC_ID)
                     throw new StorageException("Invalid file header, expected 0x" + Integer.toHexString(FILE_MAGIC_ID) + ", got 0x" + Integer.toHexString(magic) + ": " + fileName);
@@ -128,348 +131,141 @@ class FileStoreFile extends FileBackend {
     }
 
     /**
-     * Tries to allocate an entry of the specified size in this file
+     * Accesses an object in this file through an access element
+     * An access must be within the boundaries of a block.
      *
-     * @param entrySize The size of the entry
-     * @return The key to the entry, or -1 if it cannot be allocated
-     * @throws StorageException When an IO operation failed
+     * @param index    The index within this file of the reserved area for the access
+     * @param writable Whether the access shall allow writing
+     * @throws StorageException
      */
-    public int allocateEntry(int entrySize) throws StorageException {
-        if (entrySize > FileStoreFileBlock.MAX_ENTRY_SIZE)
-            throw new StorageException("Entry is too big (" + entrySize + "), max is " + FileStoreFileBlock.MAX_ENTRY_SIZE);
+    public IOAccess access(long index, boolean writable) throws StorageException {
+        try (FileBlockTS block = getBlockFor(index)) {
+            long length = block.readChar(index - 2);
+            return access(index, length, writable, block);
+        }
+    }
 
-        try (IOAccess access = accessRaw(0, FileStoreFileBlock.BLOCK_SIZE, true)) {
-            access.seek(8);
-            int openBlockCount = access.readChar();
-            int nextFreeBlock = access.readChar();
-            int inspected = 0;
-            for (int i = 0; i != FILE_MAX_OPEN_BLOCKS; i++) {
-                if (inspected >= openBlockCount)
-                    break;
-                char blockIndex = access.readChar();
-                char blockRemaining = access.readChar();
-                if (blockIndex == 0)
-                    // this is a free block slot
-                    continue;
-                inspected++;
-                if (blockRemaining >= entrySize + FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE) {
-                    // the entry could fit in the page
-                    int key = pageTryStoreEntry(blockIndex, entrySize);
-                    if (key == -1)
-                        continue;
-                    blockRemaining -= entrySize;
-                    blockRemaining -= FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE;
-                    if (blockRemaining >= BLOCK_FULL_THRESHOLD_SIZE) {
-                        access.seek(FILE_PREAMBULE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE + 2);
-                        access.writeChar(blockRemaining);
-                    } else {
-                        access.seek(FILE_PREAMBULE_HEADER_SIZE + i * FILE_PREAMBULE_ENTRY_SIZE);
-                        access.writeChar('\0');
-                        access.writeChar('\0');
-                        access.seek(8).writeChar((char) (openBlockCount - 1));
-                    }
-                    return key;
-                }
+    /**
+     * Tries to allocate an object of the specified size in this store
+     * This method tries to reuse empty space to reduce fragmentation.
+     * Objects allocated with this method can be freed later.
+     *
+     * @param size The size of the object
+     * @return The key to the object, or KEY_NULL if it cannot be allocated in this file
+     * @throws StorageException When an IO operation fails
+     */
+    public long allocate(int size) throws StorageException {
+        int toAllocate = size < FILE_OBJECT_MIN_SIZE ? FILE_OBJECT_MIN_SIZE : size;
+        if (size > FILE_OBJECT_MAX_SIZE)
+            throw new StorageException("Cannot allocate an object of this size: requested " + size + ", max is " + FILE_OBJECT_MAX_SIZE);
+        try (FileBlockTS preamble = getBlockFor(0)) {
+            // get the number of pools
+            int poolCount;
+            try (IOAccess access = access(12, 4, false, preamble)) {
+                poolCount = access.readInt();
             }
-
-            // cannot fit in an open block
-            if (nextFreeBlock >= FILE_MAX_BLOCKS)
-                return -1;
-            if (!pageInitialize(nextFreeBlock))
-                return -1;
-            int key = pageTryStoreEntry(nextFreeBlock, entrySize);
-            if (key == -1)
-                return -1;
-            int remaining = FileStoreFileBlock.MAX_ENTRY_SIZE - entrySize - FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE;
-            pageMarkOpen(access, nextFreeBlock, remaining);
-            access.seek(8 + 2).writeChar((char) (nextFreeBlock + 1));
-            return key;
-        }
-    }
-
-    /**
-     * Clears an entry from this file
-     *
-     * @param key The file-local key to the entry to remove
-     * @throws StorageException When an IO operation failed
-     */
-    public void removeEntry(int key) throws StorageException {
-        long blockLocation = keyPageLocation(key);
-        int entryIndex = keyEntryIndex(key);
-        if (blockLocation >= size.get() // the block is not allocated
-                || blockLocation <= 0 // cannot have entries in the first block
-                || entryIndex < 0) // invalid entry index
-            throw new StorageException("Invalid key (0x" + Integer.toHexString(key) + ")");
-
-        int remaining = pageRemoveEntry(blockLocation, entryIndex);
-        if (remaining == -1)
-            return;
-        try (IOAccess access = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, true)) {
-            pageMarkOpen(access, keyPageIndex(key), remaining);
-        }
-    }
-
-    /**
-     * Marks a page as open
-     *
-     * @param access    The current access
-     * @param pageIndex The page to mark as open
-     * @param remaining The remaining space in the page
-     * @throws StorageException When an IO operation failed
-     */
-    private void pageMarkOpen(IOAccess access, int pageIndex, int remaining) throws StorageException {
-        int openBlockCount = access.seek(8).readChar();
-        access.readChar();
-        int inspected = 0;
-        for (int i = 0; i != FILE_MAX_OPEN_BLOCKS; i++) {
-            if (inspected >= openBlockCount)
-                break;
-            char blockIndex = access.readChar();
-            if (blockIndex > 0)
-                inspected++;
-            if (blockIndex == pageIndex) {
-                // already open
-                access.writeChar((char) remaining);
-                return;
-            }
-            access.readChar();
-        }
-        // the block was not open
-        if (openBlockCount < FILE_MAX_OPEN_BLOCKS) {
-            if (remaining >= BLOCK_FULL_THRESHOLD_SIZE) {
-                access.seek(FILE_PREAMBULE_HEADER_SIZE + openBlockCount * FILE_PREAMBULE_ENTRY_SIZE);
-                access.writeChar((char) pageIndex);
-                access.writeChar((char) remaining);
-                access.seek(8).writeChar((char) (openBlockCount + 1));
-            }
-        }
-    }
-
-    /**
-     * Initializes a page
-     *
-     * @param pageIndex The index of the page to initialize
-     * @return Whether the operation succeeded
-     * @throws StorageException When an IO operation failed
-     */
-    private boolean pageInitialize(int pageIndex) throws StorageException {
-        try (IOAccess access = accessRaw(pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH, FileStoreFileBlock.PAGE_HEADER_SIZE, true)) {
-            access.writeChar('\0');
-            access.writeChar((char) FileStoreFileBlock.MAX_ENTRY_SIZE);
-            access.writeChar((char) FileStoreFileBlock.PAGE_HEADER_SIZE);
-            access.writeChar((char) FileStoreFileBlock.BLOCK_SIZE);
-            return true;
-        }
-    }
-
-    /**
-     * Tries to store an entry of the specified size in the given page
-     *
-     * @param pageIndex The index of the page
-     * @param length    The length of the entry to register
-     * @return The bit field composed of: uint16 the remaining max size, and uint16 the entry index in the block; or -1 if the operation fails
-     * The key to be used to retrieve the data, or -1 if the entry cannot be allocated
-     * @throws StorageException When an IO operation failed
-     */
-    private int pageTryStoreEntry(int pageIndex, int length) throws StorageException {
-        long blockLocation = pageIndex << FileStoreFileBlock.BLOCK_INDEX_LENGTH;
-        try (FileStoreFileBlock block = getBlockFor(blockLocation)) {
-            while (true) {
-                // get block data
-                char entryCount;
-                char maxSize;
-                char startFreeSpace;
-                char startData;
-                try (IOAccess access = accessRaw(blockLocation, FileStoreFileBlock.PAGE_HEADER_SIZE, false, block)) {
-                    // gather the block data
-                    entryCount = access.readChar();
-                    maxSize = access.readChar();
-                    startFreeSpace = access.readChar();
-                    startData = access.readChar();
-                }
-                // can store?
-                if (maxSize < length)
-                    // cannot store in this block anymore
-                    return -1;
-                // look for an empty entry
-                if (entryCount > 0) {
-                    int selectedIndex = -1;
-                    try (IOAccess access = accessRaw(blockLocation + FileStoreFileBlock.PAGE_HEADER_SIZE, entryCount * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE, false, block)) {
-                        access.setBackward(true);
-                        access.seek(entryCount * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE - 2);
-                        int currentOffset = FileStoreFileBlock.BLOCK_SIZE;
-                        for (int i = entryCount - 1; i != -1; i++) {
-                            char entryLength = access.readChar();
-                            char entryOffset = access.readChar();
-                            currentOffset -= entryLength;
-                            if (entryOffset == 0 && entryLength) {
-                                int result = pageTryReuseEntry(block, i, currentOffset, length);
-                                if (result != -1)
-                                    return result;
-                            }
+            // look into the pools
+            if (poolCount > 0) {
+                try (IOAccess access = access(FILE_PREAMBLE_HEADER_SIZE, poolCount * FILE_PREAMBLE_ENTRY_SIZE, false, preamble)) {
+                    for (int i = 0; i != poolCount; i++) {
+                        int poolSize = access.readInt();
+                        access.readInt();
+                        if (poolSize == toAllocate) {
+                            // the pool size fits, try to reuse ...
+                            long result = allocateReuse(preamble, i);
+                            if (result != FileStore.KEY_NULL)
+                                // success => return the result
+                                return result;
+                            // failed, stop looking into pools
+                            break;
                         }
                     }
                 }
-                // store in a new entry
-                if (startData - startFreeSpace < length + FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE)
-                    // not enough space for new entry
-                    continue;
-                int result = pageTryAllocateFromFreeSpace(block, length);
-                if (result != -1)
-                    return result;
             }
+            // fall back to direct allocation from the free space
+            return doAllocateDirect(preamble, toAllocate);
         }
-    }
-
-    private int pageTryReuseEntry(FileStoreFileBlock block, int entryIndex, int offset, int length) throws StorageException {
-        try (IOAccess access = accessRaw(block.getLocation() + FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE, 4, true, block)) {
-            char entryOffset = access.readChar();
-            char entryLength = access.readChar();
-            if (entryOffset != 0 || entryLength < length)
-                // already reused ...
-                return -1;
-            access.reset();
-            access.writeChar((char) offset);
-            access.writeChar();
-        }
-    }
-
-    private int pageTryAllocateFromFreeSpace(FileStoreFileBlock block, int length) throws StorageException {
-
-    }
-
-    private int pageRecomputeFreeSpace(FileStoreFileBlock block) throws StorageException {
-
     }
 
     /**
-     * Removes an entry for a page
+     * Tries to allocate an object by reusing the an empty entry in this store
      *
-     * @param pageLocation The location of the page
-     * @param entryIndex   The index within the page of the entry to remove
-     * @return The remaining free space in the page
-     * @throws StorageException When an IO operation failed
+     * @param preamble  The preamble block
+     * @param poolIndex The index of the pool to use
+     * @return The key to the object, or KEY_NULL if it cannot be allocated in this file
+     * @throws StorageException When an IO operation fails
      */
-    private int pageRemoveEntry(long pageLocation, int entryIndex) throws StorageException {
-        try (IOAccess access = accessRaw(pageLocation, FileStoreFileBlock.BLOCK_SIZE, true)) {
-            char entryCount = access.seek(4).readChar();
-            char startFreeSpace = access.readChar();
-            char startData = access.readChar();
-            if (entryIndex >= (startFreeSpace - FileStoreFileBlock.PAGE_HEADER_SIZE) >>> 2)
-                throw new StorageException("The entry for the specified key is not in this page");
-            access.seek(FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE);
-            char offset = access.readChar();
-            char length = access.readChar();
-            if (offset == 0 || length == 0)
-                throw new StorageException("The entry for the specified key has been removed");
-            if (offset < startData) {
-                // not the last entry in this page
-                // simply marks this entry as empty by erasing the offset
-                access.seek(FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE);
-                access.writeChar('\0');
-            } else {
-                // here this is the last entry in this page
-                do {
-                    startFreeSpace -= FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE;
-                    startData += length;
-                    entryCount--;
-                    // go to the previous entry and get its info
-                    entryIndex--;
-                    access.seek(FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE);
-                    offset = access.readChar();
-                    length = access.readChar();
-                } while (offset == 0 && entryIndex >= 0);
-                access.seek(4).writeChar(entryCount);
-                access.writeChar(startFreeSpace);
-                access.writeChar(startData);
+    private long allocateReuse(FileBlockTS preamble, int poolIndex) throws StorageException {
+        try (IOAccess access = access(FILE_PREAMBLE_HEADER_SIZE + poolIndex * FILE_PREAMBLE_ENTRY_SIZE, 8, true, preamble)) {
+            int size = access.readInt();
+            int target = access.readInt();
+            if (target == 0)
+                return FileStore.KEY_NULL;
+            int next;
+            try (IOAccess accessTarget = access(target, 4, true)) {
+                next = accessTarget.readInt();
+                access.reset().writeChar((char) size);
             }
-            // compute the remaining free space
-            int remainingSpace = 0;
-            access.seek(FileStoreFileBlock.PAGE_HEADER_SIZE);
-            for (int i = 0; i != entryCount; i++) {
-                char eOffset = access.readChar();
-                char eLength = access.readChar();
-                if (eOffset == 0)
-                    remainingSpace += eLength;
+            access.seek(4).writeInt(next);
+            return target + 2;
+        }
+    }
+
+    /**
+     * Tries to allocate an object of the specified size in this store
+     * This method directly allocate the object without looking up for reusable space.
+     * Objects allocated with this method cannot be freed later.
+     *
+     * @param size The size of the object
+     * @return The key to the object, or KEY_NULL if it cannot be allocated in this file
+     * @throws StorageException When an IO operation fails
+     */
+    public long allocateDirect(int size) throws StorageException {
+        int toAllocate = size < FILE_OBJECT_MIN_SIZE ? FILE_OBJECT_MIN_SIZE : size;
+        if (size > FILE_OBJECT_MAX_SIZE)
+            throw new StorageException("Cannot allocate an object of this size: requested " + size + ", max is " + FILE_OBJECT_MAX_SIZE);
+        try (FileBlockTS preamble = getBlockFor(0)) {
+            return doAllocateDirect(preamble, toAllocate);
+        }
+    }
+
+    /**
+     * Allocates at the end
+     *
+     * @param size The size of the object
+     * @return The key to the object, or KEY_NULL if it cannot be allocated in this file
+     * @throws StorageException When an IO operation fails
+     */
+    private long doAllocateDirect(FileBlockTS preamble, int size) throws StorageException {
+        int target;
+        try (IOAccess access = access(8, 4, true, preamble)) {
+            int freeSpace = access.readInt();
+            target = freeSpace;
+            freeSpace += size + FILE_OBJECT_HEADER_SIZE;
+            if ((freeSpace & INDEX_MASK_UPPER) != (target & INDEX_MASK_UPPER)) {
+                // not the same block, the object would be split between blocks
+                // go to the next block entirely
+                target = (int) (freeSpace & INDEX_MASK_UPPER);
+                freeSpace = target + size + FILE_OBJECT_HEADER_SIZE;
             }
-            remainingSpace += startData - startFreeSpace;
-            return remainingSpace;
+            if (freeSpace > FILE_MAX_SIZE)
+                // not enough space in this file
+                return FileStore.KEY_NULL;
+            access.reset().writeInt(freeSpace);
         }
-    }
-
-    /**
-     * Gets an access to the entry for the specified key
-     *
-     * @param key      The file-local key to an entry
-     * @param writable Whether the access allows writing to the backend
-     * @return The IO element that can be used for reading and writing
-     * @throws StorageException When an IO operation failed
-     */
-    public IOAccess accessEntry(int key, boolean writable) throws StorageException {
-        long blockLocation = keyPageLocation(key);
-        int entryIndex = keyEntryIndex(key);
-        if (blockLocation >= size.get() // the block is not allocated
-                || blockLocation <= 0 // cannot have entries in the first block
-                || entryIndex < 0) // invalid entry index
-            throw new StorageException("Invalid key (0x" + Integer.toHexString(key) + ")");
-
-        FileStoreFileBlock block = getBlockFor(blockLocation);
-        long offset;
-        long length;
-        try (IOAccess access = accessManager.get(block, FileStoreFileBlock.PAGE_HEADER_SIZE + entryIndex * FileStoreFileBlock.PAGE_ENTRY_INDEX_SIZE, 4, false)) {
-            if (access == null) {
-                block.releaseShared();
-                return null;
-            }
-            offset = access.readChar();
-            length = access.readChar();
-            block.useShared(blockLocation, tick());
+        try (IOAccess access = access(target, 2, true)) {
+            access.writeChar((char) size);
         }
-        if (offset == 0 || length == 0) {
-            block.releaseShared();
-            throw new StorageException("The entry for the specified key has been removed");
-        }
-        return accessManager.get(block, offset, length, !isReadonly && writable);
+        return target;
     }
 
     /**
-     * Gets the location of the page referred to by the specified file-local key
+     * Frees the object at the specified index
      *
-     * @param key The file-local key to an entry
-     * @return The location (index within this file) of the corresponding page
+     * @param index The index of an object in this store
+     * @throws StorageException When an IO operation fails
      */
-    private static long keyPageLocation(int key) {
-        return ((long) keyPageIndex(key)) << FileBlock.BLOCK_INDEX_LENGTH;
-    }
+    public void free(long index) throws StorageException {
 
-    /**
-     * Gets the index of the page that stores the entry referred to by the specified file-local key
-     *
-     * @param key The file-local key to an entry
-     * @return The index of the page that stores the entry
-     */
-    private static int keyPageIndex(int key) {
-        return (key >>> 16);
-    }
-
-    /**
-     * Gets the index of the entry referred to by the specified file-local key
-     *
-     * @param key The file-local key to an entry
-     * @return The index of the entry within the associated block
-     */
-    private static int keyEntryIndex(int key) {
-        return (key & 0xFFFF);
-    }
-
-    /**
-     * Gets the file-local key to an entry
-     *
-     * @param pageIndex  The index of the page that stores the entry
-     * @param entryIndex The index of the entry within the block
-     * @return The file-local key
-     */
-    private static int keyLocal(int pageIndex, int entryIndex) {
-        return (pageIndex << 16) | entryIndex;
     }
 }

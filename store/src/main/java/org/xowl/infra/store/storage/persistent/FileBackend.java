@@ -38,7 +38,7 @@ class FileBackend implements IOBackend, Closeable {
     /**
      * The mask for the index of a block
      */
-    private static final long INDEX_MASK_UPPER = ~FileBlock.INDEX_MASK_LOWER;
+    protected static final long INDEX_MASK_UPPER = ~FileBlock.INDEX_MASK_LOWER;
 
     /**
      * The file name
@@ -59,7 +59,7 @@ class FileBackend implements IOBackend, Closeable {
     /**
      * The loaded blocks in this file
      */
-    private final FilePage[] blocks;
+    private final FileBlockTS[] blocks;
     /**
      * The number of currently loaded blocks
      */
@@ -94,9 +94,9 @@ class FileBackend implements IOBackend, Closeable {
         this.isReadonly = isReadonly;
         this.channel = newChannel(file, isReadonly);
         this.accessManager = new IOAccessManager(this);
-        this.blocks = new FilePage[FILE_MAX_LOADED_BLOCKS];
+        this.blocks = new FileBlockTS[FILE_MAX_LOADED_BLOCKS];
         for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++)
-            this.blocks[i] = new FilePage();
+            this.blocks[i] = new FileBlockTS();
         this.blockCount = new AtomicInteger(0);
         this.size = new AtomicLong(initSize());
         this.time = new AtomicLong(Long.MIN_VALUE + 1);
@@ -186,7 +186,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The access element
      * @throws StorageException When the requested access cannot be fulfilled
      */
-    public IOAccess accessRaw(long index, long length, boolean writable) throws StorageException {
+    public IOAccess access(long index, long length, boolean writable) throws StorageException {
         return accessManager.get(index, length, !isReadonly && writable);
     }
 
@@ -200,7 +200,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The access element
      * @throws StorageException When the requested access cannot be fulfilled
      */
-    protected IOAccess accessRaw(long index, long length, boolean writable, FileBlockTS block) throws StorageException {
+    protected IOAccess access(long index, long length, boolean writable, FileBlockTS block) throws StorageException {
         IOAccess access = accessManager.get(index, length, !isReadonly && writable, block);
         block.useShared(block.location, tick());
         return access;
@@ -217,7 +217,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The corresponding block
      * @throws StorageException When an IO error occurs
      */
-    private FilePage getBlockFor(long index) throws StorageException {
+    protected FileBlockTS getBlockFor(long index) throws StorageException {
         long targetLocation = index & INDEX_MASK_UPPER;
         if (blockCount.get() < FILE_MAX_LOADED_BLOCKS)
             return getBlockForNotFull(targetLocation);
@@ -232,7 +232,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The corresponding block
      * @throws StorageException When an IO error occurs
      */
-    private FilePage getBlockForNotFull(long targetLocation) throws StorageException {
+    private FileBlockTS getBlockForNotFull(long targetLocation) throws StorageException {
         // look for the block
         for (int i = 0; i != blockCount.get(); i++) {
             // is this the block we are looking for?
@@ -245,7 +245,7 @@ class FileBackend implements IOBackend, Closeable {
         int count = blockCount.get();
         while (count < FILE_MAX_LOADED_BLOCKS) {
             // get the last block
-            FilePage target = blocks[count];
+            FileBlockTS target = blocks[count];
             // try to reserve it
             if (target.reserve(targetLocation, channel, size.get(), tick())) {
                 // this is the block
@@ -271,7 +271,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The corresponding block
      * @throws StorageException When an IO error occurs
      */
-    private FilePage getBlockForPoolFull(long targetLocation) throws StorageException {
+    private FileBlockTS getBlockForPoolFull(long targetLocation) throws StorageException {
         while (true) {
             // keep track of the oldest block
             int oldestIndex = -1;
@@ -292,7 +292,7 @@ class FileBackend implements IOBackend, Closeable {
                 }
             }
             // we did not find the block, try to reclaim the block
-            FilePage target = blocks[oldestIndex];
+            FileBlockTS target = blocks[oldestIndex];
             if (target.getLastHit() == oldestTime // the time did not change
                     && target.getLocation() == oldestLocation // still the same location
                     && target.reclaim(channel, oldestLocation, tick()) // try to reclaim
