@@ -96,17 +96,18 @@ class IOAccessManager {
      * @return The new access, or null if it cannot be obtained
      */
     public IOAccess get(long location, long length, boolean writable) {
-        Access result = poolResolve();
-        result.setupIOData(location, length, writable);
-        IOAccessOrdered.insert(root, result);
+        Access access = poolResolve();
+        access.setupIOData(location, length, writable);
+        IOAccessOrdered.insert(root, access);
         try {
-            result.setupIOData(backend.onAccessRequested(result));
+            access.setupIOData(backend.onAccessRequested(access));
         } catch (StorageException exception) {
             Logger.DEFAULT.error(exception);
-            IOAccessOrdered.remove(root, result);
+            IOAccessOrdered.remove(root, access);
+            poolReturn(access);
             return null;
         }
-        return result;
+        return access;
     }
 
     /**
