@@ -191,6 +191,22 @@ class FileBackend implements IOBackend, Closeable {
     }
 
     /**
+     * Accesses a specific block of this file through an access element
+     *
+     * @param index    The index within this file of the reserved area for the access
+     * @param length   The length of the reserved area for the access
+     * @param writable Whether the access shall allow writing
+     * @param block    The block that will backs the access
+     * @return The access element
+     * @throws StorageException When the requested access cannot be fulfilled
+     */
+    protected IOAccess accessRaw(long index, long length, boolean writable, FileBlockTS block) throws StorageException {
+        IOAccess access = accessManager.get(index, length, !isReadonly && writable, block);
+        block.useShared(block.location, tick());
+        return access;
+    }
+
+    /**
      * Acquires the block for the specified index in this file
      * This method ensures that:
      * 1) Only one block object can be assigned to a location in the file

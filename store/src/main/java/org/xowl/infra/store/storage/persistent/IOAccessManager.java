@@ -111,6 +111,23 @@ class IOAccessManager {
     }
 
     /**
+     * Gets an access to the associated backend for the specified span
+     *
+     * @param location The location of the span within the backend
+     * @param length   The length of the allowed span
+     * @param writable Whether the access allows writing
+     * @param element  The backing IO element
+     * @return The new access, or null if it cannot be obtained
+     */
+    public IOAccess get(long location, long length, boolean writable, IOElement element) {
+        Access access = poolResolve();
+        access.setupIOData(location, length, writable);
+        access.setupIOData(element);
+        IOAccessOrdered.insert(root, access);
+        return access;
+    }
+
+    /**
      * Ends an access to the backend
      *
      * @param access The access
