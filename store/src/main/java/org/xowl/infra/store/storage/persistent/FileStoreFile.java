@@ -4,12 +4,12 @@
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
@@ -17,13 +17,7 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.nio.file.StandardOpenOption;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Represents a persisted binary file
@@ -42,7 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author Laurent Wouters
  */
-class FileStoreFile implements Closeable {
+class FileStoreFile extends FileBackend {
     /**
      * Magic identifier of the type of store
      */
@@ -72,7 +66,7 @@ class FileStoreFile implements Closeable {
     /**
      * The maximum number of open blocks in a file
      */
-    private static final int FILE_MAX_OPEN_BLOCKS = (FileStoreFileBlock.BLOCK_SIZE - FILE_PREAMBULE_HEADER_SIZE) / FILE_PREAMBULE_ENTRY_SIZE;
+    private static final int FILE_MAX_OPEN_BLOCKS = (FileBlock.BLOCK_SIZE - FILE_PREAMBULE_HEADER_SIZE) / FILE_PREAMBULE_ENTRY_SIZE;
     /**
      * The maximum number of blocks per file
      */
@@ -84,60 +78,8 @@ class FileStoreFile implements Closeable {
     /**
      * The mask for the index of a block
      */
-    private static final long INDEX_MASK_UPPER = ~FileStoreFileBlock.INDEX_MASK_LOWER;
+    private static final long INDEX_MASK_UPPER = ~FileBlock.INDEX_MASK_LOWER;
 
-    /**
-     * The file name
-     */
-    private final String fileName;
-    /**
-     * Whether the file is in readonly mode
-     */
-    private final boolean isReadonly;
-    /**
-     * The file channel
-     */
-    private final FileChannel channel;
-    /**
-     * The access manager for this file
-     */
-    private final IOAccessManager accessManager;
-    /**
-     * The loaded blocks in this file
-     */
-    private final FileStoreFileBlock[] blocks;
-    /**
-     * The number of currently loaded blocks
-     */
-    private final AtomicInteger blockCount;
-    /**
-     * The total size of this file
-     */
-    private final AtomicLong size;
-    /**
-     * The current time
-     */
-    private final AtomicLong time;
-
-    /**
-     * Gets the size of this file
-     *
-     * @return The size of this file
-     */
-    public long getSize() {
-        return size.get();
-    }
-
-    /**
-     * Initializes this data file
-     *
-     * @param file       The file location
-     * @param isReadonly Whether this store is in readonly mode
-     * @throws StorageException When the initialization failed
-     */
-    public FileStoreFile(File file, boolean isReadonly) throws StorageException {
-        this(file, isReadonly, false);
-    }
 
     /**
      * Initializes this data file
@@ -147,30 +89,23 @@ class FileStoreFile implements Closeable {
      * @param noInit     Whether to skip the file initialization
      * @throws StorageException When the initialization failed
      */
-    FileStoreFile(File file, boolean isReadonly, boolean noInit) throws StorageException {
-        this.fileName = file.getAbsolutePath();
-        this.isReadonly = isReadonly;
-        this.channel = newChannel(file, isReadonly);
-        this.accessManager = new IOAccessManager();
-        this.blocks = new FileStoreFileBlock[FILE_MAX_LOADED_BLOCKS];
-        for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++)
-            this.blocks[i] = new FileStoreFileBlock();
-        this.blockCount = new AtomicInteger(0);
-        this.size = new AtomicLong(initSize());
-        this.time = new AtomicLong(Long.MIN_VALUE + 1);
+    public FileStoreFile(File file, boolean isReadonly, boolean noInit) throws StorageException {
+        super(file, isReadonly);
         if (!noInit)
-            initialize();
+            initialize(isReadonly, file.getAbsolutePath());
     }
 
     /**
      * Initializes this file
      *
+     * @param isReadonly Whether this store is in readonly mode
+     * @param fileName   The name of the represented file
      * @throws StorageException When an IO error occurred
      */
-    private void initialize() throws StorageException {
-        if (size.get() == 0) {
+    private void initialize(boolean isReadonly, String fileName) throws StorageException {
+        if (getSize() == 0) {
             if (isReadonly)
-                throw new StorageException("File is empty but open as read-only: " + fileName);
+                throw new StorageException("FileBackend is empty but open as read-only: " + fileName);
             // the file is empty and not read-only
             try (IOAccess access = accessRaw(0, FILE_PREAMBULE_HEADER_SIZE, true)) {
                 access.writeInt(FILE_MAGIC_ID);
@@ -190,85 +125,6 @@ class FileStoreFile implements Closeable {
                     throw new StorageException("Invalid file layout, expected 0x" + Integer.toHexString(FILE_LAYOUT_VERSION) + ", got 0x" + Integer.toHexString(layout) + ": " + fileName);
             }
         }
-    }
-
-    /**
-     * Gets the current size of the file channel
-     *
-     * @return The current size
-     * @throws StorageException When an IO error occurred
-     */
-    private long initSize() throws StorageException {
-        try {
-            return channel.size();
-        } catch (IOException exception) {
-            throw new StorageException(exception, "Failed to access file " + fileName);
-        }
-    }
-
-    /**
-     * Extends the size of this file to the specified one
-     *
-     * @param newSize The new size
-     * @return The final size
-     */
-    private long extendSizeTo(long newSize) {
-        while (true) {
-            long current = size.get();
-            long target = Math.max(current, newSize);
-            if (size.compareAndSet(current, target))
-                return target;
-        }
-    }
-
-    /**
-     * Ticks the time of this file
-     *
-     * @return The new time
-     */
-    private long tick() {
-        return time.incrementAndGet();
-    }
-
-    /**
-     * Get the file channel for this file
-     *
-     * @param file       The file location
-     * @param isReadonly Whether this store is in readonly mode
-     * @return The file channel
-     * @throws StorageException When the backing file cannot be accessed
-     */
-    private static FileChannel newChannel(File file, boolean isReadonly) throws StorageException {
-        try {
-            if (file.exists() && !file.canWrite())
-                isReadonly = true;
-            return isReadonly
-                    ? FileChannel.open(file.toPath(), StandardOpenOption.READ)
-                    : FileChannel.open(file.toPath(), StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
-        } catch (IOException exception) {
-            throw new StorageException(exception, "Failed to create a channel to " + file.getAbsolutePath());
-        }
-    }
-
-    /**
-     * Flushes any outstanding changes to the backend file
-     *
-     * @throws StorageException When an IO operation failed
-     */
-    public void flush() throws StorageException {
-        for (int i = 0; i != blockCount.get(); i++) {
-            blocks[i].flush(channel, tick());
-        }
-        try {
-            channel.force(true);
-        } catch (IOException exception) {
-            throw new StorageException(exception, "Failed to write back to " + fileName);
-        }
-    }
-
-    @Override
-    public void close() throws IOException {
-        channel.close();
     }
 
     /**
@@ -577,150 +433,13 @@ class FileStoreFile implements Closeable {
     }
 
     /**
-     * Accesses the content of this file through an access element
-     * An access must be within the boundaries of a block.
-     *
-     * @param index    The index within this file of the reserved area for the access
-     * @param length   The length of the reserved area for the access
-     * @param writable Whether the access shall allow writing
-     * @return The access element
-     * @throws StorageException When the requested access cannot be fulfilled
-     */
-    public IOAccess accessRaw(long index, long length, boolean writable) throws StorageException {
-        long targetLocation = index & INDEX_MASK_UPPER;
-        if (index - targetLocation + length > FileStoreFileBlock.BLOCK_SIZE)
-            throw new StorageException("IO access cannot cross block boundaries");
-        FileStoreFileBlock block = getBlockFor(index);
-        return accessManager.get(block, index, length, !isReadonly && writable);
-    }
-
-    /**
-     * Builds the access element for the specified requested file location
-     *
-     * @param index    The index within this file of the reserved area for the access
-     * @param length   The length of the reserved area for the access
-     * @param writable Whether the access shall allow writing
-     * @param block    The relevant block for the requested location
-     * @return The access element
-     * @throws StorageException When the requested access cannot be fulfilled
-     */
-    private IOAccess accessRaw(long index, long length, boolean writable, FileStoreFileBlock block) throws StorageException {
-        block.useShared(block.getLocation(), tick());
-        return accessManager.get(block, index, length, !isReadonly && writable);
-    }
-
-    /**
-     * Acquires the block for the specified index in this file
-     * This method ensures that:
-     * 1) Only one block object can be assigned to a location in the file
-     * 2) When a block object is returned, it corresponds to the requested location
-     * 3) ... and will continue to do so until the access finishes using it
-     *
-     * @param index The requested index in this file
-     * @return The corresponding block
-     * @throws StorageException When an IO error occurs
-     */
-    private FileStoreFileBlock getBlockFor(long index) throws StorageException {
-        long targetLocation = index & INDEX_MASK_UPPER;
-        if (blockCount.get() < FILE_MAX_LOADED_BLOCKS)
-            return getBlockForNotFull(targetLocation);
-        else
-            return getBlockForPoolFull(targetLocation);
-    }
-
-    /**
-     * Acquires the block for the specified index in this file when the pool of blocks is not full yet
-     *
-     * @param targetLocation The location of the requested block in this file
-     * @return The corresponding block
-     * @throws StorageException When an IO error occurs
-     */
-    private FileStoreFileBlock getBlockForNotFull(long targetLocation) throws StorageException {
-        // look for the block
-        for (int i = 0; i != blockCount.get(); i++) {
-            // is this the block we are looking for?
-            if (blocks[i].getLocation() == targetLocation && blocks[i].useShared(targetLocation, tick())) {
-                // yes and we locked it
-                return blocks[i];
-            }
-        }
-        // try to allocate one of the free block
-        int count = blockCount.get();
-        while (count < FILE_MAX_LOADED_BLOCKS) {
-            // get the last block
-            FileStoreFileBlock target = blocks[count];
-            // try to reserve it
-            if (target.reserve(targetLocation, channel, size.get(), tick())) {
-                // this is the block
-                // update the file data
-                blockCount.incrementAndGet();
-                extendSizeTo(Math.max(size.get(), targetLocation + FileStoreFileBlock.BLOCK_SIZE));
-                if (target.useShared(targetLocation, tick())) {
-                    // we got the block
-                    return target;
-                }
-            }
-            // retry with the next block
-            count = blockCount.get();
-        }
-        // now the pool if full ... fallback
-        return getBlockForPoolFull(targetLocation);
-    }
-
-    /**
-     * Acquires the block for the specified index in this file when the pool of blocks is full
-     *
-     * @param targetLocation The location of the requested block in this file
-     * @return The corresponding block
-     * @throws StorageException When an IO error occurs
-     */
-    private FileStoreFileBlock getBlockForPoolFull(long targetLocation) throws StorageException {
-        while (true) {
-            // keep track of the oldest block
-            int oldestIndex = -1;
-            long oldestTime = Long.MAX_VALUE;
-            long oldestLocation = -1;
-            for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++) {
-                // is this the block we are looking for?
-                if (blocks[i].getLocation() == targetLocation && blocks[i].useShared(targetLocation, tick())) {
-                    // yes and we locked it
-                    return blocks[i];
-                }
-                // is this the oldest block
-                long t = blocks[i].getLastHit();
-                if (t < oldestTime) {
-                    oldestIndex = i;
-                    oldestTime = t;
-                    oldestLocation = blocks[i].getLocation();
-                }
-            }
-            // we did not find the block, try to reclaim the block
-            FileStoreFileBlock target = blocks[oldestIndex];
-            if (target.getLastHit() == oldestTime // the time did not change
-                    && target.getLocation() == oldestLocation // still the same location
-                    && target.reclaim(channel, oldestLocation, tick()) // try to reclaim
-                    ) {
-                // the block was successfully reclaimed, reserve it
-                if (target.reserve(targetLocation, channel, size.get(), tick())) {
-                    // update the file data
-                    extendSizeTo(Math.max(size.get(), targetLocation + FileStoreFileBlock.BLOCK_SIZE));
-                    if (target.useShared(targetLocation, tick())) {
-                        // we got the block
-                        return target;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Gets the location of the page referred to by the specified file-local key
      *
      * @param key The file-local key to an entry
      * @return The location (index within this file) of the corresponding page
      */
     private static long keyPageLocation(int key) {
-        return ((long) keyPageIndex(key)) << FileStoreFileBlock.BLOCK_INDEX_LENGTH;
+        return ((long) keyPageIndex(key)) << FileBlock.BLOCK_INDEX_LENGTH;
     }
 
     /**

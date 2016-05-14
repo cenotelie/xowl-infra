@@ -49,11 +49,6 @@ class IOAccessManager {
 
         @Override
         public void close() {
-            try {
-                backend.onAccessTerminated(this);
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-            }
             manager.onAccessEnd(this);
         }
     }
@@ -63,6 +58,10 @@ class IOAccessManager {
      */
     private static final int POOL_SIZE = 16;
 
+    /**
+     * The backend element that is protected by this manager
+     */
+    private final IOBackend backend;
     /**
      * The pool of free access objects
      */
@@ -78,8 +77,11 @@ class IOAccessManager {
 
     /**
      * Initializes this pool
+     *
+     * @param backend The backend element that is protected by this manager
      */
-    public IOAccessManager() {
+    public IOAccessManager(IOBackend backend) {
+        this.backend = backend;
         this.accessPool = new Access[POOL_SIZE];
         this.accessPoolSize = new AtomicInteger(0);
         this.root = new AtomicReference<>(null);
@@ -88,16 +90,22 @@ class IOAccessManager {
     /**
      * Gets an access to the associated backend for the specified span
      *
-     * @param backend  The backend to get an access to
      * @param location The location of the span within the backend
      * @param length   The length of the allowed span
      * @param writable Whether the access allows writing
-     * @return The new access
+     * @return The new access, or null if it cannot be obtained
      */
-    public IOAccess get(IOBackend backend, long location, long length, boolean writable) {
+    public IOAccess get(long location, long length, boolean writable) {
         Access result = poolResolve();
-        result.setupIOData(backend, location, length, writable);
+        result.setupIOData(location, length, writable);
         IOAccessOrdered.insert(root, result);
+        try {
+            result.setupIOData(backend.onAccessRequested(result));
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            IOAccessOrdered.remove(root, result);
+            return null;
+        }
         return result;
     }
 
@@ -107,6 +115,11 @@ class IOAccessManager {
      * @param access The access
      */
     private void onAccessEnd(Access access) {
+        try {
+            backend.onAccessTerminated(access, access.element);
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+        }
         IOAccessOrdered.remove(root, access);
         poolReturn(access);
     }

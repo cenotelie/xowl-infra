@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import org.xowl.infra.utils.logging.Logger;
-
 /**
  * Base API for a controlled access to an IO backend element
  * The access defines a span within the backend element that can be accessed.
@@ -32,7 +30,7 @@ abstract class IOAccess implements AutoCloseable {
     /**
      * The backing IO element
      */
-    protected IOBackend backend;
+    protected IOElement element;
     /**
      * The location in the backend
      */
@@ -57,13 +55,11 @@ abstract class IOAccess implements AutoCloseable {
     /**
      * Setups this access before using it
      *
-     * @param backend  The backend IO element
      * @param location The location of the span for this access within the backend
      * @param length   The length of the allowed span
      * @param writable Whether the access allows writing
      */
-    protected void setupIOData(IOBackend backend, long location, long length, boolean writable) {
-        this.backend = backend;
+    protected void setupIOData(long location, long length, boolean writable) {
         this.location = location;
         this.length = length;
         this.writable = writable;
@@ -71,13 +67,13 @@ abstract class IOAccess implements AutoCloseable {
         this.backward = false;
     }
 
-    @Override
-    public void close() {
-        try {
-            backend.onAccessTerminated(this);
-        } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
-        }
+    /**
+     * Setups this access before using it
+     *
+     * @param backend The backend IO element
+     */
+    protected void setupIOData(IOElement backend) {
+        this.element = backend;
     }
 
     /**
@@ -191,7 +187,7 @@ abstract class IOAccess implements AutoCloseable {
     public byte readByte() throws StorageException {
         if (!withinBounds(1))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        byte value = backend.readByte(index);
+        byte value = element.readByte(index);
         index += (backward ? -1 : 1);
         return value;
     }
@@ -206,7 +202,7 @@ abstract class IOAccess implements AutoCloseable {
     public byte[] readBytes(int length) throws StorageException {
         if (!withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        byte[] value = backend.readBytes(index, length);
+        byte[] value = element.readBytes(index, length);
         index += (backward ? -length : length);
         return value;
     }
@@ -222,7 +218,7 @@ abstract class IOAccess implements AutoCloseable {
     public void readBytes(byte[] buffer, int start, int length) throws StorageException {
         if (!withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        backend.readBytes(index, buffer, start, length);
+        element.readBytes(index, buffer, start, length);
         index += (backward ? -length : length);
     }
 
@@ -235,7 +231,7 @@ abstract class IOAccess implements AutoCloseable {
     public char readChar() throws StorageException {
         if (!withinBounds(2))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        char value = backend.readChar(index);
+        char value = element.readChar(index);
         index += (backward ? -2 : 2);
         return value;
     }
@@ -249,7 +245,7 @@ abstract class IOAccess implements AutoCloseable {
     public int readInt() throws StorageException {
         if (!withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        int value = backend.readInt(index);
+        int value = element.readInt(index);
         index += (backward ? -4 : 4);
         return value;
     }
@@ -263,7 +259,7 @@ abstract class IOAccess implements AutoCloseable {
     public long readLong() throws StorageException {
         if (!withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        long value = backend.readLong(index);
+        long value = element.readLong(index);
         index += (backward ? -8 : 8);
         return value;
     }
@@ -277,7 +273,7 @@ abstract class IOAccess implements AutoCloseable {
     public float readFloat() throws StorageException {
         if (!withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        float value = backend.readFloat(index);
+        float value = element.readFloat(index);
         index += (backward ? -4 : 4);
         return value;
     }
@@ -291,7 +287,7 @@ abstract class IOAccess implements AutoCloseable {
     public double readDouble() throws StorageException {
         if (!withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot read the specified amount of data at this index");
-        double value = backend.readDouble(index);
+        double value = element.readDouble(index);
         index += (backward ? -8 : 8);
         return value;
     }
@@ -305,7 +301,7 @@ abstract class IOAccess implements AutoCloseable {
     public void writeByte(byte value) throws StorageException {
         if (!writable || !withinBounds(1))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
-        backend.writeByte(index, value);
+        element.writeByte(index, value);
         index += (backward ? -1 : 1);
     }
 
@@ -318,7 +314,7 @@ abstract class IOAccess implements AutoCloseable {
     public void writeBytes(byte[] value) throws StorageException {
         if (!writable || !withinBounds(value.length))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
-        backend.writeBytes(index, value);
+        element.writeBytes(index, value);
         index += (backward ? -value.length : value.length);
     }
 
@@ -333,7 +329,7 @@ abstract class IOAccess implements AutoCloseable {
     public void writeBytes(byte[] buffer, int start, int length) throws StorageException {
         if (!writable || !withinBounds(length))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
-        backend.writeBytes(index, buffer, start, length);
+        element.writeBytes(index, buffer, start, length);
         index += (backward ? -length : length);
     }
 
@@ -346,7 +342,7 @@ abstract class IOAccess implements AutoCloseable {
     public void writeChar(char value) throws StorageException {
         if (!writable || !withinBounds(2))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
-        backend.writeChar(index, value);
+        element.writeChar(index, value);
         index += (backward ? -2 : 2);
     }
 
@@ -359,7 +355,7 @@ abstract class IOAccess implements AutoCloseable {
     public void writeInt(int value) throws StorageException {
         if (!writable || !withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
-        backend.writeInt(index, value);
+        element.writeInt(index, value);
         index += (backward ? -4 : 4);
     }
 
@@ -372,7 +368,7 @@ abstract class IOAccess implements AutoCloseable {
     public void writeLong(long value) throws StorageException {
         if (!writable || !withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
-        backend.writeLong(index, value);
+        element.writeLong(index, value);
         index += (backward ? -8 : 8);
     }
 
@@ -385,7 +381,7 @@ abstract class IOAccess implements AutoCloseable {
     public void writeFloat(float value) throws StorageException {
         if (!writable || !withinBounds(4))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
-        backend.writeFloat(index, value);
+        element.writeFloat(index, value);
         index += (backward ? -4 : 4);
     }
 
@@ -398,7 +394,11 @@ abstract class IOAccess implements AutoCloseable {
     public void writeDouble(double value) throws StorageException {
         if (!writable || !withinBounds(8))
             throw new IndexOutOfBoundsException("Cannot write the specified amount of data at this index");
-        backend.writeDouble(index, value);
+        element.writeDouble(index, value);
         index += (backward ? -8 : 8);
+    }
+
+    @Override
+    public void close() {
     }
 }
