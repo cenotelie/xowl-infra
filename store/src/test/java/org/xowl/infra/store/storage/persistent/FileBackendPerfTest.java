@@ -27,7 +27,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public class FileStoreFilePerfTest {
+public class FileBackendPerfTest {
     /**
      * Numbers of threads
      */
@@ -46,7 +46,7 @@ public class FileStoreFilePerfTest {
     private static final int WRITE_SIZE = 100;
 
     public static void main(String[] args) {
-        FileStoreFilePerfTest program = new FileStoreFilePerfTest();
+        FileBackendPerfTest program = new FileBackendPerfTest();
         try {
             program.testWritePerf();
         } catch (IOException | StorageException exception) {
@@ -86,7 +86,7 @@ public class FileStoreFilePerfTest {
                             exception.printStackTrace();
                         }
                     }
-                }, FileStoreFilePerfTest.class.getCanonicalName() + ".Thread." + i);
+                }, FileBackendPerfTest.class.getCanonicalName() + ".Thread." + i);
                 threads.add(thread);
                 thread.start();
             }

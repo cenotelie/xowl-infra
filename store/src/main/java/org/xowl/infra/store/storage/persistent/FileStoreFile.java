@@ -256,7 +256,7 @@ class FileStoreFile extends FileBackend {
         try (IOAccess access = access(target, 2, true)) {
             access.writeChar((char) size);
         }
-        return target;
+        return target + 2;
     }
 
     /**
