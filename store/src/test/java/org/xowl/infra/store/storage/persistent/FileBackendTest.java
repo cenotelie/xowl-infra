@@ -26,11 +26,11 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 
 /**
- * Tests the FileStoreFile class
+ * Tests the FileBackend class
  *
  * @author Laurent Wouters
  */
-public class FileStoreFileTest {
+public class FileBackendTest {
     @Test
     public void testGetSizeEmpty() throws IOException, StorageException {
         try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
@@ -44,7 +44,7 @@ public class FileStoreFileTest {
             try (IOAccess access = pf.accessRaw(0, 1, true)) {
                 access.writeByte((byte) 5);
             }
-            Assert.assertEquals("Unexpected length", FileStoreFileBlock.BLOCK_SIZE, pf.getSize());
+            Assert.assertEquals("Unexpected length", FileBlock.BLOCK_SIZE, pf.getSize());
         }
     }
 
@@ -54,10 +54,10 @@ public class FileStoreFileTest {
             try (IOAccess access = pf.accessRaw(0, 1, true)) {
                 access.writeByte((byte) 5);
             }
-            try (IOAccess access = pf.accessRaw(FileStoreFileBlock.BLOCK_SIZE, 1, true)) {
+            try (IOAccess access = pf.accessRaw(FileBlock.BLOCK_SIZE, 1, true)) {
                 access.writeByte((byte) 6);
             }
-            Assert.assertEquals("Unexpected length", FileStoreFileBlock.BLOCK_SIZE * 2, pf.getSize());
+            Assert.assertEquals("Unexpected length", FileBlock.BLOCK_SIZE * 2, pf.getSize());
         }
     }
 
@@ -72,7 +72,7 @@ public class FileStoreFileTest {
         }
 
         try (FileStoreFile pf = new FileStoreFile(file, false, true)) {
-            Assert.assertEquals("Unexpected length", FileStoreFileBlock.BLOCK_SIZE, pf.getSize());
+            Assert.assertEquals("Unexpected length", FileBlock.BLOCK_SIZE, pf.getSize());
         }
     }
 
@@ -102,8 +102,8 @@ public class FileStoreFileTest {
     public void testGetIndexAfterSeek() throws IOException, StorageException {
         try (FileStoreFile pf = new FileStoreFile(File.createTempFile("test", ".bin"), false, true)) {
             try (IOAccess access = pf.accessRaw(0, 1, true)) {
-                access.seek(FileStoreFileBlock.BLOCK_SIZE + 4);
-                Assert.assertEquals("Unexpected index", FileStoreFileBlock.BLOCK_SIZE + 4, access.getIndex());
+                access.seek(FileBlock.BLOCK_SIZE + 4);
+                Assert.assertEquals("Unexpected index", FileBlock.BLOCK_SIZE + 4, access.getIndex());
             }
         }
     }
@@ -194,10 +194,10 @@ public class FileStoreFileTest {
             }
             pf.flush();
         }
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFileBlock.BLOCK_SIZE, file.length());
+        Assert.assertTrue("FileBackend has not been created", file.exists());
+        Assert.assertEquals("Unexpected file length", (long) FileBlock.BLOCK_SIZE, file.length());
         byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFileBlock.BLOCK_SIZE, content.length);
+        Assert.assertEquals("Unexpected content length", FileBlock.BLOCK_SIZE, content.length);
         Assert.assertEquals("Unexpected content", 5, content[0]);
     }
 
@@ -227,10 +227,10 @@ public class FileStoreFileTest {
             }
             pf.flush();
         }
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFileBlock.BLOCK_SIZE, file.length());
+        Assert.assertTrue("FileBackend has not been created", file.exists());
+        Assert.assertEquals("Unexpected file length", (long) FileBlock.BLOCK_SIZE, file.length());
         byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFileBlock.BLOCK_SIZE, content.length);
+        Assert.assertEquals("Unexpected content length", FileBlock.BLOCK_SIZE, content.length);
         Assert.assertEquals("Unexpected content", 5, content[0]);
         Assert.assertEquals("Unexpected content", 6, content[1]);
         Assert.assertEquals("Unexpected content", 7, content[2]);
@@ -264,10 +264,10 @@ public class FileStoreFileTest {
             }
             pf.flush();
         }
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFileBlock.BLOCK_SIZE, file.length());
+        Assert.assertTrue("FileBackend has not been created", file.exists());
+        Assert.assertEquals("Unexpected file length", (long) FileBlock.BLOCK_SIZE, file.length());
         byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFileBlock.BLOCK_SIZE, content.length);
+        Assert.assertEquals("Unexpected content length", FileBlock.BLOCK_SIZE, content.length);
         ByteBuffer buffer = ByteBuffer.wrap(content);
         Assert.assertEquals("Unexpected content", (char) 0xBBCC, buffer.getChar());
     }
@@ -298,10 +298,10 @@ public class FileStoreFileTest {
             }
             pf.flush();
         }
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFileBlock.BLOCK_SIZE, file.length());
+        Assert.assertTrue("FileBackend has not been created", file.exists());
+        Assert.assertEquals("Unexpected file length", (long) FileBlock.BLOCK_SIZE, file.length());
         byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFileBlock.BLOCK_SIZE, content.length);
+        Assert.assertEquals("Unexpected content length", FileBlock.BLOCK_SIZE, content.length);
         ByteBuffer buffer = ByteBuffer.wrap(content);
         Assert.assertEquals("Unexpected content", 55, buffer.getInt());
     }
@@ -332,10 +332,10 @@ public class FileStoreFileTest {
             }
             pf.flush();
         }
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFileBlock.BLOCK_SIZE, file.length());
+        Assert.assertTrue("FileBackend has not been created", file.exists());
+        Assert.assertEquals("Unexpected file length", (long) FileBlock.BLOCK_SIZE, file.length());
         byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFileBlock.BLOCK_SIZE, content.length);
+        Assert.assertEquals("Unexpected content length", FileBlock.BLOCK_SIZE, content.length);
         ByteBuffer buffer = ByteBuffer.wrap(content);
         Assert.assertEquals("Unexpected content", 0x00BB00AA00FF00EEL, buffer.getLong());
     }
@@ -366,10 +366,10 @@ public class FileStoreFileTest {
             }
             pf.flush();
         }
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFileBlock.BLOCK_SIZE, file.length());
+        Assert.assertTrue("FileBackend has not been created", file.exists());
+        Assert.assertEquals("Unexpected file length", (long) FileBlock.BLOCK_SIZE, file.length());
         byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFileBlock.BLOCK_SIZE, content.length);
+        Assert.assertEquals("Unexpected content length", FileBlock.BLOCK_SIZE, content.length);
         ByteBuffer buffer = ByteBuffer.wrap(content);
         Assert.assertTrue("Unexpected content", 5.5f == buffer.getFloat());
     }
@@ -400,10 +400,10 @@ public class FileStoreFileTest {
             }
             pf.flush();
         }
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFileBlock.BLOCK_SIZE, file.length());
+        Assert.assertTrue("FileBackend has not been created", file.exists());
+        Assert.assertEquals("Unexpected file length", (long) FileBlock.BLOCK_SIZE, file.length());
         byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFileBlock.BLOCK_SIZE, content.length);
+        Assert.assertEquals("Unexpected content length", FileBlock.BLOCK_SIZE, content.length);
         ByteBuffer buffer = ByteBuffer.wrap(content);
         Assert.assertTrue("Unexpected content", 5.5f == buffer.getDouble());
     }
@@ -437,10 +437,10 @@ public class FileStoreFileTest {
             pf.flush();
         }
 
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFileBlock.BLOCK_SIZE, file.length());
+        Assert.assertTrue("FileBackend has not been created", file.exists());
+        Assert.assertEquals("Unexpected file length", (long) FileBlock.BLOCK_SIZE, file.length());
         byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFileBlock.BLOCK_SIZE, content.length);
+        Assert.assertEquals("Unexpected content length", FileBlock.BLOCK_SIZE, content.length);
         ByteBuffer buffer = ByteBuffer.wrap(content);
         Assert.assertEquals("Unexpected content", 55, buffer.getInt());
         Assert.assertEquals("Unexpected content", 0, buffer.getInt());
@@ -454,18 +454,18 @@ public class FileStoreFileTest {
             try (IOAccess access = pf.accessRaw(0, 12, true)) {
                 access.writeInt(55);
             }
-            try (IOAccess access = pf.accessRaw(FileStoreFileBlock.BLOCK_SIZE, 12, true)) {
+            try (IOAccess access = pf.accessRaw(FileBlock.BLOCK_SIZE, 12, true)) {
                 access.writeInt(66);
             }
             pf.flush();
         }
-        Assert.assertTrue("File has not been created", file.exists());
-        Assert.assertEquals("Unexpected file length", (long) FileStoreFileBlock.BLOCK_SIZE * 2, file.length());
+        Assert.assertTrue("FileBackend has not been created", file.exists());
+        Assert.assertEquals("Unexpected file length", (long) FileBlock.BLOCK_SIZE * 2, file.length());
         byte[] content = Files.readAllBytes(file.toPath());
-        Assert.assertEquals("Unexpected content length", FileStoreFileBlock.BLOCK_SIZE * 2, content.length);
+        Assert.assertEquals("Unexpected content length", FileBlock.BLOCK_SIZE * 2, content.length);
         ByteBuffer buffer = ByteBuffer.wrap(content);
         Assert.assertEquals("Unexpected content", 55, buffer.getInt());
-        buffer.position(FileStoreFileBlock.BLOCK_SIZE);
+        buffer.position(FileBlock.BLOCK_SIZE);
         Assert.assertEquals("Unexpected content", 66, buffer.getInt());
     }
 
@@ -476,13 +476,13 @@ public class FileStoreFileTest {
             try (IOAccess access = pf.accessRaw(0, 12, true)) {
                 access.writeInt(55);
             }
-            try (IOAccess access = pf.accessRaw(FileStoreFileBlock.BLOCK_SIZE, 12, true)) {
+            try (IOAccess access = pf.accessRaw(FileBlock.BLOCK_SIZE, 12, true)) {
                 access.writeInt(66);
             }
             try (IOAccess access = pf.accessRaw(0, 12, false)) {
                 Assert.assertEquals("Unexpected content", 55, access.readInt());
             }
-            try (IOAccess access = pf.accessRaw(FileStoreFileBlock.BLOCK_SIZE, 12, false)) {
+            try (IOAccess access = pf.accessRaw(FileBlock.BLOCK_SIZE, 12, false)) {
                 Assert.assertEquals("Unexpected content", 66, access.readInt());
             }
         }
@@ -495,7 +495,7 @@ public class FileStoreFileTest {
             try (IOAccess access = pf.accessRaw(0, 12, true)) {
                 access.writeInt(55);
             }
-            try (IOAccess access = pf.accessRaw(FileStoreFileBlock.BLOCK_SIZE, 12, true)) {
+            try (IOAccess access = pf.accessRaw(FileBlock.BLOCK_SIZE, 12, true)) {
                 access.writeInt(66);
             }
             pf.flush();
@@ -505,7 +505,7 @@ public class FileStoreFileTest {
             try (IOAccess access = pf.accessRaw(0, 12, false)) {
                 Assert.assertEquals("Unexpected content", 55, access.readInt());
             }
-            try (IOAccess access = pf.accessRaw(FileStoreFileBlock.BLOCK_SIZE, 12, false)) {
+            try (IOAccess access = pf.accessRaw(FileBlock.BLOCK_SIZE, 12, false)) {
                 Assert.assertEquals("Unexpected content", 66, access.readInt());
             }
         }
