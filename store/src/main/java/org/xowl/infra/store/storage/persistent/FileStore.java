@@ -25,7 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A store of binary data backed by files
+ * A store of objects persisted in files
+ * This structure is thread-safe and uses lock-free synchronization mechanisms.
  *
  * @author Laurent Wouters
  */
@@ -74,14 +75,14 @@ class FileStore {
         int index = 0;
         File candidate = new File(directory, getNameFor(name, index));
         while (candidate.exists()) {
-            FileStoreFile child = new FileStoreFile(candidate, isReadonly);
+            FileStoreFile child = new FileStoreFile(candidate, isReadonly, false);
             files.add(child);
             index++;
             candidate = new File(directory, getNameFor(name, index));
         }
         if (files.isEmpty() && !isReadonly) {
             // initializes
-            FileStoreFile first = new FileStoreFile(candidate, false);
+            FileStoreFile first = new FileStoreFile(candidate, false, false);
             files.add(first);
         }
     }
@@ -92,7 +93,7 @@ class FileStore {
      * @return Whether this store is empty
      */
     public boolean isEmpty() {
-        return files.size() == 1 && files.get(0).getSize() <= FileStoreFileBlock.BLOCK_SIZE;
+        return files.size() == 1 && files.get(0).getSize() <= FileBlock.BLOCK_SIZE;
     }
 
     /**
@@ -152,7 +153,7 @@ class FileStore {
             }
             files.clear();
             try {
-                FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false);
+                FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false, false);
                 files.add(first);
             } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
@@ -161,10 +162,10 @@ class FileStore {
     }
 
     /**
-     * Gets an access to the entry for the specified key
+     * Gets a read and write access to the object for the specified key
      *
      * @param key The key to an entry
-     * @return The IO element that can be used for reading and writing
+     * @return The IO access that can be used for reading and writing
      * @throws StorageException When an IO operation failed
      */
     public IOAccess access(long key) throws StorageException {
@@ -172,10 +173,10 @@ class FileStore {
     }
 
     /**
-     * Gets a reading access to the entry for the specified key
+     * Gets a reading access to the object for the specified key
      *
      * @param key The key to an entry
-     * @return The IO element that can be used for reading
+     * @return The IO access that can be used for reading
      * @throws StorageException When an IO operation failed
      */
     public IOAccess read(long key) throws StorageException {
@@ -183,55 +184,53 @@ class FileStore {
     }
 
     /**
-     * Gets an access to the entry for the specified key
+     * Gets an access to the object for the specified key
      *
-     * @param key      The key to an entry
+     * @param key      The key to an object
      * @param writable Whether the transaction allows writing to the backend
-     * @return The IO element that can be used for reading and writing
+     * @return The IO access that can be used for reading and writing
      * @throws StorageException When an IO operation failed
      */
     protected IOAccess access(long key, boolean writable) throws StorageException {
         if (key == KEY_NULL)
             throw new StorageException("Invalid key (null key)");
-        return files.get(getFileIndexFor(key)).accessEntry(getShortKey(key), writable);
+        return files.get(getFileIndexFor(key)).access(getShortKey(key), writable);
     }
 
     /**
-     * Adds a new entry of the specified size
+     * Allocate space for a new object
      *
-     * @param entrySize The size of the entry to write
-     * @return The key for retrieving the data
+     * @param size The size of the object
+     * @return The key to the allocated space
      * @throws StorageException When an IO operation failed
      */
-    public long add(int entrySize) throws StorageException {
+    public long allocate(int size) throws StorageException {
         if (isReadonly)
             throw new StorageException("The store is read only");
-        if (entrySize > FileStoreFileBlock.MAX_ENTRY_SIZE)
-            throw new StorageException("The entry is too large for this store");
         FileStoreFile file = files.get(files.size() - 1);
-        int result = file.allocateEntry(entrySize);
-        if (result == -1) {
+        long result = file.allocate(size);
+        if (result == KEY_NULL) {
             synchronized (files) {
-                file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false);
+                file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false, false);
                 files.add(file);
-                result = file.allocateEntry(entrySize);
+                result = file.allocate(size);
             }
         }
         return result;
     }
 
     /**
-     * Removes the entry for the specified key
+     * Frees the object for the specified key
      *
-     * @param key The key of the entry to remove
+     * @param key The key of the entry to free
      * @throws StorageException When an IO operation failed
      */
-    public void remove(long key) throws StorageException {
+    public void free(long key) throws StorageException {
         if (isReadonly)
             throw new StorageException("The store is read only");
         if (key == KEY_NULL)
             throw new StorageException("Invalid key (null key)");
-        files.get(getFileIndexFor(key)).removeEntry(getShortKey(key));
+        files.get(getFileIndexFor(key)).free(getShortKey(key));
     }
 
     /**

@@ -74,7 +74,7 @@ class PersistedLong {
      * @throws StorageException When an IO error occur
      */
     public static PersistedLong create(FileStore store, long initValue) throws StorageException {
-        long entry = store.add(8);
+        long entry = store.allocate(8);
         try (IOAccess transaction = store.access(entry)) {
             transaction.writeLong(initValue);
         }

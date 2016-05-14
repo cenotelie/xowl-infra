@@ -190,7 +190,7 @@ class PersistedMap {
      * @throws StorageException When an IO error occur
      */
     private static long allocateIndex(FileStore store) throws StorageException {
-        long key = store.add(INDEX_SIZE);
+        long key = store.allocate(INDEX_SIZE);
         try (IOAccess transaction = store.access(key)) {
             transaction.writeLong(FileStore.KEY_NULL);
             for (int i=0; i != INDEX_ENTRY_COUNT; i++) {
@@ -206,7 +206,7 @@ class PersistedMap {
      * @throws StorageException When an IO error occur
      */
     private long allocateTreeNode() throws StorageException {
-        long key = store.add(BTREE_NODE_SIZE);
+        long key = store.allocate(BTREE_NODE_SIZE);
         try (IOAccess transaction = store.access(key)) {
             transaction.writeLong(FileStore.KEY_NULL);
             transaction.writeChar('\0');

@@ -228,7 +228,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 candidate = next;
             }
         }
-        long result = store.add(buffer.length + ENTRY_STRING_OVERHEAD);
+        long result = store.allocate(buffer.length + ENTRY_STRING_OVERHEAD);
         try (IOAccess entry = store.access(result)) {
             entry.writeLong(FileStore.KEY_NULL);
             entry.writeLong(0);
@@ -343,7 +343,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             if (!doInsert)
                 return FileStore.KEY_NULL;
             try {
-                long result = store.add(ENTRY_LITERAL_SIZE);
+                long result = store.allocate(ENTRY_LITERAL_SIZE);
                 try (IOAccess entry = store.access(result)) {
                     entry.writeLong(FileStore.KEY_NULL);
                     entry.writeLong(0);
@@ -380,7 +380,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             if (!doInsert)
                 return FileStore.KEY_NULL;
             try {
-                long result = store.add(ENTRY_LITERAL_SIZE);
+                long result = store.allocate(ENTRY_LITERAL_SIZE);
                 try (IOAccess entry = store.access(previous)) {
                     entry.writeLong(result);
                 }

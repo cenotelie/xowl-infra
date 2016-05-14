@@ -73,9 +73,8 @@ public class FileStoreFilePerfTest {
                         try {
                             for (int i = 0; i != BATCH_COUNT; i++) {
                                 for (int j = 0; j != WRITE_COUNT; j++) {
-
-                                    int key = pf.allocateEntry(WRITE_SIZE);
-                                    try (IOAccess access = pf.accessEntry(key, true)) {
+                                    long key = pf.allocateDirect(WRITE_SIZE);
+                                    try (IOAccess access = pf.access(key, true)) {
                                         for (int k = 0; k != WRITE_SIZE >> 2; k++) {
                                             access.writeInt(j);
                                         }

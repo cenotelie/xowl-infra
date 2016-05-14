@@ -1155,7 +1155,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      */
     private long writeNewGraphIndex(int radical, long qnode) {
         try {
-            long key = store.add(GINDEX_ENTRY_SIZE);
+            long key = store.allocate(GINDEX_ENTRY_SIZE);
             try (IOAccess entry = store.access(key)) {
                 entry.writeLong(FileStore.KEY_NULL);
                 entry.writeInt(radical);
@@ -1233,7 +1233,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 }
             }
 
-            // remove the graph node
+            // free the graph node
             long next;
             try (IOAccess entry = store.read(bufferQNGraph)) {
                 next = entry.readLong();
@@ -1242,23 +1242,23 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 // the previous of the graph is the object
                 if (next == FileStore.KEY_NULL) {
                     // the last one
-                    store.remove(bufferQNGraph);
+                    store.free(bufferQNGraph);
                 } else {
                     try (IOAccess entry = store.access(bufferQNObject)) {
                         entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
                     }
-                    store.remove(bufferQNGraph);
+                    store.free(bufferQNGraph);
                     return REMOVE_RESULT_REMOVED;
                 }
             } else {
                 try (IOAccess entry = store.access(keyGraphPrevious)) {
                     entry.writeLong(next);
                 }
-                store.remove(bufferQNGraph);
+                store.free(bufferQNGraph);
                 return REMOVE_RESULT_REMOVED;
             }
 
-            // remove the object node
+            // free the object node
             try (IOAccess entry = store.read(bufferQNObject)) {
                 next = entry.readLong();
             }
@@ -1266,23 +1266,23 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 // the previous of the object is the property
                 if (next == FileStore.KEY_NULL) {
                     // the last one
-                    store.remove(bufferQNObject);
+                    store.free(bufferQNObject);
                 } else {
                     try (IOAccess entry = store.access(bufferQNProperty)) {
                         entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
                     }
-                    store.remove(bufferQNObject);
+                    store.free(bufferQNObject);
                     return REMOVE_RESULT_REMOVED;
                 }
             } else {
                 try (IOAccess entry = store.access(keyObjectPrevious)) {
                     entry.writeLong(next);
                 }
-                store.remove(bufferQNObject);
+                store.free(bufferQNObject);
                 return REMOVE_RESULT_REMOVED;
             }
 
-            // remove the property node
+            // free the property node
             try (IOAccess entry = store.read(bufferQNProperty)) {
                 next = entry.readLong();
             }
@@ -1290,24 +1290,24 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 // the previous of the property is the subject
                 if (next == FileStore.KEY_NULL) {
                     // the last one
-                    store.remove(bufferQNProperty);
+                    store.free(bufferQNProperty);
                 } else {
                     try (IOAccess entry = store.access(bufferQNSubject)) {
                         entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(next);
                     }
-                    store.remove(bufferQNProperty);
+                    store.free(bufferQNProperty);
                     return REMOVE_RESULT_REMOVED;
                 }
             } else {
                 try (IOAccess entry = store.access(keyPropertyPrevious)) {
                     entry.writeLong(next);
                 }
-                store.remove(bufferQNProperty);
+                store.free(bufferQNProperty);
                 return REMOVE_RESULT_REMOVED;
             }
 
-            // remove the subject node
-            store.remove(bufferQNSubject);
+            // free the subject node
+            store.free(bufferQNSubject);
             map.remove(subject.getKey());
             return REMOVE_RESULT_EMPTIED;
         } catch (StorageException exception) {
@@ -1373,7 +1373,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                                 pe.writeLong(next);
                             }
                         }
-                        store.remove(current);
+                        store.free(current);
                         return;
                     }
                     c--;
@@ -1465,7 +1465,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             next = bufferQNPrevious;
             if (empty) {
                 try {
-                    store.remove(current);
+                    store.free(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
@@ -1627,7 +1627,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (newChild == FileStore.KEY_NULL) {
             // the child bucket is empty
             try {
-                store.remove(subjectKey);
+                store.free(subjectKey);
             } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
             }
@@ -1692,7 +1692,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
-                    store.remove(current);
+                    store.free(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
@@ -1772,7 +1772,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
-                    store.remove(current);
+                    store.free(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
@@ -1851,16 +1851,16 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (removedGraph != null) {
                 // multiplicity of the graph reached 0
                 if (graph == null) {
-                    // remove all graphs
+                    // free all graphs
                     try {
-                        store.remove(current);
+                        store.free(current);
                     } catch (StorageException exception) {
                         Logger.DEFAULT.error(exception);
                     }
                 } else {
-                    // remove this element from the linked list
+                    // free this element from the linked list
                     try {
-                        store.remove(current);
+                        store.free(current);
                     } catch (StorageException exception) {
                         Logger.DEFAULT.error(exception);
                     }
@@ -1943,7 +1943,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 Logger.DEFAULT.error(exception);
             }
             try {
-                store.remove(current);
+                store.free(current);
             } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
             }
@@ -1986,7 +1986,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (newChild == FileStore.KEY_NULL) {
             // the child bucket is empty
             try {
-                store.remove(key);
+                store.free(key);
             } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
             }
@@ -2035,7 +2035,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
-                    store.remove(current);
+                    store.free(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
@@ -2100,7 +2100,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
-                    store.remove(current);
+                    store.free(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
@@ -2164,16 +2164,16 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }
 
             if (graph == null) {
-                // remove all quads
+                // free all quads
                 try {
-                    store.remove(current);
+                    store.free(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
             } else if (found) {
-                // remove this element from the linked list
+                // free this element from the linked list
                 try {
-                    store.remove(current);
+                    store.free(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
@@ -2300,7 +2300,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (newChild == FileStore.KEY_NULL) {
             // the child bucket is empty
             try {
-                store.remove(key);
+                store.free(key);
             } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
             }
@@ -2355,7 +2355,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
-                    store.remove(current);
+                    store.free(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
@@ -2426,7 +2426,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
-                    store.remove(current);
+                    store.free(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
@@ -2530,10 +2530,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }
         } else if (overwrite && keyTarget != FileStore.KEY_NULL) {
             // the target graph is there but not the old one and we must overwrite
-            // we need to remove this
+            // we need to free this
             bufferOld.add(new MQuad((GraphNode) target, targetMultiplicity));
             try {
-                store.remove(keyTarget);
+                store.free(keyTarget);
             } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
                 return bucket;
@@ -2653,7 +2653,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (newChild == FileStore.KEY_NULL) {
             // the child bucket is empty
             try {
-                store.remove(key);
+                store.free(key);
             } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
             }
@@ -2707,7 +2707,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
-                    store.remove(current);
+                    store.free(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
@@ -2777,7 +2777,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (newChild == FileStore.KEY_NULL) {
                 // the child bucket is empty
                 try {
-                    store.remove(current);
+                    store.free(current);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                 }
@@ -2864,7 +2864,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
 
         if (keyOrigin != FileStore.KEY_NULL) {
             // if the origin graph is present, move
-            // remove the origin
+            // free the origin
             bufferOld.add(new MQuad((GraphNode) origin, originMultiplicity));
             if (keyTarget != FileStore.KEY_NULL) {
                 // the target graph is also here, increment it
@@ -2874,9 +2874,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     Logger.DEFAULT.error(exception);
                     return bucket;
                 }
-                // remove the origin
+                // free the origin
                 try {
-                    store.remove(keyOrigin);
+                    store.free(keyOrigin);
                 } catch (StorageException exception) {
                     Logger.DEFAULT.error(exception);
                     return bucket;
@@ -2908,10 +2908,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }
         } else if (keyTarget != FileStore.KEY_NULL) {
             // the target graph is there but not the old one
-            // we need to remove this
+            // we need to free this
             bufferOld.add(new MQuad((GraphNode) target, targetMultiplicity));
             try {
-                store.remove(keyTarget);
+                store.free(keyTarget);
             } catch (StorageException exception) {
                 Logger.DEFAULT.error(exception);
                 return bucket;
@@ -3013,7 +3013,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @throws StorageException When the page version does not match the expected one
      */
     private long newEntry(PersistedNode node) throws StorageException {
-        long key = store.add(QUAD_ENTRY_SIZE);
+        long key = store.allocate(QUAD_ENTRY_SIZE);
         try (IOAccess entry = store.access(key)) {
             entry.writeLong(FileStore.KEY_NULL);
             entry.writeInt(node.getNodeType());
