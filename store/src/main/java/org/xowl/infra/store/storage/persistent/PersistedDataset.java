@@ -25,7 +25,6 @@ import org.xowl.infra.utils.collections.*;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -277,10 +276,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param nodes      The persisted nodes associated to this dataset
      * @param directory  The parent directory containing the backing files
      * @param isReadonly Whether this store is in readonly mode
-     * @throws IOException      When the backing files cannot be accessed
      * @throws StorageException When the storage is in a bad state
      */
-    public PersistedDataset(PersistedNodes nodes, File directory, boolean isReadonly) throws IOException, StorageException {
+    public PersistedDataset(PersistedNodes nodes, File directory, boolean isReadonly) throws StorageException {
         this.nodes = nodes;
         this.store = new FileStore(directory, FILE_DATA, isReadonly);
         PersistedMap tempMapSubjectIRI;
@@ -318,7 +316,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     }
 
     @Override
-    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         try {
             PersistedNode pGraph = nodes.getPersistent(graph, false);
             if (pGraph == null)
@@ -333,7 +331,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (pObject == null)
                 return 0;
             return getMultiplicity(pGraph, pSubject, pProperty, pObject);
-        } catch (UnsupportedNodeType exception) {
+        } catch (StorageException exception) {
             Logger.DEFAULT.error(exception);
             return 0;
         }
@@ -347,39 +345,41 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param property The property
      * @param object   The object
      * @return The multiplicity in this store
+     * @throws UnsupportedNodeType When a specified node is unsupported
+     * @throws StorageException    When an IO operation failed
      */
-    private long getMultiplicity(PersistedNode graph, PersistedNode subject, PersistedNode property, PersistedNode object) {
-        try {
-            PersistedMap map = mapFor(subject);
-            long bucket = map.get(subject.getKey());
-            if (bucket == FileStore.KEY_NULL)
-                return 0;
-            bufferQNSubject = bucket;
-            long target = lookupQNode(bufferQNSubject, property, false);
-            if (target == FileStore.KEY_NULL)
-                return 0;
-            target = lookupQNode(target, object, false);
-            if (target == FileStore.KEY_NULL)
-                return 0;
-            target = lookupQNode(target, graph, false);
-            if (target == FileStore.KEY_NULL)
-                return 0;
-            try (IOAccess entry = store.access(target)) {
-                return entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
-            }
-        } catch (StorageException | UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+    private long getMultiplicity(PersistedNode graph, PersistedNode subject, PersistedNode property, PersistedNode object) throws StorageException, UnsupportedNodeType {
+        PersistedMap map = mapFor(subject);
+        long bucket = map.get(subject.getKey());
+        if (bucket == FileStore.KEY_NULL)
             return 0;
+        bufferQNSubject = bucket;
+        long target = lookupQNode(bufferQNSubject, property, false);
+        if (target == FileStore.KEY_NULL)
+            return 0;
+        target = lookupQNode(target, object, false);
+        if (target == FileStore.KEY_NULL)
+            return 0;
+        target = lookupQNode(target, graph, false);
+        if (target == FileStore.KEY_NULL)
+            return 0;
+        try (IOAccess entry = store.access(target)) {
+            return entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
         }
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
-        if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE)
-            return getAllOnSingleSubject(graph, subject, property, object);
-        if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE)
-            return getAllOnSingleGraph(graph, property, object);
-        return getAllDefault(property, object);
+    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
+        try {
+            if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE)
+                return getAllOnSingleSubject(graph, subject, property, object);
+            if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE)
+                return getAllOnSingleGraph(graph, property, object);
+            return getAllDefault(property, object);
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return new SingleIterator<>(null);
+        }
     }
 
     /**
@@ -390,29 +390,26 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return An iterator over the results
+     * @throws UnsupportedNodeType When a specified node is unsupported
+     * @throws StorageException    When an IO operation failed
      */
-    private Iterator<Quad> getAllOnSingleSubject(GraphNode graph, final SubjectNode subject, Property property, Node object) {
-        try {
-            PersistedNode pSubject = nodes.getPersistent(subject, false);
-            if (pSubject == null)
-                return new SingleIterator<>(null);
-            long current = mapFor(pSubject).get(pSubject.getKey());
-            if (current == FileStore.KEY_NULL)
-                return new SingleIterator<>(null);
-            try (IOAccess entry = store.read(current)) {
-                long bucket = entry.seek(8 + 4 + 8).readLong();
-                return new AdaptingIterator<>(getAllOnProperty(bucket, property, object, graph), new Adapter<Quad>() {
-                    @Override
-                    public <X> Quad adapt(X element) {
-                        MQuad quad = (MQuad) element;
-                        quad.setSubject(subject);
-                        return quad;
-                    }
-                });
-            }
-        } catch (UnsupportedNodeType | StorageException exception) {
-            Logger.DEFAULT.error(exception);
+    private Iterator<Quad> getAllOnSingleSubject(GraphNode graph, final SubjectNode subject, Property property, Node object) throws StorageException, UnsupportedNodeType {
+        PersistedNode pSubject = nodes.getPersistent(subject, false);
+        if (pSubject == null)
             return new SingleIterator<>(null);
+        long current = mapFor(pSubject).get(pSubject.getKey());
+        if (current == FileStore.KEY_NULL)
+            return new SingleIterator<>(null);
+        try (IOAccess entry = store.read(current)) {
+            long bucket = entry.seek(8 + 4 + 8).readLong();
+            return new AdaptingIterator<>(getAllOnProperty(bucket, property, object, graph), new Adapter<Quad>() {
+                @Override
+                public <X> Quad adapt(X element) {
+                    MQuad quad = (MQuad) element;
+                    quad.setSubject(subject);
+                    return quad;
+                }
+            });
         }
     }
 
@@ -423,15 +420,11 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return An iterator over the results
+     * @throws UnsupportedNodeType When a specified node is unsupported
+     * @throws StorageException    When an IO operation failed
      */
-    private Iterator<Quad> getAllOnSingleGraph(GraphNode graph, final Property property, final Node object) {
-        final PersistedNode pGraph;
-        try {
-            pGraph = nodes.getPersistent(graph, false);
-        } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
-            return new SingleIterator<>(null);
-        }
+    private Iterator<Quad> getAllOnSingleGraph(GraphNode graph, final Property property, final Node object) throws StorageException, UnsupportedNodeType {
+        final PersistedNode pGraph = nodes.getPersistent(graph, false);
         if (pGraph == null)
             return new SingleIterator<>(null);
         PersistedMap map = pGraph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
@@ -446,7 +439,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 try (IOAccess entry = store.read(subjectKey)) {
                     long propertyBucket = entry.seek(8 + 4 + 8).readLong();
                     return getAllOnProperty(propertyBucket, property, object, (GraphNode) pGraph);
-                } catch (StorageException exception) {
+                } catch (UnsupportedNodeType | StorageException exception) {
                     Logger.DEFAULT.error(exception);
                     return null;
                 }
@@ -482,7 +475,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 try (IOAccess entry = store.read(subjectKey)) {
                     long propertyBucket = entry.seek(8 + 4 + 8).readLong();
                     return getAllOnProperty(propertyBucket, property, object, null);
-                } catch (StorageException exception) {
+                } catch (UnsupportedNodeType | StorageException exception) {
                     Logger.DEFAULT.error(exception);
                     return null;
                 }
@@ -511,8 +504,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return An iterator over the results
+     * @throws UnsupportedNodeType When a specified node is unsupported
+     * @throws StorageException    When an IO operation failed
      */
-    private Iterator<MQuad> getAllOnProperty(long bucket, final Property property, final Node object, final GraphNode graph) {
+    private Iterator<MQuad> getAllOnProperty(long bucket, final Property property, final Node object, final GraphNode graph) throws UnsupportedNodeType, StorageException {
         if (property == null || property.getNodeType() == Node.TYPE_VARIABLE) {
             return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(store, bucket), new Adapter<Iterator<MQuad>>() {
                 @Override
@@ -522,7 +517,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         entry.seek(8 + 4 + 8);
                         long objectKey = entry.readLong();
                         return getAllOnObject(objectKey, object, graph);
-                    } catch (StorageException exception) {
+                    } catch (UnsupportedNodeType | StorageException exception) {
                         Logger.DEFAULT.error(exception);
                         return null;
                     }
@@ -544,13 +539,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 }
             });
         }
-        PersistedNode pProperty;
-        try {
-            pProperty = nodes.getPersistent(property, false);
-        } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
-            return new SingleIterator<>(null);
-        }
+        PersistedNode pProperty = nodes.getPersistent(property, false);
         if (pProperty == null)
             return new SingleIterator<>(null);
         long current = bucket;
@@ -570,9 +559,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         }
                     });
                 }
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return new SingleIterator<>(null);
             }
         }
         return new SingleIterator<>(null);
@@ -585,8 +571,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param graph  A containing graph to match, or null
      * @param object An object node to match, or null
      * @return An iterator over the results
+     * @throws UnsupportedNodeType When a specified node is unsupported
+     * @throws StorageException    When an IO operation failed
      */
-    private Iterator<MQuad> getAllOnObject(long bucket, final Node object, final GraphNode graph) {
+    private Iterator<MQuad> getAllOnObject(long bucket, final Node object, final GraphNode graph) throws UnsupportedNodeType, StorageException {
         if (object == null || object.getNodeType() == Node.TYPE_VARIABLE) {
             return new AdaptingIterator<>(new CombiningIterator<>(new QNodeIterator(store, bucket), new Adapter<Iterator<MQuad>>() {
                 @Override
@@ -596,7 +584,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         entry.seek(8 + 4 + 8);
                         long graphKey = entry.readLong();
                         return getAllOnGraph(graphKey, graph);
-                    } catch (StorageException exception) {
+                    } catch (UnsupportedNodeType | StorageException exception) {
                         Logger.DEFAULT.error(exception);
                         return null;
                     }
@@ -618,13 +606,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 }
             });
         }
-        PersistedNode pObject;
-        try {
-            pObject = nodes.getPersistent(object, false);
-        } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
-            return new SingleIterator<>(null);
-        }
+        PersistedNode pObject = nodes.getPersistent(object, false);
         if (pObject == null)
             return new SingleIterator<>(null);
         long current = bucket;
@@ -644,9 +626,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         }
                     });
                 }
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return new SingleIterator<>(null);
             }
         }
         return new SingleIterator<>(null);
@@ -658,8 +637,10 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param bucket The bucket of properties
      * @param graph  A containing graph to match, or null
      * @return An iterator over the results
+     * @throws UnsupportedNodeType When a specified node is unsupported
+     * @throws StorageException    When an IO operation failed
      */
-    private Iterator<MQuad> getAllOnGraph(long bucket, GraphNode graph) {
+    private Iterator<MQuad> getAllOnGraph(long bucket, GraphNode graph) throws UnsupportedNodeType, StorageException {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE) {
             return new AdaptingIterator<>(new QNodeIterator(store, bucket), new Adapter<MQuad>() {
                 @Override
@@ -677,13 +658,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 }
             });
         }
-        PersistedNode pGraph;
-        try {
-            pGraph = nodes.getPersistent(graph, false);
-        } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
-            return new SingleIterator<>(null);
-        }
+        PersistedNode pGraph = nodes.getPersistent(graph, false);
         if (pGraph == null)
             return new SingleIterator<>(null);
         long current = bucket;
@@ -696,9 +671,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 if (type == pGraph.getNodeType() && key == pGraph.getKey()) {
                     return new SingleIterator<>(new MQuad(graph, multiplicity));
                 }
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return new SingleIterator<>(null);
             }
         }
         return new SingleIterator<>(null);
@@ -707,13 +679,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     @Override
     public Collection<GraphNode> getGraphs() {
         Collection<GraphNode> result = new ArrayList<>();
-        PersistedMap.Iterator iterator = mapIndexGraphIRI.entries();
+        Iterator<Map.Entry<Long, Long>> iterator = mapIndexGraphIRI.entries();
         while (iterator.hasNext()) {
-            result.add(nodes.getIRINodeFor(iterator.nextKey()));
+            result.add(nodes.getIRINodeFor(iterator.next().getKey()));
         }
         iterator = mapIndexGraphBlank.entries();
         while (iterator.hasNext()) {
-            result.add(nodes.getBlankNodeFor(iterator.nextKey()));
+            result.add(nodes.getBlankNodeFor(iterator.next().getKey()));
         }
         return result;
     }
@@ -721,13 +693,18 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     @Override
     public long count() {
         long result = 0;
-        PersistedMap.Iterator iterator = mapIndexGraphIRI.entries();
-        while (iterator.hasNext()) {
-            result += count(mapIndexGraphIRI, iterator.nextKey());
-        }
-        iterator = mapIndexGraphBlank.entries();
-        while (iterator.hasNext()) {
-            result += count(mapIndexGraphBlank, iterator.nextKey());
+        try {
+            Iterator<Map.Entry<Long, Long>> iterator = mapIndexGraphIRI.entries();
+            while (iterator.hasNext()) {
+                result += count(mapIndexGraphIRI, iterator.next().getKey());
+            }
+            iterator = mapIndexGraphBlank.entries();
+            while (iterator.hasNext()) {
+                result += count(mapIndexGraphBlank, iterator.next().getKey());
+            }
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return 0;
         }
         return result;
     }
@@ -744,7 +721,12 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (pGraph == null)
             return 0;
         PersistedMap map = pGraph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
-        return count(map, pGraph.getKey());
+        try {
+            return count(map, pGraph.getKey());
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return 0;
+        }
     }
 
     /**
@@ -753,8 +735,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param map The corresponding graph index map
      * @param key The graph key
      * @return The number of quads
+     * @throws StorageException When an IO operation failed
      */
-    private long count(PersistedMap map, long key) {
+    private long count(PersistedMap map, long key) throws StorageException {
         long bucket = map.get(key);
         if (bucket == FileStore.KEY_NULL)
             return 0;
@@ -775,16 +758,13 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     }
                 }
                 current = next;
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return 0;
             }
         }
         return result;
     }
 
     @Override
-    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         try {
             PersistedNode pSubject = null;
             if (subject != null && subject.getNodeType() != VariableNode.TYPE_VARIABLE) {
@@ -815,7 +795,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (pGraph != null)
                 return countOnSingleGraph(pGraph, pProperty, pObject);
             return countDefault(pProperty, pObject);
-        } catch (UnsupportedNodeType exception) {
+        } catch (StorageException exception) {
             Logger.DEFAULT.error(exception);
             return 0;
         }
@@ -829,21 +809,18 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param property The property to match
      * @param object   The object to match
      * @return The number of matching quads
+     * @throws UnsupportedNodeType When a specified node is unsupported
+     * @throws StorageException    When an IO operation failed
      */
-    private long countOnSingleSubject(PersistedNode graph, PersistedNode subject, PersistedNode property, PersistedNode object) {
-        try {
-            long current = mapFor(subject).get(subject.getKey());
-            if (current == FileStore.KEY_NULL)
-                return 0;
-            long child;
-            try (IOAccess entry = store.read(current)) {
-                child = entry.seek(8 + 4 + 8).readLong();
-            }
-            return countOnProperty(child, graph, property, object);
-        } catch (UnsupportedNodeType | StorageException exception) {
-            Logger.DEFAULT.error(exception);
+    private long countOnSingleSubject(PersistedNode graph, PersistedNode subject, PersistedNode property, PersistedNode object) throws UnsupportedNodeType, StorageException {
+        long current = mapFor(subject).get(subject.getKey());
+        if (current == FileStore.KEY_NULL)
             return 0;
+        long child;
+        try (IOAccess entry = store.read(current)) {
+            child = entry.seek(8 + 4 + 8).readLong();
         }
+        return countOnProperty(child, graph, property, object);
     }
 
     /**
@@ -853,41 +830,37 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param property The property to match
      * @param object   The object to match
      * @return The number of matching quads
+     * @throws StorageException When an IO operation failed
      */
-    private long countOnSingleGraph(PersistedNode graph, PersistedNode property, PersistedNode object) {
-        try {
-            PersistedMap map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
-            long bucket = map.get(graph.getKey());
-            if (bucket == FileStore.KEY_NULL)
-                return 0;
-            long result = 0;
-            long current = bucket;
-            while (current != FileStore.KEY_NULL) {
-                try (IOAccess entry = store.read(current)) {
-                    current = entry.readLong();
-                    int radical = entry.readInt();
-                    int count = entry.readInt();
-                    for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
-                        int sk = entry.readInt();
-                        entry.readInt();
-                        if (sk != FileStore.KEY_NULL) {
-                            long child = FileStore.getFullKey(radical, sk);
-                            try (IOAccess subjectEntry = store.read(child)) {
-                                child = subjectEntry.seek(8 + 4 + 8).readLong();
-                            }
-                            result += countOnProperty(child, graph, property, object);
-                            count--;
-                            if (count == 0)
-                                break;
+    private long countOnSingleGraph(PersistedNode graph, PersistedNode property, PersistedNode object) throws StorageException {
+        PersistedMap map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
+        long bucket = map.get(graph.getKey());
+        if (bucket == FileStore.KEY_NULL)
+            return 0;
+        long result = 0;
+        long current = bucket;
+        while (current != FileStore.KEY_NULL) {
+            try (IOAccess entry = store.read(current)) {
+                current = entry.readLong();
+                int radical = entry.readInt();
+                int count = entry.readInt();
+                for (int i = 0; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
+                    int sk = entry.readInt();
+                    entry.readInt();
+                    if (sk != FileStore.KEY_NULL) {
+                        long child = FileStore.getFullKey(radical, sk);
+                        try (IOAccess subjectEntry = store.read(child)) {
+                            child = subjectEntry.seek(8 + 4 + 8).readLong();
                         }
+                        result += countOnProperty(child, graph, property, object);
+                        count--;
+                        if (count == 0)
+                            break;
                     }
                 }
             }
-            return result;
-        } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
-            return 0;
         }
+        return result;
     }
 
     /**
@@ -896,8 +869,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param property The property to match
      * @param object   The object to match
      * @return The number of matching quads
+     * @throws StorageException When an IO operation failed
      */
-    private long countDefault(PersistedNode property, PersistedNode object) {
+    private long countDefault(PersistedNode property, PersistedNode object) throws StorageException {
         long result = 0;
         result += countDefault(mapSubjectIRI, property, object);
         result += countDefault(mapSubjectBlank, property, object);
@@ -912,17 +886,15 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param property The property to match
      * @param object   The object to match
      * @return The number of matching quads
+     * @throws StorageException When an IO operation failed
      */
-    private long countDefault(PersistedMap map, PersistedNode property, PersistedNode object) {
+    private long countDefault(PersistedMap map, PersistedNode property, PersistedNode object) throws StorageException {
         long result = 0;
-        PersistedMap.Iterator iterator = map.entries();
+        Iterator<Map.Entry<Long, Long>> iterator = map.entries();
         while (iterator.hasNext()) {
             long bucket;
-            try (IOAccess entry = store.access(iterator.nextValue())) {
+            try (IOAccess entry = store.access(iterator.next().getValue())) {
                 bucket = entry.seek(8 + 4 + 8).readLong();
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return result;
             }
             result += countOnProperty(bucket, null, property, object);
         }
@@ -938,8 +910,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param property The property to match
      * @param object   The object to match
      * @return The number of matching quads
+     * @throws StorageException When an IO operation failed
      */
-    private long countOnProperty(long bucket, PersistedNode graph, PersistedNode property, PersistedNode object) {
+    private long countOnProperty(long bucket, PersistedNode graph, PersistedNode property, PersistedNode object) throws StorageException {
         long result = 0;
         long current = bucket;
         while (current != FileStore.KEY_NULL) {
@@ -949,9 +922,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 if (property == null || (property.getNodeType() == element.readInt() && property.getKey() == element.readLong())) {
                     child = element.seek(8 + 4 + 8).readLong();
                 }
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return result;
             }
             if (child != FileStore.KEY_NULL)
                 result += countOnObject(child, graph, object);
@@ -966,8 +936,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param graph  The graph to match
      * @param object The object to match
      * @return The number of matching quads
+     * @throws StorageException When an IO operation failed
      */
-    private long countOnObject(long bucket, PersistedNode graph, PersistedNode object) {
+    private long countOnObject(long bucket, PersistedNode graph, PersistedNode object) throws StorageException {
         long result = 0;
         long current = bucket;
         while (current != FileStore.KEY_NULL) {
@@ -977,9 +948,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 if (object == null || (object.getNodeType() == element.readInt() && object.getKey() == element.readLong())) {
                     child = element.seek(8 + 4 + 8).readLong();
                 }
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return result;
             }
             if (child != FileStore.KEY_NULL)
                 result += countOnGraph(child, graph);
@@ -993,8 +961,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param bucket The bucket of graphs
      * @param graph  The graph to match
      * @return The number of matching quads
+     * @throws StorageException When an IO operation failed
      */
-    private long countOnGraph(long bucket, PersistedNode graph) {
+    private long countOnGraph(long bucket, PersistedNode graph) throws StorageException {
         long result = 0;
         long current = bucket;
         while (current != FileStore.KEY_NULL) {
@@ -1002,9 +971,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 current = element.readLong();
                 if (graph == null || (graph.getNodeType() == element.readInt() && graph.getKey() == element.readLong()))
                     result++;
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return result;
             }
         }
         return result;
@@ -1016,13 +982,40 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         PersistedNode pProperty = nodes.getPersistent(property, true);
         PersistedNode pObject = nodes.getPersistent(value, true);
         PersistedNode pGraph = nodes.getPersistent(graph, true);
-        int result = doQuadAdd(pSubject, pProperty, pObject, pGraph);
+        int result;
+        try {
+            result = doQuadAdd(pSubject, pProperty, pObject, pGraph);
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return ADD_RESULT_UNKNOWN;
+        }
         if (result == ADD_RESULT_NEW) {
-            doQuadIndex(pSubject, pGraph);
-            pSubject.incrementRefCount();
-            pProperty.incrementRefCount();
-            pObject.incrementRefCount();
-            pGraph.incrementRefCount();
+            try {
+                doQuadIndex(pSubject, pGraph);
+            } catch (StorageException exception) {
+                Logger.DEFAULT.error(exception);
+                return ADD_RESULT_UNKNOWN;
+            }
+            try {
+                pSubject.incrementRefCount();
+            } catch (StorageException exception) {
+                Logger.DEFAULT.error(exception);
+            }
+            try {
+                pProperty.incrementRefCount();
+            } catch (StorageException exception) {
+                Logger.DEFAULT.error(exception);
+            }
+            try {
+                pObject.incrementRefCount();
+            } catch (StorageException exception) {
+                Logger.DEFAULT.error(exception);
+            }
+            try {
+                pGraph.incrementRefCount();
+            } catch (StorageException exception) {
+                Logger.DEFAULT.error(exception);
+            }
         }
         return result;
     }
@@ -1035,35 +1028,31 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param object   The object
      * @param graph    The graph
      * @return The result of the insertion
-     * @throws UnsupportedNodeType When the subject node is not recognized
+     * @throws UnsupportedNodeType When a specified node is unsupported
+     * @throws StorageException    When an IO operation failed
      */
-    private int doQuadAdd(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) throws UnsupportedNodeType {
-        try {
-            PersistedMap map = mapFor(subject);
-            long bucket = map.get(subject.getKey());
-            if (bucket == FileStore.KEY_NULL) {
-                bufferQNSubject = newEntry(subject);
-                map.put(subject.getKey(), bufferQNSubject);
+    private int doQuadAdd(PersistedNode subject, PersistedNode property, PersistedNode object, PersistedNode graph) throws UnsupportedNodeType, StorageException {
+        PersistedMap map = mapFor(subject);
+        long bucket = map.get(subject.getKey());
+        if (bucket == FileStore.KEY_NULL) {
+            bufferQNSubject = newEntry(subject);
+            map.put(subject.getKey(), bufferQNSubject);
+        } else {
+            bufferQNSubject = bucket;
+        }
+        long target = lookupQNode(bufferQNSubject, property, true);
+        target = lookupQNode(target, object, true);
+        target = lookupQNode(target, graph, true);
+        try (IOAccess entry = store.access(target)) {
+            long value = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
+            if (value == FileStore.KEY_NULL) {
+                entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(1);
+                return ADD_RESULT_NEW;
             } else {
-                bufferQNSubject = bucket;
+                value++;
+                entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(value);
+                return ADD_RESULT_INCREMENT;
             }
-            long target = lookupQNode(bufferQNSubject, property, true);
-            target = lookupQNode(target, object, true);
-            target = lookupQNode(target, graph, true);
-            try (IOAccess entry = store.access(target)) {
-                long value = entry.seek(QUAD_ENTRY_SIZE - 8).readLong();
-                if (value == FileStore.KEY_NULL) {
-                    entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(1);
-                    return ADD_RESULT_NEW;
-                } else {
-                    value++;
-                    entry.seek(QUAD_ENTRY_SIZE - 8).writeLong(value);
-                    return ADD_RESULT_INCREMENT;
-                }
-            }
-        } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
-            return ADD_RESULT_UNKNOWN;
         }
     }
 
@@ -1072,8 +1061,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      *
      * @param subject The subject
      * @param graph   The graph
+     * @throws StorageException When an IO operation failed
      */
-    private void doQuadIndex(PersistedNode subject, PersistedNode graph) {
+    private void doQuadIndex(PersistedNode subject, PersistedNode graph) throws StorageException {
         int radical = FileStore.getKeyRadical(subject.getKey());
         PersistedMap map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
         long bucket = map.get(graph.getKey());
@@ -1112,9 +1102,6 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 }
                 bufferQNPrevious = current;
                 current = next;
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return;
             }
         }
         // not found in an entry
@@ -1132,16 +1119,12 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     }
                 }
                 entry.seek(8 + 4).writeInt(count + 1);
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
             }
         } else {
             // requires a new entry
             long key = writeNewGraphIndex(radical, bufferQNSubject);
             try (IOAccess entry = store.access(bufferQNPrevious)) {
                 entry.writeLong(key);
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
             }
         }
     }
@@ -1152,26 +1135,22 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param radical The key radical for this entry
      * @param qnode   The key to the subject quad node
      * @return The key to this entry
+     * @throws StorageException When an IO operation failed
      */
-    private long writeNewGraphIndex(int radical, long qnode) {
-        try {
-            long key = store.allocate(GINDEX_ENTRY_SIZE);
-            try (IOAccess entry = store.access(key)) {
-                entry.writeLong(FileStore.KEY_NULL);
-                entry.writeInt(radical);
-                entry.writeInt(1);
-                entry.writeInt(FileStore.getShortKey(qnode));
-                entry.writeInt(1);
-                for (int i = 1; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
-                    entry.writeInt((int) FileStore.KEY_NULL);
-                    entry.writeInt(0);
-                }
+    private long writeNewGraphIndex(int radical, long qnode) throws StorageException {
+        long key = store.allocate(GINDEX_ENTRY_SIZE);
+        try (IOAccess entry = store.access(key)) {
+            entry.writeLong(FileStore.KEY_NULL);
+            entry.writeInt(radical);
+            entry.writeInt(1);
+            entry.writeInt(FileStore.getShortKey(qnode));
+            entry.writeInt(1);
+            for (int i = 1; i != GINDEX_ENTRY_MAX_ITEM_COUNT; i++) {
+                entry.writeInt((int) FileStore.KEY_NULL);
+                entry.writeInt(0);
             }
-            return key;
-        } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
-            return FileStore.KEY_NULL;
         }
+        return key;
     }
 
     @Override

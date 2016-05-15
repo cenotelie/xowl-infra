@@ -21,6 +21,8 @@ import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.utils.collections.SingleIterator;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.util.*;
 
@@ -82,37 +84,47 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public long getMultiplicity(Quad quad) {
+    public long getMultiplicity(Quad quad) throws UnsupportedNodeType {
         return getMultiplicity(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
     }
 
     @Override
     public Iterator<Quad> getAll() {
-        return getAll(null, null, null, null);
+        try {
+            return getAll(null, null, null, null);
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+            return new SingleIterator<>(null);
+        }
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph) {
+    public Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
         return getAll(graph, null, null, null);
     }
 
     @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return getAll(null, subject, property, object);
     }
 
     @Override
     public long count() {
-        return count(null, null, null, null);
+        try {
+            return count(null, null, null, null);
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+            return 0;
+        }
     }
 
     @Override
-    public long count(GraphNode graph) {
+    public long count(GraphNode graph) throws UnsupportedNodeType {
         return count(graph, null, null, null);
     }
 
     @Override
-    public long count(SubjectNode subject, Property property, Node object) {
+    public long count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return count(null, subject, property, object);
     }
 
@@ -242,7 +254,11 @@ public abstract class DatasetImpl implements Dataset {
     @Override
     public void clear() {
         List<MQuad> buffer = new ArrayList<>();
-        doClear(buffer);
+        try {
+            doClear(buffer);
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+        }
         if (!buffer.isEmpty()) {
             Changeset changeset = Changeset.fromRemoved((Collection) buffer);
             for (ChangeListener listener : listeners) {
@@ -252,7 +268,7 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public void clear(GraphNode graph) {
+    public void clear(GraphNode graph) throws UnsupportedNodeType {
         if (graph == null) {
             clear();
             return;
@@ -268,7 +284,7 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+    public void copy(GraphNode origin, GraphNode target, boolean overwrite) throws UnsupportedNodeType {
         if (RDFUtils.same(origin, target))
             return;
         List<MQuad> bufferOld = new ArrayList<>();
@@ -283,7 +299,7 @@ public abstract class DatasetImpl implements Dataset {
     }
 
     @Override
-    public void move(GraphNode origin, GraphNode target) {
+    public void move(GraphNode origin, GraphNode target) throws UnsupportedNodeType {
         if (RDFUtils.same(origin, target))
             return;
         List<MQuad> bufferOld = new ArrayList<>();
@@ -306,7 +322,7 @@ public abstract class DatasetImpl implements Dataset {
      * @param property The quad property
      * @param value    The quad value
      * @return The operation result
-     * @throws UnsupportedNodeType when the subject node type is unsupported
+     * @throws UnsupportedNodeType When a specified node is unsupported
      */
     public abstract int doAddQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType;
 
@@ -318,7 +334,7 @@ public abstract class DatasetImpl implements Dataset {
      * @param property The quad property
      * @param value    The quad value
      * @return The operation result
-     * @throws UnsupportedNodeType when the subject node type is unsupported
+     * @throws UnsupportedNodeType When a specified node is unsupported
      */
     public abstract int doRemoveQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType;
 
@@ -331,7 +347,7 @@ public abstract class DatasetImpl implements Dataset {
      * @param value             The quad value
      * @param bufferDecremented The buffer for the decremented quads
      * @param bufferRemoved     The buffer for the removed quads
-     * @throws UnsupportedNodeType when the subject node type is unsupported
+     * @throws UnsupportedNodeType When a specified node is unsupported
      */
     public abstract void doRemoveQuads(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws UnsupportedNodeType;
 
@@ -339,16 +355,18 @@ public abstract class DatasetImpl implements Dataset {
      * Executes the clear operation removing all quads from this store
      *
      * @param buffer The buffer for the removed quads
+     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    public abstract void doClear(List<MQuad> buffer);
+    public abstract void doClear(List<MQuad> buffer) throws UnsupportedNodeType;
 
     /**
      * Executes the clear operation removing all quads from this store for the specified graph
      *
      * @param graph  The graph to clear
      * @param buffer The buffer for the removed quads
+     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    public abstract void doClear(GraphNode graph, List<MQuad> buffer);
+    public abstract void doClear(GraphNode graph, List<MQuad> buffer) throws UnsupportedNodeType;
 
     /**
      * Copies all the quads with the specified origin graph, to quads with the target graph.
@@ -361,8 +379,9 @@ public abstract class DatasetImpl implements Dataset {
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
      * @param overwrite Whether to overwrite quads from the target graph
+     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    public abstract void doCopy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite);
+    public abstract void doCopy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) throws UnsupportedNodeType;
 
     /**
      * Moves all the quads with the specified origin graph, to quads with the target graph.
@@ -374,6 +393,7 @@ public abstract class DatasetImpl implements Dataset {
      * @param target    The target graph
      * @param bufferOld The buffer of the removed quads
      * @param bufferNew The buffer of the new quads
+     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    public abstract void doMove(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew);
+    public abstract void doMove(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) throws UnsupportedNodeType;
 }
