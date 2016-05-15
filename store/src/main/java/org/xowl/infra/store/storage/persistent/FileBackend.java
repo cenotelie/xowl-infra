@@ -312,7 +312,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The corresponding block
      * @throws StorageException When an IO error occurs
      */
-    private FileBlockTS getBlockForPoolFull(long targetLocation) throws StorageException {
+    private synchronized FileBlockTS getBlockForPoolFull(long targetLocation) throws StorageException {
         while (true) {
             // keep track of the oldest block
             int oldestIndex = -1;
