@@ -38,7 +38,7 @@ class FileBackend implements IOBackend, Closeable {
     /**
      * The mask for the index of a block
      */
-    protected static final long INDEX_MASK_UPPER = ~FileBlock.INDEX_MASK_LOWER;
+    protected static final int INDEX_MASK_UPPER = ~FileBlock.INDEX_MASK_LOWER;
 
     /**
      * The backend is ready for IO
@@ -84,7 +84,7 @@ class FileBackend implements IOBackend, Closeable {
     /**
      * The total size of this file
      */
-    private final AtomicLong size;
+    private final AtomicInteger size;
     /**
      * The current time
      */
@@ -119,7 +119,7 @@ class FileBackend implements IOBackend, Closeable {
         for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++)
             this.blocks[i] = new FileBlockTS();
         this.blockCount = new AtomicInteger(0);
-        this.size = new AtomicLong(initSize());
+        this.size = new AtomicInteger(initSize());
         this.time = new AtomicLong(Long.MIN_VALUE + 1);
         this.state = new AtomicInteger(STATE_READY);
     }
@@ -130,9 +130,9 @@ class FileBackend implements IOBackend, Closeable {
      * @return The current size
      * @throws StorageException When an IO error occurred
      */
-    private long initSize() throws StorageException {
+    private int initSize() throws StorageException {
         try {
-            return channel.size();
+            return (int) channel.size();
         } catch (IOException exception) {
             throw new StorageException(exception, "Failed to access file " + fileName);
         }
@@ -144,10 +144,10 @@ class FileBackend implements IOBackend, Closeable {
      * @param newSize The new size
      * @return The final size
      */
-    private long extendSizeTo(long newSize) {
+    private int extendSizeTo(int newSize) {
         while (true) {
-            long current = size.get();
-            long target = Math.max(current, newSize);
+            int current = size.get();
+            int target = Math.max(current, newSize);
             if (size.compareAndSet(current, target))
                 return target;
         }
@@ -226,7 +226,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The access element
      * @throws StorageException When the requested access cannot be fulfilled
      */
-    public IOAccess access(long index, long length, boolean writable) throws StorageException {
+    public IOAccess access(int index, int length, boolean writable) throws StorageException {
         return accessManager.get(index, length, !isReadonly && writable);
     }
 
@@ -240,7 +240,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The access element
      * @throws StorageException When the requested access cannot be fulfilled
      */
-    protected IOAccess access(long index, long length, boolean writable, FileBlockTS block) throws StorageException {
+    protected IOAccess access(int index, int length, boolean writable, FileBlockTS block) throws StorageException {
         IOAccess access = accessManager.get(index, length, !isReadonly && writable, block);
         block.use(block.location, tick());
         return access;
@@ -257,8 +257,8 @@ class FileBackend implements IOBackend, Closeable {
      * @return The corresponding block
      * @throws StorageException When an IO error occurs
      */
-    protected FileBlockTS getBlockFor(long index) throws StorageException {
-        long targetLocation = index & INDEX_MASK_UPPER;
+    protected FileBlockTS getBlockFor(int index) throws StorageException {
+        int targetLocation = index & INDEX_MASK_UPPER;
         if (blockCount.get() < FILE_MAX_LOADED_BLOCKS)
             return getBlockWhenNotFull(targetLocation);
         else
@@ -272,7 +272,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The corresponding block
      * @throws StorageException When an IO error occurs
      */
-    private FileBlockTS getBlockWhenNotFull(long targetLocation) throws StorageException {
+    private FileBlockTS getBlockWhenNotFull(int targetLocation) throws StorageException {
         // look for the block
         for (int i = 0; i != blockCount.get(); i++) {
             // is this the block we are looking for?
@@ -318,7 +318,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The corresponding block
      * @throws StorageException When an IO error occurs
      */
-    private FileBlockTS getBlockWhenFull(long targetLocation) throws StorageException {
+    private FileBlockTS getBlockWhenFull(int targetLocation) throws StorageException {
         for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++) {
             // is this the block we are looking for?
             if (blocks[i].getLocation() == targetLocation && blocks[i].use(targetLocation, tick())) {
@@ -337,7 +337,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The corresponding block
      * @throws StorageException When an IO error occurs
      */
-    private FileBlockTS getBlockWhenNotFound(long targetLocation) throws StorageException {
+    private FileBlockTS getBlockWhenNotFound(int targetLocation) throws StorageException {
         while (true) {
             if (state.compareAndSet(STATE_READY, STATE_RECLAIMING))
                 break;

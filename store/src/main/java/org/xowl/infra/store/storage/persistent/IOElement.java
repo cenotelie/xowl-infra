@@ -30,7 +30,7 @@ interface IOElement {
      * @return The byte
      * @throws StorageException When an IO operation failed
      */
-    byte readByte(long index) throws StorageException;
+    byte readByte(int index) throws StorageException;
 
     /**
      * Reads a specified number of bytes a the current index
@@ -40,7 +40,7 @@ interface IOElement {
      * @return The bytes
      * @throws StorageException When an IO operation failed
      */
-    byte[] readBytes(long index, int length) throws StorageException;
+    byte[] readBytes(int index, int length) throws StorageException;
 
     /**
      * Reads a specified number of bytes a the current index
@@ -51,7 +51,7 @@ interface IOElement {
      * @param length The number of bytes to read
      * @throws StorageException When an IO operation failed
      */
-    void readBytes(long index, byte[] buffer, int start, int length) throws StorageException;
+    void readBytes(int index, byte[] buffer, int start, int length) throws StorageException;
 
     /**
      * Reads a single char at the current index
@@ -60,7 +60,7 @@ interface IOElement {
      * @return The char
      * @throws StorageException When an IO operation failed
      */
-    char readChar(long index) throws StorageException;
+    char readChar(int index) throws StorageException;
 
     /**
      * Reads a single int at the current index
@@ -69,7 +69,7 @@ interface IOElement {
      * @return The int
      * @throws StorageException When an IO operation failed
      */
-    int readInt(long index) throws StorageException;
+    int readInt(int index) throws StorageException;
 
     /**
      * Reads a single long at the current index
@@ -78,7 +78,7 @@ interface IOElement {
      * @return The long
      * @throws StorageException When an IO operation failed
      */
-    long readLong(long index) throws StorageException;
+    long readLong(int index) throws StorageException;
 
     /**
      * Reads a single float at the current index
@@ -87,7 +87,7 @@ interface IOElement {
      * @return The float
      * @throws StorageException When an IO operation failed
      */
-    float readFloat(long index) throws StorageException;
+    float readFloat(int index) throws StorageException;
 
     /**
      * Reads a single double at the current index
@@ -96,7 +96,7 @@ interface IOElement {
      * @return The double
      * @throws StorageException When an IO operation failed
      */
-    double readDouble(long index) throws StorageException;
+    double readDouble(int index) throws StorageException;
 
     /**
      * Writes a single byte at the current index
@@ -105,7 +105,7 @@ interface IOElement {
      * @param value The byte to write
      * @throws StorageException When an IO operation failed
      */
-    void writeByte(long index, byte value) throws StorageException;
+    void writeByte(int index, byte value) throws StorageException;
 
     /**
      * Writes bytes at the current index
@@ -114,7 +114,7 @@ interface IOElement {
      * @param value The bytes to write
      * @throws StorageException When an IO operation failed
      */
-    void writeBytes(long index, byte[] value) throws StorageException;
+    void writeBytes(int index, byte[] value) throws StorageException;
 
     /**
      * Writes bytes at the current index
@@ -125,7 +125,7 @@ interface IOElement {
      * @param length The number of bytes to write
      * @throws StorageException When an IO operation failed
      */
-    void writeBytes(long index, byte[] buffer, int start, int length) throws StorageException;
+    void writeBytes(int index, byte[] buffer, int start, int length) throws StorageException;
 
     /**
      * Writes a single char at the current index
@@ -134,7 +134,7 @@ interface IOElement {
      * @param value The char to write
      * @throws StorageException When an IO operation failed
      */
-    void writeChar(long index, char value) throws StorageException;
+    void writeChar(int index, char value) throws StorageException;
 
     /**
      * Writes a single int at the current index
@@ -143,7 +143,7 @@ interface IOElement {
      * @param value The int to write
      * @throws StorageException When an IO operation failed
      */
-    void writeInt(long index, int value) throws StorageException;
+    void writeInt(int index, int value) throws StorageException;
 
     /**
      * Writes a single long at the current index
@@ -152,7 +152,7 @@ interface IOElement {
      * @param value The long to write
      * @throws StorageException When an IO operation failed
      */
-    void writeLong(long index, long value) throws StorageException;
+    void writeLong(int index, long value) throws StorageException;
 
     /**
      * Writes a single float at the current index
@@ -161,7 +161,7 @@ interface IOElement {
      * @param value The float to write
      * @throws StorageException When an IO operation failed
      */
-    void writeFloat(long index, float value) throws StorageException;
+    void writeFloat(int index, float value) throws StorageException;
 
     /**
      * Writes a single double at the current index
@@ -170,5 +170,5 @@ interface IOElement {
      * @param value The double to write
      * @throws StorageException When an IO operation failed
      */
-    void writeDouble(long index, double value) throws StorageException;
+    void writeDouble(int index, double value) throws StorageException;
 }

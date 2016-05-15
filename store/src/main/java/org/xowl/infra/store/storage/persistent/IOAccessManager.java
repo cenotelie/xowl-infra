@@ -92,7 +92,7 @@ class IOAccessManager {
      * @return The new access, or null if it cannot be obtained
      * @throws StorageException When an IO error occurs
      */
-    public IOAccess get(long location, long length, boolean writable) throws StorageException {
+    public IOAccess get(int location, int length, boolean writable) throws StorageException {
         Access access = newAccess();
         access.setupIOData(location, length, writable);
         IOAccessOrdered.insert(root, access);
@@ -115,7 +115,7 @@ class IOAccessManager {
      * @param element  The backing IO element
      * @return The new access, or null if it cannot be obtained
      */
-    public IOAccess get(long location, long length, boolean writable, IOElement element) {
+    public IOAccess get(int location, int length, boolean writable, IOElement element) {
         Access access = newAccess();
         access.setupIOData(location, length, writable);
         access.setupIOData(element);

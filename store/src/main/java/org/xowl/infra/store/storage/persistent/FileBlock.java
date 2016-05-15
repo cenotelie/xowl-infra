@@ -40,7 +40,7 @@ class FileBlock implements AutoCloseable, IOElement {
     /**
      * The mask for the index within a block
      */
-    public static final long INDEX_MASK_LOWER = BLOCK_SIZE - 1;
+    public static final int INDEX_MASK_LOWER = BLOCK_SIZE - 1;
 
     /**
      * The associated buffer
@@ -49,7 +49,7 @@ class FileBlock implements AutoCloseable, IOElement {
     /**
      * The location of this block in the parent file
      */
-    protected long location;
+    protected int location;
     /**
      * The timestamp for the last time this block was hit
      */
@@ -64,7 +64,7 @@ class FileBlock implements AutoCloseable, IOElement {
      *
      * @return The location of this block in the parent file
      */
-    public long getLocation() {
+    public int getLocation() {
         return location;
     }
 
@@ -151,93 +151,93 @@ class FileBlock implements AutoCloseable, IOElement {
     }
 
     @Override
-    public byte readByte(long index) throws StorageException {
-        return buffer.get((int) (index & INDEX_MASK_LOWER));
+    public byte readByte(int index) throws StorageException {
+        return buffer.get(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public byte[] readBytes(long index, int length) throws StorageException {
+    public byte[] readBytes(int index, int length) throws StorageException {
         byte[] result = new byte[length];
         readBytes(index, result, 0, length);
         return result;
     }
 
     @Override
-    public synchronized void readBytes(long index, byte[] buffer, int start, int length) throws StorageException {
-        this.buffer.position((int) (index & INDEX_MASK_LOWER));
+    public synchronized void readBytes(int index, byte[] buffer, int start, int length) throws StorageException {
+        this.buffer.position(index & INDEX_MASK_LOWER);
         this.buffer.get(buffer, start, length);
     }
 
     @Override
-    public char readChar(long index) throws StorageException {
-        return buffer.getChar((int) (index & INDEX_MASK_LOWER));
+    public char readChar(int index) throws StorageException {
+        return buffer.getChar(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public int readInt(long index) throws StorageException {
-        return buffer.getInt((int) (index & INDEX_MASK_LOWER));
+    public int readInt(int index) throws StorageException {
+        return buffer.getInt(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public long readLong(long index) throws StorageException {
-        return buffer.getLong((int) (index & INDEX_MASK_LOWER));
+    public long readLong(int index) throws StorageException {
+        return buffer.getLong(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public float readFloat(long index) throws StorageException {
-        return buffer.getFloat((int) (index & INDEX_MASK_LOWER));
+    public float readFloat(int index) throws StorageException {
+        return buffer.getFloat(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public double readDouble(long index) throws StorageException {
-        return buffer.getDouble((int) (index & INDEX_MASK_LOWER));
+    public double readDouble(int index) throws StorageException {
+        return buffer.getDouble(index & INDEX_MASK_LOWER);
     }
 
     @Override
-    public void writeByte(long index, byte value) throws StorageException {
-        buffer.put((int) (index & INDEX_MASK_LOWER), value);
+    public void writeByte(int index, byte value) throws StorageException {
+        buffer.put(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }
 
     @Override
-    public void writeBytes(long index, byte[] value) throws StorageException {
+    public void writeBytes(int index, byte[] value) throws StorageException {
         writeBytes(index, value, 0, value.length);
     }
 
     @Override
-    public void writeBytes(long index, byte[] buffer, int start, int length) throws StorageException {
-        this.buffer.position((int) (index & INDEX_MASK_LOWER));
+    public void writeBytes(int index, byte[] buffer, int start, int length) throws StorageException {
+        this.buffer.position(index & INDEX_MASK_LOWER);
         this.buffer.put(buffer, start, length);
         isDirty = true;
     }
 
     @Override
-    public void writeChar(long index, char value) throws StorageException {
-        buffer.putChar((int) (index & INDEX_MASK_LOWER), value);
+    public void writeChar(int index, char value) throws StorageException {
+        buffer.putChar(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }
 
     @Override
-    public void writeInt(long index, int value) throws StorageException {
-        buffer.putInt((int) (index & INDEX_MASK_LOWER), value);
+    public void writeInt(int index, int value) throws StorageException {
+        buffer.putInt(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }
 
     @Override
-    public void writeLong(long index, long value) throws StorageException {
-        buffer.putLong((int) (index & INDEX_MASK_LOWER), value);
+    public void writeLong(int index, long value) throws StorageException {
+        buffer.putLong(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }
 
     @Override
-    public void writeFloat(long index, float value) throws StorageException {
-        buffer.putFloat((int) (index & INDEX_MASK_LOWER), value);
+    public void writeFloat(int index, float value) throws StorageException {
+        buffer.putFloat(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }
 
     @Override
-    public void writeDouble(long index, double value) throws StorageException {
-        buffer.putDouble((int) (index & INDEX_MASK_LOWER), value);
+    public void writeDouble(int index, double value) throws StorageException {
+        buffer.putDouble(index & INDEX_MASK_LOWER, value);
         isDirty = true;
     }
 

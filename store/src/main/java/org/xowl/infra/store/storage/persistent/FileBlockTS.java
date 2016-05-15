@@ -138,7 +138,7 @@ class FileBlockTS extends FileBlock {
      * @return The reservation status
      * @throws StorageException When an IO error occurs
      */
-    public int reserve(long location, FileChannel channel, long fileSize, long time) throws StorageException {
+    public int reserve(int location, FileChannel channel, int fileSize, long time) throws StorageException {
         while (true) {
             int current = state.get();
             if (current >= BLOCK_STATE_READY) {
@@ -169,7 +169,7 @@ class FileBlockTS extends FileBlock {
      * @param fileSize The current size of the file
      * @param time     The current time
      */
-    private void doSetup(long location, FileChannel channel, long fileSize, long time) throws StorageException {
+    private void doSetup(int location, FileChannel channel, int fileSize, long time) throws StorageException {
         this.location = location;
         if (this.buffer == null)
             this.buffer = ByteBuffer.allocate(BLOCK_SIZE);
@@ -195,7 +195,7 @@ class FileBlockTS extends FileBlock {
      * @return true if the shared use is granted, false if the effective location of this block was not the expected one
      * @throws StorageException When the block is in a bad state
      */
-    public boolean use(long location, long time) throws StorageException {
+    public boolean use(int location, long time) throws StorageException {
         while (true) {
             int current = state.get();
             if (current < BLOCK_STATE_READY)
@@ -252,7 +252,7 @@ class FileBlockTS extends FileBlock {
      * @return Whether the block was reclaimed
      * @throws StorageException When an IO error occurs
      */
-    public boolean reclaim(long location, FileChannel channel, long fileSize, long time) throws StorageException {
+    public boolean reclaim(int location, FileChannel channel, int fileSize, long time) throws StorageException {
         if (!state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_RECLAIMING))
             return false;
         if (isDirty)

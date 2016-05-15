@@ -138,9 +138,9 @@ class FileStoreFile extends FileBackend {
      * @param writable Whether the access shall allow writing
      * @throws StorageException
      */
-    public IOAccess access(long index, boolean writable) throws StorageException {
+    public IOAccess access(int index, boolean writable) throws StorageException {
         try (FileBlockTS block = getBlockFor(index)) {
-            long length = block.readChar(index - 2);
+            int length = block.readChar(index - 2);
             return access(index, length, writable, block);
         }
     }
@@ -151,10 +151,10 @@ class FileStoreFile extends FileBackend {
      * Objects allocated with this method can be freed later.
      *
      * @param size The size of the object
-     * @return The key to the object, or KEY_NULL if it cannot be allocated in this file
+     * @return The key to the object, or -1 if it cannot be allocated in this file
      * @throws StorageException When an IO operation fails
      */
-    public long allocate(int size) throws StorageException {
+    public int allocate(int size) throws StorageException {
         int toAllocate = size < FILE_OBJECT_MIN_SIZE ? FILE_OBJECT_MIN_SIZE : size;
         if (size > FILE_OBJECT_MAX_SIZE)
             throw new StorageException("Cannot allocate an object of this size: requested " + size + ", max is " + FILE_OBJECT_MAX_SIZE);
@@ -172,8 +172,8 @@ class FileStoreFile extends FileBackend {
                         access.readInt();
                         if (poolSize == toAllocate) {
                             // the pool size fits, try to reuse ...
-                            long result = allocateReuse(preamble, i);
-                            if (result != FileStore.KEY_NULL)
+                            int result = allocateReuse(preamble, i);
+                            if (result != -1)
                                 // success => return the result
                                 return result;
                             // failed, stop looking into pools
@@ -192,15 +192,15 @@ class FileStoreFile extends FileBackend {
      *
      * @param preamble  The preamble block
      * @param poolIndex The index of the pool to use
-     * @return The key to the object, or KEY_NULL if it cannot be allocated in this file
+     * @return The key to the object, or -1 if it cannot be allocated in this file
      * @throws StorageException When an IO operation fails
      */
-    private long allocateReuse(FileBlockTS preamble, int poolIndex) throws StorageException {
+    private int allocateReuse(FileBlockTS preamble, int poolIndex) throws StorageException {
         try (IOAccess access = access(FILE_PREAMBLE_HEADER_SIZE + poolIndex * FILE_PREAMBLE_ENTRY_SIZE, 8, true, preamble)) {
             int size = access.readInt();
             int target = access.readInt();
             if (target == 0)
-                return FileStore.KEY_NULL;
+                return -1;
             int next;
             try (IOAccess accessTarget = access(target, 4, true)) {
                 next = accessTarget.readInt();
@@ -220,7 +220,7 @@ class FileStoreFile extends FileBackend {
      * @return The key to the object, or KEY_NULL if it cannot be allocated in this file
      * @throws StorageException When an IO operation fails
      */
-    public long allocateDirect(int size) throws StorageException {
+    public int allocateDirect(int size) throws StorageException {
         int toAllocate = size < FILE_OBJECT_MIN_SIZE ? FILE_OBJECT_MIN_SIZE : size;
         if (size > FILE_OBJECT_MAX_SIZE)
             throw new StorageException("Cannot allocate an object of this size: requested " + size + ", max is " + FILE_OBJECT_MAX_SIZE);
@@ -233,10 +233,10 @@ class FileStoreFile extends FileBackend {
      * Allocates at the end
      *
      * @param size The size of the object
-     * @return The key to the object, or KEY_NULL if it cannot be allocated in this file
+     * @return The key to the object, or -1 if it cannot be allocated in this file
      * @throws StorageException When an IO operation fails
      */
-    private long doAllocateDirect(FileBlockTS preamble, int size) throws StorageException {
+    private int doAllocateDirect(FileBlockTS preamble, int size) throws StorageException {
         int target;
         try (IOAccess access = access(8, 4, true, preamble)) {
             int freeSpace = access.readInt();
@@ -245,12 +245,12 @@ class FileStoreFile extends FileBackend {
             if ((freeSpace & INDEX_MASK_UPPER) != (target & INDEX_MASK_UPPER)) {
                 // not the same block, the object would be split between blocks
                 // go to the next block entirely
-                target = (int) (freeSpace & INDEX_MASK_UPPER);
+                target = freeSpace & INDEX_MASK_UPPER;
                 freeSpace = target + size + FILE_OBJECT_HEADER_SIZE;
             }
             if (freeSpace > FILE_MAX_SIZE)
                 // not enough space in this file
-                return FileStore.KEY_NULL;
+                return -1;
             access.reset().writeInt(freeSpace);
         }
         try (IOAccess access = access(target, 2, true)) {
@@ -265,7 +265,7 @@ class FileStoreFile extends FileBackend {
      * @param index The index of an object in this store
      * @throws StorageException When an IO operation fails
      */
-    public void free(long index) throws StorageException {
+    public void free(int index) throws StorageException {
         // reads the length of the object
         int length;
         try (IOAccess access = this.access(index - 2, 2, false)) {
@@ -291,7 +291,7 @@ class FileStoreFile extends FileBackend {
                                     access3.writeInt(poolHead);
                                 }
                                 // replace the pool head
-                                access2.seek(i * FILE_PREAMBLE_ENTRY_SIZE + 4).writeInt((int) index);
+                                access2.seek(i * FILE_PREAMBLE_ENTRY_SIZE + 4).writeInt(index - 2);
                                 // ok, finish here
                                 return;
                             }
@@ -312,7 +312,7 @@ class FileStoreFile extends FileBackend {
                 // write the pool data
                 try (IOAccess access2 = access(FILE_PREAMBLE_HEADER_SIZE, poolCount * FILE_PREAMBLE_ENTRY_SIZE, true, preamble)) {
                     access2.writeInt(length);
-                    access2.writeInt((int) index);
+                    access2.writeInt(index - 2);
                 }
                 // increment the pool counter
                 access1.seek(0).writeInt(poolCount);
