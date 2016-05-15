@@ -48,11 +48,15 @@ interface PersistedNode extends Node {
 
     /**
      * Increments the reference count for this node
+     *
+     * @throws StorageException When an IO operation failed
      */
-    void incrementRefCount();
+    void incrementRefCount() throws StorageException;
 
     /**
      * Decrements the reference count for this node
+     *
+     * @throws StorageException When an IO operation failed
      */
-    void decrementRefCount();
+    void decrementRefCount() throws StorageException;
 }

@@ -20,8 +20,6 @@ package org.xowl.infra.store.storage.persistent;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.owl.AnonymousNode;
 
-import java.io.IOException;
-
 /**
  * Implementation of a persisted anonymous node
  *
@@ -76,7 +74,7 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
             individual = new AnonymousIndividual();
             try {
                 individual.setNodeID(backend.retrieveString(key));
-            } catch (IOException | StorageException exception) {
+            } catch (StorageException exception) {
                 individual.setNodeID("#error#");
             }
         }
@@ -94,12 +92,12 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     }
 
     @Override
-    public void incrementRefCount() {
+    public void incrementRefCount() throws StorageException {
         backend.onRefCountString(key, 1);
     }
 
     @Override
-    public void decrementRefCount() {
+    public void decrementRefCount() throws StorageException {
         backend.onRefCountString(key, -1);
     }
 

@@ -19,7 +19,6 @@ package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.store.rdf.LiteralNode;
 
-import java.io.IOException;
 import java.util.Objects;
 
 /**
@@ -58,7 +57,7 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     private void doCache() {
         try {
             cache = backend.retrieveLiteral(key);
-        } catch (IOException | StorageException exception) {
+        } catch (StorageException exception) {
             cache = new String[]{"", null, null};
         }
     }
@@ -95,12 +94,12 @@ class PersistedLiteralNode extends LiteralNode implements PersistedNode {
     }
 
     @Override
-    public void incrementRefCount() {
+    public void incrementRefCount() throws StorageException {
         backend.onRefCountLiteral(key, 1);
     }
 
     @Override
-    public void decrementRefCount() {
+    public void decrementRefCount() throws StorageException {
         backend.onRefCountLiteral(key, -1);
     }
 

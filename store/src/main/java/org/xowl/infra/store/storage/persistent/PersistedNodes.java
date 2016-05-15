@@ -29,7 +29,6 @@ import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
@@ -115,10 +114,9 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      *
      * @param directory  The parent directory containing the backing files
      * @param isReadonly Whether this store is in readonly mode
-     * @throws IOException      When the backing files cannot be accessed
      * @throws StorageException When the storage is in a bad state
      */
-    public PersistedNodes(File directory, boolean isReadonly) throws IOException, StorageException {
+    public PersistedNodes(File directory, boolean isReadonly) throws StorageException {
         store = new FileStore(directory, FILE_NAME, isReadonly);
         charset = Files.CHARSET;
         PersistedLong tempNextBlank;
@@ -147,10 +145,9 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      *
      * @param key The key to the string
      * @return The string
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
-    public String retrieveString(long key) throws IOException, StorageException {
+    public String retrieveString(long key) throws StorageException {
         try (IOAccess element = store.read(key)) {
             int length = element.seek(16).readInt();
             byte[] data = element.readBytes(length);
@@ -163,14 +160,13 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      *
      * @param key      The key to the string
      * @param modifier The modifier for the reference counter
+     * @throws StorageException When an IO operation failed
      */
-    void onRefCountString(long key, int modifier) {
+    void onRefCountString(long key, int modifier) throws StorageException {
         try (IOAccess element = store.access(key)) {
             long counter = element.seek(8).readLong();
             counter += modifier;
             element.seek(8).writeLong(counter);
-        } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
         }
     }
 
@@ -180,10 +176,9 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @param bucket The key to the bucket for this string
      * @param data   The string to get the key for
      * @return The key for the string, or KEY_NULL if it is not in this store
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
-    private long lookupString(long bucket, String data) throws IOException, StorageException {
+    private long lookupString(long bucket, String data) throws StorageException {
         byte[] buffer = data.getBytes(charset);
         long candidate = bucket;
         while (candidate != FileStore.KEY_NULL) {
@@ -208,10 +203,9 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @param bucket The key to the bucket for this string, or KEY_NULL if it must be created
      * @param data   The string to store
      * @return The key to the stored string
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
-    private long addString(long bucket, String data) throws IOException, StorageException {
+    private long addString(long bucket, String data) throws StorageException {
         byte[] buffer = data.getBytes(charset);
         long previous = FileStore.KEY_NULL;
         long candidate = bucket;
@@ -249,25 +243,21 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @param data     The string to get a key for
      * @param doInsert Whether the string shall be inserted in the store if it is not already present
      * @return The key for the string
+     * @throws StorageException When an IO operation failed
      */
-    private long getKeyForString(String data, boolean doInsert) {
+    private long getKeyForString(String data, boolean doInsert) throws StorageException {
         if (data == null)
             return FileStore.KEY_NULL;
-        try {
-            long bucket = mapStrings.get(data.hashCode());
-            if (bucket == FileStore.KEY_NULL && !doInsert)
-                return FileStore.KEY_NULL;
-            if (doInsert) {
-                long result = addString(bucket == FileStore.KEY_NULL ? FileStore.KEY_NULL : bucket, data);
-                if (bucket == FileStore.KEY_NULL)
-                    mapStrings.put(data.hashCode(), result);
-                return result;
-            } else {
-                return lookupString(bucket, data);
-            }
-        } catch (IOException | StorageException exception) {
-            Logger.DEFAULT.error(exception);
+        long bucket = mapStrings.get(data.hashCode());
+        if (bucket == FileStore.KEY_NULL && !doInsert)
             return FileStore.KEY_NULL;
+        if (doInsert) {
+            long result = addString(bucket == FileStore.KEY_NULL ? FileStore.KEY_NULL : bucket, data);
+            if (bucket == FileStore.KEY_NULL)
+                mapStrings.put(data.hashCode(), result);
+            return result;
+        } else {
+            return lookupString(bucket, data);
         }
     }
 
@@ -276,10 +266,9 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      *
      * @param key The key to the string
      * @return The literal data
-     * @throws IOException      When an IO operation failed
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
-    public String[] retrieveLiteral(long key) throws IOException, StorageException {
+    public String[] retrieveLiteral(long key) throws StorageException {
         long keyLexical;
         long keyDatatype;
         long keyLangTag;
@@ -301,14 +290,13 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      *
      * @param key      The key to the literal
      * @param modifier The modifier for the reference counter
+     * @throws StorageException When an IO operation failed
      */
-    public void onRefCountLiteral(long key, int modifier) {
+    void onRefCountLiteral(long key, int modifier) throws StorageException {
         try (IOAccess element = store.access(key)) {
             long counter = element.seek(8).readLong();
             counter += modifier;
             element.seek(8).writeLong(counter);
-        } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
         }
     }
 
@@ -321,8 +309,9 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @param langTag  The literals' language tag
      * @param doInsert Whether the string shall be inserted in the store if it is not already present
      * @return The key for the specified literal
+     * @throws StorageException When an IO operation failed
      */
-    private long getKeyForLiteral(String lexical, String datatype, String langTag, boolean doInsert) {
+    private long getKeyForLiteral(String lexical, String datatype, String langTag, boolean doInsert) throws StorageException {
         lexical = lexical == null ? "" : lexical;
         long keyLexical = getKeyForString(lexical, doInsert);
         long keyDatatype = datatype == null ? FileStore.KEY_NULL : getKeyForString(datatype, doInsert);
@@ -332,57 +321,53 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 || (datatype != null && keyDatatype == FileStore.KEY_NULL)
                 || (langTag != null && keyLangTag == FileStore.KEY_NULL)))
             return FileStore.KEY_NULL;
-        try {
-            long bucket = mapLiterals.get(keyLexical);
-            if (bucket == FileStore.KEY_NULL) {
-                // this is the first literal with this lexem
-                if (!doInsert)
-                    return FileStore.KEY_NULL;
-                long result = store.allocate(ENTRY_LITERAL_SIZE);
-                try (IOAccess entry = store.access(result)) {
-                    entry.writeLong(FileStore.KEY_NULL);
-                    entry.writeLong(0);
-                    entry.writeLong(keyLexical);
-                    entry.writeLong(keyDatatype);
-                    entry.writeLong(keyLangTag);
-                }
-                mapLiterals.put(keyLexical, result);
-                return result;
-            } else {
-                long previous = FileStore.KEY_NULL;
-                long candidate = bucket;
-                while (candidate != FileStore.KEY_NULL) {
-                    try (IOAccess entry = store.access(candidate)) {
-                        long next = entry.readLong();
-                        long count = entry.readLong();
-                        entry.seek(24);
-                        long candidateDatatype = entry.readLong();
-                        long candidateLangTag = entry.readLong();
-                        if ((doInsert || count > 0) && keyDatatype == candidateDatatype && keyLangTag == candidateLangTag)
-                            return candidate;
-                        previous = candidate;
-                        candidate = next;
-                    }
-                }
-                // did not found an existing literal
-                if (!doInsert)
-                    return FileStore.KEY_NULL;
-                long result = store.allocate(ENTRY_LITERAL_SIZE);
-                try (IOAccess entry = store.access(previous)) {
-                    entry.writeLong(result);
-                }
-                try (IOAccess entry = store.access(result)) {
-                    entry.writeLong(FileStore.KEY_NULL);
-                    entry.writeLong(0);
-                    entry.writeLong(keyLexical);
-                    entry.writeLong(keyDatatype);
-                    entry.writeLong(keyLangTag);
-                }
-                return result;
+
+        long bucket = mapLiterals.get(keyLexical);
+        if (bucket == FileStore.KEY_NULL) {
+            // this is the first literal with this lexem
+            if (!doInsert)
+                return FileStore.KEY_NULL;
+            long result = store.allocate(ENTRY_LITERAL_SIZE);
+            try (IOAccess entry = store.access(result)) {
+                entry.writeLong(FileStore.KEY_NULL);
+                entry.writeLong(0);
+                entry.writeLong(keyLexical);
+                entry.writeLong(keyDatatype);
+                entry.writeLong(keyLangTag);
             }
-        } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
-            return FileStore.KEY_NULL;
+            mapLiterals.put(keyLexical, result);
+            return result;
+        } else {
+            long previous = FileStore.KEY_NULL;
+            long candidate = bucket;
+            while (candidate != FileStore.KEY_NULL) {
+                try (IOAccess entry = store.access(candidate)) {
+                    long next = entry.readLong();
+                    long count = entry.readLong();
+                    entry.seek(24);
+                    long candidateDatatype = entry.readLong();
+                    long candidateLangTag = entry.readLong();
+                    if ((doInsert || count > 0) && keyDatatype == candidateDatatype && keyLangTag == candidateLangTag)
+                        return candidate;
+                    previous = candidate;
+                    candidate = next;
+                }
+            }
+            // did not found an existing literal
+            if (!doInsert)
+                return FileStore.KEY_NULL;
+            long result = store.allocate(ENTRY_LITERAL_SIZE);
+            try (IOAccess entry = store.access(previous)) {
+                entry.writeLong(result);
+            }
+            try (IOAccess entry = store.access(result)) {
+                entry.writeLong(FileStore.KEY_NULL);
+                entry.writeLong(0);
+                entry.writeLong(keyLexical);
+                entry.writeLong(keyDatatype);
+                entry.writeLong(keyLangTag);
+            }
+            return result;
         }
     }
 
@@ -503,12 +488,22 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
 
     @Override
     public IRINode getIRINode(String iri) {
-        return getIRINodeFor(getKeyForString(iri, true));
+        try {
+            return getIRINodeFor(getKeyForString(iri, true));
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return null;
+        }
     }
 
     @Override
     public IRINode getExistingIRINode(String iri) {
-        return getIRINodeFor(getKeyForString(iri, false));
+        try {
+            return getIRINodeFor(getKeyForString(iri, false));
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return null;
+        }
     }
 
     @Override
@@ -523,20 +518,40 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
 
     @Override
     public LiteralNode getLiteralNode(String lex, String datatype, String lang) {
-        return getLiteralNodeFor(getKeyForLiteral(lex, datatype, lang, true));
+        try {
+            return getLiteralNodeFor(getKeyForLiteral(lex, datatype, lang, true));
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return null;
+        }
     }
 
     public LiteralNode getExistingLiteralNode(String lex, String datatype, String lang) {
-        return getLiteralNodeFor(getKeyForLiteral(lex, datatype, lang, false));
+        try {
+            return getLiteralNodeFor(getKeyForLiteral(lex, datatype, lang, false));
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return null;
+        }
     }
 
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
-        return getAnonNodeFor(getKeyForString(individual.getNodeID(), true));
+        try {
+            return getAnonNodeFor(getKeyForString(individual.getNodeID(), true));
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return null;
+        }
     }
 
     public AnonymousNode getExistingAnonNode(AnonymousIndividual individual) {
-        return getAnonNodeFor(getKeyForString(individual.getNodeID(), false));
+        try {
+            return getAnonNodeFor(getKeyForString(individual.getNodeID(), false));
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return null;
+        }
     }
 
     @Override

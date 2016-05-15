@@ -64,10 +64,9 @@ class FileStore {
      * @param directory  The directory containing the backing files
      * @param name       The common name of the files backing this store
      * @param isReadonly Whether this store is in readonly mode
-     * @throws IOException      When the backing file cannot be accessed
      * @throws StorageException When the storage is unsupported
      */
-    public FileStore(File directory, String name, boolean isReadonly) throws IOException, StorageException {
+    public FileStore(File directory, String name, boolean isReadonly) throws StorageException {
         this.directory = directory;
         this.name = name;
         this.files = new ArrayList<>();

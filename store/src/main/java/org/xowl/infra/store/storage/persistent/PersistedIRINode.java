@@ -19,8 +19,6 @@ package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.store.rdf.IRINode;
 
-import java.io.IOException;
-
 /**
  * Implementation of a persisted IRI node
  *
@@ -56,7 +54,7 @@ class PersistedIRINode extends IRINode implements PersistedNode {
         if (value == null) {
             try {
                 value = backend.retrieveString(key);
-            } catch (IOException | StorageException exception) {
+            } catch (StorageException exception) {
                 value = "#error#";
             }
         }
@@ -74,12 +72,12 @@ class PersistedIRINode extends IRINode implements PersistedNode {
     }
 
     @Override
-    public void incrementRefCount() {
+    public void incrementRefCount() throws StorageException {
         backend.onRefCountString(key, 1);
     }
 
     @Override
-    public void decrementRefCount() {
+    public void decrementRefCount() throws StorageException {
         backend.onRefCountString(key, -1);
     }
 
