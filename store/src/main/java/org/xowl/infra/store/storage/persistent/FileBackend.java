@@ -52,6 +52,10 @@ class FileBackend implements IOBackend, Closeable {
      * The backend is flushing
      */
     private static final int STATE_FLUSHING = 2;
+    /**
+     * The backend is reclaiming some block
+     */
+    private static final int STATE_RECLAIMING = 3;
 
     /**
      * The file name
@@ -256,9 +260,9 @@ class FileBackend implements IOBackend, Closeable {
     protected FileBlockTS getBlockFor(long index) throws StorageException {
         long targetLocation = index & INDEX_MASK_UPPER;
         if (blockCount.get() < FILE_MAX_LOADED_BLOCKS)
-            return getBlockForNotFull(targetLocation);
+            return getBlockWhenNotFull(targetLocation);
         else
-            return getBlockForPoolFull(targetLocation);
+            return getBlockWhenFull(targetLocation);
     }
 
     /**
@@ -268,7 +272,7 @@ class FileBackend implements IOBackend, Closeable {
      * @return The corresponding block
      * @throws StorageException When an IO error occurs
      */
-    private FileBlockTS getBlockForNotFull(long targetLocation) throws StorageException {
+    private FileBlockTS getBlockWhenNotFull(long targetLocation) throws StorageException {
         // look for the block
         for (int i = 0; i != blockCount.get(); i++) {
             // is this the block we are looking for?
@@ -302,17 +306,44 @@ class FileBackend implements IOBackend, Closeable {
             count = blockCount.get();
         }
         // now the pool if full ... fallback
-        return getBlockForPoolFull(targetLocation);
+        return getBlockWhenNotFound(targetLocation);
     }
 
     /**
      * Acquires the block for the specified index in this file when the pool of blocks is full
+     * This method attempts a full scan of the allocated block to find the corresponding one.
+     * If this fails, is falls back to the reclaiming an existing one.
      *
      * @param targetLocation The location of the requested block in this file
      * @return The corresponding block
      * @throws StorageException When an IO error occurs
      */
-    private synchronized FileBlockTS getBlockForPoolFull(long targetLocation) throws StorageException {
+    private FileBlockTS getBlockWhenFull(long targetLocation) throws StorageException {
+        for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++) {
+            // is this the block we are looking for?
+            if (blocks[i].getLocation() == targetLocation && blocks[i].use(targetLocation, tick())) {
+                // yes and we locked it
+                return blocks[i];
+            }
+        }
+        return getBlockWhenNotFound(targetLocation);
+    }
+
+    /**
+     * Acquires the block for the specified index in this file when previous attempts to find a corresponding block failed
+     * This method will reclaim the oldest block when an already provisioned block for the location is not found.
+     *
+     * @param targetLocation The location of the requested block in this file
+     * @return The corresponding block
+     * @throws StorageException When an IO error occurs
+     */
+    private FileBlockTS getBlockWhenNotFound(long targetLocation) throws StorageException {
+        while (true) {
+            if (state.compareAndSet(STATE_READY, STATE_RECLAIMING))
+                break;
+        }
+
+        // lookup and reclaim the oldest block
         while (true) {
             // keep track of the oldest block
             int oldestIndex = -1;
@@ -322,9 +353,10 @@ class FileBackend implements IOBackend, Closeable {
                 // is this the block we are looking for?
                 if (blocks[i].getLocation() == targetLocation && blocks[i].use(targetLocation, tick())) {
                     // yes and we locked it
+                    state.set(STATE_READY);
                     return blocks[i];
                 }
-                // is this the oldest block
+                // is this the oldest block?
                 long t = blocks[i].getLastHit();
                 if (t < oldestTime) {
                     oldestIndex = i;
@@ -332,7 +364,7 @@ class FileBackend implements IOBackend, Closeable {
                     oldestLocation = blocks[i].getLocation();
                 }
             }
-            // we did not find the block, try to reclaim the block
+            // we did not find the block, try to reclaim the oldest one
             FileBlockTS target = blocks[oldestIndex];
             if (target.getLastHit() == oldestTime // the time did not change
                     && target.getLocation() == oldestLocation // still the same location
@@ -342,6 +374,7 @@ class FileBackend implements IOBackend, Closeable {
                 extendSizeTo(Math.max(size.get(), targetLocation + FileBlock.BLOCK_SIZE));
                 if (target.use(targetLocation, tick())) {
                     // we got the block
+                    state.set(STATE_READY);
                     return target;
                 }
             }
