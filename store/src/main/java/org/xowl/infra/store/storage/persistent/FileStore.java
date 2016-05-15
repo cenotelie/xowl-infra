@@ -220,6 +220,29 @@ class FileStore {
     }
 
     /**
+     * Allocate space for a new object
+     * This method directly allocate the object without looking up for reusable space.
+     *
+     * @param size The size of the object
+     * @return The key to the allocated space
+     * @throws StorageException When an IO operation failed
+     */
+    public long allocateDirect(int size) throws StorageException {
+        if (isReadonly)
+            throw new StorageException("The store is read only");
+        FileStoreFile file = files.get(files.size() - 1);
+        long result = file.allocateDirect(size);
+        if (result == KEY_NULL) {
+            synchronized (files) {
+                file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false, false);
+                files.add(file);
+                result = file.allocateDirect(size);
+            }
+        }
+        return result;
+    }
+
+    /**
      * Frees the object for the specified key
      *
      * @param key The key of the entry to free

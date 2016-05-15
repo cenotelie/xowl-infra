@@ -228,7 +228,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 candidate = next;
             }
         }
-        long result = store.allocate(buffer.length + ENTRY_STRING_OVERHEAD);
+        long result = store.allocateDirect(buffer.length + ENTRY_STRING_OVERHEAD);
         try (IOAccess entry = store.access(result)) {
             entry.writeLong(FileStore.KEY_NULL);
             entry.writeLong(0);
