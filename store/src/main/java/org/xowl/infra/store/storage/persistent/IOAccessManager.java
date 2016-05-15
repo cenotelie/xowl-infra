@@ -55,18 +55,9 @@ class IOAccessManager {
     }
 
     /**
-     * The maximum size of the pool for reusable access objects
-     */
-    private static final int POOL_SIZE = 16;
-
-    /**
      * The backend element that is protected by this manager
      */
     private final IOBackend backend;
-    /**
-     * The pool of free access objects
-     */
-    private final AtomicReference<Access>[] accessPool;
     /**
      * The root of the interval tree for the current accesses
      */
@@ -87,9 +78,6 @@ class IOAccessManager {
      */
     public IOAccessManager(IOBackend backend) {
         this.backend = backend;
-        this.accessPool = new AtomicReference[POOL_SIZE];
-        for (int i = 0; i != POOL_SIZE; i++)
-            accessPool[i] = new AtomicReference<>(null);
         this.root = new AtomicReference<>(null);
         this.currentAccessCount = new AtomicInteger(0);
         this.doWithhold = new AtomicBoolean(false);
@@ -105,14 +93,14 @@ class IOAccessManager {
      * @throws StorageException When an IO error occurs
      */
     public IOAccess get(long location, long length, boolean writable) throws StorageException {
-        Access access = poolResolve();
+        Access access = newAccess();
         access.setupIOData(location, length, writable);
         IOAccessOrdered.insert(root, access);
         try {
             access.setupIOData(backend.onAccessRequested(access));
         } catch (StorageException exception) {
             IOAccessOrdered.remove(root, access);
-            poolReturn(access);
+            currentAccessCount.decrementAndGet();
             throw exception;
         }
         return access;
@@ -128,7 +116,7 @@ class IOAccessManager {
      * @return The new access, or null if it cannot be obtained
      */
     public IOAccess get(long location, long length, boolean writable, IOElement element) {
-        Access access = poolResolve();
+        Access access = newAccess();
         access.setupIOData(location, length, writable);
         access.setupIOData(element);
         IOAccessOrdered.insert(root, access);
@@ -167,7 +155,7 @@ class IOAccessManager {
             Logger.DEFAULT.error(exception);
         }
         IOAccessOrdered.remove(root, access);
-        poolReturn(access);
+        currentAccessCount.decrementAndGet();
     }
 
     /**
@@ -175,31 +163,13 @@ class IOAccessManager {
      *
      * @return A free access object
      */
-    private Access poolResolve() {
+    private Access newAccess() {
         while (true) {
             boolean onStandby = doWithhold.get();
             if (!onStandby)
                 break;
         }
-        /*for (int i = 0; i != POOL_SIZE; i++) {
-            Access access = accessPool[i].get();
-            if (access != null && accessPool[i].compareAndSet(access, null))
-                return access;
-        }*/
         currentAccessCount.incrementAndGet();
         return new Access(this);
-    }
-
-    /**
-     * Returns an access object to the pool
-     *
-     * @param access The access object
-     */
-    private void poolReturn(Access access) {
-        currentAccessCount.decrementAndGet();
-        /*for (int i = 0; i != POOL_SIZE; i++) {
-            if (accessPool[i].compareAndSet(null, access))
-                return;
-        }*/
     }
 }

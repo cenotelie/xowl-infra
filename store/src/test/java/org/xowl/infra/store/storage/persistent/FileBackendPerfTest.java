@@ -31,7 +31,7 @@ public class FileBackendPerfTest {
     /**
      * Numbers of threads
      */
-    private static final int THREAD_COUNT = 2;
+    private static final int THREAD_COUNT = 8;
     /**
      * The number of write per batch
      */
@@ -61,7 +61,7 @@ public class FileBackendPerfTest {
      * @throws StorageException When an IO exception occurs
      */
     public void testWritePerf() throws IOException, StorageException {
-        File file = new File("/home/laurent/test");
+        File file = File.createTempFile("test", ".bin");
         Collection<Thread> threads = new ArrayList<>();
         try (final FileStoreFile pf = new FileStoreFile(file, false, false)) {
             long begin = System.nanoTime();
