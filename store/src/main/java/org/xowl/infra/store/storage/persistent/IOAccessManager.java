@@ -102,18 +102,18 @@ class IOAccessManager {
      * @param length   The length of the allowed span
      * @param writable Whether the access allows writing
      * @return The new access, or null if it cannot be obtained
+     * @throws StorageException When an IO error occurs
      */
-    public IOAccess get(long location, long length, boolean writable) {
+    public IOAccess get(long location, long length, boolean writable) throws StorageException {
         Access access = poolResolve();
         access.setupIOData(location, length, writable);
         IOAccessOrdered.insert(root, access);
         try {
             access.setupIOData(backend.onAccessRequested(access));
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
             IOAccessOrdered.remove(root, access);
             poolReturn(access);
-            return null;
+            throw exception;
         }
         return access;
     }

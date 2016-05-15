@@ -105,11 +105,14 @@ class FileBlock implements AutoCloseable, IOElement {
     protected void load(FileChannel channel) throws IOException {
         int total = 0;
         buffer.position(0);
-        while (total < BLOCK_SIZE) {
-            int read = channel.read(buffer, location + total);
-            if (read == -1)
-                throw new IOException("Unexpected end of stream");
-            total += read;
+        synchronized (channel) {
+            channel.position(location);
+            while (total < BLOCK_SIZE) {
+                int read = channel.read(buffer, location + total);
+                if (read == -1)
+                    throw new IOException("Unexpected end of stream");
+                total += read;
+            }
         }
     }
 
@@ -123,10 +126,12 @@ class FileBlock implements AutoCloseable, IOElement {
         if (isDirty) {
             buffer.position(0);
             int total = 0;
-            buffer.position(0);
-            while (total < BLOCK_SIZE) {
-                int written = channel.write(buffer, location + total);
-                total += written;
+            synchronized (channel) {
+                channel.position(location);
+                while (total < BLOCK_SIZE) {
+                    int written = channel.write(buffer, location + total);
+                    total += written;
+                }
             }
             isDirty = false;
         }
