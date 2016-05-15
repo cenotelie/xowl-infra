@@ -79,6 +79,19 @@ class FileBlockTS extends FileBlock {
     private static final int BLOCK_STATE_IN_USE = 4;
 
     /**
+     * When reserving the block, the block was free and successfully reserved
+     */
+    public static final int RESERVE_RESULT_OK = 0;
+    /**
+     * When reserving the block, the block was already reserved for the same location
+     */
+    public static final int RESERVE_RESULT_READY = 1;
+    /**
+     * When reserving the block, the block was already reserved for another location
+     */
+    public static final int RESERVE_RESULT_FAIL = -1;
+
+    /**
      * Gets the name of the block state
      *
      * @param state The block state
@@ -125,22 +138,25 @@ class FileBlockTS extends FileBlock {
      * @return The reservation status
      * @throws StorageException When an IO error occurs
      */
-    public boolean reserve(long location, FileChannel channel, long fileSize, long time) throws StorageException {
+    public int reserve(long location, FileChannel channel, long fileSize, long time) throws StorageException {
         while (true) {
-            if (this.location != -1 && this.location != location)
-                // the block was reserved for another location in the meantime
-                return false;
             int current = state.get();
             if (current >= BLOCK_STATE_READY) {
                 // the block was made ready by another thread
+                if (this.location != location)
+                    return RESERVE_RESULT_FAIL;
                 touch(time);
-                return true;
+                return RESERVE_RESULT_READY;
             }
-            if (current == BLOCK_STATE_FREE && state.compareAndSet(BLOCK_STATE_FREE, BLOCK_STATE_RESERVED)) {
+            if (current == BLOCK_STATE_FREE) {
+                // the block is free
+                if (!state.compareAndSet(BLOCK_STATE_FREE, BLOCK_STATE_RESERVED))
+                    // woops, too late
+                    continue;
                 // the block was free and is now reserved
                 doSetup(location, channel, fileSize, time);
                 state.compareAndSet(BLOCK_STATE_RESERVED, BLOCK_STATE_READY);
-                return true;
+                return RESERVE_RESULT_OK;
             }
         }
     }
@@ -162,7 +178,7 @@ class FileBlockTS extends FileBlock {
             try {
                 load(channel);
             } catch (IOException exception) {
-                state.compareAndSet(BLOCK_STATE_RESERVED, BLOCK_STATE_FREE);
+                state.set(BLOCK_STATE_READY);
                 throw new StorageException(exception, "Failed to read block at 0x" + Long.toHexString(location));
             }
         } else {

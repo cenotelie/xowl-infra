@@ -283,15 +283,20 @@ class FileBackend implements IOBackend, Closeable {
             // get the last block
             FileBlockTS target = blocks[count];
             // try to reserve it
-            if (target.reserve(targetLocation, channel, size.get(), tick())) {
-                // this is the block
-                // update the file data
-                blockCount.incrementAndGet();
-                extendSizeTo(Math.max(size.get(), targetLocation + FileBlock.BLOCK_SIZE));
-                if (target.use(targetLocation, tick())) {
-                    // we got the block
-                    return target;
-                }
+            switch (target.reserve(targetLocation, channel, size.get(), tick())) {
+                case FileBlockTS.RESERVE_RESULT_READY:
+                    // same block and location, but another thread ...
+                    if (target.use(targetLocation, tick()))
+                        return target;
+                    break;
+                case FileBlockTS.RESERVE_RESULT_OK:
+                    // reserved by this thread for the location
+                    // update the file data
+                    blockCount.incrementAndGet();
+                    extendSizeTo(Math.max(size.get(), targetLocation + FileBlock.BLOCK_SIZE));
+                    if (target.use(targetLocation, tick()))
+                        return target;
+                    break;
             }
             // retry with the next block
             count = blockCount.get();
