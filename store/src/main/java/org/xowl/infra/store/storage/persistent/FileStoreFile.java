@@ -78,7 +78,7 @@ class FileStoreFile extends FileBackend {
     /**
      * Minimum size of objects in this store
      */
-    private static final int FILE_OBJECT_MIN_SIZE = 8 - FILE_OBJECT_HEADER_SIZE;
+    private static final int FILE_OBJECT_MIN_SIZE = 4 - FILE_OBJECT_HEADER_SIZE;
     /**
      * Maximum size of objects in this store
      */
@@ -266,6 +266,57 @@ class FileStoreFile extends FileBackend {
      * @throws StorageException When an IO operation fails
      */
     public void free(long index) throws StorageException {
+        // reads the length of the object
+        int length;
+        try (IOAccess access = this.access(index - 2, 2, false)) {
+            length = access.readChar();
+        }
 
+        try (FileBlockTS preamble = getBlockFor(0)) {
+            // get the number of pools
+            int poolCount;
+            try (IOAccess access1 = access(12, 4, true, preamble)) {
+                poolCount = access1.readInt();
+
+                if (poolCount > 0) {
+                    // at last one pool, try to find the corresponding size
+                    try (IOAccess access2 = access(FILE_PREAMBLE_HEADER_SIZE, poolCount * FILE_PREAMBLE_ENTRY_SIZE, true, preamble)) {
+                        for (int i = 0; i != poolCount; i++) {
+                            int poolSize = access2.readInt();
+                            int poolHead = access2.readInt();
+                            if (poolSize == length) {
+                                // this is the pool we are looking for
+                                // enqueue the pool head in place of the freed object
+                                try (IOAccess access3 = access(index - 2, 4, true)) {
+                                    access3.writeInt(poolHead);
+                                }
+                                // replace the pool head
+                                access2.seek(i * FILE_PREAMBLE_ENTRY_SIZE + 4).writeInt((int) index);
+                                // ok, finish here
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                // no corresponding pool, create one
+                poolCount++;
+                if (poolCount > FILE_MAX_POOLS)
+                    // cannot have more pool ...
+                    return;
+
+                // enqueue an empty next pointer in place of the freed object
+                try (IOAccess access2 = access(index - 2, 4, true)) {
+                    access2.writeInt(0);
+                }
+                // write the pool data
+                try (IOAccess access2 = access(FILE_PREAMBLE_HEADER_SIZE, poolCount * FILE_PREAMBLE_ENTRY_SIZE, true, preamble)) {
+                    access2.writeInt(length);
+                    access2.writeInt((int) index);
+                }
+                // increment the pool counter
+                access1.seek(0).writeInt(poolCount);
+            }
+        }
     }
 }
