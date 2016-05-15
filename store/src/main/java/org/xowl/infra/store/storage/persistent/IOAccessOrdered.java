@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -27,20 +26,24 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 abstract class IOAccessOrdered extends IOAccess {
     /**
-     * The next access
+     * The hazard pointer for the elements
+     */
+    private static final IOAccessOrdered HAZARD = new IOAccessOrdered() {
+        @Override
+        protected void setupIOData(long location, long length, boolean writable) {
+        }
+    };
+
+    /**
+     * The next access element
      */
     private final AtomicReference<IOAccessOrdered> next;
-    /**
-     * Whether an operation is touching this node
-     */
-    private final AtomicBoolean isBusy;
 
     /**
      * Initializes this element
      */
     protected IOAccessOrdered() {
-        this.next = new AtomicReference<>(null);
-        this.isBusy = new AtomicBoolean(false);
+        this.next = new AtomicReference<>(HAZARD);
     }
 
     /**
@@ -50,12 +53,10 @@ abstract class IOAccessOrdered extends IOAccess {
      * @param element The element to insert
      */
     public static void insert(AtomicReference<IOAccessOrdered> root, IOAccessOrdered element) {
-        element.isBusy.set(true);
         while (true) {
             if (insertFrom(root, element))
                 break;
         }
-        element.isBusy.set(false);
     }
 
     /**
@@ -69,18 +70,26 @@ abstract class IOAccessOrdered extends IOAccess {
     private static boolean insertFrom(AtomicReference<IOAccessOrdered> root, IOAccessOrdered element) {
         IOAccessOrdered current = root.get();
         IOAccessOrdered insertAfter = null;
-        IOAccessOrdered insertBefore = root.get();
+        IOAccessOrdered insertBefore = current;
+
         while (current != null) {
-            if (element.location + element.length <= current.location)
-                // the element to insert is completely before the current element
-                break;
-            if ((current.writable || element.writable) && !current.disjoints(element)) {
-                // there is an overlap between the current element and the one to insert
-                // and either are exclusive
-                return false;
-            }
             // get the next access
             IOAccessOrdered next = current.next.get();
+            if (next == HAZARD)
+                // the current element is marked, fail here to retry
+                return false;
+            // shall we insert before the current element?
+            if (element.location + element.length <= current.location)
+                // yes, the element to insert is completely before the current element
+                break;
+            // not completely before the current element
+            // is there an exclusivity overlap?
+            if ((current.writable || element.writable) && !current.disjoints(element)) {
+                // there is an overlap between the current element and the one to insert
+                // and either one are exclusive
+                return false;
+            }
+            // shall we insert before the next element?
             if ((next != null && element.location < next.location) || (next == null && insertAfter == null)) {
                 // either the element to insert must be before the next one
                 // or there is no next element and the insertAfter has still not be set (will be inserted as last)
@@ -89,52 +98,16 @@ abstract class IOAccessOrdered extends IOAccess {
             }
             current = next;
         }
+
         // do the insert
+        // setup the element to insert
         element.next.set(insertBefore);
+        // no element to insert after?
         if (insertAfter == null)
-            return insertRoot(root, element, insertBefore);
-        return insertAfter(insertAfter, element, insertBefore);
-    }
-
-    /**
-     * Tries to insert the element as the root
-     *
-     * @param root     The root to insert from
-     * @param toInsert The element to insert
-     * @param before   The element before which to insert
-     * @return Whether the operation succeeded
-     */
-    private static boolean insertRoot(AtomicReference<IOAccessOrdered> root, IOAccessOrdered toInsert, IOAccessOrdered before) {
-        if (before != null) {
-            if (!before.isBusy.compareAndSet(false, true))
-                return false;
-        }
-        boolean success = root.compareAndSet(before, toInsert);
-        if (before != null)
-            before.isBusy.set(false);
-        return success;
-    }
-
-    /**
-     * Tries to insert the element after the current one
-     *
-     * @param current  The current element in the list to insert after
-     * @param toInsert The element to insert
-     * @param before   The element before which to insert
-     * @return Whether the operation succeeded
-     */
-    private static boolean insertAfter(IOAccessOrdered current, IOAccessOrdered toInsert, IOAccessOrdered before) {
-        if (!current.isBusy.compareAndSet(false, true))
-            return false;
-        if (before != null) {
-            if (!before.isBusy.compareAndSet(false, true))
-                return false;
-        }
-        boolean success = current.next.compareAndSet(before, toInsert);
-        if (before != null)
-            before.isBusy.set(false);
-        current.isBusy.set(false);
-        return success;
+            // insert as root
+            return root.compareAndSet(current, element);
+        // insert after the selected element
+        return insertAfter.next.compareAndSet(insertBefore, element);
     }
 
     /**
@@ -148,9 +121,6 @@ abstract class IOAccessOrdered extends IOAccess {
             if (removeFrom(root, element))
                 break;
         }
-        // cleanup
-        element.next.set(null);
-        element.isBusy.set(false);
     }
 
     /**
@@ -162,70 +132,49 @@ abstract class IOAccessOrdered extends IOAccess {
      * @return Whether the operation succeeded
      */
     private static boolean removeFrom(AtomicReference<IOAccessOrdered> root, IOAccessOrdered element) {
-        if (root.get() == element)
-            return removeRoot(root, element);
-        // not the first one, go down the list
         IOAccessOrdered current = root.get();
+
+        // is the element to remove the root?
+        if (current == element) {
+            IOAccessOrdered next = element.next.get();
+            // mark the element for delete
+            if (!element.next.compareAndSet(next, HAZARD))
+                // concurrent insertion after this element
+                return false;
+            // replace the root
+            if (root.compareAndSet(element, next))
+                // success!
+                return true;
+            // failed to replace, current insertion at the root
+            // un-mark the node and retry
+            element.next.compareAndSet(HAZARD, next);
+            return false;
+        }
+
+        // not the first one, go down the list
         while (current != null) {
             IOAccessOrdered next = current.next.get();
-            if (next == element)
-                return removeFrom(current, next);
+            if (next == HAZARD)
+                // this is a concurrent delete ...
+                return false;
+            if (next == element) {
+                // the next element is the one to be deleted
+                IOAccessOrdered elementNext = element.next.get();
+                // mark the element for delete
+                if (!element.next.compareAndSet(elementNext, HAZARD))
+                    // concurrent insertion after this element
+                    return false;
+                // attempt to delete
+                if (current.next.compareAndSet(element, elementNext))
+                    // success!
+                    return true;
+                // failed to replace, current insertion at the root
+                // un-mark the node and retry
+                element.next.compareAndSet(HAZARD, elementNext);
+                return false;
+            }
             current = next;
         }
-        throw new Error("WTF");
-    }
-
-    /**
-     * Tries to remove the root element
-     *
-     * @param root    The root element
-     * @param element The element to remove
-     * @return Whether the operation succeeded
-     */
-    private static boolean removeRoot(AtomicReference<IOAccessOrdered> root, IOAccessOrdered element) {
-        if (!element.isBusy.compareAndSet(false, true))
-            return false;
-        IOAccessOrdered next = element.next.get();
-        if (next != null) {
-            if (!next.isBusy.compareAndSet(false, true)) {
-                element.isBusy.set(false);
-                return false;
-            }
-        }
-        boolean success = root.compareAndSet(element, next);
-        if (next != null)
-            next.isBusy.set(false);
-        element.isBusy.set(false);
-        return success;
-    }
-
-    /**
-     * Tries to remove an element from the interval list
-     *
-     * @param previous The element before the one to delete
-     * @param toDelete The element to delete
-     * @return Whether the operation succeeded
-     */
-    private static boolean removeFrom(IOAccessOrdered previous, IOAccessOrdered toDelete) {
-        if (!toDelete.isBusy.compareAndSet(false, true))
-            return false;
-        if (!previous.isBusy.compareAndSet(false, true)) {
-            toDelete.isBusy.set(false);
-            return false;
-        }
-        IOAccessOrdered next = toDelete.next.get();
-        if (next != null) {
-            if (!next.isBusy.compareAndSet(false, true)) {
-                previous.isBusy.set(false);
-                toDelete.isBusy.set(false);
-                return false;
-            }
-        }
-        boolean success = previous.next.compareAndSet(toDelete, next);
-        if (next != null)
-            next.isBusy.set(false);
-        previous.isBusy.set(false);
-        toDelete.isBusy.set(false);
-        return success;
+        throw new Error("WTF!!");
     }
 }

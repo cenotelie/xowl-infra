@@ -86,7 +86,7 @@ public class FileBackendPerfTest {
                             exception.printStackTrace();
                         }
                     }
-                }, FileBackendPerfTest.class.getCanonicalName() + ".Thread." + i);
+                }, "Test Thread " + i);
                 threads.add(thread);
                 thread.start();
             }
