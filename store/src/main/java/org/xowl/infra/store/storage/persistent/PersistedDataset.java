@@ -352,7 +352,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try {
             PersistedMap map = mapFor(subject);
             long bucket = map.get(subject.getKey());
-            if (bucket == PersistedMap.KEY_NOT_FOUND)
+            if (bucket == FileStore.KEY_NULL)
                 return 0;
             bufferQNSubject = bucket;
             long target = lookupQNode(bufferQNSubject, property, false);
@@ -397,7 +397,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             if (pSubject == null)
                 return new SingleIterator<>(null);
             long current = mapFor(pSubject).get(pSubject.getKey());
-            if (current == PersistedMap.KEY_NOT_FOUND)
+            if (current == FileStore.KEY_NULL)
                 return new SingleIterator<>(null);
             try (IOAccess entry = store.read(current)) {
                 long bucket = entry.seek(8 + 4 + 8).readLong();
@@ -436,7 +436,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return new SingleIterator<>(null);
         PersistedMap map = pGraph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
         long bucket = map.get(pGraph.getKey());
-        if (bucket == PersistedMap.KEY_NOT_FOUND)
+        if (bucket == FileStore.KEY_NULL)
             return new SingleIterator<>(null);
         Iterator<Long> iteratorSubjects = new GraphQNodeIterator(store, bucket);
         return new AdaptingIterator<>(new CombiningIterator<>(iteratorSubjects, new Adapter<Iterator<MQuad>>() {
@@ -756,7 +756,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      */
     private long count(PersistedMap map, long key) {
         long bucket = map.get(key);
-        if (bucket == PersistedMap.KEY_NOT_FOUND)
+        if (bucket == FileStore.KEY_NULL)
             return 0;
         long result = 0;
         long current = bucket;
@@ -833,7 +833,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     private long countOnSingleSubject(PersistedNode graph, PersistedNode subject, PersistedNode property, PersistedNode object) {
         try {
             long current = mapFor(subject).get(subject.getKey());
-            if (current == PersistedMap.KEY_NOT_FOUND)
+            if (current == FileStore.KEY_NULL)
                 return 0;
             long child;
             try (IOAccess entry = store.read(current)) {
@@ -858,7 +858,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try {
             PersistedMap map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
             long bucket = map.get(graph.getKey());
-            if (bucket == PersistedMap.KEY_NOT_FOUND)
+            if (bucket == FileStore.KEY_NULL)
                 return 0;
             long result = 0;
             long current = bucket;
@@ -1041,7 +1041,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try {
             PersistedMap map = mapFor(subject);
             long bucket = map.get(subject.getKey());
-            if (bucket == PersistedMap.KEY_NOT_FOUND) {
+            if (bucket == FileStore.KEY_NULL) {
                 bufferQNSubject = newEntry(subject);
                 map.put(subject.getKey(), bufferQNSubject);
             } else {
@@ -1077,7 +1077,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         int radical = FileStore.getKeyRadical(subject.getKey());
         PersistedMap map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
         long bucket = map.get(graph.getKey());
-        if (bucket == PersistedMap.KEY_NOT_FOUND) {
+        if (bucket == FileStore.KEY_NULL) {
             // this is the first quad for this graph
             long key = writeNewGraphIndex(radical, bufferQNSubject);
             map.put(graph.getKey(), key);
@@ -1208,7 +1208,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try {
             PersistedMap map = mapFor(subject);
             Long bucket = map.get(subject.getKey());
-            if (bucket == PersistedMap.KEY_NOT_FOUND) {
+            if (bucket == FileStore.KEY_NULL) {
                 return REMOVE_RESULT_NOT_FOUND;
             }
             bufferQNSubject = bucket;
@@ -1326,7 +1326,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         int radical = ((int) (subject.getKey() >>> 32));
         PersistedMap map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
         long bucket = map.get(graph.getKey());
-        if (bucket == PersistedMap.KEY_NOT_FOUND) {
+        if (bucket == FileStore.KEY_NULL) {
             // this is the first quad for this graph
             return;
         }
@@ -1423,7 +1423,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try {
             PersistedMap map = mapFor(subject);
             long key = map.get(subject.getKey());
-            if (key == PersistedMap.KEY_NOT_FOUND)
+            if (key == FileStore.KEY_NULL)
                 return;
             int size = bufferRemoved.size();
             boolean isEmpty = removeAllOnSubject(key, property, object, graph, bufferDecremented, bufferRemoved);
@@ -1454,7 +1454,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     private void removeAllOnSingleGraph(PersistedNode graph, PersistedNode property, PersistedNode object, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) {
         PersistedMap map = graph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
         long bucket = map.get(graph.getKey());
-        if (bucket == PersistedMap.KEY_NOT_FOUND)
+        if (bucket == FileStore.KEY_NULL)
             return;
         long newBucket = bucket;
         long previous = FileStore.KEY_NULL;
@@ -1918,7 +1918,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             return;
         PersistedMap map = pGraph.getNodeType() == Node.TYPE_IRI ? mapIndexGraphIRI : mapIndexGraphBlank;
         long bucket = map.get(pGraph.getKey());
-        if (bucket == PersistedMap.KEY_NOT_FOUND)
+        if (bucket == FileStore.KEY_NULL)
             return;
         long current = bucket;
         long next;

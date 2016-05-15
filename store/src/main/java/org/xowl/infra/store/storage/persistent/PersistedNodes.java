@@ -253,26 +253,21 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     private long getKeyForString(String data, boolean doInsert) {
         if (data == null)
             return FileStore.KEY_NULL;
-        long bucket = mapStrings.get(data.hashCode());
-        if (bucket == PersistedMap.KEY_NOT_FOUND && !doInsert)
-            return FileStore.KEY_NULL;
-        if (doInsert) {
-            try {
-                long result = addString(bucket == PersistedMap.KEY_NOT_FOUND ? FileStore.KEY_NULL : bucket, data);
-                if (bucket == PersistedMap.KEY_NOT_FOUND)
+        try {
+            long bucket = mapStrings.get(data.hashCode());
+            if (bucket == FileStore.KEY_NULL && !doInsert)
+                return FileStore.KEY_NULL;
+            if (doInsert) {
+                long result = addString(bucket == FileStore.KEY_NULL ? FileStore.KEY_NULL : bucket, data);
+                if (bucket == FileStore.KEY_NULL)
                     mapStrings.put(data.hashCode(), result);
                 return result;
-            } catch (IOException | StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return FileStore.KEY_NULL;
-            }
-        } else {
-            try {
+            } else {
                 return lookupString(bucket, data);
-            } catch (IOException | StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return FileStore.KEY_NULL;
             }
+        } catch (IOException | StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return FileStore.KEY_NULL;
         }
     }
 
@@ -337,12 +332,12 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 || (datatype != null && keyDatatype == FileStore.KEY_NULL)
                 || (langTag != null && keyLangTag == FileStore.KEY_NULL)))
             return FileStore.KEY_NULL;
-        long bucket = mapLiterals.get(keyLexical);
-        if (bucket == PersistedMap.KEY_NOT_FOUND) {
-            // this is the first literal with this lexem
-            if (!doInsert)
-                return FileStore.KEY_NULL;
-            try {
+        try {
+            long bucket = mapLiterals.get(keyLexical);
+            if (bucket == FileStore.KEY_NULL) {
+                // this is the first literal with this lexem
+                if (!doInsert)
+                    return FileStore.KEY_NULL;
                 long result = store.allocate(ENTRY_LITERAL_SIZE);
                 try (IOAccess entry = store.access(result)) {
                     entry.writeLong(FileStore.KEY_NULL);
@@ -353,33 +348,25 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 }
                 mapLiterals.put(keyLexical, result);
                 return result;
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return FileStore.KEY_NULL;
-            }
-        } else {
-            long previous = FileStore.KEY_NULL;
-            long candidate = bucket;
-            while (candidate != FileStore.KEY_NULL) {
-                try (IOAccess entry = store.access(candidate)) {
-                    long next = entry.readLong();
-                    long count = entry.readLong();
-                    entry.seek(24);
-                    long candidateDatatype = entry.readLong();
-                    long candidateLangTag = entry.readLong();
-                    if ((doInsert || count > 0) && keyDatatype == candidateDatatype && keyLangTag == candidateLangTag)
-                        return candidate;
-                    previous = candidate;
-                    candidate = next;
-                } catch (StorageException exception) {
-                    Logger.DEFAULT.error(exception);
-                    return FileStore.KEY_NULL;
+            } else {
+                long previous = FileStore.KEY_NULL;
+                long candidate = bucket;
+                while (candidate != FileStore.KEY_NULL) {
+                    try (IOAccess entry = store.access(candidate)) {
+                        long next = entry.readLong();
+                        long count = entry.readLong();
+                        entry.seek(24);
+                        long candidateDatatype = entry.readLong();
+                        long candidateLangTag = entry.readLong();
+                        if ((doInsert || count > 0) && keyDatatype == candidateDatatype && keyLangTag == candidateLangTag)
+                            return candidate;
+                        previous = candidate;
+                        candidate = next;
+                    }
                 }
-            }
-            // did not found an existing literal
-            if (!doInsert)
-                return FileStore.KEY_NULL;
-            try {
+                // did not found an existing literal
+                if (!doInsert)
+                    return FileStore.KEY_NULL;
                 long result = store.allocate(ENTRY_LITERAL_SIZE);
                 try (IOAccess entry = store.access(previous)) {
                     entry.writeLong(result);
@@ -392,10 +379,10 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                     entry.writeLong(keyLangTag);
                 }
                 return result;
-            } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
-                return FileStore.KEY_NULL;
             }
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
+            return FileStore.KEY_NULL;
         }
     }
 

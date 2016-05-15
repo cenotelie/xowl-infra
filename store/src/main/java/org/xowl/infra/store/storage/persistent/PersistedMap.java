@@ -17,53 +17,18 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import java.util.HashMap;
+import org.xowl.infra.utils.collections.SingleIterator;
+
+import java.util.Iterator;
 import java.util.Map;
 
 /**
  * Implements a (long -> long) map that is persisted in files
- *
- * The map is composed of two parts: a B+ tree for the lower part of the keys and an index for the upper part.
- * To resolve a key, the upper part of the key is checked against the index to get the entry for the B+ tree root for the lower part.
- * The entry's value is then in the B+ tree accessed through this root.
- *
- * An index entry has the layout:
- * long: next entry
- * long[count] key to the B+ tree for the associated index
- *
- * A B+ tree node has the layout:
- * long: next sibling
- * char: count
- * char: flags
- * int[b]: keys
- * long[b]: values
+ * A map is in two stages: 1 and 2, see the respective helpers.
  *
  * @author Laurent Wouters
  */
 class PersistedMap {
-    /**
-     * The value when a key is not found
-     */
-    public static final long KEY_NOT_FOUND = FileStore.KEY_NULL;
-
-    /**
-     * The number of entries in an index
-     */
-    private static final int INDEX_ENTRY_COUNT = 8;
-    /**
-     * The size of an index entry
-     */
-    private static final int INDEX_SIZE = 8 + INDEX_ENTRY_COUNT * 8;
-
-    /**
-     * The fan-out factor of the B+ tree
-     */
-    private static final int BTREE_NODE_SPAN = 16;
-    /**
-     * The size of a B+ tree node
-     */
-    private static final int BTREE_NODE_SIZE = 8 + 2 + 2 + BTREE_NODE_SPAN * (4 + 8);
-
     /**
      * The backing store
      */
@@ -86,12 +51,13 @@ class PersistedMap {
 
     /**
      * Creates a new persisted map
+     *
      * @param store The backing store
      * @return The persisted map
-     * @throws StorageException When an IO error occur
+     * @throws StorageException When an IO operation fails
      */
     public static PersistedMap create(FileStore store) throws StorageException {
-        long mapHead = allocateIndex(store);
+        long mapHead = PersistedMapStage1.newMap(store);
         return new PersistedMap(store, mapHead);
     }
 
@@ -100,9 +66,13 @@ class PersistedMap {
      *
      * @param key The requested key
      * @return The associated value, or KEY_NOT_FOUND when the key is not present
+     * @throws StorageException When an IO operation fails
      */
-    public long get(long key) {
-        return KEY_NOT_FOUND;
+    public long get(long key) throws StorageException {
+        long head2 = PersistedMapStage1.getHeadFor(store, mapHead, key1(key));
+        if (head2 == FileStore.KEY_NULL)
+            return FileStore.KEY_NULL;
+        return PersistedMapStage2.get(store, head2, key2(key));
     }
 
     /**
@@ -111,9 +81,11 @@ class PersistedMap {
      *
      * @param key   The key
      * @param value The associated value
+     * @throws StorageException When an IO operation fails
      */
-    public void put(long key, long value) {
-
+    public void put(long key, long value) throws StorageException {
+        long head2 = PersistedMapStage1.resolveHeadFor(store, mapHead, key1(key));
+        PersistedMapStage2.put(store, head2, key2(key), value);
     }
 
     /**
@@ -121,16 +93,22 @@ class PersistedMap {
      *
      * @param key The key
      * @return The value that was associated to the key, or KEY_NOT_FOUND if there was none
+     * @throws StorageException When an IO operation fails
      */
-    public long remove(long key) {
-        return KEY_NOT_FOUND;
+    public long remove(long key) throws StorageException {
+        long head2 = PersistedMapStage1.getHeadFor(store, mapHead, key1(key));
+        if (head2 == FileStore.KEY_NULL)
+            return FileStore.KEY_NULL;
+        return PersistedMapStage2.remove(store, head2, key2(key));
     }
 
     /**
      * Removes all entries from this map
+     *
+     * @throws StorageException When an IO operation fails
      */
-    public void clear() {
-
+    public void clear() throws StorageException {
+        PersistedMapStage1.clear(store, mapHead);
     }
 
     /**
@@ -138,163 +116,27 @@ class PersistedMap {
      *
      * @return An iterator over the entries
      */
-    public Iterator entries() {
-        return null;
-    }
-
-
-    /**
-     * Gets the tree head that corresponds to the specified radical
-     * @param radical The radical
-     * @param resolve Whether to create the tree head if it does not exist
-     * @return The tree head
-     */
-    private long getTreeHead(int radical, boolean resolve) throws StorageException {
-        int currentStart = 0;
-        long current = mapHead;
-        while (radical >= currentStart + INDEX_ENTRY_COUNT) {
-            long next;
-            try (IOAccess transaction = store.read(current)) {
-                next = transaction.readLong();
-            }
-            if (next == FileStore.KEY_NULL) {
-                if (!resolve)
-                    return FileStore.KEY_NULL;
-                try (IOAccess transaction = store.access(current)) {
-                    next = transaction.readLong();
-                    if (next == FileStore.KEY_NULL) {
-                        next = allocateIndex(store);
-                        transaction.reset().writeLong(next);
-                    }
-                }
-
-            }
-            currentStart += INDEX_ENTRY_COUNT;
-        }
-        return FileStore.KEY_NULL;
-    }
-
-
-
-
-
-
-
-
-
-
-    /**
-     * Allocates an index node in the specified store
-     * @param store The store
-     * @return The key to the index node
-     * @throws StorageException When an IO error occur
-     */
-    private static long allocateIndex(FileStore store) throws StorageException {
-        long key = store.allocate(INDEX_SIZE);
-        try (IOAccess transaction = store.access(key)) {
-            transaction.writeLong(FileStore.KEY_NULL);
-            for (int i=0; i != INDEX_ENTRY_COUNT; i++) {
-                transaction.writeLong(FileStore.KEY_NULL);
-            }
-        }
-        return key;
+    public Iterator<Map.Entry<Long, Long>> entries() {
+        return new SingleIterator<>(null);
     }
 
     /**
-     * Allocates a B+ tree node in the associated store
-     * @return The key to the node
-     * @throws StorageException When an IO error occur
+     * Gets the stage 1 key for the specified map key
+     *
+     * @param key A map key
+     * @return The stage 1 key
      */
-    private long allocateTreeNode() throws StorageException {
-        long key = store.allocate(BTREE_NODE_SIZE);
-        try (IOAccess transaction = store.access(key)) {
-            transaction.writeLong(FileStore.KEY_NULL);
-            transaction.writeChar('\0');
-            transaction.writeChar('\0');
-        }
-        return key;
+    private static int key1(long key) {
+        return (int) (key >>> 32);
     }
 
-
-
     /**
-     * An iterator over entries in the map
+     * Gets the stage 2 key for the specified map key
+     *
+     * @param key A map key
+     * @return The stage 2 key
      */
-    public class Iterator implements java.util.Iterator<Map.Entry<Long, Long>> {
-        /**
-         * The key for the current entry
-         */
-        private long currentEntryKey;
-        /**
-         * The value for the current entry
-         */
-        private long currentEntryValue;
-
-        /**
-         * Finds the next entry
-         *
-         * @return Whether there is a next entry
-         */
-        private boolean findNext() {
-            // TODO: implement this
-            return false;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return currentEntryKey != KEY_NOT_FOUND;
-        }
-
-        @Override
-        public Map.Entry<Long, Long> next() {
-            Map.Entry<Long, Long> result = new HashMap.SimpleImmutableEntry<>(currentEntryKey, currentEntryValue);
-            findNext();
-            return result;
-        }
-
-        @Override
-        public void remove() {
-            // TODO: implement removal
-        }
-
-        /**
-         * Gets the key for the current entry
-         *
-         * @return The key for the current entry
-         */
-        public long currentKey() {
-            return currentEntryKey;
-        }
-
-        /**
-         * Gets the value for the current entry
-         *
-         * @return The value for the current entry
-         */
-        public long currentValue() {
-            return currentEntryValue;
-        }
-
-        /**
-         * Gets the next key
-         *
-         * @return The next key
-         */
-        public long nextKey() {
-            long result = currentEntryKey;
-            findNext();
-            return result;
-        }
-
-        /**
-         * Gets the next value
-         *
-         * @return The next value
-         */
-        public long nextValue() {
-            long result = currentEntryValue;
-            findNext();
-            return result;
-        }
+    private static int key2(long key) {
+        return (int) (key & 0xFFFFFFFFL);
     }
 }
