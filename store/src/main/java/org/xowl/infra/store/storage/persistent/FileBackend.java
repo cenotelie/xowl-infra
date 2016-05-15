@@ -41,6 +41,19 @@ class FileBackend implements IOBackend, Closeable {
     protected static final long INDEX_MASK_UPPER = ~FileBlock.INDEX_MASK_LOWER;
 
     /**
+     * The backend is ready for IO
+     */
+    private static final int STATE_READY = 0;
+    /**
+     * The backend is preparing to flush
+     */
+    private static final int STATE_FLUSH_PREPARE = 1;
+    /**
+     * The backend is flushing
+     */
+    private static final int STATE_FLUSHING = 2;
+
+    /**
      * The file name
      */
     private final String fileName;
@@ -72,6 +85,10 @@ class FileBackend implements IOBackend, Closeable {
      * The current time
      */
     private final AtomicLong time;
+    /**
+     * The state of this file backend
+     */
+    private final AtomicInteger state;
 
     /**
      * Gets the size of this file
@@ -100,6 +117,7 @@ class FileBackend implements IOBackend, Closeable {
         this.blockCount = new AtomicInteger(0);
         this.size = new AtomicLong(initSize());
         this.time = new AtomicLong(Long.MIN_VALUE + 1);
+        this.state = new AtomicInteger(STATE_READY);
     }
 
     /**
@@ -166,8 +184,26 @@ class FileBackend implements IOBackend, Closeable {
      * @throws StorageException When an IO operation failed
      */
     public void flush() throws StorageException {
+        while (true) {
+            if (!state.compareAndSet(STATE_READY, STATE_FLUSH_PREPARE))
+                continue;
+            accessManager.withhold();
+            state.compareAndSet(STATE_FLUSH_PREPARE, STATE_FLUSHING);
+            doFlush();
+            accessManager.resume();
+            state.compareAndSet(STATE_FLUSHING, STATE_READY);
+            return;
+        }
+    }
+
+    /**
+     * Executes the flushing operation
+     *
+     * @throws StorageException When an IO operation failed
+     */
+    private void doFlush() throws StorageException {
         for (int i = 0; i != blockCount.get(); i++) {
-            blocks[i].flush(channel, tick());
+            blocks[i].flush(channel);
         }
         try {
             channel.force(true);
@@ -202,7 +238,7 @@ class FileBackend implements IOBackend, Closeable {
      */
     protected IOAccess access(long index, long length, boolean writable, FileBlockTS block) throws StorageException {
         IOAccess access = accessManager.get(index, length, !isReadonly && writable, block);
-        block.useShared(block.location, tick());
+        block.use(block.location, tick());
         return access;
     }
 
@@ -236,7 +272,7 @@ class FileBackend implements IOBackend, Closeable {
         // look for the block
         for (int i = 0; i != blockCount.get(); i++) {
             // is this the block we are looking for?
-            if (blocks[i].getLocation() == targetLocation && blocks[i].useShared(targetLocation, tick())) {
+            if (blocks[i].getLocation() == targetLocation && blocks[i].use(targetLocation, tick())) {
                 // yes and we locked it
                 return blocks[i];
             }
@@ -252,7 +288,7 @@ class FileBackend implements IOBackend, Closeable {
                 // update the file data
                 blockCount.incrementAndGet();
                 extendSizeTo(Math.max(size.get(), targetLocation + FileBlock.BLOCK_SIZE));
-                if (target.useShared(targetLocation, tick())) {
+                if (target.use(targetLocation, tick())) {
                     // we got the block
                     return target;
                 }
@@ -279,7 +315,7 @@ class FileBackend implements IOBackend, Closeable {
             long oldestLocation = -1;
             for (int i = 0; i != FILE_MAX_LOADED_BLOCKS; i++) {
                 // is this the block we are looking for?
-                if (blocks[i].getLocation() == targetLocation && blocks[i].useShared(targetLocation, tick())) {
+                if (blocks[i].getLocation() == targetLocation && blocks[i].use(targetLocation, tick())) {
                     // yes and we locked it
                     return blocks[i];
                 }
@@ -295,16 +331,13 @@ class FileBackend implements IOBackend, Closeable {
             FileBlockTS target = blocks[oldestIndex];
             if (target.getLastHit() == oldestTime // the time did not change
                     && target.getLocation() == oldestLocation // still the same location
-                    && target.reclaim(channel, oldestLocation, tick()) // try to reclaim
+                    && target.reclaim(targetLocation, channel, size.get(), tick()) // try to reclaim
                     ) {
-                // the block was successfully reclaimed, reserve it
-                if (target.reserve(targetLocation, channel, size.get(), tick())) {
-                    // update the file data
-                    extendSizeTo(Math.max(size.get(), targetLocation + FileBlock.BLOCK_SIZE));
-                    if (target.useShared(targetLocation, tick())) {
-                        // we got the block
-                        return target;
-                    }
+                // update the file data
+                extendSizeTo(Math.max(size.get(), targetLocation + FileBlock.BLOCK_SIZE));
+                if (target.use(targetLocation, tick())) {
+                    // we got the block
+                    return target;
                 }
             }
         }
@@ -317,7 +350,7 @@ class FileBackend implements IOBackend, Closeable {
 
     @Override
     public void onAccessTerminated(IOAccess access, IOElement element) throws StorageException {
-        ((FileBlockTS) element).releaseShared();
+        ((FileBlockTS) element).release();
     }
 
     @Override

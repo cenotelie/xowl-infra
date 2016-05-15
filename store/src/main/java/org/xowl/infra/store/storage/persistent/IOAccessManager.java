@@ -19,6 +19,8 @@ package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.logging.Logger;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -69,6 +71,14 @@ class IOAccessManager {
      * The root of the interval tree for the current accesses
      */
     private final AtomicReference<IOAccessOrdered> root;
+    /**
+     * The current number of live accesses
+     */
+    private final AtomicInteger currentAccessCount;
+    /**
+     * Whether further accesses shall be withheld
+     */
+    private final AtomicBoolean doWithhold;
 
     /**
      * Initializes this pool
@@ -81,6 +91,8 @@ class IOAccessManager {
         for (int i = 0; i != POOL_SIZE; i++)
             accessPool[i] = new AtomicReference<>(null);
         this.root = new AtomicReference<>(null);
+        this.currentAccessCount = new AtomicInteger(0);
+        this.doWithhold = new AtomicBoolean(false);
     }
 
     /**
@@ -124,6 +136,26 @@ class IOAccessManager {
     }
 
     /**
+     * Withhold new accesses under further notice
+     */
+    public void withhold() {
+        while (true) {
+            if (doWithhold.compareAndSet(false, true))
+                return;
+        }
+    }
+
+    /**
+     * Resume accesses
+     */
+    public void resume() {
+        while (true) {
+            if (doWithhold.compareAndSet(true, false))
+                return;
+        }
+    }
+
+    /**
      * Ends an access to the backend
      *
      * @param access The access
@@ -144,11 +176,17 @@ class IOAccessManager {
      * @return A free access object
      */
     private Access poolResolve() {
-        for (int i = 0; i != POOL_SIZE; i++) {
+        while (true) {
+            boolean onStandby = doWithhold.get();
+            if (!onStandby)
+                break;
+        }
+        /*for (int i = 0; i != POOL_SIZE; i++) {
             Access access = accessPool[i].get();
             if (access != null && accessPool[i].compareAndSet(access, null))
                 return access;
-        }
+        }*/
+        currentAccessCount.incrementAndGet();
         return new Access(this);
     }
 
@@ -158,9 +196,10 @@ class IOAccessManager {
      * @param access The access object
      */
     private void poolReturn(Access access) {
-        for (int i = 0; i != POOL_SIZE; i++) {
+        currentAccessCount.decrementAndGet();
+        /*for (int i = 0; i != POOL_SIZE; i++) {
             if (accessPool[i].compareAndSet(null, access))
                 return;
-        }
+        }*/
     }
 }

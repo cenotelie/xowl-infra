@@ -38,22 +38,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  * +--------------+------------------------------------------------------------+
  * | Free         | The block is not assigned to a location in the file        |
  * | Reserved     | The block is reserved for a location and being initialized |
+ * | Reclaiming   | The block is begin reclaimed for reuse                     |
  * | Ready        | The block is ready for read and write operations           |
- * | ExclusiveUse | The block is reserved for an exclusive operation (write)   |
- * | SharedUse(n) | The block is used in a non-exclusive manner (read)         |
+ * | InUse(n)     | The block is used for IO operations by n threads           |
  * +--------------+------------------------------------------------------------+
  * <p>
  * +------------------+------------------------------------+
  * | Operation        | Transition from state to state     |
  * +------------------+------------------------------------+
  * | reserve:         | Free --&gt; Reserved --&gt; Ready  |
- * | useShared:       | Ready        --&gt; SharedUse(0)   |
- * | useShared:       | SharedUse(n) --&gt; SharedUse(n+1) |
- * | releaseShared:   | SharedUse(n) --&gt; SharedUse(n-1) |
- * | releaseShared:   | SharedUse(0) --&gt; Ready          |
- * | useExclusive:    | SharedUse(0) --&gt; ExclusiveUse   |
- * | releaseExclusive:| ExclusiveUse --&gt; SharedUse(0)   |
- * | reclaim:         | Ready --&gt; Free                  |
+ * | use:             | Ready        --&gt; InUse(1)       |
+ * | use:             | InUse(n)     --&gt; InUse(n+1)     |
+ * | release:         | InUse(n)     --&gt; InUse(n-1)     |
+ * | release:         | InUse(1)     --&gt; Ready          |
+ * | reclaim:         | Ready        --&gt; Ready          |
  * +------------------+------------------------------------+
  *
  * @author Laurent Wouters
@@ -68,17 +66,17 @@ class FileBlockTS extends FileBlock {
      */
     private static final int BLOCK_STATE_RESERVED = 1;
     /**
+     * The block is begin reclaimed for reuse
+     */
+    private static final int BLOCK_STATE_RECLAIMING = 2;
+    /**
      * The block exists and is ready for IO
      */
-    private static final int BLOCK_STATE_READY = 2;
-    /**
-     * The block is used in an exclusive IO operation
-     */
-    private static final int BLOCK_STATE_EXCLUSIVE_USE = 3;
+    private static final int BLOCK_STATE_READY = 3;
     /**
      * The block is used by one or more users in a shared manner
      */
-    private static final int BLOCK_STATE_SHARED_USE = 4;
+    private static final int BLOCK_STATE_IN_USE = 4;
 
     /**
      * Gets the name of the block state
@@ -96,12 +94,12 @@ class FileBlockTS extends FileBlock {
                 return "RESERVED";
             case BLOCK_STATE_READY:
                 return "READY";
-            case BLOCK_STATE_EXCLUSIVE_USE:
-                return "EXCLUSIVE_USE";
-            case BLOCK_STATE_SHARED_USE:
-                return "SHARED_USE(0)";
+            case BLOCK_STATE_RECLAIMING:
+                return "RECLAIMING";
+            case BLOCK_STATE_IN_USE:
+                return "IN_USE(1)";
             default:
-                return "SHARED_USE(" + (state - BLOCK_STATE_SHARED_USE) + ")";
+                return "IN_USE(" + (state - BLOCK_STATE_READY) + ")";
         }
     }
 
@@ -138,26 +136,24 @@ class FileBlockTS extends FileBlock {
                 touch(time);
                 return true;
             }
-            if (current == BLOCK_STATE_FREE && reserveFromFree(location, channel, fileSize, time))
-                // the block was free and the reservation went ok
+            if (current == BLOCK_STATE_FREE && state.compareAndSet(BLOCK_STATE_FREE, BLOCK_STATE_RESERVED)) {
+                // the block was free and is now reserved
+                doSetup(location, channel, fileSize, time);
+                state.compareAndSet(BLOCK_STATE_RESERVED, BLOCK_STATE_READY);
                 return true;
+            }
         }
     }
 
     /**
-     * Tries to reserve this block for location assuming it is free
+     * Initializes this block for use
      *
      * @param location The location for the block
      * @param channel  The originating file channel
      * @param fileSize The current size of the file
      * @param time     The current time
-     * @return Whether the operation was successful
-     * @throws StorageException When an IO error occurs
      */
-    private boolean reserveFromFree(long location, FileChannel channel, long fileSize, long time) throws StorageException {
-        if (!state.compareAndSet(BLOCK_STATE_FREE, BLOCK_STATE_RESERVED))
-            return false;
-        // the block was free and is now reserved
+    private void doSetup(long location, FileChannel channel, long fileSize, long time) throws StorageException {
         this.location = location;
         if (this.buffer == null)
             this.buffer = ByteBuffer.allocate(BLOCK_SIZE);
@@ -173,8 +169,6 @@ class FileBlockTS extends FileBlock {
             zeroes();
         }
         touch(time);
-        state.compareAndSet(BLOCK_STATE_RESERVED, BLOCK_STATE_READY);
-        return true;
     }
 
     /**
@@ -185,30 +179,30 @@ class FileBlockTS extends FileBlock {
      * @return true if the shared use is granted, false if the effective location of this block was not the expected one
      * @throws StorageException When the block is in a bad state
      */
-    public boolean useShared(long location, long time) throws StorageException {
+    public boolean use(long location, long time) throws StorageException {
         while (true) {
             int current = state.get();
             if (current < BLOCK_STATE_READY)
                 // the block may have been reclaimed in the meantime
                 return false;
             if (current == BLOCK_STATE_READY) {
-                if (state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_SHARED_USE)) {
+                if (state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_IN_USE)) {
                     if (this.location == location) {
                         touch(time);
                         return true;
                     }
                     // this is the wrong location, release the block and fail
-                    releaseShared();
+                    release();
                     return false;
                 }
-            } else if (current >= BLOCK_STATE_SHARED_USE) {
+            } else if (current >= BLOCK_STATE_IN_USE) {
                 if (state.compareAndSet(current, current + 1)) {
                     if (this.location == location) {
                         touch(time);
                         return true;
                     }
                     // this is the wrong location, release the block and fail
-                    releaseShared();
+                    release();
                     return false;
                 }
             }
@@ -220,103 +214,54 @@ class FileBlockTS extends FileBlock {
      *
      * @throws StorageException When the block is in a bad state
      */
-    public void releaseShared() throws StorageException {
-        while (true) {
-            int current = state.get();
-            if (current <= BLOCK_STATE_EXCLUSIVE_USE)
-                throw new StorageException("Bad block state: " + stateName(current) + ", expected SHARED_USE");
-            else if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_READY))
-                return;
-            else if (current > BLOCK_STATE_SHARED_USE && state.compareAndSet(current, current - 1))
-                return;
-        }
-    }
-
-    /**
-     * Attempt to get an exclusive use of this block
-     *
-     * @throws StorageException When the block is in a bad state
-     */
-    public void useExclusive() throws StorageException {
+    public void release() throws StorageException {
         while (true) {
             int current = state.get();
             if (current <= BLOCK_STATE_READY)
-                throw new StorageException("Bad block state: " + stateName(current) + ", expected SHARED_USE");
-            if (current == BLOCK_STATE_SHARED_USE && state.compareAndSet(BLOCK_STATE_SHARED_USE, BLOCK_STATE_EXCLUSIVE_USE))
+                throw new StorageException("Bad block state: " + stateName(current) + ", expected IN_USE");
+            else if (current == BLOCK_STATE_IN_USE && state.compareAndSet(BLOCK_STATE_IN_USE, BLOCK_STATE_READY))
+                return;
+            else if (current > BLOCK_STATE_IN_USE && state.compareAndSet(current, current - 1))
                 return;
         }
     }
 
     /**
-     * Releases the exclusive use of this block
+     * Tries to reclaims this block for another location
      *
-     * @throws StorageException When the block is in a bad state
-     */
-    public void releaseExclusive() throws StorageException {
-        int current = state.get();
-        if (!state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_SHARED_USE))
-            throw new StorageException("Bad block state: " + stateName(current) + ", expected EXCLUSIVE_USE");
-    }
-
-    /**
-     * Reclaims this block
-     * Commits any outstanding changes to the backing file
-     *
+     * @param location The location for the block
      * @param channel  The originating file channel
-     * @param location The expected location for this block
+     * @param fileSize The current size of the file
      * @param time     The current time
      * @return Whether the block was reclaimed
      * @throws StorageException When an IO error occurs
      */
-    public boolean reclaim(FileChannel channel, long location, long time) throws StorageException {
-        if (doFlush(channel, location, time)) {
-            this.location = -1;
-            return state.compareAndSet(BLOCK_STATE_EXCLUSIVE_USE, BLOCK_STATE_FREE);
-        }
-        return false;
+    public boolean reclaim(long location, FileChannel channel, long fileSize, long time) throws StorageException {
+        if (!state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_RECLAIMING))
+            return false;
+        if (isDirty)
+            flush(channel);
+        doSetup(location, channel, fileSize, time);
+        state.compareAndSet(BLOCK_STATE_RECLAIMING, BLOCK_STATE_READY);
+        return true;
     }
 
     /**
      * Flushes any outstanding changes to the backend file
      *
      * @param channel The originating file channel
-     * @param time    The current time
      * @throws StorageException When an IO error occurs
      */
-    public void flush(FileChannel channel, long time) throws StorageException {
-        if (doFlush(channel, location, time)) {
-            releaseExclusive();
-            releaseShared();
-        }
-    }
-
-    /**
-     * Gets an exclusive use of this block, flushes any outstanding changes to the backend file
-     * This method does not release the exclusive use
-     *
-     * @param channel  The originating file channel
-     * @param location The expected location for this block
-     * @param time     The current time
-     * @return Whether the operation succeeded
-     * @throws StorageException When an IO error occurs
-     */
-    private boolean doFlush(FileChannel channel, long location, long time) throws StorageException {
-        if (!useShared(location, time))
-            // reclaimed for another location
-            return false;
+    public void flush(FileChannel channel) throws StorageException {
         try {
-            useExclusive();
             serialize(channel);
-            return true;
         } catch (IOException exception) {
-            releaseExclusive();
-            releaseShared();
             throw new StorageException(exception, "Failed to write block at 0x" + Long.toHexString(location));
         }
     }
 
     @Override
     public void close() throws StorageException {
-        releaseShared();
+        release();
     }
 }
