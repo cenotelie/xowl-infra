@@ -32,10 +32,6 @@ class PersistedLong {
      * The entry in the store
      */
     private final long entry;
-    /**
-     * The cached value
-     */
-    private volatile long cache;
 
     /**
      * Initializes this persisted value from a stored one
@@ -47,22 +43,6 @@ class PersistedLong {
     public PersistedLong(FileStore store, long entry) throws StorageException {
         this.store = store;
         this.entry = entry;
-        try (IOAccess transaction = store.read(entry)) {
-            this.cache = transaction.readLong();
-        }
-    }
-
-    /**
-     * Initializes this persisted value
-     *
-     * @param store The backing store
-     * @param entry The entry in the store
-     * @param cache The initial value for the cache
-     */
-    private PersistedLong(FileStore store, long entry, long cache) {
-        this.store = store;
-        this.entry = entry;
-        this.cache = cache;
     }
 
     /**
@@ -78,16 +58,7 @@ class PersistedLong {
         try (IOAccess transaction = store.access(entry)) {
             transaction.writeLong(initValue);
         }
-        return new PersistedLong(store, entry, initValue);
-    }
-
-    /**
-     * Gets the value
-     *
-     * @return The value
-     */
-    public long get() {
-        return cache;
+        return new PersistedLong(store, entry);
     }
 
     /**
@@ -100,10 +71,9 @@ class PersistedLong {
         try (IOAccess transaction = store.access(entry)) {
             // the fact that this transaction is obtained, we have exclusive write on the containing block
             // in practice, this is a synchronized block because only one concurrent thread can be here
-            long result = cache;
-            cache++;
-            transaction.writeLong(cache);
-            return result;
+            long value = transaction.readLong();
+            transaction.reset().writeLong(value + 1);
+            return value;
         }
     }
 }
