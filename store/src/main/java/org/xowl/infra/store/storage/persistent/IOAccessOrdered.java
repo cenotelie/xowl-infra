@@ -28,11 +28,7 @@ abstract class IOAccessOrdered extends IOAccess {
     /**
      * The hazard pointer for the elements
      */
-    private static final IOAccessOrdered HAZARD = new IOAccessOrdered() {
-        @Override
-        protected void setupIOData(long location, long length, boolean writable) {
-        }
-    };
+    private static final IOAccessOrdered HAZARD = new IOAccessOrdered() {};
 
     /**
      * The next access element
