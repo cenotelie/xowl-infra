@@ -171,9 +171,28 @@ class PersistedMapStage1 {
         // buffer of stage 2 map heads
         long[] heads = new long[ENTRY_COUNT];
         int count = 0;
-
-        // iterate over all the stage 1 nodes
-        long currentNode = head;
+        // the node just after the head
+        long currentNode;
+        // access the head and clear it
+        try (IOAccess access = store.access(head)) {
+            // get all the data
+            currentNode = access.readLong();
+            for (int i = 0; i != ENTRY_COUNT; i++) {
+                long head2 = access.readLong();
+                if (head2 != FileStore.KEY_NULL) {
+                    if (count >= heads.length)
+                        heads = Arrays.copyOf(heads, heads.length + ENTRY_COUNT);
+                    heads[count++] = head2;
+                }
+            }
+            // clear the node
+            access.reset();
+            access.writeLong(FileStore.KEY_NULL);
+            for (int i = 0; i != ENTRY_COUNT; i++)
+                access.writeLong(FileStore.KEY_NULL);
+        }
+        // iterate over all the stage 1 nodes after the head
+        // these node will be de-allocated
         while (currentNode != FileStore.KEY_NULL) {
             long next;
             try (IOAccess access = store.read(currentNode)) {
