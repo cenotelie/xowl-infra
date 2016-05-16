@@ -234,7 +234,7 @@ class PersistedMapStage1 {
     /**
      * Iterator for stored stage 2 heads
      */
-    public static class Itr implements Iterator<Couple<Integer, Long>> {
+    private static class Itr implements Iterator<Couple<Integer, Long>> {
         /**
          * The containing store
          */

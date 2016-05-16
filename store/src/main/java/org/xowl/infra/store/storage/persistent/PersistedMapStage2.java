@@ -30,13 +30,23 @@ import java.util.Iterator;
  */
 class PersistedMapStage2 {
     /**
-     * The size of a node in stage 2
+     * The number of child entries in a B+ tree node
      */
-    private static final int NODE_SIZE = 16;
+    private static final int ENTRY_PER_NODE = 8;
     /**
-     * The size of a root stage 2 node
+     * The size of a children entry in a B+ tree node:
+     * int: key
+     * long: pointer to child
      */
-    public static final int ROOT_SIZE = NODE_SIZE;
+    private static final int CHILD_ENTRY_SIZE = 4 + 8;
+    /**
+     * The size of a B+ tree node in stage 2:
+     * long: next sibling
+     * char: number of entries
+     * char: entry flags for internal/external nodes
+     * entries[entryCount]: the children entries
+     */
+    private static final int NODE_SIZE = 8 + 2 + 2 + ENTRY_PER_NODE * CHILD_ENTRY_SIZE;
 
     /**
      * Initializes an empty stage 2 map
@@ -46,7 +56,7 @@ class PersistedMapStage2 {
      * @throws StorageException When an IO operation fails
      */
     public static long newMap(FileStore store) throws StorageException {
-        long entry = store.allocate(ROOT_SIZE);
+        long entry = store.allocate(NODE_SIZE);
         initNode(store, entry);
         return entry;
     }
@@ -60,7 +70,9 @@ class PersistedMapStage2 {
      */
     private static void initNode(FileStore store, long entry) throws StorageException {
         try (IOAccess access = store.access(entry)) {
-
+            access.writeLong(FileStore.KEY_NULL);
+            access.writeChar((char) 0);
+            access.writeChar((char) 0);
         }
     }
 
@@ -74,6 +86,28 @@ class PersistedMapStage2 {
      * @throws StorageException When an IO operation fails
      */
     public static long get(FileStore store, long head, int key) throws StorageException {
+        long currentNode = head;
+        while (currentNode != FileStore.KEY_NULL) {
+            try (IOAccess access = store.access(currentNode)) {
+                int entryCount = access.seek(8).readChar();
+                int entryFlags = access.readChar();
+                for (int i = 0; i != entryCount; i++) {
+                    // read entry data
+                    int entryKey = access.readInt();
+                    long entryPtr = access.readLong();
+                    // is this a key of interest
+                    if (entryKey == key && (entryFlags >>> i) != 0) {
+                        // hit on the key, this is external node => found the mapping
+                        return entryPtr;
+                    } else if (key <= entryKey) {
+                        // we must go down this node
+                        currentNode = entryPtr;
+                        break;
+                    }
+                }
+            }
+        }
+        // no node found
         return FileStore.KEY_NULL;
     }
 
