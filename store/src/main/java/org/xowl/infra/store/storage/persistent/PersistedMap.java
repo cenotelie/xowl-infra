@@ -4,12 +4,12 @@
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
@@ -17,8 +17,13 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import org.xowl.infra.utils.collections.SingleIterator;
+import org.xowl.infra.utils.collections.Adapter;
+import org.xowl.infra.utils.collections.AdaptingIterator;
+import org.xowl.infra.utils.collections.CombiningIterator;
+import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logger;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -115,9 +120,30 @@ class PersistedMap {
      * Gets an iterator over the entries in this map
      *
      * @return An iterator over the entries
+     * @throws StorageException When an IO operation fails
      */
-    public Iterator<Map.Entry<Long, Long>> entries() {
-        return new SingleIterator<>(null);
+    public Iterator<Map.Entry<Long, Long>> entries() throws StorageException {
+        Iterator<Couple<Integer, Long>> iteratorStage1 = PersistedMapStage1.iterator(store, mapHead);
+        return new AdaptingIterator<>(new CombiningIterator<>(iteratorStage1, new Adapter<Iterator<Couple<Integer, Long>>>() {
+            @Override
+            public <X> Iterator<Couple<Integer, Long>> adapt(X element) {
+                // gets the stage 2 iterator
+                Couple<Integer, Long> stage1Couple = (Couple<Integer, Long>) element;
+                try {
+                    return PersistedMapStage2.iterator(store, stage1Couple.y);
+                } catch (StorageException exception) {
+                    Logger.DEFAULT.error(exception);
+                    return null;
+                }
+            }
+        }), new Adapter<Map.Entry<Long, Long>>() {
+            @Override
+            public <X> Map.Entry<Long, Long> adapt(X element) {
+                Couple<Couple<Integer, Long>, Couple<Integer, Long>> couple = (Couple<Couple<Integer, Long>, Couple<Integer, Long>>) element;
+                // reconstruct the map entry key
+                return new HashMap.SimpleEntry<>(key(couple.x.x, couple.y.x), couple.y.y);
+            }
+        });
     }
 
     /**
@@ -138,5 +164,16 @@ class PersistedMap {
      */
     private static int key2(long key) {
         return (int) (key & 0xFFFFFFFFL);
+    }
+
+    /**
+     * Gets the full map key for stage 1 and 2 keys
+     *
+     * @param key1 The stage 1 key
+     * @param key2 The stage 2 key
+     * @return The full map key
+     */
+    private static long key(int key1, int key2) {
+        return (((long) key1) << 32) | ((long) key2);
     }
 }

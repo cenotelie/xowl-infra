@@ -17,8 +17,9 @@
 
 package org.xowl.infra.store.storage.persistent;
 
+import org.xowl.infra.utils.collections.Couple;
+
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Utility API for the first stage of a persisted map
@@ -118,11 +119,10 @@ class PersistedMapStage2 {
      *
      * @param store The containing store
      * @param head  The entry for the stage 2 root node
-     * @param key1  The associated stage 1 key
      * @return The iterator
      * @throws StorageException When an IO operation fails
      */
-    public static Iterator<Map.Entry<Long, Long>> iterator(FileStore store, long head, int key1) throws StorageException {
+    public static Iterator<Couple<Integer, Long>> iterator(FileStore store, long head) throws StorageException {
         return null;
     }
 }

@@ -466,8 +466,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param property A property to match, or null
      * @param object   An object node to match, or null
      * @return An iterator over the results
+     * @throws StorageException When an IO operation failed
      */
-    private Iterator<Quad> getAllDefault(final Property property, final Node object) {
+    private Iterator<Quad> getAllDefault(final Property property, final Node object) throws StorageException {
         return new AdaptingIterator<>(new CombiningIterator<>(getAllSubjects(), new Adapter<Iterator<MQuad>>() {
             @Override
             public <X> Iterator<MQuad> adapt(X element) {
@@ -679,13 +680,18 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     @Override
     public Collection<GraphNode> getGraphs() {
         Collection<GraphNode> result = new ArrayList<>();
-        Iterator<Map.Entry<Long, Long>> iterator = mapIndexGraphIRI.entries();
-        while (iterator.hasNext()) {
-            result.add(nodes.getIRINodeFor(iterator.next().getKey()));
-        }
-        iterator = mapIndexGraphBlank.entries();
-        while (iterator.hasNext()) {
-            result.add(nodes.getBlankNodeFor(iterator.next().getKey()));
+        try {
+
+            Iterator<Map.Entry<Long, Long>> iterator = mapIndexGraphIRI.entries();
+            while (iterator.hasNext()) {
+                result.add(nodes.getIRINodeFor(iterator.next().getKey()));
+            }
+            iterator = mapIndexGraphBlank.entries();
+            while (iterator.hasNext()) {
+                result.add(nodes.getBlankNodeFor(iterator.next().getKey()));
+            }
+        } catch (StorageException exception) {
+            Logger.DEFAULT.error(exception);
         }
         return result;
     }
@@ -2782,7 +2788,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * @param node    The node quad node to resolve
      * @param resolve Whether to create the entry if it does not exist
      * @return The key to the resolved quad node
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
     private long lookupQNode(long from, PersistedNode node, boolean resolve) throws StorageException {
         bufferQNPrevious = from;
@@ -2826,7 +2832,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      *
      * @param node A quad node
      * @return The key to the entry
-     * @throws StorageException When the page version does not match the expected one
+     * @throws StorageException When an IO operation failed
      */
     private long newEntry(PersistedNode node) throws StorageException {
         long key = store.allocate(QUAD_ENTRY_SIZE);
@@ -2865,8 +2871,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      * Gets an iterator over all the subjects
      *
      * @return The iterator
+     * @throws StorageException When an IO operation failed
      */
-    private Iterator<Long> getAllSubjects() {
+    private Iterator<Long> getAllSubjects() throws StorageException {
         return new ConcatenatedIterator<>(new Iterator[]{
                 getSubjectIterator(mapSubjectIRI),
                 getSubjectIterator(mapSubjectBlank),
@@ -2879,8 +2886,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
      *
      * @param map The indexing map
      * @return The iterator
+     * @throws StorageException When an IO operation failed
      */
-    private Iterator<Long> getSubjectIterator(PersistedMap map) {
+    private Iterator<Long> getSubjectIterator(PersistedMap map) throws StorageException {
         return new AdaptingIterator<>(map.entries(), new Adapter<Long>() {
             @Override
             public <X> Long adapt(X element) {

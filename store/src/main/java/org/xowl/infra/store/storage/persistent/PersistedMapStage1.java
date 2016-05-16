@@ -17,7 +17,11 @@
 
 package org.xowl.infra.store.storage.persistent;
 
+import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logger;
+
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
@@ -223,20 +227,20 @@ class PersistedMapStage1 {
      * @return The iterator
      * @throws StorageException When an IO operation fails
      */
-    public static Itr iterator(FileStore store, long head) throws StorageException {
+    public static Iterator<Couple<Integer, Long>> iterator(FileStore store, long head) throws StorageException {
         return new Itr(store, head);
     }
 
     /**
      * Iterator for stored stage 2 heads
      */
-    public static class Itr {
+    public static class Itr implements Iterator<Couple<Integer, Long>> {
         /**
          * The containing store
          */
         private final FileStore store;
         /**
-         * The current stage 1 node
+         * The current stage 1 node for this iterator
          */
         private long currentNode;
         /**
@@ -244,9 +248,13 @@ class PersistedMapStage1 {
          */
         private int currentOffset;
         /**
-         * The next value
+         * The current stage 1 key
          */
-        private long nextValue;
+        private int currentKey;
+        /**
+         * The next result
+         */
+        private Couple<Integer, Long> nextResult;
 
         /**
          * Initializes this iterator
@@ -259,25 +267,29 @@ class PersistedMapStage1 {
             this.store = store;
             this.currentNode = head;
             this.currentOffset = -1;
-            this.nextValue = findNext();
+            this.currentKey = -1;
+            this.nextResult = findNext();
         }
 
         /**
-         * Finds the next value for this iterator
+         * Finds the next item for this iterator
          *
-         * @return The next value
-         * @throws StorageException
+         * @return The next item
+         * @throws StorageException When an IO operation failed
          */
-        private long findNext() throws StorageException {
+        private Couple<Integer, Long> findNext() throws StorageException {
+            // go to next
             currentOffset++;
+            currentKey++;
             while (true) {
-                if (currentOffset >= ENTRY_COUNT) {
+                if (currentOffset == ENTRY_COUNT) {
                     // we should go to the next node
                     try (IOAccess access = store.read(currentNode)) {
                         long next = access.readLong();
-                        if (next == FileStore.KEY_NULL)
+                        if (next == FileStore.KEY_NULL) {
                             // no next node
-                            return FileStore.KEY_NULL;
+                            return null;
+                        }
                         // go to next
                         currentNode = next;
                         currentOffset = 0;
@@ -289,41 +301,42 @@ class PersistedMapStage1 {
                     // seek to the current offset
                     access.seek(8 + currentOffset * 8);
                     // read the registered heads
-                    for (int i = currentOffset; i != ENTRY_COUNT; i++) {
+                    while (currentOffset < ENTRY_COUNT) {
                         long result = access.readLong();
                         if (result != FileStore.KEY_NULL) {
                             // found the next value!
-                            currentOffset = i;
-                            return result;
+                            return new Couple<>(currentKey, result);
                         }
+                        currentOffset++;
+                        currentKey++;
                     }
-                    // no heads found, got ot next node
-                    currentOffset = ENTRY_COUNT;
+                    // no heads found, got to next node
                 }
             }
         }
 
-        /**
-         * Gets whether there is a next stage 2 head
-         *
-         * @return Whether there is a next stage 2 head
-         */
+        @Override
         public boolean hasNext() {
-            return (nextValue != FileStore.KEY_NULL);
+            return (nextResult != null);
         }
 
-        /**
-         * Gets the next stage 2 head
-         *
-         * @return The next stage 2 head
-         * @throws StorageException When an IO operation fails
-         */
-        public long next() throws StorageException {
-            if (nextValue == FileStore.KEY_NULL)
+        @Override
+        public Couple<Integer, Long> next() {
+            if (nextResult == null)
                 throw new NoSuchElementException();
-            long result = nextValue;
-            nextValue = findNext();
+            Couple<Integer, Long> result = nextResult;
+            try {
+                nextResult = findNext();
+            } catch (StorageException exception) {
+                Logger.DEFAULT.error(exception);
+                nextResult = null;
+            }
             return result;
+        }
+
+        @Override
+        public void remove() {
+            // do nothing here
         }
     }
 }
