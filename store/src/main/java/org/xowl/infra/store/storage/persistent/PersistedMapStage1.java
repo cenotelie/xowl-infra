@@ -66,7 +66,7 @@ class PersistedMapStage1 {
      * @throws StorageException When an IO operation fails
      */
     private static void initNode(FileStore store, long entry) throws StorageException {
-        try (IOAccess access = store.access(entry)) {
+        try (IOAccess access = store.accessW(entry)) {
             access.writeLong(FileStore.KEY_NULL);
             for (int i = 0; i != ENTRY_COUNT; i++)
                 access.writeLong(FileStore.KEY_NULL);
@@ -118,7 +118,7 @@ class PersistedMapStage1 {
             // the offset indicates that the key is not in this node
             // find the next node
             long next;
-            try (IOAccess access = store.read(currentNode)) {
+            try (IOAccess access = store.accessR(currentNode)) {
                 next = access.readLong();
             }
             if (next == FileStore.KEY_NULL) {
@@ -127,7 +127,7 @@ class PersistedMapStage1 {
                     // this is only a lookup, report not found
                     return FileStore.KEY_NULL;
                 // allocate the next node
-                try (IOAccess access = store.access(currentNode)) {
+                try (IOAccess access = store.accessW(currentNode)) {
                     next = access.readLong();
                     if (next == FileStore.KEY_NULL) {
                         // still empty
@@ -143,7 +143,7 @@ class PersistedMapStage1 {
         // the current node is the one containing the key
         // find the result
         long result;
-        try (IOAccess access = store.read(currentNode)) {
+        try (IOAccess access = store.accessR(currentNode)) {
             result = access.seek(8 + offset * 8).readLong();
         }
         if (result == FileStore.KEY_NULL) {
@@ -152,7 +152,7 @@ class PersistedMapStage1 {
                 // this is only a lookup, report not found
                 return FileStore.KEY_NULL;
             // we must allocate it
-            try (IOAccess access = store.access(currentNode)) {
+            try (IOAccess access = store.accessW(currentNode)) {
                 result = access.seek(8 + offset * 8).readLong();
                 if (result == FileStore.KEY_NULL) {
                     // still empty
@@ -178,7 +178,7 @@ class PersistedMapStage1 {
         // the node just after the head
         long currentNode;
         // access the head and clear it
-        try (IOAccess access = store.access(head)) {
+        try (IOAccess access = store.accessW(head)) {
             // get all the data
             currentNode = access.readLong();
             for (int i = 0; i != ENTRY_COUNT; i++) {
@@ -199,7 +199,7 @@ class PersistedMapStage1 {
         // these node will be de-allocated
         while (currentNode != FileStore.KEY_NULL) {
             long next;
-            try (IOAccess access = store.read(currentNode)) {
+            try (IOAccess access = store.accessR(currentNode)) {
                 next = access.readLong();
                 for (int i = 0; i != ENTRY_COUNT; i++) {
                     long head2 = access.readLong();
@@ -284,7 +284,7 @@ class PersistedMapStage1 {
             while (true) {
                 if (currentOffset == ENTRY_COUNT) {
                     // we should go to the next node
-                    try (IOAccess access = store.read(currentNode)) {
+                    try (IOAccess access = store.accessR(currentNode)) {
                         long next = access.readLong();
                         if (next == FileStore.KEY_NULL) {
                             // no next node
@@ -297,7 +297,7 @@ class PersistedMapStage1 {
                     continue;
                 }
                 // read the current node
-                try (IOAccess access = store.read(currentNode)) {
+                try (IOAccess access = store.accessR(currentNode)) {
                     // seek to the current offset
                     access.seek(8 + currentOffset * 8);
                     // read the registered heads

@@ -148,7 +148,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @throws StorageException When an IO operation failed
      */
     public String retrieveString(long key) throws StorageException {
-        try (IOAccess element = store.read(key)) {
+        try (IOAccess element = store.accessR(key)) {
             int length = element.seek(16).readInt();
             byte[] data = element.readBytes(length);
             return new String(data, charset);
@@ -163,7 +163,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @throws StorageException When an IO operation failed
      */
     void onRefCountString(long key, int modifier) throws StorageException {
-        try (IOAccess element = store.access(key)) {
+        try (IOAccess element = store.accessW(key)) {
             long counter = element.seek(8).readLong();
             counter += modifier;
             element.seek(8).writeLong(counter);
@@ -182,7 +182,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         byte[] buffer = data.getBytes(charset);
         long candidate = bucket;
         while (candidate != FileStore.KEY_NULL) {
-            try (IOAccess entry = store.read(candidate)) {
+            try (IOAccess entry = store.accessR(candidate)) {
                 long next = entry.readLong();
                 long count = entry.readLong();
                 int size = entry.readInt();
@@ -210,7 +210,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         long previous = FileStore.KEY_NULL;
         long candidate = bucket;
         while (candidate != FileStore.KEY_NULL) {
-            try (IOAccess entry = store.read(candidate)) {
+            try (IOAccess entry = store.accessR(candidate)) {
                 long next = entry.readLong();
                 int size = entry.seek(16).readInt();
                 if (size == buffer.length) {
@@ -223,14 +223,14 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             }
         }
         long result = store.allocateDirect(buffer.length + ENTRY_STRING_OVERHEAD);
-        try (IOAccess entry = store.access(result)) {
+        try (IOAccess entry = store.accessW(result)) {
             entry.writeLong(FileStore.KEY_NULL);
             entry.writeLong(0);
             entry.writeInt(buffer.length);
             entry.writeBytes(buffer);
         }
         if (previous != FileStore.KEY_NULL) {
-            try (IOAccess previousEntry = store.access(previous)) {
+            try (IOAccess previousEntry = store.accessW(previous)) {
                 previousEntry.writeLong(result);
             }
         }
@@ -272,7 +272,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         long keyLexical;
         long keyDatatype;
         long keyLangTag;
-        try (IOAccess entry = store.read(key)) {
+        try (IOAccess entry = store.accessR(key)) {
             entry.seek(16);
             keyLexical = entry.readLong();
             keyDatatype = entry.readLong();
@@ -293,7 +293,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @throws StorageException When an IO operation failed
      */
     void onRefCountLiteral(long key, int modifier) throws StorageException {
-        try (IOAccess element = store.access(key)) {
+        try (IOAccess element = store.accessW(key)) {
             long counter = element.seek(8).readLong();
             counter += modifier;
             element.seek(8).writeLong(counter);
@@ -328,7 +328,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             if (!doInsert)
                 return FileStore.KEY_NULL;
             long result = store.allocate(ENTRY_LITERAL_SIZE);
-            try (IOAccess entry = store.access(result)) {
+            try (IOAccess entry = store.accessW(result)) {
                 entry.writeLong(FileStore.KEY_NULL);
                 entry.writeLong(0);
                 entry.writeLong(keyLexical);
@@ -341,7 +341,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             long previous = FileStore.KEY_NULL;
             long candidate = bucket;
             while (candidate != FileStore.KEY_NULL) {
-                try (IOAccess entry = store.access(candidate)) {
+                try (IOAccess entry = store.accessW(candidate)) {
                     long next = entry.readLong();
                     long count = entry.readLong();
                     entry.seek(24);
@@ -357,10 +357,10 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             if (!doInsert)
                 return FileStore.KEY_NULL;
             long result = store.allocate(ENTRY_LITERAL_SIZE);
-            try (IOAccess entry = store.access(previous)) {
+            try (IOAccess entry = store.accessW(previous)) {
                 entry.writeLong(result);
             }
-            try (IOAccess entry = store.access(result)) {
+            try (IOAccess entry = store.accessW(result)) {
                 entry.writeLong(FileStore.KEY_NULL);
                 entry.writeLong(0);
                 entry.writeLong(keyLexical);

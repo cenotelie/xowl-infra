@@ -55,7 +55,7 @@ class PersistedLong {
      */
     public static PersistedLong create(FileStore store, long initValue) throws StorageException {
         long entry = store.allocate(8);
-        try (IOAccess transaction = store.access(entry)) {
+        try (IOAccess transaction = store.accessW(entry)) {
             transaction.writeLong(initValue);
         }
         return new PersistedLong(store, entry);
@@ -68,7 +68,7 @@ class PersistedLong {
      * @throws StorageException When the backend cannot be written
      */
     public long getAndIncrement() throws StorageException {
-        try (IOAccess transaction = store.access(entry)) {
+        try (IOAccess transaction = store.accessW(entry)) {
             // the fact that this transaction is obtained, we have exclusive write on the containing block
             // in practice, this is a synchronized block because only one concurrent thread can be here
             long value = transaction.readLong();
