@@ -74,7 +74,7 @@ class RemoteStore extends BaseStore {
     }
 
     @Override
-    public long getMultiplicity(Quad quad) {
+    public long getMultiplicity(Quad quad) throws UnsupportedNodeType {
         return dataset.getMultiplicity(quad);
     }
 
@@ -89,12 +89,12 @@ class RemoteStore extends BaseStore {
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph) {
+    public Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
         return dataset.getAll(graph);
     }
 
     @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return dataset.getAll(subject, property, object);
     }
 
@@ -114,12 +114,12 @@ class RemoteStore extends BaseStore {
     }
 
     @Override
-    public long count(GraphNode graph) {
+    public long count(GraphNode graph) throws UnsupportedNodeType {
         return dataset.count(graph);
     }
 
     @Override
-    public long count(SubjectNode subject, Property property, Node object) {
+    public long count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return dataset.count(subject, property, object);
     }
 
@@ -172,21 +172,21 @@ class RemoteStore extends BaseStore {
     }
 
     @Override
-    public void clear(GraphNode graph) {
+    public void clear(GraphNode graph) throws UnsupportedNodeType {
         if (isReadonly)
             throw new IllegalStateException("Read-only");
         dataset.clear(graph);
     }
 
     @Override
-    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+    public void copy(GraphNode origin, GraphNode target, boolean overwrite) throws UnsupportedNodeType {
         if (isReadonly)
             throw new IllegalStateException("Read-only");
         dataset.copy(origin, target, overwrite);
     }
 
     @Override
-    public void move(GraphNode origin, GraphNode target) {
+    public void move(GraphNode origin, GraphNode target) throws UnsupportedNodeType {
         if (isReadonly)
             throw new IllegalStateException("Read-only");
         dataset.move(origin, target);

@@ -88,9 +88,14 @@ class DiffDataset extends DatasetImpl {
                 @Override
                 public <X> Quad adapt(X element) {
                     MQuad quad = (MQuad) element;
-                    long mn = diffNegatives.getMultiplicity(quad);
-                    long mp = diffPositives == null ? 0 : diffPositives.getMultiplicity(quad);
-                    return (quad.modifyMultiplicity(mp - mn) <= 0) ? null : quad;
+                    try {
+                        long mn = diffNegatives.getMultiplicity(quad);
+                        long mp = diffPositives == null ? 0 : diffPositives.getMultiplicity(quad);
+                        return (quad.modifyMultiplicity(mp - mn) <= 0) ? null : quad;
+                    } catch (UnsupportedNodeType exception) {
+                        Logger.DEFAULT.error(exception);
+                        return quad;
+                    }
                 }
             }));
         }
@@ -99,8 +104,13 @@ class DiffDataset extends DatasetImpl {
                 @Override
                 public <X> Quad adapt(X element) {
                     MQuad quad = (MQuad) element;
-                    long m = original.getMultiplicity(quad);
-                    return (m > 0) ? null : quad;
+                    try {
+                        long m = original.getMultiplicity(quad);
+                        return (m > 0) ? null : quad;
+                    } catch (UnsupportedNodeType exception) {
+                        Logger.DEFAULT.error(exception);
+                        return quad;
+                    }
                 }
             }));
             result = new ConcatenatedIterator<>(new Iterator[]{
@@ -185,7 +195,7 @@ class DiffDataset extends DatasetImpl {
     }
 
     @Override
-    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         long result = original.getMultiplicity(graph, subject, property, object);
         if (diffPositives != null)
             result += diffPositives.getMultiplicity(graph, subject, property, object);
@@ -195,7 +205,7 @@ class DiffDataset extends DatasetImpl {
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return combine(
                 original.getAll(graph, subject, property, object),
                 diffPositives == null ? null : diffPositives.getAll(graph, subject, property, object)
@@ -213,7 +223,7 @@ class DiffDataset extends DatasetImpl {
     }
 
     @Override
-    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         Iterator<Quad> iterator = getAll(graph, subject, property, object);
         long result = 0;
         while (iterator.hasNext()) {
@@ -288,24 +298,24 @@ class DiffDataset extends DatasetImpl {
 
     @Override
     public void doClear(List<MQuad> buffer) {
-        int originalSize = buffer.size();
-        Iterator<Quad> iterator = getAll(null, null, null, null);
-        while (iterator.hasNext()) {
-            buffer.add((MQuad) iterator.next());
-        }
-        for (int i = originalSize; i != buffer.size(); i++) {
-            MQuad quad = buffer.get(i);
-            try {
+        try {
+            int originalSize = buffer.size();
+            Iterator<Quad> iterator = getAll(null, null, null, null);
+            while (iterator.hasNext()) {
+                buffer.add((MQuad) iterator.next());
+            }
+            for (int i = originalSize; i != buffer.size(); i++) {
+                MQuad quad = buffer.get(i);
                 for (int j = 0; j < quad.getMultiplicity(); j++)
                     doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            } catch (UnsupportedNodeType exception) {
-                // cannot happen
             }
+        } catch (UnsupportedNodeType exception) {
+            // cannot happen
         }
     }
 
     @Override
-    public void doClear(GraphNode graph, List<MQuad> buffer) {
+    public void doClear(GraphNode graph, List<MQuad> buffer) throws UnsupportedNodeType {
         int originalSize = buffer.size();
         Iterator<Quad> iterator = getAll(graph, null, null, null);
         while (iterator.hasNext()) {
@@ -313,12 +323,8 @@ class DiffDataset extends DatasetImpl {
         }
         for (int i = originalSize; i != buffer.size(); i++) {
             MQuad quad = buffer.get(i);
-            try {
-                for (int j = 0; j < quad.getMultiplicity(); j++)
-                    doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-            } catch (UnsupportedNodeType exception) {
-                // cannot happen
-            }
+            for (int j = 0; j < quad.getMultiplicity(); j++)
+                doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
         }
     }
 

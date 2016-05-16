@@ -19,6 +19,8 @@ package org.xowl.infra.store.rdf;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.Dataset;
+import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.util.Iterator;
 
@@ -93,8 +95,13 @@ public class ListIterator implements Iterator<Node> {
      * @return The associated value
      */
     private Node getValue(SubjectNode node, Property property) {
-        Iterator<Quad> iterator = dataset.getAll(node, property, null);
-        return iterator.hasNext() ? iterator.next().getObject() : null;
+        try {
+            Iterator<Quad> iterator = dataset.getAll(node, property, null);
+            return iterator.hasNext() ? iterator.next().getObject() : null;
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+            return null;
+        }
     }
 
     @Override

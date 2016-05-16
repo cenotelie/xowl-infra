@@ -39,8 +39,12 @@ public class BaseDatasetTest {
                 store.getIRINode("http://xowl.org/tests/p"),
                 store.getIRINode("http://xowl.org/tests/y")
         );
-        long result = store.getMultiplicity(quad);
-        Assert.assertEquals(0, result);
+        try {
+            long result = store.getMultiplicity(quad);
+            Assert.assertEquals(0, result);
+        } catch (UnsupportedNodeType exception) {
+            Assert.fail(exception.getMessage());
+        }
     }
 
     /**

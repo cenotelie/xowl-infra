@@ -193,17 +193,21 @@ class OnDiskStoreCache extends DatasetImpl {
         if (result != null) {
             commit();
             // drop the quads for the old subject
-            Iterator<Quad> iterator = cache.getAll((SubjectNode) result, null, null);
-            while (iterator.hasNext()) {
-                Quad quad = iterator.next();
-                if (!cachedGraphs.contains(quad.getGraph())) {
-                    iterator.remove();
-                    size--;
+            try {
+                Iterator<Quad> iterator = cache.getAll((SubjectNode) result, null, null);
+                while (iterator.hasNext()) {
+                    Quad quad = iterator.next();
+                    if (!cachedGraphs.contains(quad.getGraph())) {
+                        iterator.remove();
+                        size--;
+                    }
                 }
+            } catch (UnsupportedNodeType exception) {
+                // cannot happen
             }
         }
-        Iterator<MQuad> iterator = (Iterator) persisted.getAll(subject, null, null);
         try {
+            Iterator<MQuad> iterator = (Iterator) persisted.getAll(subject, null, null);
             while (iterator.hasNext()) {
                 MQuad quad = iterator.next();
                 if (!cachedGraphs.contains(quad.getGraph())) {
@@ -232,17 +236,21 @@ class OnDiskStoreCache extends DatasetImpl {
         if (result != null) {
             commit();
             // drop the quads for the old graph
-            Iterator<Quad> iterator = cache.getAll((GraphNode) result);
-            while (iterator.hasNext()) {
-                Quad quad = iterator.next();
-                if (!cachedSubjects.contains(quad.getSubject())) {
-                    iterator.remove();
-                    size--;
+            try {
+                Iterator<Quad> iterator = cache.getAll((GraphNode) result);
+                while (iterator.hasNext()) {
+                    Quad quad = iterator.next();
+                    if (!cachedSubjects.contains(quad.getSubject())) {
+                        iterator.remove();
+                        size--;
+                    }
                 }
+            } catch (UnsupportedNodeType exception) {
+                // cannot happen
             }
         }
-        Iterator<MQuad> iterator = (Iterator) persisted.getAll(graph);
         try {
+            Iterator<MQuad> iterator = (Iterator) persisted.getAll(graph);
             while (iterator.hasNext()) {
                 MQuad quad = iterator.next();
                 if (!cachedSubjects.contains(quad.getSubject())) {
@@ -338,7 +346,7 @@ class OnDiskStoreCache extends DatasetImpl {
     }
 
     @Override
-    public void doClear(GraphNode graph, List<MQuad> buffer) {
+    public void doClear(GraphNode graph, List<MQuad> buffer) throws UnsupportedNodeType {
         ensureInCache(graph);
         int originalSize = buffer.size();
         diff.doClear(graph, buffer);
@@ -366,13 +374,13 @@ class OnDiskStoreCache extends DatasetImpl {
     }
 
     @Override
-    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         ensureInCache(subject);
         return diff.getMultiplicity(graph, subject, property, object);
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE) {
             ensureInCache(subject);
             return diff.getAll(graph, subject, property, object);
@@ -396,7 +404,7 @@ class OnDiskStoreCache extends DatasetImpl {
     }
 
     @Override
-    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE) {
             ensureInCache(subject);
             return diff.count(graph, subject, property, object);

@@ -32,6 +32,7 @@ import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.writers.OWLSerializer;
 import org.xowl.infra.store.writers.RDFSerializer;
+import org.xowl.infra.utils.collections.SingleIterator;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.collections.Adapter;
 import org.xowl.infra.utils.collections.AdaptingIterator;
@@ -344,20 +345,25 @@ public class Repository extends AbstractRepository {
      * @return An iterator over the proxy objects
      */
     public Iterator<ProxyObject> getProxiesIn(final Ontology ontology) {
-        Iterator<Quad> quads = backend.getAll(getGraph(ontology));
-        final HashSet<SubjectNode> known = new HashSet<>();
-        return new SkippableIterator<>(new AdaptingIterator<>(quads, new Adapter<ProxyObject>() {
-            @Override
-            public <X> ProxyObject adapt(X element) {
-                SubjectNode subject = ((Quad) element).getSubject();
-                if (subject.getNodeType() != Node.TYPE_IRI && subject.getNodeType() != Node.TYPE_BLANK)
-                    return null;
-                if (known.contains(subject))
-                    return null;
-                known.add(subject);
-                return resolveProxy(ontology, subject);
-            }
-        }));
+        try {
+            Iterator<Quad> quads = backend.getAll(getGraph(ontology));
+            final HashSet<SubjectNode> known = new HashSet<>();
+            return new SkippableIterator<>(new AdaptingIterator<>(quads, new Adapter<ProxyObject>() {
+                @Override
+                public <X> ProxyObject adapt(X element) {
+                    SubjectNode subject = ((Quad) element).getSubject();
+                    if (subject.getNodeType() != Node.TYPE_IRI && subject.getNodeType() != Node.TYPE_BLANK)
+                        return null;
+                    if (known.contains(subject))
+                        return null;
+                    known.add(subject);
+                    return resolveProxy(ontology, subject);
+                }
+            }));
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+            return new SingleIterator<>(null);
+        }
     }
 
     /**
@@ -517,7 +523,11 @@ public class Repository extends AbstractRepository {
 
     @Override
     protected void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output) {
-        output.serialize(logger, backend.getAll(getGraph(ontology)));
+        try {
+            output.serialize(logger, backend.getAll(getGraph(ontology)));
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+        }
     }
 
     @Override

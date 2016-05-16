@@ -19,6 +19,7 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,7 +72,11 @@ public class CommandCopy implements Command {
                 if (!origin.equals(target)) {
                     boolean overwrite = !overwritten.contains(target);
                     GraphNode graphTarget = repository.getStore().getIRINode(target);
-                    repository.getStore().copy(graphOrigin, graphTarget, overwrite);
+                    try {
+                        repository.getStore().copy(graphOrigin, graphTarget, overwrite);
+                    } catch (UnsupportedNodeType exception) {
+                        return new ResultFailure(exception.getMessage());
+                    }
                     if (overwrite)
                         overwritten.add(target);
                 }

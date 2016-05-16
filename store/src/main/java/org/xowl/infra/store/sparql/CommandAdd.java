@@ -19,6 +19,7 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.Collection;
 
@@ -65,7 +66,11 @@ public class CommandAdd implements Command {
             for (String target : targets) {
                 if (!origin.equals(target)) {
                     GraphNode graphTarget = repository.getStore().getIRINode(target);
-                    repository.getStore().copy(graphOrigin, graphTarget, false);
+                    try {
+                        repository.getStore().copy(graphOrigin, graphTarget, false);
+                    } catch (UnsupportedNodeType exception) {
+                        return new ResultFailure(exception.getMessage());
+                    }
                 }
             }
         }

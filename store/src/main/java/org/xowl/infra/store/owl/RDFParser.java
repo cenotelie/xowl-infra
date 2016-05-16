@@ -27,6 +27,7 @@ import org.xowl.infra.store.rete.TokenActivable;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.util.*;
 
@@ -112,9 +113,13 @@ public class RDFParser {
         this.store = store;
         this.graphNode = graph;
         Collection<Quad> quads = new ArrayList<>();
-        Iterator<Quad> iterator = store.getAll(graph);
-        while (iterator.hasNext())
-            quads.add(iterator.next());
+        try {
+            Iterator<Quad> iterator = store.getAll(graph);
+            while (iterator.hasNext())
+                quads.add(iterator.next());
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+        }
         execute(quads);
         return axioms;
     }
@@ -449,9 +454,13 @@ public class RDFParser {
      */
     private List<Node> getValues(SubjectNode subject, String property) {
         List<Node> results = new ArrayList<>();
-        Iterator<Quad> iterator = store.getAll(subject, store.getIRINode(property), null);
-        while (iterator.hasNext()) {
-            results.add(iterator.next().getObject());
+        try {
+            Iterator<Quad> iterator = store.getAll(subject, store.getIRINode(property), null);
+            while (iterator.hasNext()) {
+                results.add(iterator.next().getObject());
+            }
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
         }
         return results;
     }
@@ -463,10 +472,15 @@ public class RDFParser {
      * @return The first triple
      */
     private Quad getTriple(SubjectNode subject) {
-        Iterator<Quad> iterator = store.getAll(subject, null, null);
-        if (!iterator.hasNext())
+        try {
+            Iterator<Quad> iterator = store.getAll(subject, null, null);
+            if (!iterator.hasNext())
+                return null;
+            return iterator.next();
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
             return null;
-        return iterator.next();
+        }
     }
 
     /**

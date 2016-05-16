@@ -22,6 +22,7 @@ import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.IRINode;
 import org.xowl.infra.store.rdf.Node;
+import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.Collection;
 
@@ -66,29 +67,33 @@ public class CommandDrop implements Command {
 
     @Override
     public Result execute(Repository repository) {
-        switch (type) {
-            case Single:
-                for (String target : targets)
-                    repository.getStore().clear(repository.getStore().getIRINode(target));
-                repository.getStore().commit();
-                break;
-            case Named:
-                Collection<GraphNode> targets = repository.getStore().getGraphs();
-                for (GraphNode target : targets) {
-                    if (target.getNodeType() == Node.TYPE_IRI && !IRIs.GRAPH_DEFAULT.equals(((IRINode) target).getIRIValue()))
-                        repository.getStore().clear(target);
-                }
-                repository.getStore().commit();
-                break;
-            case Default:
-                repository.getStore().clear(repository.getStore().getIRINode(IRIs.GRAPH_DEFAULT));
-                repository.getStore().commit();
-                break;
-            case All:
-                repository.getStore().clear();
-                repository.getStore().commit();
-                break;
+        try {
+            switch (type) {
+                case Single:
+                    for (String target : targets)
+                        repository.getStore().clear(repository.getStore().getIRINode(target));
+                    repository.getStore().commit();
+                    break;
+                case Named:
+                    Collection<GraphNode> targets = repository.getStore().getGraphs();
+                    for (GraphNode target : targets) {
+                        if (target.getNodeType() == Node.TYPE_IRI && !IRIs.GRAPH_DEFAULT.equals(((IRINode) target).getIRIValue()))
+                            repository.getStore().clear(target);
+                    }
+                    repository.getStore().commit();
+                    break;
+                case Default:
+                    repository.getStore().clear(repository.getStore().getIRINode(IRIs.GRAPH_DEFAULT));
+                    repository.getStore().commit();
+                    break;
+                case All:
+                    repository.getStore().clear();
+                    repository.getStore().commit();
+                    break;
+            }
+            return ResultSuccess.INSTANCE;
+        } catch (UnsupportedNodeType exception) {
+            return new ResultFailure(exception.getMessage());
         }
-        return ResultSuccess.INSTANCE;
     }
 }

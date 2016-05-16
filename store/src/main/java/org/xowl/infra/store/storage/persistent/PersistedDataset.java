@@ -1855,7 +1855,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     }
 
     @Override
-    public void doClear(List<MQuad> buffer) throws UnsupportedNodeType {
+    public void doClear(List<MQuad> buffer) {
         try {
             Iterator<Map.Entry<Long, Long>> iterator = mapSubjectIRI.entries();
             while (iterator.hasNext())

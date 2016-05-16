@@ -100,14 +100,14 @@ class BaseReasonableStore extends BaseStore {
     }
 
     @Override
-    public long getMultiplicity(Quad quad) {
+    public long getMultiplicity(Quad quad) throws UnsupportedNodeType {
         if (RDFUtils.same(graphInference, quad.getGraph()) || RDFUtils.same(graphMeta, quad.getGraph()))
             return volatileStore.getMultiplicity(quad);
         return groundStore.getMultiplicity(quad);
     }
 
     @Override
-    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
             return volatileStore.getMultiplicity(graph, subject, property, object);
         return groundStore.getMultiplicity(graph, subject, property, object);
@@ -119,7 +119,7 @@ class BaseReasonableStore extends BaseStore {
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph) {
+    public Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE)
             return getAll();
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
@@ -128,12 +128,12 @@ class BaseReasonableStore extends BaseStore {
     }
 
     @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return aggregate.getAll(subject, property, object);
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE)
             return getAll(subject, property, object);
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
@@ -152,7 +152,7 @@ class BaseReasonableStore extends BaseStore {
     }
 
     @Override
-    public long count(GraphNode graph) {
+    public long count(GraphNode graph) throws UnsupportedNodeType {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE)
             return count();
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
@@ -161,12 +161,12 @@ class BaseReasonableStore extends BaseStore {
     }
 
     @Override
-    public long count(SubjectNode subject, Property property, Node object) {
+    public long count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return aggregate.count(subject, property, object);
     }
 
     @Override
-    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         if (graph == null || graph.getNodeType() == Node.TYPE_VARIABLE)
             return count(subject, property, object);
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
@@ -315,7 +315,7 @@ class BaseReasonableStore extends BaseStore {
     }
 
     @Override
-    public void clear(GraphNode graph) {
+    public void clear(GraphNode graph) throws UnsupportedNodeType {
         if (RDFUtils.same(graphInference, graph) || RDFUtils.same(graphMeta, graph))
             volatileStore.clear(graph);
         else
@@ -323,14 +323,14 @@ class BaseReasonableStore extends BaseStore {
     }
 
     @Override
-    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+    public void copy(GraphNode origin, GraphNode target, boolean overwrite) throws UnsupportedNodeType {
         if (RDFUtils.same(graphInference, origin) || RDFUtils.same(graphMeta, origin) || RDFUtils.same(graphInference, target) || RDFUtils.same(graphMeta, target))
             throw new IllegalArgumentException("Invalid arguments, the origin and target graphs cannot refer to volatile graphs");
         groundStore.copy(origin, target, overwrite);
     }
 
     @Override
-    public void move(GraphNode origin, GraphNode target) {
+    public void move(GraphNode origin, GraphNode target) throws UnsupportedNodeType {
         if (RDFUtils.same(graphInference, origin) || RDFUtils.same(graphMeta, origin) || RDFUtils.same(graphInference, target) || RDFUtils.same(graphMeta, target))
             throw new IllegalArgumentException("Invalid arguments, the origin and target graphs cannot refer to volatile graphs");
         groundStore.move(origin, target);

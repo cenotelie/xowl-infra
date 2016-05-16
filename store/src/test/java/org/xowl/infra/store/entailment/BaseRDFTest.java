@@ -24,6 +24,7 @@ import org.xowl.infra.store.TestLogger;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.loaders.W3CTestSuite;
 import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -51,23 +52,27 @@ public class BaseRDFTest {
         repository.load(logger, input);
         Assert.assertFalse("Failed to load the input", logger.isOnError());
 
-        if (result == null) {
-            // expect the detection of an inconsistency
-            Iterator<Quad> iterator = repository.getStore().getAll(
-                    null,
-                    repository.getStore().getIRINode(Vocabulary.xowlStatus),
-                    repository.getStore().getIRINode(Vocabulary.xowlInconsistent));
-            Assert.assertTrue("Failed to detect the inconsistency", iterator.hasNext());
-        } else {
-            Iterator<Quad> iterator = repository.getStore().getAll();
-            List<Quad> tested = new ArrayList<>();
-            while (iterator.hasNext())
-                tested.add(iterator.next());
-            List<Quad> expected = load(result);
-            for (Quad q : expected) {
-                Assert.assertTrue("Failed to entail " + q, repository.getStore().count(null, q.getSubject(), q.getProperty(), q.getObject()) > 0);
+        try {
+            if (result == null) {
+                // expect the detection of an inconsistency
+                Iterator<Quad> iterator = repository.getStore().getAll(
+                        null,
+                        repository.getStore().getIRINode(Vocabulary.xowlStatus),
+                        repository.getStore().getIRINode(Vocabulary.xowlInconsistent));
+                Assert.assertTrue("Failed to detect the inconsistency", iterator.hasNext());
+            } else {
+                Iterator<Quad> iterator = repository.getStore().getAll();
+                List<Quad> tested = new ArrayList<>();
+                while (iterator.hasNext())
+                    tested.add(iterator.next());
+                List<Quad> expected = load(result);
+                for (Quad q : expected) {
+                    Assert.assertTrue("Failed to entail " + q, repository.getStore().count(null, q.getSubject(), q.getProperty(), q.getObject()) > 0);
+                }
+                W3CTestSuite.matchesQuads(expected, tested);
             }
-            W3CTestSuite.matchesQuads(expected, tested);
+        } catch (UnsupportedNodeType exception) {
+            Assert.fail(exception.getMessage());
         }
     }
 
@@ -87,23 +92,27 @@ public class BaseRDFTest {
         repository.load(logger, input);
         Assert.assertFalse("Failed to load the input", logger.isOnError());
 
-        if (result == null) {
-            // expect the detection of an inconsistency
-            Iterator<Quad> iterator = repository.getStore().getAll(
-                    null,
-                    repository.getStore().getIRINode(Vocabulary.xowlStatus),
-                    repository.getStore().getIRINode(Vocabulary.xowlInconsistent));
-            Assert.assertFalse("Incorrectly reported inconsistency", iterator.hasNext());
-        } else {
-            Iterator<Quad> iterator = repository.getStore().getAll();
-            List<Quad> tested = new ArrayList<>();
-            while (iterator.hasNext())
-                tested.add(iterator.next());
-            List<Quad> expected = load(result);
-            for (Quad q : expected) {
-                Assert.assertFalse("Incorrectly entailed " + q, repository.getStore().count(null, q.getSubject(), q.getProperty(), q.getObject()) > 0);
+        try {
+            if (result == null) {
+                // expect the detection of an inconsistency
+                Iterator<Quad> iterator = repository.getStore().getAll(
+                        null,
+                        repository.getStore().getIRINode(Vocabulary.xowlStatus),
+                        repository.getStore().getIRINode(Vocabulary.xowlInconsistent));
+                Assert.assertFalse("Incorrectly reported inconsistency", iterator.hasNext());
+            } else {
+                Iterator<Quad> iterator = repository.getStore().getAll();
+                List<Quad> tested = new ArrayList<>();
+                while (iterator.hasNext())
+                    tested.add(iterator.next());
+                List<Quad> expected = load(result);
+                for (Quad q : expected) {
+                    Assert.assertFalse("Incorrectly entailed " + q, repository.getStore().count(null, q.getSubject(), q.getProperty(), q.getObject()) > 0);
+                }
+                W3CTestSuite.matchesQuads(expected, tested);
             }
-            W3CTestSuite.matchesQuads(expected, tested);
+        } catch (UnsupportedNodeType exception) {
+            Assert.fail(exception.getMessage());
         }
     }
 

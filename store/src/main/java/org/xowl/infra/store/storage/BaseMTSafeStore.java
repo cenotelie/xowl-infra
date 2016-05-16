@@ -103,7 +103,7 @@ class BaseMTSafeStore extends BaseStore {
     }
 
     @Override
-    public long getMultiplicity(Quad quad) {
+    public long getMultiplicity(Quad quad) throws UnsupportedNodeType {
         globalLock.lock();
         try {
             return backend.getMultiplicity(quad);
@@ -113,7 +113,7 @@ class BaseMTSafeStore extends BaseStore {
     }
 
     @Override
-    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         globalLock.lock();
         try {
             return backend.getMultiplicity(graph, subject, property, object);
@@ -129,19 +129,19 @@ class BaseMTSafeStore extends BaseStore {
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph) {
+    public Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
         globalLock.lock();
         return new LockingIterator<>(backend.getAll(graph), globalLock);
     }
 
     @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         globalLock.lock();
         return new LockingIterator<>(backend.getAll(subject, property, object), globalLock);
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         globalLock.lock();
         return new LockingIterator<>(backend.getAll(graph, subject, property, object), globalLock);
     }
@@ -167,7 +167,7 @@ class BaseMTSafeStore extends BaseStore {
     }
 
     @Override
-    public long count(GraphNode graph) {
+    public long count(GraphNode graph) throws UnsupportedNodeType {
         globalLock.lock();
         try {
             return backend.count(graph);
@@ -177,7 +177,7 @@ class BaseMTSafeStore extends BaseStore {
     }
 
     @Override
-    public long count(SubjectNode subject, Property property, Node object) {
+    public long count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         globalLock.lock();
         try {
             return backend.count(subject, property, object);
@@ -187,7 +187,7 @@ class BaseMTSafeStore extends BaseStore {
     }
 
     @Override
-    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         globalLock.lock();
         try {
             return backend.count(graph, subject, property, object);
@@ -258,7 +258,7 @@ class BaseMTSafeStore extends BaseStore {
     }
 
     @Override
-    public void clear(GraphNode graph) {
+    public void clear(GraphNode graph) throws UnsupportedNodeType {
         globalLock.lock();
         try {
             backend.clear(graph);
@@ -268,7 +268,7 @@ class BaseMTSafeStore extends BaseStore {
     }
 
     @Override
-    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+    public void copy(GraphNode origin, GraphNode target, boolean overwrite) throws UnsupportedNodeType {
         globalLock.lock();
         try {
             backend.copy(origin, target, overwrite);
@@ -278,7 +278,7 @@ class BaseMTSafeStore extends BaseStore {
     }
 
     @Override
-    public void move(GraphNode origin, GraphNode target) {
+    public void move(GraphNode origin, GraphNode target) throws UnsupportedNodeType {
         globalLock.lock();
         try {
             backend.move(origin, target);

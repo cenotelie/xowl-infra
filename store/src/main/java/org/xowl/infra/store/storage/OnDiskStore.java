@@ -113,12 +113,12 @@ class OnDiskStore extends BaseStore {
     }
 
     @Override
-    public long getMultiplicity(Quad quad) {
+    public long getMultiplicity(Quad quad) throws UnsupportedNodeType {
         return cacheDataset.getMultiplicity(quad);
     }
 
     @Override
-    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return cacheDataset.getMultiplicity(graph, subject, property, object);
     }
 
@@ -128,17 +128,17 @@ class OnDiskStore extends BaseStore {
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph) {
+    public Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
         return cacheDataset.getAll(graph);
     }
 
     @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return cacheDataset.getAll(subject, property, object);
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return cacheDataset.getAll(graph, subject, property, object);
     }
 
@@ -153,17 +153,17 @@ class OnDiskStore extends BaseStore {
     }
 
     @Override
-    public long count(GraphNode graph) {
+    public long count(GraphNode graph) throws UnsupportedNodeType {
         return cacheDataset.count(graph);
     }
 
     @Override
-    public long count(SubjectNode subject, Property property, Node object) {
+    public long count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return cacheDataset.count(subject, property, object);
     }
 
     @Override
-    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         return cacheDataset.count(graph, subject, property, object);
     }
 
@@ -199,17 +199,17 @@ class OnDiskStore extends BaseStore {
     }
 
     @Override
-    public void clear(GraphNode graph) {
+    public void clear(GraphNode graph) throws UnsupportedNodeType {
         cacheDataset.clear(graph);
     }
 
     @Override
-    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+    public void copy(GraphNode origin, GraphNode target, boolean overwrite) throws UnsupportedNodeType {
         cacheDataset.copy(origin, target, overwrite);
     }
 
     @Override
-    public void move(GraphNode origin, GraphNode target) {
+    public void move(GraphNode origin, GraphNode target) throws UnsupportedNodeType {
         cacheDataset.move(origin, target);
     }
 

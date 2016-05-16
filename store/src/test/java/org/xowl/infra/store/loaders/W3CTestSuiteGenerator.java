@@ -89,25 +89,29 @@ public class W3CTestSuiteGenerator {
             Assert.fail("Unsupported quad");
         }
 
-        Iterator<Quad> triples = store.getAll(null, store.getIRINode(MF + "entries"), null);
-        Iterator<Node> tests = new ListIterator(store, triples.next().getObject());
-        while (tests.hasNext()) {
-            SubjectNode test = (SubjectNode) tests.next();
-            String type = ((IRINode) getValue(store, test, Vocabulary.rdfType)).getIRIValue();
-            type = type.substring(RDFT.length());
-            if (type.endsWith("PositiveSyntax")) {
-                String syntax = type.substring(4, type.length() - 14);
-                generateTestPositiveSyntax(store, BASE_LOCATION, test, syntax);
-            } else if (type.endsWith("NegativeSyntax")) {
-                String syntax = type.substring(4, type.length() - 14);
-                generateTestNegativeSyntax(store, BASE_LOCATION, test, syntax);
-            } else if (type.endsWith("NegativeEval")) {
-                String syntax = type.substring(4, type.length() - 12);
-                generateTestNegativeSyntax(store, BASE_LOCATION, test, syntax);
-            } else if (type.endsWith("Eval")) {
-                String syntax = type.substring(4, type.length() - 4);
-                generateTestEval(store, BASE_LOCATION, test, syntax);
+        try {
+            Iterator<Quad> triples = store.getAll(null, store.getIRINode(MF + "entries"), null);
+            Iterator<Node> tests = new ListIterator(store, triples.next().getObject());
+            while (tests.hasNext()) {
+                SubjectNode test = (SubjectNode) tests.next();
+                String type = ((IRINode) getValue(store, test, Vocabulary.rdfType)).getIRIValue();
+                type = type.substring(RDFT.length());
+                if (type.endsWith("PositiveSyntax")) {
+                    String syntax = type.substring(4, type.length() - 14);
+                    generateTestPositiveSyntax(store, BASE_LOCATION, test, syntax);
+                } else if (type.endsWith("NegativeSyntax")) {
+                    String syntax = type.substring(4, type.length() - 14);
+                    generateTestNegativeSyntax(store, BASE_LOCATION, test, syntax);
+                } else if (type.endsWith("NegativeEval")) {
+                    String syntax = type.substring(4, type.length() - 12);
+                    generateTestNegativeSyntax(store, BASE_LOCATION, test, syntax);
+                } else if (type.endsWith("Eval")) {
+                    String syntax = type.substring(4, type.length() - 4);
+                    generateTestEval(store, BASE_LOCATION, test, syntax);
+                }
             }
+        } catch (UnsupportedNodeType exception) {
+            Assert.fail(exception.getMessage());
         }
     }
 
@@ -177,9 +181,14 @@ public class W3CTestSuiteGenerator {
      * @return The corresponding value
      */
     private Node getValue(BaseStore graph, SubjectNode node, String property) {
-        Iterator<Quad> entries = graph.getAll(node, graph.getIRINode(property), null);
-        if (!entries.hasNext())
+        try {
+            Iterator<Quad> entries = graph.getAll(node, graph.getIRINode(property), null);
+            if (!entries.hasNext())
+                return null;
+            return entries.next().getObject();
+        } catch (UnsupportedNodeType exception) {
+            exception.printStackTrace();
             return null;
-        return entries.next().getObject();
+        }
     }
 }

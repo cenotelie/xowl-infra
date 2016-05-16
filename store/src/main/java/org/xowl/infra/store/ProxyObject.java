@@ -346,23 +346,29 @@ public class ProxyObject {
      * @return The properties and the values
      */
     private Iterator<Couple<String, Object>> queryProperties() {
-        return new SkippableIterator<>(new AdaptingIterator<>(repository.getStore().getAll(subject, null, null), new Adapter<Couple<String, Object>>() {
-            @Override
-            public <X> Couple<String, Object> adapt(X element) {
-                Quad quad = (Quad) element;
-                Node nodeProperty = quad.getProperty();
-                if (nodeProperty.getNodeType() != Node.TYPE_IRI)
+        try {
+            Iterator<Quad> base = repository.getStore().getAll(subject, null, null);
+            return new SkippableIterator<>(new AdaptingIterator<>(base, new Adapter<Couple<String, Object>>() {
+                @Override
+                public <X> Couple<String, Object> adapt(X element) {
+                    Quad quad = (Quad) element;
+                    Node nodeProperty = quad.getProperty();
+                    if (nodeProperty.getNodeType() != Node.TYPE_IRI)
+                        return null;
+                    String property = ((IRINode) nodeProperty).getIRIValue();
+                    Node nodeValue = quad.getObject();
+                    if (nodeValue.getNodeType() == Node.TYPE_IRI) {
+                        return new Couple<String, Object>(property, repository.resolveProxy(((IRINode) nodeValue).getIRIValue()));
+                    } else if (nodeValue.getNodeType() == Node.TYPE_LITERAL) {
+                        return new Couple<>(property, decode((LiteralNode) nodeValue));
+                    }
                     return null;
-                String property = ((IRINode) nodeProperty).getIRIValue();
-                Node nodeValue = quad.getObject();
-                if (nodeValue.getNodeType() == Node.TYPE_IRI) {
-                    return new Couple<String, Object>(property, repository.resolveProxy(((IRINode) nodeValue).getIRIValue()));
-                } else if (nodeValue.getNodeType() == Node.TYPE_LITERAL) {
-                    return new Couple<>(property, decode((LiteralNode) nodeValue));
                 }
-                return null;
-            }
-        }));
+            }));
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+            return new SingleIterator<>(null);
+        }
     }
 
     /**
@@ -375,18 +381,22 @@ public class ProxyObject {
         Collection<ProxyObject> result = new ArrayList<>();
         // get all triple of the form
         // [entity property ?]
-        Iterator<Quad> iterator = repository.getStore().getAll(subject, property, null);
-        while (iterator.hasNext()) {
-            Node node = iterator.next().getObject();
-            if (node.getNodeType() == Node.TYPE_IRI) {
-                ProxyObject po = repository.resolveProxy(((IRINode) node).getIRIValue());
-                if (!result.contains(po))
-                    result.add(po);
-            } else if (node.getNodeType() == Node.TYPE_BLANK) {
-                ProxyObject po = repository.resolveProxy(repository.getOntology(IRIs.GRAPH_DEFAULT), (SubjectNode) node);
-                if (!result.contains(po))
-                    result.add(po);
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(subject, property, null);
+            while (iterator.hasNext()) {
+                Node node = iterator.next().getObject();
+                if (node.getNodeType() == Node.TYPE_IRI) {
+                    ProxyObject po = repository.resolveProxy(((IRINode) node).getIRIValue());
+                    if (!result.contains(po))
+                        result.add(po);
+                } else if (node.getNodeType() == Node.TYPE_BLANK) {
+                    ProxyObject po = repository.resolveProxy(repository.getOntology(IRIs.GRAPH_DEFAULT), (SubjectNode) node);
+                    if (!result.contains(po))
+                        result.add(po);
+                }
             }
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
         }
         return result;
     }
@@ -401,18 +411,22 @@ public class ProxyObject {
         Collection<ProxyObject> result = new ArrayList<>();
         // get all triple of the form
         // [entity property ?]
-        Iterator<Quad> iterator = repository.getStore().getAll(null, property, subject);
-        while (iterator.hasNext()) {
-            Node node = iterator.next().getSubject();
-            if (node.getNodeType() == Node.TYPE_IRI) {
-                ProxyObject po = repository.resolveProxy(((IRINode) node).getIRIValue());
-                if (!result.contains(po))
-                    result.add(po);
-            } else if (node.getNodeType() == Node.TYPE_BLANK) {
-                ProxyObject po = repository.resolveProxy(repository.getOntology(IRIs.GRAPH_DEFAULT), (SubjectNode) node);
-                if (!result.contains(po))
-                    result.add(po);
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(null, property, subject);
+            while (iterator.hasNext()) {
+                Node node = iterator.next().getSubject();
+                if (node.getNodeType() == Node.TYPE_IRI) {
+                    ProxyObject po = repository.resolveProxy(((IRINode) node).getIRIValue());
+                    if (!result.contains(po))
+                        result.add(po);
+                } else if (node.getNodeType() == Node.TYPE_BLANK) {
+                    ProxyObject po = repository.resolveProxy(repository.getOntology(IRIs.GRAPH_DEFAULT), (SubjectNode) node);
+                    if (!result.contains(po))
+                        result.add(po);
+                }
             }
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
         }
         return result;
     }
@@ -427,17 +441,21 @@ public class ProxyObject {
         Collection<Object> result = new ArrayList<>();
         // get all triple of the form
         // [entity property ?]
-        Iterator<Quad> iterator = repository.getStore().getAll(subject, property, null);
-        while (iterator.hasNext()) {
-            Node node = iterator.next().getObject();
-            switch (node.getNodeType()) {
-                case Node.TYPE_LITERAL:
-                    result.add(decode((LiteralNode) node));
-                    break;
-                case Node.TYPE_DYNAMIC:
-                    result.add(((DynamicNode) node).getDynamicExpression());
-                    break;
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(subject, property, null);
+            while (iterator.hasNext()) {
+                Node node = iterator.next().getObject();
+                switch (node.getNodeType()) {
+                    case Node.TYPE_LITERAL:
+                        result.add(decode((LiteralNode) node));
+                        break;
+                    case Node.TYPE_DYNAMIC:
+                        result.add(((DynamicNode) node).getDynamicExpression());
+                        break;
+                }
             }
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
         }
         return result;
     }
@@ -494,8 +512,13 @@ public class ProxyObject {
     private boolean isFunctional(IRINode property) {
         // do we have the triple:
         // [property rdf:type owl:FunctionalProperty]
-        long count = repository.getStore().count(null, property, node(Vocabulary.rdfType), node(Vocabulary.owlFunctionalProperty));
-        return count > 1;
+        try {
+            long count = repository.getStore().count(null, property, node(Vocabulary.rdfType), node(Vocabulary.owlFunctionalProperty));
+            return count > 1;
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+            return false;
+        }
     }
 
     /**
@@ -540,21 +563,25 @@ public class ProxyObject {
     private String getRangeOf(IRINode property) {
         // get all the triple like
         // [property rdfs:range ?]
-        Iterator<Quad> iterator = repository.getStore().getAll(property, node(Vocabulary.rdfsRange), null);
-        if (!iterator.hasNext())
-            // range is undefined, return xsd:String
-            return Vocabulary.xsdString;
-        Node rangeNode = iterator.next().getObject();
-        if (iterator instanceof CloseableIterator) {
-            try {
-                ((CloseableIterator) iterator).close();
-            } catch (Exception exception) {
-                Logger.DEFAULT.error(exception);
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(property, node(Vocabulary.rdfsRange), null);
+            if (!iterator.hasNext())
+                // range is undefined, return xsd:String
+                return Vocabulary.xsdString;
+            Node rangeNode = iterator.next().getObject();
+            if (iterator instanceof CloseableIterator) {
+                try {
+                    ((CloseableIterator) iterator).close();
+                } catch (Exception exception) {
+                    Logger.DEFAULT.error(exception);
+                }
             }
+            if (rangeNode.getNodeType() == Node.TYPE_IRI)
+                return ((IRINode) rangeNode).getIRIValue();
+            // range is defined, but is either a blank, or an anonymous node, return xsd:String
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
         }
-        if (rangeNode.getNodeType() == Node.TYPE_IRI)
-            return ((IRINode) rangeNode).getIRIValue();
-        // range is defined, but is either a blank, or an anonymous node, return xsd:String
         return Vocabulary.xsdString;
     }
 

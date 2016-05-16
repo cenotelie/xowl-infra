@@ -559,13 +559,17 @@ public class RuleEngine implements ChangeListener {
                     Node nodeSubject = process(execution.rule, pattern.getSubject(), execution.token, null, false);
                     Node nodeProperty = process(execution.rule, pattern.getProperty(), execution.token, null, false);
                     Node nodeObject = process(execution.rule, pattern.getObject(), execution.token, null, false);
-                    Iterator<Quad> iterator = inputStore.getAll((SubjectNode) nodeSubject, (Property) nodeProperty, nodeObject);
-                    while (iterator.hasNext()) {
-                        Quad antecedent = iterator.next();
-                        RuleExplanation.ENode target = result.resolve(antecedent);
-                        if (!nodes.contains(target))
-                            nodes.add(target);
-                        targets.add(target);
+                    try {
+                        Iterator<Quad> iterator = inputStore.getAll((SubjectNode) nodeSubject, (Property) nodeProperty, nodeObject);
+                        while (iterator.hasNext()) {
+                            Quad antecedent = iterator.next();
+                            RuleExplanation.ENode target = result.resolve(antecedent);
+                            if (!nodes.contains(target))
+                                nodes.add(target);
+                            targets.add(target);
+                        }
+                    } catch (UnsupportedNodeType exception) {
+                        Logger.DEFAULT.error(exception);
                     }
                 }
                 if (!targets.isEmpty())

@@ -254,11 +254,7 @@ public abstract class DatasetImpl implements Dataset {
     @Override
     public void clear() {
         List<MQuad> buffer = new ArrayList<>();
-        try {
-            doClear(buffer);
-        } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
-        }
+        doClear(buffer);
         if (!buffer.isEmpty()) {
             Changeset changeset = Changeset.fromRemoved((Collection) buffer);
             for (ChangeListener listener : listeners) {
@@ -355,9 +351,8 @@ public abstract class DatasetImpl implements Dataset {
      * Executes the clear operation removing all quads from this store
      *
      * @param buffer The buffer for the removed quads
-     * @throws UnsupportedNodeType When a specified node is unsupported
      */
-    public abstract void doClear(List<MQuad> buffer) throws UnsupportedNodeType;
+    public abstract void doClear(List<MQuad> buffer);
 
     /**
      * Executes the clear operation removing all quads from this store for the specified graph

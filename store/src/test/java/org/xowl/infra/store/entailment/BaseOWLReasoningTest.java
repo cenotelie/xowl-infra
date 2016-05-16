@@ -48,11 +48,11 @@ public class BaseOWLReasoningTest {
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/conclusion", "resource:///entailment/" + conclusionResource);
         Ontology ontologyConclusion = repository.load(logger, "http://xowl.org/store/tests/entailment/conclusion");
         List<Quad> conclusion = new ArrayList<>();
-        Iterator<Quad> iterator = repository.getStore().getAll(repository.getGraph(ontologyConclusion));
-        while (iterator.hasNext()) {
-            conclusion.add(iterator.next());
-        }
         try {
+            Iterator<Quad> iterator = repository.getStore().getAll(repository.getGraph(ontologyConclusion));
+            while (iterator.hasNext()) {
+                conclusion.add(iterator.next());
+            }
             repository.getStore().remove(repository.getGraph(ontologyConclusion), null, null, null);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
@@ -110,11 +110,11 @@ public class BaseOWLReasoningTest {
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/conclusion", "resource:///entailment/" + conclusionResource);
         Ontology ontologyConclusion = repository.load(logger, "http://xowl.org/store/tests/entailment/conclusion");
         List<Quad> conclusion = new ArrayList<>();
-        Iterator<Quad> iterator = repository.getStore().getAll(repository.getGraph(ontologyConclusion));
-        while (iterator.hasNext()) {
-            conclusion.add(iterator.next());
-        }
         try {
+            Iterator<Quad> iterator = repository.getStore().getAll(repository.getGraph(ontologyConclusion));
+            while (iterator.hasNext()) {
+                conclusion.add(iterator.next());
+            }
             repository.getStore().remove(repository.getGraph(ontologyConclusion), null, null, null);
         } catch (UnsupportedNodeType ex) {
             // cannot happen
@@ -172,15 +172,19 @@ public class BaseOWLReasoningTest {
         repository.setEntailmentRegime(logger, EntailmentRegime.OWL2_RDF);
         // load the premise ontology and the default ontologies
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
-        Iterator<Quad> iterator = repository.getStore().getAll(null, null, repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#status"), repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#inconsistent"));
-        if (iterator.hasNext()) {
-            StringBuilder builder = new StringBuilder("Spurious inconsistencies:");
-            while (iterator.hasNext()) {
-                Quad quad = iterator.next();
-                builder.append(" ");
-                builder.append(quad.toString());
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(null, null, repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#status"), repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#inconsistent"));
+            if (iterator.hasNext()) {
+                StringBuilder builder = new StringBuilder("Spurious inconsistencies:");
+                while (iterator.hasNext()) {
+                    Quad quad = iterator.next();
+                    builder.append(" ");
+                    builder.append(quad.toString());
+                }
+                Assert.fail(builder.toString());
             }
-            Assert.fail(builder.toString());
+        } catch (UnsupportedNodeType exception) {
+            Assert.fail(exception.getMessage());
         }
     }
 
@@ -198,7 +202,11 @@ public class BaseOWLReasoningTest {
         repository.setEntailmentRegime(logger, EntailmentRegime.OWL2_RDF);
         // load the premise ontology and the default ontologies
         Ontology ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
-        Iterator<Quad> iterator = repository.getStore().getAll(null, null, repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#status"), repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#inconsistent"));
-        Assert.assertTrue("Failed to detect inconsistency", iterator.hasNext());
+        try {
+            Iterator<Quad> iterator = repository.getStore().getAll(null, null, repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#status"), repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#inconsistent"));
+            Assert.assertTrue("Failed to detect inconsistency", iterator.hasNext());
+        } catch (UnsupportedNodeType exception) {
+            Assert.fail(exception.getMessage());
+        }
     }
 }

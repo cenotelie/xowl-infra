@@ -19,6 +19,7 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.*;
+import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -118,7 +119,7 @@ public class CommandDescribe implements Command {
                 result.add(closure.next());
 
             return new ResultQuads(result);
-        } catch (EvalException exception) {
+        } catch (EvalException | UnsupportedNodeType exception) {
             return new ResultFailure(exception.getMessage());
         }
     }
@@ -130,7 +131,7 @@ public class CommandDescribe implements Command {
      * @param node       The node representing the resource to describe
      * @param quads      The buffer of quads
      */
-    private void describe(Repository repository, SubjectNode node, Collection<Quad> quads) {
+    private void describe(Repository repository, SubjectNode node, Collection<Quad> quads) throws UnsupportedNodeType {
         Iterator<Quad> iterator = repository.getStore().getAll(node, null, null);
         while (iterator.hasNext())
             quads.add(iterator.next());

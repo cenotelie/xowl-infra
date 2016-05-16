@@ -20,7 +20,9 @@ import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.Dataset;
+import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.collections.CloseableIterator;
+import org.xowl.infra.utils.collections.SingleIterator;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.util.Collection;
@@ -63,14 +65,23 @@ class FactCollection implements Collection<Quad> {
      * @return A new iterator
      */
     private Iterator<Quad> getNewIterator() {
-        return store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
+        try {
+            return store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+            return new SingleIterator<>(null);
+        }
     }
 
     @Override
     public int size() {
         if (size > -1)
             return size;
-        size = (int) store.count(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
+        try {
+            size = (int) store.count(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+        }
         return size;
     }
 
@@ -114,16 +125,21 @@ class FactCollection implements Collection<Quad> {
         if (pattern.getObject().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getObject(), quad.getObject()))
             return false;
         // the quad matches the pattern
-        Iterator<Quad> iterator = store.getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-        boolean result = iterator.hasNext();
-        if (iterator instanceof CloseableIterator) {
-            try {
-                ((CloseableIterator) iterator).close();
-            } catch (Exception exception) {
-                Logger.DEFAULT.error(exception);
+        try {
+            Iterator<Quad> iterator = store.getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
+            boolean result = iterator.hasNext();
+            if (iterator instanceof CloseableIterator) {
+                try {
+                    ((CloseableIterator) iterator).close();
+                } catch (Exception exception) {
+                    Logger.DEFAULT.error(exception);
+                }
             }
+            return result;
+        } catch (UnsupportedNodeType exception) {
+            Logger.DEFAULT.error(exception);
+            return false;
         }
-        return result;
     }
 
     @Override

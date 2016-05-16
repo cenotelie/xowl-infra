@@ -94,7 +94,7 @@ class AggregateDataset implements Dataset {
     }
 
     @Override
-    public long getMultiplicity(Quad quad) {
+    public long getMultiplicity(Quad quad) throws UnsupportedNodeType {
         long result = 0;
         for (int i = 0; i != content.length; i++)
             result += content[i].getMultiplicity(quad);
@@ -102,7 +102,7 @@ class AggregateDataset implements Dataset {
     }
 
     @Override
-    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         long result = 0;
         for (int i = 0; i != content.length; i++)
             result += content[i].getMultiplicity(graph, subject, property, object);
@@ -118,7 +118,7 @@ class AggregateDataset implements Dataset {
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph) {
+    public Iterator<Quad> getAll(GraphNode graph) throws UnsupportedNodeType {
         Iterator<Quad>[] iterators = new Iterator[content.length];
         for (int i = 0; i != content.length; i++)
             iterators[i] = content[i].getAll(graph);
@@ -126,7 +126,7 @@ class AggregateDataset implements Dataset {
     }
 
     @Override
-    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         Iterator<Quad>[] iterators = new Iterator[content.length];
         for (int i = 0; i != content.length; i++)
             iterators[i] = content[i].getAll(subject, property, object);
@@ -134,7 +134,7 @@ class AggregateDataset implements Dataset {
     }
 
     @Override
-    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         Iterator<Quad>[] iterators = new Iterator[content.length];
         for (int i = 0; i != content.length; i++)
             iterators[i] = content[i].getAll(graph, subject, property, object);
@@ -163,7 +163,7 @@ class AggregateDataset implements Dataset {
     }
 
     @Override
-    public long count(GraphNode graph) {
+    public long count(GraphNode graph) throws UnsupportedNodeType {
         long result = 0;
         for (int i = 0; i != content.length; i++)
             result += content[i].count(graph);
@@ -171,7 +171,7 @@ class AggregateDataset implements Dataset {
     }
 
     @Override
-    public long count(SubjectNode subject, Property property, Node object) {
+    public long count(SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         long result = 0;
         for (int i = 0; i != content.length; i++)
             result += content[i].count(subject, property, object);
@@ -179,7 +179,7 @@ class AggregateDataset implements Dataset {
     }
 
     @Override
-    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) {
+    public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         long result = 0;
         for (int i = 0; i != content.length; i++)
             result += content[i].count(graph, subject, property, object);
@@ -218,19 +218,19 @@ class AggregateDataset implements Dataset {
     }
 
     @Override
-    public void clear(GraphNode graph) {
+    public void clear(GraphNode graph) throws UnsupportedNodeType {
         for (int i = 0; i != content.length; i++)
             content[i].clear(graph);
     }
 
     @Override
-    public void copy(GraphNode origin, GraphNode target, boolean overwrite) {
+    public void copy(GraphNode origin, GraphNode target, boolean overwrite) throws UnsupportedNodeType {
         for (int i = 0; i != content.length; i++)
             content[i].copy(origin, target, overwrite);
     }
 
     @Override
-    public void move(GraphNode origin, GraphNode target) {
+    public void move(GraphNode origin, GraphNode target) throws UnsupportedNodeType {
         for (int i = 0; i != content.length; i++)
             content[i].move(origin, target);
     }
