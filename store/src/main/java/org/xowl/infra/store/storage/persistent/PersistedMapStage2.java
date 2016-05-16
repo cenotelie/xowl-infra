@@ -23,37 +23,36 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 /**
- * Utility API for the first stage of a persisted map
+ * Utility API for the second stage of a persisted map
  * Persisted maps map long to long. Stage 1 maps the upper bits of the key and stage 2 the lower bits.
- * Stage 2 is a B+ tree
+ * Stage 2 is a B+ tree.
  *
  * @author Laurent Wouters
  */
 class PersistedMapStage2 {
     /**
-     * The number of child entries in a B+ tree node
+     * The maximum number of children for a B+ tree node
      */
-    private static final int NODE_CHILDREN = 8;
+    private static final int ORDER = 32;
     /**
      * The size of a child entry in a B+ tree node:
-     * int: key
+     * int: key value
      * long: pointer to child
      */
-    private static final int NODE_ENTRY_SIZE = 4 + 8;
+    private static final int CHILD_SIZE = 4 + 8;
     /**
-     * The size of a B+ tree node header in stage 2:
-     * long: next sibling
+     * The size of a B+ tree inner node header
+     * long: next sibling (non KEY_NULL indicate leaf node)
      * char: node version
-     * char: number of entries
-     * char: entry flags for internal/external nodes
+     * char: number of keys in the node
      */
-    private static final int NODE_HEADER_SIZE = 8 + 2 + 2 + 2;
+    private static final int NODE_HEADER = 8 + 2 + 2;
     /**
      * The size of a B+ tree node in stage 2:
      * header: the node header
      * entries[entryCount]: the children entries
      */
-    private static final int NODE_SIZE = NODE_HEADER_SIZE + NODE_CHILDREN * NODE_ENTRY_SIZE;
+    private static final int NODE_SIZE = NODE_HEADER + ORDER * CHILD_SIZE;
     /**
      * Initial size of the traversal stack
      */
@@ -68,22 +67,15 @@ class PersistedMapStage2 {
      */
     public static long newMap(FileStore store) throws StorageException {
         long entry = store.allocate(NODE_SIZE);
-        initNode(store, entry);
-        return entry;
-    }
-
-    /**
-     * Initializes a stage 2 node
-     *
-     * @param store The containing store
-     * @param entry The key to the node to initialize
-     * @throws StorageException When an IO operation fails
-     */
-    private static void initNode(FileStore store, long entry) throws StorageException {
-        try (IOAccess access = store.access(entry)) {
+        try (IOAccess access = store.accessW(entry)) {
+            // write header
             access.writeLong(FileStore.KEY_NULL);
             access.writeInt(0);
+            // write last entry to non-existing node
+            access.writeInt(0);
+            access.writeLong(FileStore.KEY_NULL);
         }
+        return entry;
     }
 
     /**
@@ -98,26 +90,33 @@ class PersistedMapStage2 {
     public static long get(FileStore store, long head, int key) throws StorageException {
         long currentNode = head;
         while (currentNode != FileStore.KEY_NULL) {
-            try (IOAccess access = store.read(currentNode)) {
-                char count = access.seek(8 + 2).readChar();
-                char flags = access.readChar();
+            currentNode = FileStore.KEY_NULL;
+            try (IOAccess access = store.accessR(currentNode)) {
+                // read data
+                boolean isLeaf = access.readLong() != FileStore.KEY_NULL;
+                char count = access.skip(2).readChar();
+                // read registered keys
                 for (int i = 0; i != count; i++) {
                     // read entry data
                     int entryKey = access.readInt();
                     long entryPtr = access.readLong();
-                    // is this a key of interest
-                    if (entryKey == key && (flags >>> i) != 0) {
-                        // hit on the key, this is external node => found the mapping
+                    if (entryKey == key && isLeaf)
+                        // found the key
                         return entryPtr;
-                    } else if (key <= entryKey) {
-                        // we must go down this node
+                    if (key < entryKey) {
+                        // go through this node
                         currentNode = entryPtr;
                         break;
                     }
                 }
+                if (currentNode == FileStore.KEY_NULL) {
+                    // read last pointer
+                    access.skip(4).readLong();
+                    currentNode = access.readLong();
+                }
             }
         }
-        // no node found
+        // no result found
         return FileStore.KEY_NULL;
     }
 
@@ -142,7 +141,7 @@ class PersistedMapStage2 {
             while (top - 1 < stack.length && stack[top] != 0)
                 top++;
             // try to put the value
-            try (IOAccess access = store.access(stack[top])) {
+            try (IOAccess access = store.accessW(stack[top])) {
                 char version = access.seek(8).readChar();
                 if (version != stack[0])
                     // the node was modified
@@ -195,37 +194,50 @@ class PersistedMapStage2 {
         stack[stackTop] = head;
 
         while (true) {
+            boolean isLeaf;
             char version;
             char count;
-            char flags;
-            try (IOAccess access = store.read(stack[stackTop])) {
-                version = access.seek(8).readChar();
+            long next = FileStore.KEY_NULL;
+            try (IOAccess access = store.accessR(stack[stackTop])) {
+                // read header
+                isLeaf = access.readLong() != FileStore.KEY_NULL;
+                version = access.readChar();
                 count = access.readChar();
-                flags = access.readChar();
+                // read registered keys
                 for (int i = 0; i != count; i++) {
                     // read entry data
                     int entryKey = access.readInt();
                     long entryPtr = access.readLong();
-                    // is this a key of interest
-                    if (entryKey == key && (flags >>> i) != 0) {
+                    if (entryKey == key && isLeaf) {
                         // this is a hit on the key and this is the associated value
                         stack[0] = version;
                         return stack;
-                    } else if (key < entryKey) {
-                        // we must go down this node
-                        stackTop++;
-                        if (stackTop == stack.length)
-                            stack = Arrays.copyOf(stack, stack.length + NODE_CHILDREN);
-                        stack[stackTop] = entryPtr;
+                    }
+                    if (key < entryKey) {
+                        // go through this node
+                        next = entryPtr;
                         break;
                     }
                 }
+                if (next == FileStore.KEY_NULL) {
+                    // read last pointer
+                    access.skip(4).readLong();
+                    next = access.readLong();
+                }
+            }
+            // do we have a next node?
+            if (next != FileStore.KEY_NULL) {
+                stackTop++;
+                if (stackTop == stack.length)
+                    stack = Arrays.copyOf(stack, stack.length + STACK_SIZE);
+                stack[stackTop] = next;
+                continue;
             }
             // here we did not find the key, or an appropriate descendant
             if (!resolve)
                 // do not resolve, no path found
                 return null;
-            if (count < NODE_CHILDREN) {
+            if (count < ORDER - 1) {
                 // we can insert in the node at the top of the stack
                 stack[0] = version;
                 return stack;
