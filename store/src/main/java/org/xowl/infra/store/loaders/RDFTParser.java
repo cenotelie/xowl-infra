@@ -581,27 +581,35 @@ class RDFTParser extends LRkParser {
         /**
          * The unique identifier for variable document
          */
-        public static final int document = 0x0115;
+        public static final int document = 0x0113;
         /**
          * The unique identifier for variable rdfrules
          */
-        public static final int rdfrules = 0x0116;
+        public static final int rdfrules = 0x0114;
         /**
          * The unique identifier for variable rule
          */
-        public static final int rule = 0x0117;
+        public static final int rule = 0x0115;
         /**
          * The unique identifier for variable antecedents
          */
-        public static final int antecedents = 0x0118;
+        public static final int antecedents = 0x0116;
         /**
          * The unique identifier for variable consequents
          */
-        public static final int consequents = 0x0119;
+        public static final int consequents = 0x0117;
+        /**
+         * The unique identifier for variable triples_template_neg
+         */
+        public static final int triples_template_neg = 0x0118;
+        /**
+         * The unique identifier for variable triples_block_neg
+         */
+        public static final int triples_block_neg = 0x0119;
         /**
          * The unique identifier for variable __axiom
          */
-        public static final int __axiom = 0x011D;
+        public static final int __axiom = 0x011F;
         /**
          * The unique identifier for virtual nil
          */
@@ -780,13 +788,17 @@ class RDFTParser extends LRkParser {
         new Symbol(0x010E, "__V270"), 
         new Symbol(0x010F, "__V271"), 
         new Symbol(0x0111, "__V273"), 
-        new Symbol(0x0115, "document"), 
-        new Symbol(0x0116, "rdfrules"), 
-        new Symbol(0x0117, "rule"), 
-        new Symbol(0x0118, "antecedents"), 
-        new Symbol(0x0119, "consequents"), 
+        new Symbol(0x0113, "document"), 
+        new Symbol(0x0114, "rdfrules"), 
+        new Symbol(0x0115, "rule"), 
+        new Symbol(0x0116, "antecedents"), 
+        new Symbol(0x0117, "consequents"), 
+        new Symbol(0x0118, "triples_template_neg"), 
+        new Symbol(0x0119, "triples_block_neg"), 
         new Symbol(0x011A, "__V282"), 
-        new Symbol(0x011D, "__axiom") };
+        new Symbol(0x011D, "__V285"), 
+        new Symbol(0x011E, "__V286"), 
+        new Symbol(0x011F, "__axiom") };
     /**
      * The collection of virtuals matched by this parser
      *

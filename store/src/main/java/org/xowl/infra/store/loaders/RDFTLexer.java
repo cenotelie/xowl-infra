@@ -176,10 +176,6 @@ class RDFTLexer extends ContextFreeLexer {
          */
         public static final int ALL = 0x0055;
         /**
-         * The unique identifier for terminal MARKER_NOT
-         */
-        public static final int MARKER_NOT = 0x0114;
-        /**
          * The unique identifier for terminal NOT
          */
         public static final int NOT = 0x005E;
@@ -235,10 +231,6 @@ class RDFTLexer extends ContextFreeLexer {
          * The unique identifier for terminal MOVE
          */
         public static final int MOVE = 0x004C;
-        /**
-         * The unique identifier for terminal MARKER_META
-         */
-        public static final int MARKER_META = 0x0113;
         /**
          * The unique identifier for terminal FALSE
          */
@@ -440,7 +432,6 @@ class RDFTLexer extends ContextFreeLexer {
         new Symbol(0x003F, "ASC"),
         new Symbol(0x004B, "ADD"),
         new Symbol(0x0055, "ALL"),
-        new Symbol(0x0114, "MARKER_NOT"),
         new Symbol(0x005E, "NOT"),
         new Symbol(0x0016, "DOUBLE"),
         new Symbol(0x002C, "TRUE"),
@@ -456,7 +447,6 @@ class RDFTLexer extends ContextFreeLexer {
         new Symbol(0x0047, "LOAD"),
         new Symbol(0x0046, "INTO"),
         new Symbol(0x004C, "MOVE"),
-        new Symbol(0x0113, "MARKER_META"),
         new Symbol(0x002D, "FALSE"),
         new Symbol(0x0036, "WHERE"),
         new Symbol(0x003A, "NAMED"),

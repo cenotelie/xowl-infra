@@ -25,18 +25,19 @@ grammar RDFT : SPARQL
 		Axiom = "document";
 		Separator = "BLANK";
 	}
-	terminals
-	{
-		MARKER_META			-> [Mm] [Ee] [Tt] [Aa] ;
-		MARKER_NOT			-> [Nn] [Oo] [Tt] ;
-	}
+	terminals { }
 	rules
 	{
-		document		-> prologue rdfrules ;
+		document        -> prologue rdfrules ;
 
-		rdfrules		-> rule* ;
-		rule			-> 'rule'! iri antecedents '=>'! consequents ;
+		rdfrules        -> rule* ;
+		rule            -> 'rule'! iri antecedents '=>'! consequents ;
 		antecedents     -> '{'! select^ '}'! ;
 		consequents     -> '{'! quads^ '}'! ;
+
+		triples_template        -> triples_template_neg ('.'! triples_template? )? ;
+		triples_template_neg    -> NOT! '('! triples_same_subj ('.'! triples_same_subj)* ')'! ;
+		triples_block           -> triples_block_neg ('.'! triples_block? )? ;
+		triples_block_neg       -> NOT! '('! triples_same_subj_path ('.'! triples_same_subj)* ')'! ;
 	}
 }
