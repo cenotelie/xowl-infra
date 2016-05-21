@@ -591,13 +591,13 @@ class RDFTParser extends LRkParser {
          */
         public static final int rule = 0x0115;
         /**
-         * The unique identifier for variable antecedents
+         * The unique identifier for variable rule_simple
          */
-        public static final int antecedents = 0x0116;
+        public static final int rule_simple = 0x0116;
         /**
-         * The unique identifier for variable consequents
+         * The unique identifier for variable rule_sparql
          */
-        public static final int consequents = 0x0117;
+        public static final int rule_sparql = 0x0117;
         /**
          * The unique identifier for variable triples_template_neg
          */
@@ -791,8 +791,8 @@ class RDFTParser extends LRkParser {
         new Symbol(0x0113, "document"), 
         new Symbol(0x0114, "rdfrules"), 
         new Symbol(0x0115, "rule"), 
-        new Symbol(0x0116, "antecedents"), 
-        new Symbol(0x0117, "consequents"), 
+        new Symbol(0x0116, "rule_simple"), 
+        new Symbol(0x0117, "rule_sparql"), 
         new Symbol(0x0118, "triples_template_neg"), 
         new Symbol(0x0119, "triples_block_neg"), 
         new Symbol(0x011A, "__V282"), 

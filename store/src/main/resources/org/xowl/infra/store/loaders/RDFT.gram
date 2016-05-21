@@ -31,9 +31,9 @@ grammar RDFT : SPARQL
 		document        -> prologue rdfrules ;
 
 		rdfrules        -> rule* ;
-		rule            -> 'rule'! iri antecedents '=>'! consequents ;
-		antecedents     -> '{'! select^ '}'! ;
-		consequents     -> '{'! quads^ '}'! ;
+		rule            -> rule_simple^ | rule_sparql^ ;
+		rule_simple     -> 'rule'! DISTINCT? iri '{'! quads^ '}'! '=>'! '{'! quads^ '}'! ;
+		rule_sparql     -> 'rule'! iri '{'! select^ '}'! '=>'! '{'! quads^ '}'! ;
 
 		triples_template        -> triples_template_neg ('.'! triples_template? )? ;
 		triples_template_neg    -> NOT! '('! triples_same_subj ('.'! triples_same_subj)* ')'! ;
