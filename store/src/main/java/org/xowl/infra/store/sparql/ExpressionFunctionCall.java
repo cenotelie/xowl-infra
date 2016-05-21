@@ -23,7 +23,7 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.IRINode;
 import org.xowl.infra.store.rdf.LiteralNode;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -69,7 +69,7 @@ public class ExpressionFunctionCall implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
+    public Object eval(Repository repository, RDFPatternSolution bindings) throws EvalException {
         if (iri.equalsIgnoreCase("IF")) {
             if (arguments.size() < 3)
                 throw new EvalException("IF requires 3 arguments");
@@ -314,9 +314,9 @@ public class ExpressionFunctionCall implements Expression {
      * @param solutions The original solutions
      * @return The distinct ones
      */
-    private Collection<QuerySolution> getDistincts(Collection<QuerySolution> solutions) {
-        Collection<QuerySolution> result = new ArrayList<>();
-        for (QuerySolution solution : solutions)
+    private Collection<RDFPatternSolution> getDistincts(Collection<RDFPatternSolution> solutions) {
+        Collection<RDFPatternSolution> result = new ArrayList<>();
+        for (RDFPatternSolution solution : solutions)
             if (!result.contains(solution))
                 result.add(solution);
         return result;

@@ -19,7 +19,7 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.collections.Couple;
 
@@ -63,10 +63,10 @@ public class GraphPatternBind implements GraphPattern {
             Solutions originalSolutions = origin.match(repository);
             return Utils.extend(originalSolutions, variable, expression, repository);
         } else {
-            Node value = ExpressionOperator.rdf(expression.eval(repository, (QuerySolution) null), repository);
+            Node value = ExpressionOperator.rdf(expression.eval(repository, (RDFPatternSolution) null), repository);
             ArrayList<Couple<VariableNode, Node>> bindings = new ArrayList<>();
             bindings.add(new Couple<>(variable, value));
-            QuerySolution solution = new QuerySolution(bindings);
+            RDFPatternSolution solution = new RDFPatternSolution(bindings);
             SolutionsMultiset result = new SolutionsMultiset(1);
             result.add(solution);
             return result;

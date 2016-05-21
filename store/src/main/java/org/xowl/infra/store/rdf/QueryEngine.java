@@ -127,11 +127,11 @@ public class QueryEngine implements ChangeListener {
          *
          * @return the current solutions
          */
-        public List<QuerySolution> getSolutions() {
+        public List<RDFPatternSolution> getSolutions() {
             hitCount++;
-            List<QuerySolution> results = new ArrayList<>();
+            List<RDFPatternSolution> results = new ArrayList<>();
             for (Token token : tokens)
-                results.add(new QuerySolution(token.getBindings()));
+                results.add(new RDFPatternSolution(token.getBindings()));
             return results;
         }
     }
@@ -151,7 +151,7 @@ public class QueryEngine implements ChangeListener {
         /**
          * The solution
          */
-        private final Map<Token, QuerySolution> solutions;
+        private final Map<Token, RDFPatternSolution> solutions;
         /**
          * The observers for this query
          */
@@ -189,7 +189,7 @@ public class QueryEngine implements ChangeListener {
          */
         public void addObserver(QueryObserver observer) {
             observers.add(observer);
-            for (QuerySolution solution : solutions.values()) {
+            for (RDFPatternSolution solution : solutions.values()) {
                 observer.onNewSolution(solution);
             }
         }
@@ -207,7 +207,7 @@ public class QueryEngine implements ChangeListener {
 
         @Override
         public void activateToken(Token token) {
-            QuerySolution solution = new QuerySolution(token.getBindings());
+            RDFPatternSolution solution = new RDFPatternSolution(token.getBindings());
             solutions.put(token, solution);
             for (QueryObserver observer : observers)
                 observer.onNewSolution(solution);
@@ -215,7 +215,7 @@ public class QueryEngine implements ChangeListener {
 
         @Override
         public void deactivateToken(Token token) {
-            QuerySolution solution = solutions.remove(token);
+            RDFPatternSolution solution = solutions.remove(token);
             if (solution == null)
                 return;
             for (QueryObserver observer : observers)
@@ -306,11 +306,11 @@ public class QueryEngine implements ChangeListener {
      * @param query A query
      * @return The solutions
      */
-    public Collection<QuerySolution> execute(Query query) {
+    public Collection<RDFPatternSolution> execute(Query query) {
         // try from the cache
         for (final CacheElem element : cache) {
             if (element.matches(query)) {
-                Collection<QuerySolution> result = element.getSolutions();
+                Collection<RDFPatternSolution> result = element.getSolutions();
                 // re-sort the cache by hit count (hottest on top)
                 Collections.sort(cache, new Comparator<CacheElem>() {
                     @Override

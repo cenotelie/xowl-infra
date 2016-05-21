@@ -15,20 +15,34 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.sparql;
-
-import org.xowl.infra.store.rdf.RDFPatternSolution;
+package org.xowl.infra.store.rdf;
 
 /**
- * A set of SPARQL solutions
+ * Represents a match of a RDF pattern
  *
  * @author Laurent Wouters
  */
-public interface Solutions extends Iterable<RDFPatternSolution> {
+public interface RDFPatternMatch {
     /**
-     * Gets the number of solutions in this set
+     * Gets whether this is equivalent to another match
      *
-     * @return The number of solutions
+     * @param match Another match
+     * @return Whether the match is equivalent
      */
-    int size();
+    boolean sameAs(RDFPatternMatch match);
+
+    /**
+     * Gets the value bound to the specified variable in this token
+     *
+     * @param variable A variable
+     * @return The value bound to the variable, or null if none is
+     */
+    Node getBinding(VariableNode variable);
+
+    /**
+     * Gets the associated solution
+     *
+     * @return The solution for the match
+     */
+    RDFPatternSolution getSolution();
 }

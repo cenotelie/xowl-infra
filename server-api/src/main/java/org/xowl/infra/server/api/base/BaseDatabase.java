@@ -24,7 +24,6 @@ import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyFailure;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.IOUtils;
-import org.xowl.infra.store.rdf.Quad;
 
 import java.util.List;
 
@@ -120,11 +119,6 @@ public class BaseDatabase implements XOWLDatabase {
 
     @Override
     public XSPReply getRuleStatus(XOWLRule rule) {
-        return XSPReplyFailure.instance();
-    }
-
-    @Override
-    public XSPReply getQuadExplanation(Quad quad) {
         return XSPReplyFailure.instance();
     }
 

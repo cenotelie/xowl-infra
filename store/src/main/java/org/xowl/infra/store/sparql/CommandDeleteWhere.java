@@ -21,7 +21,7 @@ import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Changeset;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.Query;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
@@ -56,10 +56,10 @@ public class CommandDeleteWhere implements Command {
     public Result execute(Repository repository) {
         Query query = new Query();
         query.getPositives().addAll(quads);
-        Collection<QuerySolution> solutions = repository.getRDFQueryEngine().execute(query);
+        Collection<RDFPatternSolution> solutions = repository.getRDFQueryEngine().execute(query);
         Collection<Quad> toRemove = new ArrayList<>();
         try {
-            for (QuerySolution solution : solutions)
+            for (RDFPatternSolution solution : solutions)
                 Utils.instantiate(repository, solution, quads, toRemove);
             repository.getStore().insert(Changeset.fromRemoved(toRemove));
             repository.getStore().commit();

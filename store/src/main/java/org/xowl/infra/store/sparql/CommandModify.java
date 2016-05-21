@@ -20,7 +20,7 @@ package org.xowl.infra.store.sparql;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Changeset;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
@@ -91,7 +91,7 @@ public class CommandModify implements Command {
             Solutions solutions = where.match(repository);
             Collection<Quad> toInsert = new ArrayList<>();
             Collection<Quad> toRemove = new ArrayList<>();
-            for (QuerySolution solution : solutions) {
+            for (RDFPatternSolution solution : solutions) {
                 Utils.instantiate(repository, solution, insert, toInsert);
                 Utils.instantiate(repository, solution, delete, toRemove);
             }

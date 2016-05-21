@@ -22,7 +22,7 @@ import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.LiteralNode;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
@@ -82,7 +82,7 @@ public class ExpressionOperator implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
+    public Object eval(Repository repository, RDFPatternSolution bindings) throws EvalException {
         Object v1 = operand1.eval(repository, bindings);
         Object v2 = operand2 == null ? null : operand2.eval(repository, bindings);
         return apply(v1, v2);
@@ -91,7 +91,7 @@ public class ExpressionOperator implements Expression {
     @Override
     public Object eval(Repository repository, Solutions solutions) throws EvalException {
         List<Object> result = new ArrayList<>(solutions.size());
-        for (QuerySolution solution : solutions)
+        for (RDFPatternSolution solution : solutions)
             result.add(eval(repository, solution));
         return result;
     }

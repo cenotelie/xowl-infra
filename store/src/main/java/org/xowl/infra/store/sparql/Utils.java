@@ -42,7 +42,7 @@ class Utils {
      * @param expression The expression to evaluate
      * @return The evaluated native value
      */
-    public static Object evaluateNative(Repository repository, QuerySolution solution, DynamicExpression expression) {
+    public static Object evaluateNative(Repository repository, RDFPatternSolution solution, DynamicExpression expression) {
         Map<String, Object> bindings = new HashMap<>();
         for (Couple<VariableNode, Node> binding : solution)
             bindings.put(binding.x.getName(), RDFUtils.getNative(binding.y));
@@ -64,7 +64,7 @@ class Utils {
      * @param node       The node to instantiate
      * @return The instantiated node, or null if it cannot be instantiated
      */
-    private static Node instantiate(Repository repository, QuerySolution solution, Map<Node, Node> blanks, Node node) {
+    private static Node instantiate(Repository repository, RDFPatternSolution solution, Map<Node, Node> blanks, Node node) {
         if (node == null)
             return null;
         Node result = node;
@@ -105,7 +105,7 @@ class Utils {
      * @param solution   The query solution mapping the variables to their value
      * @param buffer     The buffer for the realized quads
      */
-    public static void instantiate(Repository repository, QuerySolution solution, Collection<Quad> template, Collection<Quad> buffer) throws EvalException {
+    public static void instantiate(Repository repository, RDFPatternSolution solution, Collection<Quad> template, Collection<Quad> buffer) throws EvalException {
         Map<Node, Node> blanks = new HashMap<>();
         for (Quad quad : template) {
             GraphNode graph = (GraphNode) instantiate(repository, solution, blanks, quad.getGraph());
@@ -134,7 +134,7 @@ class Utils {
      */
     public static Solutions filter(Solutions solutions, Expression expression, Repository repository) {
         SolutionsMultiset result = new SolutionsMultiset(solutions.size());
-        for (QuerySolution solution : solutions) {
+        for (RDFPatternSolution solution : solutions) {
             try {
                 if (ExpressionOperator.bool(ExpressionOperator.primitive(expression.eval(repository, solution)))) {
                     result.add(solution);
@@ -157,9 +157,9 @@ class Utils {
      */
     public static Solutions join(Solutions left, Solutions right) {
         SolutionsMultiset result = new SolutionsMultiset((left.size() == 0 ? 1 : left.size()) * (right.size() == 0 ? 1 : right.size()));
-        for (QuerySolution l : left) {
-            for (QuerySolution r : right) {
-                QuerySolution j = merge(l, r);
+        for (RDFPatternSolution l : left) {
+            for (RDFPatternSolution r : right) {
+                RDFPatternSolution j = merge(l, r);
                 if (j != null)
                     result.add(j);
             }
@@ -180,15 +180,15 @@ class Utils {
      */
     public static Solutions leftJoin(Solutions left, Solutions right, Expression expression, Repository repository) {
         SolutionsMultiset result = new SolutionsMultiset((left.size() == 0 ? 1 : left.size()) * (right.size() == 0 ? 1 : right.size()));
-        for (QuerySolution l : left) {
+        for (RDFPatternSolution l : left) {
             if (right.size() == 0) {
                 result.add(l);
             } else {
-                QuerySolution match = null;
-                for (QuerySolution r : right) {
+                RDFPatternSolution match = null;
+                for (RDFPatternSolution r : right) {
                     if (compatible(l, r)) {
                         boolean value = false;
-                        QuerySolution merge = merge(l, r);
+                        RDFPatternSolution merge = merge(l, r);
                         try {
                             value = ExpressionOperator.bool(ExpressionOperator.primitive(expression.eval(repository, merge)));
                         } catch (EvalException exception) {
@@ -213,9 +213,9 @@ class Utils {
      */
     public static Solutions union(Solutions left, Solutions right) {
         SolutionsMultiset result = new SolutionsMultiset(left.size() + right.size());
-        for (QuerySolution l : left)
+        for (RDFPatternSolution l : left)
             result.add(l);
-        for (QuerySolution r : right)
+        for (RDFPatternSolution r : right)
             result.add(r);
         return result;
     }
@@ -230,9 +230,9 @@ class Utils {
      */
     public static Solutions minus(Solutions left, Solutions right) {
         SolutionsMultiset result = new SolutionsMultiset(left.size());
-        for (QuerySolution l : left) {
+        for (RDFPatternSolution l : left) {
             boolean match = false;
-            for (QuerySolution r : right) {
+            for (RDFPatternSolution r : right) {
                 if (compatible(l, r)) {
                     match = true;
                     break;
@@ -253,7 +253,7 @@ class Utils {
      * @param repository The repository to evaluate against
      * @return The new query solution
      */
-    public static QuerySolution extend(QuerySolution solution, VariableNode variable, Expression expression, Repository repository) {
+    public static RDFPatternSolution extend(RDFPatternSolution solution, VariableNode variable, Expression expression, Repository repository) {
         Object value = null;
         try {
             value = expression.eval(repository, solution);
@@ -267,7 +267,7 @@ class Utils {
         Node valueNode = ExpressionOperator.rdf(value, repository);
         if (valueNode == null)
             return solution;
-        return new QuerySolution(solution, variable, valueNode);
+        return new RDFPatternSolution(solution, variable, valueNode);
     }
 
     /**
@@ -281,7 +281,7 @@ class Utils {
      */
     public static Solutions extend(Solutions solutions, VariableNode variable, Expression expression, Repository repository) {
         SolutionsMultiset result = new SolutionsMultiset(solutions.size());
-        for (QuerySolution solution : solutions)
+        for (RDFPatternSolution solution : solutions)
             result.add(extend(solution, variable, expression, repository));
         return result;
     }
@@ -297,9 +297,9 @@ class Utils {
     public static Solutions orderBy(Solutions solutions, List<Couple<Expression, Boolean>> conditions, Repository repository) {
         if (conditions.isEmpty())
             return solutions;
-        Couple<QuerySolution, Double>[] buffer = new Couple[solutions.size()];
+        Couple<RDFPatternSolution, Double>[] buffer = new Couple[solutions.size()];
         int index = 0;
-        for (QuerySolution solution : solutions)
+        for (RDFPatternSolution solution : solutions)
             buffer[index++] = new Couple<>(solution, 0d);
         orderByComputeKey(buffer, 0, buffer.length, conditions.get(0).x, repository);
         orderBy(buffer, 0, buffer.length, conditions, 0, repository);
@@ -319,11 +319,11 @@ class Utils {
      * @param ci         The index of the condition to use
      * @param repository The repository to evaluate against
      */
-    private static void orderBy(Couple<QuerySolution, Double>[] buffer, int first, int last, List<Couple<Expression, Boolean>> conditions, int ci, Repository repository) {
+    private static void orderBy(Couple<RDFPatternSolution, Double>[] buffer, int first, int last, List<Couple<Expression, Boolean>> conditions, int ci, Repository repository) {
         final boolean isDescending = conditions.get(ci).y;
-        Arrays.sort(buffer, first, last, new Comparator<Couple<QuerySolution, Double>>() {
+        Arrays.sort(buffer, first, last, new Comparator<Couple<RDFPatternSolution, Double>>() {
             @Override
-            public int compare(Couple<QuerySolution, Double> item1, Couple<QuerySolution, Double> item2) {
+            public int compare(Couple<RDFPatternSolution, Double> item1, Couple<RDFPatternSolution, Double> item2) {
                 if (item1.y == null) {
                     if (item2 != null)
                         return isDescending ? 1 : -1;
@@ -363,7 +363,7 @@ class Utils {
      * @param expression The expression to use for the computation of the key
      * @param repository The repository to evaluate against
      */
-    private static void orderByComputeKey(Couple<QuerySolution, Double>[] buffer, int first, int last, Expression expression, Repository repository) {
+    private static void orderByComputeKey(Couple<RDFPatternSolution, Double>[] buffer, int first, int last, Expression expression, Repository repository) {
         for (int i = first; i != last; i++) {
             try {
                 Double key;
@@ -392,7 +392,7 @@ class Utils {
      */
     public static Solutions project(Solutions solutions, List<Couple<VariableNode, Expression>> projection, Repository repository) {
         SolutionsMultiset result = new SolutionsMultiset(solutions.size());
-        for (QuerySolution solution : solutions) {
+        for (RDFPatternSolution solution : solutions) {
             List<Couple<VariableNode, Node>> bindings = new ArrayList<>();
             for (Couple<VariableNode, Expression> projector : projection) {
                 if (projector.y != null) {
@@ -410,7 +410,7 @@ class Utils {
                     bindings.add(new Couple<>(projector.x, solution.get(projector.x)));
                 }
             }
-            result.add(new QuerySolution(bindings));
+            result.add(new RDFPatternSolution(bindings));
         }
         return result;
     }
@@ -449,7 +449,7 @@ class Utils {
             return result;
         int index = 0;
         int remaining = length;
-        for (QuerySolution solution : solutions) {
+        for (RDFPatternSolution solution : solutions) {
             if (index >= start) {
                 result.add(solution);
                 remaining--;
@@ -470,7 +470,7 @@ class Utils {
      * @param right Another solution
      * @return Whether the two solutions are compatible
      */
-    public static boolean compatible(QuerySolution left, QuerySolution right) {
+    public static boolean compatible(RDFPatternSolution left, RDFPatternSolution right) {
         for (Couple<VariableNode, Node> binding : left) {
             Node value = right.get(binding.x);
             if (value != null && !RDFUtils.same(binding.y, value)) {
@@ -489,7 +489,7 @@ class Utils {
      * @param right Another solution
      * @return The merged solution, or null if the two were not compatible
      */
-    public static QuerySolution merge(QuerySolution left, QuerySolution right) {
+    public static RDFPatternSolution merge(RDFPatternSolution left, RDFPatternSolution right) {
         Collection<Couple<VariableNode, Node>> bindings = new ArrayList<>();
         for (Couple<VariableNode, Node> binding : left) {
             Node value = right.get(binding.x);
@@ -513,7 +513,7 @@ class Utils {
                 bindings.add(binding);
             }
         }
-        return new QuerySolution(bindings);
+        return new RDFPatternSolution(bindings);
     }
 
     /**
@@ -526,8 +526,8 @@ class Utils {
      */
     public static Solutions group(Solutions solutions, List<Couple<VariableNode, Expression>> expressions, Repository repository) {
         SolutionsGroup result = new SolutionsGroup();
-        for (QuerySolution solution : solutions) {
-            QuerySolution targetSolution = solution;
+        for (RDFPatternSolution solution : solutions) {
+            RDFPatternSolution targetSolution = solution;
             List<Object> keys = new ArrayList<>(expressions.size());
             for (Couple<VariableNode, Expression> expression : expressions) {
                 Object key = null;
@@ -540,7 +540,7 @@ class Utils {
                 }
                 keys.add(key);
                 if (expression.x != null)
-                    targetSolution = new QuerySolution(targetSolution, expression.x, ExpressionOperator.rdf(key, repository));
+                    targetSolution = new RDFPatternSolution(targetSolution, expression.x, ExpressionOperator.rdf(key, repository));
             }
             result.add(keys, targetSolution);
         }

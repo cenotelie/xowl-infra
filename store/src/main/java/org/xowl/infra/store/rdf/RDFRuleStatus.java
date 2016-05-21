@@ -15,48 +15,46 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.sparql;
+package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.store.rdf.RDFPatternSolution;
+import org.xowl.infra.store.Serializable;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Collection;
 
 /**
- * An array of SPARQL solutions
- *
- * @author Laurent Wouters
+ * Represents the current status of a RDF rule
  */
-class SolutionsArray implements Solutions {
+public class RDFRuleStatus implements Serializable {
     /**
-     * The content
+     * The rule's execution
      */
-    private final List<RDFPatternSolution> content;
+    private final Collection<RDFRuleExecution> executions;
 
     /**
-     * Initializes the solutions
-     */
-    public SolutionsArray() {
-        content = new ArrayList<>();
-    }
-
-    /**
-     * Adds a new solution to this set
+     * Initializes this status
      *
-     * @param solution The new solution
+     * @param executions The known executions
      */
-    public void add(RDFPatternSolution solution) {
-        content.add(solution);
+    public RDFRuleStatus(Collection<RDFRuleExecution> executions) {
+        this.executions = executions;
     }
 
     @Override
-    public int size() {
-        return content.size();
+    public String serializedString() {
+        return serializedJSON();
     }
 
     @Override
-    public Iterator<RDFPatternSolution> iterator() {
-        return content.iterator();
+    public String serializedJSON() {
+        StringBuilder builder = new StringBuilder("{\"executions\": [");
+        boolean first = true;
+        for (RDFRuleExecution execution : executions) {
+            if (!first)
+                builder.append(", ");
+            first = false;
+            builder.append(execution.serializedJSON());
+        }
+        builder.append("]}");
+        return builder.toString();
     }
 }

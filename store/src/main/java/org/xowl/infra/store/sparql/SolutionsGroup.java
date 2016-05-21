@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.utils.collections.ConcatenatedIterator;
 import org.xowl.infra.utils.collections.SingleIterator;
 
@@ -78,8 +78,8 @@ class SolutionsGroup implements Solutions {
         }
 
         @Override
-        public Iterator<QuerySolution> iterator() {
-            List<Iterator<QuerySolution>> iterators = new ArrayList<>();
+        public Iterator<RDFPatternSolution> iterator() {
+            List<Iterator<RDFPatternSolution>> iterators = new ArrayList<>();
             if (content != null)
                 iterators.add(content.iterator());
             if (subGroups != null) {
@@ -90,7 +90,7 @@ class SolutionsGroup implements Solutions {
                 return new SingleIterator<>(null);
             if (iterators.size() == 1)
                 return iterators.get(0);
-            Iterator<QuerySolution>[] buffer = new Iterator[iterators.size()];
+            Iterator<RDFPatternSolution>[] buffer = new Iterator[iterators.size()];
             for (int i = 0; i != iterators.size(); i++)
                 buffer[i] = iterators.get(i);
             return new ConcatenatedIterator<>(buffer);
@@ -102,7 +102,7 @@ class SolutionsGroup implements Solutions {
          * @param keys     The keys for the solution
          * @param solution The solution to add
          */
-        public void add(List<Object> keys, QuerySolution solution) {
+        public void add(List<Object> keys, RDFPatternSolution solution) {
             Group target = this;
             for (int i = 0; i != keys.size(); i++) {
                 if (target.subGroups == null) {
@@ -155,7 +155,7 @@ class SolutionsGroup implements Solutions {
      * @param keys     The keys for the solution
      * @param solution The solution to add
      */
-    public void add(List<Object> keys, QuerySolution solution) {
+    public void add(List<Object> keys, RDFPatternSolution solution) {
         top.add(keys, solution);
     }
 
@@ -165,7 +165,7 @@ class SolutionsGroup implements Solutions {
     }
 
     @Override
-    public Iterator<QuerySolution> iterator() {
+    public Iterator<RDFPatternSolution> iterator() {
         return top.iterator();
     }
 }

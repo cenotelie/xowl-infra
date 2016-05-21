@@ -23,14 +23,11 @@ import org.xowl.infra.server.api.base.BaseRule;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.*;
 import org.xowl.infra.store.Serializable;
-import org.xowl.infra.store.loaders.NQuadsLoader;
 import org.xowl.infra.store.loaders.RDFLoaderResult;
 import org.xowl.infra.store.loaders.RDFTLoader;
 import org.xowl.infra.store.loaders.SPARQLLoader;
-import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.Rule;
-import org.xowl.infra.store.rdf.RuleExplanation;
-import org.xowl.infra.store.rete.MatchStatus;
+import org.xowl.infra.store.rdf.RDFRule;
+import org.xowl.infra.store.rdf.RDFRuleStatus;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultSuccess;
@@ -320,7 +317,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         if (result.getRules().size() != 1)
             return new XSPReplyFailure("Expected one rule");
 
-        Rule rule = result.getRules().get(0);
+        RDFRule rule = result.getRules().get(0);
         String name = IOUtils.hashSHA1(rule.getIRI());
         File file = new File(folder, name);
         try (FileOutputStream stream = new FileOutputStream(file)) {
@@ -403,7 +400,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     private boolean doActivateRule(String iri) {
         File folder = new File(location, REPO_RULES);
         File file = new File(folder, IOUtils.hashSHA1(iri));
-        Rule rule;
+        RDFRule rule;
         try (FileInputStream stream = new FileInputStream(file)) {
             RDFTLoader loader = new RDFTLoader(repository.getStore());
             RDFLoaderResult result = loader.loadRDF(logger, new InputStreamReader(stream, Files.CHARSET), RULES_RESOURCE, null);
@@ -446,33 +443,10 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     public XSPReply getRuleStatus(String iri) {
         if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri))
             return new XSPReplyFailure("Not active");
-        MatchStatus result = repository.getRDFRuleEngine().getMatchStatus(iri);
+        RDFRuleStatus result = repository.getRDFRuleEngine().getMatchStatus(iri);
         if (result == null)
             return XSPReplyFailure.instance();
         return new XSPReplyResult<>(result);
-    }
-
-    @Override
-    public XSPReply getQuadExplanation(Quad quad) {
-        if (quad.getGraph() == null)
-            return new XSPReplyFailure("Quad must have a graph");
-        RuleExplanation explanation = repository.getRDFRuleEngine().explain(quad);
-        return new XSPReplyResult<>(explanation);
-    }
-
-    public XSPReply getQuadExplanation(String quad) {
-        BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
-        NQuadsLoader loader = new NQuadsLoader(repository.getStore());
-        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(quad), null, IRIs.GRAPH_DEFAULT);
-        if (result == null) {
-            // ill-formed request
-            dispatchLogger.error("Failed to parse and load the quad");
-            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
-        }
-        if (result.getQuads().size() != 1)
-            return new XSPReplyFailure("Expected one quad");
-        return getQuadExplanation(result.getQuads().get(0));
     }
 
     @Override

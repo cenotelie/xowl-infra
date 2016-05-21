@@ -58,6 +58,16 @@ public class Changeset {
     }
 
     /**
+     * Creates a reversed changeset
+     *
+     * @param changeset The changeset to reverse
+     * @return The reversed changeset
+     */
+    public static Changeset reverse(Changeset changeset) {
+        return new Changeset(changeset.decremented, changeset.incremented, changeset.removed, changeset.added);
+    }
+
+    /**
      * The quads that are incremented
      */
     private final Collection<Quad> incremented;

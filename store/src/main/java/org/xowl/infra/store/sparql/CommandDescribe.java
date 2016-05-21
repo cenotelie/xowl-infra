@@ -91,7 +91,7 @@ public class CommandDescribe implements Command {
             } else {
                 Solutions solutions = pattern.match(repository);
                 List<SubjectNode> explored = new ArrayList<>();
-                for (QuerySolution solution : solutions) {
+                for (RDFPatternSolution solution : solutions) {
                     for (VariableNode variable : variables) {
                         Node target = solution.get(variable);
                         if (target == null)

@@ -17,7 +17,7 @@
 package org.xowl.infra.store.loaders;
 
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.Rule;
+import org.xowl.infra.store.rdf.RDFRule;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +36,7 @@ public class RDFLoaderResult {
     /**
      * The loaded rules
      */
-    private final List<Rule> rules;
+    private final List<RDFRule> rules;
     /**
      * The imported IRIs
      */
@@ -56,7 +56,7 @@ public class RDFLoaderResult {
      *
      * @return The loaded rules
      */
-    public List<Rule> getRules() {
+    public List<RDFRule> getRules() {
         return rules;
     }
 

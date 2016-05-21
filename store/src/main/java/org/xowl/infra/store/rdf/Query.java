@@ -17,9 +17,7 @@
 
 package org.xowl.infra.store.rdf;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Represents the matching conditions of a RDF query
@@ -28,20 +26,24 @@ import java.util.List;
  */
 public class Query {
     /**
-     * The positive conditions
+     * The pattern to match for this query
      */
-    private final List<Quad> positives;
-    /**
-     * The list of conjunctive negative conditions
-     */
-    private final List<Collection<Quad>> negatives;
+    private final RDFPattern pattern;
 
     /**
      * Initializes this condition
      */
     public Query() {
-        this.positives = new ArrayList<>();
-        this.negatives = new ArrayList<>();
+        this.pattern = new RDFPattern();
+    }
+
+    /**
+     * Initializes this condition
+     *
+     * @param pattern The pattern to match for this query
+     */
+    public Query(RDFPattern pattern) {
+        this.pattern = pattern;
     }
 
     /**
@@ -50,7 +52,7 @@ public class Query {
      * @return The positive conditions of this rule
      */
     public Collection<Quad> getPositives() {
-        return positives;
+        return pattern.getPositives();
     }
 
     /**
@@ -59,7 +61,7 @@ public class Query {
      * @return The negative conjunctions of conditions
      */
     public Collection<Collection<Quad>> getNegatives() {
-        return negatives;
+        return pattern.getNegatives();
     }
 
     @Override
@@ -67,44 +69,6 @@ public class Query {
         if (!(obj instanceof Query))
             return false;
         Query query = (Query) obj;
-        // match identity?
-        if (query == this)
-            return true;
-        // match the sizes
-        if (this.positives.size() != query.positives.size())
-            return false;
-        if (this.negatives.size() != query.negatives.size())
-            return false;
-        // match the positives
-        for (Quad quad : this.positives)
-            if (!query.positives.contains(quad))
-                return false;
-        // match the negatives
-        List<Collection<Quad>> temp = new ArrayList<>(negatives);
-        for (Collection<Quad> conjunction : query.negatives) {
-            boolean matches = false;
-            for (int i = 0; i != temp.size(); i++) {
-                if (conjunction.size() != temp.get(i).size())
-                    continue;
-                boolean innerMatch = true;
-                for (Quad quad : conjunction) {
-                    if (!temp.get(i).contains(quad)) {
-                        innerMatch = false;
-                        break;
-                    }
-                }
-                if (!innerMatch)
-                    continue;
-                // found a match
-                temp.remove(i);
-                matches = true;
-                break;
-            }
-            // no match at all
-            if (!matches)
-                return false;
-        }
-        // all matches
-        return true;
+        return query == this || (this.pattern.equals(query.pattern));
     }
 }

@@ -28,12 +28,12 @@ public interface QueryObserver {
      *
      * @param solution The new solution
      */
-    void onNewSolution(QuerySolution solution);
+    void onNewSolution(RDFPatternSolution solution);
 
     /**
      * When a previous solution is revoked (probably due to changes in the input)
      *
      * @param solution The revoked solution
      */
-    void onSolutionRevoked(QuerySolution solution);
+    void onSolutionRevoked(RDFPatternSolution solution);
 }

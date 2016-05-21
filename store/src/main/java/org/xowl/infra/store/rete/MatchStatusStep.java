@@ -19,7 +19,7 @@ package org.xowl.infra.store.rete;
 import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
 
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class MatchStatusStep {
     /**
      * The current bindings at the end of this step
      */
-    private final List<QuerySolution> bindings;
+    private final List<RDFPatternSolution> bindings;
 
     /**
      * Gets the pattern that need to be matched
@@ -58,7 +58,7 @@ public class MatchStatusStep {
      *
      * @return The solution bindings
      */
-    public Collection<QuerySolution> getBindings() {
+    public Collection<RDFPatternSolution> getBindings() {
         return Collections.unmodifiableCollection(bindings);
     }
 
@@ -78,7 +78,7 @@ public class MatchStatusStep {
      * @param token A token
      */
     protected void addBindings(Token token) {
-        this.bindings.add(new QuerySolution(token.getBindings()));
+        this.bindings.add(new RDFPatternSolution(token.getBindings()));
     }
 
     /**
@@ -98,7 +98,7 @@ public class MatchStatusStep {
         IOUtils.serializeJSON(writer, pattern.getGraph());
         writer.write("}, \"bindings\": [");
         boolean firstSolution = true;
-        for (QuerySolution solution : bindings) {
+        for (RDFPatternSolution solution : bindings) {
             if (!firstSolution)
                 writer.write(", ");
             firstSolution = false;

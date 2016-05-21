@@ -18,7 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,14 +44,14 @@ public class ExpressionConstant implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
+    public Object eval(Repository repository, RDFPatternSolution bindings) throws EvalException {
         return value;
     }
 
     @Override
     public Object eval(Repository repository, Solutions solutions) throws EvalException {
         List<Object> result = new ArrayList<>(solutions.size());
-        for (QuerySolution solution : solutions)
+        for (RDFPatternSolution solution : solutions)
             result.add(eval(repository, solution));
         return result;
     }

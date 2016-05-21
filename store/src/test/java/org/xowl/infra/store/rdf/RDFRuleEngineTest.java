@@ -39,15 +39,15 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class RuleEngineTest {
+public class RDFRuleEngineTest {
     /**
      * The default prefixes for loading RDFT rules
      */
-    private static final String DEFAULT_PREFIXES = "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>. " +
-            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>. " +
-            "@prefix xsd: <http://www.w3.org/2001/XMLSchema#>. " +
-            "@prefix owl: <http://www.w3.org/2002/07/owl#>. " +
-            "@prefix xowl: <http://xowl.org/store/rules/xowl#>. ";
+    private static final String DEFAULT_PREFIXES = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
+            "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
+            "PREFIX owl: <http://www.w3.org/2002/07/owl#> " +
+            "PREFIX xowl: <http://xowl.org/store/rules/xowl#> ";
 
 
     /**
@@ -57,7 +57,7 @@ public class RuleEngineTest {
      * @param input      The input to load from
      * @return The loaded rule
      */
-    protected Rule loadRDFTRule(Repository repository, String input) {
+    protected RDFRule loadRDFTRule(Repository repository, String input) {
         SinkLogger logger = new SinkLogger();
         RDFTLoader loader = new RDFTLoader(repository.getStore());
         RDFLoaderResult result = loader.loadRDF(logger, new StringReader(DEFAULT_PREFIXES + input), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT);
