@@ -108,9 +108,6 @@ public class SPARQLLoader {
      * @return The loaded data
      */
     public List<Command> load(Logger logger, Reader reader) {
-        baseURI = null;
-        namespaces = new HashMap<>();
-
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
@@ -245,6 +242,8 @@ public class SPARQLLoader {
      * @param node The AST node
      */
     void loadPrologue(ASTNode node) {
+        baseURI = null;
+        namespaces = new HashMap<>();
         for (ASTNode child : node.getChildren()) {
             switch (child.getSymbol().getID()) {
                 case SPARQLParser.ID.decl_base:

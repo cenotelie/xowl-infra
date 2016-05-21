@@ -46,11 +46,11 @@ public class RDFRuleEngineTest {
     /**
      * The default prefixes for loading RDFT rules
      */
-    private static final String DEFAULT_PREFIXES = "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>. " +
-            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>. " +
-            "@prefix xsd: <http://www.w3.org/2001/XMLSchema#>. " +
-            "@prefix owl: <http://www.w3.org/2002/07/owl#>. " +
-            "@prefix xowl: <http://xowl.org/store/rules/xowl#>. ";
+    private static final String DEFAULT_PREFIXES = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+            "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
+            "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
+            "PREFIX owl: <http://www.w3.org/2002/07/owl#> " +
+            "PREFIX xowl: <http://xowl.org/store/rules/xowl#> ";
 
 
     /**
