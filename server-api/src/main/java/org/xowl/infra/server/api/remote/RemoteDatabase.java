@@ -25,7 +25,6 @@ import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.base.BaseDatabase;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.store.EntailmentRegime;
-import org.xowl.infra.store.rdf.Quad;
 
 import java.util.List;
 
@@ -110,11 +109,6 @@ class RemoteDatabase extends BaseDatabase {
     @Override
     public XSPReply getRuleStatus(XOWLRule rule) {
         return server.getRuleStatus(name, rule);
-    }
-
-    @Override
-    public XSPReply getQuadExplanation(Quad quad) {
-        return server.getQuadExplanation(name, quad);
     }
 
     @Override

@@ -284,8 +284,6 @@ class HTTPAPIConnection extends SafeRunnable {
             return handleResourceDatabaseSPARQL(method, resource);
         if (resource.endsWith("/entailment"))
             return handleResourceDatabaseEntailment(method, resource);
-        if (resource.endsWith("/explain"))
-            return handleResourceDatabaseExplain(method, resource);
         if (resource.endsWith("/privileges"))
             return handleResourceDatabasePrivileges(method, resource);
         if (resource.endsWith("/rules"))
@@ -399,25 +397,6 @@ class HTTPAPIConnection extends SafeRunnable {
             }
         } else if (method.equals("DELETE")) {
             return response(controller.setEntailmentRegime(client, name, EntailmentRegime.none.toString()));
-        }
-        return response(HttpURLConnection.HTTP_BAD_METHOD, null);
-    }
-
-    /**
-     * Handles the request
-     *
-     * @param method   The HTTP method
-     * @param resource The accessed resource
-     * @return The response code
-     */
-    private int handleResourceDatabaseExplain(String method, String resource) {
-        String name = resource.substring("/db/".length(), resource.length() - "/explain".length());
-        if (method.equals("GET")) {
-            Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
-            List<String> quads = params.get("quad");
-            if (quads == null || quads.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-            return response(controller.getQuadExplanation(client, name, quads.get(0)));
         }
         return response(HttpURLConnection.HTTP_BAD_METHOD, null);
     }

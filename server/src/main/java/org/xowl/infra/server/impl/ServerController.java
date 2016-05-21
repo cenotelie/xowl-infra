@@ -862,25 +862,6 @@ public class ServerController implements Closeable {
     }
 
     /**
-     * Gets the explanation for a quad in this database
-     *
-     * @param client   The requesting client
-     * @param database The target database
-     * @param quad     The quad serialization
-     * @return The protocol reply
-     */
-    public XSPReply getQuadExplanation(ServerUser client, String database, String quad) {
-        if (client == null)
-            return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
-        if (db == null)
-            return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
-            return db.getQuadExplanation(quad);
-        return XSPReplyUnauthorized.instance();
-    }
-
-    /**
      * Uploads some content to this database
      *
      * @param client   The requesting client
