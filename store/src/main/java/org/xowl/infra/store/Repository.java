@@ -24,7 +24,7 @@ import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.rules.Rule;
 import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.owl.QueryEngine;
-import org.xowl.infra.store.owl.RuleEngine;
+import org.xowl.infra.store.owl.OWLRuleEngine;
 import org.xowl.infra.store.owl.TranslationException;
 import org.xowl.infra.store.owl.Translator;
 import org.xowl.infra.store.rdf.*;
@@ -101,7 +101,7 @@ public class Repository extends AbstractRepository {
     /**
      * The rule engine for this repository
      */
-    private RuleEngine ruleEngine;
+    private OWLRuleEngine ruleEngine;
     /**
      * The entailment regime
      */
@@ -150,9 +150,9 @@ public class Repository extends AbstractRepository {
      *
      * @return The associated OWL rule engine
      */
-    public RuleEngine getOWLRuleEngine() {
+    public OWLRuleEngine getOWLRuleEngine() {
         if (ruleEngine == null)
-            ruleEngine = new RuleEngine(backend, backend, evaluator);
+            ruleEngine = new OWLRuleEngine(backend, backend, evaluator);
         return ruleEngine;
     }
 
@@ -161,7 +161,7 @@ public class Repository extends AbstractRepository {
      *
      * @return The associated RDF rule engine
      */
-    public org.xowl.infra.store.rdf.RuleEngine getRDFRuleEngine() {
+    public RDFRuleEngine getRDFRuleEngine() {
         return getOWLRuleEngine().getBackend();
     }
 

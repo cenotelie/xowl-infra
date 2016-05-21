@@ -34,7 +34,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class RuleEngine implements ChangeListener {
+public class RDFRuleEngine implements ChangeListener {
     /**
      * Represents the compiled data of a rule
      */
@@ -226,7 +226,7 @@ public class RuleEngine implements ChangeListener {
      * @param outputStore The RDF store for the output
      * @param evaluator   The evaluator for this engine
      */
-    public RuleEngine(Dataset inputStore, BaseStore outputStore, Evaluator evaluator) {
+    public RDFRuleEngine(Dataset inputStore, BaseStore outputStore, Evaluator evaluator) {
         this.outputStore = outputStore;
         this.rete = new RETENetwork(inputStore);
         this.evaluator = evaluator;

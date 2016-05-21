@@ -42,7 +42,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class RuleEngineTest {
+public class RDFRuleEngineTest {
     /**
      * The default prefixes for loading RDFT rules
      */

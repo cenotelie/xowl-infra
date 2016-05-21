@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -13,9 +13,6 @@
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
- * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 package org.xowl.infra.store.owl;
 
@@ -25,12 +22,7 @@ import org.xowl.infra.lang.rules.Assertion;
 import org.xowl.infra.lang.rules.Rule;
 import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.IRIs;
-import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.rdf.GraphNode;
-import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.rdf.RDFRule;
-import org.xowl.infra.store.rdf.VariableNode;
-import org.xowl.infra.store.rete.Token;
+import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.utils.collections.Couple;
 
@@ -41,68 +33,15 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class RuleEngine {
-    /**
-     * The specialized RDF rule engine backend
-     */
-    private class Backend extends org.xowl.infra.store.rdf.RuleEngine {
-        /**
-         * Initializes this engine
-         *
-         * @param inputStore  The RDF store serving as input
-         * @param outputStore The RDF store for the output
-         */
-        public Backend(BaseStore inputStore, BaseStore outputStore) {
-            super(inputStore, outputStore);
-        }
-
-        @Override
-        protected Node processOtherNode(RDFRule rule, Node node, Token token, Map<Node, Node> specials) {
-            if (node.getNodeType() != Node.TYPE_DYNAMIC || evaluator == null)
-                return node;
-            Node result = specials.get(node);
-            if (result != null)
-                return result;
-            evaluator.push(buildBindings(token, specials));
-            result = RDFUtils.getRDF(outputStore, evaluator.eval(((DynamicNode) node).getDynamicExpression()));
-            specials.put(node, result);
-            evaluator.pop();
-            return result;
-        }
-
-        /**
-         * Builds the bindings data for the evaluator from the specified information
-         *
-         * @param token    The matching token in the rule engine
-         * @param specials The existing special bindings
-         * @return The bindings for the evaluator
-         */
-        private Map<String, Object> buildBindings(Token token, Map<Node, Node> specials) {
-            Map<String, Object> bindings = new HashMap<>();
-            for (Couple<VariableNode, Node> entry : token.getBindings()) {
-                bindings.put(entry.x.getName(), RDFUtils.getNative(entry.y));
-            }
-            for (Map.Entry<Node, Node> entry : specials.entrySet()) {
-                if (entry.getKey().getNodeType() == Node.TYPE_VARIABLE) {
-                    bindings.put(((VariableNode) entry.getValue()).getName(), RDFUtils.getNative(entry.getValue()));
-                }
-            }
-            return bindings;
-        }
-    }
-
+public class OWLRuleEngine {
     /**
      * The XOWL store for the output
      */
     private final BaseStore outputStore;
     /**
-     * The current evaluator
-     */
-    private final Evaluator evaluator;
-    /**
      * The RDF backend
      */
-    private final Backend backend;
+    private final RDFRuleEngine backend;
     /**
      * The mapping of OWL to RDF rules
      */
@@ -117,7 +56,7 @@ public class RuleEngine {
      *
      * @return The RDF backend
      */
-    public org.xowl.infra.store.rdf.RuleEngine getBackend() {
+    public RDFRuleEngine getBackend() {
         return backend;
     }
 
@@ -128,10 +67,9 @@ public class RuleEngine {
      * @param outputStore The store to output produced axioms
      * @param evaluator   The evaluator
      */
-    public RuleEngine(BaseStore inputStore, BaseStore outputStore, Evaluator evaluator) {
+    public OWLRuleEngine(BaseStore inputStore, BaseStore outputStore, Evaluator evaluator) {
         this.outputStore = outputStore;
-        this.evaluator = evaluator;
-        this.backend = new Backend(inputStore, outputStore);
+        this.backend = new RDFRuleEngine(inputStore, outputStore, evaluator);
         this.rdfRules = new HashMap<>();
         this.owlRules = new HashMap<>();
     }
@@ -149,7 +87,7 @@ public class RuleEngine {
         GraphNode graphSource = getGraph(source, true);
         GraphNode graphTarget = getGraph(target, false);
         GraphNode graphMeta = getGraph(meta, false);
-        RDFRule rdfRule = new RDFRule(rule.getHasIRI().getHasValue(), false);
+        RDFRuleSimple rdfRule = new RDFRuleSimple(rule.getHasIRI().getHasValue(), false);
         Translator translator = new Translator(translationContext, outputStore, null);
         List<Axiom> positiveNormal = new ArrayList<>();
         List<Axiom> positiveMeta = new ArrayList<>();
@@ -163,14 +101,16 @@ public class RuleEngine {
                     }
                 } else {
                     if (assertion.getIsMeta()) {
-                        rdfRule.getAntecedentMetaNegatives().add(translator.translate(assertion.getAllAxioms(), graphMeta));
+                        rdfRule.addAntecedentNegatives(translator.translate(assertion.getAllAxioms(), graphMeta));
                     } else {
-                        rdfRule.getAntecedentSourceNegatives().add(translator.translate(assertion.getAllAxioms(), graphSource));
+                        rdfRule.addAntecedentNegatives(translator.translate(assertion.getAllAxioms(), graphSource));
                     }
                 }
             }
-            rdfRule.getAntecedentSourcePositives().addAll(translator.translate(positiveNormal, graphSource));
-            rdfRule.getAntecedentMetaPositives().addAll(translator.translate(positiveMeta, graphMeta));
+            for (Quad quad : translator.translate(positiveNormal, graphSource))
+                rdfRule.addAntecedentPositive(quad);
+            for (Quad quad : translator.translate(positiveMeta, graphMeta))
+                rdfRule.addAntecedentPositive(quad);
             positiveNormal.clear();
             positiveMeta.clear();
             for (Assertion assertion : rule.getAllConsequents()) {
@@ -182,14 +122,18 @@ public class RuleEngine {
                     }
                 } else {
                     if (assertion.getIsMeta()) {
-                        rdfRule.getConsequentMetaNegatives().addAll(translator.translate(assertion.getAllAxioms(), graphMeta));
+                        for (Quad quad : translator.translate(assertion.getAllAxioms(), graphMeta))
+                            rdfRule.addConsequentNegative(quad);
                     } else {
-                        rdfRule.getConsequentTargetNegatives().addAll(translator.translate(assertion.getAllAxioms(), graphTarget));
+                        for (Quad quad : translator.translate(assertion.getAllAxioms(), graphTarget))
+                            rdfRule.addConsequentNegative(quad);
                     }
                 }
             }
-            rdfRule.getConsequentTargetPositives().addAll(translator.translate(positiveNormal, graphTarget));
-            rdfRule.getConsequentMetaPositives().addAll(translator.translate(positiveMeta, graphMeta));
+            for (Quad quad : translator.translate(positiveNormal, graphTarget))
+                rdfRule.addConsequentPositive(quad);
+            for (Quad quad : translator.translate(positiveMeta, graphMeta))
+                rdfRule.addConsequentPositive(quad);
             positiveNormal.clear();
             positiveMeta.clear();
         } catch (TranslationException ex) {
