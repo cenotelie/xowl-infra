@@ -90,7 +90,7 @@ public class RDFRuleEngine implements ChangeListener {
 
         @Override
         public void activateToken(Token token) {
-            Collection<RDFRuleExecution> executions = data.original.onPatternDematched(data.executions, pattern, token);
+            Collection<RDFRuleExecution> executions = data.original.onPatternMatched(data.executions, pattern, token);
             for (RDFRuleExecution execution : executions) {
                 data.executions.add(execution);
                 requestsToFire.add(execution);
