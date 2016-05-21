@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -13,15 +13,14 @@
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
- * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
 package org.xowl.infra.store.rete;
 
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
+import org.xowl.infra.store.rdf.RDFPatternMatch;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.collections.Couple;
 
@@ -33,7 +32,7 @@ import java.util.Collection;
  *
  * @author Laurent Wouters
  */
-public class Token {
+public class Token implements RDFPatternMatch {
     /**
      * The parent token
      */
@@ -98,23 +97,6 @@ public class Token {
                 return;
             }
         }
-    }
-
-    /**
-     * Gets the value bound to the specified variable in this token
-     *
-     * @param variable A variable
-     * @return The value bound to the variable, or null if none is
-     */
-    public Node getBinding(VariableNode variable) {
-        Token current = this;
-        while (current != null) {
-            Node value = current.getLocalBinding(variable);
-            if (value != null)
-                return value;
-            current = current.parent;
-        }
-        return null;
     }
 
     /**
@@ -194,5 +176,27 @@ public class Token {
         } else {
             return (token2.variables == null);
         }
+    }
+
+    @Override
+    public boolean sameAs(RDFPatternMatch match) {
+        return sameAs((Token) match);
+    }
+
+    @Override
+    public Node getBinding(VariableNode variable) {
+        Token current = this;
+        while (current != null) {
+            Node value = current.getLocalBinding(variable);
+            if (value != null)
+                return value;
+            current = current.parent;
+        }
+        return null;
+    }
+
+    @Override
+    public RDFPatternSolution getSolution() {
+        return new RDFPatternSolution(getBindings());
     }
 }

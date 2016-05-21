@@ -17,23 +17,44 @@
 
 package org.xowl.infra.store.rdf;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 /**
- * Represents an observer of a query
+ * Represents a pattern of RDF quads
  *
  * @author Laurent Wouters
  */
-public interface QueryObserver {
+public class RDFPattern {
     /**
-     * When a new solution has been found
-     *
-     * @param solution The new solution
+     * The positive quads in this pattern
      */
-    void onNewSolution(RDFPatternSolution solution);
+    private final Collection<Quad> positives;
+    /**
+     * The negatives conjunctions of quads in this pattern
+     */
+    private final Collection<Collection<Quad>> negatives;
+
+    public RDFPattern() {
+        this.positives = new ArrayList<>();
+        this.negatives = new ArrayList<>();
+    }
 
     /**
-     * When a previous solution is revoked (probably due to changes in the input)
+     * Gets the positive quads in this pattern
      *
-     * @param solution The revoked solution
+     * @return The positive quads in this pattern
      */
-    void onSolutionRevoked(RDFPatternSolution solution);
+    public Collection<Quad> getPositives() {
+        return positives;
+    }
+
+    /**
+     * Gets the negatives conjunctions of quads in this pattern
+     *
+     * @return The negatives conjunctions of quads in this pattern
+     */
+    public Collection<Collection<Quad>> getNegatives() {
+        return negatives;
+    }
 }

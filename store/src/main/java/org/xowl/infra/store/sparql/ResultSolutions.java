@@ -113,7 +113,7 @@ public class ResultSolutions implements Result {
      */
     private List<VariableNode> getVariables() {
         List<VariableNode> variables = new ArrayList<>();
-        for (QuerySolution solution : solutions) {
+        for (RDFPatternSolution solution : solutions) {
             for (VariableNode variable : solution.getVariables()) {
                 if (!variables.contains(variable))
                     variables.add(variable);
@@ -136,7 +136,7 @@ public class ResultSolutions implements Result {
                 writer.write(",");
             writer.write(variables.get(i).getName());
         }
-        for (QuerySolution solution : solutions) {
+        for (RDFPatternSolution solution : solutions) {
             writer.write(Files.LINE_SEPARATOR);
             for (int i = 0; i != variables.size(); i++) {
                 if (i != 0)
@@ -178,7 +178,7 @@ public class ResultSolutions implements Result {
             writer.write('?');
             writer.write(variables.get(i).getName());
         }
-        for (QuerySolution solution : solutions) {
+        for (RDFPatternSolution solution : solutions) {
             writer.write(Files.LINE_SEPARATOR);
             for (int i = 0; i != variables.size(); i++) {
                 if (i != 0)
@@ -239,7 +239,7 @@ public class ResultSolutions implements Result {
         }
         writer.write("</head>");
         writer.write("<results>");
-        for (QuerySolution solution : solutions) {
+        for (RDFPatternSolution solution : solutions) {
             writer.write("<result>");
             for (int i = 0; i != variables.size(); i++) {
                 Node value = solution.get(variables.get(i));
@@ -274,7 +274,7 @@ public class ResultSolutions implements Result {
         }
         writer.write("] }, \"results\": { \"bindings\": [");
         boolean firstSolution = true;
-        for (QuerySolution solution : solutions) {
+        for (RDFPatternSolution solution : solutions) {
             if (!firstSolution)
                 writer.write(", ");
             firstSolution = false;

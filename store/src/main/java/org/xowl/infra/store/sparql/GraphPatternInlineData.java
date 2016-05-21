@@ -21,7 +21,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,14 +35,14 @@ public class GraphPatternInlineData implements GraphPattern {
     /**
      * The inline data
      */
-    private final Collection<QuerySolution> data;
+    private final Collection<RDFPatternSolution> data;
 
     /**
      * Initializes this graph pattern
      *
      * @param data The inline data
      */
-    public GraphPatternInlineData(Collection<QuerySolution> data) {
+    public GraphPatternInlineData(Collection<RDFPatternSolution> data) {
         this.data = new ArrayList<>(data);
     }
 

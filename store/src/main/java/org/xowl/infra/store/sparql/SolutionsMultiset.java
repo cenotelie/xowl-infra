@@ -20,7 +20,7 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +36,7 @@ class SolutionsMultiset implements Solutions {
     /**
      * The contained solutions
      */
-    private final List<QuerySolution> content;
+    private final List<RDFPatternSolution> content;
 
     /**
      * Initializes an empty set
@@ -59,7 +59,7 @@ class SolutionsMultiset implements Solutions {
      *
      * @param content The initial content
      */
-    public SolutionsMultiset(Collection<QuerySolution> content) {
+    public SolutionsMultiset(Collection<RDFPatternSolution> content) {
         this.content = new ArrayList<>(content);
     }
 
@@ -70,7 +70,7 @@ class SolutionsMultiset implements Solutions {
      */
     public SolutionsMultiset(Solutions original) {
         this.content = new ArrayList<>(original.size());
-        for (QuerySolution solution : original)
+        for (RDFPatternSolution solution : original)
             content.add(solution);
     }
 
@@ -82,7 +82,7 @@ class SolutionsMultiset implements Solutions {
      */
     public SolutionsMultiset(Solutions original, boolean distinct) {
         this.content = new ArrayList<>(original.size());
-        for (QuerySolution solution : original)
+        for (RDFPatternSolution solution : original)
             if (!distinct || (!content.contains(solution)))
                 content.add(solution);
     }
@@ -92,7 +92,7 @@ class SolutionsMultiset implements Solutions {
      *
      * @param solution A solution
      */
-    void add(QuerySolution solution) {
+    void add(RDFPatternSolution solution) {
         content.add(solution);
     }
 
@@ -101,7 +101,7 @@ class SolutionsMultiset implements Solutions {
      *
      * @param solution A solution
      */
-    void addDistinct(QuerySolution solution) {
+    void addDistinct(RDFPatternSolution solution) {
         if (!content.contains(solution))
             content.add(solution);
     }
@@ -112,7 +112,7 @@ class SolutionsMultiset implements Solutions {
     }
 
     @Override
-    public Iterator<QuerySolution> iterator() {
+    public Iterator<RDFPatternSolution> iterator() {
         return content.iterator();
     }
 }

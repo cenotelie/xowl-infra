@@ -19,13 +19,14 @@ package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Serializable;
-import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,10 +41,9 @@ public class RDFRuleExecution implements Serializable {
      */
     public final RDFRule rule;
     /**
-     * The tokens that triggered the rule
-     * The tokens are to be in the same order as the pattern parts in the rule
+     * The matches that triggered the rule
      */
-    public final Token[] tokens;
+    public final RDFPatternMatch[] matches;
     /**
      * The mapping of special nodes in the consequents
      */
@@ -52,12 +52,12 @@ public class RDFRuleExecution implements Serializable {
     /**
      * Initializes this data
      *
-     * @param rule   The original rule
-     * @param tokens The tokens that triggered the rule
+     * @param rule    The original rule
+     * @param matches The matches that triggered the rule
      */
-    public RDFRuleExecution(RDFRule rule, Token[] tokens) {
+    public RDFRuleExecution(RDFRule rule, RDFPatternMatch[] matches) {
         this.rule = rule;
-        this.tokens = tokens;
+        this.matches = matches;
         this.specials = new HashMap<>();
     }
 
@@ -68,8 +68,8 @@ public class RDFRuleExecution implements Serializable {
      * @return The value bound to the variable, or null if none is
      */
     public Node getBinding(VariableNode variable) {
-        for (int i = 0; i != tokens.length; i++) {
-            Node result = tokens[i].getBinding(variable);
+        for (int i = 0; i != matches.length; i++) {
+            Node result = matches[i].getBinding(variable);
             if (result != null)
                 return result;
         }
@@ -87,9 +87,13 @@ public class RDFRuleExecution implements Serializable {
         try {
             writer.append("{\"bindings\": {");
             boolean first = true;
-            for (int i = 0; i != tokens.length; i++) {
-                if (tokens[i] != null) {
-                    for (Couple<VariableNode, Node> binding : tokens[i].getBindings()) {
+            Collection<String> names = new ArrayList<>();
+            for (int i = 0; i != matches.length; i++) {
+                if (matches[i] != null) {
+                    for (Couple<VariableNode, Node> binding : matches[i].getSolution()) {
+                        if (names.contains(binding.x.getName()))
+                            continue;
+                        names.add(binding.x.getName());
                         if (!first)
                             writer.append(", ");
                         first = false;

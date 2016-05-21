@@ -23,7 +23,7 @@ package org.xowl.infra.store.sparql;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.owl.DynamicNode;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
 
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public class ExpressionRDF implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, QuerySolution bindings) throws EvalException {
+    public Object eval(Repository repository, RDFPatternSolution bindings) throws EvalException {
         if (node == null)
             return null;
         Node result = node;
@@ -69,7 +69,7 @@ public class ExpressionRDF implements Expression {
     @Override
     public Object eval(Repository repository, Solutions solutions) throws EvalException {
         List<Object> result = new ArrayList<>(solutions.size());
-        for (QuerySolution solution : solutions)
+        for (RDFPatternSolution solution : solutions)
             result.add(eval(repository, solution));
         return result;
     }

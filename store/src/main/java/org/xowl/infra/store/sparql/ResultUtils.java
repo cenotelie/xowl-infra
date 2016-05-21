@@ -30,7 +30,7 @@ import org.xowl.infra.store.http.HttpConstants;
 import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.cache.CachedNodes;
@@ -266,7 +266,7 @@ public class ResultUtils {
                     Node value = IOUtils.deserializeJSON(nodeManager, nodeBinding.getChildren().get(1));
                     bindings.add(new Couple<>(variable, value));
                 }
-                solutions.add(new QuerySolution(bindings));
+                solutions.add(new RDFPatternSolution(bindings));
             }
             return new ResultSolutions(solutions);
         } else if (nodeError != null) {

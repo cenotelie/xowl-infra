@@ -23,6 +23,7 @@ import org.xowl.infra.lang.owl2.Axiom;
 import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.store.storage.BaseStore;
 
@@ -85,9 +86,9 @@ public class QueryEngine {
         TranslationContext context = new TranslationContext();
         try {
             org.xowl.infra.store.rdf.Query rdfQuery = translate(query, context);
-            Collection<org.xowl.infra.store.rdf.QuerySolution> rdfSolutions = rdfEngine.execute(rdfQuery);
+            Collection<RDFPatternSolution> rdfSolutions = rdfEngine.execute(rdfQuery);
             List<Bindings> owlSolutions = new ArrayList<>();
-            for (org.xowl.infra.store.rdf.QuerySolution rdfSolution : rdfSolutions)
+            for (RDFPatternSolution rdfSolution : rdfSolutions)
                 owlSolutions.add(translate(rdfSolution, context));
             return owlSolutions;
         } catch (TranslationException ex) {
@@ -122,7 +123,7 @@ public class QueryEngine {
      * @param context  The translation context
      * @return The corresponding OWL solution
      */
-    private Bindings translate(org.xowl.infra.store.rdf.QuerySolution solution, TranslationContext context) {
+    private Bindings translate(RDFPatternSolution solution, TranslationContext context) {
         Bindings bindings = new Bindings();
         for (VariableNode var : solution.getVariables()) {
             Object value = RDFUtils.getOWL(solution.get(var));

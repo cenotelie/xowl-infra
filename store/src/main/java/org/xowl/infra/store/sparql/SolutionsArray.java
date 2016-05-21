@@ -20,7 +20,7 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -35,7 +35,7 @@ class SolutionsArray implements Solutions {
     /**
      * The content
      */
-    private final List<QuerySolution> content;
+    private final List<RDFPatternSolution> content;
 
     /**
      * Initializes the solutions
@@ -49,7 +49,7 @@ class SolutionsArray implements Solutions {
      *
      * @param solution The new solution
      */
-    public void add(QuerySolution solution) {
+    public void add(RDFPatternSolution solution) {
         content.add(solution);
     }
 
@@ -59,7 +59,7 @@ class SolutionsArray implements Solutions {
     }
 
     @Override
-    public Iterator<QuerySolution> iterator() {
+    public Iterator<RDFPatternSolution> iterator() {
         return content.iterator();
     }
 }

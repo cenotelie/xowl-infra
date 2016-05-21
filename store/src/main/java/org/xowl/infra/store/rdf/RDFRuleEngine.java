@@ -59,7 +59,7 @@ public class RDFRuleEngine implements ChangeListener {
          */
         public RuleData(RDFRule original) {
             this.original = original;
-            this.matchers = new RETERule[original.getPatternParts().size()];
+            this.matchers = new RETERule[original.getPatterns().size()];
             this.executions = new ArrayList<>();
         }
     }
@@ -73,76 +73,37 @@ public class RDFRuleEngine implements ChangeListener {
          */
         private final RuleData data;
         /**
-         * The index of the associated matcher
+         * The pattern matched at this output
          */
-        private final int index;
-        /**
-         * The tokens on this output
-         */
-        private final Collection<Token> tokens;
+        private final RDFPattern pattern;
 
         /**
          * Initializes this output
          *
-         * @param data  The parent rule data
-         * @param index The index of the associated matcher
+         * @param data    The parent rule data
+         * @param pattern The pattern matched at this output
          */
-        public RETEOutput(RuleData data, int index) {
+        public RETEOutput(RuleData data, RDFPattern pattern) {
             this.data = data;
-            this.index = index;
-            this.tokens = new ArrayList<>();
+            this.pattern = pattern;
         }
 
         @Override
         public void activateToken(Token token) {
-            tokens.add(token);
-
-            List<Token[]> solutions = new ArrayList<>();
-            Token[] solution = new Token[data.matchers.length];
-            solution[index] = token;
-            solutions.add(solution);
-
-            for (int i = 0; i != data.matchers.length; i++) {
-                if (i == index)
-                    continue;
-                RETEOutput output = (RETEOutput) data.matchers[i].getOutput();
-                boolean first = true;
-                int count = solutions.size();
-                for (Token sibling : output.tokens) {
-                    if (first) {
-                        for (Token[] s : solutions)
-                            s[i] = sibling;
-                        first = false;
-                    } else {
-                        for (int j = 0; j != count; j++) {
-                            Token[] variant = solutions.get(j).clone();
-                            variant[i] = sibling;
-                            solutions.add(variant);
-                        }
-                    }
-                }
-            }
-
-            for (Token[] s : solutions) {
-                RDFRuleExecution execution = data.original.isTriggered(data.executions, s);
-                if (execution != null) {
-                    data.executions.add(execution);
-                    requestsToFire.add(execution);
-                }
+            Collection<RDFRuleExecution> executions = data.original.onPatternDematched(data.executions, pattern, token);
+            for (RDFRuleExecution execution : executions) {
+                data.executions.add(execution);
+                requestsToFire.add(execution);
             }
         }
 
         @Override
         public void deactivateToken(Token token) {
-            tokens.remove(token);
-            Iterator<RDFRuleExecution> iterator = data.executions.iterator();
-            while (iterator.hasNext()) {
-                RDFRuleExecution execution = iterator.next();
-                if (execution.tokens[index] == token) {
-                    iterator.remove();
-                    if (!requestsToFire.remove(execution))
-                        requestsToUnfire.add(execution);
-                }
+            Collection<RDFRuleExecution> executions = data.original.onPatternDematched(data.executions, pattern, token);
+            for (RDFRuleExecution execution : executions) {
+                data.executions.remove(execution);
+                if (!requestsToFire.remove(execution))
+                    requestsToUnfire.add(execution);
             }
         }
 
@@ -258,8 +219,8 @@ public class RDFRuleEngine implements ChangeListener {
     public void add(final RDFRule rule) {
         RuleData data = new RuleData(rule);
         int i = 0;
-        for (RDFRulePatternPart part : rule.getPatternParts()) {
-            data.matchers[i] = new RETERule(new RETEOutput(data, i));
+        for (RDFPattern part : rule.getPatterns()) {
+            data.matchers[i] = new RETERule(new RETEOutput(data, part));
             data.matchers[i].getPositives().addAll(part.getPositives());
             data.matchers[i].getNegatives().addAll(part.getNegatives());
             i++;

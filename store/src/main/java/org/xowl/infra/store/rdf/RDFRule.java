@@ -20,13 +20,11 @@ package org.xowl.infra.store.rdf;
 import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.owl.DynamicNode;
-import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.collections.Couple;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,20 +57,31 @@ public abstract class RDFRule {
     }
 
     /**
-     * Gets the pattern parts that can are used to match this rule
+     * Gets the patterns that are used for matching this rule
      *
-     * @return The pattern parts
+     * @return The patterns
      */
-    public abstract List<RDFRulePatternPart> getPatternParts();
+    public abstract Collection<RDFPattern> getPatterns();
 
     /**
-     * Gets whether this rule is indeed triggered by the specified potential matches of its patterns
+     * When a pattern for this rule has been matched
      *
-     * @param executions The previous executions
-     * @param tokens     The matching tokens
-     * @return The rule corresponding execution if the rule is triggered, null otherwise
+     * @param executions The known rule executions
+     * @param pattern    The matched pattern
+     * @param match      The match
+     * @return The triggered rule executions
      */
-    public abstract RDFRuleExecution isTriggered(Collection<RDFRuleExecution> executions, Token[] tokens);
+    public abstract Collection<RDFRuleExecution> onPatternMatched(Collection<RDFRuleExecution> executions, RDFPattern pattern, RDFPatternMatch match);
+
+    /**
+     * When a match for a pattern in this rule has been invalidated
+     *
+     * @param executions The known rule executions
+     * @param pattern    The invalidated pattern
+     * @param match      The invalidated match
+     * @return The invalidated rule executions
+     */
+    public abstract Collection<RDFRuleExecution> onPatternDematched(Collection<RDFRuleExecution> executions, RDFPattern pattern, RDFPatternMatch match);
 
     /**
      * Gets the changeset for this rule's production for a specified execution
@@ -180,8 +189,8 @@ public abstract class RDFRule {
      */
     private static Map<String, Object> buildBindings(RDFRuleExecution execution) {
         Map<String, Object> bindings = new HashMap<>();
-        for (Token token : execution.tokens) {
-            for (Couple<VariableNode, Node> entry : token.getBindings()) {
+        for (RDFPatternMatch match : execution.matches) {
+            for (Couple<VariableNode, Node> entry : match.getSolution()) {
                 if (!bindings.containsKey(entry.x.getName()))
                     bindings.put(entry.x.getName(), RDFUtils.getNative(entry.y));
             }

@@ -21,7 +21,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 /**
  * Represents an expression in SPARQL
@@ -37,7 +37,7 @@ public interface Expression {
      * @return The result
      * @throws EvalException When an error occurs during the evaluation
      */
-    Object eval(Repository repository, QuerySolution bindings) throws EvalException;
+    Object eval(Repository repository, RDFPatternSolution bindings) throws EvalException;
 
     /**
      * Evaluates this expression

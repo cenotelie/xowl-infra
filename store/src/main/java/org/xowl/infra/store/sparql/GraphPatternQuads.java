@@ -78,7 +78,7 @@ public class GraphPatternQuads implements GraphPattern {
             // for an empty query return a single solution with no binding
             // this is because an empty match pattern matches all graphs, including the empty one
             SolutionsMultiset result = new SolutionsMultiset(1);
-            result.add(new QuerySolution(new ArrayList<Couple<VariableNode, Node>>()));
+            result.add(new RDFPatternSolution(new ArrayList<Couple<VariableNode, Node>>()));
             return result;
         }
         return new SolutionsMultiset(repository.getRDFQueryEngine().execute(query));

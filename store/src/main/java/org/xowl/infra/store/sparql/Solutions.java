@@ -20,14 +20,14 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 /**
  * A set of SPARQL solutions
  *
  * @author Laurent Wouters
  */
-public interface Solutions extends Iterable<QuerySolution> {
+public interface Solutions extends Iterable<RDFPatternSolution> {
     /**
      * Gets the number of solutions in this set
      *

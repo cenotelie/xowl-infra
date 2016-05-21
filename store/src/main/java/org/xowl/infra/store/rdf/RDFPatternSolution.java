@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -13,9 +13,6 @@
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
- * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
 package org.xowl.infra.store.rdf;
@@ -28,11 +25,11 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * Represents a solution to a RDF query
+ * Represents a solution to a RDF pattern
  *
  * @author Laurent Wouters
  */
-public class QuerySolution implements Iterable<Couple<VariableNode, Node>> {
+public class RDFPatternSolution implements Iterable<Couple<VariableNode, Node>> {
     /**
      * The content of this solution
      */
@@ -43,7 +40,7 @@ public class QuerySolution implements Iterable<Couple<VariableNode, Node>> {
      *
      * @param bindings The bindings
      */
-    public QuerySolution(Collection<Couple<VariableNode, Node>> bindings) {
+    public RDFPatternSolution(Collection<Couple<VariableNode, Node>> bindings) {
         this.bindings = new ArrayList<>(bindings);
     }
 
@@ -54,7 +51,7 @@ public class QuerySolution implements Iterable<Couple<VariableNode, Node>> {
      * @param variable The new variable to bind
      * @param value    The value to bind to
      */
-    public QuerySolution(QuerySolution original, VariableNode variable, Node value) {
+    public RDFPatternSolution(RDFPatternSolution original, VariableNode variable, Node value) {
         this.bindings = new ArrayList<>(original.bindings);
         this.bindings.add(new Couple<>(variable, value));
     }
@@ -113,9 +110,9 @@ public class QuerySolution implements Iterable<Couple<VariableNode, Node>> {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof QuerySolution))
+        if (!(o instanceof RDFPatternSolution))
             return false;
-        QuerySolution solution = (QuerySolution) o;
+        RDFPatternSolution solution = (RDFPatternSolution) o;
         if (solution.bindings.size() != this.bindings.size())
             return false;
         for (Couple<VariableNode, Node> binding : this.bindings) {

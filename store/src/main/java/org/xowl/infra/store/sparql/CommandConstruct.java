@@ -22,7 +22,7 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.QuerySolution;
+import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,7 +62,7 @@ public class CommandConstruct implements Command {
         try {
             Solutions solutions = pattern.match(repository);
             Collection<Quad> quads = new ArrayList<>();
-            for (QuerySolution solution : solutions)
+            for (RDFPatternSolution solution : solutions)
                 Utils.instantiate(repository, solution, template, quads);
             return new ResultQuads(quads);
         } catch (EvalException exception) {

@@ -17,47 +17,32 @@
 
 package org.xowl.infra.store.rdf;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 /**
- * Represents a part of the pattern for matching a RDF rule
+ * Represents a match of a RDF pattern
  *
  * @author Laurent Wouters
  */
-public class RDFRulePatternPart {
+public interface RDFPatternMatch {
     /**
-     * The positive antecedents to match
-     */
-    private final Collection<Quad> positives;
-    /**
-     * The negative antecedents conjunctions to NOT match
-     */
-    private final Collection<Collection<Quad>> negatives;
-
-    /**
-     * Initializes this part
-     */
-    public RDFRulePatternPart() {
-        this.positives = new ArrayList<>();
-        this.negatives = new ArrayList<>();
-    }
-
-    /**
-     * Gets the positive antecedents to match
+     * Gets whether this is equivalent to another match
      *
-     * @return The positive antecedents to match
+     * @param match Another match
+     * @return Whether the match is equivalent
      */
-    public Collection<Quad> getPositives() {
-        return positives;
-    }
+    boolean sameAs(RDFPatternMatch match);
 
     /**
-     * Gets the negative antecedents conjunctions to NOT match
+     * Gets the value bound to the specified variable in this token
      *
-     * @return The negative antecedents conjunctions to NOT match
+     * @param variable A variable
+     * @return The value bound to the variable, or null if none is
      */
-    public Collection<Collection<Quad>> getNegatives() {
-        return negatives;
-    }
+    Node getBinding(VariableNode variable);
+
+    /**
+     * Gets the associated solution
+     *
+     * @return The solution for the match
+     */
+    RDFPatternSolution getSolution();
 }

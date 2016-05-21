@@ -18,7 +18,6 @@
 package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.store.Evaluator;
-import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.storage.NodeManager;
 
 import java.util.ArrayList;
@@ -39,11 +38,11 @@ public class RDFRuleSimple extends RDFRule {
     /**
      * The pattern for the rule antecedents
      */
-    private final RDFRulePatternPart antecedents;
+    private final RDFPattern antecedents;
     /**
      * The pattern for the rule consequents
      */
-    private final RDFRulePatternPart consequents;
+    private final RDFPattern consequents;
 
     /**
      * Gets whether to trigger this rule only on distinct solutions
@@ -63,8 +62,8 @@ public class RDFRuleSimple extends RDFRule {
     public RDFRuleSimple(String iri, boolean distinct) {
         super(iri);
         this.distinct = distinct;
-        this.antecedents = new RDFRulePatternPart();
-        this.consequents = new RDFRulePatternPart();
+        this.antecedents = new RDFPattern();
+        this.consequents = new RDFPattern();
     }
 
     /**
@@ -107,19 +106,31 @@ public class RDFRuleSimple extends RDFRule {
     }
 
     @Override
-    public List<RDFRulePatternPart> getPatternParts() {
+    public List<RDFPattern> getPatterns() {
         return Collections.singletonList(antecedents);
     }
 
     @Override
-    public RDFRuleExecution isTriggered(Collection<RDFRuleExecution> executions, Token[] tokens) {
+    public Collection<RDFRuleExecution> onPatternMatched(Collection<RDFRuleExecution> executions, RDFPattern pattern, RDFPatternMatch match) {
         if (distinct) {
             for (RDFRuleExecution execution : executions) {
-                if (execution.tokens[0].sameAs(tokens[0]))
-                    return null;
+                if (execution.matches[0].sameAs(match))
+                    return Collections.EMPTY_LIST;
             }
         }
-        return new RDFRuleExecution(tokens);
+        RDFRuleExecution execution = new RDFRuleExecution(this, new RDFPatternMatch[]{match});
+        return Collections.singletonList(execution);
+    }
+
+    @Override
+    public Collection<RDFRuleExecution> onPatternDematched(Collection<RDFRuleExecution> executions, RDFPattern pattern, RDFPatternMatch match) {
+        Collection<RDFRuleExecution> result = new ArrayList<>();
+        for (RDFRuleExecution execution : executions) {
+            if (execution.matches[0].sameAs(match)) {
+                result.add(execution);
+            }
+        }
+        return result;
     }
 
     @Override
