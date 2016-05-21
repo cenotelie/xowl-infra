@@ -19,6 +19,7 @@ package org.xowl.infra.store.rdf;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents a pattern of RDF quads
@@ -56,5 +57,51 @@ public class RDFPattern {
      */
     public Collection<Collection<Quad>> getNegatives() {
         return negatives;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof RDFPattern))
+            return false;
+        RDFPattern pattern = (RDFPattern) obj;
+        // match identity?
+        if (pattern == this)
+            return true;
+        // match the sizes
+        if (this.positives.size() != pattern.positives.size())
+            return false;
+        if (this.negatives.size() != pattern.negatives.size())
+            return false;
+        // match the positives
+        for (Quad quad : this.positives)
+            if (!pattern.positives.contains(quad))
+                return false;
+        // match the negatives
+        List<Collection<Quad>> temp = new ArrayList<>(negatives);
+        for (Collection<Quad> conjunction : pattern.negatives) {
+            boolean matches = false;
+            for (int i = 0; i != temp.size(); i++) {
+                if (conjunction.size() != temp.get(i).size())
+                    continue;
+                boolean innerMatch = true;
+                for (Quad quad : conjunction) {
+                    if (!temp.get(i).contains(quad)) {
+                        innerMatch = false;
+                        break;
+                    }
+                }
+                if (!innerMatch)
+                    continue;
+                // found a match
+                temp.remove(i);
+                matches = true;
+                break;
+            }
+            // no match at all
+            if (!matches)
+                return false;
+        }
+        // all matches
+        return true;
     }
 }
