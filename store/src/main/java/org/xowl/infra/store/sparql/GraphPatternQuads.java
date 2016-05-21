@@ -34,24 +34,24 @@ import java.util.Collection;
  */
 public class GraphPatternQuads implements GraphPattern {
     /**
-     * The RDF query
+     * The RDF pattern
      */
-    private final Query query;
+    private final RDFPattern pattern;
 
     /**
      * Gets the RDF query represented by this pattern
      *
      * @return The RDF query
      */
-    public Query getQuery() {
-        return query;
+    public RDFPattern getPattern() {
+        return pattern;
     }
 
     /**
      * Initializes this pattern
      */
     public GraphPatternQuads() {
-        this.query = new Query();
+        this.pattern = new RDFPattern();
     }
 
     /**
@@ -60,7 +60,7 @@ public class GraphPatternQuads implements GraphPattern {
      * @param quads The quads to add
      */
     public void addPositives(Collection<Quad> quads) {
-        query.getPositives().addAll(quads);
+        pattern.getPositives().addAll(quads);
     }
 
     /**
@@ -69,18 +69,18 @@ public class GraphPatternQuads implements GraphPattern {
      * @param quads The conjunction of negative quads
      */
     public void addNegatives(Collection<Quad> quads) {
-        query.getNegatives().add(quads);
+        pattern.getNegatives().add(quads);
     }
 
     @Override
     public Solutions match(final Repository repository) throws EvalException {
-        if (query.getPositives().isEmpty() && query.getNegatives().isEmpty()) {
+        if (pattern.getPositives().isEmpty() && pattern.getNegatives().isEmpty()) {
             // for an empty query return a single solution with no binding
             // this is because an empty match pattern matches all graphs, including the empty one
             SolutionsMultiset result = new SolutionsMultiset(1);
             result.add(new RDFPatternSolution(new ArrayList<Couple<VariableNode, Node>>()));
             return result;
         }
-        return new SolutionsMultiset(repository.getRDFQueryEngine().execute(query));
+        return new SolutionsMultiset(repository.getRDFQueryEngine().execute(new Query(pattern)));
     }
 }

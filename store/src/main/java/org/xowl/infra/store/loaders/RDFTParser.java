@@ -599,17 +599,21 @@ class RDFTParser extends LRkParser {
          */
         public static final int rule_sparql = 0x0117;
         /**
+         * The unique identifier for variable rule_mod
+         */
+        public static final int rule_mod = 0x0118;
+        /**
          * The unique identifier for variable triples_template_neg
          */
-        public static final int triples_template_neg = 0x0118;
+        public static final int triples_template_neg = 0x0119;
         /**
          * The unique identifier for variable triples_block_neg
          */
-        public static final int triples_block_neg = 0x0119;
+        public static final int triples_block_neg = 0x011A;
         /**
          * The unique identifier for variable __axiom
          */
-        public static final int __axiom = 0x011F;
+        public static final int __axiom = 0x0120;
         /**
          * The unique identifier for virtual nil
          */
@@ -793,12 +797,13 @@ class RDFTParser extends LRkParser {
         new Symbol(0x0115, "rule"), 
         new Symbol(0x0116, "rule_simple"), 
         new Symbol(0x0117, "rule_sparql"), 
-        new Symbol(0x0118, "triples_template_neg"), 
-        new Symbol(0x0119, "triples_block_neg"), 
-        new Symbol(0x011A, "__V282"), 
-        new Symbol(0x011D, "__V285"), 
+        new Symbol(0x0118, "rule_mod"), 
+        new Symbol(0x0119, "triples_template_neg"), 
+        new Symbol(0x011A, "triples_block_neg"), 
+        new Symbol(0x011B, "__V283"), 
         new Symbol(0x011E, "__V286"), 
-        new Symbol(0x011F, "__axiom") };
+        new Symbol(0x011F, "__V287"), 
+        new Symbol(0x0120, "__axiom") };
     /**
      * The collection of virtuals matched by this parser
      *
