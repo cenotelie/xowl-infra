@@ -957,16 +957,7 @@ public class SPARQLLoader {
                 }
                 case SPARQLParser.ID.graph_pattern_minus: {
                     GraphPattern inner = loadGraphPattern(currentContext, graph, child.getChildren().get(0));
-                    if (inner instanceof GraphPatternQuads) {
-                        Query query = ((GraphPatternQuads) inner).getQuery();
-                        if (query.getNegatives().isEmpty()) {
-                            base.addNegatives(query.getPositives());
-                        } else {
-                            current = new GraphPatternMinus(current == null ? base : current, inner);
-                        }
-                    } else {
-                        current = new GraphPatternMinus(current == null ? base : current, inner);
-                    }
+                    current = new GraphPatternMinus(current == null ? base : current, inner);
                     break;
                 }
                 case SPARQLParser.ID.graph_pattern_graph: {
