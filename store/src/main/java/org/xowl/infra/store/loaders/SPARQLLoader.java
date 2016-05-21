@@ -517,34 +517,12 @@ public class SPARQLLoader {
         // query -> prologue (select | construct | describe | ask) clause_values
         // select -> clause_select clause_dataset* clause_where modifier ;
         // clause_select -> SELECT! clause_select_mod clause_select_vars ;
-        return loadCommandSelect(node.getChildren().get(1), node.getChildren().get(2));
-    }
-
-    /**
-     * Loads a SELECT query from the specified AST node
-     *
-     * @param node An AST node
-     * @return The SELECT command
-     */
-    Command loadSelectQuery(ASTNode node) throws LoaderException {
-        return loadCommandSelect(node, null);
-    }
-
-    /**
-     * Loads a SELECT command from the specified AST node
-     *
-     * @param nodeSelect The AST node for the select command
-     * @param nodeValues The AST node for the inline values
-     * @return The SELECT command
-     * @throws LoaderException
-     */
-    private Command loadCommandSelect(ASTNode nodeSelect, ASTNode nodeValues) throws LoaderException {
-        // select -> clause_select clause_dataset* clause_where modifier ;
-        // clause_select -> SELECT! clause_select_mod clause_select_vars ;
+        ASTNode nodeSelect = node.getChildren().get(1);
         ASTNode clauseSelect = nodeSelect.getChildren().get(0);
         ASTNode clauseSelectMod = clauseSelect.getChildren().get(0);
 
         SPARQLContext context = new SPARQLContext(store, true);
+        loadPrologue(node.getChildren().get(0));
         boolean isDistinct = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.DISTINCT);
         boolean isReduced = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.REDUCED);
         for (ASTNode child : nodeSelect.getChildren()) {
@@ -562,8 +540,8 @@ public class SPARQLLoader {
         GraphPattern where = loadGraphPattern(context, null, nodeSelect.getChildren().get(nodeSelect.getChildren().size() - 2).getChildren().get(0));
         GraphPatternModifier modifier = loadGraphPatternModifier(context, nodeSelect.getChildren().get(nodeSelect.getChildren().size() - 1));
         GraphPatternInlineData values = null;
-        if (nodeValues != null && !nodeValues.getChildren().isEmpty())
-            values = new GraphPatternInlineData(loadDataBlock(context, nodeValues));
+        if (!node.getChildren().get(2).getChildren().isEmpty())
+            values = new GraphPatternInlineData(loadDataBlock(context, node.getChildren().get(2)));
         GraphPatternSelect select = new GraphPatternSelect(isDistinct, isReduced, where, modifier, values);
         for (ASTNode child : clauseSelect.getChildren().get(1).getChildren()) {
             if (child.getSymbol().getID() == SPARQLLexer.ID.AS) {
@@ -891,7 +869,7 @@ public class SPARQLLoader {
         // graph_pattern -> '{'! (sub_select^ | graph_pattern_group^) '}'!
         switch (node.getSymbol().getID()) {
             case SPARQLParser.ID.sub_select:
-                return loadGraphPatternSubSelect(context, node);
+                return loadGraphPatternSubSelect(context, null, node);
             case SPARQLParser.ID.graph_pattern_group:
                 return loadGraphPatternGroup(context, graph, node);
         }
@@ -902,16 +880,17 @@ public class SPARQLLoader {
      * Loads a graph pattern from the specified AST node
      *
      * @param context The current context
+     * @param graph   The target graph for this sub-select, or null
      * @param node    An AST node
      * @return The graph pattern
      */
-    private GraphPattern loadGraphPatternSubSelect(SPARQLContext context, ASTNode node) throws LoaderException {
+    GraphPattern loadGraphPatternSubSelect(SPARQLContext context, GraphNode graph, ASTNode node) throws LoaderException {
         ASTNode clauseSelect = node.getChildren().get(0);
         ASTNode clauseSelectMod = clauseSelect.getChildren().get(0);
         boolean isDistinct = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.DISTINCT);
         boolean isReduced = (!clauseSelectMod.getChildren().isEmpty() && clauseSelectMod.getChildren().get(0).getSymbol().getID() == SPARQLLexer.ID.REDUCED);
 
-        GraphPattern where = loadGraphPattern(context, null, node.getChildren().get(1).getChildren().get(0));
+        GraphPattern where = loadGraphPattern(context, graph, node.getChildren().get(1).getChildren().get(0));
         GraphPatternInlineData values = null;
         if (!node.getChildren().get(3).getChildren().isEmpty())
             values = new GraphPatternInlineData(loadDataBlock(context, node.getChildren().get(3).getChildren().get(0)));
@@ -1055,7 +1034,7 @@ public class SPARQLLoader {
                     break;
                 }
                 case SPARQLParser.ID.sub_select: {
-                    GraphPattern inner = loadGraphPatternSubSelect(currentContext, child);
+                    GraphPattern inner = loadGraphPatternSubSelect(currentContext, null, child);
                     if (current == null) {
                         if (base.getPattern().getPositives().isEmpty() && base.getPattern().getNegatives().isEmpty())
                             current = inner;

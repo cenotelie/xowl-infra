@@ -33,7 +33,7 @@ grammar RDFT : SPARQL
 		rdfrules        -> rule* ;
 		rule            -> rule_simple^ | rule_sparql^ ;
 		rule_simple     -> 'rule'! rule_mod iri '{'! quads '}'! '=>'! '{'! quads '}'! ;
-		rule_sparql     -> 'rule'! rule_mod iri '{'! select '}'! '=>'! '{'! quads '}'! ;
+		rule_sparql     -> 'rule'! rule_mod iri '{'! sub_select '}'! '=>'! '{'! quads '}'! ;
 		rule_mod        -> DISTINCT? ;
 
 		triples_template        -> triples_template_neg ('.'! triples_template? )? ;

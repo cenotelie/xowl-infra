@@ -21,10 +21,9 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
-import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.RDFRule;
-import org.xowl.infra.store.rdf.RDFRuleSimple;
-import org.xowl.infra.store.rdf.VariableNode;
+import org.xowl.infra.store.IRIs;
+import org.xowl.infra.store.rdf.*;
+import org.xowl.infra.store.sparql.GraphPattern;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logger;
@@ -133,7 +132,7 @@ public class RDFTLoader implements Loader {
     private RDFRule loadRuleSimple(ASTNode node) throws LoaderException {
         // initial context setup
         SPARQLContext context = new SPARQLContext(nodes, true);
-        VariableNode graph = (VariableNode) context.resolveVariable("__graph");
+        GraphNode graph = (GraphNode) context.resolveVariable("__graph");
         // load basic info
         boolean isDistinct = (node.getChildren().get(0).getChildren().size() > 0);
         String iri = sparql.getNodeIRI(node.getChildren().get(1)).getIRIValue();
@@ -149,6 +148,7 @@ public class RDFTLoader implements Loader {
         positives.clear();
         negatives.clear();
         // load the consequents
+        graph = nodes.getIRINode(IRIs.GRAPH_INFERENCE);
         sparql.loadQuadsForTarget(context, node.getChildren().get(3), graph, positives, negatives);
         for (Quad quad : positives)
             result.addConsequentPositive(quad);
@@ -165,6 +165,24 @@ public class RDFTLoader implements Loader {
      * @return The loaded rule
      */
     private RDFRule loadRuleSPARQL(ASTNode node) throws LoaderException {
-        return null;
+        // initial context setup
+        SPARQLContext context = new SPARQLContext(nodes, true);
+        GraphNode graph = (GraphNode) context.resolveVariable("__graph");
+        // load basic info
+        String iri = sparql.getNodeIRI(node.getChildren().get(1)).getIRIValue();
+        // load the antecedents
+        GraphPattern pattern = sparql.loadGraphPatternSubSelect(context, graph, node.getChildren().get(2));
+        RDFRuleSelect result = new RDFRuleSelect(iri, pattern);
+        // load the consequents
+        Collection<Quad> positives = new ArrayList<>();
+        Collection<Collection<Quad>> negatives = new ArrayList<>();
+        graph = nodes.getIRINode(IRIs.GRAPH_INFERENCE);
+        sparql.loadQuadsForTarget(context, node.getChildren().get(3), graph, positives, negatives);
+        for (Quad quad : positives)
+            result.addConsequentPositive(quad);
+        for (Collection<Quad> conjunction : negatives)
+            for (Quad quad : conjunction)
+                result.addConsequentNegative(quad);
+        return result;
     }
 }
