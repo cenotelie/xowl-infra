@@ -25,7 +25,6 @@ import org.xowl.infra.store.rete.TokenActivable;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.util.*;
