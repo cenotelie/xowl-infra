@@ -23,7 +23,6 @@ package org.xowl.infra.server.api;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.Serializable;
-import org.xowl.infra.store.rdf.Quad;
 
 import java.util.List;
 
@@ -120,14 +119,6 @@ public interface XOWLDatabase extends Serializable {
      * @return The protocol reply
      */
     XSPReply getRuleStatus(XOWLRule rule);
-
-    /**
-     * Gets the explanation for a quad in this database
-     *
-     * @param quad The quad serialization
-     * @return The protocol reply
-     */
-    XSPReply getQuadExplanation(Quad quad);
 
     /**
      * Uploads some content to this database

@@ -499,7 +499,7 @@ public class Repository extends AbstractRepository {
             logger.error(ex);
         }
 
-        for (org.xowl.infra.store.rdf.Rule rule : input.getRules()) {
+        for (RDFRule rule : input.getRules()) {
             getRDFRuleEngine().add(rule);
         }
     }

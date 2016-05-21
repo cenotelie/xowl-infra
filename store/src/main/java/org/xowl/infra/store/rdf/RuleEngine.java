@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -13,20 +13,18 @@
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
- * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
 package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.store.IRIs;
-import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.rete.*;
+import org.xowl.infra.store.Evaluator;
+import org.xowl.infra.store.rete.RETENetwork;
+import org.xowl.infra.store.rete.RETERule;
+import org.xowl.infra.store.rete.Token;
+import org.xowl.infra.store.rete.TokenActivable;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.util.*;
@@ -38,52 +36,148 @@ import java.util.*;
  */
 public class RuleEngine implements ChangeListener {
     /**
-     * Represents the data of a rule fired by this engine
+     * Represents the compiled data of a rule
      */
-    private static class ExecutedRule {
+    private static class RuleData {
         /**
-         * The fired rule
+         * The original RDF rule
          */
-        public final Rule rule;
+        public final RDFRule original;
         /**
-         * The token that triggered the rule
+         * The RETE rules for pattern matching
          */
-        public final Token token;
+        public final RETERule[] matchers;
         /**
-         * The mapping of special nodes in the consequents
+         * The rule executions
          */
-        public final Map<Node, Node> specials;
+        public final Collection<RDFRuleExecution> executions;
 
         /**
          * Initializes this data
          *
-         * @param rule     The fired rule
-         * @param token    The token that triggered the rule
-         * @param specials The mapping of special nodes in the consequents
+         * @param original The original rule
          */
-        public ExecutedRule(Rule rule, Token token, Map<Node, Node> specials) {
-            this.rule = rule;
-            this.token = token;
-            this.specials = specials;
+        public RuleData(RDFRule original) {
+            this.original = original;
+            this.matchers = new RETERule[original.getPatternParts().size()];
+            this.executions = new ArrayList<>();
         }
     }
 
     /**
-     * The RDF dataset for the input
+     * The output of a RETE rule for this engine
      */
-    private final Dataset inputStore;
+    private class RETEOutput implements TokenActivable {
+        /**
+         * The parent rule data
+         */
+        private final RuleData data;
+        /**
+         * The index of the associated matcher
+         */
+        private final int index;
+        /**
+         * The tokens on this output
+         */
+        private final Collection<Token> tokens;
+
+        /**
+         * Initializes this output
+         *
+         * @param data  The parent rule data
+         * @param index The index of the associated matcher
+         */
+        public RETEOutput(RuleData data, int index) {
+            this.data = data;
+            this.index = index;
+            this.tokens = new ArrayList<>();
+        }
+
+        @Override
+        public void activateToken(Token token) {
+            tokens.add(token);
+
+            List<Token[]> solutions = new ArrayList<>();
+            Token[] solution = new Token[data.matchers.length];
+            solution[index] = token;
+            solutions.add(solution);
+
+            for (int i = 0; i != data.matchers.length; i++) {
+                if (i == index)
+                    continue;
+                RETEOutput output = (RETEOutput) data.matchers[i].getOutput();
+                boolean first = true;
+                int count = solutions.size();
+                for (Token sibling : output.tokens) {
+                    if (first) {
+                        for (Token[] s : solutions)
+                            s[i] = sibling;
+                        first = false;
+                    } else {
+                        for (int j = 0; j != count; j++) {
+                            Token[] variant = solutions.get(j).clone();
+                            variant[i] = sibling;
+                            solutions.add(variant);
+                        }
+                    }
+                }
+            }
+
+            for (Token[] s : solutions) {
+                RDFRuleExecution execution = data.original.isTriggered(data.executions, s);
+                if (execution != null) {
+                    data.executions.add(execution);
+                    requestsToFire.add(execution);
+                }
+            }
+        }
+
+        @Override
+        public void deactivateToken(Token token) {
+            tokens.remove(token);
+            Iterator<RDFRuleExecution> iterator = data.executions.iterator();
+            while (iterator.hasNext()) {
+                RDFRuleExecution execution = iterator.next();
+                if (execution.tokens[index] == token) {
+                    iterator.remove();
+                    if (!requestsToFire.remove(execution))
+                        requestsToUnfire.add(execution);
+                }
+            }
+        }
+
+        @Override
+        public void activateTokens(Collection<Token> tokens) {
+            for (Token token : tokens)
+                activateToken(token);
+        }
+
+        @Override
+        public void deactivateTokens(Collection<Token> tokens) {
+            for (Token token : tokens)
+                deactivateToken(token);
+        }
+    }
+
+    /*
+    Engine input, output and backend RETE network
+     */
     /**
      * The RDF store for the output
      */
     private final BaseStore outputStore;
     /**
-     * The corpus of active rules
-     */
-    private final Map<Rule, RETERule> rules;
-    /**
      * A RETE network for the pattern matching of queries
      */
     private final RETENetwork rete;
+    /**
+     * The evaluator for this engine
+     */
+    private final Evaluator evaluator;
+
+    /*
+    Data for handling incoming changes to the input dataset
+     */
     /**
      * The new added quads since the last application
      */
@@ -97,10 +191,6 @@ public class RuleEngine implements ChangeListener {
      */
     private final List<Changeset> newChangesets;
     /**
-     * Flag whether outstanding changes are currently being applied
-     */
-    private boolean isFlushing;
-    /**
      * Buffer of positive quads
      */
     private final Collection<Quad> bufferPositives;
@@ -109,37 +199,45 @@ public class RuleEngine implements ChangeListener {
      */
     private final Collection<Quad> bufferNegatives;
     /**
+     * Flag whether outstanding changes are currently being applied
+     */
+    private boolean isFlushing;
+
+    /*
+    Engine rule management data
+     */
+    /**
+     * The corpus of active rules
+     */
+    private final Map<RDFRule, RuleData> rulesData;
+    /**
      * The current requests to fire a rule
      */
-    private final Map<Token, Rule> requestsToFire;
+    private final Collection<RDFRuleExecution> requestsToFire;
     /**
      * The current requests to unfire a rule
      */
-    private final List<Token> requestsToUnfire;
-    /**
-     * The currently produced data
-     */
-    private final Map<Token, ExecutedRule> executed;
+    private final Collection<RDFRuleExecution> requestsToUnfire;
 
     /**
      * Initializes this engine
      *
      * @param inputStore  The RDF store serving as input
      * @param outputStore The RDF store for the output
+     * @param evaluator   The evaluator for this engine
      */
-    public RuleEngine(Dataset inputStore, BaseStore outputStore) {
-        this.inputStore = inputStore;
+    public RuleEngine(Dataset inputStore, BaseStore outputStore, Evaluator evaluator) {
         this.outputStore = outputStore;
-        this.rules = new HashMap<>();
         this.rete = new RETENetwork(inputStore);
+        this.evaluator = evaluator;
         this.newAdded = new ArrayList<>();
         this.newRemoved = new ArrayList<>();
         this.newChangesets = new ArrayList<>();
         this.bufferPositives = new ArrayList<>();
         this.bufferNegatives = new ArrayList<>();
-        this.requestsToFire = new HashMap<>();
+        this.rulesData = new HashMap<>();
+        this.requestsToFire = new ArrayList<>();
         this.requestsToUnfire = new ArrayList<>();
-        this.executed = new HashMap<>();
         inputStore.addListener(this);
     }
 
@@ -148,8 +246,8 @@ public class RuleEngine implements ChangeListener {
      *
      * @return The active rules
      */
-    public Collection<Rule> getRules() {
-        return rules.keySet();
+    public Collection<RDFRule> getRules() {
+        return rulesData.keySet();
     }
 
     /**
@@ -157,41 +255,18 @@ public class RuleEngine implements ChangeListener {
      *
      * @param rule The rule to add
      */
-    public void add(final Rule rule) {
-        RETERule reteRule = new RETERule(new TokenActivable() {
-            @Override
-            public void activateToken(Token token) {
-                requestsToFire.put(token, rule);
-            }
-
-            @Override
-            public void deactivateToken(Token token) {
-                if (requestsToFire.containsKey(token))
-                    // still not fire, cancel
-                    requestsToFire.remove(token);
-                else
-                    // request to unfire
-                    requestsToUnfire.add(token);
-            }
-
-            @Override
-            public void activateTokens(Collection<Token> tokens) {
-                for (Token token : tokens)
-                    activateToken(token);
-            }
-
-            @Override
-            public void deactivateTokens(Collection<Token> tokens) {
-                for (Token token : tokens)
-                    deactivateToken(token);
-            }
-        });
-        reteRule.getPositives().addAll(rule.getAntecedentSourcePositives());
-        reteRule.getPositives().addAll(rule.getAntecedentMetaPositives());
-        reteRule.getNegatives().addAll(rule.getAntecedentSourceNegatives());
-        reteRule.getNegatives().addAll(rule.getAntecedentMetaNegatives());
-        rules.put(rule, reteRule);
-        rete.addRule(reteRule);
+    public void add(final RDFRule rule) {
+        RuleData data = new RuleData(rule);
+        int i = 0;
+        for (RDFRulePatternPart part : rule.getPatternParts()) {
+            data.matchers[i] = new RETERule(new RETEOutput(data, i));
+            data.matchers[i].getPositives().addAll(part.getPositives());
+            data.matchers[i].getNegatives().addAll(part.getNegatives());
+            i++;
+        }
+        rulesData.put(rule, data);
+        for (i = 0; i != data.matchers.length; i++)
+            rete.addRule(data.matchers[i]);
     }
 
     /**
@@ -199,27 +274,22 @@ public class RuleEngine implements ChangeListener {
      *
      * @param rule The rule to remove
      */
-    public void remove(Rule rule) {
-        rete.removeRule(rules.get(rule));
-        rules.remove(rule);
-        List<Quad> positives = new ArrayList<>();
-        List<Quad> negatives = new ArrayList<>();
-        Iterator<Map.Entry<Token, ExecutedRule>> iterator = executed.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Token, ExecutedRule> entry = iterator.next();
-            ExecutedRule execution = entry.getValue();
-            if (execution.rule == rule) {
-                if (!process(positives, negatives, execution.rule, execution.token, execution.specials)) {
-                    Logger.DEFAULT.error("Failed to process the changeset for rule " + execution.rule.getIRI());
+    public void remove(RDFRule rule) {
+        RuleData data = rulesData.remove(rule);
+        if (data == null)
+            return;
+        for (RETERule matcher : data.matchers)
+            rete.removeRule(matcher);
+        for (RDFRuleExecution execution : data.executions) {
+            Changeset changeset = data.original.produce(execution, outputStore, evaluator);
+            if (changeset == null) {
+                Logger.DEFAULT.error("Failed to process changeset for rule " + data.original.getIRI());
+            } else {
+                try {
+                    outputStore.insert(Changeset.reverse(changeset));
+                } catch (UnsupportedNodeType ex) {
+                    Logger.DEFAULT.error(ex);
                 }
-                iterator.remove();
-            }
-        }
-        if (!positives.isEmpty() || !negatives.isEmpty()) {
-            try {
-                outputStore.insert(Changeset.fromAddedRemoved(negatives, positives));
-            } catch (UnsupportedNodeType ex) {
-                Logger.DEFAULT.error(ex);
             }
         }
     }
@@ -230,7 +300,7 @@ public class RuleEngine implements ChangeListener {
      * @param iri The IRI of the rule to remove
      */
     public void remove(String iri) {
-        for (Rule rule : rules.keySet()) {
+        for (RDFRule rule : rulesData.keySet()) {
             if (rule.getIRI().equals(iri)) {
                 remove(rule);
                 return;
@@ -321,20 +391,16 @@ public class RuleEngine implements ChangeListener {
      * Performs the outstanding unfiring requests
      */
     private void performUnfire() {
-        List<Token> requests = new ArrayList<>(requestsToUnfire);
+        List<RDFRuleExecution> requests = new ArrayList<>(requestsToUnfire);
         requestsToUnfire.clear();
-        for (Token token : requests) {
-            ExecutedRule data = executed.remove(token);
-            if (data != null) {
-                // recreate the changeset
-                Changeset changeset = process(data.rule, data.token, data.specials);
-                if (changeset == null) {
-                    Logger.DEFAULT.error("Failed to process the changeset for rule " + data.rule.getIRI());
-                    continue;
-                }
-                bufferPositives.addAll(changeset.getRemoved());
-                bufferNegatives.addAll(changeset.getAdded());
+        for (RDFRuleExecution execution : requests) {
+            Changeset changeset = execution.rule.produce(execution, outputStore, evaluator);
+            if (changeset == null) {
+                Logger.DEFAULT.error("Failed to process the changeset for rule " + execution.rule.getIRI());
+                continue;
             }
+            bufferPositives.addAll(changeset.getRemoved());
+            bufferNegatives.addAll(changeset.getAdded());
         }
     }
 
@@ -342,179 +408,29 @@ public class RuleEngine implements ChangeListener {
      * Performs the outstanding firing requests
      */
     private void performFire() {
-        Map<Token, Rule> requests = new HashMap<>(requestsToFire);
+        List<RDFRuleExecution> requests = new ArrayList<>(requestsToFire);
         requestsToFire.clear();
-        for (Map.Entry<Token, Rule> entry : requests.entrySet()) {
-            if (entry.getValue().isDistinct()) {
-                // check this is the first solution set for this rule
-                boolean found = false;
-                for (Map.Entry<Token, ExecutedRule> execution : executed.entrySet()) {
-                    if (execution.getValue().rule == entry.getValue() && execution.getKey().sameAs(entry.getKey())) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (found)
-                    // a matching token has already triggered the rule
-                    continue;
-            }
-            Map<Node, Node> specials = new HashMap<>();
-            Changeset changeset = process(entry.getValue(), entry.getKey(), specials);
+        for (RDFRuleExecution execution : requests) {
+            Changeset changeset = execution.rule.produce(execution, outputStore, evaluator);
             if (changeset == null) {
-                Logger.DEFAULT.error("Failed to process the changeset for rule " + entry.getValue().getIRI());
+                Logger.DEFAULT.error("Failed to process the changeset for rule " + execution.rule.getIRI());
                 continue;
             }
-            ExecutedRule data = new ExecutedRule(entry.getValue(), entry.getKey(), specials.isEmpty() ? null : specials);
-            executed.put(data.token, data);
             bufferPositives.addAll(changeset.getAdded());
             bufferNegatives.addAll(changeset.getRemoved());
         }
     }
 
     /**
-     * Processes the specified rule with the specified token fot the generation of the changeset
-     *
-     * @param rule     The rule to generate a changeset from
-     * @param token    The token providing the bindings
-     * @param specials The mapping of special nodes in the consequents
-     * @return The corresponding production
-     */
-    private Changeset process(Rule rule, Token token, Map<Node, Node> specials) {
-        List<Quad> positives = new ArrayList<>();
-        List<Quad> negatives = new ArrayList<>();
-        if (process(positives, negatives, rule, token, specials))
-            return Changeset.fromAddedRemoved(positives, negatives);
-        return null;
-    }
-
-    /**
-     * Processes the specified rule with the specified token fot the generation of the changeset
-     *
-     * @param positives The buffer for positive quads
-     * @param negatives The buffer for negative quads
-     * @param rule      The rule to generate a changeset from
-     * @param token     The token providing the bindings
-     * @param specials  The mapping of special nodes in the consequents
-     * @return Whether the operation is successful
-     */
-    private boolean process(List<Quad> positives, List<Quad> negatives, Rule rule, Token token, Map<Node, Node> specials) {
-        for (Quad quad : rule.getConsequentTargetPositives()) {
-            Quad result = process(rule, quad, token, specials);
-            if (result == null)
-                return false;
-            positives.add(result);
-        }
-        for (Quad quad : rule.getConsequentMetaPositives()) {
-            Quad result = process(rule, quad, token, specials);
-            if (result == null)
-                return false;
-            positives.add(result);
-        }
-        for (Quad quad : rule.getConsequentTargetNegatives()) {
-            Quad result = process(rule, quad, token, specials);
-            if (result == null)
-                return false;
-            negatives.add(result);
-        }
-        for (Quad quad : rule.getConsequentMetaNegatives()) {
-            Quad result = process(rule, quad, token, specials);
-            if (result == null)
-                return false;
-            negatives.add(result);
-        }
-        return true;
-    }
-
-    /**
-     * Processes the specified quad
-     *
-     * @param rule     The rule to generate a changeset from
-     * @param quad     The quad to process
-     * @param token    The token providing the bindings
-     * @param specials The mapping of special nodes in the consequents
-     * @return The processed node
-     */
-    private Quad process(Rule rule, Quad quad, Token token, Map<Node, Node> specials) {
-        Node nodeGraph = process(rule, quad.getGraph(), token, specials, true);
-        Node nodeSubject = process(rule, quad.getSubject(), token, specials, false);
-        Node nodeProperty = process(rule, quad.getProperty(), token, specials, false);
-        Node nodeObject = process(rule, quad.getObject(), token, specials, false);
-        if ((!(nodeGraph instanceof GraphNode)) || (!(nodeSubject instanceof SubjectNode)) || (!(nodeProperty instanceof Property)))
-            return null;
-        return new Quad((GraphNode) nodeGraph, (SubjectNode) nodeSubject, (Property) nodeProperty, nodeObject);
-    }
-
-    /**
-     * Processes the specified node
-     *
-     * @param rule      The rule to generate a changeset from
-     * @param node      The node to process
-     * @param token     The token providing the bindings
-     * @param specials  The mapping of special nodes in the consequents
-     * @param createIRI Whether to create an IRI node or a blank node in the case of an unbound variable
-     * @return The processed node
-     */
-    private Node process(Rule rule, Node node, Token token, Map<Node, Node> specials, boolean createIRI) {
-        if (node == null || node.getNodeType() == Node.TYPE_VARIABLE) {
-            return processResolve((VariableNode) node, token, specials, createIRI);
-        } else if (node.getNodeType() == Node.TYPE_IRI) {
-            return node;
-        } else if (node.getNodeType() == Node.TYPE_BLANK) {
-            return node;
-        } else if (node.getNodeType() == Node.TYPE_LITERAL) {
-            return node;
-        } else {
-            return processOtherNode(rule, node, token, specials);
-        }
-    }
-
-    /**
-     * Resolves the specified variable node
-     *
-     * @param variable  A variable node
-     * @param token     The token providing the bindings
-     * @param specials  The mapping of special nodes in the consequents
-     * @param createIRI Whether to create an IRI node or a blank node in the case of an unbound variable
-     * @return The variable value
-     */
-    private Node processResolve(VariableNode variable, Token token, Map<Node, Node> specials, boolean createIRI) {
-        Node result = token.getBinding(variable);
-        if (result != null)
-            return result;
-        result = specials.get(variable);
-        if (result != null)
-            return result;
-        if (createIRI)
-            result = outputStore.getIRINode((GraphNode) null);
-        else
-            result = outputStore.getBlankNode();
-        specials.put(variable, result);
-        return result;
-    }
-
-    /**
-     * Processes the specified node that is not supported by this engine
-     *
-     * @param rule     The rule to generate a changeset from
-     * @param node     The node to process
-     * @param token    The token providing the bindings
-     * @param specials The mapping of special nodes in the consequents
-     * @return The processed node
-     */
-    protected Node processOtherNode(Rule rule, Node node, Token token, Map<Node, Node> specials) {
-        return node;
-    }
-
-    /**
-     * Gets the matching status of the specified rule
+     * Gets the status of a rule
      *
      * @param rule A rule's IRI
-     * @return The matching status
+     * @return The status of the rule, or null if it is not in this engine
      */
-    public MatchStatus getMatchStatus(String rule) {
-        for (Map.Entry<Rule, RETERule> entry : rules.entrySet()) {
+    public RDFRuleStatus getMatchStatus(String rule) {
+        for (Map.Entry<RDFRule, RuleData> entry : rulesData.entrySet()) {
             if (entry.getKey().getIRI().equals(rule)) {
-                return rete.getStatus(entry.getValue());
+                return new RDFRuleStatus(new ArrayList<>(entry.getValue().executions));
             }
         }
         // not a rule in this engine
@@ -522,96 +438,15 @@ public class RuleEngine implements ChangeListener {
     }
 
     /**
-     * Gets the matching status of the specified rule
+     * Gets the status of a rule
      *
      * @param rule A rule
-     * @return The matching status
+     * @return The status of the rule, or null if it is not in this engine
      */
-    public MatchStatus getMatchStatus(Rule rule) {
-        RETERule reteRule = rules.get(rule);
-        if (reteRule == null)
-            // not a rule in this engine
+    public RDFRuleStatus getMatchStatus(RDFRule rule) {
+        RuleData data = rulesData.get(rule);
+        if (data == null)
             return null;
-        return rete.getStatus(reteRule);
-    }
-
-    /**
-     * Explains how the specified quad has been produced
-     *
-     * @param quad The quad to explain
-     * @return The explanation
-     */
-    public RuleExplanation explain(Quad quad) {
-        List<RuleExplanation.ENode> nodes = new ArrayList<>();
-        RuleExplanation result = new RuleExplanation(quad);
-        nodes.add(result.getRoot());
-        // close the list
-        for (int i = 0; i != nodes.size(); i++) {
-            RuleExplanation.ENode current = nodes.get(i);
-            GraphNode graph = current.quad.getGraph();
-            if (graph.getNodeType() != Node.TYPE_IRI)
-                continue;
-            String iri = ((IRINode) graph).getIRIValue();
-            if (!IRIs.GRAPH_INFERENCE.equals(iri))
-                continue;
-            // this is an inferred quad
-            Collection<ExecutedRule> executions = getExecutedRulesFor(current.quad);
-            for (ExecutedRule execution : executions) {
-                List<RuleExplanation.ENode> targets = new ArrayList<>(1);
-                for (Quad pattern : execution.rule.getAntecedentSourcePositives()) {
-                    Node nodeSubject = process(execution.rule, pattern.getSubject(), execution.token, null, false);
-                    Node nodeProperty = process(execution.rule, pattern.getProperty(), execution.token, null, false);
-                    Node nodeObject = process(execution.rule, pattern.getObject(), execution.token, null, false);
-                    Iterator<Quad> iterator = inputStore.getAll((SubjectNode) nodeSubject, (Property) nodeProperty, nodeObject);
-                    while (iterator.hasNext()) {
-                        Quad antecedent = iterator.next();
-                        RuleExplanation.ENode target = result.resolve(antecedent);
-                        if (!nodes.contains(target))
-                            nodes.add(target);
-                        targets.add(target);
-                    }
-                }
-                if (!targets.isEmpty())
-                    current.antecedents.add(new Couple<>(execution.rule.getIRI(), targets));
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Gets the rule executions that produced the specified quad
-     *
-     * @param quad A quad
-     * @return The rule executions that produced the quads
-     */
-    private Collection<ExecutedRule> getExecutedRulesFor(Quad quad) {
-        List<ExecutedRule> result = new ArrayList<>(1);
-        for (ExecutedRule execution : executed.values()) {
-            for (Quad pattern : execution.rule.getConsequentTargetPositives()) {
-                if (pattern.getSubject().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getSubject(), quad.getSubject()))
-                    continue;
-                if (pattern.getProperty().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getProperty(), quad.getProperty()))
-                    continue;
-                if (pattern.getObject().getNodeType() != Node.TYPE_VARIABLE && !RDFUtils.same(pattern.getObject(), quad.getObject()))
-                    continue;
-
-                // here the pattern could have produced the quad given the right bindings
-                Node node = process(execution.rule, pattern.getSubject(), execution.token, execution.specials, false);
-                if (!RDFUtils.same(quad.getSubject(), node))
-                    continue;
-                node = process(execution.rule, pattern.getProperty(), execution.token, execution.specials, false);
-                if (!RDFUtils.same(quad.getProperty(), node))
-                    continue;
-                node = process(execution.rule, pattern.getObject(), execution.token, execution.specials, false);
-                if (!RDFUtils.same(quad.getObject(), node))
-                    continue;
-
-                // here the pattern produced the quad for this execution
-                result.add(execution);
-                // stop here assuming that the quad is only produced once by this execution
-                break;
-            }
-        }
-        return result;
+        return new RDFRuleStatus(new ArrayList<>(data.executions));
     }
 }

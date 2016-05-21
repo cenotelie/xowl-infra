@@ -28,6 +28,7 @@ import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Node;
+import org.xowl.infra.store.rdf.RDFRule;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.storage.BaseStore;
@@ -56,7 +57,7 @@ public class RuleEngine {
         }
 
         @Override
-        protected Node processOtherNode(org.xowl.infra.store.rdf.Rule rule, Node node, Token token, Map<Node, Node> specials) {
+        protected Node processOtherNode(RDFRule rule, Node node, Token token, Map<Node, Node> specials) {
             if (node.getNodeType() != Node.TYPE_DYNAMIC || evaluator == null)
                 return node;
             Node result = specials.get(node);
@@ -105,11 +106,11 @@ public class RuleEngine {
     /**
      * The mapping of OWL to RDF rules
      */
-    private final Map<Rule, org.xowl.infra.store.rdf.Rule> rdfRules;
+    private final Map<Rule, RDFRule> rdfRules;
     /**
      * The mapping of RDF to OWL rules
      */
-    private final Map<org.xowl.infra.store.rdf.Rule, Couple<TranslationContext, Rule>> owlRules;
+    private final Map<RDFRule, Couple<TranslationContext, Rule>> owlRules;
 
     /**
      * Gets the RDF backend
@@ -148,7 +149,7 @@ public class RuleEngine {
         GraphNode graphSource = getGraph(source, true);
         GraphNode graphTarget = getGraph(target, false);
         GraphNode graphMeta = getGraph(meta, false);
-        org.xowl.infra.store.rdf.Rule rdfRule = new org.xowl.infra.store.rdf.Rule(rule.getHasIRI().getHasValue(), false);
+        RDFRule rdfRule = new RDFRule(rule.getHasIRI().getHasValue(), false);
         Translator translator = new Translator(translationContext, outputStore, null);
         List<Axiom> positiveNormal = new ArrayList<>();
         List<Axiom> positiveMeta = new ArrayList<>();

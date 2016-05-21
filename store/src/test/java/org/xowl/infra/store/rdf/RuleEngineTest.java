@@ -60,7 +60,7 @@ public class RuleEngineTest {
      * @param input      The input to load from
      * @return The loaded rule
      */
-    protected Rule loadRDFTRule(Repository repository, String input) {
+    protected RDFRule loadRDFTRule(Repository repository, String input) {
         SinkLogger logger = new SinkLogger();
         RDFTLoader loader = new RDFTLoader(repository.getStore());
         RDFLoaderResult result = loader.loadRDF(logger, new StringReader(DEFAULT_PREFIXES + input), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT);
