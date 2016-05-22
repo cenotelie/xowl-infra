@@ -37,6 +37,15 @@ public class ExpressionRDF implements Expression {
     private final Node node;
 
     /**
+     * Gets the represented node
+     *
+     * @return The represented node
+     */
+    public Node getNode() {
+        return node;
+    }
+
+    /**
      * Initializes this expression
      *
      * @param node The RDF node to represent
@@ -47,16 +56,11 @@ public class ExpressionRDF implements Expression {
 
     @Override
     public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException {
-        if (node == null)
-            return null;
         Node result = node;
-        if (result.getNodeType() == Node.TYPE_VARIABLE) {
-            Node value = bindings.get((VariableNode) result);
-            if (value == null)
-                return new ExpressionErrorValue("Unbound variable " + ((VariableNode) result).getName());
-            result = value;
+        if (result != null && result.getNodeType() == Node.TYPE_VARIABLE) {
+            result = bindings.get((VariableNode) result);
         }
-        if (result.getNodeType() == Node.TYPE_DYNAMIC && context.getEvaluator() != null) {
+        if (result != null && result.getNodeType() == Node.TYPE_DYNAMIC && context.getEvaluator() != null) {
             return Utils.evaluateNative(context, bindings, ((DynamicNode) result).getDynamicExpression());
         }
         return result;
@@ -64,9 +68,19 @@ public class ExpressionRDF implements Expression {
 
     @Override
     public Object eval(EvalContext context, Solutions solutions) throws EvalException {
-        List<Object> result = new ArrayList<>(solutions.size());
-        for (RDFPatternSolution solution : solutions)
-            result.add(eval(context, solution));
-        return result;
+        if (node == null)
+            return null;
+        if (node.getNodeType() == Node.TYPE_VARIABLE || node.getNodeType() == Node.TYPE_DYNAMIC) {
+            List<Object> result = new ArrayList<>(solutions.size());
+            for (RDFPatternSolution solution : solutions)
+                result.add(eval(context, solution));
+            return result;
+        }
+        return node;
+    }
+
+    @Override
+    public boolean containsAggregate() {
+        return false;
     }
 }

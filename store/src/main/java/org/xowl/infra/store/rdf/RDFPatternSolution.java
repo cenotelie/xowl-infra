@@ -45,14 +45,18 @@ public class RDFPatternSolution implements Iterable<Couple<VariableNode, Node>> 
     }
 
     /**
-     * Initializes this solution as a copy the specified one augmented with a new binding
+     * Initializes this solution as a copy the specified one augmented with a new one (or a replacement)
      *
      * @param original The original solution
      * @param variable The new variable to bind
      * @param value    The value to bind to
      */
     public RDFPatternSolution(RDFPatternSolution original, VariableNode variable, Node value) {
-        this.bindings = new ArrayList<>(original.bindings);
+        this.bindings = new ArrayList<>(original.size());
+        for (Couple<VariableNode, Node> binding : original.bindings) {
+            if (binding.x != variable)
+                bindings.add(binding);
+        }
         this.bindings.add(new Couple<>(variable, value));
     }
 

@@ -66,4 +66,9 @@ public class ExpressionIn implements Expression {
             result.add(eval(context, solution));
         return result;
     }
+
+    @Override
+    public boolean containsAggregate() {
+        return primary.containsAggregate();
+    }
 }
