@@ -36,7 +36,7 @@ public interface Expression {
     Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException;
 
     /**
-     * Evaluates this expression
+     * Evaluates this expression for multiple expressions
      *
      * @param context   The evaluation context
      * @param solutions The current set of solutions
@@ -44,4 +44,11 @@ public interface Expression {
      * @throws EvalException When an error occurs during the evaluation
      */
     Object eval(EvalContext context, Solutions solutions) throws EvalException;
+
+    /**
+     * Gets whether this expression contains an aggregate
+     *
+     * @return Whether this expression contains an aggregate
+     */
+    boolean containsAggregate();
 }

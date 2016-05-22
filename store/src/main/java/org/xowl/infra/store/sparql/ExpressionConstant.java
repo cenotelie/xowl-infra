@@ -52,9 +52,11 @@ public class ExpressionConstant implements Expression {
 
     @Override
     public Object eval(EvalContext context, Solutions solutions) throws EvalException {
-        List<Object> result = new ArrayList<>(solutions.size());
-        for (RDFPatternSolution solution : solutions)
-            result.add(eval(context, solution));
-        return result;
+        return value;
+    }
+
+    @Override
+    public boolean containsAggregate() {
+        return false;
     }
 }

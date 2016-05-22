@@ -59,4 +59,9 @@ public class ExpressionExists implements Expression {
             result.add(eval(context, solution));
         return result;
     }
+
+    @Override
+    public boolean containsAggregate() {
+        return false;
+    }
 }

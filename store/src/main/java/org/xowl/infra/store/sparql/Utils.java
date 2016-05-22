@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -13,9 +13,6 @@
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
- * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
 package org.xowl.infra.store.sparql;
@@ -259,8 +256,6 @@ class Utils {
         Object value = null;
         try {
             value = expression.eval(context, solution);
-            if (value instanceof ExpressionErrorValue)
-                value = null;
         } catch (EvalException exception) {
             // do nothing
         }
@@ -391,8 +386,78 @@ class Utils {
      * @param projection The projection variables
      * @param context    The evaluation context
      * @return The projected solutions
+     * @throws EvalException When an error occurs during the evaluation
      */
-    public static Solutions project(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) {
+    public static Solutions project(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) throws EvalException {
+        boolean aggregates = false;
+        for (Couple<VariableNode, Expression> projector : projection) {
+            if (projector.y.containsAggregate()) {
+                aggregates = true;
+                break;
+            }
+        }
+        return aggregates ? projectAggregates(solutions, projection, context) : projectSimple(solutions, projection, context);
+    }
+
+    /**
+     * Projects a set of solutions onto new bindings, in the case of aggregates
+     *
+     * @param solutions  the original solutions
+     * @param projection The projection variables
+     * @param context    The evaluation context
+     * @return The projected solutions
+     * @throws EvalException When an error occurs during the evaluation
+     */
+    private static Solutions projectAggregates(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) throws EvalException {
+        List<List> projected = new ArrayList<>();
+        for (Couple<VariableNode, Expression> projector : projection) {
+            Object evaluated = projector.y.eval(context, solutions);
+            if (evaluated instanceof List)
+                projected.add((List) evaluated);
+            else
+                projected.add(Collections.singletonList(evaluated));
+        }
+
+        // cross product
+        SolutionsMultiset result = new SolutionsMultiset();
+        List<Couple<VariableNode, Node>> bindings = new ArrayList<>(projected.size());
+        for (int i = 0; i != projection.size(); i++) {
+            VariableNode variable = projection.get(i).x;
+            List values = projected.get(i);
+            Node value = values.isEmpty() ? null : ExpressionOperator.rdf(values.get(0), context);
+            bindings.add(new Couple<>(variable, value));
+        }
+        result.add(new RDFPatternSolution(bindings));
+
+
+        List<RDFPatternSolution> buffer = new ArrayList<>();
+        for (int i = 0; i != projection.size(); i++) {
+            List values = projected.get(i);
+            if (values.size() <= 1)
+                continue;
+            VariableNode variable = projection.get(i).x;
+            for (Object value : values) {
+                Node valueNode = values.isEmpty() ? null : ExpressionOperator.rdf(value, context);
+                for (RDFPatternSolution solution : result)
+                    buffer.add(new RDFPatternSolution(solution, variable, valueNode));
+                for (RDFPatternSolution solution : buffer)
+                    result.add(solution);
+                buffer.clear();
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Projects a set of solutions onto new bindings, in the simple case without aggregates
+     *
+     * @param solutions  the original solutions
+     * @param projection The projection variables
+     * @param context    The evaluation context
+     * @return The projected solutions
+     * @throws EvalException When an error occurs during the evaluation
+     */
+    private static Solutions projectSimple(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) throws EvalException {
         SolutionsMultiset result = new SolutionsMultiset(solutions.size());
         for (RDFPatternSolution solution : solutions) {
             List<Couple<VariableNode, Node>> bindings = new ArrayList<>();
@@ -401,8 +466,6 @@ class Utils {
                     Object value = null;
                     try {
                         value = projector.y.eval(context, solution);
-                        if (value instanceof ExpressionErrorValue)
-                            value = null;
                     } catch (EvalException exception) {
                         // do nothing
                     }
@@ -535,8 +598,6 @@ class Utils {
                 Object key = null;
                 try {
                     key = expression.y.eval(context, solution);
-                    if (key instanceof ExpressionErrorValue)
-                        key = null;
                 } catch (EvalException exception) {
                     // do nothing
                 }

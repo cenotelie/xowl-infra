@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -13,24 +13,14 @@
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
- * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.store.rdf.IRINode;
-import org.xowl.infra.store.rdf.LiteralNode;
-import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Represents the call to an external function in an expression
@@ -72,228 +62,149 @@ public class ExpressionFunctionCall implements Expression {
 
     @Override
     public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException {
-        if (iri.equalsIgnoreCase("IF")) {
-            if (arguments.size() < 3)
-                throw new EvalException("IF requires 3 arguments");
-            boolean test = ExpressionOperator.bool(ExpressionOperator.primitive(arguments.get(0).eval(context, bindings)));
-            return arguments.get(test ? 1 : 2).eval(context, bindings);
-        }
-        if (iri.equalsIgnoreCase("COALESCE")) {
-            for (Expression exp : arguments) {
-                try {
-                    return exp.eval(context, bindings);
-                } catch (EvalException ex) {
-                    // ignore as per SPARQL specification
-                }
-            }
-            throw new EvalException("No adequate argument provided to COALESCE");
-        }
-        if (iri.equalsIgnoreCase("sameTerm")) {
-            if (arguments.size() < 2)
-                throw new EvalException("sameTerm requires 2 arguments");
-            Object v1 = arguments.get(0).eval(context, bindings);
-            Object v2 = arguments.get(1).eval(context, bindings);
-            if (!(v1 instanceof Node) || !(v2 instanceof Node))
-                throw new EvalException("Type error (RDF nodes required)");
-            RDFUtils.same((Node) v1, (Node) v2);
-        }
-        if (iri.equalsIgnoreCase("isIRI") || iri.equalsIgnoreCase("isURI")) {
-            if (arguments.size() < 1)
-                throw new EvalException("isIRI requires 1 argument");
-            Object v1 = arguments.get(0).eval(context, bindings);
-            if (!(v1 instanceof Node))
-                throw new EvalException("Type error (RDF node required)");
-            return ((Node) v1).getNodeType() == Node.TYPE_IRI;
-        }
-        if (iri.equalsIgnoreCase("isBlank")) {
-            if (arguments.size() < 1)
-                throw new EvalException("isBlank requires 1 argument");
-            Object v1 = arguments.get(0).eval(context, bindings);
-            if (!(v1 instanceof Node))
-                throw new EvalException("Type error (RDF node required)");
-            return ((Node) v1).getNodeType() == Node.TYPE_BLANK;
-        }
-        if (iri.equalsIgnoreCase("isLiteral")) {
-            if (arguments.size() < 1)
-                throw new EvalException("isLiteral requires 1 argument");
-            Object v1 = arguments.get(0).eval(context, bindings);
-            if (!(v1 instanceof Node))
-                throw new EvalException("Type error (RDF node required)");
-            return ((Node) v1).getNodeType() == Node.TYPE_LITERAL;
-        }
-        if (iri.equalsIgnoreCase("isNumeric")) {
-            if (arguments.size() < 1)
-                throw new EvalException("isNumeric requires 1 argument");
-            Object v1 = arguments.get(0).eval(context, bindings);
-            if (!(v1 instanceof LiteralNode))
-                throw new EvalException("Type error (RDF node required)");
-            v1 = ExpressionOperator.primitive(v1);
-            return (ExpressionOperator.isNumInteger(v1) || ExpressionOperator.isNumDecimal(v1));
-        }
-        if (iri.equalsIgnoreCase("str")) {
-            if (arguments.size() < 1)
-                throw new EvalException("str requires 1 argument");
-            Object v1 = arguments.get(0).eval(context, bindings);
-            if (v1 instanceof IRINode)
-                return ((IRINode) v1).getIRIValue();
-            if (v1 instanceof LiteralNode)
-                return ((LiteralNode) v1).getLexicalValue();
-            throw new EvalException("Type error (RDF Literal or IRI node required)");
-        }
-        if (iri.equalsIgnoreCase("lang")) {
-            if (arguments.size() < 1)
-                throw new EvalException("lang requires 1 argument");
-            Object v1 = arguments.get(0).eval(context, bindings);
-            if (!(v1 instanceof LiteralNode))
-                throw new EvalException("Type error (RDF Literal node required)");
-            return ((LiteralNode) v1).getLangTag();
-        }
-        if (iri.equalsIgnoreCase("datatype")) {
-            if (arguments.size() < 1)
-                throw new EvalException("datatype requires 1 argument");
-            Object v1 = arguments.get(0).eval(context, bindings);
-            if (!(v1 instanceof LiteralNode))
-                throw new EvalException("Type error (RDF Literal node required)");
-            return context.getNodes().getIRINode(((LiteralNode) v1).getDatatype());
-        }
-        if (iri.equalsIgnoreCase("iri") || iri.equalsIgnoreCase("uri")) {
-            if (arguments.size() < 1)
-                throw new EvalException("iri requires 1 argument");
-            Object v1 = arguments.get(0).eval(context, bindings);
-            if (v1 instanceof String)
-                return context.getNodes().getIRINode(v1.toString());
-            if (v1 instanceof IRINode)
-                return v1;
-            if (v1 instanceof LiteralNode)
-                return context.getNodes().getIRINode(((LiteralNode) v1).getLexicalValue());
-            throw new EvalException("Type error (String required)");
-        }
-        if (iri.equalsIgnoreCase("BNODE")) {
-            //TODO: implement the version with 1 argument
-            return context.getNodes().getBlankNode();
-        }
-        if (iri.equalsIgnoreCase("STRDT")) {
-            if (arguments.size() < 1)
-                throw new EvalException("STRDT requires 2 arguments");
-            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(context, bindings));
-            Object v2 = ExpressionOperator.primitive(arguments.get(1).eval(context, bindings));
-            return context.getNodes().getLiteralNode(v1 == null ? "" : v1.toString(), v2 == null ? Vocabulary.xsdString : v2.toString(), null);
-        }
-        if (iri.equalsIgnoreCase("STRLANG")) {
-            if (arguments.size() < 1)
-                throw new EvalException("STRLANG requires 2 arguments");
-            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(context, bindings));
-            Object v2 = ExpressionOperator.primitive(arguments.get(1).eval(context, bindings));
-            return context.getNodes().getLiteralNode(v1 == null ? "" : v1.toString(), null, v2 == null ? null : v2.toString());
-        }
-        if (iri.equalsIgnoreCase("UUID")) {
-            String value = "urn:uuid:" + UUID.randomUUID().toString();
-            return context.getNodes().getIRINode(value);
-        }
-        if (iri.equalsIgnoreCase("STRUUID")) {
-            return UUID.randomUUID().toString();
-        }
-        if (iri.equalsIgnoreCase("STRLEN")) {
-            if (arguments.size() < 1)
-                throw new EvalException("STRLEN requires 1 argument");
-            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(context, bindings));
-            if (!(v1 instanceof String))
-                throw new EvalException("Type error (String required)");
-            return v1.toString().length();
-        }
-        if (iri.equalsIgnoreCase("SUBSTR")) {
-            if (arguments.size() < 1)
-                throw new EvalException("SUBSTR requires 2 argument");
-            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(context, bindings));
-            Object v2 = ExpressionOperator.primitive(arguments.get(1).eval(context, bindings));
-            Object v3 = arguments.size() >= 3 ? ExpressionOperator.primitive(arguments.get(2).eval(context, bindings)) : null;
-            if (!(v1 instanceof String))
-                throw new EvalException("Type error (String required)");
-            if (!ExpressionOperator.isNumInteger(v2))
-                throw new EvalException("Type error (Integer required)");
-            if (v3 != null && !ExpressionOperator.isNumInteger(v3))
-                throw new EvalException("Type error (Integer required)");
-            return v3 != null ? v1.toString().substring((int) ExpressionOperator.integer(v2), (int) ExpressionOperator.integer(v3)) : v1.toString().substring((int) ExpressionOperator.integer(v2));
-        }
-        if (iri.equalsIgnoreCase("UCASE")) {
-            if (arguments.size() < 1)
-                throw new EvalException("UCASE requires 1 argument");
-            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(context, bindings));
-            if (!(v1 instanceof String))
-                throw new EvalException("Type error (String required)");
-            return v1.toString().toUpperCase();
-        }
-        if (iri.equalsIgnoreCase("LCASE")) {
-            if (arguments.size() < 1)
-                throw new EvalException("LCASE requires 1 argument");
-            Object v1 = ExpressionOperator.primitive(arguments.get(0).eval(context, bindings));
-            if (!(v1 instanceof String))
-                throw new EvalException("Type error (String required)");
-            return v1.toString().toLowerCase();
-        }
-        throw new EvalException("Unknown function " + iri);
+        ExpressionFunction function = ExpressionFunctions.get(iri);
+        if (function == null)
+            throw new EvalException("Unknown function " + iri);
+        return function.eval(context, bindings, arguments);
     }
 
     @Override
     public Object eval(EvalContext context, Solutions solutions) throws EvalException {
-        /*
-          'COUNT' '(' 'DISTINCT'? ( '*' | Expression ) ')'
-| 'SUM' '(' 'DISTINCT'? Expression ')'
-| 'MIN' '(' 'DISTINCT'? Expression ')'
-| 'MAX' '(' 'DISTINCT'? Expression ')'
-| 'AVG' '(' 'DISTINCT'? Expression ')'
-| 'SAMPLE' '(' 'DISTINCT'? Expression ')'
-| 'GROUP_CONCAT' '(' 'DISTINCT'? Expression ( ';' 'SEPARATOR' '=' String )? ')'
-         */
+        if (iri.equalsIgnoreCase("COUNT"))
+            return evalAggregateCount(context, solutions);
+        if (iri.equalsIgnoreCase("SUM"))
+            return evalAggregateSum(context, solutions);
+        if (iri.equalsIgnoreCase("MIN"))
+            return evalAggregateMin(context, solutions);
+        if (iri.equalsIgnoreCase("MAX"))
+            return evalAggregateMax(context, solutions);
+        if (iri.equalsIgnoreCase("AVG"))
+            return evalAggregateAverage(context, solutions);
+        if (iri.equalsIgnoreCase("SAMPLE"))
+            return evalAggregateSample(context, solutions);
+        if (iri.equalsIgnoreCase("GROUP_CONCAT"))
+            return evalAggregateGroupConcat(context, solutions);
+        ExpressionFunction function = ExpressionFunctions.get(iri);
+        if (function == null)
+            throw new EvalException("Unknown function " + iri);
+        return function.eval(context, solutions, arguments);
+    }
 
+    @Override
+    public boolean containsAggregate() {
+        if (iri.equalsIgnoreCase("COUNT")
+                || iri.equalsIgnoreCase("SUM")
+                || iri.equalsIgnoreCase("MIN")
+                || iri.equalsIgnoreCase("MAX")
+                || iri.equalsIgnoreCase("AVG")
+                || iri.equalsIgnoreCase("SAMPLE")
+                || iri.equalsIgnoreCase("GROUP_CONCAT"))
+            return true;
+        for (Expression arg : arguments) {
+            if (arg.containsAggregate())
+                return true;
+        }
+        return false;
+    }
 
-        /*if (iri.equalsIgnoreCase("COUNT")) {
-            if (arguments.isEmpty()) {
-                if (isDistinct)
-                    return getDistincts(solutions).size();
+    /**
+     * Evaluates the COUNT aggregate
+     *
+     * @param context   The evaluation context
+     * @param solutions The current solutions
+     * @return The evaluated value
+     * @throws EvalException When an error occurs during the evaluation
+     */
+    private Object evalAggregateCount(EvalContext context, Solutions solutions) throws EvalException {
+        if (arguments.size() > 1)
+            throw new EvalException("COUNT requires 1 argument");
+        if (isDistinct) {
+            if (arguments.isEmpty())
+                return getDistincts(solutions).size();
+            Object evaluated = arguments.get(0).eval(context, solutions);
+            if (evaluated instanceof List)
+                return getDistincts((List) evaluated).size();
+            return (evaluated == null ? 0 : 1);
+        } else {
+            if (arguments.isEmpty())
                 return solutions.size();
-            } else {
-                List<Object> values = new ArrayList<>(solutions.size());
-                for (QuerySolution solution : solutions)
-                    values.add(arguments.get(0).eval(context, solution));
-                if (isDistinct)
-                    values = getDistincts(values);
-                return values.size();
-            }
+            Object evaluated = arguments.get(0).eval(context, solutions);
+            if (evaluated instanceof List)
+                return ((List) evaluated).size();
+            return (evaluated == null ? 0 : 1);
         }
-        if (iri.equalsIgnoreCase("SUM")) {
-            List<Object> values = new ArrayList<>(solutions.size());
-            for (QuerySolution solution : solutions)
-                values.add(arguments.get(0).eval(context, solution));
-            if (isDistinct)
-                values = getDistincts(values);
-            Object accumulator = 0d;
-            for (Object value : values)
-                accumulator = ExpressionOperator.plus(accumulator, value);
+    }
 
-        }
-        if (iri.equalsIgnoreCase("MIN")) {
+    /**
+     * Evaluates the SUM aggregate
+     *
+     * @param context   The evaluation context
+     * @param solutions The current solutions
+     * @return The evaluated value
+     * @throws EvalException When an error occurs during the evaluation
+     */
+    private Object evalAggregateSum(EvalContext context, Solutions solutions) throws EvalException {
+        throw new EvalException("Unsupported aggregate");
+    }
 
-        }
-        if (iri.equalsIgnoreCase("MAX")) {
+    /**
+     * Evaluates the MIN aggregate
+     *
+     * @param context   The evaluation context
+     * @param solutions The current solutions
+     * @return The evaluated value
+     * @throws EvalException When an error occurs during the evaluation
+     */
+    private Object evalAggregateMin(EvalContext context, Solutions solutions) throws EvalException {
+        throw new EvalException("Unsupported aggregate");
+    }
 
-        }
-        if (iri.equalsIgnoreCase("AVG")) {
+    /**
+     * Evaluates the MAX aggregate
+     *
+     * @param context   The evaluation context
+     * @param solutions The current solutions
+     * @return The evaluated value
+     * @throws EvalException When an error occurs during the evaluation
+     */
+    private Object evalAggregateMax(EvalContext context, Solutions solutions) throws EvalException {
+        throw new EvalException("Unsupported aggregate");
+    }
 
-        }
-        if (iri.equalsIgnoreCase("SAMPLE")) {
+    /**
+     * Evaluates the AVG aggregate
+     *
+     * @param context   The evaluation context
+     * @param solutions The current solutions
+     * @return The evaluated value
+     * @throws EvalException When an error occurs during the evaluation
+     */
+    private Object evalAggregateAverage(EvalContext context, Solutions solutions) throws EvalException {
+        throw new EvalException("Unsupported aggregate");
+    }
 
-        }
-        if (iri.equalsIgnoreCase("GROUP_CONCAT")) {
+    /**
+     * Evaluates the SAMPLE aggregate
+     *
+     * @param context   The evaluation context
+     * @param solutions The current solutions
+     * @return The evaluated value
+     * @throws EvalException When an error occurs during the evaluation
+     */
+    private Object evalAggregateSample(EvalContext context, Solutions solutions) throws EvalException {
+        throw new EvalException("Unsupported aggregate");
+    }
 
-        }
-
-        // not an aggregate function, applies the function an all solution set
-        List<Object> results = new ArrayList<>(solutions.size());
-        for (QuerySolution solution : solutions)
-            results.add(eval(context, solution));
-        return results;*/
-        return null;
+    /**
+     * Evaluates the GROUP_CONCAT aggregate
+     *
+     * @param context   The evaluation context
+     * @param solutions The current solutions
+     * @return The evaluated value
+     * @throws EvalException When an error occurs during the evaluation
+     */
+    private Object evalAggregateGroupConcat(EvalContext context, Solutions solutions) throws EvalException {
+        throw new EvalException("Unsupported aggregate");
     }
 
     /**
@@ -305,7 +216,7 @@ public class ExpressionFunctionCall implements Expression {
     private List<Object> getDistincts(List<Object> originals) {
         List<Object> result = new ArrayList<>();
         for (Object original : originals)
-            if (!result.contains(original))
+            if (original != null && !result.contains(original))
                 result.add(original);
         return result;
     }
@@ -316,11 +227,10 @@ public class ExpressionFunctionCall implements Expression {
      * @param solutions The original solutions
      * @return The distinct ones
      */
-    private Collection<RDFPatternSolution> getDistincts(Collection<RDFPatternSolution> solutions) {
-        Collection<RDFPatternSolution> result = new ArrayList<>();
+    private Solutions getDistincts(Solutions solutions) {
+        SolutionsMultiset result = new SolutionsMultiset();
         for (RDFPatternSolution solution : solutions)
-            if (!result.contains(solution))
-                result.add(solution);
+            result.add(solution);
         return result;
     }
 }

@@ -22,6 +22,7 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Datatypes;
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.rdf.IRINode;
 import org.xowl.infra.store.rdf.LiteralNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
@@ -98,6 +99,11 @@ public class ExpressionOperator implements Expression {
         return result;
     }
 
+    @Override
+    public boolean containsAggregate() {
+        return ((operand1 != null && operand1.containsAggregate()) || (operand2 != null && operand2.containsAggregate()));
+    }
+
     /**
      * Applies the operator represented by this expression onto the specified values
      *
@@ -153,11 +159,11 @@ public class ExpressionOperator implements Expression {
             return null;
         if (value instanceof Node) {
             Node node = (Node) value;
-            if (node.getNodeType() == Node.TYPE_LITERAL) {
+            if (node.getNodeType() == Node.TYPE_LITERAL)
                 return Datatypes.toNative((LiteralNode) node);
-            } else {
-                return new ExpressionErrorValue("RDF node other than literals cannot be coerced");
-            }
+            else if (node.getNodeType() == Node.TYPE_IRI)
+                return ((IRINode) node).getIRIValue();
+            return null;
         }
         return value;
     }
@@ -171,8 +177,6 @@ public class ExpressionOperator implements Expression {
      */
     public static Node rdf(Object value, EvalContext context) {
         if (value == null)
-            return null;
-        if (value instanceof ExpressionErrorValue)
             return null;
         if (value instanceof Node)
             return ((Node) value);
@@ -192,8 +196,6 @@ public class ExpressionOperator implements Expression {
             return false;
         if (value instanceof Boolean)
             return (Boolean) value;
-        if (value instanceof ExpressionErrorValue)
-            return false;
         if (isNumInteger(value))
             return integer(value) != 0;
         if (isNumDecimal(value))

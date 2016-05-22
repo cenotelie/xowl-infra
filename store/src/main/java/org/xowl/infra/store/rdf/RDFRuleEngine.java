@@ -343,7 +343,7 @@ public class RDFRuleEngine implements ChangeListener {
 
     @Override
     public void onAdded(Quad quad) {
-        newAdded.remove(quad);
+        newAdded.add(quad);
         flush();
     }
 
