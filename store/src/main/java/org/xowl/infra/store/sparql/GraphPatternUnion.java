@@ -20,7 +20,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
@@ -47,11 +46,18 @@ public class GraphPatternUnion implements GraphPattern {
     }
 
     @Override
-    public Solutions match(final Repository repository) throws EvalException {
+    public Solutions eval(EvalContext context) throws EvalException {
         SolutionsMultiset result = new SolutionsMultiset();
         for (GraphPattern element : elements)
-            for (RDFPatternSolution solution : element.match(repository))
+            for (RDFPatternSolution solution : element.eval(context))
                 result.add(solution);
         return result;
+    }
+
+    @Override
+    public void inspect(Inspector inspector) {
+        inspector.onGraphPattern(this);
+        for (GraphPattern pattern : elements)
+            pattern.inspect(inspector);
     }
 }

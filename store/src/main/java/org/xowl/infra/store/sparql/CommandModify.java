@@ -91,12 +91,13 @@ public class CommandModify implements Command {
     @Override
     public Result execute(Repository repository) {
         try {
-            Solutions solutions = where.match(repository);
+            EvalContext context = new EvalContextRepository(repository);
+            Solutions solutions = where.eval(context);
             Collection<Quad> toInsert = new ArrayList<>();
             Collection<Quad> toRemove = new ArrayList<>();
             for (RDFPatternSolution solution : solutions) {
-                Utils.instantiate(repository, solution, insert, toInsert);
-                Utils.instantiate(repository, solution, delete, toRemove);
+                Utils.instantiate(context, solution, insert, toInsert);
+                Utils.instantiate(context, solution, delete, toRemove);
             }
             repository.getStore().insert(Changeset.fromAddedRemoved(toInsert, toRemove));
             repository.getStore().commit();

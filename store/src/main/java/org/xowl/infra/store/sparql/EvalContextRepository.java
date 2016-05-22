@@ -17,31 +17,48 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.Evaluator;
+import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.rdf.Query;
+import org.xowl.infra.store.rdf.RDFPattern;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
+import org.xowl.infra.store.storage.NodeManager;
+
+import java.util.Collection;
 
 /**
- * Represents an expression in SPARQL
+ * An evaluation context based on a repository
  *
  * @author Laurent Wouters
  */
-public interface Expression {
+public class EvalContextRepository implements EvalContext {
     /**
-     * Evaluates this expression
-     *
-     * @param context  The evaluation context
-     * @param bindings The current bindings
-     * @return The result
-     * @throws EvalException When an error occurs during the evaluation
+     * The repository
      */
-    Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException;
+    private final Repository repository;
 
     /**
-     * Evaluates this expression
+     * Initializes this context
      *
-     * @param context   The evaluation context
-     * @param solutions The current set of solutions
-     * @return The result
-     * @throws EvalException When an error occurs during the evaluation
+     * @param repository The repository
      */
-    Object eval(EvalContext context, Solutions solutions) throws EvalException;
+    public EvalContextRepository(Repository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public Evaluator getEvaluator() {
+        return repository.getEvaluator();
+    }
+
+    @Override
+    public NodeManager getNodes() {
+        return repository.getStore();
+    }
+
+    @Override
+    public Solutions getSolutions(RDFPattern pattern) {
+        Collection<RDFPatternSolution> results = repository.getRDFQueryEngine().execute(new Query(pattern));
+        return new SolutionsMultiset(results);
+    }
 }

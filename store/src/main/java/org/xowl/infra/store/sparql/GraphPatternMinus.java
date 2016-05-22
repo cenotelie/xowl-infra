@@ -20,8 +20,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
-
 /**
  * A graph pattern represented as the restriction of one by another
  *
@@ -49,9 +47,16 @@ public class GraphPatternMinus implements GraphPattern {
     }
 
     @Override
-    public Solutions match(final Repository repository) throws EvalException {
-        Solutions originalSolutions = original.match(repository);
-        Solutions restrictingSolutions = restricting.match(repository);
+    public Solutions eval(EvalContext context) throws EvalException {
+        Solutions originalSolutions = original.eval(context);
+        Solutions restrictingSolutions = restricting.eval(context);
         return Utils.minus(originalSolutions, restrictingSolutions);
+    }
+
+    @Override
+    public void inspect(Inspector inspector) {
+        inspector.onGraphPattern(this);
+        original.inspect(inspector);
+        restricting.inspect(inspector);
     }
 }

@@ -20,7 +20,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
@@ -53,10 +52,10 @@ public class ExpressionIn implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, RDFPatternSolution bindings) throws EvalException {
-        Object value = primary.eval(repository, bindings);
+    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException {
+        Object value = primary.eval(context, bindings);
         for (Expression test : range) {
-            Object testValue = test.eval(repository, bindings);
+            Object testValue = test.eval(context, bindings);
             if (ExpressionOperator.equals(value, testValue))
                 return true;
         }
@@ -64,10 +63,10 @@ public class ExpressionIn implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, Solutions solutions) throws EvalException {
+    public Object eval(EvalContext context, Solutions solutions) throws EvalException {
         List<Object> result = new ArrayList<>(solutions.size());
         for (RDFPatternSolution solution : solutions)
-            result.add(eval(repository, solution));
+            result.add(eval(context, solution));
         return result;
     }
 }

@@ -47,7 +47,7 @@ public class CommandAsk implements Command {
     @Override
     public Result execute(Repository repository) {
         try {
-            Solutions solutions = pattern.match(repository);
+            Solutions solutions = pattern.eval(new EvalContextRepository(repository));
             return new ResultYesNo(solutions.size() > 0);
         } catch (EvalException exception) {
             return new ResultFailure(exception.getMessage());

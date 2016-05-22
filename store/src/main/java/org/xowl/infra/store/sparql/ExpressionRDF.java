@@ -20,7 +20,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.owl.DynamicNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
@@ -50,7 +49,7 @@ public class ExpressionRDF implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, RDFPatternSolution bindings) throws EvalException {
+    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException {
         if (node == null)
             return null;
         Node result = node;
@@ -60,17 +59,17 @@ public class ExpressionRDF implements Expression {
                 return new ExpressionErrorValue("Unbound variable " + ((VariableNode) result).getName());
             result = value;
         }
-        if (result.getNodeType() == Node.TYPE_DYNAMIC && repository.getEvaluator() != null) {
-            return Utils.evaluateNative(repository, bindings, ((DynamicNode) result).getDynamicExpression());
+        if (result.getNodeType() == Node.TYPE_DYNAMIC && context.getEvaluator() != null) {
+            return Utils.evaluateNative(context, bindings, ((DynamicNode) result).getDynamicExpression());
         }
         return result;
     }
 
     @Override
-    public Object eval(Repository repository, Solutions solutions) throws EvalException {
+    public Object eval(EvalContext context, Solutions solutions) throws EvalException {
         List<Object> result = new ArrayList<>(solutions.size());
         for (RDFPatternSolution solution : solutions)
-            result.add(eval(repository, solution));
+            result.add(eval(context, solution));
         return result;
     }
 }

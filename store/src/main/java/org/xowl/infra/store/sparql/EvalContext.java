@@ -17,25 +17,35 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.Evaluator;
+import org.xowl.infra.store.rdf.RDFPattern;
+import org.xowl.infra.store.storage.NodeManager;
+
 /**
- * Represents a pattern of RDF graphs
+ * The evaluation context of a SPARQL query
  *
  * @author Laurent Wouters
  */
-public interface GraphPattern {
+public interface EvalContext {
     /**
-     * Evaluates this pattern
+     * Gets the evaluator
      *
-     * @param context The evaluation context
-     * @return The solutions
-     * @throws EvalException When an error occurs during the evaluation
+     * @return The evaluator
      */
-    Solutions eval(EvalContext context) throws EvalException;
+    Evaluator getEvaluator();
 
     /**
-     * Recursively inspect this pattern and its children
+     * Gets the node manager
      *
-     * @param inspector The inspector
+     * @return The node manager
      */
-    void inspect(Inspector inspector);
+    NodeManager getNodes();
+
+    /**
+     * Gets the solutions for a pattern of RDF quads
+     *
+     * @param pattern The RDF pattern to match
+     * @return The solutions
+     */
+    Solutions getSolutions(RDFPattern pattern);
 }

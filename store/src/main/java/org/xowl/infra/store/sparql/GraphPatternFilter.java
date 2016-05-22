@@ -20,8 +20,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
-
 /**
  * A graph pattern represented as the filtering of another one
  *
@@ -67,7 +65,13 @@ public class GraphPatternFilter implements GraphPattern {
     }
 
     @Override
-    public Solutions match(final Repository repository) throws EvalException {
-        return Utils.filter(origin.match(repository), expression, repository);
+    public Solutions eval(EvalContext context) throws EvalException {
+        return Utils.filter(origin.eval(context), expression, context);
+    }
+
+    @Override
+    public void inspect(Inspector inspector) {
+        inspector.onGraphPattern(this);
+        origin.inspect(inspector);
     }
 }

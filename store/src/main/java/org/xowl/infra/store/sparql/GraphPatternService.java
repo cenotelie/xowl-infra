@@ -20,7 +20,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Node;
 
 /**
@@ -62,10 +61,17 @@ public class GraphPatternService implements GraphPattern {
     }
 
     @Override
-    public Solutions match(final Repository repository) throws EvalException {
+    public Solutions eval(EvalContext context) throws EvalException {
         // not implemented yet
         if (isSilent)
             return new SolutionsMultiset(0);
         throw new EvalException("SERVICE is not supported");
+    }
+
+    @Override
+    public void inspect(Inspector inspector) {
+        inspector.onGraphPattern(this);
+        inner.inspect(inspector);
+        remote.inspect(inspector);
     }
 }
