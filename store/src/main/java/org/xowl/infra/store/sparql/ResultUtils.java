@@ -110,7 +110,7 @@ public class ResultUtils {
                 case Result.SYNTAX_CSV:
                 case Result.SYNTAX_TSV:
                 case Result.SYNTAX_XML:
-                    return new ResultSolutions(new SolutionsArray());
+                    return new ResultSolutions(new SolutionsMultiset());
                 default:
                     return new ResultFailure("Cannot handle content " + contentType);
             }
@@ -257,7 +257,7 @@ public class ResultUtils {
             }
             if (nodeBindings == null)
                 return new ResultFailure("Unexpected JSON format");
-            SolutionsArray solutions = new SolutionsArray();
+            SolutionsMultiset solutions = new SolutionsMultiset();
             for (ASTNode nodeSolution : nodeBindings.getChildren()) {
                 List<Couple<VariableNode, Node>> bindings = new ArrayList<>();
                 for (ASTNode nodeBinding : nodeSolution.getChildren()) {

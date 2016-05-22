@@ -18,6 +18,7 @@
 package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Serializable;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
@@ -25,40 +26,40 @@ import org.xowl.infra.utils.logging.Logger;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents the data of a RDF rule execution
  *
  * @author Laurent Wouters
  */
-public class RDFRuleExecution implements Serializable {
+public abstract class RDFRuleExecution implements Serializable {
     /**
      * The original rule
      */
-    public final RDFRule rule;
-    /**
-     * The matches that triggered the rule
-     */
-    public final RDFPatternMatch[] matches;
+    private final RDFRule rule;
     /**
      * The mapping of special nodes in the consequents
      */
-    public final Map<Node, Node> specials;
+    private final Map<Node, Node> specials;
 
     /**
      * Initializes this data
      *
-     * @param rule    The original rule
-     * @param matches The matches that triggered the rule
+     * @param rule The original rule
      */
-    public RDFRuleExecution(RDFRule rule, RDFPatternMatch[] matches) {
+    public RDFRuleExecution(RDFRule rule) {
         this.rule = rule;
-        this.matches = matches;
         this.specials = new HashMap<>();
+    }
+
+    /**
+     * Gets the original rule
+     *
+     * @return The original rule
+     */
+    public RDFRule getRule() {
+        return rule;
     }
 
     /**
@@ -67,13 +68,54 @@ public class RDFRuleExecution implements Serializable {
      * @param variable A variable
      * @return The value bound to the variable, or null if none is
      */
-    public Node getBinding(VariableNode variable) {
-        for (int i = 0; i != matches.length; i++) {
-            Node result = matches[i].getBinding(variable);
-            if (result != null)
-                return result;
+    public abstract Node getBinding(VariableNode variable);
+
+    /**
+     * Gets all the variable bindings
+     *
+     * @return The variable bindings
+     */
+    public abstract Iterator<Couple<VariableNode, Node>> getBindings();
+
+    /**
+     * Gets all the bindings for an evaluator
+     *
+     * @return The bindings for an evaluator
+     */
+    public Map<String, Object> getEvaluatorBindings() {
+        Map<String, Object> bindings = new HashMap<>();
+        Iterator<Couple<VariableNode, Node>> iterator = getBindings();
+        while (iterator.hasNext()) {
+            Couple<VariableNode, Node> entry = iterator.next();
+            if (!bindings.containsKey(entry.x.getName()))
+                bindings.put(entry.x.getName(), RDFUtils.getNative(entry.y));
         }
-        return null;
+        for (Map.Entry<Node, Node> entry : specials.entrySet()) {
+            if (entry.getKey().getNodeType() == Node.TYPE_VARIABLE) {
+                bindings.put(((VariableNode) entry.getValue()).getName(), RDFUtils.getNative(entry.getValue()));
+            }
+        }
+        return bindings;
+    }
+
+    /**
+     * Gets the node associated to the specified special node
+     *
+     * @param node A special node
+     * @return The associated node
+     */
+    public Node getSpecial(Node node) {
+        return specials.get(node);
+    }
+
+    /**
+     * Binds a special node
+     *
+     * @param special The special node
+     * @param value   The associated value
+     */
+    public void bindSpecial(Node special, Node value) {
+        specials.put(special, value);
     }
 
     @Override
@@ -88,20 +130,19 @@ public class RDFRuleExecution implements Serializable {
             writer.append("{\"bindings\": {");
             boolean first = true;
             Collection<String> names = new ArrayList<>();
-            for (int i = 0; i != matches.length; i++) {
-                if (matches[i] != null) {
-                    for (Couple<VariableNode, Node> binding : matches[i].getSolution()) {
-                        if (names.contains(binding.x.getName()))
-                            continue;
-                        names.add(binding.x.getName());
-                        if (!first)
-                            writer.append(", ");
-                        first = false;
-                        writer.append("\"");
-                        writer.append(IOUtils.escapeStringJSON(binding.x.getName()));
-                        writer.append("\":");
-                        IOUtils.serializeJSON(writer, binding.y);
-                    }
+            Iterator<Couple<VariableNode, Node>> iterator = getBindings();
+            while (iterator.hasNext()) {
+                Couple<VariableNode, Node> entry = iterator.next();
+                if (!names.contains(entry.x.getName())) {
+                    names.add(entry.x.getName());
+                    names.add(entry.x.getName());
+                    if (!first)
+                        writer.append(", ");
+                    first = false;
+                    writer.append("\"");
+                    writer.append(IOUtils.escapeStringJSON(entry.x.getName()));
+                    writer.append("\":");
+                    IOUtils.serializeJSON(writer, entry.y);
                 }
             }
             writer.append("}}");
