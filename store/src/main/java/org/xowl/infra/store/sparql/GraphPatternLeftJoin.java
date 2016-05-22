@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
-
 /**
  * A graph pattern as the left join of two other patterns
  *
@@ -52,9 +50,16 @@ public class GraphPatternLeftJoin implements GraphPattern {
     }
 
     @Override
-    public Solutions match(final Repository repository) throws EvalException {
-        Solutions leftSolutions = left.match(repository);
-        Solutions rightSolutions = right.match(repository);
-        return Utils.leftJoin(leftSolutions, rightSolutions, expression, repository);
+    public Solutions eval(EvalContext context) throws EvalException {
+        Solutions leftSolutions = left.eval(context);
+        Solutions rightSolutions = right.eval(context);
+        return Utils.leftJoin(leftSolutions, rightSolutions, expression, context);
+    }
+
+    @Override
+    public void inspect(Inspector inspector) {
+        inspector.onGraphPattern(this);
+        left.inspect(inspector);
+        right.inspect(inspector);
     }
 }

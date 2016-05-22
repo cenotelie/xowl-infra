@@ -17,44 +17,48 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.Evaluator;
+import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.rdf.Query;
+import org.xowl.infra.store.rdf.RDFPattern;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
+import org.xowl.infra.store.storage.NodeManager;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Represents the union of multiple graph patterns
+ * An evaluation context based on a repository
  *
  * @author Laurent Wouters
  */
-public class GraphPatternUnion implements GraphPattern {
+public class EvalContextRepository implements EvalContext {
     /**
-     * The sub elements
+     * The repository
      */
-    private final Collection<GraphPattern> elements;
+    private final Repository repository;
 
     /**
-     * Initializes this pattern
+     * Initializes this context
      *
-     * @param elements The sub elements
+     * @param repository The repository
      */
-    public GraphPatternUnion(Collection<GraphPattern> elements) {
-        this.elements = new ArrayList<>(elements);
+    public EvalContextRepository(Repository repository) {
+        this.repository = repository;
     }
 
     @Override
-    public Solutions eval(EvalContext context) throws EvalException {
-        SolutionsMultiset result = new SolutionsMultiset();
-        for (GraphPattern element : elements)
-            for (RDFPatternSolution solution : element.eval(context))
-                result.add(solution);
-        return result;
+    public Evaluator getEvaluator() {
+        return repository.getEvaluator();
     }
 
     @Override
-    public void inspect(Inspector inspector) {
-        inspector.onGraphPattern(this);
-        for (GraphPattern pattern : elements)
-            pattern.inspect(inspector);
+    public NodeManager getNodes() {
+        return repository.getStore();
+    }
+
+    @Override
+    public Solutions getSolutions(RDFPattern pattern) {
+        Collection<RDFPatternSolution> results = repository.getRDFQueryEngine().execute(new Query(pattern));
+        return new SolutionsMultiset(results);
     }
 }

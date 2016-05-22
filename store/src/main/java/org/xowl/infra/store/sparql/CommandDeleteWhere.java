@@ -59,8 +59,9 @@ public class CommandDeleteWhere implements Command {
         Collection<RDFPatternSolution> solutions = repository.getRDFQueryEngine().execute(query);
         Collection<Quad> toRemove = new ArrayList<>();
         try {
+            EvalContext context = new EvalContextRepository(repository);
             for (RDFPatternSolution solution : solutions)
-                Utils.instantiate(repository, solution, quads, toRemove);
+                Utils.instantiate(context, solution, quads, toRemove);
             repository.getStore().insert(Changeset.fromRemoved(toRemove));
             repository.getStore().commit();
         } catch (UnsupportedNodeType | EvalException exception) {

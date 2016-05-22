@@ -33,7 +33,7 @@ public class RDFPatternSolution implements Iterable<Couple<VariableNode, Node>> 
     /**
      * The content of this solution
      */
-    protected final Collection<Couple<VariableNode, Node>> bindings;
+    private final Collection<Couple<VariableNode, Node>> bindings;
 
     /**
      * Initializes this solution

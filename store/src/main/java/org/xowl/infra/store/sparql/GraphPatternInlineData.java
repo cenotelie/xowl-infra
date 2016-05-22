@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
@@ -44,7 +43,12 @@ public class GraphPatternInlineData implements GraphPattern {
     }
 
     @Override
-    public Solutions match(final Repository repository) throws EvalException {
+    public Solutions eval(EvalContext context) throws EvalException {
         return new SolutionsMultiset(data);
+    }
+
+    @Override
+    public void inspect(Inspector inspector) {
+        inspector.onGraphPattern(this);
     }
 }

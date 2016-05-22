@@ -21,11 +21,10 @@ import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.owl.DynamicNode;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.collections.Couple;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Represents a RDF rule for a RDF rule engine
@@ -66,22 +65,20 @@ public abstract class RDFRule {
     /**
      * When a pattern for this rule has been matched
      *
-     * @param executions The known rule executions
-     * @param pattern    The matched pattern
-     * @param match      The match
-     * @return The triggered rule executions
+     * @param handler The production handler for this rule
+     * @param pattern The matched pattern
+     * @param match   The match
      */
-    public abstract Collection<RDFRuleExecution> onPatternMatched(Collection<RDFRuleExecution> executions, RDFPattern pattern, RDFPatternMatch match);
+    public abstract void onPatternMatched(RDFRuleEngine.ProductionHandler handler, RDFPattern pattern, RDFPatternMatch match);
 
     /**
      * When a match for a pattern in this rule has been invalidated
      *
-     * @param executions The known rule executions
-     * @param pattern    The invalidated pattern
-     * @param match      The invalidated match
-     * @return The invalidated rule executions
+     * @param handler The production handler for this rule
+     * @param pattern The invalidated pattern
+     * @param match   The invalidated match
      */
-    public abstract Collection<RDFRuleExecution> onPatternDematched(Collection<RDFRuleExecution> executions, RDFPattern pattern, RDFPatternMatch match);
+    public abstract void onPatternDematched(RDFRuleEngine.ProductionHandler handler, RDFPattern pattern, RDFPatternMatch match);
 
     /**
      * Gets the changeset for this rule's production for a specified execution
@@ -92,6 +89,39 @@ public abstract class RDFRule {
      * @return The production's changeset
      */
     public abstract Changeset produce(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator);
+
+    /**
+     * Processes the specified quads
+     *
+     * @param execution The execution data
+     * @param nodes     The node manager for producing the changeset
+     * @param evaluator The current evaluator
+     * @param pattern   The quads to process
+     * @return The processed quad
+     */
+    protected Changeset produceQuads(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, RDFPattern pattern) {
+        List<Quad> positives = new ArrayList<>();
+        List<Quad> negatives = new ArrayList<>();
+        for (Quad quad : pattern.getPositives()) {
+            Quad result = produceQuad(execution, nodes, evaluator, quad);
+            if (result == null)
+                return null;
+            positives.add(result);
+        }
+        for (Collection<Quad> collection : pattern.getNegatives()) {
+            for (Quad quad : collection) {
+                Quad result = produceQuad(execution, nodes, evaluator, quad);
+                if (result == null)
+                    return null;
+                negatives.add(result);
+            }
+        }
+        if (negatives.isEmpty())
+            return Changeset.fromAdded(positives);
+        if (positives.isEmpty())
+            return Changeset.fromRemoved(negatives);
+        return Changeset.fromAddedRemoved(positives, negatives);
+    }
 
     /**
      * Processes the specified quad
@@ -148,14 +178,14 @@ public abstract class RDFRule {
         Node result = execution.getBinding(variable);
         if (result != null)
             return result;
-        result = execution.specials.get(variable);
+        result = execution.getSpecial(variable);
         if (result != null)
             return result;
         if (createIRI)
             result = nodes.getIRINode((GraphNode) null);
         else
             result = nodes.getBlankNode();
-        execution.specials.put(variable, result);
+        execution.bindSpecial(variable, result);
         return result;
     }
 
@@ -171,36 +201,14 @@ public abstract class RDFRule {
     protected Node produceResolveDynamic(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator, DynamicNode dynamicNode) {
         if (evaluator == null)
             return dynamicNode;
-        Node result = execution.specials.get(dynamicNode);
+        Node result = execution.getSpecial(dynamicNode);
         if (result != null)
             return result;
-        evaluator.push(buildBindings(execution));
+        evaluator.push(execution.getEvaluatorBindings());
         result = RDFUtils.getRDF(nodes, evaluator.eval(dynamicNode.getDynamicExpression()));
-        execution.specials.put(dynamicNode, result);
+        execution.bindSpecial(dynamicNode, result);
         evaluator.pop();
         return result;
-    }
-
-    /**
-     * Builds the bindings data for the evaluator from the specified information
-     *
-     * @param execution The execution data
-     * @return The bindings for the evaluator
-     */
-    private static Map<String, Object> buildBindings(RDFRuleExecution execution) {
-        Map<String, Object> bindings = new HashMap<>();
-        for (RDFPatternMatch match : execution.matches) {
-            for (Couple<VariableNode, Node> entry : match.getSolution()) {
-                if (!bindings.containsKey(entry.x.getName()))
-                    bindings.put(entry.x.getName(), RDFUtils.getNative(entry.y));
-            }
-        }
-        for (Map.Entry<Node, Node> entry : execution.specials.entrySet()) {
-            if (entry.getKey().getNodeType() == Node.TYPE_VARIABLE) {
-                bindings.put(((VariableNode) entry.getValue()).getName(), RDFUtils.getNative(entry.getValue()));
-            }
-        }
-        return bindings;
     }
 
     @Override

@@ -19,7 +19,6 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Datatypes;
 import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.LiteralNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
@@ -82,17 +81,17 @@ public class ExpressionOperator implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, RDFPatternSolution bindings) throws EvalException {
-        Object v1 = operand1.eval(repository, bindings);
-        Object v2 = operand2 == null ? null : operand2.eval(repository, bindings);
+    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException {
+        Object v1 = operand1.eval(context, bindings);
+        Object v2 = operand2 == null ? null : operand2.eval(context, bindings);
         return apply(v1, v2);
     }
 
     @Override
-    public Object eval(Repository repository, Solutions solutions) throws EvalException {
+    public Object eval(EvalContext context, Solutions solutions) throws EvalException {
         List<Object> result = new ArrayList<>(solutions.size());
         for (RDFPatternSolution solution : solutions)
-            result.add(eval(repository, solution));
+            result.add(eval(context, solution));
         return result;
     }
 
@@ -164,18 +163,18 @@ public class ExpressionOperator implements Expression {
      * Coerce an expression to a RDF value
      *
      * @param value      An expression's value
-     * @param repository The current repository
+     * @param context The evaluation context
      * @return The RDF node equivalent
      */
-    public static Node rdf(Object value, Repository repository) {
+    public static Node rdf(Object value, EvalContext context) {
         if (value == null)
             return null;
         if (value instanceof ExpressionErrorValue)
             return null;
         if (value instanceof Node)
             return ((Node) value);
-        Couple<String, String> literalData = Datatypes.toLiteral(repository);
-        return repository.getStore().getLiteralNode(literalData.x, literalData.y, null);
+        Couple<String, String> literalData = Datatypes.toLiteral(value);
+        return context.getNodes().getLiteralNode(literalData.x, literalData.y, null);
     }
 
     /**

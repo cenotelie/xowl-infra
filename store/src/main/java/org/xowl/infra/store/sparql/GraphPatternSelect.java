@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.collections.Couple;
 
@@ -93,12 +92,20 @@ public class GraphPatternSelect implements GraphPattern {
     }
 
     @Override
-    public Solutions match(final Repository repository) throws EvalException {
-        Solutions solutions = where.match(repository);
-        solutions = modifier != null ? modifier.apply(solutions, repository) : solutions;
-        solutions = (values != null) ? Utils.join(solutions, values.match(repository)) : solutions;
-        solutions = (!projection.isEmpty()) ? Utils.project(solutions, projection, repository) : solutions;
+    public Solutions eval(EvalContext context) throws EvalException {
+        Solutions solutions = where.eval(context);
+        solutions = modifier != null ? modifier.apply(solutions, context) : solutions;
+        solutions = (values != null) ? Utils.join(solutions, values.eval(context)) : solutions;
+        solutions = (!projection.isEmpty()) ? Utils.project(solutions, projection, context) : solutions;
         solutions = (isDistinct || isReduced) ? Utils.distinct(solutions) : solutions;
         return solutions;
+    }
+
+    @Override
+    public void inspect(Inspector inspector) {
+        inspector.onGraphPattern(this);
+        where.inspect(inspector);
+        if (values != null)
+            values.inspect(inspector);
     }
 }

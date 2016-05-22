@@ -89,7 +89,7 @@ public class CommandDescribe implements Command {
                 for (String iri : iris)
                     describe(repository, repository.getStore().getIRINode(iri), buffer);
             } else {
-                Solutions solutions = pattern.match(repository);
+                Solutions solutions = pattern.eval(new EvalContextRepository(repository));
                 List<SubjectNode> explored = new ArrayList<>();
                 for (RDFPatternSolution solution : solutions) {
                     for (VariableNode variable : variables) {

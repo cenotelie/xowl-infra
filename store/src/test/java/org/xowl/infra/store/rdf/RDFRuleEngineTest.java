@@ -93,6 +93,31 @@ public class RDFRuleEngineTest {
     }
 
     @Test
+    public void testSimpleInference_Select() {
+        Repository repository = new Repository();
+        String rule = "rule xowl:test-rule { SELECT * WHERE {?x a xowl:y} } => { ?x rdf:type xowl:z }";
+        IRINode x = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#x");
+        IRINode y = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#y");
+        IRINode z = repository.getStore().getIRINode("http://xowl.org/store/rules/xowl#z");
+        Quad q1 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_DEFAULT),
+                x, repository.getStore().getIRINode(Vocabulary.rdfType), y);
+        Quad q2 = new Quad(repository.getStore().getIRINode(IRIs.GRAPH_INFERENCE),
+                x, repository.getStore().getIRINode(Vocabulary.rdfType), z);
+        try {
+            repository.getStore().add(q1);
+            repository.getRDFRuleEngine().add(loadRDFTRule(repository, rule));
+            repository.getRDFRuleEngine().flush();
+            Iterator<Quad> iterator = repository.getStore().getAll(x, null, null);
+            List<Quad> content = new ArrayList<>();
+            while (iterator.hasNext())
+                content.add(iterator.next());
+            W3CTestSuite.matchesQuads(new ArrayList<>(Arrays.asList(q1, q2)), content);
+        } catch (UnsupportedNodeType exception) {
+            Assert.fail(exception.getMessage());
+        }
+    }
+
+    @Test
     public void testRuleChaining() {
         Repository repository = new Repository();
         String rule1 = "rule xowl:test-rule { ?x rdf:type xowl:y } => { ?x rdf:type xowl:z }";

@@ -21,7 +21,6 @@ import org.xowl.infra.lang.actions.DynamicExpression;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.store.Datatypes;
 import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.owl.DynamicNode;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.utils.collections.Couple;
@@ -37,18 +36,18 @@ class Utils {
     /**
      * Evaluates a dynamic expression to a native value
      *
-     * @param repository The current repository
+     * @param context    The evaluation context
      * @param solution   The current bindings
      * @param expression The expression to evaluate
      * @return The evaluated native value
      */
-    public static Object evaluateNative(Repository repository, RDFPatternSolution solution, DynamicExpression expression) {
+    public static Object evaluateNative(EvalContext context, RDFPatternSolution solution, DynamicExpression expression) {
         Map<String, Object> bindings = new HashMap<>();
         for (Couple<VariableNode, Node> binding : solution)
             bindings.put(binding.x.getName(), RDFUtils.getNative(binding.y));
-        repository.getEvaluator().push(bindings);
-        Object result = repository.getEvaluator().eval(expression);
-        repository.getEvaluator().pop();
+        context.getEvaluator().push(bindings);
+        Object result = context.getEvaluator().eval(expression);
+        context.getEvaluator().pop();
         return result;
     }
 
@@ -58,13 +57,13 @@ class Utils {
      * A blank node is replaced by its instance-specific value in the blanks mapping.
      * If this is the first time this blank node has been encountered in the template, the new instance-specific blank node is created and associated.
      *
-     * @param repository The current repository
-     * @param solution   The current bindings
-     * @param blanks     The current mapping of blank nodes to their instance
-     * @param node       The node to instantiate
+     * @param context  The evaluation context
+     * @param solution The current bindings
+     * @param blanks   The current mapping of blank nodes to their instance
+     * @param node     The node to instantiate
      * @return The instantiated node, or null if it cannot be instantiated
      */
-    private static Node instantiate(Repository repository, RDFPatternSolution solution, Map<Node, Node> blanks, Node node) {
+    private static Node instantiate(EvalContext context, RDFPatternSolution solution, Map<Node, Node> blanks, Node node) {
         if (node == null)
             return null;
         Node result = node;
@@ -76,20 +75,20 @@ class Utils {
         } else if (result.getNodeType() == Node.TYPE_BLANK) {
             Node value = blanks.get(node);
             if (value == null) {
-                value = repository.getStore().getBlankNode();
+                value = context.getNodes().getBlankNode();
                 blanks.put(node, value);
             }
             return value;
         }
-        if (result.getNodeType() == Node.TYPE_DYNAMIC && repository.getEvaluator() != null) {
-            Object value = evaluateNative(repository, solution, ((DynamicNode) result).getDynamicExpression());
+        if (result.getNodeType() == Node.TYPE_DYNAMIC && context.getEvaluator() != null) {
+            Object value = evaluateNative(context, solution, ((DynamicNode) result).getDynamicExpression());
             if (value instanceof Node) {
                 result = (Node) value;
             } else if (value instanceof IRI) {
-                result = repository.getStore().getIRINode(((IRI) value).getHasValue());
+                result = context.getNodes().getIRINode(((IRI) value).getHasValue());
             } else {
                 Couple<String, String> literal = Datatypes.toLiteral(value);
-                result = repository.getStore().getLiteralNode(literal.x, literal.y, null);
+                result = context.getNodes().getLiteralNode(literal.x, literal.y, null);
             }
         }
         return result;
@@ -100,24 +99,24 @@ class Utils {
      * This replaces the variable nodes in the template by their value.
      * The blank nodes in the template are also instantiated into new instance-specific blank nodes.
      *
-     * @param repository The current repository
-     * @param template   The template
-     * @param solution   The query solution mapping the variables to their value
-     * @param buffer     The buffer for the realized quads
+     * @param context  The evaluation context
+     * @param template The template
+     * @param solution The query solution mapping the variables to their value
+     * @param buffer   The buffer for the realized quads
      */
-    public static void instantiate(Repository repository, RDFPatternSolution solution, Collection<Quad> template, Collection<Quad> buffer) throws EvalException {
+    public static void instantiate(EvalContext context, RDFPatternSolution solution, Collection<Quad> template, Collection<Quad> buffer) throws EvalException {
         Map<Node, Node> blanks = new HashMap<>();
         for (Quad quad : template) {
-            GraphNode graph = (GraphNode) instantiate(repository, solution, blanks, quad.getGraph());
+            GraphNode graph = (GraphNode) instantiate(context, solution, blanks, quad.getGraph());
             if (graph == null)
                 continue;
-            SubjectNode subject = (SubjectNode) instantiate(repository, solution, blanks, quad.getSubject());
+            SubjectNode subject = (SubjectNode) instantiate(context, solution, blanks, quad.getSubject());
             if (subject == null)
                 continue;
-            Property property = (Property) instantiate(repository, solution, blanks, quad.getProperty());
+            Property property = (Property) instantiate(context, solution, blanks, quad.getProperty());
             if (property == null)
                 continue;
-            Node object = instantiate(repository, solution, blanks, quad.getObject());
+            Node object = instantiate(context, solution, blanks, quad.getObject());
             if (object == null)
                 continue;
             buffer.add(new Quad(graph, subject, property, object));
@@ -129,14 +128,14 @@ class Utils {
      *
      * @param solutions  The solutions to filter
      * @param expression The expression used to discriminate
-     * @param repository The repository used for the evaluation of the expression
+     * @param context    The evaluation context
      * @return The filtered solutions
      */
-    public static Solutions filter(Solutions solutions, Expression expression, Repository repository) {
+    public static Solutions filter(Solutions solutions, Expression expression, EvalContext context) {
         SolutionsMultiset result = new SolutionsMultiset(solutions.size());
         for (RDFPatternSolution solution : solutions) {
             try {
-                if (ExpressionOperator.bool(ExpressionOperator.primitive(expression.eval(repository, solution)))) {
+                if (ExpressionOperator.bool(ExpressionOperator.primitive(expression.eval(context, solution)))) {
                     result.add(solution);
                 }
             } catch (EvalException exception) {
@@ -175,10 +174,10 @@ class Utils {
      * @param left       A set of solutions
      * @param right      Another set of solutions
      * @param expression The expression for the value
-     * @param repository The repository to evaluate against
+     * @param context    The evaluation context
      * @return The join set
      */
-    public static Solutions leftJoin(Solutions left, Solutions right, Expression expression, Repository repository) {
+    public static Solutions leftJoin(Solutions left, Solutions right, Expression expression, EvalContext context) {
         SolutionsMultiset result = new SolutionsMultiset((left.size() == 0 ? 1 : left.size()) * (right.size() == 0 ? 1 : right.size()));
         for (RDFPatternSolution l : left) {
             if (right.size() == 0) {
@@ -190,7 +189,7 @@ class Utils {
                         boolean value = false;
                         RDFPatternSolution merge = merge(l, r);
                         try {
-                            value = ExpressionOperator.bool(ExpressionOperator.primitive(expression.eval(repository, merge)));
+                            value = ExpressionOperator.bool(ExpressionOperator.primitive(expression.eval(context, merge)));
                         } catch (EvalException exception) {
                             // do nothing
                         }
@@ -250,13 +249,13 @@ class Utils {
      * @param solution   The original solution
      * @param variable   The variable to bind
      * @param expression The expression for the value
-     * @param repository The repository to evaluate against
+     * @param context    The evaluation context
      * @return The new query solution
      */
-    public static RDFPatternSolution extend(RDFPatternSolution solution, VariableNode variable, Expression expression, Repository repository) {
+    public static RDFPatternSolution extend(RDFPatternSolution solution, VariableNode variable, Expression expression, EvalContext context) {
         Object value = null;
         try {
-            value = expression.eval(repository, solution);
+            value = expression.eval(context, solution);
             if (value instanceof ExpressionErrorValue)
                 value = null;
         } catch (EvalException exception) {
@@ -264,7 +263,7 @@ class Utils {
         }
         if (value == null)
             return solution;
-        Node valueNode = ExpressionOperator.rdf(value, repository);
+        Node valueNode = ExpressionOperator.rdf(value, context);
         if (valueNode == null)
             return solution;
         return new RDFPatternSolution(solution, variable, valueNode);
@@ -276,13 +275,13 @@ class Utils {
      * @param solutions  The original solutions
      * @param variable   The variable to bind
      * @param expression The expression for the value
-     * @param repository The repository to evaluate against
+     * @param context    The evaluation context
      * @return The new query solutions
      */
-    public static Solutions extend(Solutions solutions, VariableNode variable, Expression expression, Repository repository) {
+    public static Solutions extend(Solutions solutions, VariableNode variable, Expression expression, EvalContext context) {
         SolutionsMultiset result = new SolutionsMultiset(solutions.size());
         for (RDFPatternSolution solution : solutions)
-            result.add(extend(solution, variable, expression, repository));
+            result.add(extend(solution, variable, expression, context));
         return result;
     }
 
@@ -291,18 +290,18 @@ class Utils {
      *
      * @param solutions  The original solutions
      * @param conditions The ordering conditions
-     * @param repository The repository to evaluate against
+     * @param context    The evaluation context
      * @return The ordered solutions
      */
-    public static Solutions orderBy(Solutions solutions, List<Couple<Expression, Boolean>> conditions, Repository repository) {
+    public static Solutions orderBy(Solutions solutions, List<Couple<Expression, Boolean>> conditions, EvalContext context) {
         if (conditions.isEmpty())
             return solutions;
         Couple<RDFPatternSolution, Double>[] buffer = new Couple[solutions.size()];
         int index = 0;
         for (RDFPatternSolution solution : solutions)
             buffer[index++] = new Couple<>(solution, 0d);
-        orderByComputeKey(buffer, 0, buffer.length, conditions.get(0).x, repository);
-        orderBy(buffer, 0, buffer.length, conditions, 0, repository);
+        orderByComputeKey(buffer, 0, buffer.length, conditions.get(0).x, context);
+        orderBy(buffer, 0, buffer.length, conditions, 0, context);
         SolutionsMultiset result = new SolutionsMultiset(solutions.size());
         for (int i = 0; i != buffer.length; i++)
             result.add(buffer[i].x);
@@ -317,9 +316,9 @@ class Utils {
      * @param last       The index of the last solution, excluded
      * @param conditions The conditions
      * @param ci         The index of the condition to use
-     * @param repository The repository to evaluate against
+     * @param context    The evaluation context
      */
-    private static void orderBy(Couple<RDFPatternSolution, Double>[] buffer, int first, int last, List<Couple<Expression, Boolean>> conditions, int ci, Repository repository) {
+    private static void orderBy(Couple<RDFPatternSolution, Double>[] buffer, int first, int last, List<Couple<Expression, Boolean>> conditions, int ci, EvalContext context) {
         final boolean isDescending = conditions.get(ci).y;
         Arrays.sort(buffer, first, last, new Comparator<Couple<RDFPatternSolution, Double>>() {
             @Override
@@ -343,14 +342,14 @@ class Utils {
         for (int i = first; i != last; i++) {
             if (!Objects.equals(buffer[i].y, current)) {
                 // difference with the previous value
-                orderByComputeKey(buffer, indexCurrent, i, expression, repository);
-                orderBy(buffer, indexCurrent, i, conditions, ci + 1, repository);
+                orderByComputeKey(buffer, indexCurrent, i, expression, context);
+                orderBy(buffer, indexCurrent, i, conditions, ci + 1, context);
                 current = buffer[i].y;
                 indexCurrent = i;
             }
         }
         if (indexCurrent < last - 1) {
-            orderBy(buffer, indexCurrent, last, conditions, ci + 1, repository);
+            orderBy(buffer, indexCurrent, last, conditions, ci + 1, context);
         }
     }
 
@@ -361,13 +360,13 @@ class Utils {
      * @param first      The index of the first solution
      * @param last       The index of the last solution, excluded
      * @param expression The expression to use for the computation of the key
-     * @param repository The repository to evaluate against
+     * @param context    The evaluation context
      */
-    private static void orderByComputeKey(Couple<RDFPatternSolution, Double>[] buffer, int first, int last, Expression expression, Repository repository) {
+    private static void orderByComputeKey(Couple<RDFPatternSolution, Double>[] buffer, int first, int last, Expression expression, EvalContext context) {
         for (int i = first; i != last; i++) {
             try {
                 Double key;
-                Object value = ExpressionOperator.primitive(expression.eval(repository, buffer[i].x));
+                Object value = ExpressionOperator.primitive(expression.eval(context, buffer[i].x));
                 if (ExpressionOperator.isNumInteger(value)) {
                     key = (double) ExpressionOperator.integer(value);
                 } else if (ExpressionOperator.isNumDecimal(value)) {
@@ -387,10 +386,10 @@ class Utils {
      *
      * @param solutions  the original solutions
      * @param projection The projection variables
-     * @param repository The repository to evaluate against
+     * @param context    The evaluation context
      * @return The projected solutions
      */
-    public static Solutions project(Solutions solutions, List<Couple<VariableNode, Expression>> projection, Repository repository) {
+    public static Solutions project(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) {
         SolutionsMultiset result = new SolutionsMultiset(solutions.size());
         for (RDFPatternSolution solution : solutions) {
             List<Couple<VariableNode, Node>> bindings = new ArrayList<>();
@@ -398,13 +397,13 @@ class Utils {
                 if (projector.y != null) {
                     Object value = null;
                     try {
-                        value = projector.y.eval(repository, solution);
+                        value = projector.y.eval(context, solution);
                         if (value instanceof ExpressionErrorValue)
                             value = null;
                     } catch (EvalException exception) {
                         // do nothing
                     }
-                    Node valueNode = ExpressionOperator.rdf(value, repository);
+                    Node valueNode = ExpressionOperator.rdf(value, context);
                     bindings.add(new Couple<>(projector.x, valueNode));
                 } else {
                     bindings.add(new Couple<>(projector.x, solution.get(projector.x)));
@@ -521,10 +520,10 @@ class Utils {
      *
      * @param solutions   The original solutions
      * @param expressions The expressions for the grouping keys
-     * @param repository  The repository to evaluate against
+     * @param context     The evaluation context
      * @return The grouped solutions
      */
-    public static Solutions group(Solutions solutions, List<Couple<VariableNode, Expression>> expressions, Repository repository) {
+    public static Solutions group(Solutions solutions, List<Couple<VariableNode, Expression>> expressions, EvalContext context) {
         SolutionsGroup result = new SolutionsGroup();
         for (RDFPatternSolution solution : solutions) {
             RDFPatternSolution targetSolution = solution;
@@ -532,7 +531,7 @@ class Utils {
             for (Couple<VariableNode, Expression> expression : expressions) {
                 Object key = null;
                 try {
-                    key = expression.y.eval(repository, solution);
+                    key = expression.y.eval(context, solution);
                     if (key instanceof ExpressionErrorValue)
                         key = null;
                 } catch (EvalException exception) {
@@ -540,7 +539,7 @@ class Utils {
                 }
                 keys.add(key);
                 if (expression.x != null)
-                    targetSolution = new RDFPatternSolution(targetSolution, expression.x, ExpressionOperator.rdf(key, repository));
+                    targetSolution = new RDFPatternSolution(targetSolution, expression.x, ExpressionOperator.rdf(key, context));
             }
             result.add(keys, targetSolution);
         }

@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 /**
@@ -29,20 +28,20 @@ public interface Expression {
     /**
      * Evaluates this expression
      *
-     * @param repository The repository to evaluate on
-     * @param bindings   The current bindings
+     * @param context  The evaluation context
+     * @param bindings The current bindings
      * @return The result
      * @throws EvalException When an error occurs during the evaluation
      */
-    Object eval(Repository repository, RDFPatternSolution bindings) throws EvalException;
+    Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException;
 
     /**
      * Evaluates this expression
      *
-     * @param repository The repository to evaluate on
-     * @param solutions  The current set of solutions
+     * @param context   The evaluation context
+     * @param solutions The current set of solutions
      * @return The result
      * @throws EvalException When an error occurs during the evaluation
      */
-    Object eval(Repository repository, Solutions solutions) throws EvalException;
+    Object eval(EvalContext context, Solutions solutions) throws EvalException;
 }

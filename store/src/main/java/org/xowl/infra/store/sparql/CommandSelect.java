@@ -44,7 +44,7 @@ public class CommandSelect implements Command {
     @Override
     public Result execute(Repository repository) {
         try {
-            return new ResultSolutions(pattern.match(repository));
+            return new ResultSolutions(pattern.eval(new EvalContextRepository(repository)));
         } catch (EvalException exception) {
             return new ResultFailure(exception.getMessage());
         }

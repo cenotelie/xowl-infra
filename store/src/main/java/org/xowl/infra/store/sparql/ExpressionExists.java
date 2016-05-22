@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
@@ -44,17 +43,17 @@ public class ExpressionExists implements Expression {
     }
 
     @Override
-    public Object eval(Repository repository, RDFPatternSolution bindings) throws EvalException {
+    public Object eval(EvalContext context, RDFPatternSolution bindings) throws EvalException {
         // TODO: substitute variables in the child pattern
-        Solutions result = pattern.match(repository);
+        Solutions result = pattern.eval(context);
         return result.size() > 0;
     }
 
     @Override
-    public Object eval(Repository repository, Solutions solutions) throws EvalException {
+    public Object eval(EvalContext context, Solutions solutions) throws EvalException {
         List<Object> result = new ArrayList<>(solutions.size());
         for (RDFPatternSolution solution : solutions)
-            result.add(eval(repository, solution));
+            result.add(eval(context, solution));
         return result;
     }
 }

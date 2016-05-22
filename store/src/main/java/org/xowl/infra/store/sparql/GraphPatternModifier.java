@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.collections.Couple;
 
@@ -130,25 +129,25 @@ public class GraphPatternModifier {
     /**
      * Applies this modifier to the specified solution set
      *
-     * @param solutions  The solution set
-     * @param repository The repository to evaluate on
+     * @param solutions The solution set
+     * @param context   The evaluation context
      * @return The transformed solution set
      * @throws EvalException When an error occurs during the evaluation
      */
-    public Solutions apply(Solutions solutions, Repository repository) throws EvalException {
+    public Solutions apply(Solutions solutions, EvalContext context) throws EvalException {
         Solutions result = solutions;
         if (!having.isEmpty()) {
             Expression exp = having.get(0);
             for (int i = 1; i != having.size(); i++)
                 exp = new ExpressionOperator(ExpressionOperator.Op.BoolAnd, exp, having.get(i));
-            result = Utils.filter(result, exp, repository);
+            result = Utils.filter(result, exp, context);
         }
         if (!order.isEmpty())
-            result = Utils.orderBy(result, order, repository);
+            result = Utils.orderBy(result, order, context);
         if (offset != 0 || limit != Integer.MAX_VALUE)
             result = Utils.slice(result, offset, limit);
         if (!groups.isEmpty())
-            result = Utils.group(result, groups, repository);
+            result = Utils.group(result, groups, context);
         return result;
     }
 }

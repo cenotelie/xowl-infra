@@ -18,24 +18,16 @@
 package org.xowl.infra.store.sparql;
 
 /**
- * Represents a pattern of RDF graphs
+ * Inspector of a SPARQL query
+ * This class can be used to find particular elements in a SPARQL query
  *
  * @author Laurent Wouters
  */
-public interface GraphPattern {
+public interface Inspector {
     /**
-     * Evaluates this pattern
+     * When a graph pattern is reached
      *
-     * @param context The evaluation context
-     * @return The solutions
-     * @throws EvalException When an error occurs during the evaluation
+     * @param pattern The graph pattern
      */
-    Solutions eval(EvalContext context) throws EvalException;
-
-    /**
-     * Recursively inspect this pattern and its children
-     *
-     * @param inspector The inspector
-     */
-    void inspect(Inspector inspector);
+    void onGraphPattern(GraphPattern pattern);
 }

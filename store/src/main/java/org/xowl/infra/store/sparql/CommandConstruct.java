@@ -57,10 +57,11 @@ public class CommandConstruct implements Command {
     @Override
     public Result execute(Repository repository) {
         try {
-            Solutions solutions = pattern.match(repository);
+            EvalContext context = new EvalContextRepository(repository);
+            Solutions solutions = pattern.eval(context);
             Collection<Quad> quads = new ArrayList<>();
             for (RDFPatternSolution solution : solutions)
-                Utils.instantiate(repository, solution, template, quads);
+                Utils.instantiate(context, solution, template, quads);
             return new ResultQuads(quads);
         } catch (EvalException exception) {
             return new ResultFailure(exception.getMessage());

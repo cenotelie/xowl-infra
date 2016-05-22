@@ -24,6 +24,7 @@ import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.Dataset;
+import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -36,9 +37,49 @@ import java.util.*;
  */
 public class RDFRuleEngine implements ChangeListener {
     /**
+     * Events for rule productions
+     */
+    public interface ProductionHandler {
+        /**
+         * When a rule execution is triggered
+         *
+         * @param execution The rule execution
+         */
+        void onTrigger(RDFRuleExecution execution);
+
+        /**
+         * When a rule execution is invalidated
+         *
+         * @param execution The rule execution
+         */
+        void onInvalidate(RDFRuleExecution execution);
+
+        /**
+         * Gets the triggered execution for the associated rule
+         *
+         * @return The executions
+         */
+        Collection<RDFRuleExecution> getExecutions();
+
+        /**
+         * Gets the node manager
+         *
+         * @return The node manager
+         */
+        NodeManager getNodes();
+
+        /**
+         * Gets the current evaluator
+         *
+         * @return The current evaluator
+         */
+        Evaluator getEvaluator();
+    }
+
+    /**
      * Represents the compiled data of a rule
      */
-    private static class RuleData {
+    private class RuleData implements ProductionHandler {
         /**
          * The original RDF rule
          */
@@ -61,6 +102,34 @@ public class RDFRuleEngine implements ChangeListener {
             this.original = original;
             this.matchers = new RETERule[original.getPatterns().size()];
             this.executions = new ArrayList<>();
+        }
+
+        @Override
+        public void onTrigger(RDFRuleExecution execution) {
+            executions.add(execution);
+            requestsToFire.add(execution);
+        }
+
+        @Override
+        public void onInvalidate(RDFRuleExecution execution) {
+            executions.remove(execution);
+            if (!requestsToFire.remove(execution))
+                requestsToUnfire.add(execution);
+        }
+
+        @Override
+        public Collection<RDFRuleExecution> getExecutions() {
+            return executions;
+        }
+
+        @Override
+        public NodeManager getNodes() {
+            return outputStore;
+        }
+
+        @Override
+        public Evaluator getEvaluator() {
+            return evaluator;
         }
     }
 
@@ -90,21 +159,12 @@ public class RDFRuleEngine implements ChangeListener {
 
         @Override
         public void activateToken(Token token) {
-            Collection<RDFRuleExecution> executions = data.original.onPatternMatched(data.executions, pattern, token);
-            for (RDFRuleExecution execution : executions) {
-                data.executions.add(execution);
-                requestsToFire.add(execution);
-            }
+            data.original.onPatternMatched(data, pattern, token);
         }
 
         @Override
         public void deactivateToken(Token token) {
-            Collection<RDFRuleExecution> executions = data.original.onPatternDematched(data.executions, pattern, token);
-            for (RDFRuleExecution execution : executions) {
-                data.executions.remove(execution);
-                if (!requestsToFire.remove(execution))
-                    requestsToUnfire.add(execution);
-            }
+            data.original.onPatternDematched(data, pattern, token);
         }
 
         @Override
@@ -355,9 +415,9 @@ public class RDFRuleEngine implements ChangeListener {
         List<RDFRuleExecution> requests = new ArrayList<>(requestsToUnfire);
         requestsToUnfire.clear();
         for (RDFRuleExecution execution : requests) {
-            Changeset changeset = execution.rule.produce(execution, outputStore, evaluator);
+            Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
             if (changeset == null) {
-                Logger.DEFAULT.error("Failed to process the changeset for rule " + execution.rule.getIRI());
+                Logger.DEFAULT.error("Failed to process the changeset for rule " + execution.getRule().getIRI());
                 continue;
             }
             bufferPositives.addAll(changeset.getRemoved());
@@ -372,9 +432,9 @@ public class RDFRuleEngine implements ChangeListener {
         List<RDFRuleExecution> requests = new ArrayList<>(requestsToFire);
         requestsToFire.clear();
         for (RDFRuleExecution execution : requests) {
-            Changeset changeset = execution.rule.produce(execution, outputStore, evaluator);
+            Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
             if (changeset == null) {
-                Logger.DEFAULT.error("Failed to process the changeset for rule " + execution.rule.getIRI());
+                Logger.DEFAULT.error("Failed to process the changeset for rule " + execution.getRule().getIRI());
                 continue;
             }
             bufferPositives.addAll(changeset.getAdded());

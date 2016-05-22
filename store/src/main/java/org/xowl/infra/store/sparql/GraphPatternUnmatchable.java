@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
-
 /**
  * A graph pattern that cannot be matched
  *
@@ -26,7 +24,12 @@ import org.xowl.infra.store.Repository;
  */
 public class GraphPatternUnmatchable implements GraphPattern {
     @Override
-    public Solutions match(final Repository repository) throws EvalException {
+    public Solutions eval(EvalContext context) throws EvalException {
         return new SolutionsMultiset(0);
+    }
+
+    @Override
+    public void inspect(Inspector inspector) {
+        inspector.onGraphPattern(this);
     }
 }

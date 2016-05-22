@@ -15,46 +15,50 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.sparql;
+package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.store.rdf.RDFPatternSolution;
+import org.xowl.infra.utils.collections.Couple;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Iterator;
 
 /**
- * Represents the union of multiple graph patterns
+ * Represents the data of a SELECT RDF rule execution
  *
  * @author Laurent Wouters
  */
-public class GraphPatternUnion implements GraphPattern {
+public class RDFRuleExecutionSelect extends RDFRuleExecution {
     /**
-     * The sub elements
+     * The solution that triggered this execution
      */
-    private final Collection<GraphPattern> elements;
+    private final RDFPatternSolution solution;
 
     /**
-     * Initializes this pattern
+     * Initializes this data
      *
-     * @param elements The sub elements
+     * @param rule     The original rule
+     * @param solution The solution that triggered this execution
      */
-    public GraphPatternUnion(Collection<GraphPattern> elements) {
-        this.elements = new ArrayList<>(elements);
+    public RDFRuleExecutionSelect(RDFRuleSelect rule, RDFPatternSolution solution) {
+        super(rule);
+        this.solution = solution;
+    }
+
+    /**
+     * Gets the solution that triggered this execution
+     *
+     * @return The solution that triggered this execution
+     */
+    public RDFPatternSolution getSolution() {
+        return solution;
     }
 
     @Override
-    public Solutions eval(EvalContext context) throws EvalException {
-        SolutionsMultiset result = new SolutionsMultiset();
-        for (GraphPattern element : elements)
-            for (RDFPatternSolution solution : element.eval(context))
-                result.add(solution);
-        return result;
+    public Node getBinding(VariableNode variable) {
+        return solution.get(variable);
     }
 
     @Override
-    public void inspect(Inspector inspector) {
-        inspector.onGraphPattern(this);
-        for (GraphPattern pattern : elements)
-            pattern.inspect(inspector);
+    public Iterator<Couple<VariableNode, Node>> getBindings() {
+        return solution.iterator();
     }
 }

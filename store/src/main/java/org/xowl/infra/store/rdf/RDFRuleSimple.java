@@ -111,50 +111,28 @@ public class RDFRuleSimple extends RDFRule {
     }
 
     @Override
-    public Collection<RDFRuleExecution> onPatternMatched(Collection<RDFRuleExecution> executions, RDFPattern pattern, RDFPatternMatch match) {
+    public void onPatternMatched(RDFRuleEngine.ProductionHandler handler, RDFPattern pattern, RDFPatternMatch match) {
         if (distinct) {
-            for (RDFRuleExecution execution : executions) {
-                if (execution.matches[0].sameAs(match))
-                    return Collections.EMPTY_LIST;
+            for (RDFRuleExecution execution : handler.getExecutions()) {
+                if (((RDFRuleExecutionSimple) execution).getMatch().sameAs(match))
+                    return;
             }
         }
-        RDFRuleExecution execution = new RDFRuleExecution(this, new RDFPatternMatch[]{match});
-        return Collections.singletonList(execution);
+        handler.onTrigger(new RDFRuleExecutionSimple(this, match));
     }
 
     @Override
-    public Collection<RDFRuleExecution> onPatternDematched(Collection<RDFRuleExecution> executions, RDFPattern pattern, RDFPatternMatch match) {
-        Collection<RDFRuleExecution> result = new ArrayList<>();
-        for (RDFRuleExecution execution : executions) {
-            if (execution.matches[0].sameAs(match)) {
-                result.add(execution);
+    public void onPatternDematched(RDFRuleEngine.ProductionHandler handler, RDFPattern pattern, RDFPatternMatch match) {
+        for (RDFRuleExecution execution : handler.getExecutions()) {
+            if (((RDFRuleExecutionSimple) execution).getMatch() == match) {
+                handler.onInvalidate(execution);
+                return;
             }
         }
-        return result;
     }
 
     @Override
     public Changeset produce(RDFRuleExecution execution, NodeManager nodes, Evaluator evaluator) {
-        List<Quad> positives = new ArrayList<>();
-        List<Quad> negatives = new ArrayList<>();
-        for (Quad quad : consequents.getPositives()) {
-            Quad result = produceQuad(execution, nodes, evaluator, quad);
-            if (result == null)
-                return null;
-            positives.add(result);
-        }
-        for (Collection<Quad> collection : consequents.getNegatives()) {
-            for (Quad quad : collection) {
-                Quad result = produceQuad(execution, nodes, evaluator, quad);
-                if (result == null)
-                    return null;
-                negatives.add(result);
-            }
-        }
-        if (negatives.isEmpty())
-            return Changeset.fromAdded(positives);
-        if (positives.isEmpty())
-            return Changeset.fromRemoved(negatives);
-        return Changeset.fromAddedRemoved(positives, negatives);
+        return produceQuads(execution, nodes, evaluator, consequents);
     }
 }

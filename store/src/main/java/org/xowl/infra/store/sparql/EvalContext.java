@@ -17,46 +17,35 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.rdf.RDFPatternSolution;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import org.xowl.infra.store.Evaluator;
+import org.xowl.infra.store.rdf.RDFPattern;
+import org.xowl.infra.store.storage.NodeManager;
 
 /**
- * An array of SPARQL solutions
+ * The evaluation context of a SPARQL query
  *
  * @author Laurent Wouters
  */
-class SolutionsArray implements Solutions {
+public interface EvalContext {
     /**
-     * The content
-     */
-    private final List<RDFPatternSolution> content;
-
-    /**
-     * Initializes the solutions
-     */
-    public SolutionsArray() {
-        content = new ArrayList<>();
-    }
-
-    /**
-     * Adds a new solution to this set
+     * Gets the evaluator
      *
-     * @param solution The new solution
+     * @return The evaluator
      */
-    public void add(RDFPatternSolution solution) {
-        content.add(solution);
-    }
+    Evaluator getEvaluator();
 
-    @Override
-    public int size() {
-        return content.size();
-    }
+    /**
+     * Gets the node manager
+     *
+     * @return The node manager
+     */
+    NodeManager getNodes();
 
-    @Override
-    public Iterator<RDFPatternSolution> iterator() {
-        return content.iterator();
-    }
+    /**
+     * Gets the solutions for a pattern of RDF quads
+     *
+     * @param pattern The RDF pattern to match
+     * @return The solutions
+     */
+    Solutions getSolutions(RDFPattern pattern);
 }

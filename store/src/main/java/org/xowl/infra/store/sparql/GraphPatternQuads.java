@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.utils.collections.Couple;
 
@@ -70,7 +69,7 @@ public class GraphPatternQuads implements GraphPattern {
     }
 
     @Override
-    public Solutions match(final Repository repository) throws EvalException {
+    public Solutions eval(EvalContext context) throws EvalException {
         if (pattern.getPositives().isEmpty() && pattern.getNegatives().isEmpty()) {
             // for an empty query return a single solution with no binding
             // this is because an empty match pattern matches all graphs, including the empty one
@@ -78,6 +77,11 @@ public class GraphPatternQuads implements GraphPattern {
             result.add(new RDFPatternSolution(new ArrayList<Couple<VariableNode, Node>>()));
             return result;
         }
-        return new SolutionsMultiset(repository.getRDFQueryEngine().execute(new Query(pattern)));
+        return context.getSolutions(pattern);
+    }
+
+    @Override
+    public void inspect(Inspector inspector) {
+        inspector.onGraphPattern(this);
     }
 }

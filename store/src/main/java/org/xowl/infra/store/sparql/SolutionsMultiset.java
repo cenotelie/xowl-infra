@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-class SolutionsMultiset implements Solutions {
+public class SolutionsMultiset implements Solutions {
     /**
      * The contained solutions
      */
@@ -89,7 +89,7 @@ class SolutionsMultiset implements Solutions {
      *
      * @param solution A solution
      */
-    void add(RDFPatternSolution solution) {
+    public void add(RDFPatternSolution solution) {
         content.add(solution);
     }
 
@@ -98,7 +98,7 @@ class SolutionsMultiset implements Solutions {
      *
      * @param solution A solution
      */
-    void addDistinct(RDFPatternSolution solution) {
+    public void addDistinct(RDFPatternSolution solution) {
         if (!content.contains(solution))
             content.add(solution);
     }
