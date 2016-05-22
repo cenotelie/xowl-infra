@@ -50,7 +50,7 @@ public class RDFRuleSelect extends RDFRule {
     /**
      * The state of this rule
      */
-    private class State implements EvalContext {
+    private static class State implements EvalContext {
         /**
          * The evaluator
          */
