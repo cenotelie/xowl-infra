@@ -111,6 +111,13 @@ public class RDFRuleSimple extends RDFRule {
     }
 
     @Override
+    public Collection<VariableNode> getAntecedentVariables() {
+        Collection<VariableNode> result = new ArrayList<>();
+        findVariables(result, antecedents);
+        return result;
+    }
+
+    @Override
     public void onPatternMatched(RDFRuleEngine.ProductionHandler handler, RDFPattern pattern, RDFPatternMatch match) {
         if (distinct) {
             for (RDFRuleExecution execution : handler.getExecutions()) {

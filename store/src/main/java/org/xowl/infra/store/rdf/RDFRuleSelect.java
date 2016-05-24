@@ -191,6 +191,19 @@ public class RDFRuleSelect extends RDFRule {
     }
 
     @Override
+    public Collection<VariableNode> getAntecedentVariables() {
+        if (antecedent instanceof GraphPatternSelect) {
+            Collection<VariableNode> result = ((GraphPatternSelect) antecedent).getProjectedVariables();
+            if (!result.isEmpty())
+                return result;
+        }
+        Collection<VariableNode> result = new ArrayList<>();
+        for (RDFPattern pattern : patterns)
+            findVariables(result, pattern);
+        return result;
+    }
+
+    @Override
     public void onPatternMatched(RDFRuleEngine.ProductionHandler handler, RDFPattern pattern, RDFPatternMatch match) {
         State state = getState(handler);
         state.addMatch(pattern, match);

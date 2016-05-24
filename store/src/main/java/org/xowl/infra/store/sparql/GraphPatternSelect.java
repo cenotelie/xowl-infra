@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 Laurent Wouters
+ * Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
@@ -13,9 +13,6 @@
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- *
- * Contributors:
- *     Laurent Wouters - lwouters@xowl.org
  ******************************************************************************/
 
 package org.xowl.infra.store.sparql;
@@ -24,6 +21,7 @@ import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -56,6 +54,19 @@ public class GraphPatternSelect implements GraphPattern {
      * The inline data values
      */
     private final GraphPatternInlineData values;
+
+    /**
+     * Gets the variables used for the projection
+     *
+     * @return The variables
+     */
+    public Collection<VariableNode> getProjectedVariables() {
+        Collection<VariableNode> result = new ArrayList<>();
+        for (Couple<VariableNode, Expression> couple : projection) {
+            result.add(couple.x);
+        }
+        return result;
+    }
 
     /**
      * Initializes this graph pattern
