@@ -10,7 +10,7 @@ var DEFAULT_RULE =
 	"PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
 	"PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
 	"PREFIX xowl: <http://xowl.org/store/rules/xowl#>\n\n" +
-	"rule xowl:myrule distinct {\n" +
+	"rule distinct xowl:myrule {\n" +
 	"    ?x rdf:type ?y .\n" +
 	"    NOT (?x rdf:type owl:Class)\n" +
 	"} => {\n" +
