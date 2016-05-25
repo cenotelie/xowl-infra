@@ -203,16 +203,6 @@ XOWL.prototype.getDBRuleStatus = function (callback, db, rule) {
     	}, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule) + "&status=", "GET", null, "");
 }
 
-XOWL.prototype.explainQuad = function (callback, db, quad) {
-	this.command(function (code, type, content) {
-		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
-		} else {
-			callback(code, type, content);
-		}
-	}, "/db/" + encodeURIComponent(db) + "/explain?quad=" + encodeURIComponent(quad), "GET", null, "");
-}
-
 XOWL.prototype.upload = function (callback, db, contentType, content) {
 	this.command(callback, "/db/" + encodeURIComponent(db), "POST", contentType, content);
 }
