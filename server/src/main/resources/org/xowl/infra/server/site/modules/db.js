@@ -30,7 +30,6 @@ function init() {
 	document.getElementById("placeholder-db").appendChild(document.createTextNode(dbName));
 	document.getElementById("placeholder-db").href = "db.html?id=" + encodeURIComponent(dbName);
 	document.getElementById("placeholder-db2").appendChild(document.createTextNode(dbName));
-	document.getElementById("placeholder-sparql").href = "sparql.html?db=" + encodeURIComponent(dbName);
 	document.getElementById("field-rule-definition").value = DEFAULT_RULE;
 	document.getElementById('import-file').addEventListener('change', onFileSelected, false);
 	var typesField = document.getElementById("import-file-type");

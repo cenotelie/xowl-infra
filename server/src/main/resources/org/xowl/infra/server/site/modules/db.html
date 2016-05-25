@@ -45,12 +45,12 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-8">
           <div class="panel panel-default">
+            <div class="panel-heading">
+              Settings for database <strong id="placeholder-db2"></strong>.
+            </div>
             <div class="panel-body">
-              <div style="margin-bottom: 10px;">
-                Settings for database <strong id="placeholder-db2"></strong>.
-              </div>
               <div style="margin-bottom: 10px;">
                 <form class="form-inline">
                   <div class="form-group">
@@ -67,14 +67,9 @@
                   <a class="btn btn-primary" onclick="onSetEntailment()">Update</a>
                 </form>
               </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="panel panel-default">
-            <div class="panel-body">
-              <div><a class="btn" href="sparql.html" id="placeholder-sparql">SPARQL</a></div>
-              <div><a class="btn" onclick="onDrop()">Drop this database (cannot be undone)</a></div>
+              <div style="margin-bottom: 10px;">
+                <a class="btn btn-danger" onclick="onDrop()">Drop this database (cannot be undone)</a>
+              </div>
             </div>
           </div>
         </div>
@@ -111,6 +106,9 @@
       <div class="row">
         <div class="col-md-8">
           <div class="panel panel-default">
+            <div class="panel-heading">
+              Access management
+            </div>
             <div class="panel-body">
               <table class="table table-bordered table-hover">
                 <thead>
@@ -155,6 +153,9 @@
       <div class="row">
         <div class="col-md-8">
           <div class="panel panel-default">
+            <div class="panel-heading">
+              Rule management
+            </div>
             <div class="panel-body">
               <table class="table table-bordered table-hover">
                 <thead>
