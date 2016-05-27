@@ -27,9 +27,8 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
-import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.collections.Couple;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -74,12 +73,48 @@ public abstract class JSONLDLoader implements Loader {
     /**
      * Gets the canonical lexical form of a double value
      *
-     * @param value A serialized double value
+     * @param doubleString A serialized double value
      * @return The canonical lexical form
      */
-    private static String canonicalDouble(String value) {
-        // TODO: implement this
-        throw new NotImplementedException();
+    private static String canonicalDouble(String doubleString) {
+        double value = Double.parseDouble(doubleString);
+        if (value == 0)
+            return "0.0E1";
+        String result = Double.toString(value);
+        if (result.contains("E"))
+            return result;
+        int length = result.length();
+        char[] chars = new char[length + 3];
+        result.getChars(0, length, chars, 0);
+        int canonicalDecimalPoint = chars[0] == '-' ? 2 : 1;
+        if (value >= 1 || value <= -1) {
+            int decimalPoint = result.indexOf('.');
+            System.arraycopy(chars, canonicalDecimalPoint, chars, canonicalDecimalPoint + 1, decimalPoint - canonicalDecimalPoint);
+            chars[canonicalDecimalPoint] = '.';
+            while (chars[length - 1] == '0')
+                length--;
+            if (chars[length - 1] == '.')
+                length++;
+            chars[length++] = 'E';
+            int shift = decimalPoint - canonicalDecimalPoint;
+            chars[length++] = (char) (shift + '0');
+        } else {
+            int nonZero = canonicalDecimalPoint + 1;
+            while (chars[nonZero] == '0')
+                nonZero++;
+            chars[canonicalDecimalPoint - 1] = chars[nonZero];
+            chars[canonicalDecimalPoint] = '.';
+            for (int i = nonZero + 1, j = canonicalDecimalPoint + 1; i < length; i++, j++)
+                chars[j] = chars[i];
+            length -= nonZero - canonicalDecimalPoint;
+            if (length == canonicalDecimalPoint + 1)
+                chars[length++] = '0';
+            chars[length++] = 'E';
+            chars[length++] = '-';
+            int shift = nonZero - canonicalDecimalPoint;
+            chars[length++] = (char) (shift + '0');
+        }
+        return new String(chars, 0, length);
     }
 
     /**
@@ -444,7 +479,7 @@ public abstract class JSONLDLoader implements Loader {
             Object value = loadValue(child, graph, context, info);
             if (value != null) {
                 if (value instanceof JSONLDExplicitList)
-                    result.add(createRDFList(graph, (List<Node>)value));
+                    result.add(createRDFList(graph, (List<Node>) value));
                 else if (value instanceof List)
                     result.addAll((List<Node>) value);
                 else
@@ -557,7 +592,7 @@ public abstract class JSONLDLoader implements Loader {
         String value = node.getValue();
         if (info != null && info.valueType != null) {
             // coerced type
-            return store.getLiteralNode(canonicalDouble(value), context.expandName(info.valueType), null);
+            return store.getLiteralNode(value, context.expandName(info.valueType), null);
         }
         return store.getLiteralNode(value, Vocabulary.xsdBoolean, null);
     }
