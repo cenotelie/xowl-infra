@@ -21,6 +21,7 @@ import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -53,6 +54,19 @@ public class GraphPatternSelect implements GraphPattern {
      * The inline data values
      */
     private final GraphPatternInlineData values;
+
+    /**
+     * Gets the variables used for the projection
+     *
+     * @return The variables
+     */
+    public Collection<VariableNode> getProjectedVariables() {
+        Collection<VariableNode> result = new ArrayList<>();
+        for (Couple<VariableNode, Expression> couple : projection) {
+            result.add(couple.x);
+        }
+        return result;
+    }
 
     /**
      * Initializes this graph pattern

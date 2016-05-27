@@ -37,29 +37,29 @@ PREFIX xowl: <http://xowl.org/store/rules/xowl#>
 #   ?h xowl:contains ?e
 
 rule xowl:list-expansion-init {
-    ?h rdf:first ?e1
+    ?h rdf:first ?e1 .
 } => {
-    ?h xowl:contains ?e1
+    ?h xowl:contains ?e1 .
 }
 
 rule xowl:list-expansion-aggregate {
-    ?h rdf:rest ?z
-    ?z xowl:contains ?e
+    ?h rdf:rest ?z .
+    ?z xowl:contains ?e .
 } => {
-    ?h xowl:contains ?e
+    ?h xowl:contains ?e .
 }
 
 rule xowl:list-order-init {
-    ?p1 rdf:rest ?p2
+    ?p1 rdf:rest ?p2 .
 } => {
-    ?p2 xowl:after ?p1
+    ?p2 xowl:after ?p1 .
 }
 
 rule xowl:list-order-transitive {
-    ?p1 xowl:after ?p2
-    ?p2 xowl:after ?p3
+    ?p1 xowl:after ?p2 .
+    ?p2 xowl:after ?p3 .
 } => {
-    ?p1 xowl:after ?p3
+    ?p1 xowl:after ?p3 .
 }
 
 
@@ -67,24 +67,24 @@ rule xowl:list-order-transitive {
 # List derivation
 
 rule xowl:list-derivation-equivalent-classes {
-    ?l xowl:contains ?x
-    ?x owl:equivalentClass ?y
+    ?l xowl:contains ?x .
+    ?x owl:equivalentClass ?y .
 } => {
-    ?l xowl:contains ?y
+    ?l xowl:contains ?y .
 }
 
 rule xowl:list-derivation-equivalent-properties {
-    ?l xowl:contains ?x
-    ?x owl:equivalentProperty ?y
+    ?l xowl:contains ?x .
+    ?x owl:equivalentProperty ?y .
 } => {
-    ?l xowl:contains ?y
+    ?l xowl:contains ?y .
 }
 
 rule xowl:list-derivation-same {
-    ?l xowl:contains ?x
-    ?x owl:sameAs ?y
+    ?l xowl:contains ?x .
+    ?x owl:sameAs ?y .
 } => {
-    ?l xowl:contains ?y
+    ?l xowl:contains ?y .
 }
 
 
@@ -93,85 +93,85 @@ rule xowl:list-derivation-same {
 #   Two lists are equivalent if the members are equivalent
 
 rule xowl:list-equivalence-init-identical {
-    ?l1 rdf:first ?x
-    ?l1 rdf:rest rdf:nil
-    ?l2 rdf:first ?x
-    ?l2 rdf:rest rdf:nil
+    ?l1 rdf:first ?x .
+    ?l1 rdf:rest rdf:nil .
+    ?l2 rdf:first ?x .
+    ?l2 rdf:rest rdf:nil .
 } => {
-    ?l1 xowl:equivalentList ?l2
+    ?l1 xowl:equivalentList ?l2 .
 }
 
 rule xowl:list-equivalence-init-equivalent-classes {
-    ?l1 rdf:first ?x
-    ?l1 rdf:rest rdf:nil
-    ?l2 rdf:first ?y
-    ?l2 rdf:rest rdf:nil
-    ?x owl:equivalentClass ?y
+    ?l1 rdf:first ?x .
+    ?l1 rdf:rest rdf:nil .
+    ?l2 rdf:first ?y .
+    ?l2 rdf:rest rdf:nil .
+    ?x owl:equivalentClass ?y .
 } => {
-    ?l1 xowl:equivalentList ?l2
+    ?l1 xowl:equivalentList ?l2 .
 }
 
 rule xowl:list-equivalence-init-equivalent-properties {
-    ?l1 rdf:first ?x
-    ?l1 rdf:rest rdf:nil
-    ?l2 rdf:first ?y
-    ?l2 rdf:rest rdf:nil
-    ?x owl:equivalentProperty ?y
+    ?l1 rdf:first ?x .
+    ?l1 rdf:rest rdf:nil .
+    ?l2 rdf:first ?y .
+    ?l2 rdf:rest rdf:nil .
+    ?x owl:equivalentProperty ?y .
 } => {
-    ?l1 xowl:equivalentList ?l2
+    ?l1 xowl:equivalentList ?l2 .
 }
 
 rule xowl:list-equivalence-init-same {
-    ?l1 rdf:first ?x
-    ?l1 rdf:rest rdf:nil
-    ?l2 rdf:first ?y
-    ?l2 rdf:rest rdf:nil
-    ?x owl:sameAs ?y
+    ?l1 rdf:first ?x .
+    ?l1 rdf:rest rdf:nil .
+    ?l2 rdf:first ?y .
+    ?l2 rdf:rest rdf:nil .
+    ?x owl:sameAs ?y .
 } => {
-    ?l1 xowl:equivalentList ?l2
+    ?l1 xowl:equivalentList ?l2 .
 }
 
 rule xowl:list-equivalence-transitive-identical {
-    ?l1 rdf:first ?x
-    ?l1 rdf:rest ?u1
-    ?l2 rdf:first ?x
-    ?l2 rdf:rest ?u2
-    ?u1 xowl:equivalentList ?u2
+    ?l1 rdf:first ?x .
+    ?l1 rdf:rest ?u1 .
+    ?l2 rdf:first ?x .
+    ?l2 rdf:rest ?u2 .
+    ?u1 xowl:equivalentList ?u2 .
 } => {
-    ?l1 xowl:equivalentList ?l2
+    ?l1 xowl:equivalentList ?l2 .
 }
 
 rule xowl:list-equivalence-transitive-equivalent-classes {
-    ?l1 rdf:first ?x
-    ?l1 rdf:rest ?u1
-    ?l2 rdf:first ?y
-    ?l2 rdf:rest ?u2
-    ?u1 xowl:equivalentList ?u2
-    ?x owl:equivalentClass ?y
+    ?l1 rdf:first ?x .
+    ?l1 rdf:rest ?u1 .
+    ?l2 rdf:first ?y .
+    ?l2 rdf:rest ?u2 .
+    ?u1 xowl:equivalentList ?u2 .
+    ?x owl:equivalentClass ?y .
 } => {
-    ?l1 xowl:equivalentList ?l2
+    ?l1 xowl:equivalentList ?l2 .
 }
 
 rule xowl:list-equivalence-transitive-equivalent-properties {
-    ?l1 rdf:first ?x
-    ?l1 rdf:rest ?u1
-    ?l2 rdf:first ?y
-    ?l2 rdf:rest ?u2
-    ?u1 xowl:equivalentList ?u2
-    ?x owl:equivalentProperty ?y
+    ?l1 rdf:first ?x .
+    ?l1 rdf:rest ?u1 .
+    ?l2 rdf:first ?y .
+    ?l2 rdf:rest ?u2 .
+    ?u1 xowl:equivalentList ?u2 .
+    ?x owl:equivalentProperty ?y .
 } => {
-    ?l1 xowl:equivalentList ?l2
+    ?l1 xowl:equivalentList ?l2 .
 }
 
 rule xowl:list-equivalence-transitive-same {
-    ?l1 rdf:first ?x
-    ?l1 rdf:rest ?u1
-    ?l2 rdf:first ?y
-    ?l2 rdf:rest ?u2
-    ?u1 xowl:equivalentList ?u2
-    ?x owl:sameAs ?y
+    ?l1 rdf:first ?x .
+    ?l1 rdf:rest ?u1 .
+    ?l2 rdf:first ?y .
+    ?l2 rdf:rest ?u2 .
+    ?u1 xowl:equivalentList ?u2 .
+    ?x owl:sameAs ?y .
 } => {
-    ?l1 xowl:equivalentList ?l2
+    ?l1 xowl:equivalentList ?l2 .
 }
 
 
@@ -179,39 +179,39 @@ rule xowl:list-equivalence-transitive-same {
 # Simple typing deductions for object properties
 
 rule xowl:prop-inverse-functional {
-    ?x rdf:type owl:InverseFunctionalProperty
+    ?x rdf:type owl:InverseFunctionalProperty .
 } => {
-    ?x rdf:type owl:ObjectProperty
+    ?x rdf:type owl:ObjectProperty .
 }
 
 rule xowl:prop-symmetric {
-    ?x rdf:type owl:SymmetricProperty
+    ?x rdf:type owl:SymmetricProperty .
 } => {
-    ?x rdf:type owl:ObjectProperty
+    ?x rdf:type owl:ObjectProperty .
 }
 
 rule xowl:prop-asymmetric {
-    ?x rdf:type owl:AsymmetricProperty
+    ?x rdf:type owl:AsymmetricProperty .
 } => {
-    ?x rdf:type owl:ObjectProperty
+    ?x rdf:type owl:ObjectProperty .
 }
 
 rule xowl:prop-transitive {
-    ?x rdf:type owl:TransitiveProperty
+    ?x rdf:type owl:TransitiveProperty .
 } => {
-    ?x rdf:type owl:ObjectProperty
+    ?x rdf:type owl:ObjectProperty .
 }
 
 rule xowl:prop-reflexive {
-    ?x rdf:type owl:ReflexiveProperty
+    ?x rdf:type owl:ReflexiveProperty .
 } => {
-    ?x rdf:type owl:ObjectProperty
+    ?x rdf:type owl:ObjectProperty .
 }
 
 rule xowl:prop-irreflexive {
-    ?x rdf:type owl:IrreflexiveProperty
+    ?x rdf:type owl:IrreflexiveProperty .
 } => {
-    ?x rdf:type owl:ObjectProperty
+    ?x rdf:type owl:ObjectProperty .
 }
 
 
@@ -219,19 +219,19 @@ rule xowl:prop-irreflexive {
 # Equivalence of intersection and union classes
 
 rule xowl:equivalent-class-intersection {
-    ?x owl:intersectionOf ?i
-    ?y owl:intersectionOf ?j
-    ?i xowl:equivalentList ?j
+    ?x owl:intersectionOf ?i .
+    ?y owl:intersectionOf ?j .
+    ?i xowl:equivalentList ?j .
 } => {
-    ?x owl:equivalentClass ?y
+    ?x owl:equivalentClass ?y .
 }
 
 rule xowl:equivalent-class-intersection {
-    ?x owl:unionOf ?i
-    ?y owl:unionOf ?j
-    ?i xowl:equivalentList ?j
+    ?x owl:unionOf ?i .
+    ?y owl:unionOf ?j .
+    ?i xowl:equivalentList ?j .
 } => {
-    ?x owl:equivalentClass ?y
+    ?x owl:equivalentClass ?y .
 }
 
 
@@ -239,22 +239,22 @@ rule xowl:equivalent-class-intersection {
 # Additional rules for functional properties
 
 rule xowl:functional-property-different-from {
-    ?p rdf:type owl:FunctionalProperty
-    ?x1 ?p ?y1
-    ?x2 ?p ?y2
-    ?y1 owl:differentFrom ?y2
+    ?p rdf:type owl:FunctionalProperty .
+    ?x1 ?p ?y1 .
+    ?x2 ?p ?y2 .
+    ?y1 owl:differentFrom ?y2 .
 } => {
-    ?x1 owl:differentFrom ?x2
+    ?x1 owl:differentFrom ?x2 .
     # this is because if x1 and x2 were the same, y1 and y2 would have to be the same
 }
 
 rule xowl:inverse-functional-property-different-from {
-    ?p rdf:type owl:InverseFunctionalProperty
-    ?x1 ?p ?y1
-    ?x2 ?p ?y2
-    ?x1 owl:differentFrom ?x2
+    ?p rdf:type owl:InverseFunctionalProperty .
+    ?x1 ?p ?y1 .
+    ?x2 ?p ?y2 .
+    ?x1 owl:differentFrom ?x2 .
 } => {
-    ?y1 owl:differentFrom ?y2
+    ?y1 owl:differentFrom ?y2 .
     # this is because if y1 and y2 were the same, x1 and x2 would have to be the same
 }
 
@@ -263,81 +263,81 @@ rule xowl:inverse-functional-property-different-from {
 # Infer some missing information from the someValuesFrom restriction
 
 rule xowl:some-value-from-thing {
-    ?x rdf:type ?r
-    ?r owl:onProperty ?p
-    not ( ?r owl:onProperty owl:bottomObjectProperty )
-    not ( ?p owl:equivalentProperty owl:bottomObjectProperty )
+    ?x rdf:type ?r .
+    ?r owl:onProperty ?p .
+    not ( ?r owl:onProperty owl:bottomObjectProperty ) .
+    not ( ?p owl:equivalentProperty owl:bottomObjectProperty ) .
 } => {
-    # ?x ?p ?o
-    # ?o xowl:status xowl:filler
+    # ?x ?p ?o .
+    # ?o xowl:status xowl:filler .
     # There should be a value but we do not have one
 }
 
 rule xowl:unsatisfiable-restriction1 {
-    ?r owl:onProperty owl:bottomObjectProperty
-    ?r owl:someValuesFrom ?x
+    ?r owl:onProperty owl:bottomObjectProperty .
+    ?r owl:someValuesFrom ?x .
 } => {
-    ?r xowl:status xowl:unsat
+    ?r xowl:status xowl:unsat .
 }
 
 rule xowl:unsatisfiable-restriction2 {
-    ?r owl:onProperty ?p
-    ?p owl:equivalentProperty owl:bottomObjectProperty
-    ?r owl:someValuesFrom ?x
+    ?r owl:onProperty ?p .
+    ?p owl:equivalentProperty owl:bottomObjectProperty .
+    ?r owl:someValuesFrom ?x .
 } => {
-    ?r xowl:status xowl:unsat
+    ?r xowl:status xowl:unsat .
 }
 
 
 # Equivalence between (min and max and exact cardinality on the same value
 
 rule xowl:card-to-min-max {
-    ?x owl:onProperty ?p
-    ?x owl:cardinality ?v
-    not ( ?x xowl:marker xowl:min-max-to-card )
+    ?x owl:onProperty ?p .
+    ?x owl:cardinality ?v .
+    not ( ?x xowl:marker xowl:min-max-to-card ) .
 } => {
-    ?y1 rdf:type owl:Restriction
-    ?y1 owl:onProperty ?p
-    ?y1 owl:maxCardinality ?v
-    ?y2 rdf:type owl:Restriction
-    ?y2 owl:onProperty ?p
-    ?y2 owl:minCardinality ?v
-    ?x owl:equivalentClass ?i
-    ?i owl:intersectionOf ?l
-    ?l rdf:first ?y1
-    ?l rdf:rest ?e
-    ?e rdf:first ?y2
-    ?e rdf:rest rdf:nil
-    ?x xowl:marker xowl:card-to-min-max
+    ?y1 rdf:type owl:Restriction .
+    ?y1 owl:onProperty ?p .
+    ?y1 owl:maxCardinality ?v .
+    ?y2 rdf:type owl:Restriction .
+    ?y2 owl:onProperty ?p .
+    ?y2 owl:minCardinality ?v .
+    ?x owl:equivalentClass ?i .
+    ?i owl:intersectionOf ?l .
+    ?l rdf:first ?y1 .
+    ?l rdf:rest ?e .
+    ?e rdf:first ?y2 .
+    ?e rdf:rest rdf:nil .
+    ?x xowl:marker xowl:card-to-min-max .
 }
 
 rule xowl:min-max-to-card {
-    ?y1 rdf:type owl:Restriction
-    ?y1 owl:onProperty ?p
-    ?y1 owl:maxCardinality ?v
-    ?y2 rdf:type owl:Restriction
-    ?y2 owl:onProperty ?p
-    ?y2 owl:minCardinality ?v
-    not (
-        ?l xowl:contains ?y1
-        ?l xowl:contains ?y2
-        ?i owl:intersectionOf ?l
-        ?x owl:equivalentClass ?i
-        ?x owl:onProperty ?p
-        ?x owl:cardinality ?v
-        ?x xowl:marker xowl:card-to-min-max
-    )
+    ?y1 rdf:type owl:Restriction .
+    ?y1 owl:onProperty ?p .
+    ?y1 owl:maxCardinality ?v .
+    ?y2 rdf:type owl:Restriction .
+    ?y2 owl:onProperty ?p .
+    ?y2 owl:minCardinality ?v .
+    not ( .
+        ?l xowl:contains ?y1 .
+        ?l xowl:contains ?y2 .
+        ?i owl:intersectionOf ?l .
+        ?x owl:equivalentClass ?i .
+        ?x owl:onProperty ?p .
+        ?x owl:cardinality ?v .
+        ?x xowl:marker xowl:card-to-min-max .
+    ) .
 } => {
-    ?x rdf:type owl:Restriction
-    ?x owl:onProperty ?p
-    ?x owl:cardinality ?v
-    ?x owl:equivalentClass ?i
-    ?i owl:intersectionOf ?l
-    ?l rdf:first ?y1
-    ?l rdf:rest ?e
-    ?e rdf:first ?y2
-    ?e rdf:rest rdf:nil
-    ?x xowl:marker xowl:min-max-to-card
+    ?x rdf:type owl:Restriction .
+    ?x owl:onProperty ?p .
+    ?x owl:cardinality ?v .
+    ?x owl:equivalentClass ?i .
+    ?i owl:intersectionOf ?l .
+    ?l rdf:first ?y1 .
+    ?l rdf:rest ?e .
+    ?e rdf:first ?y2 .
+    ?e rdf:rest rdf:nil .
+    ?x xowl:marker xowl:min-max-to-card .
 }
 
 
@@ -345,13 +345,13 @@ rule xowl:min-max-to-card {
 # Infer sub-classes from allValuesFrom information
 
 rule xowl:all-values-from-subclass {
-    ?x1 owl:allValuesFrom ?c
-    ?x1 owl:onProperty ?p1
-    ?p1 rdfs:subPropertyOf ?p2
-    ?x2 owl:allValuesFrom ?c
-    ?x2 owl:onProperty ?p2
+    ?x1 owl:allValuesFrom ?c .
+    ?x1 owl:onProperty ?p1 .
+    ?p1 rdfs:subPropertyOf ?p2 .
+    ?x2 owl:allValuesFrom ?c .
+    ?x2 owl:onProperty ?p2 .
 } => {
-    ?x2 rdfs:subClassOf ?x1
+    ?x2 rdfs:subClassOf ?x1 .
 }
 
 
@@ -359,29 +359,29 @@ rule xowl:all-values-from-subclass {
 # A class is a sub-class of an intersection if it is a sub-class of all the intersected classes
 
 rule xowl:subclass-of-intersection-init {
-    ?i owl:intersectionOf ?l
-    ?l rdf:first ?c1
-    ?x rdfs:subClassOf ?c1
+    ?i owl:intersectionOf ?l .
+    ?l rdf:first ?c1 .
+    ?x rdfs:subClassOf ?c1 .
 } => {
-    ?x xowl:intersecting ?l
+    ?x xowl:intersecting ?l .
 }
 
 rule xowl:subclass-of-intersection-transitive {
-    ?x xowl:intersecting ?l
-    ?l rdf:rest ?e
-    ?e rdf:first ?c2
-    ?x rdfs:subClassOf ?c2
+    ?x xowl:intersecting ?l .
+    ?l rdf:rest ?e .
+    ?e rdf:first ?c2 .
+    ?x rdfs:subClassOf ?c2 .
 } => {
-    ?x xowl:intersecting ?e
+    ?x xowl:intersecting ?e .
 }
 
 rule xowl:subclass-of-intersection-final {
-    ?x xowl:intersecting ?e
-    ?e rdf:rest rdf:nil
-    ?e xowl:after ?l
-    ?i owl:intersectionOf ?l
+    ?x xowl:intersecting ?e .
+    ?e rdf:rest rdf:nil .
+    ?e xowl:after ?l .
+    ?i owl:intersectionOf ?l .
 } => {
-    ?x rdfs:subClassOf ?i
+    ?x rdfs:subClassOf ?i .
 }
 
 
@@ -389,52 +389,52 @@ rule xowl:subclass-of-intersection-final {
 # Set theory logic on classes
 
 rule xowl:unsatisfiable-class {
-    ?x owl:equivalentClass owl:Nothing
+    ?x owl:equivalentClass owl:Nothing .
 } => {
-    ?x xowl:status xowl:unsat
+    ?x xowl:status xowl:unsat .
 }
 
 rule xowl:complement-of-thing {
-    ?x owl:equivalentClass ?y
-    ?y owl:complementOf owl:Thing
+    ?x owl:equivalentClass ?y .
+    ?y owl:complementOf owl:Thing .
 } => {
-    ?x owl:equivalentClass owl:Nothing
+    ?x owl:equivalentClass owl:Nothing .
 }
 
 rule xowl:complement-of-nothing {
-    ?x owl:equivalentClass ?y
-    ?y owl:complementOf owl:Nothing
+    ?x owl:equivalentClass ?y .
+    ?y owl:complementOf owl:Nothing .
 } => {
-    ?x owl:equivalentClass owl:Thing
+    ?x owl:equivalentClass owl:Thing .
 }
 
 rule xowl:disjoint-with-complement {
-    ?x owl:complementOf ?y
+    ?x owl:complementOf ?y .
 } => {
-    ?x owl:disjointWith ?y
-    ?y owl:disjointWith ?x
+    ?x owl:disjointWith ?y .
+    ?y owl:disjointWith ?x .
 }
 
 rule xowl:intersection-of-disjoints {
-    ?x owl:equivalentClass ?i
-    ?i owl:intersectionOf ?l
-    ?l xowl:contains ?c
-    ?l xowl:contains ?nc
-    ?nc owl:disjointWith ?z
-    ?z owl:equivalentClass ?c
+    ?x owl:equivalentClass ?i .
+    ?i owl:intersectionOf ?l .
+    ?l xowl:contains ?c .
+    ?l xowl:contains ?nc .
+    ?nc owl:disjointWith ?z .
+    ?z owl:equivalentClass ?c .
 } => {
-    ?x owl:equivalentClass owl:Nothing
+    ?x owl:equivalentClass owl:Nothing .
 }
 
 rule xowl:union-of-c-and-not-c {
-    ?x owl:equivalentClass ?i
-    ?i owl:unionOf ?l
-    ?l xowl:contains ?c
-    ?l xowl:contains ?nc
-    ?nc owl:complementOf ?z
-    ?z owl:equivalentClass ?c
+    ?x owl:equivalentClass ?i .
+    ?i owl:unionOf ?l .
+    ?l xowl:contains ?c .
+    ?l xowl:contains ?nc .
+    ?nc owl:complementOf ?z .
+    ?z owl:equivalentClass ?c .
 } => {
-    ?x owl:equivalentClass owl:Nothing
+    ?x owl:equivalentClass owl:Nothing .
 }
 
 
@@ -442,8 +442,8 @@ rule xowl:union-of-c-and-not-c {
 # Some inconsistencies
 
 rule xowl:instance-of-unsat-class {
-    ?c xowl:status xowl:unsat
-    ?x rdf:type ?c
+    ?c xowl:status xowl:unsat .
+    ?x rdf:type ?c .
 } => {
-    ?x xowl:status xowl:inconsistent
+    ?x xowl:status xowl:inconsistent .
 }

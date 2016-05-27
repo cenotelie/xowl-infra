@@ -81,19 +81,33 @@ function renderDatabases(databases) {
 	});
 	var table = document.getElementById("databases");
 	for (var i = 0; i != databases.length; i++) {
-		var icon = document.createElement("span");
-		icon.classList.add("glyphicon");
-		icon.classList.add("glyphicon-hdd");
-		var text = document.createElement("span");
-		text.appendChild(document.createTextNode(" " + databases[i].name));
-		var link = document.createElement("a");
-		link.href = "db.html?id=" + encodeURIComponent(databases[i].name);
-		link.appendChild(icon);
-		link.appendChild(text);
-		var cell = document.createElement("td");
-		cell.appendChild(link);
+		var icon_db = document.createElement("span");
+		icon_db.classList.add("glyphicon");
+		icon_db.classList.add("glyphicon-hdd");
+		var text_name = document.createElement("span");
+		text_name.appendChild(document.createTextNode(" " + databases[i].name));
+		var icon_sparql = document.createElement("span");
+		icon_sparql.classList.add("glyphicon");
+		icon_sparql.classList.add("glyphicon-question-sign");
+		var text_sparql = document.createElement("span");
+		text_sparql.appendChild(document.createTextNode(" SPARQL"));
+		var link_settings = document.createElement("a");
+		link_settings.style.marginLeft = "10px";
+		link_settings.href = "db.html?id=" + encodeURIComponent(databases[i].name);
+		link_settings.appendChild(icon_db);
+		link_settings.appendChild(text_name);
+		var link_sparql = document.createElement("a");
+		link_sparql.style.marginLeft = "10px";
+		link_sparql.href = "sparql.html?db=" + encodeURIComponent(databases[i].name);
+		link_sparql.appendChild(icon_sparql);
+		link_sparql.appendChild(text_sparql);
+		var cell1 = document.createElement("td");
+		cell1.appendChild(link_settings);
+		var cell2 = document.createElement("td");
+		cell2.appendChild(link_sparql);
 		var row = document.createElement("tr");
-		row.appendChild(cell);
+		row.appendChild(cell1);
+		row.appendChild(cell2);
 		table.appendChild(row);
 	}
 }

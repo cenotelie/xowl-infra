@@ -1444,7 +1444,7 @@ public class SPARQLLoader {
             if (first.getSymbol().getID() == SPARQLParser.ID.triples_same_subj || first.getSymbol().getID() == SPARQLParser.ID.triples_same_subj_path)
                 loadTriplesSameSubject(context, first, graph, positives);
             else
-                negatives.add(loadTriplesNegative(context, node, graph));
+                negatives.add(loadTriplesNegative(context, first, graph));
             if (current.getChildren().size() >= 2) {
                 current = current.getChildren().get(1);
             } else {

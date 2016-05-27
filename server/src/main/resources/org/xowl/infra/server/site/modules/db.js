@@ -5,13 +5,13 @@ var xowl = new XOWL();
 var dbName = getParameterByName("id");
 var FLAG = false;
 var DEFAULT_RULE =
-	"@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.\n" +
-	"@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.\n" +
-	"@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.\n" +
-	"@prefix owl: <http://www.w3.org/2002/07/owl#>.\n" +
-	"@prefix xowl: <http://xowl.org/store/rules/xowl#>.\n\n" +
-	"rule xowl:myrule distinct {\n" +
-	"    ?x rdf:type ?y\n" +
+	"PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+	"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
+	"PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
+	"PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
+	"PREFIX xowl: <http://xowl.org/store/rules/xowl#>\n\n" +
+	"rule distinct xowl:myrule {\n" +
+	"    ?x rdf:type ?y .\n" +
 	"    NOT (?x rdf:type owl:Class)\n" +
 	"} => {\n" +
 	"    ?x rdf:type xowl:MyClass\n" +
@@ -30,7 +30,6 @@ function init() {
 	document.getElementById("placeholder-db").appendChild(document.createTextNode(dbName));
 	document.getElementById("placeholder-db").href = "db.html?id=" + encodeURIComponent(dbName);
 	document.getElementById("placeholder-db2").appendChild(document.createTextNode(dbName));
-	document.getElementById("placeholder-sparql").href = "sparql.html?db=" + encodeURIComponent(dbName);
 	document.getElementById("field-rule-definition").value = DEFAULT_RULE;
 	document.getElementById('import-file').addEventListener('change', onFileSelected, false);
 	var typesField = document.getElementById("import-file-type");

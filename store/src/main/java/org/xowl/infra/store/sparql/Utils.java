@@ -391,7 +391,7 @@ class Utils {
     public static Solutions project(Solutions solutions, List<Couple<VariableNode, Expression>> projection, EvalContext context) throws EvalException {
         boolean aggregates = false;
         for (Couple<VariableNode, Expression> projector : projection) {
-            if (projector.y.containsAggregate()) {
+            if (projector.y != null && projector.y.containsAggregate()) {
                 aggregates = true;
                 break;
             }
