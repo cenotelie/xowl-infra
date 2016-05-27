@@ -156,12 +156,12 @@ class PersistedMapStage2 {
                     if (entryKey == key && (flags >>> i) != 0) {
                         // this is a hit on the key and this is the associated value
                         // success!
-                        access.seek(NODE_HEADER_SIZE + i * NODE_ENTRY_SIZE + 4).writeLong(value);
+                        access.seek(NODE_HEADER + i * CHILD_SIZE + 4).writeLong(value);
                         return entryPtr;
                     }
                 }
                 // add into the node
-                access.seek(NODE_HEADER_SIZE + count * NODE_ENTRY_SIZE);
+                access.seek(NODE_HEADER + count * CHILD_SIZE);
                 access.writeInt(key);
                 access.writeLong(value);
                 version++;
