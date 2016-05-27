@@ -25,7 +25,6 @@ import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logger;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -459,14 +458,48 @@ public class IOUtils {
     }
 
     /**
+     * The characters for the base64 encoding
+     */
+    private static final char[] BASE64_CHARS = new char[]{
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+            '+', '/', '='};
+
+    /**
      * Encodes a string in base64
      *
      * @param input The input string
      * @return The encoded string
      */
     public static String encodeBase64(String input) {
-        // TODO: implement this
-        throw new NotImplementedException();
+        byte[] bytes = input.getBytes(Files.CHARSET);
+        char[] chars = new char[bytes.length % 3 == 0 ? bytes.length / 3 * 4 : (bytes.length - bytes.length % 3 + 3) / 3 * 4];
+        int target = 0;
+        for (int i = 0; i < bytes.length; i += 3) {
+            int offset = (bytes[i] & 0xFC) >> 2;
+            chars[target++] = BASE64_CHARS[offset];
+            offset = (bytes[i] & 0x03) << 4;
+            if (i + 1 < bytes.length) {
+                offset |= (bytes[i + 1] & 0xF0) >> 4;
+                chars[target++] = BASE64_CHARS[offset];
+                offset = (bytes[i + 1] & 0x0F) << 2;
+                if (i + 2 < bytes.length) {
+                    offset |= (bytes[i + 2] & 0xC0) >> 6;
+                    chars[target++] = BASE64_CHARS[offset];
+                    offset = bytes[i + 2] & 0x3F;
+                    chars[target++] = BASE64_CHARS[offset];
+                } else {
+                    chars[target++] = BASE64_CHARS[offset];
+                    chars[target++] = '=';
+                }
+            } else {
+                chars[target++] = BASE64_CHARS[offset];
+                chars[target++] = '=';
+                chars[target++] = '=';
+            }
+        }
+        return new String(chars);
     }
 
     /**
