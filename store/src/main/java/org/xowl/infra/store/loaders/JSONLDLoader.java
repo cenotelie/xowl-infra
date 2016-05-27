@@ -17,8 +17,6 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.apache.xerces.impl.dv.InvalidDatatypeValueException;
-import org.apache.xerces.impl.dv.xs.DoubleDV;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
@@ -31,6 +29,7 @@ import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.collections.Couple;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -66,10 +65,6 @@ public abstract class JSONLDLoader implements Loader {
      * The property info for the rdf:type property
      */
     private static final JSONLDNameInfo PROPERTY_TYPE_INFO = new JSONLDNameInfo();
-    /**
-     * Utility for the validation of double values
-     */
-    private static final DoubleDV CANONICAL_DOUBLE = new DoubleDV();
 
     static {
         PROPERTY_TYPE_INFO.fullIRI = Vocabulary.rdfType;
@@ -83,13 +78,8 @@ public abstract class JSONLDLoader implements Loader {
      * @return The canonical lexical form
      */
     private static String canonicalDouble(String value) {
-        try {
-            Object x = CANONICAL_DOUBLE.getActualValue(value, null);
-            return x.toString();
-        } catch (InvalidDatatypeValueException exception) {
-            // do nothing
-            return value;
-        }
+        // TODO: implement this
+        throw new NotImplementedException();
     }
 
     /**

@@ -25,6 +25,7 @@ import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logger;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -455,6 +456,17 @@ public class IOUtils {
             }
         }
         return new String(result, Files.CHARSET);
+    }
+
+    /**
+     * Encodes a string in base64
+     *
+     * @param input The input string
+     * @return The encoded string
+     */
+    public static String encodeBase64(String input) {
+        // TODO: implement this
+        throw new NotImplementedException();
     }
 
     /**

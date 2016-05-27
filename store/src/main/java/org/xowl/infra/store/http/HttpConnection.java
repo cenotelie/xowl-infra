@@ -17,8 +17,7 @@
 
 package org.xowl.infra.store.http;
 
-import org.apache.xerces.impl.dv.util.Base64;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import javax.net.ssl.*;
@@ -98,8 +97,8 @@ public class HttpConnection implements Closeable {
         };
         this.endpoint = endpoint;
         if (login != null && password != null) {
-            byte[] buffer = (login + ":" + password).getBytes(Files.CHARSET);
-            this.authToken = Base64.encode(buffer);
+            String buffer = (login + ":" + password);
+            this.authToken = IOUtils.encodeBase64(buffer);
         } else {
             this.authToken = null;
         }

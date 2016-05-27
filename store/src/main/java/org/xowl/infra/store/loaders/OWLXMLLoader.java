@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.loaders;
 
-import org.apache.xerces.parsers.DOMParser;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xowl.hime.redist.ParseResult;
@@ -27,6 +26,8 @@ import org.xowl.infra.store.URIUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.logging.Logger;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.Reader;
 import java.util.*;
 
@@ -73,9 +74,9 @@ public class OWLXMLLoader implements Loader {
         this.namespaces = new HashMap<>();
         this.blanks = new HashMap<>();
         try {
-            DOMParser parser = new DOMParser();
-            parser.parse(new InputSource(reader));
-            Document document = parser.getDocument();
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder parser = factory.newDocumentBuilder();
+            Document document = parser.parse(new InputSource(reader));
             XMLElement root = new XMLElement(document.getDocumentElement(), uri);
             loadOntology(root);
         } catch (Exception ex) {
