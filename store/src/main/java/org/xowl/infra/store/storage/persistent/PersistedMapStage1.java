@@ -47,10 +47,10 @@ class PersistedMapStage1 {
     private static final int NODE_SIZE = 8 + ENTRY_COUNT * 8;
 
     /**
-     * Initializes an empty stage 2 map
+     * Initializes an empty stage 1 map
      *
      * @param store The containing store
-     * @return The entry key for the root of the stage 2 map
+     * @return The entry key for the root of the stage 1 map
      */
     public static long newMap(FileStore store) throws StorageException {
         long entry = store.allocate(NODE_SIZE);

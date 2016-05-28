@@ -4,12 +4,12 @@
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, either version 3
  * of the License, or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Lesser General
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
@@ -70,7 +70,7 @@ class PersistedMap {
      * Gets the value associated to key
      *
      * @param key The requested key
-     * @return The associated value, or KEY_NOT_FOUND when the key is not present
+     * @return The associated value, or FileStore.KEY_NULL when the key is not present
      * @throws StorageException When an IO operation fails
      */
     public long get(long key) throws StorageException {
@@ -81,30 +81,17 @@ class PersistedMap {
     }
 
     /**
-     * Puts a new key, value couple into the map
-     * If the key is already present, the specified value replaces the existing one.
+     * Atomically replace a value in the map for a key
      *
-     * @param key   The key
-     * @param value The associated value
+     * @param key      The key
+     * @param valueOld The old value to replace (FileStore.KEY_NULL, if this is expected to be an insertion)
+     * @param valueNew The new value for the key (FileStore.KEY_NULL, if this is expected to be a removal)
+     * @return Whether the operation succeeded
      * @throws StorageException When an IO operation fails
      */
-    public void put(long key, long value) throws StorageException {
+    public boolean compareAndSet(long key, long valueOld, long valueNew) throws StorageException {
         long head2 = PersistedMapStage1.resolveHeadFor(store, mapHead, key1(key));
-        PersistedMapStage2.put(store, head2, key2(key), value);
-    }
-
-    /**
-     * Removes the entry for the specified key
-     *
-     * @param key The key
-     * @return The value that was associated to the key, or KEY_NOT_FOUND if there was none
-     * @throws StorageException When an IO operation fails
-     */
-    public long remove(long key) throws StorageException {
-        long head2 = PersistedMapStage1.getHeadFor(store, mapHead, key1(key));
-        if (head2 == FileStore.KEY_NULL)
-            return FileStore.KEY_NULL;
-        return PersistedMapStage2.remove(store, head2, key2(key));
+        return PersistedMapStage2.compareAndSet(store, head2, key2(key), valueOld, valueNew);
     }
 
     /**

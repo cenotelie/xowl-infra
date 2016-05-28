@@ -171,57 +171,77 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     }
 
     /**
-     * Retrieves the key for the specified string in a bucket
+     * Gets the key for the specified string
      *
-     * @param bucket The key to the bucket for this string
-     * @param data   The string to get the key for
+     * @param data    The string to get the key for
+     * @param resolve Whether to insert the string if it is not present
      * @return The key for the string, or KEY_NULL if it is not in this store
      * @throws StorageException When an IO operation failed
      */
-    private long lookupString(long bucket, String data) throws StorageException {
+    private long getKeyForString(String data, boolean resolve) throws StorageException {
         byte[] buffer = data.getBytes(charset);
-        long candidate = bucket;
-        while (candidate != FileStore.KEY_NULL) {
-            try (IOAccess entry = store.accessR(candidate)) {
-                long next = entry.readLong();
-                long count = entry.readLong();
-                int size = entry.readInt();
-                if (count > 0 && size == buffer.length) {
-                    if (Arrays.equals(buffer, entry.readBytes(buffer.length)))
-                        // the string is already there, return its key
-                        return candidate;
-                }
-                candidate = next;
+        long current = mapStrings.get(data.hashCode());
+        long allocated = FileStore.KEY_NULL;
+
+        if (current == FileStore.KEY_NULL) {
+            // the bucket for this hash code does not exist
+            if (!resolve)
+                // do not insert => did not found the key
+                return FileStore.KEY_NULL;
+            allocated = allocateString(buffer);
+            if (mapStrings.compareAndSet(data.hashCode(), FileStore.KEY_NULL, allocated)) {
+                // successfully inserted the string as the bucket head into the map
+                return allocated;
             }
+            current = mapStrings.get(data.hashCode());
+        }
+
+        while (current != FileStore.KEY_NULL) {
+            long next;
+            try (IOAccess entry = store.accessR(current)) {
+                next = entry.readLong();
+                int size = entry.skip(8).readInt();
+                if (size == buffer.length) {
+                    if (Arrays.equals(buffer, entry.readBytes(buffer.length))) {
+                        // the string is already there, return its key
+                        // if the string was allocated we cannot do anything about it ...
+                        return current;
+                    }
+                }
+            }
+            if (next != FileStore.KEY_NULL) {
+                // there is a next string => explore it
+                current = next;
+                continue;
+            }
+            if (!resolve)
+                // do not insert => did not found the string
+                return FileStore.KEY_NULL;
+            // supposedly there is no next string
+            if (allocated == FileStore.KEY_NULL)
+                // not allocated yet
+                allocated = allocateString(buffer);
+            try (IOAccess entry = store.accessW(current)) {
+                next = entry.readLong();
+                if (next != FileStore.KEY_NULL) {
+                    // there is now a new string ...
+                    continue;
+                }
+                entry.reset().writeLong(allocated);
+            }
+            return allocated;
         }
         return FileStore.KEY_NULL;
     }
 
     /**
-     * Stores the specified string in this backend
+     * Allocates a string entry for the specified bytes
      *
-     * @param bucket The key to the bucket for this string, or KEY_NULL if it must be created
-     * @param data   The string to store
-     * @return The key to the stored string
+     * @param buffer The buffer containing the string
+     * @return The key to the entry
      * @throws StorageException When an IO operation failed
      */
-    private long addString(long bucket, String data) throws StorageException {
-        byte[] buffer = data.getBytes(charset);
-        long previous = FileStore.KEY_NULL;
-        long candidate = bucket;
-        while (candidate != FileStore.KEY_NULL) {
-            try (IOAccess entry = store.accessR(candidate)) {
-                long next = entry.readLong();
-                int size = entry.seek(16).readInt();
-                if (size == buffer.length) {
-                    if (Arrays.equals(buffer, entry.readBytes(buffer.length)))
-                        // the string is already there, return its key
-                        return candidate;
-                }
-                previous = candidate;
-                candidate = next;
-            }
-        }
+    private long allocateString(byte[] buffer) throws StorageException {
         long result = store.allocateDirect(buffer.length + ENTRY_STRING_OVERHEAD);
         try (IOAccess entry = store.accessW(result)) {
             entry.writeLong(FileStore.KEY_NULL);
@@ -229,36 +249,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             entry.writeInt(buffer.length);
             entry.writeBytes(buffer);
         }
-        if (previous != FileStore.KEY_NULL) {
-            try (IOAccess previousEntry = store.accessW(previous)) {
-                previousEntry.writeLong(result);
-            }
-        }
         return result;
-    }
-
-    /**
-     * Gets the key for the specified string
-     *
-     * @param data     The string to get a key for
-     * @param doInsert Whether the string shall be inserted in the store if it is not already present
-     * @return The key for the string
-     * @throws StorageException When an IO operation failed
-     */
-    private long getKeyForString(String data, boolean doInsert) throws StorageException {
-        if (data == null)
-            return FileStore.KEY_NULL;
-        long bucket = mapStrings.get(data.hashCode());
-        if (bucket == FileStore.KEY_NULL && !doInsert)
-            return FileStore.KEY_NULL;
-        if (doInsert) {
-            long result = addString(bucket == FileStore.KEY_NULL ? FileStore.KEY_NULL : bucket, data);
-            if (bucket == FileStore.KEY_NULL)
-                mapStrings.put(data.hashCode(), result);
-            return result;
-        } else {
-            return lookupString(bucket, data);
-        }
     }
 
     /**
@@ -302,73 +293,100 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
 
     /**
      * Gets the key for the specified literal
-     * The literal is inserted if it is not already present
      *
      * @param lexical  The lexical part of the literal
      * @param datatype The literal's data-type
      * @param langTag  The literals' language tag
-     * @param doInsert Whether the string shall be inserted in the store if it is not already present
-     * @return The key for the specified literal
+     * @param resolve  Whether to insert the literal if it is not present
+     * @return The key for the literal, or KEY_NULL if it is not in this store
      * @throws StorageException When an IO operation failed
      */
-    private long getKeyForLiteral(String lexical, String datatype, String langTag, boolean doInsert) throws StorageException {
+    private long getKeyForLiteral(String lexical, String datatype, String langTag, boolean resolve) throws StorageException {
         lexical = lexical == null ? "" : lexical;
-        long keyLexical = getKeyForString(lexical, doInsert);
-        long keyDatatype = datatype == null ? FileStore.KEY_NULL : getKeyForString(datatype, doInsert);
-        long keyLangTag = langTag == null ? FileStore.KEY_NULL : getKeyForString(langTag, doInsert);
-        if (!doInsert
+        long keyLexical = getKeyForString(lexical, resolve);
+        long keyDatatype = datatype == null ? FileStore.KEY_NULL : getKeyForString(datatype, resolve);
+        long keyLangTag = langTag == null ? FileStore.KEY_NULL : getKeyForString(langTag, resolve);
+        if (!resolve
                 && (keyLexical == FileStore.KEY_NULL
                 || (datatype != null && keyDatatype == FileStore.KEY_NULL)
                 || (langTag != null && keyLangTag == FileStore.KEY_NULL)))
             return FileStore.KEY_NULL;
 
-        long bucket = mapLiterals.get(keyLexical);
-        if (bucket == FileStore.KEY_NULL) {
-            // this is the first literal with this lexem
-            if (!doInsert)
+        long current = mapLiterals.get(keyLexical);
+        long allocated = FileStore.KEY_NULL;
+
+        if (current == FileStore.KEY_NULL) {
+            // the bucket for this lexical does not exist
+            if (!resolve)
+                // do not insert => did not found the key
                 return FileStore.KEY_NULL;
-            long result = store.allocate(ENTRY_LITERAL_SIZE);
-            try (IOAccess entry = store.accessW(result)) {
-                entry.writeLong(FileStore.KEY_NULL);
-                entry.writeLong(0);
-                entry.writeLong(keyLexical);
-                entry.writeLong(keyDatatype);
-                entry.writeLong(keyLangTag);
+            allocated = allocateLiteral(keyLexical, keyDatatype, keyLangTag);
+            if (mapLiterals.compareAndSet(keyLexical, FileStore.KEY_NULL, allocated)) {
+                // successfully inserted the literal as the bucket head into the map
+                return allocated;
             }
-            mapLiterals.put(keyLexical, result);
-            return result;
-        } else {
-            long previous = FileStore.KEY_NULL;
-            long candidate = bucket;
-            while (candidate != FileStore.KEY_NULL) {
-                try (IOAccess entry = store.accessW(candidate)) {
-                    long next = entry.readLong();
-                    long count = entry.readLong();
-                    entry.seek(24);
-                    long candidateDatatype = entry.readLong();
-                    long candidateLangTag = entry.readLong();
-                    if ((doInsert || count > 0) && keyDatatype == candidateDatatype && keyLangTag == candidateLangTag)
-                        return candidate;
-                    previous = candidate;
-                    candidate = next;
+            current = mapLiterals.get(keyLexical);
+        }
+
+        while (current != FileStore.KEY_NULL) {
+            long next;
+            try (IOAccess entry = store.accessR(current)) {
+                next = entry.readLong();
+                long dt = entry.skip(8 + 8).readLong();
+                long lt = entry.readLong();
+                if (dt == keyDatatype && lt == keyLangTag) {
+                    // the literal is already there, return its key
+                    if (allocated != FileStore.KEY_NULL) {
+                        // a literal was allocated in the meantime, free it
+                        store.free(allocated);
+                    }
+                    return current;
                 }
             }
-            // did not found an existing literal
-            if (!doInsert)
+            if (next != FileStore.KEY_NULL) {
+                // there is a next string => explore it
+                current = next;
+                continue;
+            }
+            if (!resolve)
+                // do not insert => did not found the string
                 return FileStore.KEY_NULL;
-            long result = store.allocate(ENTRY_LITERAL_SIZE);
-            try (IOAccess entry = store.accessW(previous)) {
-                entry.writeLong(result);
+            // supposedly there is no next string
+            if (allocated == FileStore.KEY_NULL)
+                // not allocated yet
+                allocated = allocateLiteral(keyLexical, keyDatatype, keyLangTag);
+            try (IOAccess entry = store.accessW(current)) {
+                next = entry.readLong();
+                if (next != FileStore.KEY_NULL) {
+                    // there is now a new literal ...
+                    continue;
+                }
+                entry.reset().writeLong(allocated);
             }
-            try (IOAccess entry = store.accessW(result)) {
-                entry.writeLong(FileStore.KEY_NULL);
-                entry.writeLong(0);
-                entry.writeLong(keyLexical);
-                entry.writeLong(keyDatatype);
-                entry.writeLong(keyLangTag);
-            }
-            return result;
+            return allocated;
         }
+        return FileStore.KEY_NULL;
+    }
+
+    /**
+     * Allocates a literal entry
+     *
+     * @param keyLexical  The lexical part of the literal
+     * @param keyDatatype The literal's data-type
+     * @param keyLangTag  The literals' language tag
+     * @return The key to the entry
+     * @throws StorageException When an IO operation failed
+     */
+    private long allocateLiteral(long keyLexical, long keyDatatype, long keyLangTag) throws StorageException {
+        long result = store.allocate(ENTRY_LITERAL_SIZE);
+        try (IOAccess entry = store.accessW(result)) {
+            entry.writeLong(FileStore.KEY_NULL);
+            entry.writeLong(0);
+            entry.writeLong(keyLexical);
+            entry.writeLong(keyDatatype);
+            entry.writeLong(keyLangTag);
+        }
+        return result;
     }
 
     /**

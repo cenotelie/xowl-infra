@@ -44,9 +44,10 @@ class PersistedMapStage2 {
      * The size of a B+ tree inner node header
      * long: next sibling (non KEY_NULL indicate leaf node)
      * char: node version
-     * char: number of keys in the node
+     * byte: leaf node marker (whether the node is a leaf node, i.e. it contains the map data)
+     * byte: number of keys in the node
      */
-    private static final int NODE_HEADER = 8 + 2 + 2;
+    private static final int NODE_HEADER = 8 + 2 + 1 + 1;
     /**
      * The size of a B+ tree node in stage 2:
      * header: the node header
@@ -57,6 +58,30 @@ class PersistedMapStage2 {
      * Initial size of the traversal stack
      */
     private static final int STACK_SIZE = 8;
+
+    /**
+     * Represents the info of a node
+     */
+    private static class Node {
+        /**
+         * The entry in the store for the node
+         */
+        public final long entry;
+        /**
+         * The node's version
+         */
+        public final int version;
+
+        /**
+         * Initializes this structure
+         * @param entry The entry in the store for the node
+         * @param version The node's version
+         */
+        public Node(long entry, int version) {
+            this.entry = entry;
+            this.version = version;
+        }
+    }
 
     /**
      * Initializes an empty stage 2 map
@@ -93,8 +118,8 @@ class PersistedMapStage2 {
             currentNode = FileStore.KEY_NULL;
             try (IOAccess access = store.accessR(currentNode)) {
                 // read data
-                boolean isLeaf = access.readLong() != FileStore.KEY_NULL;
-                char count = access.skip(2).readChar();
+                boolean isLeaf = access.skip(8 + 2).readByte() == 1;
+                byte count = access.readByte();
                 // read registered keys
                 for (int i = 0; i != count; i++) {
                     // read entry data
@@ -118,6 +143,21 @@ class PersistedMapStage2 {
         }
         // no result found
         return FileStore.KEY_NULL;
+    }
+
+    /**
+     * Atomically replace a value in the map for a key
+     *
+     * @param store The containing store
+     * @param head  The entry for the stage 2 root node
+     * @param key The key
+     * @param valueOld The old value to replace (FileStore.KEY_NULL, if this is expected to be an insertion)
+     * @param valueNew The new value for the key (FileStore.KEY_NULL, if this is expected to be a removal)
+     * @return Whether the operation succeeded
+     * @throws StorageException When an IO operation fails
+     */
+    public static boolean compareAndSet(FileStore store, long head, long key, long valueOld, long valueNew) throws StorageException {
+
     }
 
     /**
@@ -177,32 +217,29 @@ class PersistedMapStage2 {
     }
 
     /**
-     * Travers the B+ tree and build the stack of the nodes when looking up a key
-     * The path is an array of the nodes beginning at index 1.
-     * Index 0 of the array contains the version of the top node.
+     * Tries to allocate an entry in the B+ tree for the specified key
      *
-     * @param store   The containing store
-     * @param head    The entry for the stage 2 root node
-     * @param key     The stage 2 key to store
-     * @param resolve Whether to resolve the path when not existing
-     * @return The path
+     * @param store The containing store
+     * @param head  The entry for the stage 2 root node
+     * @param key   The stage 2 key to store
+     * @return The info of the target node, or null if the operation fails
      * @throws StorageException When an IO operation fails
      */
-    private static long[] traversePath(FileStore store, long head, int key, boolean resolve) throws StorageException {
+    private static Node putAllocate(FileStore store, long head, int key) throws StorageException {
         long[] stack = new long[STACK_SIZE];
-        int stackTop = 1;
+        int stackTop = 0;
         stack[stackTop] = head;
 
         while (true) {
-            boolean isLeaf;
             char version;
-            char count;
+            boolean isLeaf;
+            byte count;
             long next = FileStore.KEY_NULL;
             try (IOAccess access = store.accessR(stack[stackTop])) {
                 // read header
-                isLeaf = access.readLong() != FileStore.KEY_NULL;
-                version = access.readChar();
-                count = access.readChar();
+                version = access.seek(8).readChar();
+                isLeaf = access.readByte() == 1;
+                count = access.readByte();
                 // read registered keys
                 for (int i = 0; i != count; i++) {
                     // read entry data
@@ -210,8 +247,7 @@ class PersistedMapStage2 {
                     long entryPtr = access.readLong();
                     if (entryKey == key && isLeaf) {
                         // this is a hit on the key and this is the associated value
-                        stack[0] = version;
-                        return stack;
+                        return new Node(stack[stackTop], (int) version);
                     }
                     if (key < entryKey) {
                         // go through this node
@@ -234,13 +270,11 @@ class PersistedMapStage2 {
                 continue;
             }
             // here we did not find the key, or an appropriate descendant
-            if (!resolve)
-                // do not resolve, no path found
-                return null;
             if (count < ORDER - 1) {
                 // we can insert in the node at the top of the stack
-                stack[0] = version;
-                return stack;
+                try (IOAccess accessW = store.accessR(stack[stackTop])) {
+
+                }
             }
             // ok, now we must split the top node
             // TODO: split here
