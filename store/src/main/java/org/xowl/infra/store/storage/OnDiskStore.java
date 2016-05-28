@@ -24,6 +24,7 @@ import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.store.storage.persistent.PersistedDataset;
 import org.xowl.infra.store.storage.persistent.PersistedNodes;
 import org.xowl.infra.store.storage.persistent.StorageException;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
@@ -95,7 +96,8 @@ class OnDiskStore extends BaseStore {
         try {
             persistedDataset.close();
         } catch (Exception exception) {
-            // TODO: clean this, the previous ex could be swallowed
+            if (toThrow != null)
+                Logging.getDefault().error(toThrow);
             toThrow = exception;
         }
         if (toThrow != null)

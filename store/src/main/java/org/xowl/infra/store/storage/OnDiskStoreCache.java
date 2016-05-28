@@ -23,7 +23,7 @@ import org.xowl.infra.store.storage.cache.CachedDataset;
 import org.xowl.infra.store.storage.impl.DatasetImpl;
 import org.xowl.infra.store.storage.impl.MQuad;
 import org.xowl.infra.store.storage.persistent.PersistedDataset;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -272,7 +272,7 @@ class OnDiskStoreCache extends DatasetImpl {
         try {
             persisted.insert(diff.getChangeset());
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         diff.commit();
         persisted.flush();

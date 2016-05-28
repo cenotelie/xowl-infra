@@ -21,7 +21,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -97,14 +97,14 @@ class Utils {
                 try {
                     key = URLDecoder.decode(param[0], Files.CHARSET.name());
                 } catch (UnsupportedEncodingException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                 }
             }
             if (param.length > 1) {
                 try {
                     value = URLDecoder.decode(param[1], Files.CHARSET.name());
                 } catch (UnsupportedEncodingException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                 }
             }
             if (key != null && !key.isEmpty() && value != null && !value.isEmpty()) {

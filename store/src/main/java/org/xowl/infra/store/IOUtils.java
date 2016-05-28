@@ -24,7 +24,7 @@ import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -536,7 +536,7 @@ public class IOUtils {
             }
             return new String(chars);
         } catch (NoSuchAlgorithmException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return "";
         }
     }

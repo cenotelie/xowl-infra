@@ -76,20 +76,16 @@ public class OWLQueryEngine {
      *
      * @param query A query
      * @return The solutions
+     * @throws TranslationException When a runtime entity is not named
      */
-    public Collection<Bindings> execute(OWLQuery query) {
+    public Collection<Bindings> execute(OWLQuery query) throws TranslationException {
         TranslationContext context = new TranslationContext();
-        try {
-            RDFQuery rdfQuery = translate(query, context);
-            Collection<RDFPatternSolution> rdfSolutions = rdfEngine.execute(rdfQuery);
-            List<Bindings> owlSolutions = new ArrayList<>();
-            for (RDFPatternSolution rdfSolution : rdfSolutions)
-                owlSolutions.add(translate(rdfSolution, context));
-            return owlSolutions;
-        } catch (TranslationException ex) {
-            // TODO: log this somehow
-            return new ArrayList<>(0);
-        }
+        RDFQuery rdfQuery = translate(query, context);
+        Collection<RDFPatternSolution> rdfSolutions = rdfEngine.execute(rdfQuery);
+        List<Bindings> owlSolutions = new ArrayList<>();
+        for (RDFPatternSolution rdfSolution : rdfSolutions)
+            owlSolutions.add(translate(rdfSolution, context));
+        return owlSolutions;
     }
 
     /**
@@ -98,6 +94,7 @@ public class OWLQueryEngine {
      * @param query   A OWL query
      * @param context The translation context
      * @return The corresponding RDF query
+     * @throws TranslationException When a runtime entity is not named
      */
     private RDFQuery translate(OWLQuery query, TranslationContext context) throws TranslationException {
         RDFQuery result = new RDFQuery();

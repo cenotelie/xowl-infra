@@ -20,7 +20,7 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.Iterator;
 
@@ -99,7 +99,7 @@ public class ListIterator implements Iterator<Node> {
             Iterator<Quad> iterator = dataset.getAll(node, property, null);
             return iterator.hasNext() ? iterator.next().getObject() : null;
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }

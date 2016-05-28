@@ -34,7 +34,7 @@ import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.writers.NQuadsSerializer;
 import org.xowl.infra.utils.collections.SingleIterator;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.StringWriter;
 import java.util.List;
@@ -370,7 +370,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
             return XSPReplyNetworkError.instance();
         StringWriter writer = new StringWriter();
         NQuadsSerializer serializer = new NQuadsSerializer(writer);
-        serializer.serialize(Logger.DEFAULT, new SingleIterator<>(quad));
+        serializer.serialize(Logging.getDefault(), new SingleIterator<>(quad));
         return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/explain?quad=" + URIUtils.encodeComponent(writer.toString()) + "&status=", "GET", null, null, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 

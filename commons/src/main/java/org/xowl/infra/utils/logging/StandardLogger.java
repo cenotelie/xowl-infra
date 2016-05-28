@@ -17,24 +17,23 @@
 package org.xowl.infra.utils.logging;
 
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A standard logger encapsulating a standard Java logger
  *
  * @author Laurent Wouters
  */
-public class StandardLogger implements org.xowl.infra.utils.logging.Logger {
+public class StandardLogger implements Logger {
     /**
      * The backend logger
      */
-    private final Logger inner;
+    private final java.util.logging.Logger inner;
 
     /**
      * Initializes this logger
      * @param inner The backend logger to use
      */
-    public StandardLogger(Logger inner) {
+    public StandardLogger(java.util.logging.Logger inner) {
         this.inner = inner;
     }
 

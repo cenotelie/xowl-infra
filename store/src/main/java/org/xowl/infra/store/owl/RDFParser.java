@@ -27,7 +27,7 @@ import org.xowl.infra.store.rete.TokenActivable;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.*;
 
@@ -115,7 +115,7 @@ public class RDFParser {
             while (iterator.hasNext())
                 quads.add(iterator.next());
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         execute(quads);
         return axioms;
@@ -457,7 +457,7 @@ public class RDFParser {
                 results.add(iterator.next().getObject());
             }
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         return results;
     }
@@ -475,7 +475,7 @@ public class RDFParser {
                 return null;
             return iterator.next();
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }

@@ -34,6 +34,7 @@ import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.DispatchLogger;
 import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -159,7 +160,7 @@ public class XSPReplyUtils {
             }
         };
         BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(Logger.DEFAULT, bufferedLogger);
+        DispatchLogger dispatchLogger = new DispatchLogger(Logging.getDefault(), bufferedLogger);
         ParseResult parseResult = loader.parse(dispatchLogger, new StringReader(content));
         if (parseResult == null || !parseResult.isSuccess()) {
             dispatchLogger.error("Failed to parse the response");

@@ -18,6 +18,7 @@
 package org.xowl.infra.utils.concurrent;
 
 import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 /**
  * Implements a runnable that ensure that all its locks are released before finishing
@@ -44,7 +45,7 @@ public abstract class SafeRunnable implements Runnable {
         try {
             doRun();
         } catch (Throwable error1) {
-            Logger.DEFAULT.error(error1);
+            Logging.getDefault().error(error1);
             try {
                 onRunFailed(error1);
             } catch (Throwable error2) {

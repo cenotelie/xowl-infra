@@ -23,7 +23,7 @@ import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.collections.CloseableIterator;
 import org.xowl.infra.utils.collections.SingleIterator;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -68,7 +68,7 @@ class FactCollection implements Collection<Quad> {
         try {
             return store.getAll(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return new SingleIterator<>(null);
         }
     }
@@ -80,7 +80,7 @@ class FactCollection implements Collection<Quad> {
         try {
             size = (int) store.count(pattern.getGraph(), pattern.getSubject(), pattern.getProperty(), pattern.getObject());
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         return size;
     }
@@ -96,7 +96,7 @@ class FactCollection implements Collection<Quad> {
                 try {
                     ((CloseableIterator) iterator).close();
                 } catch (Exception exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                 }
             }
             if (empty)
@@ -132,12 +132,12 @@ class FactCollection implements Collection<Quad> {
                 try {
                     ((CloseableIterator) iterator).close();
                 } catch (Exception exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                 }
             }
             return result;
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return false;
         }
     }

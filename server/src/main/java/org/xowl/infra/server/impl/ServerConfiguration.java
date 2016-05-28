@@ -19,7 +19,7 @@ package org.xowl.infra.server.impl;
 
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.config.Configuration;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,7 +69,7 @@ public class ServerConfiguration {
         try {
             confDefault.load(stream, Files.CHARSET);
         } catch (IOException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         startupLocation = startupDirectory != null ? new File(startupDirectory) : new File(System.getProperty("user.dir"));
         File file = new File(startupLocation, FILE_NAME);
@@ -78,12 +78,12 @@ public class ServerConfiguration {
                 confFile.load(file.getAbsolutePath(), Files.CHARSET);
             }
         } catch (IOException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         root = new File(startupLocation, getValue(null, "repository"));
         if (!root.exists()) {
             if (!root.mkdirs()) {
-                Logger.DEFAULT.error("Failed to create the repository folder for the databases");
+                Logging.getDefault().error("Failed to create the repository folder for the databases");
             }
         }
     }
@@ -260,7 +260,7 @@ public class ServerConfiguration {
         try {
             confFile.save(new File(startupLocation, FILE_NAME).getAbsolutePath(), Files.CHARSET);
         } catch (IOException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
     }
 }

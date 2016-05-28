@@ -26,7 +26,7 @@ import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.*;
 
@@ -304,12 +304,12 @@ public class RDFRuleEngine implements ChangeListener {
         for (RDFRuleExecution execution : data.executions) {
             Changeset changeset = data.original.produce(execution, outputStore, evaluator);
             if (changeset == null) {
-                Logger.DEFAULT.error("Failed to process changeset for rule " + data.original.getIRI());
+                Logging.getDefault().error("Failed to process changeset for rule " + data.original.getIRI());
             } else {
                 try {
                     outputStore.insert(Changeset.reverse(changeset));
                 } catch (UnsupportedNodeType ex) {
-                    Logger.DEFAULT.error(ex);
+                    Logging.getDefault().error(ex);
                 }
             }
         }
@@ -375,7 +375,7 @@ public class RDFRuleEngine implements ChangeListener {
                 try {
                     outputStore.insert(Changeset.fromAddedRemoved(bufferPositives, bufferNegatives));
                 } catch (UnsupportedNodeType ex) {
-                    Logger.DEFAULT.error(ex);
+                    Logging.getDefault().error(ex);
                 }
                 bufferPositives.clear();
                 bufferNegatives.clear();
@@ -417,7 +417,7 @@ public class RDFRuleEngine implements ChangeListener {
         for (RDFRuleExecution execution : requests) {
             Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
             if (changeset == null) {
-                Logger.DEFAULT.error("Failed to process the changeset for rule " + execution.getRule().getIRI());
+                Logging.getDefault().error("Failed to process the changeset for rule " + execution.getRule().getIRI());
                 continue;
             }
             bufferPositives.addAll(changeset.getRemoved());
@@ -434,7 +434,7 @@ public class RDFRuleEngine implements ChangeListener {
         for (RDFRuleExecution execution : requests) {
             Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
             if (changeset == null) {
-                Logger.DEFAULT.error("Failed to process the changeset for rule " + execution.getRule().getIRI());
+                Logging.getDefault().error("Failed to process the changeset for rule " + execution.getRule().getIRI());
                 continue;
             }
             bufferPositives.addAll(changeset.getAdded());

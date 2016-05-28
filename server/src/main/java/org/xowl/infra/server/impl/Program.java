@@ -18,7 +18,7 @@
 package org.xowl.infra.server.impl;
 
 import org.xowl.infra.server.http.HTTPServer;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
@@ -130,7 +130,7 @@ public class Program {
                 }
             };
         } catch (IOException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return false;
         }
         httpServer = new HTTPServer(configuration, controller);

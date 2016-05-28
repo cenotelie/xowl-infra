@@ -35,6 +35,7 @@ import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.DispatchLogger;
 import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -175,7 +176,7 @@ public class ResultUtils {
             }
         };
         BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(Logger.DEFAULT, bufferedLogger);
+        DispatchLogger dispatchLogger = new DispatchLogger(Logging.getDefault(), bufferedLogger);
         ParseResult parseResult = loader.parse(dispatchLogger, new StringReader(content));
         if (parseResult == null || !parseResult.isSuccess()) {
             dispatchLogger.error("Failed to parse and load the solutions:");
@@ -290,7 +291,7 @@ public class ResultUtils {
      */
     private static Result parseResponseQuads(String content, Loader loader) {
         BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(Logger.DEFAULT, bufferedLogger);
+        DispatchLogger dispatchLogger = new DispatchLogger(Logging.getDefault(), bufferedLogger);
         RDFLoaderResult loaderResult = loader.loadRDF(dispatchLogger, new StringReader(content), null, IRIs.GRAPH_DEFAULT);
         if (loaderResult == null) {
             dispatchLogger.error("Failed to parse and load the quads");

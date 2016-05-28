@@ -26,7 +26,7 @@ import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.storage.impl.NodeManagerImpl;
 import org.xowl.infra.utils.Files;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -491,7 +491,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         try {
             return getIRINodeFor(getKeyForString(iri, true));
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }
@@ -501,7 +501,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         try {
             return getIRINodeFor(getKeyForString(iri, false));
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }
@@ -511,7 +511,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         try {
             return getBlankNodeFor(nextBlank.getAndIncrement());
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }
@@ -521,7 +521,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         try {
             return getLiteralNodeFor(getKeyForLiteral(lex, datatype, lang, true));
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }
@@ -530,7 +530,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         try {
             return getLiteralNodeFor(getKeyForLiteral(lex, datatype, lang, false));
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }
@@ -540,7 +540,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         try {
             return getAnonNodeFor(getKeyForString(individual.getNodeID(), true));
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }
@@ -549,7 +549,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
         try {
             return getAnonNodeFor(getKeyForString(individual.getNodeID(), false));
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }

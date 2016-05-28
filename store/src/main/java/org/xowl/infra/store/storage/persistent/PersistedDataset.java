@@ -22,7 +22,7 @@ import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.storage.impl.DatasetImpl;
 import org.xowl.infra.store.storage.impl.MQuad;
 import org.xowl.infra.utils.collections.*;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.util.*;
@@ -122,7 +122,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 value = next;
                 next = entry.readLong();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
             return value;
         }
@@ -175,7 +175,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             try {
                 this.next = findNext();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
                 this.next = FileStore.KEY_NULL;
             }
             this.value = FileStore.KEY_NULL;
@@ -222,7 +222,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 value = next;
                 next = findNext();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
             return value;
         }
@@ -332,7 +332,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 return 0;
             return getMultiplicity(pGraph, pSubject, pProperty, pObject);
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return 0;
         }
     }
@@ -377,7 +377,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 return getAllOnSingleGraph(graph, property, object);
             return getAllDefault(property, object);
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return new SingleIterator<>(null);
         }
     }
@@ -440,7 +440,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     long propertyBucket = entry.seek(8 + 4 + 8).readLong();
                     return getAllOnProperty(propertyBucket, property, object, (GraphNode) pGraph);
                 } catch (UnsupportedNodeType | StorageException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                     return null;
                 }
             }
@@ -452,7 +452,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 try (IOAccess entry = store.accessR(subjectKey)) {
                     couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
                 } catch (StorageException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                     return null;
                 }
                 return couple.y;
@@ -477,7 +477,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     long propertyBucket = entry.seek(8 + 4 + 8).readLong();
                     return getAllOnProperty(propertyBucket, property, object, null);
                 } catch (UnsupportedNodeType | StorageException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                     return null;
                 }
             }
@@ -490,7 +490,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     couple.y.setSubject((SubjectNode) getNode(entry.seek(8).readInt(), entry.readLong()));
                     return couple.y;
                 } catch (StorageException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                     return null;
                 }
             }
@@ -519,7 +519,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         long objectKey = entry.readLong();
                         return getAllOnObject(objectKey, object, graph);
                     } catch (UnsupportedNodeType | StorageException exception) {
-                        Logger.DEFAULT.error(exception);
+                        Logging.getDefault().error(exception);
                         return null;
                     }
                 }
@@ -533,7 +533,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         PersistedNode node = getNode(entry.readInt(), entry.readLong());
                         couple.y.setProperty((Property) node);
                     } catch (StorageException exception) {
-                        Logger.DEFAULT.error(exception);
+                        Logging.getDefault().error(exception);
                         return null;
                     }
                     return couple.y;
@@ -586,7 +586,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         long graphKey = entry.readLong();
                         return getAllOnGraph(graphKey, graph);
                     } catch (UnsupportedNodeType | StorageException exception) {
-                        Logger.DEFAULT.error(exception);
+                        Logging.getDefault().error(exception);
                         return null;
                     }
                 }
@@ -600,7 +600,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         PersistedNode node = getNode(entry.readInt(), entry.readLong());
                         couple.y.setObject(node);
                     } catch (StorageException exception) {
-                        Logger.DEFAULT.error(exception);
+                        Logging.getDefault().error(exception);
                         return null;
                     }
                     return couple.y;
@@ -653,7 +653,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         long multiplicity = entry.readLong();
                         return new MQuad((GraphNode) node, multiplicity);
                     } catch (StorageException exception) {
-                        Logger.DEFAULT.error(exception);
+                        Logging.getDefault().error(exception);
                         return null;
                     }
                 }
@@ -691,7 +691,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 result.add(nodes.getBlankNodeFor(iterator.next().getKey()));
             }
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         return result;
     }
@@ -709,7 +709,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 result += count(mapIndexGraphBlank, iterator.next().getKey());
             }
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return 0;
         }
         return result;
@@ -721,7 +721,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try {
             pGraph = nodes.getPersistent(graph, false);
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return 0;
         }
         if (pGraph == null)
@@ -730,7 +730,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try {
             return count(map, pGraph.getKey());
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return 0;
         }
     }
@@ -802,7 +802,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 return countOnSingleGraph(pGraph, pProperty, pObject);
             return countDefault(pProperty, pObject);
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return 0;
         }
     }
@@ -992,35 +992,35 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try {
             result = doQuadAdd(pSubject, pProperty, pObject, pGraph);
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return ADD_RESULT_UNKNOWN;
         }
         if (result == ADD_RESULT_NEW) {
             try {
                 doQuadIndex(pSubject, pGraph);
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
                 return ADD_RESULT_UNKNOWN;
             }
             try {
                 pSubject.incrementRefCount();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
             try {
                 pProperty.incrementRefCount();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
             try {
                 pObject.incrementRefCount();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
             try {
                 pGraph.incrementRefCount();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
         }
         return result;
@@ -1172,34 +1172,34 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try {
             result = doQuadRemove(pSubject, pProperty, pObject, pGraph);
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return REMOVE_RESULT_NOT_FOUND;
         }
         if (result >= REMOVE_RESULT_REMOVED) {
             try {
                 doQuadDeindex(pSubject, pGraph);
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
             try {
                 pSubject.decrementRefCount();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
             try {
                 pProperty.decrementRefCount();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
             try {
                 pObject.decrementRefCount();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
             try {
                 pGraph.decrementRefCount();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
         }
         return result;
@@ -1414,7 +1414,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             else
                 removeAllDefault(pProperty, pObject, bufferDecremented, bufferRemoved);
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
     }
 
@@ -1476,7 +1476,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 try {
                     store.free(current);
                 } catch (StorageException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                 }
                 if (previous == FileStore.KEY_NULL) {
                     // the first element
@@ -1486,7 +1486,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     try (IOAccess element = store.accessW(previous)) {
                         element.writeLong(next);
                     } catch (StorageException exception) {
-                        Logger.DEFAULT.error(exception);
+                        Logging.getDefault().error(exception);
                     }
                     current = previous;
                 }
@@ -1535,7 +1535,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                         PersistedMap mapSubjects = mapFor(subject);
                         mapSubjects.remove(subject.getKey());
                     } catch (StorageException | UnsupportedNodeType exception) {
-                        Logger.DEFAULT.error(exception);
+                        Logging.getDefault().error(exception);
                     }
                 }
                 multiplicity -= bufferRemoved.size() - size;
@@ -1692,7 +1692,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 try {
                     store.free(current);
                 } catch (StorageException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                 }
                 if (previous == FileStore.KEY_NULL) {
                     // this is the first one
@@ -1835,7 +1835,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     try {
                         store.free(current);
                     } catch (StorageException exception) {
-                        Logger.DEFAULT.error(exception);
+                        Logging.getDefault().error(exception);
                     }
                 } else {
                     // free this element from the linked list
@@ -1869,7 +1869,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             mapSubjectIRI.clear();
             mapIndexGraphIRI.clear();
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         try {
             Iterator<Map.Entry<Long, Long>> iterator = mapSubjectBlank.entries();
@@ -1878,7 +1878,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             mapSubjectBlank.clear();
             mapIndexGraphBlank.clear();
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         try {
             Iterator<Map.Entry<Long, Long>> iterator = mapSubjectAnon.entries();
@@ -1886,7 +1886,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 clearOnSubject(iterator.next().getValue(), null, buffer);
             mapSubjectAnon.clear();
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         store.clear();
     }
@@ -1901,7 +1901,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         try {
             bucket = map.get(pGraph.getKey());
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return;
         }
         if (bucket == FileStore.KEY_NULL)
@@ -1931,7 +1931,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             }
             map.remove(pGraph.getKey());
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
     }
 
@@ -2157,7 +2157,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             copyOnSubject(mapSubjectAnon, pOrigin, pTarget, bufferOld, bufferNew, overwrite);
             copyOnSubject(mapSubjectAnon, pOrigin, pTarget, bufferOld, bufferNew, overwrite);
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
     }
 
@@ -2456,7 +2456,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             moveOnSubject(mapSubjectAnon, pOrigin, pTarget, bufferOld, bufferNew);
             moveOnSubject(mapSubjectAnon, pOrigin, pTarget, bufferOld, bufferNew);
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
     }
 

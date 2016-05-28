@@ -21,7 +21,7 @@ import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Serializable;
 import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -148,7 +148,7 @@ public abstract class RDFRuleExecution implements Serializable {
             writer.append("}}");
             return writer.toString();
         } catch (IOException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }

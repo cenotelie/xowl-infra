@@ -20,7 +20,7 @@ package org.xowl.infra.store.storage;
 import org.xowl.infra.store.storage.persistent.StorageException;
 import org.xowl.infra.store.storage.remote.Connection;
 import org.xowl.infra.store.storage.remote.SPARQLConnection;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
@@ -212,7 +212,7 @@ public class StoreFactory {
                             location = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
                         primary = new OnDiskStore(location, isReadonly);
                     } catch (IOException | StorageException exception) {
-                        Logger.DEFAULT.error(exception);
+                        Logging.getDefault().error(exception);
                         return null;
                     }
                     break;

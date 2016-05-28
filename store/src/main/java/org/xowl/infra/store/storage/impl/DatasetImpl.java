@@ -22,7 +22,7 @@ import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.collections.SingleIterator;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.*;
 
@@ -93,7 +93,7 @@ public abstract class DatasetImpl implements Dataset {
         try {
             return getAll(null, null, null, null);
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return new SingleIterator<>(null);
         }
     }
@@ -113,7 +113,7 @@ public abstract class DatasetImpl implements Dataset {
         try {
             return count(null, null, null, null);
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return 0;
         }
     }

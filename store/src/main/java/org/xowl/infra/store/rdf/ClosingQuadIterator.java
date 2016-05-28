@@ -19,7 +19,7 @@ package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -78,7 +78,7 @@ public class ClosingQuadIterator implements Iterator<Quad> {
                 try {
                     content.push(store.getAll(null, blank, null, null));
                 } catch (UnsupportedNodeType exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                 }
                 explored.add(blank);
             }

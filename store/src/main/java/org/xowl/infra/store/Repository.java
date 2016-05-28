@@ -37,6 +37,7 @@ import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.collections.Adapter;
 import org.xowl.infra.utils.collections.AdaptingIterator;
 import org.xowl.infra.utils.collections.SkippableIterator;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -361,7 +362,7 @@ public class Repository extends AbstractRepository {
                 }
             }));
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return new SingleIterator<>(null);
         }
     }
@@ -526,7 +527,7 @@ public class Repository extends AbstractRepository {
         try {
             output.serialize(logger, backend.getAll(getGraph(ontology)));
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
     }
 

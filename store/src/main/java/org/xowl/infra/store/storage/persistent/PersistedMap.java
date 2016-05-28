@@ -21,7 +21,7 @@ import org.xowl.infra.utils.collections.Adapter;
 import org.xowl.infra.utils.collections.AdaptingIterator;
 import org.xowl.infra.utils.collections.CombiningIterator;
 import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -132,7 +132,7 @@ class PersistedMap {
                 try {
                     return PersistedMapStage2.iterator(store, stage1Couple.y);
                 } catch (StorageException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                     return null;
                 }
             }

@@ -24,11 +24,6 @@ package org.xowl.infra.utils.logging;
  */
 public interface Logger {
     /**
-     * A common default instance for last-resort logging
-     */
-    Logger DEFAULT = new ConsoleLogger();
-
-    /**
      * Logs a debug message
      *
      * @param message The message

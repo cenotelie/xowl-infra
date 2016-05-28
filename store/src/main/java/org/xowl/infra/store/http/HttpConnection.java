@@ -18,7 +18,7 @@
 package org.xowl.infra.store.http;
 
 import org.xowl.infra.store.IOUtils;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import javax.net.ssl.*;
 import java.io.*;
@@ -85,7 +85,7 @@ public class HttpConnection implements Closeable {
                     }
             }, new SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         sslContext = sc;
         hostnameVerifier = new HostnameVerifier() {
@@ -124,7 +124,7 @@ public class HttpConnection implements Closeable {
         try {
             url = new URL((endpoint != null ? endpoint : "") + (uriComplement != null ? uriComplement : ""));
         } catch (MalformedURLException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
 
@@ -132,7 +132,7 @@ public class HttpConnection implements Closeable {
         try {
             connection = (HttpURLConnection) url.openConnection();
         } catch (IOException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
         if (connection instanceof HttpsURLConnection) {
@@ -143,7 +143,7 @@ public class HttpConnection implements Closeable {
         try {
             connection.setRequestMethod(method == null || method.isEmpty() ? "GET" : method);
         } catch (ProtocolException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
         if (contentType != null)
@@ -158,7 +158,7 @@ public class HttpConnection implements Closeable {
             try (OutputStream stream = connection.getOutputStream()) {
                 stream.write(body.getBytes());
             } catch (IOException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
                 return null;
             }
         }
@@ -167,7 +167,7 @@ public class HttpConnection implements Closeable {
         try {
             code = connection.getResponseCode();
         } catch (IOException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             connection.disconnect();
             return null;
         }
@@ -189,7 +189,7 @@ public class HttpConnection implements Closeable {
                 rd.close();
                 responseBody = builder.toString();
             } catch (IOException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
         }
         connection.disconnect();

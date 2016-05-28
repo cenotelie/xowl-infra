@@ -20,7 +20,7 @@ package org.xowl.infra.store.rdf;
 import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.sparql.*;
 import org.xowl.infra.store.storage.NodeManager;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.*;
 
@@ -210,7 +210,7 @@ public class RDFRuleSelect extends RDFRule {
         try {
             onSolutionsChanged(handler, antecedent.eval(state));
         } catch (EvalException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
     }
 
@@ -221,7 +221,7 @@ public class RDFRuleSelect extends RDFRule {
         try {
             onSolutionsChanged(handler, antecedent.eval(state));
         } catch (EvalException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
     }
 

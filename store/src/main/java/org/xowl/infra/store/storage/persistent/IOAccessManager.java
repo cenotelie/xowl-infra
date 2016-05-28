@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -152,7 +152,7 @@ class IOAccessManager {
         try {
             backend.onAccessTerminated(access, access.element);
         } catch (StorageException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         IOAccessOrdered.remove(root, access);
         currentAccessCount.decrementAndGet();

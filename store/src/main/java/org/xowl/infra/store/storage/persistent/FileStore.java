@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
@@ -109,7 +109,7 @@ class FileStore {
                 try {
                     child.flush();
                 } catch (StorageException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                     success = false;
                 }
             }
@@ -126,7 +126,7 @@ class FileStore {
                 try {
                     child.close();
                 } catch (IOException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                 }
             }
         }
@@ -143,11 +143,11 @@ class FileStore {
                 try {
                     files.get(i).close();
                 } catch (IOException exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                 }
                 File target = new File(directory, getNameFor(name, i));
                 if (!target.delete()) {
-                    Logger.DEFAULT.error("Failed to delete file " + target.getAbsolutePath());
+                    Logging.getDefault().error("Failed to delete file " + target.getAbsolutePath());
                 }
             }
             files.clear();
@@ -155,7 +155,7 @@ class FileStore {
                 FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false, false);
                 files.add(first);
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
         }
     }

@@ -17,7 +17,7 @@
 
 package org.xowl.infra.utils.concurrent;
 
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +74,7 @@ public class LockManager {
             return;
         for (TrackedLock lock : locks) {
             if (DEBUG_LEAKS) {
-                Logger.DEFAULT.warning(new LeakingLock(lock.trace()));
+                Logging.getDefault().warning(new LeakingLock(lock.trace()));
             }
             lock.simpleRelease();
         }

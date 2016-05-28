@@ -27,6 +27,7 @@ import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.logging.ConsoleLogger;
 import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.Closeable;
 import java.io.File;
@@ -607,7 +608,7 @@ public class ServerController implements Closeable {
             try {
                 database.close();
             } catch (IOException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
             }
             if (!Program.delete(folder)) {
                 logger.error("Failed to delete " + folder.getAbsolutePath());

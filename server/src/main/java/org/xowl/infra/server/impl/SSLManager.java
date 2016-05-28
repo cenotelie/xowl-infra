@@ -19,7 +19,7 @@ package org.xowl.infra.server.impl;
 
 import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.*;
 import java.security.KeyStore;
@@ -68,7 +68,7 @@ public class SSLManager {
             }
             return new Couple<>(keyStore, password);
         } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }
@@ -106,7 +106,7 @@ public class SSLManager {
                             System.out.println(scan.nextLine());
                         }
                     } catch (IOException exception) {
-                        Logger.DEFAULT.error(exception);
+                        Logging.getDefault().error(exception);
                     }
                 }
             }).start();
@@ -123,7 +123,7 @@ public class SSLManager {
             process.waitFor();
             return password;
         } catch (IOException | InterruptedException exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return null;
         }
     }

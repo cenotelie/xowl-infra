@@ -19,7 +19,7 @@ package org.xowl.infra.generator.model;
 
 import org.xowl.infra.lang.runtime.Datatype;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -312,7 +312,7 @@ public abstract class DatatypeModel {
             java.lang.reflect.Constructor constructor = datatypeClass.getConstructor(Datatype.class, String.class);
             datatypeModel = (DatatypeModel) constructor.newInstance(datatype, iri);
         } catch (Exception exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         return datatypeModel;
     }

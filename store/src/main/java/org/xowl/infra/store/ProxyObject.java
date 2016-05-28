@@ -22,7 +22,7 @@ import org.xowl.infra.store.owl.DynamicNode;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.collections.*;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -366,7 +366,7 @@ public class ProxyObject {
                 }
             }));
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return new SingleIterator<>(null);
         }
     }
@@ -396,7 +396,7 @@ public class ProxyObject {
                 }
             }
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         return result;
     }
@@ -426,7 +426,7 @@ public class ProxyObject {
                 }
             }
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         return result;
     }
@@ -455,7 +455,7 @@ public class ProxyObject {
                 }
             }
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         return result;
     }
@@ -516,7 +516,7 @@ public class ProxyObject {
             long count = repository.getStore().count(null, property, node(Vocabulary.rdfType), node(Vocabulary.owlFunctionalProperty));
             return count > 1;
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
             return false;
         }
     }
@@ -573,14 +573,14 @@ public class ProxyObject {
                 try {
                     ((CloseableIterator) iterator).close();
                 } catch (Exception exception) {
-                    Logger.DEFAULT.error(exception);
+                    Logging.getDefault().error(exception);
                 }
             }
             if (rangeNode.getNodeType() == Node.TYPE_IRI)
                 return ((IRINode) rangeNode).getIRIValue();
             // range is defined, but is either a blank, or an anonymous node, return xsd:String
         } catch (UnsupportedNodeType exception) {
-            Logger.DEFAULT.error(exception);
+            Logging.getDefault().error(exception);
         }
         return Vocabulary.xsdString;
     }

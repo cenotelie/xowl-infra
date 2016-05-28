@@ -18,7 +18,7 @@
 package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -328,7 +328,7 @@ class PersistedMapStage1 {
             try {
                 nextResult = findNext();
             } catch (StorageException exception) {
-                Logger.DEFAULT.error(exception);
+                Logging.getDefault().error(exception);
                 nextResult = null;
             }
             return result;
