@@ -19,7 +19,7 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.rdf.Query;
+import org.xowl.infra.store.rdf.RDFQuery;
 import org.xowl.infra.store.rdf.RDFPattern;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.storage.NodeManager;
@@ -58,7 +58,7 @@ public class EvalContextRepository implements EvalContext {
 
     @Override
     public Solutions getSolutions(RDFPattern pattern) {
-        Collection<RDFPatternSolution> results = repository.getRDFQueryEngine().execute(new Query(pattern));
+        Collection<RDFPatternSolution> results = repository.getRDFQueryEngine().execute(new RDFQuery(pattern));
         return new SolutionsMultiset(results);
     }
 }

@@ -65,7 +65,7 @@ public class BaseOWLReasoningTest {
         Assert.assertFalse("Some error occurred", logger.isOnError());
 
         // query the premise for a matching conclusion, modulo the blank nodes
-        Query query = new Query();
+        RDFQuery query = new RDFQuery();
         Map<BlankNode, VariableNode> variables = new HashMap<>();
         for (Quad quad : conclusion) {
             SubjectNode nodeSubject = quad.getSubject();
@@ -127,7 +127,7 @@ public class BaseOWLReasoningTest {
         Assert.assertFalse("Some error occurred", logger.isOnError());
 
         // query the premise for a matching conclusion, modulo the blank nodes
-        Query query = new Query();
+        RDFQuery query = new RDFQuery();
         Map<BlankNode, VariableNode> variables = new HashMap<>();
         for (Quad quad : conclusion) {
             SubjectNode nodeSubject = quad.getSubject();

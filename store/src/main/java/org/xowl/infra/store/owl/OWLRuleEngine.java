@@ -25,6 +25,7 @@ import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.util.*;
 
@@ -136,8 +137,8 @@ public class OWLRuleEngine {
                 rdfRule.addConsequentPositive(quad);
             positiveNormal.clear();
             positiveMeta.clear();
-        } catch (TranslationException ex) {
-            // TODO: report this
+        } catch (TranslationException exception) {
+            Logger.DEFAULT.error(exception);
         }
         rdfRules.put(rule, rdfRule);
         owlRules.put(rdfRule, new Couple<>(translationContext, rule));

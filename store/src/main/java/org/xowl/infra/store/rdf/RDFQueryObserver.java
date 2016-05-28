@@ -22,7 +22,7 @@ package org.xowl.infra.store.rdf;
  *
  * @author Laurent Wouters
  */
-public interface QueryObserver {
+public interface RDFQueryObserver {
     /**
      * When a new solution has been found
      *

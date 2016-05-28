@@ -20,7 +20,7 @@ package org.xowl.infra.store.sparql;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Changeset;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.Query;
+import org.xowl.infra.store.rdf.RDFQuery;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
@@ -54,7 +54,7 @@ public class CommandDeleteWhere implements Command {
 
     @Override
     public Result execute(Repository repository) {
-        Query query = new Query();
+        RDFQuery query = new RDFQuery();
         query.getPositives().addAll(quads);
         Collection<RDFPatternSolution> solutions = repository.getRDFQueryEngine().execute(query);
         Collection<Quad> toRemove = new ArrayList<>();

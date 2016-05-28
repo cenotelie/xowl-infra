@@ -19,9 +19,7 @@ package org.xowl.infra.store.owl;
 import org.xowl.infra.lang.owl2.Axiom;
 import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.rdf.GraphNode;
-import org.xowl.infra.store.rdf.RDFPatternSolution;
-import org.xowl.infra.store.rdf.VariableNode;
+import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 
 import java.util.ArrayList;
@@ -33,7 +31,7 @@ import java.util.List;
  *
  * @author Laurent Wouters
  */
-public class QueryEngine {
+public class OWLQueryEngine {
     /**
      * The xOWL store
      */
@@ -45,7 +43,7 @@ public class QueryEngine {
     /**
      * The underlying RDF engine
      */
-    private final org.xowl.infra.store.rdf.QueryEngine rdfEngine;
+    private final RDFQueryEngine rdfEngine;
     /**
      * The graph for the translated quads
      */
@@ -56,7 +54,7 @@ public class QueryEngine {
      *
      * @return The RDF backend
      */
-    public org.xowl.infra.store.rdf.QueryEngine getBackend() {
+    public RDFQueryEngine getBackend() {
         return rdfEngine;
     }
 
@@ -66,10 +64,10 @@ public class QueryEngine {
      * @param store     The OWL store to query
      * @param evaluator The current evaluator
      */
-    public QueryEngine(BaseStore store, Evaluator evaluator) {
+    public OWLQueryEngine(BaseStore store, Evaluator evaluator) {
         this.store = store;
         this.evaluator = evaluator;
-        this.rdfEngine = new org.xowl.infra.store.rdf.QueryEngine(store);
+        this.rdfEngine = new RDFQueryEngine(store);
         this.graph = new VariableNode("__graph__");
     }
 
@@ -79,10 +77,10 @@ public class QueryEngine {
      * @param query A query
      * @return The solutions
      */
-    public Collection<Bindings> execute(Query query) {
+    public Collection<Bindings> execute(OWLQuery query) {
         TranslationContext context = new TranslationContext();
         try {
-            org.xowl.infra.store.rdf.Query rdfQuery = translate(query, context);
+            RDFQuery rdfQuery = translate(query, context);
             Collection<RDFPatternSolution> rdfSolutions = rdfEngine.execute(rdfQuery);
             List<Bindings> owlSolutions = new ArrayList<>();
             for (RDFPatternSolution rdfSolution : rdfSolutions)
@@ -101,8 +99,8 @@ public class QueryEngine {
      * @param context The translation context
      * @return The corresponding RDF query
      */
-    private org.xowl.infra.store.rdf.Query translate(Query query, TranslationContext context) throws TranslationException {
-        org.xowl.infra.store.rdf.Query result = new org.xowl.infra.store.rdf.Query();
+    private RDFQuery translate(OWLQuery query, TranslationContext context) throws TranslationException {
+        RDFQuery result = new RDFQuery();
         Translator translator = new Translator(context, store, evaluator);
         // translate the positive axioms
         result.getPositives().addAll(translator.translate(query.getPositives(), graph));

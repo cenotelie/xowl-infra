@@ -14,35 +14,36 @@
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package org.xowl.infra.store.owl;
 
-import org.xowl.infra.lang.owl2.Axiom;
+package org.xowl.infra.store.rdf;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
- * Represents the matching conditions of an OWL query
+ * Represents the matching conditions of a RDF query
  *
  * @author Laurent Wouters
  */
-public class Query {
+public class RDFQuery {
     /**
-     * The positive conditions
+     * The pattern to match for this query
      */
-    private final List<Axiom> positives;
-    /**
-     * The list of conjunctive negative conditions
-     */
-    private final List<Collection<Axiom>> negatives;
+    private final RDFPattern pattern;
 
     /**
      * Initializes this condition
      */
-    public Query() {
-        this.positives = new ArrayList<>();
-        this.negatives = new ArrayList<>();
+    public RDFQuery() {
+        this.pattern = new RDFPattern();
+    }
+
+    /**
+     * Initializes this condition
+     *
+     * @param pattern The pattern to match for this query
+     */
+    public RDFQuery(RDFPattern pattern) {
+        this.pattern = pattern;
     }
 
     /**
@@ -50,8 +51,8 @@ public class Query {
      *
      * @return The positive conditions of this rule
      */
-    public Collection<Axiom> getPositives() {
-        return positives;
+    public Collection<Quad> getPositives() {
+        return pattern.getPositives();
     }
 
     /**
@@ -59,7 +60,15 @@ public class Query {
      *
      * @return The negative conjunctions of conditions
      */
-    public Collection<Collection<Axiom>> getNegatives() {
-        return negatives;
+    public Collection<Collection<Quad>> getNegatives() {
+        return pattern.getNegatives();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof RDFQuery))
+            return false;
+        RDFQuery query = (RDFQuery) obj;
+        return query == this || (this.pattern.equals(query.pattern));
     }
 }

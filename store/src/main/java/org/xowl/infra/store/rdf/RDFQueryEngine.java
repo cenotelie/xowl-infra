@@ -27,7 +27,7 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class QueryEngine implements ChangeListener {
+public class RDFQueryEngine implements ChangeListener {
     /**
      * The number of queries in the cache above which the cache starts to clear itself by removing less used queries
      */
@@ -44,7 +44,7 @@ public class QueryEngine implements ChangeListener {
         /**
          * The original query
          */
-        private final Query query;
+        private final RDFQuery query;
         /**
          * The associated RETE rule
          */
@@ -63,7 +63,7 @@ public class QueryEngine implements ChangeListener {
          *
          * @param query The original query
          */
-        public CacheElem(Query query) {
+        public CacheElem(RDFQuery query) {
             this.query = query;
             this.rule = new RETERule(this);
             this.rule.getPositives().addAll(query.getPositives());
@@ -118,7 +118,7 @@ public class QueryEngine implements ChangeListener {
          * @param candidate A query candidate
          * @return true if the candidate matches the query represented by this cache element
          */
-        public boolean matches(Query candidate) {
+        public boolean matches(RDFQuery candidate) {
             return query.equals(candidate);
         }
 
@@ -143,7 +143,7 @@ public class QueryEngine implements ChangeListener {
         /**
          * The original query
          */
-        private final Query query;
+        private final RDFQuery query;
         /**
          * The associated RETE rule
          */
@@ -155,7 +155,7 @@ public class QueryEngine implements ChangeListener {
         /**
          * The observers for this query
          */
-        private final List<QueryObserver> observers;
+        private final List<RDFQueryObserver> observers;
 
         /**
          * Initializes this observed query
@@ -163,7 +163,7 @@ public class QueryEngine implements ChangeListener {
          * @param query    The original query
          * @param observer The first observer
          */
-        public ObservedElem(Query query, QueryObserver observer) {
+        public ObservedElem(RDFQuery query, RDFQueryObserver observer) {
             this.query = query;
             this.rule = new RETERule(this);
             this.rule.getPositives().addAll(query.getPositives());
@@ -187,7 +187,7 @@ public class QueryEngine implements ChangeListener {
          *
          * @param observer The new observer
          */
-        public void addObserver(QueryObserver observer) {
+        public void addObserver(RDFQueryObserver observer) {
             observers.add(observer);
             for (RDFPatternSolution solution : solutions.values()) {
                 observer.onNewSolution(solution);
@@ -200,7 +200,7 @@ public class QueryEngine implements ChangeListener {
          * @param observer The observer to remove
          * @return Whether this was the last observer
          */
-        public boolean removeObserver(QueryObserver observer) {
+        public boolean removeObserver(RDFQueryObserver observer) {
             observers.remove(observer);
             return observers.isEmpty();
         }
@@ -209,7 +209,7 @@ public class QueryEngine implements ChangeListener {
         public void activateToken(Token token) {
             RDFPatternSolution solution = new RDFPatternSolution(token.getBindings());
             solutions.put(token, solution);
-            for (QueryObserver observer : observers)
+            for (RDFQueryObserver observer : observers)
                 observer.onNewSolution(solution);
         }
 
@@ -218,7 +218,7 @@ public class QueryEngine implements ChangeListener {
             RDFPatternSolution solution = solutions.remove(token);
             if (solution == null)
                 return;
-            for (QueryObserver observer : observers)
+            for (RDFQueryObserver observer : observers)
                 observer.onSolutionRevoked(solution);
         }
 
@@ -240,7 +240,7 @@ public class QueryEngine implements ChangeListener {
          * @param candidate A query candidate
          * @return true if the candidate matches the query represented by this cache element
          */
-        public boolean matches(Query candidate) {
+        public boolean matches(RDFQuery candidate) {
             return query.equals(candidate);
         }
     }
@@ -288,7 +288,7 @@ public class QueryEngine implements ChangeListener {
      *
      * @param store The RDF store to query
      */
-    public QueryEngine(Dataset store) {
+    public RDFQueryEngine(Dataset store) {
         this.rete = new RETENetwork(store);
         this.newAdded = new ArrayList<>();
         this.newRemoved = new ArrayList<>();
@@ -306,7 +306,7 @@ public class QueryEngine implements ChangeListener {
      * @param query A query
      * @return The solutions
      */
-    public Collection<RDFPatternSolution> execute(Query query) {
+    public Collection<RDFPatternSolution> execute(RDFQuery query) {
         // try from the cache
         for (final CacheElem element : cache) {
             if (element.matches(query)) {
@@ -349,7 +349,7 @@ public class QueryEngine implements ChangeListener {
      * @param query    The query to observe
      * @param observer The observer
      */
-    public void observe(Query query, QueryObserver observer) {
+    public void observe(RDFQuery query, RDFQueryObserver observer) {
         for (ObservedElem elem : observedQueries) {
             if (elem.matches(query)) {
                 elem.addObserver(observer);
@@ -367,7 +367,7 @@ public class QueryEngine implements ChangeListener {
      * @param query    The query to stop observing
      * @param observer The observer that stops its observation
      */
-    public void unobserve(Query query, QueryObserver observer) {
+    public void unobserve(RDFQuery query, RDFQueryObserver observer) {
         for (ObservedElem elem : observedQueries) {
             if (elem.matches(query)) {
                 if (elem.removeObserver(observer)) {
@@ -385,7 +385,7 @@ public class QueryEngine implements ChangeListener {
      * @param query A query
      * @return The matching status
      */
-    public MatchStatus getMatchStatus(Query query) {
+    public MatchStatus getMatchStatus(RDFQuery query) {
         // try from the cache
         for (final CacheElem element : cache) {
             if (element.matches(query)) {

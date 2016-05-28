@@ -75,15 +75,12 @@ public class RDFParser {
      *
      * @param quads The quads
      * @return The equivalent axioms
+     * @throws UnsupportedNodeType When a node cannot be translated
      */
-    public Collection<Axiom> translate(Collection<Quad> quads) {
-        try {
-            store = StoreFactory.create().make();
-            graphNode = new VariableNode("__graph__");
-            store.insert(Changeset.fromAdded(quads));
-        } catch (UnsupportedNodeType ex) {
-            // TODO: log this
-        }
+    public Collection<Axiom> translate(Collection<Quad> quads) throws UnsupportedNodeType {
+        store = StoreFactory.create().make();
+        graphNode = new VariableNode("__graph__");
+        store.insert(Changeset.fromAdded(quads));
         execute(quads);
         return axioms;
     }

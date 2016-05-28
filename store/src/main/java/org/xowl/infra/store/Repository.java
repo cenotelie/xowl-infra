@@ -19,7 +19,7 @@ package org.xowl.infra.store;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.rules.Rule;
 import org.xowl.infra.store.loaders.*;
-import org.xowl.infra.store.owl.QueryEngine;
+import org.xowl.infra.store.owl.OWLQueryEngine;
 import org.xowl.infra.store.owl.OWLRuleEngine;
 import org.xowl.infra.store.owl.TranslationException;
 import org.xowl.infra.store.owl.Translator;
@@ -94,7 +94,7 @@ public class Repository extends AbstractRepository {
     /**
      * The query engine for this repository
      */
-    private QueryEngine queryEngine;
+    private OWLQueryEngine queryEngine;
     /**
      * The rule engine for this repository
      */
@@ -127,9 +127,9 @@ public class Repository extends AbstractRepository {
      *
      * @return The associated OWL query engine
      */
-    public QueryEngine getOWLQueryEngine() {
+    public OWLQueryEngine getOWLQueryEngine() {
         if (queryEngine == null)
-            queryEngine = new QueryEngine(backend, evaluator);
+            queryEngine = new OWLQueryEngine(backend, evaluator);
         return queryEngine;
     }
 
@@ -138,7 +138,7 @@ public class Repository extends AbstractRepository {
      *
      * @return The associated RDF query engine
      */
-    public org.xowl.infra.store.rdf.QueryEngine getRDFQueryEngine() {
+    public RDFQueryEngine getRDFQueryEngine() {
         return getOWLQueryEngine().getBackend();
     }
 

@@ -14,36 +14,35 @@
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+package org.xowl.infra.store.owl;
 
-package org.xowl.infra.store.rdf;
+import org.xowl.infra.lang.owl2.Axiom;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
- * Represents the matching conditions of a RDF query
+ * Represents the matching conditions of an OWL query
  *
  * @author Laurent Wouters
  */
-public class Query {
+public class OWLQuery {
     /**
-     * The pattern to match for this query
+     * The positive conditions
      */
-    private final RDFPattern pattern;
+    private final List<Axiom> positives;
+    /**
+     * The list of conjunctive negative conditions
+     */
+    private final List<Collection<Axiom>> negatives;
 
     /**
      * Initializes this condition
      */
-    public Query() {
-        this.pattern = new RDFPattern();
-    }
-
-    /**
-     * Initializes this condition
-     *
-     * @param pattern The pattern to match for this query
-     */
-    public Query(RDFPattern pattern) {
-        this.pattern = pattern;
+    public OWLQuery() {
+        this.positives = new ArrayList<>();
+        this.negatives = new ArrayList<>();
     }
 
     /**
@@ -51,8 +50,8 @@ public class Query {
      *
      * @return The positive conditions of this rule
      */
-    public Collection<Quad> getPositives() {
-        return pattern.getPositives();
+    public Collection<Axiom> getPositives() {
+        return positives;
     }
 
     /**
@@ -60,15 +59,7 @@ public class Query {
      *
      * @return The negative conjunctions of conditions
      */
-    public Collection<Collection<Quad>> getNegatives() {
-        return pattern.getNegatives();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof Query))
-            return false;
-        Query query = (Query) obj;
-        return query == this || (this.pattern.equals(query.pattern));
+    public Collection<Collection<Axiom>> getNegatives() {
+        return negatives;
     }
 }
