@@ -19,7 +19,6 @@ package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.collections.Couple;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -42,7 +41,7 @@ class PersistedMapStage2 {
     private static final int CHILD_SIZE = 4 + 8;
     /**
      * The size of a B+ tree inner node header
-     * long: next sibling (non KEY_NULL indicate leaf node)
+     * long: parent node
      * char: node version
      * byte: leaf node marker (whether the node is a leaf node, i.e. it contains the map data)
      * byte: number of keys in the node
@@ -54,34 +53,6 @@ class PersistedMapStage2 {
      * entries[entryCount]: the children entries
      */
     private static final int NODE_SIZE = NODE_HEADER + ORDER * CHILD_SIZE;
-    /**
-     * Initial size of the traversal stack
-     */
-    private static final int STACK_SIZE = 8;
-
-    /**
-     * Represents the info of a node
-     */
-    private static class Node {
-        /**
-         * The entry in the store for the node
-         */
-        public final long entry;
-        /**
-         * The node's version
-         */
-        public final int version;
-
-        /**
-         * Initializes this structure
-         * @param entry The entry in the store for the node
-         * @param version The node's version
-         */
-        public Node(long entry, int version) {
-            this.entry = entry;
-            this.version = version;
-        }
-    }
 
     /**
      * Initializes an empty stage 2 map
@@ -115,7 +86,7 @@ class PersistedMapStage2 {
     public static long get(FileStore store, long head, int key) throws StorageException {
         long currentNode = head;
         while (currentNode != FileStore.KEY_NULL) {
-            currentNode = FileStore.KEY_NULL;
+            long next = FileStore.KEY_NULL;
             try (IOAccess access = store.accessR(currentNode)) {
                 // read data
                 boolean isLeaf = access.skip(8 + 2).readByte() == 1;
@@ -125,20 +96,24 @@ class PersistedMapStage2 {
                     // read entry data
                     int entryKey = access.readInt();
                     long entryPtr = access.readLong();
-                    if (entryKey == key && isLeaf)
+                    if (isLeaf && entryKey == key)
                         // found the key
                         return entryPtr;
                     if (key < entryKey) {
-                        // go through this node
-                        currentNode = entryPtr;
+                        // go through this child
+                        next = entryPtr;
                         break;
                     }
                 }
-                if (currentNode == FileStore.KEY_NULL) {
+                if (isLeaf)
+                    // did not find the key, stop here
+                    return FileStore.KEY_NULL;
+                if (next == FileStore.KEY_NULL) {
+                    // not a leaf (internal node) and did not find a descendant
                     // read last pointer
-                    access.skip(4).readLong();
-                    currentNode = access.readLong();
+                    next = access.skip(4).readLong();
                 }
+                currentNode = next;
             }
         }
         // no result found
@@ -148,150 +123,286 @@ class PersistedMapStage2 {
     /**
      * Atomically replace a value in the map for a key
      *
-     * @param store The containing store
-     * @param head  The entry for the stage 2 root node
-     * @param key The key
+     * @param store    The containing store
+     * @param head     The entry for the stage 2 root node
+     * @param key      The key
      * @param valueOld The old value to replace (FileStore.KEY_NULL, if this is expected to be an insertion)
      * @param valueNew The new value for the key (FileStore.KEY_NULL, if this is expected to be a removal)
      * @return Whether the operation succeeded
      * @throws StorageException When an IO operation fails
      */
-    public static boolean compareAndSet(FileStore store, long head, long key, long valueOld, long valueNew) throws StorageException {
-
-    }
-
-    /**
-     * Puts a mapping into a stage 2 map
-     *
-     * @param store The containing store
-     * @param head  The entry for the stage 2 root node
-     * @param key   The stage 2 key to store
-     * @param value The value to store
-     * @return The previous value if there was one, or FileStore.Key_NULL
-     * @throws StorageException When an IO operation fails
-     */
-    public static long put(FileStore store, long head, int key, long value) throws StorageException {
-        while (true) {
-            long[] stack = traversePath(store, head, key, true);
-            if (stack == null)
-                // failed to resolve the path
-                continue;
-            // find the top of the stack
-            int top = 1;
-            while (top - 1 < stack.length && stack[top] != 0)
-                top++;
-            // try to put the value
-            try (IOAccess access = store.accessW(stack[top])) {
-                char version = access.seek(8).readChar();
-                if (version != stack[0])
-                    // the node was modified
-                    continue;
-                char count = access.readChar();
-                char flags = access.readChar();
-                for (int i = 0; i != count; i++) {
-                    // read entry data
-                    int entryKey = access.readInt();
-                    long entryPtr = access.readLong();
-                    // is this a key of interest
-                    if (entryKey == key && (flags >>> i) != 0) {
-                        // this is a hit on the key and this is the associated value
-                        // success!
-                        access.seek(NODE_HEADER + i * CHILD_SIZE + 4).writeLong(value);
-                        return entryPtr;
-                    }
-                }
-                // add into the node
-                access.seek(NODE_HEADER + count * CHILD_SIZE);
-                access.writeInt(key);
-                access.writeLong(value);
-                version++;
-                flags = (char) (flags | (1 << count));
-                count++;
-                access.seek(8);
-                access.writeChar(version);
-                access.writeChar(count);
-                access.writeChar(flags);
-            }
-            return FileStore.KEY_NULL;
+    public static boolean compareAndSet(FileStore store, long head, int key, long valueOld, long valueNew) throws StorageException {
+        if (valueNew != FileStore.KEY_NULL) {
+            return compareAndSwap(store, head, key, valueOld, valueNew);
+        } else {
+            return compareAndRemove(store, head, key, valueOld);
         }
     }
 
     /**
-     * Tries to allocate an entry in the B+ tree for the specified key
+     * Atomically compare and swap a key-value pair for a new one (or insert the new one)
      *
-     * @param store The containing store
-     * @param head  The entry for the stage 2 root node
-     * @param key   The stage 2 key to store
-     * @return The info of the target node, or null if the operation fails
+     * @param store    The containing store
+     * @param head     The entry for the stage 2 root node
+     * @param key      The key
+     * @param valueOld The old value to replace (FileStore.KEY_NULL, if this is expected to be an insertion)
+     * @param valueNew The new value for the key (FileStore.KEY_NULL, if this is expected to be a removal)
+     * @return Whether the operation succeeded
      * @throws StorageException When an IO operation fails
      */
-    private static Node putAllocate(FileStore store, long head, int key) throws StorageException {
-        long[] stack = new long[STACK_SIZE];
-        int stackTop = 0;
-        stack[stackTop] = head;
-
+    private static boolean compareAndSwap(FileStore store, long head, int key, long valueOld, long valueNew) throws StorageException {
         while (true) {
-            char version;
-            boolean isLeaf;
+            Node node = findNode(store, head, key, true);
+            try (IOAccess access = store.accessW(node.key)) {
+                char nodeVersion = access.seek(8).readChar();
+                if (nodeVersion != node.version)
+                    // the node changed, retry
+                    continue;
+                byte count = access.skip(1).readByte();
+                for (int i = 0; i != count; i++) {
+                    int entryKey = access.readInt();
+                    long entryValue = access.readLong();
+                    if (entryKey == key) {
+                        // this is the key
+                        if (entryValue != valueOld)
+                            return false;
+                        access.skip(-8).writeLong(valueNew);
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Atomically compare and remove a key-value pair
+     *
+     * @param store    The containing store
+     * @param head     The entry for the stage 2 root node
+     * @param key      The key
+     * @param valueOld The old value to replace (FileStore.KEY_NULL, if this is expected to be an insertion)
+     * @return Whether the operation succeeded
+     * @throws StorageException When an IO operation fails
+     */
+    private static boolean compareAndRemove(FileStore store, long head, int key, long valueOld) throws StorageException {
+        while (true) {
+            Node node = findNode(store, head, key, false);
+            if (node == null)
+                // the key is not in this map ...
+                return (valueOld == FileStore.KEY_NULL);
             byte count;
+            try (IOAccess access = store.accessW(node.key)) {
+                char nodeVersion = access.seek(8).readChar();
+                if (nodeVersion != node.version)
+                    // the node changed, retry
+                    continue;
+                count = access.skip(1).readByte();
+                int toRemoveIndex = -1;
+                for (int i = 0; i != count; i++) {
+                    int entryKey = access.readInt();
+                    long entryValue = access.readLong();
+                    if (entryKey == key) {
+                        // this is the key
+                        if (entryValue != valueOld)
+                            return false;
+                        toRemoveIndex = i;
+                        break;
+                    }
+                }
+                if (toRemoveIndex == -1)
+                    continue;
+                // repack entries
+                for (int i = toRemoveIndex + 1; i != count + 1; i++) {
+                    // read the child data
+                    access.seek(NODE_HEADER + i * CHILD_SIZE);
+                    int entryKey = access.readInt();
+                    long entryValue = access.readLong();
+                    // write back
+                    access.skip(-CHILD_SIZE * 2);
+                    access.writeInt(entryKey);
+                    access.writeLong(entryValue);
+                }
+                nodeVersion++;
+                count--;
+                access.seek(8).writeChar(nodeVersion);
+                access.seek(1).writeByte(count);
+            }
+            if (count < ORDER / 2 - 1)
+                merge(store, node.key);
+            return true;
+        }
+    }
+
+    /**
+     * Merges a node with its neighbour
+     *
+     * @param store The containing store
+     * @param node  The node to merge
+     * @throws StorageException When an IO operation fails
+     */
+    private static void merge(FileStore store, long node) throws StorageException {
+
+    }
+
+    /**
+     * Represents the data of a node
+     */
+    private static class Node {
+        /**
+         * The key to the node in the store
+         */
+        public final long key;
+        /**
+         * The node's version
+         */
+        public final char version;
+
+        /**
+         * Initializes this structure
+         *
+         * @param key     The key to the node in the store
+         * @param version The node's version
+         */
+        public Node(long key, char version) {
+            this.key = key;
+            this.version = version;
+        }
+    }
+
+    /**
+     * Finds the node for a key
+     *
+     * @param store   The containing store
+     * @param head    The entry for the stage 2 root node
+     * @param key     The stage 2 key to store
+     * @param resolve Whether to resolve the nodes for the key (insert operation)
+     * @return The node that contains the key, or null if there isn't one
+     * @throws StorageException When an IO operation fails
+     */
+    private static Node findNode(FileStore store, long head, int key, boolean resolve) throws StorageException {
+        while (true) {
+            Node result = findNodeTry(store, head, key, resolve);
+            if (result != null || !resolve)
+                // we did find the node, or we did not had to resolve it
+                return result;
+        }
+    }
+
+    /**
+     * Tries to find a node for the specified key
+     *
+     * @param store   The containing store
+     * @param head    The entry for the stage 2 root node
+     * @param key     The stage 2 key to store
+     * @param resolve Whether to resolve the nodes for the key (insert operation)
+     * @return The node that contains the key, or null if there isn't one, or the operation failed
+     * @throws StorageException When an IO operation fails
+     */
+    private static Node findNodeTry(FileStore store, long head, int key, boolean resolve) throws StorageException {
+        long currentNode = head;
+        while (currentNode != FileStore.KEY_NULL) {
             long next = FileStore.KEY_NULL;
-            try (IOAccess access = store.accessR(stack[stackTop])) {
-                // read header
-                version = access.seek(8).readChar();
-                isLeaf = access.readByte() == 1;
-                count = access.readByte();
+            try (IOAccess access = store.accessR(currentNode)) {
+                // read data
+                char version = access.seek(8).readChar();
+                boolean isLeaf = access.readByte() == 1;
+                byte count = access.readByte();
                 // read registered keys
                 for (int i = 0; i != count; i++) {
                     // read entry data
                     int entryKey = access.readInt();
                     long entryPtr = access.readLong();
-                    if (entryKey == key && isLeaf) {
-                        // this is a hit on the key and this is the associated value
-                        return new Node(stack[stackTop], (int) version);
-                    }
+                    if (isLeaf && entryKey == key)
+                        // found the key
+                        return new Node(currentNode, version);
                     if (key < entryKey) {
-                        // go through this node
+                        // go through this child
                         next = entryPtr;
                         break;
                     }
                 }
+                if (isLeaf) {
+                    // did not find the key
+                    if (!resolve)
+                        return null;
+                    return insertInLeaf(store, currentNode, version, key);
+                }
                 if (next == FileStore.KEY_NULL) {
+                    // not a leaf (internal node) and did not find a descendant
                     // read last pointer
-                    access.skip(4).readLong();
-                    next = access.readLong();
+                    next = access.skip(4).readLong();
                 }
+                currentNode = next;
             }
-            // do we have a next node?
-            if (next != FileStore.KEY_NULL) {
-                stackTop++;
-                if (stackTop == stack.length)
-                    stack = Arrays.copyOf(stack, stack.length + STACK_SIZE);
-                stack[stackTop] = next;
-                continue;
-            }
-            // here we did not find the key, or an appropriate descendant
-            if (count < ORDER - 1) {
-                // we can insert in the node at the top of the stack
-                try (IOAccess accessW = store.accessR(stack[stackTop])) {
-
-                }
-            }
-            // ok, now we must split the top node
-            // TODO: split here
         }
+        return null;
     }
 
     /**
-     * Removes the specified key and its associated value
+     * Tries to insert the key into the specified leaf node
      *
-     * @param store The containing store
-     * @param head  The entry for the stage 2 root node
-     * @param key   The stage 2 key to look for
-     * @return The previous value if there was one, or FileStore.Key_NULL
+     * @param store   The containing store
+     * @param node    The leaf node to insert in
+     * @param version The expected version of the node
+     * @param key     The key to insert
+     * @return The node's data, or null if the operation failed
      * @throws StorageException When an IO operation fails
      */
-    public static long remove(FileStore store, long head, int key) throws StorageException {
-        return FileStore.KEY_NULL;
+    private static Node insertInLeaf(FileStore store, long node, char version, int key) throws StorageException {
+        try (IOAccess access = store.accessW(node)) {
+            // read data
+            char nodeVersion = access.seek(8).readChar();
+            if (nodeVersion != version)
+                return null;
+            byte count = access.skip(1).readByte();
+            if (count < ORDER - 1) {
+                doInsertKV(access, version, count, key, FileStore.KEY_NULL);
+                return new Node(node, ++version);
+            }
+        }
+        // split the node
+
+    }
+
+    /**
+     * Effectively perform the insertion of a key-value couple in an accessed node
+     *
+     * @param access  The access for the node
+     * @param version The current version of the node
+     * @param count   The current number of keys in the node
+     * @param key     The key to insert
+     * @param value   The associated value
+     * @throws StorageException When an IO operation fails
+     */
+    private static void doInsertKV(IOAccess access, char version, byte count, int key, long value) throws StorageException {
+        access.seek(NODE_HEADER);
+        // find the index where to insert
+        int insertBefore = count;
+        for (int i = 0; i != count; i++) {
+            int entryKey = access.readInt();
+            access.seek(8);
+            if (entryKey > key) {
+                insertBefore = i;
+                break;
+            }
+        }
+        // move the data on the right
+        for (int i = count; i != insertBefore - 1; i--) {
+            access.seek(NODE_HEADER + i * CHILD_SIZE);
+            int entryKey = access.readInt();
+            long entryValue = access.readLong();
+            access.writeInt(entryKey);
+            access.writeLong(entryValue);
+        }
+        // write the new key value pair
+        access.seek(NODE_HEADER + insertBefore * CHILD_SIZE);
+        access.writeInt(key);
+        access.writeLong(value);
+        // update version and count
+        version++;
+        count++;
+        access.seek(8).writeChar(version);
+        access.seek(1).writeByte(count);
     }
 
     /**
@@ -299,7 +410,7 @@ class PersistedMapStage2 {
      *
      * @param store The containing store
      * @param head  The entry for the stage 2 root node
-     * @throws StorageException
+     * @throws StorageException When an IO operation fails
      */
     public static void clear(FileStore store, long head) throws StorageException {
     }
