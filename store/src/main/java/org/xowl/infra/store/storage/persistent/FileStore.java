@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Laurent Wouters
  */
-class FileStore {
+class FileStore implements AutoCloseable {
     /**
      * The null entry key, denotes the absence of value for a key
      */
@@ -130,9 +130,7 @@ class FileStore {
         return success;
     }
 
-    /**
-     * Closes this store
-     */
+    @Override
     public void close() {
         for (int i = 0; i != files.size(); i++) {
             try {

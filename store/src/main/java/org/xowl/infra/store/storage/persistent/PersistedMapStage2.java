@@ -102,32 +102,9 @@ class PersistedMapStage2 {
                 // inspect the current node
                 boolean isLeaf = accessCurrent.readChar() == 1;
                 char count = accessCurrent.readChar();
-                long next = FileStore.KEY_NULL;
-                for (int i = 0; i != count; i++) {
-                    // read entry data
-                    int entryKey = accessCurrent.readInt();
-                    long entryPtr = accessCurrent.readLong();
-                    if (isLeaf && entryKey == key) {
-                        // found the key
-                        return entryPtr;
-                    }
-                    if (key < entryKey) {
-                        // go through this child
-                        next = entryPtr;
-                        break;
-                    }
-                }
                 if (isLeaf)
-                    // did not find the key, stop here
-                    return FileStore.KEY_NULL;
-                if (next == FileStore.KEY_NULL) {
-                    // not a leaf (internal node) and did not find a descendant
-                    // read last pointer
-                    next = accessCurrent.skip(4).readLong();
-                }
-                if (next == FileStore.KEY_NULL)
-                    // no descendant
-                    return FileStore.KEY_NULL;
+                    return getOnNode(accessCurrent, key, count);
+                long next = getChild(accessCurrent, key, count);
                 // free the father if any, rotate the accesses and access the next node
                 if (accessFather != null)
                     accessFather.close();
@@ -140,6 +117,50 @@ class PersistedMapStage2 {
             if (accessCurrent != null)
                 accessCurrent.close();
         }
+    }
+
+    /**
+     * When on a leaf node, look for the matching entry
+     *
+     * @param accessCurrent The access to the current node
+     * @param key           The stage 2 key to look for
+     * @param count         The number of entries in the node
+     * @return The associated value, or FileStore.Key_NULL when none is found
+     * @throws StorageException When an IO operation fails
+     */
+    private static long getOnNode(IOAccess accessCurrent, int key, char count) throws StorageException {
+        for (int i = 0; i != count; i++) {
+            // read entry data
+            int entryKey = accessCurrent.readInt();
+            long entryPtr = accessCurrent.readLong();
+            if (entryKey == key) {
+                // found the key
+                return entryPtr;
+            }
+        }
+        return FileStore.KEY_NULL;
+    }
+
+    /**
+     * When on an internal node, look for a suitable descendant
+     *
+     * @param accessCurrent The access to the current node
+     * @param key           The stage 2 key to look for
+     * @param count         The number of entries in the node
+     * @return The descendant
+     * @throws StorageException When an IO operation fails
+     */
+    private static long getChild(IOAccess accessCurrent, int key, char count) throws StorageException {
+        for (int i = 0; i != count; i++) {
+            // read entry data
+            int entryKey = accessCurrent.readInt();
+            long entryPtr = accessCurrent.readLong();
+            if (key < entryKey) {
+                // go through this child
+                return entryPtr;
+            }
+        }
+        return accessCurrent.skip(4).readLong();
     }
 
     /**
@@ -160,38 +181,29 @@ class PersistedMapStage2 {
         try {
             while (true) {
                 // inspect the current node
-                boolean isLeaf = accessCurrent.readChar() == 1;
+                inspect(store, accessFather, accessCurrent, current, valueNew != FileStore.KEY_NULL);
+                boolean isLeaf = accessCurrent.reset().readChar() == 1;
                 char count = accessCurrent.readChar();
-                long next = FileStore.KEY_NULL;
-                inspect(store, accessFather, accessCurrent, current, isLeaf, count, valueNew != FileStore.KEY_NULL);
+                if (!isLeaf) {
+                    current = getChild(accessCurrent, key, count);
+                    // free the father if any, rotate the accesses and access the next node
+                    if (accessFather != null)
+                        accessFather.close();
+                    accessFather = accessCurrent;
+                    accessCurrent = store.accessW(current);
+                    continue;
+                }
+                // this is a leaf node
                 // look into the entries of this node
                 for (int i = 0; i != count; i++) {
                     int entryKey = accessCurrent.readInt();
                     long entryValue = accessCurrent.readLong();
-                    if (isLeaf && entryKey == key)
-                        // this is a leaf, found the key
+                    if (entryKey == key)
+                        // found the key
                         return doCompareAndReplace(accessCurrent, i, count, entryValue, valueOld, valueNew);
-                    if (key < entryKey) {
-                        // go through this child
-                        next = entryValue;
-                        break;
-                    }
                 }
-                if (isLeaf) {
-                    // did not find the key, stop here
-                    return doInsert(accessCurrent, count, key, valueOld, valueNew);
-                }
-                if (next == FileStore.KEY_NULL) {
-                    // not a leaf (internal node) and did not find a descendant
-                    // read last pointer
-                    next = accessCurrent.skip(4).readLong();
-                }
-                current = next;
-                // free the father if any, rotate the accesses and access the next node
-                if (accessFather != null)
-                    accessFather.close();
-                accessFather = accessCurrent;
-                accessCurrent = store.accessW(current);
+                // did not find the key, stop here
+                return doInsert(accessCurrent, count, key, valueOld, valueNew);
             }
         } finally {
             if (accessFather != null)
@@ -268,7 +280,7 @@ class PersistedMapStage2 {
                 }
             }
             // shift the existing data to the right
-            for (int i = count; i != insertAt; i--) {
+            for (int i = count; i != insertAt - 1; i--) {
                 accessCurrent.seek(NODE_HEADER + i * CHILD_SIZE);
                 int entryKey = accessCurrent.readInt();
                 long entryValue = accessCurrent.readLong();
@@ -279,6 +291,9 @@ class PersistedMapStage2 {
             accessCurrent.seek(NODE_HEADER + insertAt * CHILD_SIZE);
             accessCurrent.writeInt(key);
             accessCurrent.writeLong(valueNew);
+            // update the header
+            count++;
+            accessCurrent.seek(2).writeChar(count);
             return true;
         } else {
             // the entry is not found and the new value is the null key
@@ -294,12 +309,12 @@ class PersistedMapStage2 {
      * @param accessFather  The access to the parent node
      * @param accessCurrent The access to the current node
      * @param current       The entry for the node to split
-     * @param isLeaf        Whether the current node is a leaf
-     * @param count         The number of children in the current node
      * @param isInsert      Whether this is an insert operation
      * @throws StorageException When an IO operation fails
      */
-    private static void inspect(FileStore store, IOAccess accessFather, IOAccess accessCurrent, long current, boolean isLeaf, char count, boolean isInsert) throws StorageException {
+    private static void inspect(FileStore store, IOAccess accessFather, IOAccess accessCurrent, long current, boolean isInsert) throws StorageException {
+        boolean isLeaf = accessCurrent.reset().readChar() == 1;
+        char count = accessCurrent.readChar();
         if (isInsert && count >= 2 * N) {
             // split the current node
             if (accessFather == null) {
@@ -511,7 +526,7 @@ class PersistedMapStage2 {
             }
         }
         // move the data on the right
-        for (int i = count; i != insertAt; i--) {
+        for (int i = count + 1; i != insertAt; i--) {
             access.seek(NODE_HEADER + i * CHILD_SIZE);
             int entryKey = access.readInt();
             long entryValue = access.readLong();
