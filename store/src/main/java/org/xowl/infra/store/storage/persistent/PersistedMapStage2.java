@@ -353,31 +353,29 @@ class PersistedMapStage2 {
      */
     private static void splitRootInternal(FileStore store, IOAccess accessCurrent, char count) throws StorageException {
         // number of keys to transfer to the right (not including the fallback pointer)
-        int countRight = (count == 2 * N) ? N : N + 1;
+        int countRight = (count == 2 * N) ? N - 1 : N;
         long left = store.allocate(NODE_SIZE);
         long right = store.allocate(NODE_SIZE);
+        int maxLeft;
         // write the new left node
         accessCurrent.seek(NODE_HEADER);
         try (IOAccess accessLeft = store.accessW(left)) {
             accessLeft.writeChar((char) 0);
-            accessLeft.writeChar((char) (N - 1));
-            for (int i = 0; i != N - 1; i++) {
+            accessLeft.writeChar((char) N);
+            for (int i = 0; i != N; i++) {
                 accessLeft.writeInt(accessCurrent.readInt());
                 accessLeft.writeLong(accessCurrent.readLong());
             }
+            maxLeft = accessCurrent.readInt();
             accessLeft.writeInt(0);
-            accessLeft.writeLong(accessCurrent.skip(4).readLong());
+            accessLeft.writeLong(accessCurrent.readLong());
         }
         // write the new right node
-        int rightFirstKey = 0;
         try (IOAccess accessRight = store.accessW(right)) {
             accessRight.writeChar((char) 0);
             accessRight.writeChar((char) countRight);
             for (int i = 0; i != countRight + 1; i++) {
-                int key = accessCurrent.readInt();
-                if (i == 0)
-                    rightFirstKey = key;
-                accessRight.writeInt(key);
+                accessRight.writeInt(accessCurrent.readInt());
                 accessRight.writeLong(accessCurrent.readLong());
             }
         }
@@ -385,7 +383,7 @@ class PersistedMapStage2 {
         accessCurrent.reset();
         accessCurrent.writeChar((char) 0);
         accessCurrent.writeChar((char) 1); // only one key
-        accessCurrent.writeInt(rightFirstKey);
+        accessCurrent.writeInt(maxLeft);
         accessCurrent.writeLong(left);
         accessCurrent.writeInt(0);
         accessCurrent.writeLong(right);
@@ -456,25 +454,21 @@ class PersistedMapStage2 {
         int countRight = (count == 2 * N) ? N - 1 : N;
         accessCurrent.seek(NODE_HEADER + (N + 1) * CHILD_SIZE);
         long right = store.allocate(NODE_SIZE);
-        int rightFirstKey = 0;
         try (IOAccess accessRight = store.accessW(right)) {
             accessRight.writeChar((char) 0);
             accessRight.writeChar((char) countRight);
             // write the transferred key-values and the neighbour pointer
             for (int i = 0; i != countRight + 1; i++) {
-                int key = accessCurrent.readInt();
-                long value = accessCurrent.readLong();
-                if (i == 0)
-                    rightFirstKey = key;
-                accessRight.writeInt(key);
-                accessRight.writeLong(value);
+                accessRight.writeInt(accessCurrent.readInt());
+                accessRight.writeLong(accessCurrent.readLong());
             }
         }
         // update the data for the split node
         accessCurrent.seek(2).writeChar((char) N);
-        accessCurrent.seek(NODE_HEADER + N * CHILD_SIZE).writeInt(0);
+        int maxLeft = accessCurrent.seek(NODE_HEADER + N * CHILD_SIZE).readInt();
+        accessCurrent.skip(-4).writeInt(0);
         // update the data for the parent
-        splitInsertInParent(accessFather, current, right, rightFirstKey);
+        splitInsertInParent(accessFather, current, right, maxLeft);
     }
 
     /**
