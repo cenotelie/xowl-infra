@@ -39,7 +39,7 @@ public class FileBackendPerfTest {
     /**
      * The number of batch per thread
      */
-    private static final int BATCH_COUNT = 128;
+    private static final int BATCH_COUNT = 512;
     /**
      * The size of each write
      */
@@ -80,7 +80,6 @@ public class FileBackendPerfTest {
                                         }
                                     }
                                 }
-                                pf.flush();
                             }
                         } catch (StorageException exception) {
                             exception.printStackTrace();
@@ -98,6 +97,7 @@ public class FileBackendPerfTest {
                     exception.printStackTrace();
                 }
             }
+            pf.flush();
 
             long end = System.nanoTime();
 

@@ -149,6 +149,12 @@ class FileBlockTS extends FileBlock {
                 touch(time);
                 return RESERVE_RESULT_READY;
             }
+            if (current == BLOCK_STATE_RESERVED) {
+                if (this.location != location)
+                    return RESERVE_RESULT_FAIL;
+                // wait for the block to be ready
+                continue;
+            }
             if (current == BLOCK_STATE_FREE) {
                 // the block is free
                 if (!state.compareAndSet(BLOCK_STATE_FREE, BLOCK_STATE_RESERVED))
@@ -199,28 +205,38 @@ class FileBlockTS extends FileBlock {
     public boolean use(int location, long time) throws StorageException {
         while (true) {
             int current = state.get();
-            if (current < BLOCK_STATE_READY)
-                // the block may have been reclaimed in the meantime
-                return false;
-            if (current == BLOCK_STATE_READY) {
-                if (state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_IN_USE)) {
-                    if (this.location == location) {
-                        touch(time);
-                        return true;
-                    }
-                    // this is the wrong location, release the block and fail
-                    release();
+            switch (current) {
+                case BLOCK_STATE_FREE:
+                    throw new StorageException("Bad block state: " + stateName(current) + ", expected READY");
+                case BLOCK_STATE_RESERVED:
+                    if (this.location != location)
+                        return false;
+                    break;
+                case BLOCK_STATE_RECLAIMING:
                     return false;
+                case BLOCK_STATE_READY: {
+                    if (state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_IN_USE)) {
+                        if (this.location == location) {
+                            touch(time);
+                            return true;
+                        }
+                        // this is the wrong location, release the block and fail
+                        release();
+                        return false;
+                    }
+                    break;
                 }
-            } else if (current >= BLOCK_STATE_IN_USE) {
-                if (state.compareAndSet(current, current + 1)) {
-                    if (this.location == location) {
-                        touch(time);
-                        return true;
+                default: {
+                    if (state.compareAndSet(current, current + 1)) {
+                        if (this.location == location) {
+                            touch(time);
+                            return true;
+                        }
+                        // this is the wrong location, release the block and fail
+                        release();
+                        return false;
                     }
-                    // this is the wrong location, release the block and fail
-                    release();
-                    return false;
+                    break;
                 }
             }
         }

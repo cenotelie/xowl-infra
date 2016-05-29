@@ -265,17 +265,17 @@ class FileBackend implements IOBackend, Closeable {
      * @throws StorageException When an IO error occurs
      */
     private FileBlockTS getBlockWhenNotFull(int targetLocation) throws StorageException {
-        // look for the block
-        for (int i = 0; i != blockCount.get(); i++) {
-            // is this the block we are looking for?
-            if (blocks[i].getLocation() == targetLocation && blocks[i].use(targetLocation, tick())) {
-                // yes and we locked it
-                return blocks[i];
-            }
-        }
         // try to allocate one of the free block
         int count = blockCount.get();
         while (count < FILE_MAX_LOADED_BLOCKS) {
+            // look for the block
+            for (int i = 0; i != count; i++) {
+                // is this the block we are looking for?
+                if (blocks[i].getLocation() == targetLocation && blocks[i].use(targetLocation, tick())) {
+                    // yes and we locked it
+                    return blocks[i];
+                }
+            }
             // get the last block
             FileBlockTS target = blocks[count];
             // try to reserve it
