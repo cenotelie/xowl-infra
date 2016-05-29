@@ -347,7 +347,7 @@ class PersistedMapStage2 {
         // write the new left node
         accessCurrent.seek(NODE_HEADER);
         try (IOAccess accessLeft = store.accessW(left)) {
-            accessLeft.writeChar((char) 1);
+            accessLeft.writeChar((char) 0);
             accessLeft.writeChar((char) (N - 1));
             for (int i = 0; i != N - 1; i++) {
                 accessLeft.writeInt(accessCurrent.readInt());
@@ -359,7 +359,7 @@ class PersistedMapStage2 {
         // write the new right node
         int rightFirstKey = 0;
         try (IOAccess accessRight = store.accessW(right)) {
-            accessRight.writeChar((char) 1);
+            accessRight.writeChar((char) 0);
             accessRight.writeChar((char) countRight);
             for (int i = 0; i != countRight + 1; i++) {
                 int key = accessCurrent.readInt();
@@ -526,7 +526,7 @@ class PersistedMapStage2 {
             }
         }
         // move the data on the right
-        for (int i = count + 1; i != insertAt; i--) {
+        for (int i = count; i != insertAt; i--) {
             access.seek(NODE_HEADER + i * CHILD_SIZE);
             int entryKey = access.readInt();
             long entryValue = access.readLong();

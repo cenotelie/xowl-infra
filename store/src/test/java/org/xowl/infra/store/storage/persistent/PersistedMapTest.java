@@ -38,7 +38,7 @@ public class PersistedMapTest {
             }
             store.flush();
             for (int i = 0; i != 1024; i++) {
-                Assert.assertTrue(map.compareAndSet(i, i, i + 1));
+                Assert.assertTrue("Failed at " + i, map.compareAndSet(i, i, i + 1));
             }
             store.flush();
         }
