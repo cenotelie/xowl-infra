@@ -175,35 +175,43 @@ class PersistedMapStage2 {
      * @throws StorageException When an IO operation fails
      */
     public static boolean compareAndSet(FileStore store, long head, int key, long valueOld, long valueNew) throws StorageException {
-        long current = head;
         IOAccess accessFather = null;
-        IOAccess accessCurrent = store.accessW(current);
+        IOAccess accessCurrent = store.accessW(head);
+        inspect(store, null, accessCurrent, head, valueNew != FileStore.KEY_NULL);
         try {
             while (true) {
                 // inspect the current node
-                inspect(store, accessFather, accessCurrent, current, valueNew != FileStore.KEY_NULL);
                 boolean isLeaf = accessCurrent.reset().readChar() == 1;
                 char count = accessCurrent.readChar();
-                if (!isLeaf) {
-                    current = getChild(accessCurrent, key, count);
-                    // free the father if any, rotate the accesses and access the next node
-                    if (accessFather != null)
-                        accessFather.close();
-                    accessFather = accessCurrent;
-                    accessCurrent = store.accessW(current);
-                    continue;
+                if (isLeaf) {
+                    // look into the entries of this node
+                    for (int i = 0; i != count; i++) {
+                        int entryKey = accessCurrent.readInt();
+                        long entryValue = accessCurrent.readLong();
+                        if (entryKey == key)
+                            // found the key
+                            return doCompareAndReplace(accessCurrent, i, count, entryValue, valueOld, valueNew);
+                    }
+                    // did not find the key, stop here
+                    return doInsert(accessCurrent, count, key, valueOld, valueNew);
                 }
-                // this is a leaf node
-                // look into the entries of this node
-                for (int i = 0; i != count; i++) {
-                    int entryKey = accessCurrent.readInt();
-                    long entryValue = accessCurrent.readLong();
-                    if (entryKey == key)
-                        // found the key
-                        return doCompareAndReplace(accessCurrent, i, count, entryValue, valueOld, valueNew);
+                // release the father
+                if (accessFather != null)
+                    accessFather.close();
+                // resolve the child
+                long child = getChild(accessCurrent, key, count);
+                IOAccess accessChild = store.accessW(child);
+                boolean hasChanged = inspect(store, accessCurrent, accessChild, child, valueNew != FileStore.KEY_NULL);
+                while (hasChanged) {
+                    accessChild.close();
+                    count = accessCurrent.seek(2).readChar();
+                    child = getChild(accessCurrent, key, count);
+                    accessChild = store.accessW(child);
+                    hasChanged = inspect(store, accessCurrent, accessChild, child, valueNew != FileStore.KEY_NULL);
                 }
-                // did not find the key, stop here
-                return doInsert(accessCurrent, count, key, valueOld, valueNew);
+                // rotate
+                accessFather = accessCurrent;
+                accessCurrent = accessChild;
             }
         } finally {
             if (accessFather != null)
@@ -310,9 +318,10 @@ class PersistedMapStage2 {
      * @param accessCurrent The access to the current node
      * @param current       The entry for the node to split
      * @param isInsert      Whether this is an insert operation
+     * @return Whether the tree was modified
      * @throws StorageException When an IO operation fails
      */
-    private static void inspect(FileStore store, IOAccess accessFather, IOAccess accessCurrent, long current, boolean isInsert) throws StorageException {
+    private static boolean inspect(FileStore store, IOAccess accessFather, IOAccess accessCurrent, long current, boolean isInsert) throws StorageException {
         boolean isLeaf = accessCurrent.reset().readChar() == 1;
         char count = accessCurrent.readChar();
         if (isInsert && count >= 2 * N) {
@@ -326,9 +335,12 @@ class PersistedMapStage2 {
                 splitLeaf(store, accessFather, accessCurrent, current, count);
             else
                 splitInternal(store, accessFather, accessCurrent, current, count);
+            return true;
         } else if (!isInsert && count <= N) {
             // TODO: do merge
+            return true;
         }
+        return false;
     }
 
     /**
@@ -517,11 +529,12 @@ class PersistedMapStage2 {
         // find the index where to insert
         int insertAt = count;
         int originalKey = 0;
-        for (int i = 0; i != count + 1; i++) {
-            originalKey = access.readInt();
+        for (int i = 0; i != count; i++) {
+            int key = access.readInt();
             long value = access.readLong();
             if (value == leftNode) {
                 insertAt = i;
+                originalKey = key;
                 break;
             }
         }

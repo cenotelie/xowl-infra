@@ -34,7 +34,7 @@ public class PersistedMapTest {
         try (FileStore store = new FileStore(new File("/home/laurent"), "laurent", false)) {
             PersistedMap map = PersistedMap.create(store);
             for (int i = 0; i != 1024; i++) {
-                Assert.assertTrue(map.tryPut(i, i));
+                Assert.assertTrue("Failed at " + i, map.tryPut(i, i));
             }
             store.flush();
             for (int i = 0; i != 1024; i++) {
