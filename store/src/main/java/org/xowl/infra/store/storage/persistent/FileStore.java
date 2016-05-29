@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A store of objects persisted in files
@@ -35,6 +36,15 @@ class FileStore {
      * The null entry key, denotes the absence of value for a key
      */
     public static final long KEY_NULL = 0xFFFFFFFFFFFFFFFFL;
+
+    /**
+     * The store is ready for use
+     */
+    private static final int STATE_READY = 0;
+    /**
+     * An operation that touches the files is ongoing
+     */
+    private static final int STATE_TOUCHING_FILES = 3;
 
     /**
      * The suffix of store files
@@ -57,6 +67,10 @@ class FileStore {
      * Whether this store is in readonly mode
      */
     private final boolean isReadonly;
+    /**
+     * The state of this store
+     */
+    private final AtomicInteger state;
 
     /**
      * Initializes this store
@@ -84,6 +98,7 @@ class FileStore {
             FileStoreFile first = new FileStoreFile(candidate, false, false);
             files.add(first);
         }
+        this.state = new AtomicInteger(STATE_READY);
     }
 
     /**
@@ -104,14 +119,12 @@ class FileStore {
         if (isReadonly)
             return true;
         boolean success = true;
-        synchronized (files) {
-            for (FileStoreFile child : files) {
-                try {
-                    child.flush();
-                } catch (StorageException exception) {
-                    Logging.getDefault().error(exception);
-                    success = false;
-                }
+        for (int i = 0; i != files.size(); i++) {
+            try {
+                files.get(i).flush();
+            } catch (StorageException exception) {
+                Logging.getDefault().error(exception);
+                success = false;
             }
         }
         return success;
@@ -121,13 +134,11 @@ class FileStore {
      * Closes this store
      */
     public void close() {
-        synchronized (files) {
-            for (FileStoreFile child : files) {
-                try {
-                    child.close();
-                } catch (IOException exception) {
-                    Logging.getDefault().error(exception);
-                }
+        for (int i = 0; i != files.size(); i++) {
+            try {
+                files.get(i).close();
+            } catch (IOException exception) {
+                Logging.getDefault().error(exception);
             }
         }
     }
@@ -138,26 +149,30 @@ class FileStore {
     public void clear() {
         if (isReadonly)
             return;
-        synchronized (files) {
-            for (int i = 0; i != files.size(); i++) {
-                try {
-                    files.get(i).close();
-                } catch (IOException exception) {
-                    Logging.getDefault().error(exception);
-                }
-                File target = new File(directory, getNameFor(name, i));
-                if (!target.delete()) {
-                    Logging.getDefault().error("Failed to delete file " + target.getAbsolutePath());
-                }
-            }
-            files.clear();
+        while (true) {
+            if (state.compareAndSet(STATE_READY, STATE_TOUCHING_FILES))
+                break;
+        }
+        for (int i = 0; i != files.size(); i++) {
             try {
-                FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false, false);
-                files.add(first);
-            } catch (StorageException exception) {
+                files.get(i).close();
+            } catch (IOException exception) {
                 Logging.getDefault().error(exception);
             }
+            File target = new File(directory, getNameFor(name, i));
+            if (!target.delete()) {
+                Logging.getDefault().error("Failed to delete file " + target.getAbsolutePath());
+            }
         }
+        files.clear();
+        try {
+            FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false, false);
+            files.add(first);
+        } catch (StorageException exception) {
+            Logging.getDefault().error(exception);
+        }
+
+        state.set(STATE_READY);
     }
 
     /**
@@ -206,16 +221,33 @@ class FileStore {
     public long allocate(int size) throws StorageException {
         if (isReadonly)
             throw new StorageException("The store is read only");
-        FileStoreFile file = files.get(files.size() - 1);
-        long result = file.allocate(size);
-        if (result == KEY_NULL) {
-            synchronized (files) {
-                file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false, false);
-                files.add(file);
-                result = file.allocate(size);
+        while (true) {
+            // try to allocate from the last file
+            int count = files.size();
+            long result = files.get(count - 1).allocate(size);
+            if (result != KEY_NULL)
+                return result;
+            // failed to allocate from the last file, try to allocate a new file
+            while (true) {
+                if (state.compareAndSet(STATE_READY, STATE_TOUCHING_FILES))
+                    break;
             }
+            if (count != files.size()) {
+                // the files changed
+                state.set(STATE_READY);
+                continue;
+            }
+            // allocate a new file
+            try {
+                FileStoreFile file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false, false);
+                files.add(file);
+                state.set(STATE_READY);
+            } catch (StorageException exception) {
+                state.set(STATE_READY);
+                throw exception;
+            }
+            // retry
         }
-        return result;
     }
 
     /**
@@ -229,16 +261,33 @@ class FileStore {
     public long allocateDirect(int size) throws StorageException {
         if (isReadonly)
             throw new StorageException("The store is read only");
-        FileStoreFile file = files.get(files.size() - 1);
-        long result = file.allocateDirect(size);
-        if (result == KEY_NULL) {
-            synchronized (files) {
-                file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false, false);
-                files.add(file);
-                result = file.allocateDirect(size);
+        while (true) {
+            // try to allocate from the last file
+            int count = files.size();
+            long result = files.get(count - 1).allocateDirect(size);
+            if (result != KEY_NULL)
+                return result;
+            // failed to allocate from the last file, try to allocate a new file
+            while (true) {
+                if (state.compareAndSet(STATE_READY, STATE_TOUCHING_FILES))
+                    break;
             }
+            if (count != files.size()) {
+                // the files changed
+                state.set(STATE_READY);
+                continue;
+            }
+            // allocate a new file
+            try {
+                FileStoreFile file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false, false);
+                files.add(file);
+                state.set(STATE_READY);
+            } catch (StorageException exception) {
+                state.set(STATE_READY);
+                throw exception;
+            }
+            // retry
         }
-        return result;
     }
 
     /**

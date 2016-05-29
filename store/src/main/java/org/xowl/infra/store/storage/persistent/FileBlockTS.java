@@ -43,16 +43,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  * | InUse(n)     | The block is used for IO operations by n threads           |
  * +--------------+------------------------------------------------------------+
  * <p>
- * +------------------+------------------------------------+
- * | Operation        | Transition from state to state     |
- * +------------------+------------------------------------+
- * | reserve:         | Free --&gt; Reserved --&gt; Ready  |
- * | use:             | Ready        --&gt; InUse(1)       |
- * | use:             | InUse(n)     --&gt; InUse(n+1)     |
- * | release:         | InUse(n)     --&gt; InUse(n-1)     |
- * | release:         | InUse(1)     --&gt; Ready          |
- * | reclaim:         | Ready        --&gt; Ready          |
- * +------------------+------------------------------------+
+ * +------------------+--------------------------------------+
+ * | Operation        | Transition from state to state       |
+ * +------------------+--------------------------------------+
+ * | reserve:         | Free --&gt; Reserved --&gt; Ready    |
+ * | use:             | Ready        --&gt; InUse(1)         |
+ * | use:             | InUse(n)     --&gt; InUse(n+1)       |
+ * | release:         | InUse(n)     --&gt; InUse(n-1)       |
+ * | release:         | InUse(1)     --&gt; Ready            |
+ * | reclaim:         | Ready --&gt; Reclaiming --&gt; Ready |
+ * | flush:           | Ready --&gt; Reclaiming --&gt; Ready |
+ * +------------------+--------------------------------------+
  *
  * @author Laurent Wouters
  */
@@ -255,10 +256,14 @@ class FileBlockTS extends FileBlock {
     public boolean reclaim(int location, FileChannel channel, int fileSize, long time) throws StorageException {
         if (!state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_RECLAIMING))
             return false;
-        if (isDirty)
-            flush(channel);
+        try {
+            serialize(channel);
+        } catch (IOException exception) {
+            state.set(BLOCK_STATE_READY);
+            throw new StorageException(exception, "Failed to write block at 0x" + Long.toHexString(location));
+        }
         doSetup(location, channel, fileSize, time);
-        state.compareAndSet(BLOCK_STATE_RECLAIMING, BLOCK_STATE_READY);
+        state.set(BLOCK_STATE_READY);
         return true;
     }
 
@@ -269,10 +274,19 @@ class FileBlockTS extends FileBlock {
      * @throws StorageException When an IO error occurs
      */
     public void flush(FileChannel channel) throws StorageException {
+        if (!isDirty)
+            // not dirty at this time, do nothing
+            return;
+        while (true) {
+            if (state.compareAndSet(BLOCK_STATE_READY, BLOCK_STATE_RECLAIMING))
+                break;
+        }
         try {
             serialize(channel);
         } catch (IOException exception) {
             throw new StorageException(exception, "Failed to write block at 0x" + Long.toHexString(location));
+        } finally {
+            state.set(BLOCK_STATE_READY);
         }
     }
 

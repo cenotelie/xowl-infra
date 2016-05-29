@@ -45,17 +45,17 @@ class FileBackend implements IOBackend, Closeable {
      */
     private static final int STATE_READY = 0;
     /**
-     * The backend is preparing to flush
-     */
-    private static final int STATE_FLUSH_PREPARE = 1;
-    /**
      * The backend is flushing
      */
-    private static final int STATE_FLUSHING = 2;
+    private static final int STATE_FLUSHING = 1;
     /**
      * The backend is reclaiming some block
      */
-    private static final int STATE_RECLAIMING = 3;
+    private static final int STATE_RECLAIMING = 2;
+    /**
+     * The file is now closed
+     */
+    private static final int STATE_CLOSED = 3;
 
     /**
      * The file name
@@ -189,30 +189,22 @@ class FileBackend implements IOBackend, Closeable {
      */
     public void flush() throws StorageException {
         while (true) {
-            if (!state.compareAndSet(STATE_READY, STATE_FLUSH_PREPARE))
+            int s = state.get();
+            if (s == STATE_CLOSED)
+                throw new StorageException("The file is closed");
+            if (!state.compareAndSet(STATE_READY, STATE_FLUSHING))
                 continue;
-            accessManager.withhold();
-            state.compareAndSet(STATE_FLUSH_PREPARE, STATE_FLUSHING);
-            doFlush();
-            accessManager.resume();
-            state.compareAndSet(STATE_FLUSHING, STATE_READY);
+            for (int i = 0; i != blockCount.get(); i++) {
+                blocks[i].flush(channel);
+            }
+            try {
+                channel.force(true);
+            } catch (IOException exception) {
+                throw new StorageException(exception, "Failed to write back to " + fileName);
+            } finally {
+                state.set(STATE_READY);
+            }
             return;
-        }
-    }
-
-    /**
-     * Executes the flushing operation
-     *
-     * @throws StorageException When an IO operation failed
-     */
-    private void doFlush() throws StorageException {
-        for (int i = 0; i != blockCount.get(); i++) {
-            blocks[i].flush(channel);
-        }
-        try {
-            channel.force(true);
-        } catch (IOException exception) {
-            throw new StorageException(exception, "Failed to write back to " + fileName);
         }
     }
 
@@ -339,6 +331,9 @@ class FileBackend implements IOBackend, Closeable {
      */
     private FileBlockTS getBlockWhenNotFound(int targetLocation) throws StorageException {
         while (true) {
+            int s = state.get();
+            if (s == STATE_CLOSED)
+                throw new StorageException("The file is closed");
             if (state.compareAndSet(STATE_READY, STATE_RECLAIMING))
                 break;
         }
@@ -393,6 +388,13 @@ class FileBackend implements IOBackend, Closeable {
 
     @Override
     public void close() throws IOException {
+        while (true) {
+            int s = state.get();
+            if (s == STATE_CLOSED)
+                throw new IOException("The file is already closed");
+            if (state.compareAndSet(STATE_READY, STATE_CLOSED))
+                break;
+        }
         channel.close();
     }
 }

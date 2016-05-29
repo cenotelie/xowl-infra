@@ -19,8 +19,6 @@ package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.logging.Logging;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -62,14 +60,6 @@ class IOAccessManager {
      * The root of the interval tree for the current accesses
      */
     private final AtomicReference<IOAccessOrdered> root;
-    /**
-     * The current number of live accesses
-     */
-    private final AtomicInteger currentAccessCount;
-    /**
-     * Whether further accesses shall be withheld
-     */
-    private final AtomicBoolean doWithhold;
 
     /**
      * Initializes this pool
@@ -79,8 +69,6 @@ class IOAccessManager {
     public IOAccessManager(IOBackend backend) {
         this.backend = backend;
         this.root = new AtomicReference<>(null);
-        this.currentAccessCount = new AtomicInteger(0);
-        this.doWithhold = new AtomicBoolean(false);
     }
 
     /**
@@ -100,7 +88,6 @@ class IOAccessManager {
             access.setupIOData(backend.onAccessRequested(access));
         } catch (StorageException exception) {
             IOAccessOrdered.remove(root, access);
-            currentAccessCount.decrementAndGet();
             throw exception;
         }
         return access;
@@ -124,26 +111,6 @@ class IOAccessManager {
     }
 
     /**
-     * Withhold new accesses under further notice
-     */
-    public void withhold() {
-        while (true) {
-            if (doWithhold.compareAndSet(false, true))
-                return;
-        }
-    }
-
-    /**
-     * Resume accesses
-     */
-    public void resume() {
-        while (true) {
-            if (doWithhold.compareAndSet(true, false))
-                return;
-        }
-    }
-
-    /**
      * Ends an access to the backend
      *
      * @param access The access
@@ -155,7 +122,6 @@ class IOAccessManager {
             Logging.getDefault().error(exception);
         }
         IOAccessOrdered.remove(root, access);
-        currentAccessCount.decrementAndGet();
     }
 
     /**
@@ -164,12 +130,6 @@ class IOAccessManager {
      * @return A free access object
      */
     private Access newAccess() {
-        while (true) {
-            boolean onStandby = doWithhold.get();
-            if (!onStandby)
-                break;
-        }
-        currentAccessCount.incrementAndGet();
         return new Access(this);
     }
 }
