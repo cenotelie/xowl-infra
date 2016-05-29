@@ -189,7 +189,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 // do not insert => did not found the key
                 return FileStore.KEY_NULL;
             allocated = allocateString(buffer);
-            if (mapStrings.compareAndSet(data.hashCode(), FileStore.KEY_NULL, allocated)) {
+            if (mapStrings.tryPut(data.hashCode(), allocated)) {
                 // successfully inserted the string as the bucket head into the map
                 return allocated;
             }
@@ -321,7 +321,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
                 // do not insert => did not found the key
                 return FileStore.KEY_NULL;
             allocated = allocateLiteral(keyLexical, keyDatatype, keyLangTag);
-            if (mapLiterals.compareAndSet(keyLexical, FileStore.KEY_NULL, allocated)) {
+            if (mapLiterals.tryPut(keyLexical, allocated)) {
                 // successfully inserted the literal as the bucket head into the map
                 return allocated;
             }

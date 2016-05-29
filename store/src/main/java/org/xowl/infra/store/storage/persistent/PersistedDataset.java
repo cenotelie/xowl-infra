@@ -1042,7 +1042,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         long bucket = map.get(subject.getKey());
         if (bucket == FileStore.KEY_NULL) {
             bufferQNSubject = newEntry(subject);
-            map.put(subject.getKey(), bufferQNSubject);
+            map.tryPut(subject.getKey(), bufferQNSubject);
         } else {
             bufferQNSubject = bucket;
         }
@@ -1076,7 +1076,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
         if (bucket == FileStore.KEY_NULL) {
             // this is the first quad for this graph
             long key = writeNewGraphIndex(radical, bufferQNSubject);
-            map.put(graph.getKey(), key);
+            map.tryPut(graph.getKey(), key);
             return;
         }
         // look for an appropriate entry
@@ -1319,7 +1319,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
 
         // free the subject node
         store.free(bufferQNSubject);
-        map.remove(subject.getKey());
+        map.tryRemove(subject.getKey(), bufferQNSubject);
         return REMOVE_RESULT_EMPTIED;
     }
 
@@ -1372,9 +1372,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                             // this is the first entry for this index
                             if (next == FileStore.KEY_NULL) {
                                 // this is the sole entry
-                                map.remove(graph.getKey());
+                                map.tryRemove(graph.getKey(), bucket);
                             } else {
-                                map.put(graph.getKey(), next);
+                                map.compareAndSet(graph.getKey(), bucket, next);
                             }
                         } else {
                             try (IOAccess pe = store.accessW(bufferQNPrevious)) {
@@ -1446,7 +1446,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
             ((PersistedNode) quad.getGraph()).decrementRefCount();
         }
         if (isEmpty)
-            map.remove(subject.getKey());
+            map.tryRemove(subject.getKey(), key);
 
     }
 
@@ -1497,9 +1497,9 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
 
         if (newBucket == FileStore.KEY_NULL) {
             // graph completely removed
-            map.remove(graph.getKey());
+            map.tryRemove(graph.getKey(), bucket);
         } else if (newBucket != bucket) {
-            map.put(graph.getKey(), newBucket);
+            map.compareAndSet(graph.getKey(), bucket, newBucket);
         }
     }
 
@@ -1533,7 +1533,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                     try (IOAccess subjectEntry = store.accessR(child)) {
                         PersistedNode subject = getNode(subjectEntry.seek(8).readInt(), subjectEntry.readLong());
                         PersistedMap mapSubjects = mapFor(subject);
-                        mapSubjects.remove(subject.getKey());
+                        mapSubjects.tryRemove(subject.getKey(), mapSubjects.get(subject.getKey()));
                     } catch (StorageException | UnsupportedNodeType exception) {
                         Logging.getDefault().error(exception);
                     }
@@ -1929,7 +1929,7 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
                 store.free(current);
                 current = next;
             }
-            map.remove(pGraph.getKey());
+            map.tryRemove(pGraph.getKey(), bucket);
         } catch (StorageException exception) {
             Logging.getDefault().error(exception);
         }

@@ -81,7 +81,22 @@ class PersistedMap {
     }
 
     /**
-     * Atomically replace a value in the map for a key
+     * Atomically tries to insert a value in the map for a key
+     * This fails if there already is an entry.
+     *
+     * @param key      The key
+     * @param valueNew The associated value
+     * @return Whether the operation succeeded
+     * @throws StorageException When an IO operation fails
+     */
+    public boolean tryPut(long key, long valueNew) throws StorageException {
+        long head2 = PersistedMapStage1.resolveHeadFor(store, mapHead, key1(key));
+        return PersistedMapStage2.compareAndSet(store, head2, key2(key), FileStore.KEY_NULL, valueNew);
+    }
+
+    /**
+     * Atomically replaces a value in the map for a key
+     * This fails if there is no value for the key, or if the actual value is different from the expected one.
      *
      * @param key      The key
      * @param valueOld The old value to replace (FileStore.KEY_NULL, if this is expected to be an insertion)
@@ -92,6 +107,20 @@ class PersistedMap {
     public boolean compareAndSet(long key, long valueOld, long valueNew) throws StorageException {
         long head2 = PersistedMapStage1.resolveHeadFor(store, mapHead, key1(key));
         return PersistedMapStage2.compareAndSet(store, head2, key2(key), valueOld, valueNew);
+    }
+
+    /**
+     * Atomically tries to remove a value from the map
+     * This fails if there is no value or if the value to remove is different from the expected one.
+     *
+     * @param key      The key
+     * @param valueOld The expected value to remove
+     * @return Whether the operation succeeded
+     * @throws StorageException When an IO operation fails
+     */
+    public boolean tryRemove(long key, long valueOld) throws StorageException {
+        long head2 = PersistedMapStage1.resolveHeadFor(store, mapHead, key1(key));
+        return PersistedMapStage2.compareAndSet(store, head2, key2(key), valueOld, FileStore.KEY_NULL);
     }
 
     /**
