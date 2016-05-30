@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.util.Iterator;
 
@@ -562,6 +563,150 @@ class PersistedMapStage2 {
     }
 
     /**
+     * Implements an iterator over the mappings in the B+ tree
+     */
+    private static class Iter implements Iterator<Couple<Integer, Long>> {
+        /**
+         * The containing store
+         */
+        private final FileStore store;
+        /**
+         * The entry for the stage 2 root node
+         */
+        private final long head;
+        /**
+         * The current leaf node
+         */
+        private long currentNode;
+        /**
+         * The keys in the current node
+         */
+        private final int[] currentKeys;
+        /**
+         * The values in the current node
+         */
+        private final long[] currentValues;
+        /**
+         * The current number of key-value mappings
+         */
+        private int currentCount;
+        /**
+         * The next index in the current node
+         */
+        private int nextIndex;
+        /**
+         * The next sibling after this node
+         */
+        private long nextSibling;
+        /**
+         * The result structure
+         */
+        private final Couple<Integer, Long> result;
+
+        /**
+         * Initializes this iterator
+         *
+         * @param store The containing store
+         * @param head  The entry for the stage 2 root node
+         * @throws StorageException When an IO operation fails
+         */
+        public Iter(FileStore store, long head) throws StorageException {
+            this.store = store;
+            this.head = head;
+            this.currentKeys = new int[N * 2 + 1];
+            this.currentValues = new long[N * 2 + 1];
+            this.result = new Couple<>();
+            loadNode(findFirstLeaf(head));
+        }
+
+        /**
+         * Finds the first leaf node
+         *
+         * @param head The map head
+         * @return The first leaf node
+         * @throws StorageException When an IO operation fails
+         */
+        private long findFirstLeaf(long head) throws StorageException {
+            long current = head;
+            IOAccess accessFather = null;
+            IOAccess accessCurrent = store.accessR(current);
+            try {
+                while (true) {
+                    // inspect the current node
+                    boolean isLeaf = accessCurrent.readChar() == 1;
+                    if (isLeaf)
+                        return current;
+                    current = accessCurrent.skip(2 + 4).readLong();
+                    // free the father if any, rotate the accesses and access the next node
+                    if (accessFather != null)
+                        accessFather.close();
+                    accessFather = accessCurrent;
+                    accessCurrent = store.accessR(current);
+                }
+            } finally {
+                if (accessFather != null)
+                    accessFather.close();
+                if (accessCurrent != null)
+                    accessCurrent.close();
+            }
+        }
+
+        /**
+         * Loads the data from the specified node
+         *
+         * @param node The node to load from
+         * @throws StorageException When an IO operation fails
+         */
+        private void loadNode(long node) throws StorageException {
+            currentNode = node;
+            nextIndex = -1;
+            try (IOAccess access = store.accessR(currentNode)) {
+                if (access.readChar() != 1)
+                    throw new StorageException("Node is not a leaf");
+                currentCount = access.readChar();
+                for (int i = 0; i != currentCount; i++) {
+                    currentKeys[i] = access.readInt();
+                    currentValues[i] = access.readLong();
+                }
+                nextSibling = access.skip(4).readLong();
+            }
+            nextIndex = 0;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return nextIndex >= 0 && nextIndex < currentCount;
+        }
+
+        @Override
+        public Couple<Integer, Long> next() {
+            result.x = currentKeys[nextIndex];
+            result.y = currentValues[nextIndex];
+            nextIndex++;
+            if (nextIndex >= currentCount && nextSibling != FileStore.KEY_NULL) {
+                // go to next node
+                try {
+                    loadNode(nextSibling);
+                } catch (StorageException exception) {
+                    Logging.getDefault().error(exception);
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public void remove() {
+            try {
+                // try to remove the mapping
+                // this may fail if the map was modified
+                compareAndSet(store, head, result.x, result.y, FileStore.KEY_NULL);
+            } catch (StorageException exception) {
+                Logging.getDefault().error(exception);
+            }
+        }
+    }
+
+    /**
      * Gets an iterator over the key-value mappings for a stage 2 map
      *
      * @param store The containing store
@@ -570,6 +715,6 @@ class PersistedMapStage2 {
      * @throws StorageException When an IO operation fails
      */
     public static Iterator<Couple<Integer, Long>> iterator(FileStore store, long head) throws StorageException {
-        return null;
+        return new Iter(store, head);
     }
 }

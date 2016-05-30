@@ -64,23 +64,23 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     /**
      * Entry for the next blank value data
      */
-    private static final long DATA_MAP_SUBJECT_IRI_ENTRY = 0x00010000L;
+    private static final long DATA_MAP_SUBJECT_IRI_ENTRY = 0x2002;
     /**
      * Entry for the string map data
      */
-    private static final long DATA_MAP_SUBJECT_BLANK_ENTRY = 0x00010001L;
+    private static final long DATA_MAP_SUBJECT_BLANK_ENTRY = 0x204C;
     /**
      * Entry for the literal map data
      */
-    private static final long DATA_MAP_SUBJECT_ANON_ENTRY = 0x00010002L;
+    private static final long DATA_MAP_SUBJECT_ANON_ENTRY = 0x2096;
     /**
      * Entry for the string map data
      */
-    private static final long DATA_MAP_INDEX_IRI_ENTRY = 0x00010003L;
+    private static final long DATA_MAP_INDEX_IRI_ENTRY = 0x20E0;
     /**
      * Entry for the literal map data
      */
-    private static final long DATA_MAP_INDEX_BLANK_ENTRY = 0x00010004L;
+    private static final long DATA_MAP_INDEX_BLANK_ENTRY = 0x212A;
 
     /**
      * Iterator over the quad node in a bucket
