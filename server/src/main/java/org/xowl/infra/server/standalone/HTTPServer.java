@@ -18,6 +18,7 @@
 package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.*;
+import org.xowl.infra.server.base.ServerConfiguration;
 import org.xowl.infra.server.utils.SSLGenerator;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;

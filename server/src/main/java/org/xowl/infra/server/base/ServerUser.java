@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.standalone;
+package org.xowl.infra.server.base;
 
 import org.xowl.infra.server.api.base.BaseUser;
 import org.xowl.infra.store.ProxyObject;
