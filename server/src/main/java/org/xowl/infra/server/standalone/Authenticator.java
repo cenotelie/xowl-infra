@@ -15,13 +15,12 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.http;
+package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.BasicAuthenticator;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
-import org.xowl.infra.server.impl.ServerController;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.store.IOUtils;
 

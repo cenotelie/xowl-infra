@@ -15,11 +15,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.http;
+package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.*;
-import org.xowl.infra.server.impl.ServerConfiguration;
-import org.xowl.infra.server.impl.ServerController;
 import org.xowl.infra.server.utils.SSLGenerator;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
@@ -153,7 +151,7 @@ public class HTTPServer implements Closeable {
             Logging.getDefault().error(exception);
         }
         if (temp != null && sslContext != null) {
-            Authenticator authenticator = new Authenticator(controller, configuration.getSecurityRealm());
+            org.xowl.infra.server.standalone.Authenticator authenticator = new org.xowl.infra.server.standalone.Authenticator(controller, configuration.getSecurityRealm());
             server = temp;
             server.createContext("/api", new HttpHandler() {
                 @Override

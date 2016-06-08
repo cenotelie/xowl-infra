@@ -15,8 +15,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.impl;
+package org.xowl.infra.server.standalone;
 
+import org.xowl.infra.server.impl.Program;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.Logging;
