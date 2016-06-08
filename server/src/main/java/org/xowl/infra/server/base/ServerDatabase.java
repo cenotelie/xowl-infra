@@ -27,13 +27,14 @@ import org.xowl.infra.store.Serializable;
 import org.xowl.infra.store.loaders.RDFLoaderResult;
 import org.xowl.infra.store.loaders.RDFTLoader;
 import org.xowl.infra.store.loaders.SPARQLLoader;
+import org.xowl.infra.store.rdf.Changeset;
+import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFRule;
 import org.xowl.infra.store.rdf.RDFRuleStatus;
 import org.xowl.infra.store.sparql.Command;
-import org.xowl.infra.store.sparql.Result;
-import org.xowl.infra.store.sparql.ResultSuccess;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
+import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.BufferedLogger;
@@ -218,20 +219,25 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         if (namedIRIs == null)
             namedIRIs = Collections.emptyList();
         SPARQLLoader loader = new SPARQLLoader(repository.getStore(), defaultIRIs, namedIRIs);
-        List<Command> commands = loader.load(dispatchLogger, new StringReader(sparql));
-        if (commands == null) {
+        Command command = loader.load(dispatchLogger, new StringReader(sparql));
+        if (command == null) {
             // ill-formed request
             dispatchLogger.error("Failed to parse and load the request");
             return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
         }
-        Result result = ResultSuccess.INSTANCE;
-        for (Command command : commands) {
-            result = command.execute(repository);
-            if (result.isFailure()) {
-                break;
-            }
+        return new XSPReplyResult<>(command.execute(repository));
+    }
+
+    @Override
+    public XSPReply sparql(Command sparql) {
+        if (sparql == null) {
+            // ill-formed request
+            BufferedLogger bufferedLogger = new BufferedLogger();
+            DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
+            dispatchLogger.error("Failed to parse and load the request");
+            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
         }
-        return new XSPReplyResult<>(result);
+        return new XSPReplyResult<>(sparql.execute(repository));
     }
 
     @Override
@@ -461,6 +467,18 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         }
         repository.getStore().commit();
         return XSPReplySuccess.instance();
+    }
+
+    @Override
+    public XSPReply upload(Collection<Quad> quads) {
+        try {
+            repository.getStore().insert(Changeset.fromAdded(quads));
+            repository.getStore().commit();
+            return XSPReplySuccess.instance();
+        } catch (UnsupportedNodeType exception) {
+            repository.getStore().rollback();
+            return new XSPReplyFailure(exception.getMessage());
+        }
     }
 
     @Override

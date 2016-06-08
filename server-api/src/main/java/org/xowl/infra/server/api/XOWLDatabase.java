@@ -20,7 +20,10 @@ package org.xowl.infra.server.api;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.Serializable;
+import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.sparql.Command;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -45,6 +48,14 @@ public interface XOWLDatabase extends Serializable {
      * @return The protocol reply
      */
     XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs);
+
+    /**
+     * Executes a SPARQL command
+     *
+     * @param sparql The SPARQL command(s)
+     * @return The protocol reply
+     */
+    XSPReply sparql(Command sparql);
 
     /**
      * Gets the entailment regime
@@ -125,4 +136,12 @@ public interface XOWLDatabase extends Serializable {
      * @return The protocol reply
      */
     XSPReply upload(String syntax, String content);
+
+    /**
+     * Uploads quads to this database
+     *
+     * @param quads The quads to upload
+     * @return The protocol reply
+     */
+    XSPReply upload(Collection<Quad> quads);
 }

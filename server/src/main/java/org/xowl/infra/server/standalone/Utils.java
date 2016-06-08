@@ -30,6 +30,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Utility APIs for the HTTP server
@@ -46,12 +47,16 @@ class Utils {
      */
     public static String getRequestBody(HttpExchange exchange) throws IOException {
         try (InputStream stream = exchange.getRequestBody()) {
+            InputStream input = stream;
+            if ("gzip".equals(exchange.getRequestHeaders().getFirst("Content-Encoding"))) {
+                input = new GZIPInputStream(stream);
+            }
             ByteArrayOutputStream output = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
-            int read = stream.read(buffer);
+            int read = input.read(buffer);
             while (read > 0) {
                 output.write(buffer, 0, read);
-                read = stream.read(buffer);
+                read = input.read(buffer);
             }
             buffer = output.toByteArray();
             output.close();

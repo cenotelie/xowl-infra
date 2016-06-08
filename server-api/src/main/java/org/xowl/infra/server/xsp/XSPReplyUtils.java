@@ -65,6 +65,8 @@ public class XSPReplyUtils {
             return new HttpResponse(HttpURLConnection.HTTP_UNAUTHORIZED);
         if (reply instanceof XSPReplyUnauthorized)
             return new HttpResponse(HttpURLConnection.HTTP_FORBIDDEN);
+        if (reply instanceof XSPReplyUnsupported)
+            return new HttpResponse(HttpURLConnection.HTTP_NOT_IMPLEMENTED);
         if (reply instanceof XSPReplyNotFound)
             return new HttpResponse(HttpURLConnection.HTTP_NOT_FOUND);
         // other failures
@@ -102,6 +104,8 @@ public class XSPReplyUtils {
             return XSPReplyUnauthenticated.instance();
         if (response.getCode() == HttpURLConnection.HTTP_FORBIDDEN)
             return XSPReplyUnauthorized.instance();
+        if (response.getCode() == HttpURLConnection.HTTP_NOT_IMPLEMENTED)
+            return XSPReplyUnsupported.instance();
         if (response.getCode() == HttpURLConnection.HTTP_NOT_FOUND)
             return XSPReplyNotFound.instance();
         if (response.getCode() == HttpURLConnection.HTTP_INTERNAL_ERROR)
@@ -225,6 +229,8 @@ public class XSPReplyUtils {
                 return XSPReplyUnauthenticated.instance();
             else if ("UNAUTHORIZED".equals(cause))
                 return XSPReplyUnauthorized.instance();
+            else if ("UNSUPPORTED".equals(cause))
+                return XSPReplyUnsupported.instance();
             else if ("NOT FOUND".equals(cause))
                 return XSPReplyNotFound.instance();
             else if ("NETWORK ERROR".equals(cause)) {

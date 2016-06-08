@@ -18,6 +18,7 @@
 package org.xowl.infra.store.http;
 
 import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logging;
 
 import javax.net.ssl.*;
@@ -120,6 +121,33 @@ public class HttpConnection implements Closeable {
      * @return The response, or null if the request failed before reaching the server
      */
     public HttpResponse request(String uriComplement, String method, String body, String contentType, String accept) {
+        return request(uriComplement, method, body.getBytes(Files.CHARSET), contentType, false, accept);
+    }
+
+    /**
+     * Sends an HTTP request to the endpoint, completed with an URI complement
+     *
+     * @param uriComplement The URI complement to append to the original endpoint URI, if any
+     * @param method        The HTTP method to use, if any
+     * @param accept        The MIME type to accept for the response, if any
+     * @return The response, or null if the request failed before reaching the server
+     */
+    public HttpResponse request(String uriComplement, String method, String accept) {
+        return request(uriComplement, method, null, null, false, accept);
+    }
+
+    /**
+     * Sends an HTTP request to the endpoint, completed with an URI complement
+     *
+     * @param uriComplement The URI complement to append to the original endpoint URI, if any
+     * @param method        The HTTP method to use, if any
+     * @param body          The request body, if any
+     * @param contentType   The request body content type, if any
+     * @param compressed    Whether the body is compressed with gzip
+     * @param accept        The MIME type to accept for the response, if any
+     * @return The response, or null if the request failed before reaching the server
+     */
+    public HttpResponse request(String uriComplement, String method, byte[] body, String contentType, boolean compressed, String accept) {
         URL url;
         try {
             url = new URL((endpoint != null ? endpoint : "") + (uriComplement != null ? uriComplement : ""));
@@ -146,8 +174,6 @@ public class HttpConnection implements Closeable {
             Logging.getDefault().error(exception);
             return null;
         }
-        if (contentType != null)
-            connection.setRequestProperty("Content-Type", contentType);
         if (accept != null)
             connection.setRequestProperty("Accept", accept);
         if (authToken != null)
@@ -155,8 +181,12 @@ public class HttpConnection implements Closeable {
         connection.setUseCaches(false);
         connection.setDoOutput(true);
         if (body != null) {
+            if (contentType != null)
+                connection.setRequestProperty("Content-Type", contentType);
+            if (compressed)
+                connection.setRequestProperty("Content-Encoding", "gzip");
             try (OutputStream stream = connection.getOutputStream()) {
-                stream.write(body.getBytes());
+                stream.write(body);
             } catch (IOException exception) {
                 Logging.getDefault().error(exception);
                 return null;

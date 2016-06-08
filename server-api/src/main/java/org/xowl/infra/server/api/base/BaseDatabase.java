@@ -24,7 +24,10 @@ import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyFailure;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.sparql.Command;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -78,6 +81,11 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
+    public XSPReply sparql(Command sparql) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
     public XSPReply getEntailmentRegime() {
         return XSPReplyFailure.instance();
     }
@@ -124,6 +132,11 @@ public class BaseDatabase implements XOWLDatabase {
 
     @Override
     public XSPReply upload(String syntax, String content) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply upload(Collection<Quad> quads) {
         return XSPReplyFailure.instance();
     }
 

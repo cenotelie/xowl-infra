@@ -21,8 +21,12 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.base.BaseDatabase;
 import org.xowl.infra.server.xsp.XSPReply;
+import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.store.EntailmentRegime;
+import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.sparql.Command;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -61,6 +65,11 @@ class RemoteDatabase extends BaseDatabase {
     @Override
     public XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         return server.sparql(name, sparql, defaultIRIs, namedIRIs);
+    }
+
+    @Override
+    public XSPReply sparql(Command sparql) {
+        return XSPReplyUnsupported.instance();
     }
 
     @Override
@@ -111,5 +120,10 @@ class RemoteDatabase extends BaseDatabase {
     @Override
     public XSPReply upload(String syntax, String content) {
         return server.upload(name, syntax, content);
+    }
+
+    @Override
+    public XSPReply upload(Collection<Quad> quads) {
+        return server.upload(name, quads);
     }
 }
