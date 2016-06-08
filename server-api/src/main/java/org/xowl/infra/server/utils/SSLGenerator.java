@@ -15,71 +15,28 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.impl;
+package org.xowl.infra.server.utils;
 
 import org.xowl.infra.store.IOUtils;
-import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.*;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import java.util.Scanner;
 
 /**
- * API for the management of SSL/TLS keys
+ * Generator of SSL key stores
  *
  * @author Laurent Wouters
  */
-public class SSLManager {
-    /**
-     * The alias for generated certificates
-     */
-    public static final String GENERATED_ALIAS = "server.xowl.org";
-    /**
-     * The file name for the key store
-     */
-    private static final String KEY_STORE_FILE = "keystore.jks";
-
-    /**
-     * Gets the key store
-     *
-     * @param configuration The current configuration
-     * @return The key store
-     */
-    public static Couple<KeyStore, String> getKeyStore(ServerConfiguration configuration) {
-        String location = configuration.getSecurityKeyStore();
-        String password = configuration.getSecurityKeyStorePassword();
-        if (location == null) {
-            File target = new File(configuration.getStartupFolder(), KEY_STORE_FILE);
-            password = generateKeyStore(target);
-            if (password == null)
-                return null;
-            location = KEY_STORE_FILE;
-            configuration.setupKeyStore(location, password);
-        }
-        try {
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            try (FileInputStream stream = new FileInputStream(new File(configuration.getStartupFolder(), location))) {
-                keyStore.load(stream, password.toCharArray());
-            }
-            return new Couple<>(keyStore, password);
-        } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException exception) {
-            Logging.getDefault().error(exception);
-            return null;
-        }
-    }
-
+public class SSLGenerator {
     /**
      * Generates a key store with a new self-signed certificate
      *
      * @param target The target file for the key store
      * @return The password to the key store
      */
-    private static String generateKeyStore(File target) {
+    public static String generateKeyStore(File target, String alias) {
         SecureRandom random = new SecureRandom();
         byte[] buffer = new byte[20];
         random.nextBytes(buffer);
@@ -91,9 +48,9 @@ public class SSLManager {
                 return null;
             }
             String[] command = new String[]{"keytool", "-genkeypair",
-                    "-alias", GENERATED_ALIAS,
+                    "-alias", alias,
                     "-keyalg", "RSA", "-keysize", "2048",
-                    "-dname", "CN=" + GENERATED_ALIAS + ", O=xowl.org",
+                    "-dname", "CN=" + alias + ", O=xowl.org",
                     "-validity", "3650", "-storetype", "JKS",
                     "-keystore", target.getAbsolutePath()};
             final Process process = Runtime.getRuntime().exec(command);

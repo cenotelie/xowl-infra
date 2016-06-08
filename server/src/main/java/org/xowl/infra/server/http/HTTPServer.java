@@ -18,9 +18,9 @@
 package org.xowl.infra.server.http;
 
 import com.sun.net.httpserver.*;
-import org.xowl.infra.server.impl.SSLManager;
 import org.xowl.infra.server.impl.ServerConfiguration;
 import org.xowl.infra.server.impl.ServerController;
+import org.xowl.infra.server.utils.SSLGenerator;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
@@ -30,9 +30,12 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.*;
+import java.security.cert.CertificateException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -59,6 +62,43 @@ public class HTTPServer implements Closeable {
      * The executor max pool size
      */
     private static final int EXECUTOR_POOL_MAX = 16;
+    /**
+     * The alias for generated certificates
+     */
+    public static final String GENERATED_ALIAS = "server.xowl.org";
+    /**
+     * The file name for the key store
+     */
+    private static final String KEY_STORE_FILE = "keystore.jks";
+
+    /**
+     * Gets the key store
+     *
+     * @param configuration The current configuration
+     * @return The key store
+     */
+    private static Couple<KeyStore, String> getKeyStore(ServerConfiguration configuration) {
+        String location = configuration.getSecurityKeyStore();
+        String password = configuration.getSecurityKeyStorePassword();
+        if (location == null) {
+            File target = new File(configuration.getStartupFolder(), KEY_STORE_FILE);
+            password = SSLGenerator.generateKeyStore(target, GENERATED_ALIAS);
+            if (password == null)
+                return null;
+            location = KEY_STORE_FILE;
+            configuration.setupKeyStore(location, password);
+        }
+        try {
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            try (FileInputStream stream = new FileInputStream(new File(configuration.getStartupFolder(), location))) {
+                keyStore.load(stream, password.toCharArray());
+            }
+            return new Couple<>(keyStore, password);
+        } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException exception) {
+            Logging.getDefault().error(exception);
+            return null;
+        }
+    }
 
     /**
      * The current configuration
@@ -88,7 +128,7 @@ public class HTTPServer implements Closeable {
         this.configuration = configuration;
         this.logger = controller.getLogger();
         SSLContext sslContext = null;
-        Couple<KeyStore, String> ssl = SSLManager.getKeyStore(configuration);
+        Couple<KeyStore, String> ssl = getKeyStore(configuration);
         if (ssl != null) {
             try {
                 controller.getLogger().info("Setting up SSL");
