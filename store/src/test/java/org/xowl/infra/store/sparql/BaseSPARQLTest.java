@@ -118,10 +118,9 @@ public abstract class BaseSPARQLTest {
         SPARQLLoader loader = new SPARQLLoader(store);
         try (InputStream stream = BaseSPARQLTest.class.getResourceAsStream(mapper.get(resource))) {
             InputStreamReader reader = new InputStreamReader(stream, Files.CHARSET);
-            List<Command> commands = loader.load(logger, reader);
+            Command command = loader.load(logger, reader);
             Assert.assertFalse("Errors while loading", logger.isOnError());
-            Assert.assertNotNull("Errors while loading", commands);
-            Assert.assertFalse("No command loaded", commands.isEmpty());
+            Assert.assertNotNull("Errors while loading", command);
         } catch (IOException exception) {
             Assert.fail(exception.getMessage());
         }
@@ -140,9 +139,9 @@ public abstract class BaseSPARQLTest {
         SPARQLLoader loader = new SPARQLLoader(store);
         try (InputStream stream = BaseSPARQLTest.class.getResourceAsStream(mapper.get(resource))) {
             InputStreamReader reader = new InputStreamReader(stream, Files.CHARSET);
-            List<Command> commands = loader.load(logger, reader);
+            Command command = loader.load(logger, reader);
             Assert.assertTrue("Failed to report error while loading", logger.isOnError());
-            Assert.assertNull("Failed to return null on incorrect loading", commands);
+            Assert.assertNull("Failed to return null on incorrect loading", command);
         } catch (IOException exception) {
             Assert.fail(exception.getMessage());
         }

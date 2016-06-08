@@ -107,7 +107,7 @@ public class SPARQLLoader {
      * @param reader The resource's reader
      * @return The loaded data
      */
-    public List<Command> load(Logger logger, Reader reader) {
+    public Command load(Logger logger, Reader reader) {
         ParseResult parseResult = parse(logger, reader);
         if (parseResult == null || !parseResult.isSuccess() || parseResult.getErrors().size() > 0)
             return null;
@@ -115,8 +115,7 @@ public class SPARQLLoader {
         try {
             switch (parseResult.getRoot().getSymbol().getID()) {
                 case SPARQLParser.ID.query:
-                    Command comand = loadQuery(parseResult.getRoot());
-                    return (comand == null ? null : Collections.singletonList(comand));
+                    return loadQuery(parseResult.getRoot());
                 case SPARQLParser.ID.update:
                     return loadUpdate(parseResult.getRoot());
             }
@@ -190,7 +189,7 @@ public class SPARQLLoader {
      * @param node An AST node
      * @return The commands
      */
-    private List<Command> loadUpdate(ASTNode node) throws LoaderException {
+    private Command loadUpdate(ASTNode node) throws LoaderException {
         List<Command> result = new ArrayList<>();
         while (node != null) {
             loadPrologue(node.getChildren().get(0));
@@ -233,7 +232,11 @@ public class SPARQLLoader {
             }
             node = node.getChildren().size() >= 3 ? node.getChildren().get(2) : null;
         }
-        return result;
+        if (result.isEmpty())
+            return null;
+        if (result.size() == 1)
+            return result.get(0);
+        return new CommandComposed(result);
     }
 
     /**

@@ -252,16 +252,10 @@ public class Repository extends AbstractRepository {
      */
     public Result execute(Logger logger, String sparql) {
         SPARQLLoader loader = new SPARQLLoader(backend);
-        List<Command> commands = loader.load(logger, new StringReader(sparql));
-        if (commands == null)
+        Command command = loader.load(logger, new StringReader(sparql));
+        if (command == null)
             return ResultFailure.INSTANCE;
-        Result result = ResultFailure.INSTANCE;
-        for (Command command : commands) {
-            result = command.execute(this);
-            if (result.isFailure())
-                break;
-        }
-        return result;
+        return command.execute(this);
     }
 
     /**
