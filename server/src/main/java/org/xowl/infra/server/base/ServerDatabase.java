@@ -20,7 +20,7 @@ package org.xowl.infra.server.base;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.base.BaseDatabase;
 import org.xowl.infra.server.api.base.BaseRule;
-import org.xowl.infra.server.impl.Program;
+import org.xowl.infra.server.standalone.Program;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.*;
 import org.xowl.infra.store.Serializable;

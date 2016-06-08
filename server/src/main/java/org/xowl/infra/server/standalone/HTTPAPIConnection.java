@@ -20,6 +20,7 @@ package org.xowl.infra.server.standalone;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.infra.server.api.XOWLPrivilege;
+import org.xowl.infra.server.base.ServerController;
 import org.xowl.infra.server.base.ServerUser;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyUtils;

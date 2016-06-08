@@ -17,7 +17,7 @@
 
 package org.xowl.infra.server.base;
 
-import org.xowl.infra.server.impl.Program;
+import org.xowl.infra.server.standalone.Program;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.Logging;

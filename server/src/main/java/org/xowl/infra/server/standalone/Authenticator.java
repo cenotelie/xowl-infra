@@ -21,6 +21,7 @@ import com.sun.net.httpserver.BasicAuthenticator;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
+import org.xowl.infra.server.base.ServerController;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.store.IOUtils;
 

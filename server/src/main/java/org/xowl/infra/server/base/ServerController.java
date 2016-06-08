@@ -15,18 +15,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.standalone;
+package org.xowl.infra.server.base;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.api.base.BaseDatabasePrivileges;
 import org.xowl.infra.server.api.base.BaseUserPrivileges;
-import org.xowl.infra.server.base.Schema;
-import org.xowl.infra.server.base.ServerConfiguration;
-import org.xowl.infra.server.base.ServerDatabase;
-import org.xowl.infra.server.base.ServerUser;
-import org.xowl.infra.server.impl.Program;
+import org.xowl.infra.server.standalone.Program;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Vocabulary;

@@ -15,11 +15,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.impl;
+package org.xowl.infra.server.standalone;
 
-import org.xowl.infra.server.standalone.HTTPServer;
 import org.xowl.infra.server.base.ServerConfiguration;
-import org.xowl.infra.server.standalone.ServerController;
+import org.xowl.infra.server.base.ServerController;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
