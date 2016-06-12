@@ -288,6 +288,27 @@ public class URIUtils {
             return null;
         if (path.isEmpty())
             return path;
+        List<String> output = getSegments(path);
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i != output.size(); i++) {
+            if (i != 0)
+                result.append("/");
+            result.append(output.get(i));
+        }
+        return result.toString();
+    }
+
+    /**
+     * Gets the segments in the specified path, with the dot segments resolved
+     *
+     * @param path The path
+     * @return The segments
+     */
+    public static List<String> getSegments(String path) {
+        if (path == null)
+            return new ArrayList<>();
+        if (path.isEmpty())
+            return new ArrayList<>();
         boolean isAbsolute = path.startsWith("/");
         List<String> input = splitSegments(path);
         Stack<String> output = new Stack<>();
@@ -311,13 +332,7 @@ public class URIUtils {
                 output.push(head);
             }
         }
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i != output.size(); i++) {
-            if (i != 0)
-                result.append("/");
-            result.append(output.get(i));
-        }
-        return result.toString();
+        return output;
     }
 
     /**
