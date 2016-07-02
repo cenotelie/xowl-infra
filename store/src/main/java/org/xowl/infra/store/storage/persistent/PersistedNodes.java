@@ -63,6 +63,17 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      */
     private static final int ENTRY_STRING_OVERHEAD = 8 + 8 + 4;
     /**
+     * The maximum length of a string before it is split
+     */
+    private static final int ENTRY_STRING_MAX_FIRST = FileStoreFile.FILE_OBJECT_MAX_SIZE - ENTRY_STRING_OVERHEAD;
+    /**
+     * The maximum length of the rest of a string, with a header as follow:
+     * long: The next rest entry
+     * int: The size of this rest
+     */
+    private static final int ENTRY_STRING_MAX_REST = FileStoreFile.FILE_OBJECT_MAX_SIZE - (8 + 4);
+
+    /**
      * The size of an entry for a literal
      * long: next entry
      * long: ref count
@@ -148,12 +159,46 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @throws StorageException When an IO operation failed
      */
     public String retrieveString(long key) throws StorageException {
-        try (IOAccess element = store.accessR(key)) {
-            int length = element.seek(16).readInt();
-            byte[] data = element.readBytes(length);
-            return new String(data, charset);
-        }
+        return new String(retrieveStringBytes(store.accessR(key)), charset);
     }
+
+    /**
+     * Reads the string bytes at the specified index
+     *
+     * @param firstElement The IO access for the first element
+     * @return The string bytes
+     * @throws StorageException When an IO operation failed
+     */
+    private byte[] retrieveStringBytes(IOAccess firstElement) throws StorageException {
+        int length;
+        long next;
+        byte[] result;
+        int index;
+
+        try {
+            length = firstElement.seek(16).readInt();
+            if (length <= ENTRY_STRING_MAX_FIRST)
+                // fast path for short strings
+                return firstElement.readBytes(length);
+            next = firstElement.readLong();
+            result = new byte[length];
+            firstElement.readBytes(result, 0, ENTRY_STRING_MAX_FIRST - 8);
+            index = ENTRY_STRING_MAX_FIRST - 8;
+        } finally {
+            firstElement.close();
+        }
+
+        while (next != FileStore.KEY_NULL) {
+            try (IOAccess element = store.accessR(next)) {
+                next = element.readLong();
+                int restLength = element.readInt();
+                element.readBytes(result, index, restLength);
+                index += restLength;
+            }
+        }
+        return result;
+    }
+
 
     /**
      * Updates the reference counter of a string entry
@@ -198,16 +243,22 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
 
         while (current != FileStore.KEY_NULL) {
             long next;
-            try (IOAccess entry = store.accessR(current)) {
+            IOAccess entry = store.accessR(current);
+            try {
                 next = entry.readLong();
                 int size = entry.skip(8).readInt();
                 if (size == buffer.length) {
-                    if (Arrays.equals(buffer, entry.readBytes(buffer.length))) {
+                    byte[] content = retrieveStringBytes(entry);
+                    entry = null; // entry is closed by the retrieveStringBytes method
+                    if (Arrays.equals(buffer, content)) {
                         // the string is already there, return its key
                         // if the string was allocated we cannot do anything about it ...
                         return current;
                     }
                 }
+            } finally {
+                if (entry != null)
+                    entry.close();
             }
             if (next != FileStore.KEY_NULL) {
                 // there is a next string => explore it
@@ -221,13 +272,13 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
             if (allocated == FileStore.KEY_NULL)
                 // not allocated yet
                 allocated = allocateString(buffer);
-            try (IOAccess entry = store.accessW(current)) {
-                next = entry.readLong();
+            try (IOAccess currentEntry = store.accessW(current)) {
+                next = currentEntry.readLong();
                 if (next != FileStore.KEY_NULL) {
                     // there is now a new string ...
                     continue;
                 }
-                entry.reset().writeLong(allocated);
+                currentEntry.reset().writeLong(allocated);
             }
             return allocated;
         }
@@ -242,12 +293,48 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
      * @throws StorageException When an IO operation failed
      */
     private long allocateString(byte[] buffer) throws StorageException {
-        long result = store.allocateDirect(buffer.length + ENTRY_STRING_OVERHEAD);
+        if (buffer.length <= ENTRY_STRING_MAX_FIRST) {
+            // fast path for short strings
+            long result = store.allocateDirect(buffer.length + ENTRY_STRING_OVERHEAD);
+            try (IOAccess entry = store.accessW(result)) {
+                entry.writeLong(FileStore.KEY_NULL);
+                entry.writeLong(0);
+                entry.writeInt(buffer.length);
+                entry.writeBytes(buffer);
+            }
+            return result;
+        }
+
+        long result = store.allocateDirect(FileStoreFile.FILE_OBJECT_MAX_SIZE);
+        int index = ENTRY_STRING_MAX_FIRST - 8;
+        int nextLength = buffer.length - index;
+        if (nextLength > ENTRY_STRING_MAX_REST)
+            nextLength = ENTRY_STRING_MAX_REST;
+        long nextEntry = store.allocateDirect(nextLength + 8 + 4);
+
+        // write the head entry for the string
         try (IOAccess entry = store.accessW(result)) {
             entry.writeLong(FileStore.KEY_NULL);
             entry.writeLong(0);
             entry.writeInt(buffer.length);
-            entry.writeBytes(buffer);
+            entry.writeLong(nextEntry);
+            entry.writeBytes(buffer, 0, index);
+        }
+
+        // write the rest entry
+        while (nextEntry != FileStore.KEY_NULL) {
+            int after = buffer.length - index - nextLength;
+            if (after > ENTRY_STRING_MAX_REST)
+                after = ENTRY_STRING_MAX_REST;
+            long afterEntry = after <= 0 ? FileStore.KEY_NULL : store.allocateDirect(after + 8 + 4);
+            try (IOAccess entry = store.accessW(nextEntry)) {
+                entry.writeLong(afterEntry);
+                entry.writeInt(nextLength);
+                entry.writeBytes(buffer, index, nextLength);
+            }
+            index += nextLength;
+            nextLength = after;
+            nextEntry = afterEntry;
         }
         return result;
     }
@@ -573,7 +660,7 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         store.close();
     }
 }

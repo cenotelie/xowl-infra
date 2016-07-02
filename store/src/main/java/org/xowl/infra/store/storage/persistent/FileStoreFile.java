@@ -78,11 +78,11 @@ class FileStoreFile extends FileBackend {
     /**
      * Minimum size of objects in this store
      */
-    private static final int FILE_OBJECT_MIN_SIZE = 4 - FILE_OBJECT_HEADER_SIZE;
+    public static final int FILE_OBJECT_MIN_SIZE = 4 - FILE_OBJECT_HEADER_SIZE;
     /**
      * Maximum size of objects in this store
      */
-    private static final int FILE_OBJECT_MAX_SIZE = FileBlock.BLOCK_SIZE - FILE_OBJECT_HEADER_SIZE;
+    public static final int FILE_OBJECT_MAX_SIZE = FileBlock.BLOCK_SIZE - FILE_OBJECT_HEADER_SIZE;
 
     /**
      * Initializes this data file
