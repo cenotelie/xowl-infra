@@ -34,7 +34,7 @@ class FileBackend implements IOBackend, Closeable {
     /**
      * The maximum number of loaded blocks
      */
-    private static final int FILE_MAX_LOADED_BLOCKS = 256;
+    private static final int FILE_MAX_LOADED_BLOCKS = 1024;
     /**
      * The mask for the index of a block
      */
