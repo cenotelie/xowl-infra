@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.storage;
 
-import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedDataset;
 import org.xowl.infra.store.storage.impl.DatasetImpl;
@@ -25,10 +24,10 @@ import org.xowl.infra.store.storage.impl.MQuad;
 import org.xowl.infra.store.storage.persistent.PersistedDataset;
 import org.xowl.infra.utils.logging.Logging;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Represents the caching part of a a on-disk persistent data store
@@ -46,115 +45,17 @@ class OnDiskStoreCache extends DatasetImpl {
     private static final int MAX_CACHED_GRAPHS = 4;
 
     /**
-     * Represents a collection of cached elements
-     */
-    private static class Part {
-        /**
-         * The cached nodes
-         */
-        private final Node[] nodes;
-        /**
-         * The last hit time
-         */
-        private final long[] hits;
-        /**
-         * The number of cached items
-         */
-        private int count;
-        /**
-         * The current time
-         */
-        private long current;
-
-        /**
-         * Initializes the cache
-         *
-         * @param size The maximum number of items in this cache
-         */
-        public Part(int size) {
-            this.nodes = new Node[size];
-            this.hits = new long[size];
-            this.count = 0;
-            this.current = Long.MIN_VALUE;
-        }
-
-        /**
-         * Gets whether the specified node is cached
-         *
-         * @param node The node to look for
-         * @return true if the node is cached
-         */
-        public boolean contains(Node node) {
-            for (int i = 0; i != count; i++) {
-                if (RDFUtils.same(nodes[i], node))
-                    return true;
-            }
-            return false;
-        }
-
-        /**
-         * Caches a node
-         * If the node was already in the cached, return it.
-         * If the node was simply added, return null.
-         * If the insertion resulted in another node being dropped, return the dropped node.
-         *
-         * @param node The node to cache
-         * @return The result
-         */
-        public Node cache(Node node) {
-            current++;
-            int oldestIndex = -1;
-            long oldestTime = Long.MAX_VALUE;
-            for (int i = 0; i != count; i++) {
-                if (RDFUtils.same(nodes[i], node)) {
-                    hits[i] = current;
-                    return node;
-                }
-                if (hits[i] < oldestTime) {
-                    oldestTime = hits[i];
-                    oldestIndex = i;
-                }
-            }
-            // not in this collection
-            if (count < nodes.length) {
-                // still not full
-                nodes[count] = node;
-                hits[count] = current;
-                count++;
-                return null;
-            }
-            // the collection is full, we need to drop the oldest element
-            Node toDrop = nodes[oldestIndex];
-            nodes[oldestIndex] = node;
-            hits[oldestIndex] = current;
-            return toDrop;
-        }
-    }
-
-    /**
      * The base persisted dataset
      */
     private final PersistedDataset persisted;
     /**
-     * The cache corresponding exactly to the on-disk data
-     */
-    private final CachedDataset cache;
-    /**
-     * The current state of the cached data with the pending changes applied
-     */
-    private final DiffDataset diff;
-    /**
      * Collection of the cached subjects
      */
-    private final Part cachedSubjects;
+    private final ConcurrentHashMap<SubjectNode, CachedDataset> cachedSubjects;
     /**
      * Collection of the cached graphs
      */
-    private final Part cachedGraphs;
-    /**
-     * The estimated size of this cache
-     */
-    private int size;
+    private final ConcurrentHashMap<GraphNode, CachedDataset> cachedGraphs;
 
     /**
      * Initializes this cache
@@ -163,256 +64,191 @@ class OnDiskStoreCache extends DatasetImpl {
      */
     public OnDiskStoreCache(PersistedDataset persisted) {
         this.persisted = persisted;
-        this.cache = new CachedDataset();
-        this.diff = new DiffDataset(cache);
-        this.cachedSubjects = new Part(MAX_CACHED_SUBJECTS);
-        this.cachedGraphs = new Part(MAX_CACHED_GRAPHS);
-        this.size = 0;
+        this.cachedSubjects = new ConcurrentHashMap<>(MAX_CACHED_SUBJECTS);
+        this.cachedGraphs = new ConcurrentHashMap<>(MAX_CACHED_GRAPHS);
     }
 
     /**
-     * Gets the estimated size of this cache
-     *
-     * @return The estimated size of this cache
-     */
-    public int getSize() {
-        return size;
-    }
-
-    /**
-     * Makes sure that the quads for the specified subject node are all in the cache
+     * Gets the cache for a subject
      *
      * @param subject The subject node
      */
-    private void ensureInCache(SubjectNode subject) {
-        Node result = cachedSubjects.cache(subject);
-        if (result == subject) {
-            // the subject is already cached
-            return;
-        }
-        if (result != null) {
-            commit();
-            // drop the quads for the old subject
-            try {
-                Iterator<Quad> iterator = cache.getAll((SubjectNode) result, null, null);
-                while (iterator.hasNext()) {
-                    Quad quad = iterator.next();
-                    if (!cachedGraphs.contains(quad.getGraph())) {
-                        iterator.remove();
-                        size--;
-                    }
-                }
-            } catch (UnsupportedNodeType exception) {
-                // cannot happen
-            }
-        }
-        try {
-            Iterator<MQuad> iterator = (Iterator) persisted.getAll(subject, null, null);
-            while (iterator.hasNext()) {
-                MQuad quad = iterator.next();
-                if (!cachedGraphs.contains(quad.getGraph())) {
-                    for (int i = 0; i < quad.getMultiplicity(); i++) {
-                        cache.add(quad);
-                    }
-                    size++;
-                }
-            }
-        } catch (UnsupportedNodeType exception) {
-            // cannot happen
-        }
-    }
+    private CachedDataset getCache(SubjectNode subject) {
+        CachedDataset dataset = cachedSubjects.get(subject);
+        if (dataset != null)
+            return dataset;
 
-    /**
-     * Makes sure that the quads for the specified graph are all in the cache
-     *
-     * @param graph The graph
-     */
-    private void ensureInCache(GraphNode graph) {
-        Node result = cachedGraphs.cache(graph);
-        if (result == graph) {
-            // the graph is already cached
-            return;
-        }
-        if (result != null) {
-            commit();
-            // drop the quads for the old graph
-            try {
-                Iterator<Quad> iterator = cache.getAll((GraphNode) result);
-                while (iterator.hasNext()) {
-                    Quad quad = iterator.next();
-                    if (!cachedSubjects.contains(quad.getSubject())) {
-                        iterator.remove();
-                        size--;
-                    }
-                }
-            } catch (UnsupportedNodeType exception) {
-                // cannot happen
-            }
-        }
+        dataset = new CachedDataset();
         try {
-            Iterator<MQuad> iterator = (Iterator) persisted.getAll(graph);
-            while (iterator.hasNext()) {
-                MQuad quad = iterator.next();
-                if (!cachedSubjects.contains(quad.getSubject())) {
-                    for (int i = 0; i < quad.getMultiplicity(); i++) {
-                        cache.add(quad);
-                    }
-                    size++;
-                }
-            }
-        } catch (UnsupportedNodeType exception) {
-            // cannot happen
-        }
-    }
-
-    /**
-     * Commits the outstanding changes to this cache
-     */
-    public void commit() {
-        try {
-            persisted.insert(diff.getChangeset());
+            Iterator<Quad> iterator = persisted.getAll(null, subject, null, null);
+            while (iterator.hasNext())
+                dataset.add(iterator.next());
         } catch (UnsupportedNodeType exception) {
             Logging.getDefault().error(exception);
         }
-        diff.commit();
-        persisted.flush();
+        CachedDataset old = cachedSubjects.putIfAbsent(subject, dataset);
+        return old != null ? old : dataset;
     }
 
     /**
-     * Rollbacks any outstanding changes to this cache
+     * Gets the cache for a graph
+     *
+     * @param graph The graph
      */
-    public void rollback() {
-        diff.rollback();
+    private CachedDataset getCache(GraphNode graph) {
+        CachedDataset dataset = cachedGraphs.get(graph);
+        if (dataset != null)
+            return dataset;
+
+        dataset = new CachedDataset();
+        try {
+            Iterator<Quad> iterator = persisted.getAll(graph);
+            while (iterator.hasNext())
+                dataset.add(iterator.next());
+        } catch (UnsupportedNodeType exception) {
+            Logging.getDefault().error(exception);
+        }
+        CachedDataset old = cachedGraphs.putIfAbsent(graph, dataset);
+        return old != null ? old : dataset;
+    }
+
+    /**
+     * Invalidates the entire cache
+     */
+    private void invalidate() {
+        cachedSubjects.clear();
+        cachedGraphs.clear();
+    }
+
+    /**
+     * Invalidates the cache for the specified subject
+     *
+     * @param subject The updated subject
+     */
+    private void invalidate(SubjectNode subject) {
+        cachedSubjects.remove(subject);
+    }
+
+    /**
+     * Invalidates the cache for the specified graph
+     *
+     * @param graph The updated graph
+     */
+    private void invalidate(GraphNode graph) {
+        cachedGraphs.remove(graph);
     }
 
     @Override
     public int doAddQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        ensureInCache(subject);
-        int result = diff.doAddQuad(graph, subject, property, value);
-        if (result == DatasetImpl.ADD_RESULT_NEW)
-            size++;
+        int result = persisted.doAddQuad(graph, subject, property, value);
+        if (result == ADD_RESULT_NEW) {
+            invalidate(subject);
+            invalidate(graph);
+        }
         return result;
     }
 
     @Override
     public int doRemoveQuad(GraphNode graph, SubjectNode subject, Property property, Node value) throws UnsupportedNodeType {
-        ensureInCache(subject);
-        int result = diff.doRemoveQuad(graph, subject, property, value);
-        if (result >= DatasetImpl.REMOVE_RESULT_REMOVED)
-            size--;
+        int result = persisted.doRemoveQuad(graph, subject, property, value);
+        if (result >= REMOVE_RESULT_REMOVED) {
+            invalidate(subject);
+            invalidate(graph);
+        }
         return result;
     }
 
     @Override
     public void doRemoveQuads(GraphNode graph, SubjectNode subject, Property property, Node value, List<MQuad> bufferDecremented, List<MQuad> bufferRemoved) throws UnsupportedNodeType {
-        if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE) {
-            ensureInCache(subject);
-            int before = bufferRemoved.size();
-            diff.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
-            size -= bufferRemoved.size() - before;
-        } else if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE) {
-            ensureInCache(graph);
-            int before = bufferRemoved.size();
-            diff.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
-            size -= bufferRemoved.size() - before;
-        } else {
-            commit();
-            // resync the cache
-            int beforeDecremented = bufferDecremented.size();
-            int beforeRemoved = bufferRemoved.size();
-            persisted.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
-            for (int i = beforeDecremented; i != bufferDecremented.size(); i++) {
-                MQuad quad = bufferDecremented.get(i);
-                if (cachedSubjects.contains(quad.getSubject()) || cachedGraphs.contains(quad.getGraph())) {
-                    cache.doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-                }
-            }
-            for (int i = beforeRemoved; i != bufferRemoved.size(); i++) {
-                MQuad quad = bufferRemoved.get(i);
-                if (cachedSubjects.contains(quad.getSubject()) || cachedGraphs.contains(quad.getGraph())) {
-                    cache.doRemoveQuad(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
-                }
-            }
-            size -= bufferRemoved.size() - beforeRemoved;
+        persisted.doRemoveQuads(graph, subject, property, value, bufferDecremented, bufferRemoved);
+        for (MQuad quad : bufferRemoved) {
+            invalidate(quad.getSubject());
+            invalidate(quad.getGraph());
         }
     }
 
     @Override
     public void doClear(List<MQuad> buffer) {
-        commit();
-        cache.doClear(new ArrayList<MQuad>());
         persisted.doClear(buffer);
-        size = 0;
+        invalidate();
     }
 
     @Override
     public void doClear(GraphNode graph, List<MQuad> buffer) throws UnsupportedNodeType {
-        ensureInCache(graph);
-        int originalSize = buffer.size();
-        diff.doClear(graph, buffer);
-        size -= (buffer.size() - originalSize);
+        persisted.doClear(graph, buffer);
+        invalidate(graph);
+        for (MQuad quad : buffer) {
+            invalidate(quad.getSubject());
+        }
     }
 
     @Override
     public void doCopy(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew, boolean overwrite) {
-        ensureInCache(origin);
-        ensureInCache(target);
-        int beforeOld = bufferOld.size();
-        int beforeNew = bufferNew.size();
-        diff.doCopy(origin, target, bufferOld, bufferNew, overwrite);
-        size += (bufferNew.size() - beforeNew) - (bufferOld.size() - beforeOld);
+        try {
+            persisted.doCopy(origin, target, bufferOld, bufferNew, overwrite);
+            invalidate(origin);
+            invalidate(target);
+            for (MQuad quad : bufferOld) {
+                invalidate(quad.getSubject());
+            }
+            for (MQuad quad : bufferNew) {
+                invalidate(quad.getSubject());
+            }
+        } catch (UnsupportedNodeType exception) {
+            Logging.getDefault().error(exception);
+        }
     }
 
     @Override
     public void doMove(GraphNode origin, GraphNode target, List<MQuad> bufferOld, List<MQuad> bufferNew) {
-        ensureInCache(origin);
-        ensureInCache(target);
-        int beforeOld = bufferOld.size();
-        int beforeNew = bufferNew.size();
-        diff.doMove(origin, target, bufferOld, bufferNew);
-        size += (bufferNew.size() - beforeNew) - (bufferOld.size() - beforeOld);
+        try {
+            persisted.doMove(origin, target, bufferOld, bufferNew);
+            invalidate(origin);
+            invalidate(target);
+            for (MQuad quad : bufferOld) {
+                invalidate(quad.getSubject());
+            }
+            for (MQuad quad : bufferNew) {
+                invalidate(quad.getSubject());
+            }
+        } catch (UnsupportedNodeType exception) {
+            Logging.getDefault().error(exception);
+        }
     }
 
     @Override
     public long getMultiplicity(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
-        ensureInCache(subject);
-        return diff.getMultiplicity(graph, subject, property, object);
+        CachedDataset cache = getCache(subject);
+        return cache.getMultiplicity(graph, subject, property, object);
     }
 
     @Override
     public Iterator<Quad> getAll(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE) {
-            ensureInCache(subject);
-            return diff.getAll(graph, subject, property, object);
+            CachedDataset cache = getCache(subject);
+            return cache.getAll(graph, subject, property, object);
         } else if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE) {
-            ensureInCache(graph);
-            return diff.getAll(graph, subject, property, object);
+            CachedDataset cache = getCache(graph);
+            return cache.getAll(graph, subject, property, object);
         } else {
-            commit();
             return persisted.getAll(graph, subject, property, object);
         }
     }
 
     @Override
     public Collection<GraphNode> getGraphs() {
-        Collection<GraphNode> result = persisted.getGraphs();
-        for (GraphNode graph : diff.getGraphs()) {
-            if (!result.contains(graph))
-                result.add(graph);
-        }
-        return result;
+        return persisted.getGraphs();
     }
 
     @Override
     public long count(GraphNode graph, SubjectNode subject, Property property, Node object) throws UnsupportedNodeType {
         if (subject != null && subject.getNodeType() != Node.TYPE_VARIABLE) {
-            ensureInCache(subject);
-            return diff.count(graph, subject, property, object);
+            CachedDataset cache = getCache(subject);
+            return cache.count(graph, subject, property, object);
         } else if (graph != null && graph.getNodeType() != Node.TYPE_VARIABLE) {
-            ensureInCache(graph);
-            return diff.count(graph, subject, property, object);
+            CachedDataset cache = getCache(graph);
+            return cache.count(graph, subject, property, object);
         } else {
-            commit();
             return persisted.count(graph, subject, property, object);
         }
     }

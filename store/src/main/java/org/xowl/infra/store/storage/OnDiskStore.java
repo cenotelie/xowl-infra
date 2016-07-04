@@ -73,16 +73,9 @@ class OnDiskStore extends BaseStore {
 
     @Override
     public boolean commit() {
-        cacheDataset.commit();
         boolean success = persistedNodes.flush();
         success &= persistedDataset.flush();
         return success;
-    }
-
-    @Override
-    public boolean rollback() {
-        cacheDataset.rollback();
-        return true;
     }
 
     @Override
