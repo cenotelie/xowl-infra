@@ -569,13 +569,6 @@ public class ProxyObject {
                 // range is undefined, return xsd:String
                 return Vocabulary.xsdString;
             Node rangeNode = iterator.next().getObject();
-            if (iterator instanceof CloseableIterator) {
-                try {
-                    ((CloseableIterator) iterator).close();
-                } catch (Exception exception) {
-                    Logging.getDefault().error(exception);
-                }
-            }
             if (rangeNode.getNodeType() == Node.TYPE_IRI)
                 return ((IRINode) rangeNode).getIRIValue();
             // range is defined, but is either a blank, or an anonymous node, return xsd:String

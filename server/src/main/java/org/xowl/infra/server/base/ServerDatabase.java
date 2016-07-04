@@ -181,8 +181,8 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         }
         String cBackend = configuration.get(CONFIG_STORAGE);
         return Objects.equals(cBackend, CONFIG_STORAGE_MEMORY) ?
-                StoreFactory.create().inMemory().withReasoning().withMultithreading().make() :
-                StoreFactory.create().onDisk(location).withReasoning().withMultithreading().make();
+                StoreFactory.create().inMemory().withReasoning().make() :
+                StoreFactory.create().onDisk(location).withReasoning().make();
     }
 
     /**

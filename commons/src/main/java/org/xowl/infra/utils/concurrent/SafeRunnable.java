@@ -51,8 +51,6 @@ public abstract class SafeRunnable implements Runnable {
             } catch (Throwable error2) {
                 // do nothing with this
             }
-        } finally {
-            LockManager.cleanup();
         }
     }
 

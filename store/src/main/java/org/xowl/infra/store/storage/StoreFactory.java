@@ -84,18 +84,6 @@ public class StoreFactory {
          * When reasoning is explicitly supported, the volatile inferred quads will never be committed to the primary storage
          */
         private boolean supportReasoning;
-        /**
-         * Whether the store shall support multi-threading
-         */
-        private boolean supportMultiThreading;
-        /**
-         * Whether the store shall support transactions
-         */
-        private boolean supportTransactions;
-        /**
-         * Whether the store shall support version control
-         */
-        private boolean supportVersioning;
 
         /**
          * Initializes this configuration element
@@ -165,37 +153,6 @@ public class StoreFactory {
         }
 
         /**
-         * Activates the support of multi-threading
-         * This protects the primary storage against concurrent accesses
-         *
-         * @return This configuration element
-         */
-        public Config withMultithreading() {
-            supportMultiThreading = true;
-            return this;
-        }
-
-        /**
-         * Activates the support of transactions
-         *
-         * @return This configuration element
-         */
-        public Config withTransactions() {
-            supportTransactions = true;
-            return this;
-        }
-
-        /**
-         * Activates the support of version control on the store
-         *
-         * @return This configuration element
-         */
-        public Config withVersioning() {
-            supportVersioning = true;
-            return this;
-        }
-
-        /**
          * Makes the store
          *
          * @return The store
@@ -228,8 +185,6 @@ public class StoreFactory {
             BaseStore result = primary;
             if (supportReasoning)
                 result = new BaseReasonableStore(result);
-            if (supportMultiThreading)
-                result = new BaseMTSafeStore(result);
             return result;
         }
     }

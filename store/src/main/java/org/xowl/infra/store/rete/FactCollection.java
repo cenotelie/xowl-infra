@@ -21,7 +21,6 @@ import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.collections.CloseableIterator;
 import org.xowl.infra.utils.collections.SingleIterator;
 import org.xowl.infra.utils.logging.Logging;
 
@@ -92,13 +91,6 @@ class FactCollection implements Collection<Quad> {
         } else {
             Iterator<Quad> iterator = getNewIterator();
             boolean empty = !iterator.hasNext();
-            if (iterator instanceof CloseableIterator) {
-                try {
-                    ((CloseableIterator) iterator).close();
-                } catch (Exception exception) {
-                    Logging.getDefault().error(exception);
-                }
-            }
             if (empty)
                 size = 0;
             return empty;
@@ -128,13 +120,6 @@ class FactCollection implements Collection<Quad> {
         try {
             Iterator<Quad> iterator = store.getAll(quad.getGraph(), quad.getSubject(), quad.getProperty(), quad.getObject());
             boolean result = iterator.hasNext();
-            if (iterator instanceof CloseableIterator) {
-                try {
-                    ((CloseableIterator) iterator).close();
-                } catch (Exception exception) {
-                    Logging.getDefault().error(exception);
-                }
-            }
             return result;
         } catch (UnsupportedNodeType exception) {
             Logging.getDefault().error(exception);
