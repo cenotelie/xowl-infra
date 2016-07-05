@@ -60,6 +60,48 @@ class IOAccessManager {
      * The root of the interval tree for the current accesses
      */
     private final AtomicReference<IOAccessOrdered> root;
+    /**
+     * The total number of accesses
+     */
+    private double totalAccesses;
+    /**
+     * The mean number of tries per access
+     */
+    private double contention;
+    /**
+     * The timestamp for the last update of the contention statistics
+     */
+    private long statisticsTimestamp;
+
+    /**
+     * Gets the mean number of tries for performing an access operation
+     *
+     * @return The mean number of tries
+     */
+    public double getStatisticsContention() {
+        long timestamp = System.nanoTime();
+        if (timestamp >= statisticsTimestamp + FileStatistics.REFRESH_PERIOD) {
+            contention = 1;
+            totalAccesses = 0;
+            statisticsTimestamp = timestamp;
+        }
+        return contention;
+    }
+
+    /**
+     * Gets the current mean of number of accesses per second
+     *
+     * @return The mean number of accesses per second
+     */
+    public double getStatisticsAccessPerSecond() {
+        long timestamp = System.nanoTime();
+        if (timestamp >= statisticsTimestamp + FileStatistics.REFRESH_PERIOD) {
+            contention = 1;
+            totalAccesses = 0;
+            statisticsTimestamp = timestamp;
+        }
+        return totalAccesses * 2;
+    }
 
     /**
      * Initializes this pool
@@ -69,6 +111,9 @@ class IOAccessManager {
     public IOAccessManager(IOBackend backend) {
         this.backend = backend;
         this.root = new AtomicReference<>(null);
+        this.totalAccesses = 0;
+        this.contention = 1;
+        this.statisticsTimestamp = System.nanoTime();
     }
 
     /**
@@ -83,11 +128,11 @@ class IOAccessManager {
     public IOAccess get(int location, int length, boolean writable) throws StorageException {
         Access access = newAccess();
         access.setupIOData(location, length, writable);
-        IOAccessOrdered.insert(root, access);
+        onAccess(IOAccessOrdered.insert(root, access));
         try {
             access.setupIOData(backend.onAccessRequested(access));
         } catch (StorageException exception) {
-            IOAccessOrdered.remove(root, access);
+            onAccess(IOAccessOrdered.remove(root, access));
             throw exception;
         }
         return access;
@@ -106,7 +151,7 @@ class IOAccessManager {
         Access access = newAccess();
         access.setupIOData(location, length, writable);
         access.setupIOData(element);
-        IOAccessOrdered.insert(root, access);
+        onAccess(IOAccessOrdered.insert(root, access));
         return access;
     }
 
@@ -121,7 +166,7 @@ class IOAccessManager {
         } catch (StorageException exception) {
             Logging.getDefault().error(exception);
         }
-        IOAccessOrdered.remove(root, access);
+        onAccess(IOAccessOrdered.remove(root, access));
     }
 
     /**
@@ -131,5 +176,22 @@ class IOAccessManager {
      */
     private Access newAccess() {
         return new Access(this);
+    }
+
+    /**
+     * Updates the contention statistics when an access is required
+     *
+     * @param tries The number of tries that it took to perform the access initialization or closure
+     */
+    private void onAccess(int tries) {
+        long timestamp = System.nanoTime();
+        if (timestamp >= statisticsTimestamp + FileStatistics.REFRESH_PERIOD) {
+            contention = tries;
+            totalAccesses = 1;
+            statisticsTimestamp = timestamp;
+        } else {
+            contention = ((contention * totalAccesses) + tries) / (totalAccesses + 1);
+            totalAccesses = totalAccesses + 1;
+        }
     }
 }

@@ -152,6 +152,15 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     }
 
     /**
+     * Gets the statistics about the files backing this store
+     *
+     * @return The file statistics
+     */
+    public FileStatistics[] getFileStatistics() {
+        return store.getStatistics();
+    }
+
+    /**
      * Reads the string at the specified index
      *
      * @param key The key to the string

@@ -125,6 +125,24 @@ class FileBackend implements IOBackend, Closeable {
     }
 
     /**
+     * Gets the current statistics for this file
+     *
+     * @return The current statistics
+     */
+    public FileStatistics getStatistics() {
+        int dirty = 0;
+        for (int i = 0; i != blockCount.get(); i++) {
+            if (blocks[i].isDirty)
+                dirty++;
+        }
+        return new FileStatistics(fileName,
+                accessManager.getStatisticsAccessPerSecond(),
+                accessManager.getStatisticsContention(),
+                blockCount.get(),
+                dirty);
+    }
+
+    /**
      * Gets the current size of the file channel
      *
      * @return The current size

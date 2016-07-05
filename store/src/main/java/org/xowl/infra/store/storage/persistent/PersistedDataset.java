@@ -307,6 +307,15 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     }
 
     /**
+     * Gets the statistics about the files backing this store
+     *
+     * @return The file statistics
+     */
+    public FileStatistics[] getFileStatistics() {
+        return store.getStatistics();
+    }
+
+    /**
      * Flushes any outstanding changes to the backing files
      *
      * @return Whether the operation succeeded

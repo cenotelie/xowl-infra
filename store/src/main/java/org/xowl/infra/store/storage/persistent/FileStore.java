@@ -111,6 +111,19 @@ class FileStore implements AutoCloseable {
     }
 
     /**
+     * Gets the file statistics for this store
+     *
+     * @return The file statistics for this store
+     */
+    public FileStatistics[] getStatistics() {
+        FileStatistics[] parts = new FileStatistics[files.size()];
+        for (int i = 0; i != parts.length; i++) {
+            parts[i] = files.get(i).getStatistics();
+        }
+        return parts;
+    }
+
+    /**
      * Flushes any outstanding changes to the backing files
      *
      * @return Whether the operation succeeded

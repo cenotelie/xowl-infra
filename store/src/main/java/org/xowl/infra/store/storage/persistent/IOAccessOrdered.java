@@ -47,11 +47,14 @@ abstract class IOAccessOrdered extends IOAccess {
      *
      * @param root    The root element
      * @param element The element to insert
+     * @return The number of tries it took
      */
-    public static void insert(AtomicReference<IOAccessOrdered> root, IOAccessOrdered element) {
+    public static int insert(AtomicReference<IOAccessOrdered> root, IOAccessOrdered element) {
+        int tries = 1;
         while (true) {
             if (insertFrom(root, element))
-                break;
+                return tries;
+            tries++;
         }
     }
 
@@ -111,11 +114,14 @@ abstract class IOAccessOrdered extends IOAccess {
      *
      * @param root    The root element
      * @param element The element to remove
+     * @return The number of tries it took
      */
-    public static void remove(AtomicReference<IOAccessOrdered> root, IOAccessOrdered element) {
+    public static int remove(AtomicReference<IOAccessOrdered> root, IOAccessOrdered element) {
+        int tries = 1;
         while (true) {
             if (removeFrom(root, element))
-                break;
+                return tries;
+            tries++;
         }
     }
 
