@@ -87,7 +87,7 @@ public class StoreStatistics implements Serializable {
         builder.append("\", \"files\": [");
         if (fileStatistics != null) {
             for (int i = 0; i != fileStatistics.length; i++) {
-                if (i == 0)
+                if (i != 0)
                     builder.append(", ");
                 builder.append(fileStatistics[i].serializedJSON());
             }
