@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.storage;
 
+import org.xowl.infra.store.storage.persistent.FileStatistics;
+
 /**
  * Represents the public API of a data store (a dataset and a node manager)
  *
@@ -29,7 +31,7 @@ public abstract class BaseStore implements Dataset, NodeManager, AutoCloseable {
      * @return The statistics for this store
      */
     public StoreStatistics getStatistics() {
-        return new StoreStatistics(null);
+        return new StoreStatistics((FileStatistics[]) null);
     }
 
     /**
