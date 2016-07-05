@@ -22,7 +22,7 @@ package org.xowl.infra.store.storage.persistent;
  *
  * @author Laurent Wouters
  */
-public interface IOBackend {
+interface IOBackend {
     /**
      * Requests the IO element that can support the specified access
      *
