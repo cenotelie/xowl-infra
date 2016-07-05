@@ -24,6 +24,15 @@ package org.xowl.infra.store.storage;
  */
 public abstract class BaseStore implements Dataset, NodeManager, AutoCloseable {
     /**
+     * Gets the statistics for this store
+     *
+     * @return The statistics for this store
+     */
+    public StoreStatistics getStatistics() {
+        return new StoreStatistics(null);
+    }
+
+    /**
      * Commits the outstanding changes to this store
      *
      * @return Whether the operation succeeded

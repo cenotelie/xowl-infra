@@ -69,6 +69,11 @@ class BaseReasonableStore extends BaseStore {
     }
 
     @Override
+    public StoreStatistics getStatistics() {
+        return groundStore.getStatistics();
+    }
+
+    @Override
     public boolean commit() {
         boolean r1 = groundStore.commit();
         boolean r2 = volatileStore.commit();

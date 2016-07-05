@@ -21,6 +21,7 @@ import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.owl.AnonymousNode;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.cache.CachedNodes;
+import org.xowl.infra.store.storage.persistent.FileStatistics;
 import org.xowl.infra.store.storage.persistent.PersistedDataset;
 import org.xowl.infra.store.storage.persistent.PersistedNodes;
 import org.xowl.infra.store.storage.persistent.StorageException;
@@ -28,6 +29,7 @@ import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -69,6 +71,16 @@ class OnDiskStore extends BaseStore {
         persistedDataset = new PersistedDataset(persistedNodes, directory, isReadonly);
         cacheNodes = new CachedNodes();
         cacheDataset = new OnDiskStoreCache(persistedDataset);
+    }
+
+    @Override
+    public StoreStatistics getStatistics() {
+        FileStatistics[] statsForNodes = persistedNodes.getFileStatistics();
+        FileStatistics[] statsForDataset = persistedDataset.getFileStatistics();
+        FileStatistics[] result = Arrays.copyOf(statsForNodes, statsForNodes.length + statsForDataset.length);
+        for (int i = 0; i != statsForDataset.length; i++)
+            result[statsForNodes.length + i] = statsForDataset[i];
+        return new StoreStatistics(result);
     }
 
     @Override
