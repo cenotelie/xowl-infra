@@ -21,6 +21,7 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.base.BaseDatabase;
 import org.xowl.infra.server.xsp.XSPReply;
+import org.xowl.infra.server.xsp.XSPReplyResult;
 import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.rdf.Quad;
@@ -125,5 +126,10 @@ class RemoteDatabase extends BaseDatabase {
     @Override
     public XSPReply upload(Collection<Quad> quads) {
         return server.upload(name, quads);
+    }
+
+    @Override
+    public XSPReply getStatistics() {
+        return server.getStatistics(name);
     }
 }

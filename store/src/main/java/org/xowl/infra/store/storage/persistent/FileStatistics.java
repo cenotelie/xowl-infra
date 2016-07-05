@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.storage.persistent;
 
+import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Serializable;
 
@@ -53,6 +54,51 @@ public class FileStatistics implements Serializable {
     private final int dirtyBlocks;
 
     /**
+     * Gets the file for which this object represents the statistics
+     *
+     * @return The file for which this object represents the statistics
+     */
+    public String getFileName() {
+        return fileName;
+    }
+
+    /**
+     * Gets the number of accesses per second
+     *
+     * @return The number of accesses per second
+     */
+    public double getAccessesPerSecond() {
+        return accessesPerSecond;
+    }
+
+    /**
+     * Gets the access contention (mean number of tries before an access succeed)
+     *
+     * @return The access contention (mean number of tries before an access succeed)
+     */
+    public double getAccessesContention() {
+        return accessesContention;
+    }
+
+    /**
+     * Gets the number of loaded blocks
+     *
+     * @return The number of loaded blocks
+     */
+    public int getLoadedBlocks() {
+        return loadedBlocks;
+    }
+
+    /**
+     * Gets the number of dirty blocks
+     *
+     * @return The number of dirty blocks
+     */
+    public int getDirtyBlocks() {
+        return dirtyBlocks;
+    }
+
+    /**
      * Initializes this structure
      *
      * @param fileName           The file for which this object represents the statistics
@@ -62,6 +108,54 @@ public class FileStatistics implements Serializable {
      * @param dirtyBlocks        The number of dirty blocks
      */
     public FileStatistics(String fileName, double accessesPerSecond, double accessesContention, int loadedBlocks, int dirtyBlocks) {
+        this.fileName = fileName;
+        this.accessesPerSecond = accessesPerSecond;
+        this.accessesContention = accessesContention;
+        this.loadedBlocks = loadedBlocks;
+        this.dirtyBlocks = dirtyBlocks;
+    }
+
+    /**
+     * Initializes this structure
+     *
+     * @param definition The definition
+     */
+    public FileStatistics(ASTNode definition) {
+        String fileName = "";
+        double accessesPerSecond = 0;
+        double accessesContention = 0;
+        int loadedBlocks = 0;
+        int dirtyBlocks = 0;
+        for (ASTNode member : definition.getChildren()) {
+            String name = IOUtils.unescape(member.getChildren().get(0).getValue());
+            name = name.substring(1, name.length() - 1);
+            switch (name) {
+                case "fileName":
+                    fileName = IOUtils.unescape(member.getChildren().get(1).getValue());
+                    fileName = fileName.substring(1, fileName.length() - 1);
+                    break;
+                case "accessesPerSecond": {
+                    String value = IOUtils.unescape(member.getChildren().get(1).getValue());
+                    accessesPerSecond = Double.parseDouble(value);
+                    break;
+                }
+                case "accessesContention": {
+                    String value = IOUtils.unescape(member.getChildren().get(1).getValue());
+                    accessesContention = Double.parseDouble(value);
+                    break;
+                }
+                case "loadedBlocks": {
+                    String value = IOUtils.unescape(member.getChildren().get(1).getValue());
+                    loadedBlocks = Integer.parseInt(value);
+                    break;
+                }
+                case "dirtyBlocks": {
+                    String value = IOUtils.unescape(member.getChildren().get(1).getValue());
+                    loadedBlocks = Integer.parseInt(value);
+                    break;
+                }
+            }
+        }
         this.fileName = fileName;
         this.accessesPerSecond = accessesPerSecond;
         this.accessesContention = accessesContention;

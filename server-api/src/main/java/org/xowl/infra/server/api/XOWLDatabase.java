@@ -144,4 +144,11 @@ public interface XOWLDatabase extends Serializable {
      * @return The protocol reply
      */
     XSPReply upload(Collection<Quad> quads);
+
+    /**
+     * Gets the statistics for this database
+     *
+     * @return The statistics for this database
+     */
+    XSPReply getStatistics();
 }

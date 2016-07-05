@@ -482,6 +482,11 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     }
 
     @Override
+    public XSPReply getStatistics() {
+        return new XSPReplyResult<>(repository.getStore().getStatistics());
+    }
+
+    @Override
     public void close() throws IOException {
         try {
             repository.getStore().close();

@@ -32,6 +32,7 @@ import org.xowl.infra.store.http.HttpConstants;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
+import org.xowl.infra.store.storage.StoreStatistics;
 import org.xowl.infra.store.writers.NQuadsSerializer;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.collections.SingleIterator;
@@ -423,6 +424,18 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
         return upload(database, writer.toString(), AbstractRepository.SYNTAX_NQUADS);
     }
 
+    /**
+     * Gets the statistics for a database
+     *
+     * @param database The target database
+     * @return The statistics for the database
+     */
+    XSPReply getStatistics(String database) {
+        if (connection == null)
+            return XSPReplyNetworkError.instance();
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/statistics", "GET", HttpConstants.MIME_JSON), this);
+    }
+
     @Override
     public Object newObject(String type, ASTNode definition) {
         if (XOWLDatabase.class.getCanonicalName().equals(type)) {
@@ -435,6 +448,8 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
             return new BaseUser(definition);
         } else if (XOWLUserPrivileges.class.getCanonicalName().equals(type)) {
             return new BaseUserPrivileges(definition);
+        } else if (StoreStatistics.class.getCanonicalName().equals(type)) {
+            return new StoreStatistics(definition);
         }
         return null;
     }

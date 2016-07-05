@@ -141,6 +141,11 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
+    public XSPReply getStatistics() {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
     public String serializedString() {
         return getName();
     }

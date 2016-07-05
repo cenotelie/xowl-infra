@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store.storage;
 
+import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Serializable;
 import org.xowl.infra.store.storage.persistent.FileStatistics;
@@ -38,6 +39,29 @@ public class StoreStatistics implements Serializable {
      * @param fileStatistics The file statistics, if any
      */
     public StoreStatistics(FileStatistics[] fileStatistics) {
+        this.fileStatistics = fileStatistics;
+    }
+
+    /**
+     * Initializes this structure
+     *
+     * @param definition The definition
+     */
+    public StoreStatistics(ASTNode definition) {
+        FileStatistics[] fileStatistics = null;
+        for (ASTNode member : definition.getChildren()) {
+            String name = IOUtils.unescape(member.getChildren().get(0).getValue());
+            name = name.substring(1, name.length() - 1);
+            switch (name) {
+                case "files": {
+                    fileStatistics = new FileStatistics[member.getChildren().get(1).getChildren().size()];
+                    int i = 0;
+                    for (ASTNode child : member.getChildren().get(1).getChildren()) {
+                        fileStatistics[i] = new FileStatistics(child);
+                    }
+                }
+            }
+        }
         this.fileStatistics = fileStatistics;
     }
 
