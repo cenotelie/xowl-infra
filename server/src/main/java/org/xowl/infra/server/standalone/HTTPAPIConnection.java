@@ -277,6 +277,8 @@ class HTTPAPIConnection extends SafeRunnable {
      * @return The response code
      */
     private int handleResourceDatabase(String method, String resource) {
+        if (resource.endsWith("/statistics"))
+            return handleResourceDatabaseStatistics(method, resource);
         if (resource.endsWith("/sparql"))
             return handleResourceDatabaseSPARQL(method, resource);
         if (resource.endsWith("/entailment"))
@@ -329,6 +331,20 @@ class HTTPAPIConnection extends SafeRunnable {
             return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
         }
         return response(controller.upload(client, name, contentType, body));
+    }
+
+    /**
+     * Handles the request
+     *
+     * @param method   The HTTP method
+     * @param resource The accessed resource
+     * @return The response code
+     */
+    private int handleResourceDatabaseStatistics(String method, String resource) {
+        String name = resource.substring("/db/".length(), resource.length() - "/statistics".length());
+        if (method.equals("GET"))
+            return response(controller.getStatistics(client, name));
+        return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
     }
 
     /**

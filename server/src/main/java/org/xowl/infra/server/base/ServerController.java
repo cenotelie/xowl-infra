@@ -881,6 +881,24 @@ public class ServerController implements Closeable {
     }
 
     /**
+     * Gets the statistics for a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @return The protocol reply
+     */
+    public XSPReply getStatistics(ServerUser client, String database) {
+        if (client == null)
+            return XSPReplyUnauthenticated.instance();
+        ServerDatabase db = doGetDatabase(database);
+        if (db == null)
+            return XSPReplyNotFound.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
+            return db.getStatistics();
+        return XSPReplyUnauthorized.instance();
+    }
+
+    /**
      * Gets whether a client is banned
      *
      * @param client A client
