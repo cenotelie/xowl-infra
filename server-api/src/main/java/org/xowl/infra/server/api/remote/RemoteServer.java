@@ -230,6 +230,13 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
         return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database.getName()) + "/privileges", "GET", HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
+    @Override
+    public void onShutdown() {
+        // kill the HTTP connection
+        connection.close();
+        connection = null;
+    }
+
     /**
      * Executes a SPARQL command
      *

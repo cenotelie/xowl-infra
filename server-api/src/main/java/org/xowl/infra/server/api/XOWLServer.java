@@ -179,4 +179,9 @@ public interface XOWLServer {
      * @return The protocol reply
      */
     XSPReply getPrivileges(XOWLDatabase database);
+
+    /**
+     * Reacts to a shutdown sequence
+     */
+    void onShutdown();
 }

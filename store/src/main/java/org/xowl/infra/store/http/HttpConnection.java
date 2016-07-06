@@ -106,7 +106,7 @@ public class HttpConnection implements Closeable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         // nothing to do, HTTP connections are one-shot
     }
 

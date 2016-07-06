@@ -25,6 +25,7 @@ import org.xowl.infra.server.base.ServerController;
 import org.xowl.infra.server.base.ServerUser;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyUnsupported;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 
@@ -146,5 +147,14 @@ public class EmbeddedServer implements XOWLServer {
     @Override
     public XSPReply getPrivileges(XOWLDatabase database) {
         return controller.getPrivilegesDB(admin, database.getName());
+    }
+
+    @Override
+    public void onShutdown() {
+        try {
+            controller.close();
+        } catch (IOException exception) {
+            Logging.getDefault().error(exception);
+        }
     }
 }
