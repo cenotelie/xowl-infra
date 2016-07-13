@@ -58,7 +58,7 @@ public class OnDiskStoreTest {
         Iterator<Quad> iterator = store.getAll();
         while (iterator.hasNext()) {
             Quad quad = iterator.next();
-            System.out.println(quad);
+            //System.out.println(quad);
         }
         store.close();
     }
@@ -88,7 +88,7 @@ public class OnDiskStoreTest {
         Iterator<Quad> iterator = store.getAll(quad1.getSubject(), quad1.getProperty(), null);
         while (iterator.hasNext()) {
             Quad quad = iterator.next();
-            System.out.println(quad);
+            //System.out.println(quad);
         }
         store.commit();
         store.close();

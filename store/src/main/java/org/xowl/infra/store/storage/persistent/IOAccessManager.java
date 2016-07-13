@@ -19,6 +19,7 @@ package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.logging.Logging;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -41,8 +42,10 @@ class IOAccessManager {
          * Initializes this access
          *
          * @param manager The manager for this access object
+         * @param index   The index of this access in its pool
          */
-        public Access(IOAccessManager manager) {
+        public Access(IOAccessManager manager, int index) {
+            super(index);
             this.manager = manager;
         }
 
@@ -53,9 +56,26 @@ class IOAccessManager {
     }
 
     /**
+     * The size of the access pool
+     */
+    private static final int ACCESSES_POOL_SIZE = 64;
+
+    /**
      * The backend element that is protected by this manager
      */
     private final IOBackend backend;
+    /**
+     * The pool of existing accesses in the manager
+     */
+    private final IOAccessOrdered[] pool;
+    /**
+     * The current number of accesses in the pool
+     */
+    private final AtomicInteger poolSize;
+    /**
+     * The first free access object in the pool
+     */
+    private final AtomicReference<IOAccessOrdered> poolFirst;
     /**
      * The root of the interval tree for the current accesses
      */
@@ -110,6 +130,9 @@ class IOAccessManager {
      */
     public IOAccessManager(IOBackend backend) {
         this.backend = backend;
+        this.pool = new IOAccessOrdered[ACCESSES_POOL_SIZE];
+        this.poolSize = new AtomicInteger(0);
+        this.poolFirst = new AtomicReference<>(null);
         this.root = new AtomicReference<>(null);
         this.totalAccesses = 0;
         this.contention = 1;
@@ -128,11 +151,11 @@ class IOAccessManager {
     public IOAccess get(int location, int length, boolean writable) throws StorageException {
         Access access = newAccess();
         access.setupIOData(location, length, writable);
-        onAccess(IOAccessOrdered.insert(root, access));
+        onAccess(IOAccessOrdered.insert(pool, root, access));
         try {
             access.setupIOData(backend.onAccessRequested(access));
         } catch (StorageException exception) {
-            onAccess(IOAccessOrdered.remove(root, access));
+            onAccess(IOAccessOrdered.remove(pool, root, access));
             throw exception;
         }
         return access;
@@ -151,7 +174,7 @@ class IOAccessManager {
         Access access = newAccess();
         access.setupIOData(location, length, writable);
         access.setupIOData(element);
-        onAccess(IOAccessOrdered.insert(root, access));
+        onAccess(IOAccessOrdered.insert(pool, root, access));
         return access;
     }
 
@@ -166,7 +189,8 @@ class IOAccessManager {
         } catch (StorageException exception) {
             Logging.getDefault().error(exception);
         }
-        onAccess(IOAccessOrdered.remove(root, access));
+        onAccess(IOAccessOrdered.remove(pool, root, access));
+        IOAccessOrdered.poolInsert(poolFirst, access);
     }
 
     /**
@@ -175,7 +199,20 @@ class IOAccessManager {
      * @return A free access object
      */
     private Access newAccess() {
-        return new Access(this);
+        while (true) {
+            int size = poolSize.get();
+            IOAccessOrdered result = IOAccessOrdered.poolGet(poolFirst);
+            if (result != null)
+                return (Access) result;
+            if (size == pool.length)
+                // wait for a free element
+                continue;
+            if (poolSize.compareAndSet(size, size + 1)) {
+                Access newAccess = new Access(this, size);
+                pool[size] = newAccess;
+                return newAccess;
+            }
+        }
     }
 
     /**
