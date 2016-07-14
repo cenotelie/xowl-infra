@@ -53,7 +53,7 @@ abstract class IOAccessOrdered extends IOAccess {
     /**
      * The next free element in the pool
      */
-    private final AtomicReference<IOAccessOrdered> poolNext;
+    private IOAccessOrdered poolNext;
 
     /**
      * Initializes this element
@@ -63,7 +63,7 @@ abstract class IOAccessOrdered extends IOAccess {
     protected IOAccessOrdered(int index) {
         this.index = index;
         this.next = new AtomicLong(REF_NULL);
-        this.poolNext = new AtomicReference<>(null);
+        this.poolNext = null;
     }
 
     /**
@@ -77,7 +77,7 @@ abstract class IOAccessOrdered extends IOAccess {
             // get the current first free element
             IOAccessOrdered previous = poolFirst.get();
             // set it as the next for the current element to insert
-            element.poolNext.set(previous);
+            element.poolNext = previous;
             // atomically replace the old head by the current element to insert
             if (poolFirst.compareAndSet(previous, element))
                 return;
@@ -98,8 +98,7 @@ abstract class IOAccessOrdered extends IOAccess {
                 // there is none, return null
                 return null;
             // get the second free element
-            IOAccessOrdered next = result.poolNext.get();
-            if (poolFirst.compareAndSet(result, next))
+            if (poolFirst.compareAndSet(result, result.poolNext))
                 return result;
         }
     }
