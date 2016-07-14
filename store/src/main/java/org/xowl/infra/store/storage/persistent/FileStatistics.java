@@ -39,11 +39,11 @@ public class FileStatistics implements Serializable {
     /**
      * The number of accesses per second
      */
-    private final double accessesPerSecond;
+    private final long accessesPerSecond;
     /**
      * The access contention (mean number of tries before an access succeed)
      */
-    private final double accessesContention;
+    private final long accessesContention;
     /**
      * The number of loaded blocks
      */
@@ -67,7 +67,7 @@ public class FileStatistics implements Serializable {
      *
      * @return The number of accesses per second
      */
-    public double getAccessesPerSecond() {
+    public long getAccessesPerSecond() {
         return accessesPerSecond;
     }
 
@@ -76,7 +76,7 @@ public class FileStatistics implements Serializable {
      *
      * @return The access contention (mean number of tries before an access succeed)
      */
-    public double getAccessesContention() {
+    public long getAccessesContention() {
         return accessesContention;
     }
 
@@ -107,7 +107,7 @@ public class FileStatistics implements Serializable {
      * @param loadedBlocks       The number of loaded blocks
      * @param dirtyBlocks        The number of dirty blocks
      */
-    public FileStatistics(String fileName, double accessesPerSecond, double accessesContention, int loadedBlocks, int dirtyBlocks) {
+    public FileStatistics(String fileName, long accessesPerSecond, long accessesContention, int loadedBlocks, int dirtyBlocks) {
         this.fileName = fileName;
         this.accessesPerSecond = accessesPerSecond;
         this.accessesContention = accessesContention;
@@ -122,8 +122,8 @@ public class FileStatistics implements Serializable {
      */
     public FileStatistics(ASTNode definition) {
         String fileName = "";
-        double accessesPerSecond = 0;
-        double accessesContention = 0;
+        long accessesPerSecond = 0;
+        long accessesContention = 0;
         int loadedBlocks = 0;
         int dirtyBlocks = 0;
         for (ASTNode member : definition.getChildren()) {
@@ -136,12 +136,12 @@ public class FileStatistics implements Serializable {
                     break;
                 case "accessesPerSecond": {
                     String value = IOUtils.unescape(member.getChildren().get(1).getValue());
-                    accessesPerSecond = Double.parseDouble(value);
+                    accessesPerSecond = Long.parseLong(value);
                     break;
                 }
                 case "accessesContention": {
                     String value = IOUtils.unescape(member.getChildren().get(1).getValue());
-                    accessesContention = Double.parseDouble(value);
+                    accessesContention = Long.parseLong(value);
                     break;
                 }
                 case "loadedBlocks": {
@@ -175,9 +175,9 @@ public class FileStatistics implements Serializable {
                 "\", \"fileName\": \"" +
                 IOUtils.escapeStringJSON(fileName) +
                 "\", \"accessesPerSecond\": " +
-                Double.toString(accessesPerSecond) +
+                Long.toString(accessesPerSecond) +
                 ", \"accessesContention\": " +
-                Double.toString(accessesContention) +
+                Long.toString(accessesContention) +
                 ", \"loadedBlocks\": " +
                 Integer.toString(loadedBlocks) +
                 ", \"dirtyBlocks\": " +

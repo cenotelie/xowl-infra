@@ -83,11 +83,11 @@ class IOAccessManager {
     /**
      * The total number of accesses
      */
-    private double totalAccesses;
+    private long totalAccesses;
     /**
-     * The mean number of tries per access
+     * The total number of tries for all accesses
      */
-    private double contention;
+    private long totalTries;
     /**
      * The timestamp for the last update of the contention statistics
      */
@@ -98,14 +98,14 @@ class IOAccessManager {
      *
      * @return The mean number of tries
      */
-    public double getStatisticsContention() {
+    public long getStatisticsContention() {
         long timestamp = System.nanoTime();
         if (timestamp >= statisticsTimestamp + FileStatistics.REFRESH_PERIOD) {
-            contention = 1;
             totalAccesses = 0;
+            totalTries = 0;
             statisticsTimestamp = timestamp;
         }
-        return contention;
+        return totalAccesses == 0 ? 1 : totalTries / totalAccesses;
     }
 
     /**
@@ -113,14 +113,14 @@ class IOAccessManager {
      *
      * @return The mean number of accesses per second
      */
-    public double getStatisticsAccessPerSecond() {
+    public long getStatisticsAccessPerSecond() {
         long timestamp = System.nanoTime();
         if (timestamp >= statisticsTimestamp + FileStatistics.REFRESH_PERIOD) {
-            contention = 1;
             totalAccesses = 0;
+            totalTries = 0;
             statisticsTimestamp = timestamp;
         }
-        return totalAccesses * 2;
+        return totalAccesses * (1000000000 / FileStatistics.REFRESH_PERIOD);
     }
 
     /**
@@ -135,7 +135,7 @@ class IOAccessManager {
         this.poolFirst = new AtomicReference<>(null);
         this.root = new AtomicReference<>(null);
         this.totalAccesses = 0;
-        this.contention = 1;
+        this.totalTries = 0;
         this.statisticsTimestamp = System.nanoTime();
     }
 
@@ -223,12 +223,12 @@ class IOAccessManager {
     private void onAccess(int tries) {
         long timestamp = System.nanoTime();
         if (timestamp >= statisticsTimestamp + FileStatistics.REFRESH_PERIOD) {
-            contention = tries;
             totalAccesses = 1;
+            totalTries = tries;
             statisticsTimestamp = timestamp;
         } else {
-            contention = ((contention * totalAccesses) + tries) / (totalAccesses + 1);
-            totalAccesses = totalAccesses + 1;
+            totalAccesses++;
+            totalTries += tries;
         }
     }
 }
