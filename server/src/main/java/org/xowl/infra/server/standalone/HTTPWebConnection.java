@@ -20,7 +20,7 @@ package org.xowl.infra.server.standalone;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
-import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,11 +44,10 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
     /**
      * Initializes this connection
      *
-     * @param logger   The logger to use
      * @param exchange The HTTP exchange to treat
      */
-    public HTTPWebConnection(Logger logger, HttpExchange exchange) {
-        super(logger);
+    public HTTPWebConnection(HttpExchange exchange) {
+        super(Logging.getDefault());
         this.httpExchange = exchange;
     }
 

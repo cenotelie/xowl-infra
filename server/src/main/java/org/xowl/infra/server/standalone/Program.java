@@ -19,6 +19,9 @@ package org.xowl.infra.server.standalone;
 
 import org.xowl.infra.server.base.ServerConfiguration;
 import org.xowl.infra.server.base.ServerController;
+import org.xowl.infra.utils.logging.ConsoleLogger;
+import org.xowl.infra.utils.logging.DispatchLogger;
+import org.xowl.infra.utils.logging.FileLogger;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
@@ -115,6 +118,7 @@ public class Program {
             System.exit(1);
             return false;
         }
+        Logging.setDefault(new DispatchLogger(new FileLogger(new File(configuration.getStartupFolder(), "server.log")), new ConsoleLogger()));
         try {
             controller = new ServerController(configuration) {
 
@@ -145,16 +149,16 @@ public class Program {
     private synchronized void onClose() {
         if (controller == null)
             return;
-        controller.getLogger().info("Shutting down this server ...");
+        Logging.getDefault().info("Shutting down this server ...");
         try {
             httpServer.close();
         } catch (IOException exception) {
-            controller.getLogger().error(exception);
+            Logging.getDefault().error(exception);
         }
         try {
             controller.close();
         } catch (IOException exception) {
-            controller.getLogger().error(exception);
+            Logging.getDefault().error(exception);
         }
         httpServer = null;
         controller = null;

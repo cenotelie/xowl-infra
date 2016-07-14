@@ -24,11 +24,6 @@ import java.io.PrintStream;
  * @author Laurent Wouters
  */
 public class ConsoleLogger implements Logger {
-    private static final String LEVEL_DEBUG = "DEBUG";
-    private static final String LEVEL_INFO = "INFO";
-    private static final String LEVEL_WARNING = "WARNING";
-    private static final String LEVEL_ERROR = "ERROR";
-
     @Override
     public void debug(Object message) {
         log(message, LEVEL_DEBUG, false);

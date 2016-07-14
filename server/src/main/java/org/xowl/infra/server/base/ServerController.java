@@ -26,8 +26,6 @@ import org.xowl.infra.server.standalone.Program;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.utils.logging.ConsoleLogger;
-import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.Closeable;
@@ -61,10 +59,6 @@ public class ServerController implements Closeable {
      */
     private final ServerConfiguration configuration;
     /**
-     * The main logger
-     */
-    private final Logger logger;
-    /**
      * The currently hosted repositories
      */
     private final Map<String, ServerDatabase> databases;
@@ -82,15 +76,6 @@ public class ServerController implements Closeable {
     private final Map<String, ServerUser> users;
 
     /**
-     * Gets the main logger
-     *
-     * @return The main logger
-     */
-    public Logger getLogger() {
-        return logger;
-    }
-
-    /**
      * Initializes this controller
      *
      * @param configuration The current configuration
@@ -98,14 +83,13 @@ public class ServerController implements Closeable {
      */
     public ServerController(ServerConfiguration configuration) throws IOException {
         this.configuration = configuration;
-        this.logger = new ConsoleLogger();
         this.databases = new HashMap<>();
         boolean isEmpty = true;
         if (configuration.getDatabasesFolder().exists()) {
             String[] children = configuration.getDatabasesFolder().list();
             isEmpty = children == null || children.length == 0;
         }
-        logger.info("Initializing the controller");
+        Logging.getDefault().info("Initializing the controller");
         adminDB = new ServerDatabase(configuration, configuration.getDatabasesFolder());
         databases.put(configuration.getAdminDBName(), adminDB);
         clients = new HashMap<>();
@@ -122,36 +106,36 @@ public class ServerController implements Closeable {
             for (ProxyObject poDB : classDB.getInstances()) {
                 if (poDB == adminDB.getProxy())
                     continue;
-                logger.info("Found database " + poDB.getIRIString());
+                Logging.getDefault().info("Found database " + poDB.getIRIString());
                 String name = (String) poDB.getDataValue(Schema.ADMIN_NAME);
                 String location = (String) poDB.getDataValue(Schema.ADMIN_LOCATION);
                 try {
                     ServerDatabase db = new ServerDatabase(new File(configuration.getDatabasesFolder(), location), poDB);
                     databases.put(name, db);
-                    logger.info("Loaded database " + poDB.getIRIString() + " as " + name);
+                    Logging.getDefault().info("Loaded database " + poDB.getIRIString() + " as " + name);
                 } catch (IOException exception) {
-                    // do nothing, this exception is reported by the db logger
-                    logger.error("Failed to load database " + poDB.getIRIString() + " as " + name);
+                    // do nothing, this exception is reported by the db Logging.getDefault()
+                    Logging.getDefault().error("Failed to load database " + poDB.getIRIString() + " as " + name);
                 }
             }
         }
-        logger.info("Controller is ready");
+        Logging.getDefault().info("Controller is ready");
     }
 
     @Override
     public void close() throws IOException {
-        logger.info("Closing all databases ...");
+        Logging.getDefault().info("Closing all databases ...");
         for (Map.Entry<String, ServerDatabase> entry : databases.entrySet()) {
-            logger.info("Closing database " + entry.getKey());
+            Logging.getDefault().info("Closing database " + entry.getKey());
             try {
                 entry.getValue().close();
             } catch (IOException exception) {
-                logger.error(exception);
+                Logging.getDefault().error(exception);
             }
-            logger.info("Closed database " + entry.getKey());
+            Logging.getDefault().info("Closed database " + entry.getKey());
         }
         databases.clear();
-        logger.info("All databases closed");
+        Logging.getDefault().info("All databases closed");
     }
 
     /**
@@ -189,7 +173,7 @@ public class ServerController implements Closeable {
             return null;
         if (login == null || login.isEmpty() || password == null || password.isEmpty()) {
             boolean banned = onLoginFailure(client);
-            logger.info("Login failure for " + login + " from " + client.toString());
+            Logging.getDefault().info("Login failure for " + login + " from " + client.toString());
             return banned ? null : XSPReplyFailure.instance();
         }
         String userIRI = Schema.ADMIN_GRAPH_USERS + login;
@@ -202,12 +186,12 @@ public class ServerController implements Closeable {
         }
         if (proxy == null) {
             boolean banned = onLoginFailure(client);
-            logger.info("Login failure for " + login + " from " + client.toString());
+            Logging.getDefault().info("Login failure for " + login + " from " + client.toString());
             return banned ? null : XSPReplyFailure.instance();
         }
         if (!BCrypt.checkpw(password, hash)) {
             boolean banned = onLoginFailure(client);
-            logger.info("Login failure for " + login + " from " + client.toString());
+            Logging.getDefault().info("Login failure for " + login + " from " + client.toString());
             return banned ? null : XSPReplyFailure.instance();
         } else {
             synchronized (clients) {
@@ -612,7 +596,7 @@ public class ServerController implements Closeable {
                 Logging.getDefault().error(exception);
             }
             if (!Program.delete(folder)) {
-                logger.error("Failed to delete " + folder.getAbsolutePath());
+                Logging.getDefault().error("Failed to delete " + folder.getAbsolutePath());
             }
             database.getProxy().delete();
             adminDB.getRepository().getStore().commit();
@@ -944,7 +928,7 @@ public class ServerController implements Closeable {
             }
             if (cl.failedAttempt >= configuration.getSecurityMaxLoginAttempt()) {
                 // too much failure, ban this client for a while
-                logger.info("Banned client " + client.toString() + " for " + configuration.getSecurityBanLength() + " seconds");
+                Logging.getDefault().info("Banned client " + client.toString() + " for " + configuration.getSecurityBanLength() + " seconds");
                 cl.banTimeStamp = Calendar.getInstance().getTime().getTime();
                 return true;
             }

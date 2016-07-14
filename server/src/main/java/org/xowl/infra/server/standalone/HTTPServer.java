@@ -22,7 +22,6 @@ import org.xowl.infra.server.base.ServerConfiguration;
 import org.xowl.infra.server.base.ServerController;
 import org.xowl.infra.server.utils.SSLGenerator;
 import org.xowl.infra.utils.collections.Couple;
-import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -112,10 +111,6 @@ public class HTTPServer implements Closeable {
      * The pool of executor threads
      */
     private final ThreadPoolExecutor executorPool;
-    /**
-     * The logger to use
-     */
-    private final Logger logger;
 
     /**
      * Initializes this server
@@ -124,14 +119,13 @@ public class HTTPServer implements Closeable {
      * @param controller    The current controller
      */
     public HTTPServer(ServerConfiguration configuration, final ServerController controller) {
-        controller.getLogger().info("Initializing the HTTPS server ...");
+        Logging.getDefault().info("Initializing the HTTPS server ...");
         this.configuration = configuration;
-        this.logger = controller.getLogger();
         SSLContext sslContext = null;
         Couple<KeyStore, String> ssl = getKeyStore(configuration);
         if (ssl != null) {
             try {
-                controller.getLogger().info("Setting up SSL");
+                Logging.getDefault().info("Setting up SSL");
                 KeyManagerFactory keyManager = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
                 keyManager.init(ssl.x, ssl.y.toCharArray());
                 TrustManagerFactory trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -147,7 +141,7 @@ public class HTTPServer implements Closeable {
                 configuration.getHttpPort());
         HttpsServer temp = null;
         try {
-            controller.getLogger().info("Creating the HTTPS server");
+            Logging.getDefault().info("Creating the HTTPS server");
             temp = HttpsServer.create(address, configuration.getHttpBacklog());
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
@@ -161,14 +155,14 @@ public class HTTPServer implements Closeable {
                     try {
                         ((new HTTPAPIConnection(controller, httpExchange))).run();
                     } catch (Exception exception) {
-                        controller.getLogger().error(exception);
+                        Logging.getDefault().error(exception);
                     }
                 }
             }).setAuthenticator(authenticator);
             server.createContext("/web/", new HttpHandler() {
                 @Override
                 public void handle(HttpExchange httpExchange) throws IOException {
-                    ((new HTTPWebConnection(logger, httpExchange))).run();
+                    ((new HTTPWebConnection(httpExchange))).run();
                 }
             });
             server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
@@ -186,7 +180,7 @@ public class HTTPServer implements Closeable {
                     }
                 }
             });
-            controller.getLogger().info("HTTPS server is ready");
+            Logging.getDefault().info("HTTPS server is ready");
         } else {
             server = null;
         }

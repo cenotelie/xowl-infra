@@ -24,6 +24,23 @@ package org.xowl.infra.utils.logging;
  */
 public interface Logger {
     /**
+     * String representation of the Debug log level
+     */
+    String LEVEL_DEBUG = "DEBUG";
+    /**
+     * String representation of the Info log level
+     */
+    String LEVEL_INFO = "INFO";
+    /**
+     * String representation of the Warning log level
+     */
+    String LEVEL_WARNING = "WARNING";
+    /**
+     * String representation of the Error log level
+     */
+    String LEVEL_ERROR = "ERROR";
+
+    /**
      * Logs a debug message
      *
      * @param message The message

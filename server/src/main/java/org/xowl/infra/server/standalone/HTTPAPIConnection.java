@@ -28,6 +28,7 @@ import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.http.HttpResponse;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -71,7 +72,7 @@ class HTTPAPIConnection extends SafeRunnable {
      * @param exchange   The HTTP exchange to treat
      */
     public HTTPAPIConnection(ServerController controller, HttpExchange exchange) {
-        super(controller.getLogger());
+        super(Logging.getDefault());
         this.controller = controller;
         this.httpExchange = exchange;
     }
@@ -327,7 +328,7 @@ class HTTPAPIConnection extends SafeRunnable {
         try {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
-            controller.getLogger().error(exception);
+            Logging.getDefault().error(exception);
             return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
         }
         return response(controller.upload(client, name, contentType, body));
@@ -365,7 +366,7 @@ class HTTPAPIConnection extends SafeRunnable {
         try {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
-            controller.getLogger().error(exception);
+            Logging.getDefault().error(exception);
             return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
         }
         switch (method) {
@@ -405,7 +406,7 @@ class HTTPAPIConnection extends SafeRunnable {
                 String body = Utils.getRequestBody(httpExchange);
                 return response(controller.setEntailmentRegime(client, name, body));
             } catch (IOException exception) {
-                controller.getLogger().error(exception);
+                Logging.getDefault().error(exception);
                 return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
             }
         } else if (method.equals("DELETE")) {
@@ -480,7 +481,7 @@ class HTTPAPIConnection extends SafeRunnable {
                     String body = Utils.getRequestBody(httpExchange);
                     return response(controller.addRule(client, name, body, actives != null && !actives.isEmpty()));
                 } catch (IOException exception) {
-                    controller.getLogger().error(exception);
+                    Logging.getDefault().error(exception);
                     return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
                 }
             case "DELETE":
@@ -504,12 +505,12 @@ class HTTPAPIConnection extends SafeRunnable {
         try {
             httpExchange.sendResponseHeaders(code, buffer.length);
         } catch (IOException exception) {
-            controller.getLogger().error(exception);
+            Logging.getDefault().error(exception);
         }
         try (OutputStream stream = httpExchange.getResponseBody()) {
             stream.write(buffer);
         } catch (IOException exception) {
-            controller.getLogger().error(exception);
+            Logging.getDefault().error(exception);
             return code;
         }
         return code;
