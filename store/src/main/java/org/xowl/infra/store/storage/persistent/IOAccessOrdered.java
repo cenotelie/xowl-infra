@@ -67,15 +67,6 @@ abstract class IOAccessOrdered extends IOAccess {
     }
 
     /**
-     * Unconditionally resets the value of the next stamped reference
-     *
-     * @param value The access element to reference as next
-     */
-    private void resetNext(IOAccessOrdered value) {
-        next.set(getUpdatedStampedReference(next.get(), value));
-    }
-
-    /**
      * Inserts a new element into a pool
      *
      * @param poolFirst The reference to the next free element
@@ -188,7 +179,7 @@ abstract class IOAccessOrdered extends IOAccess {
 
         // do the insert
         // setup the element to insert
-        element.resetNext(insertBefore);
+        element.next.set(getUpdatedStampedReference(element.next.get(), insertBefore));
         // no element to insert after?
         if (insertAfter == null)
             // insert as root
