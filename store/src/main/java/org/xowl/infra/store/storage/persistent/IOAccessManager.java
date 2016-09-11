@@ -20,7 +20,6 @@ package org.xowl.infra.store.storage.persistent;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Manages the concurrent accesses onto a single IO backend
@@ -47,9 +46,17 @@ class IOAccessManager {
      */
     private final AtomicInteger poolSize;
     /**
-     * The first free access object in the pool
+     * The queue the identifier of free accesses
      */
-    private final AtomicLong poolFirst;
+    private final int[] queue;
+    /**
+     * The head of the queue, as the index of the next free slot in the queue for insertion
+     */
+    private final AtomicInteger queueHead;
+    /**
+     * The tail of the queue, as the index of the next element in the queue for removal
+     */
+    private final AtomicInteger queueTail;
     /**
      * The head of the list of live accesses
      */
@@ -110,7 +117,9 @@ class IOAccessManager {
         this.backend = backend;
         this.pool = new IOAccessOrdered[ACCESSES_POOL_SIZE];
         this.poolSize = new AtomicInteger(2);
-        this.poolFirst = new AtomicLong(0x00000000FFFFFFFFL);
+        this.queue = new int[ACCESSES_POOL_SIZE];
+        this.queueHead = new AtomicInteger(0);
+        this.queueTail = new AtomicInteger(0);
         this.listHead = new IOAccessOrdered(this, 0);
         this.listTail = new IOAccessOrdered(this, 1);
         this.listHead.next.set(listTail.identifier);
@@ -193,16 +202,8 @@ class IOAccessManager {
             }
 
             // 3: Remove one or more marked nodes
-            IOAccessOrdered toRelease = pool[id(leftNodeNext)];
             if (leftNode.next.compareAndSet(leftNodeNext, rightNode.identifier)) {
-                // release the removed nodes
-                while (toRelease != rightNode) {
-                    long toReleaseNext = toRelease.next.get();
-                    if (!isMarked(toReleaseNext))
-                        throw new Error("WTF!");
-                    poolReturnAccess(toRelease);
-                    toRelease = pool[id(toReleaseNext)];
-                }
+                poolReturnSequence(id(leftNodeNext), rightNode.identifier);
                 if (rightNode != listTail && isMarked(rightNode.next.get()))
                     continue;
                 return ((long) (leftNode.identifier) << 32)
@@ -291,16 +292,8 @@ class IOAccessManager {
             }
 
             // 3: Remove one or more marked nodes
-            IOAccessOrdered toRelease = pool[id(leftNodeNext)];
             if (leftNode.next.compareAndSet(leftNodeNext, rightNode.identifier)) {
-                // release the removed nodes
-                while (toRelease != rightNode) {
-                    long toReleaseNext = toRelease.next.get();
-                    if (!isMarked(toReleaseNext))
-                        throw new Error("WTF!");
-                    poolReturnAccess(toRelease);
-                    toRelease = pool[id(toReleaseNext)];
-                }
+                poolReturnSequence(id(leftNodeNext), rightNode.identifier);
                 return ((long) (leftNode.identifier) << 32)
                         | ((long) (rightNode.identifier));
             }
@@ -327,9 +320,7 @@ class IOAccessManager {
             return false;
         // try a simple delete
         if (left.next.compareAndSet(access.identifier, accessNext))
-            poolReturnAccess(access);
-        else
-            listSearchRemove(access);
+            poolReturnAccess(access.identifier);
         return true;
     }
 
@@ -406,47 +397,62 @@ class IOAccessManager {
      * @return A free access object
      */
     private IOAccessOrdered newAccess() {
-        while (true) {
-            int size = poolSize.get();
-            long firstData = poolFirst.get();
-            int firstId = (int) (firstData & 0xFFFFFFFFL);
-            int firstStamp = (int) (firstData >> 32);
-
-            if (firstId != -1) {
-                IOAccessOrdered result = pool[firstId];
-                int nextId = result.poolNext;
-                long nextData = (((long) (firstStamp + 1)) << 32) | nextId;
-                if (poolFirst.compareAndSet(firstData, nextData))
-                    return result;
-                continue;
-            }
-
-            if (size == pool.length)
-                // wait for a free element
-                continue;
-
+        // if the pool is not full yet, first fill it
+        int size = poolSize.get();
+        while (size < pool.length) {
             if (poolSize.compareAndSet(size, size + 1)) {
                 IOAccessOrdered newAccess = new IOAccessOrdered(this, size);
                 pool[size] = newAccess;
                 return newAccess;
             }
+            size = poolSize.get();
+        }
+        // the pool is full, try to reclaim an access from the queue of free accesses
+        while (true) {
+            int oldTail = queueTail.get();
+            if (oldTail == queueHead.get()) {
+                // the queue us empty, wait for a free one access to come up
+                continue;
+            }
+            int newTail = oldTail == queue.length - 1 ? 0 : oldTail + 1;
+            if (queueTail.compareAndSet(oldTail, newTail))
+                return pool[queue[oldTail]];
         }
     }
 
     /**
-     * Returns an access to the pool
+     * Enqueues a sequence of accesses, making them free to use again
      *
-     * @param access The access to return
+     * @param firstId  The identifier of the first access to release in the sequence
+     * @param targetId The target identifier to reach, thus marking the end of the sequence
      */
-    private void poolReturnAccess(IOAccessOrdered access) {
+    private void poolReturnSequence(int firstId, int targetId) {
+        IOAccessOrdered access = pool[firstId];
         while (true) {
-            long firstData = poolFirst.get();
-            int firstId = (int) (firstData & 0xFFFFFFFFL);
-            int firstStamp = (int) (firstData >> 32);
-            access.poolNext = firstId;
-            long nextData = (((long) (firstStamp + 1)) << 32) | access.identifier;
-            if (poolFirst.compareAndSet(firstData, nextData))
-                return;
+            long accessNext = access.next.get();
+            if (!isMarked(accessNext))
+                throw new Error("Trying to return a non-marked access");
+            poolReturnAccess(access.identifier);
+            int nextId = id(accessNext);
+            if (nextId == targetId)
+                break;
+            access = pool[nextId];
+        }
+    }
+
+    /**
+     * Enqueues a single access, making it free to use again
+     *
+     * @param identifier The identifier of the access to enqueue
+     */
+    private void poolReturnAccess(int identifier) {
+        while (true) {
+            int oldHead = queueHead.get();
+            int newHead = oldHead == queue.length - 1 ? 0 : oldHead + 1;
+            if (queueHead.compareAndSet(oldHead, newHead)) {
+                queue[oldHead] = identifier;
+                break;
+            }
         }
     }
 

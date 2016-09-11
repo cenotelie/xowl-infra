@@ -40,10 +40,6 @@ class IOAccessOrdered extends IOAccess {
      * If the reference is marked this node (the one owning the reference) is logically deleted
      */
     protected final AtomicLong next;
-    /**
-     * The successor of this element in its current pool
-     */
-    protected int poolNext;
 
     /**
      * Initializes this element
@@ -55,7 +51,6 @@ class IOAccessOrdered extends IOAccess {
         this.manager = manager;
         this.identifier = identifier;
         this.next = new AtomicLong(0x00000000FFFFFFFFL);
-        this.poolNext = -1;
     }
 
     @Override
