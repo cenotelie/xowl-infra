@@ -152,10 +152,10 @@ class IOAccessManager {
         this.accesses[ACTIVE_TAIL_ID].setupIOData(Integer.MAX_VALUE, 0, false);
         this.accessesCount = new AtomicInteger(2);
         this.accessesState = new AtomicIntegerArray(ACCESSES_POOL_SIZE);
-        this.accessesState.set(ACTIVE_HEAD_ID, 0x00000001);
-        this.accessesState.set(ACTIVE_TAIL_ID, 0x00000001);
+        this.accessesState.set(ACTIVE_HEAD_ID, ACTIVE_TAIL_ID);
+        this.accessesState.set(ACTIVE_TAIL_ID, ACTIVE_TAIL_ID);
         this.accessesThreads = new AtomicIntegerArray(ACCESSES_POOL_SIZE);
-        this.accessesFree = new AtomicInteger(-1);
+        this.accessesFree = new AtomicInteger(ACTIVE_HEAD_ID);
         this.totalAccesses = 0;
         this.totalTries = 0;
         this.statisticsTimestamp = System.nanoTime();
@@ -240,17 +240,24 @@ class IOAccessManager {
             // start by the head
             int currentNode = ACTIVE_HEAD_ID;
             int currentNodeState = accessesState.get(currentNode);
+            accessesThreads.incrementAndGet(currentNode);
 
             // 1: Find leftNode and rightNode so that either
             do {
                 if (!stateIsMarked(currentNodeState)) {
+                    if (leftNode != -1)
+                        accessesThreads.decrementAndGet(leftNode);
                     leftNode = currentNode;
                     leftNodeState = currentNodeState;
+                    accessesThreads.incrementAndGet(leftNode);
                 }
                 int old = currentNode;
                 currentNode = stateActiveNext(currentNodeState);
+                accessesThreads.incrementAndGet(currentNode);
+                accessesThreads.decrementAndGet(old);
                 if (currentNode == ACTIVE_TAIL_ID) {
                     rightNode = currentNode;
+                    accessesThreads.incrementAndGet(rightNode);
                     break;
                 }
                 if (currentNode == toInsert)
@@ -261,15 +268,25 @@ class IOAccessManager {
                 Access accessCurrentNode = accesses[currentNode];
                 if (!stateIsMarked(currentNodeState) && (accessToInsert.writable || accessCurrentNode.writable) && !accessToInsert.disjoints(accessCurrentNode)) {
                     // there is a write overlap
+                    accessesThreads.decrementAndGet(currentNode);
+                    if (leftNode != -1)
+                        accessesThreads.decrementAndGet(leftNode);
+                    if (rightNode != -1)
+                        accessesThreads.decrementAndGet(leftNode);
                     return 0xFFFFFFFFFFFFFFFFL;
                 }
                 if (!stateIsMarked(currentNodeState)) {
-                    if (accessToInsert.location < accessCurrentNode.location)
+                    if (accessToInsert.location < accessCurrentNode.location) {
+                        if (rightNode != -1)
+                            accessesThreads.decrementAndGet(rightNode);
                         rightNode = currentNode;
+                        accessesThreads.incrementAndGet(rightNode);
+                    }
                     if (accessCurrentNode.location >= accessToInsert.location + accessToInsert.length)
                         break;
                 }
             } while (true);
+            accessesThreads.decrementAndGet(currentNode);
 
             // 2: Check nodes are adjacent
             if (stateActiveNext(leftNodeState) == rightNode) {
@@ -299,7 +316,6 @@ class IOAccessManager {
      * @return Whether the attempt is successful
      */
     private boolean listTryInsert(int toInsert) {
-        Access accessToInsert = accesses[toInsert];
         long data = listSearchInsert(toInsert);
         if (data == 0xFFFFFFFFFFFFFFFFL)
             // there is an overlap
@@ -307,29 +323,20 @@ class IOAccessManager {
         int left = ((int) (data >>> 32));
         int right = ((int) (data & 0xFFFFFFFFL));
         int leftState = accessesState.get(left);
-        if (stateActiveNext(leftState) != right)
+        if (stateActiveNext(leftState) != right) {
             // the list has changed
+            accessesThreads.decrementAndGet(left);
+            accessesThreads.decrementAndGet(right);
             return false;
-        // check for overlaps on followers
-        int follower = right;
-        Access accessFollower = accesses[follower];
-        while (follower != ACTIVE_TAIL_ID && accessFollower.location < accessToInsert.location + accessToInsert.length) {
-            int followerState = accessesState.get(follower);
-            //if (left.next.get() != right.identifier)
-            //    return false;
-            if (stateIsMarked(followerState))
-                // the list
-                return false;
-            if ((accessToInsert.writable || accessFollower.writable) && !accessToInsert.disjoints(accessFollower))
-                // there is a write overlap
-                return false;
-            follower = stateActiveNext(followerState);
-            accessFollower = accesses[follower];
         }
+        // check for overlaps on followers
         if (right == toInsert || left == toInsert)
             throw new Error("oops");
         accessesState.set(toInsert, right);
-        return (accessesState.compareAndSet(left, leftState, stateNewActiveNext(leftState, toInsert)));
+        boolean result = (accessesState.compareAndSet(left, leftState, stateNewActiveNext(leftState, toInsert)));
+        accessesThreads.decrementAndGet(left);
+        accessesThreads.decrementAndGet(right);
+        return result;
     }
 
     /**
@@ -361,15 +368,21 @@ class IOAccessManager {
             // start by the head
             int currentNode = ACTIVE_HEAD_ID;
             int currentNodeState = accessesState.get(currentNode);
+            accessesThreads.incrementAndGet(currentNode);
 
             // 1: Find leftNode and rightNode so that either
             do {
                 if (!stateIsMarked(currentNodeState)) {
+                    if (leftNode != -1)
+                        accessesThreads.decrementAndGet(leftNode);
                     leftNode = currentNode;
                     leftNodeState = currentNodeState;
+                    accessesThreads.incrementAndGet(leftNode);
                 }
                 int old = currentNode;
                 currentNode = stateActiveNext(currentNodeState);
+                accessesThreads.incrementAndGet(currentNode);
+                accessesThreads.decrementAndGet(old);
                 if (currentNode == ACTIVE_TAIL_ID)
                     throw new Error("WTF!");
                 if (accesses[old].location > accesses[currentNode].location)
@@ -411,8 +424,11 @@ class IOAccessManager {
         if (stateIsMarked(toRemoveState))
             throw new Error("Concurrent removal of the access");
         // mark the node for a delete
-        if (!accessesState.compareAndSet(toRemove, toRemoveState, stateSetMark(toRemoveState)))
+        if (!accessesState.compareAndSet(toRemove, toRemoveState, stateSetMark(toRemoveState))) {
+            accessesThreads.decrementAndGet(left);
+            accessesThreads.decrementAndGet(right);
             return false;
+        }
         // try a simple delete
         int next = stateActiveNext(toRemoveState);
         if (next == left)
@@ -420,9 +436,12 @@ class IOAccessManager {
         int leftState = accessesState.get(left);
         int leftExpectedState = (leftState & 0xFF00FF00) | toRemove;
         int leftNewState = (leftState & 0xFF00FF00) | next;
-        if (accessesState.compareAndSet(left, leftExpectedState, leftNewState))
+        boolean result = (accessesState.compareAndSet(left, leftExpectedState, leftNewState));
+        accessesThreads.decrementAndGet(left);
+        accessesThreads.decrementAndGet(right);
+        if (result)
             poolReturnAccess(toRemove);
-        return true;
+        return result;
     }
 
     /**
@@ -498,37 +517,33 @@ class IOAccessManager {
      * @return A free access object
      */
     private Access newAccess() {
-        // if the pool is not full yet, first fill it
-        int size = poolSize.get();
-        while (size < pool.length) {
-            if (poolSize.compareAndSet(size, size + 1)) {
-                IOAccessOrdered newAccess = new IOAccessOrdered(this, size);
-                newAccess.history.add("Created and in use by " + Thread.currentThread().getName());
-                pool[size] = newAccess;
-                return newAccess;
-            }
-            size = poolSize.get();
-        }
-        // the pool is full, try to reclaim an access from the queue of free accesses
         while (true) {
-            int oldTail = queueTail.get();
-            long headData = queueHead.get();
-            int headIndex = (int) (headData >>> 32);
-            int headValue = (int) (headData & 0xFFFFFFFFL);
+            // try to reuse an existing free access
+            int nextFree = accessesFree.get();
+            if (nextFree != ACTIVE_HEAD_ID) {
+                int freeStateOld = accessesState.get(nextFree);
+                int follower = stateFreeNext(freeStateOld);
+                if (!accessesFree.compareAndSet(nextFree, follower))
+                    // not fast enough!
+                    continue;
+                return accesses[nextFree];
+            }
 
-            if (oldTail == headIndex) {
-                // the queue us empty, wait for a free one access to come up
+            // no free access
+            // is the pool full
+            int count = accessesCount.get();
+            if (count == ACCESSES_POOL_SIZE)
+                // the pool is full, retry to reuse a free access
                 continue;
-            }
-            int newTail = oldTail == queue.length - 1 ? 0 : oldTail + 1;
-            if (queueTail.compareAndSet(oldTail, newTail)) {
-                int index = newTail == headIndex ? headValue : queue[oldTail];
-                if (index < 2)
-                    throw new Error("shit");
-                queue[oldTail] = -1;
-                pool[index].history.add("Reused by " + Thread.currentThread().getName());
-                return pool[index];
-            }
+
+            if (!accessesCount.compareAndSet(count, count + 1))
+                // failed to grow the pool, retry
+                continue;
+
+            accesses[count] = new Access(count);
+            accessesThreads.set(count, 0);
+            accessesState.set(count, 0x00000000);
+            return accesses[count];
         }
     }
 
@@ -539,16 +554,16 @@ class IOAccessManager {
      * @param targetId The target identifier to reach, thus marking the end of the sequence
      */
     private void poolReturnSequence(int firstId, int targetId) {
-        IOAccessOrdered access = pool[firstId];
+        int current = firstId;
         while (true) {
-            long accessNext = access.next.get();
-            if (!stateIsMarked(accessNext))
+            int currentState = accessesState.get(current);
+            if (!stateIsMarked(currentState))
                 throw new Error("Trying to return a non-marked access");
-            poolReturnAccess(access.identifier);
-            int nextId = id(accessNext);
+            poolReturnAccess(current);
+            int nextId = stateActiveNext(currentState);
             if (nextId == targetId)
                 break;
-            access = pool[nextId];
+            current = nextId;
         }
     }
 
@@ -558,19 +573,22 @@ class IOAccessManager {
      * @param identifier The identifier of the access to enqueue
      */
     private void poolReturnAccess(int identifier) {
+        // wait until no thread is touching this access
         while (true) {
-            long oldHeadData = queueHead.get();
-            int oldHeadIndex = (int) (oldHeadData >>> 32);
-            int oldHeadValue = (int) (oldHeadData & 0xFFFFFFFFL);
-
-            int newHeadIndex = oldHeadIndex == queue.length - 1 ? 0 : oldHeadIndex + 1;
-            long newHeadData = (((long) newHeadIndex) << 32) | ((long) identifier);
-
-            if (queueHead.compareAndSet(oldHeadData, newHeadData)) {
-                queue[oldHeadIndex] = identifier;
-                pool[identifier].history.add("Returned by " + Thread.currentThread().getName());
+            int count = accessesThreads.get(identifier);
+            if (count == 0)
                 break;
-            }
+        }
+
+        // register in the stack of free accesses
+        while (true) {
+            int previousFree = accessesFree.get();
+            int oldState = accessesState.get(identifier);
+            int newState = stateNewFreeNext(oldState, previousFree);
+            if (!accessesState.compareAndSet(identifier, oldState, newState))
+                continue;
+            if (accessesFree.compareAndSet(previousFree, identifier))
+                return;
         }
     }
 
