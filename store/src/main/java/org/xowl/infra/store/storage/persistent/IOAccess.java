@@ -105,7 +105,7 @@ abstract class IOAccess implements AutoCloseable {
      * @param access An access
      * @return Whether the two access are disjoint
      */
-    protected boolean disjoints(IOAccessOrdered access) {
+    protected boolean disjoints(IOAccess access) {
         return (this.location + this.length <= access.location) // this is completely before parameter
                 || (access.location + access.length <= this.location); // parameter is completely before this
     }

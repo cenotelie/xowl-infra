@@ -20,6 +20,7 @@ package org.xowl.infra.store.storage.persistent;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 /**
  * Manages the concurrent accesses onto a single IO backend
@@ -32,6 +33,38 @@ class IOAccessManager {
      * The size of the access pool
      */
     private static final int ACCESSES_POOL_SIZE = 64;
+    /**
+     * The index of the head of the list of active accesses
+     */
+    private static final int ACTIVE_HEAD_ID = 0;
+    /**
+     * The index of the tail of the list of active accesses
+     */
+    private static final int ACTIVE_TAIL_ID = 1;
+
+    /**
+     * Represents an access managed by this structure
+     */
+    private class Access extends IOAccess {
+        /**
+         * The identifier of this access
+         */
+        private final int identifier;
+
+        /**
+         * Initializes this element
+         *
+         * @param identifier The identifier of this access
+         */
+        protected Access(int identifier) {
+            this.identifier = identifier;
+        }
+
+        @Override
+        public void close() {
+            IOAccessManager.this.onAccessEnd(this);
+        }
+    }
 
     /**
      * The backend element that is protected by this manager
@@ -40,31 +73,28 @@ class IOAccessManager {
     /**
      * The pool of existing accesses in the manager
      */
-    private final IOAccessOrdered[] pool;
+    private final Access[] accesses;
     /**
      * The current number of accesses in the pool
      */
-    private final AtomicInteger poolSize;
+    private final AtomicInteger accessesCount;
     /**
-     * The queue the identifier of free accesses
+     * The state of the accesses managed by this structure
+     * The state of an access is composed of
+     * - byte: unallocated
+     * - byte: mark whether this access is logically removed from the list of active accesses
+     * - byte: the index of the next free access (when this access is free)
+     * - byte: the index of the next active access (when this access is in the list of active accesses)
      */
-    private final int[] queue;
+    private final AtomicIntegerArray accessesState;
     /**
-     * The head of the queue, as the index of the next free slot in the queue for insertion
+     * The threads touching each access
      */
-    private final AtomicInteger queueHead;
+    private final AtomicIntegerArray accessesThreads;
     /**
-     * The tail of the queue, as the index of the next element in the queue for removal
+     * The index of the next free access
      */
-    private final AtomicInteger queueTail;
-    /**
-     * The head of the list of live accesses
-     */
-    private final IOAccessOrdered listHead;
-    /**
-     * The tail of the list of live accesses
-     */
-    private final IOAccessOrdered listTail;
+    private final AtomicInteger accessesFree;
     /**
      * The total number of accesses
      */
@@ -115,140 +145,203 @@ class IOAccessManager {
      */
     public IOAccessManager(IOBackend backend) {
         this.backend = backend;
-        this.pool = new IOAccessOrdered[ACCESSES_POOL_SIZE];
-        this.poolSize = new AtomicInteger(2);
-        this.queue = new int[ACCESSES_POOL_SIZE];
-        this.queueHead = new AtomicInteger(0);
-        this.queueTail = new AtomicInteger(0);
-        this.listHead = new IOAccessOrdered(this, 0);
-        this.listTail = new IOAccessOrdered(this, 1);
-        this.listHead.next.set(listTail.identifier);
-        this.pool[0] = listHead;
-        this.pool[1] = listTail;
+        this.accesses = new Access[ACCESSES_POOL_SIZE];
+        this.accesses[ACTIVE_HEAD_ID] = new Access(ACTIVE_HEAD_ID);
+        this.accesses[ACTIVE_HEAD_ID].setupIOData(0, 0, false);
+        this.accesses[ACTIVE_TAIL_ID] = new Access(ACTIVE_TAIL_ID);
+        this.accesses[ACTIVE_TAIL_ID].setupIOData(Integer.MAX_VALUE, 0, false);
+        this.accessesCount = new AtomicInteger(2);
+        this.accessesState = new AtomicIntegerArray(ACCESSES_POOL_SIZE);
+        this.accessesState.set(ACTIVE_HEAD_ID, 0x00000001);
+        this.accessesState.set(ACTIVE_TAIL_ID, 0x00000001);
+        this.accessesThreads = new AtomicIntegerArray(ACCESSES_POOL_SIZE);
+        this.accessesFree = new AtomicInteger(-1);
         this.totalAccesses = 0;
         this.totalTries = 0;
         this.statisticsTimestamp = System.nanoTime();
     }
 
     /**
-     * Gets whether the specified reference is marked
+     * Gets whether the state of an access indicates that the access is marked
      *
-     * @param reference A stamped reference
-     * @return Whether the specified reference is marked
+     * @param state The state of an access
+     * @return Whether the access is marked according to this state
      */
-    private static boolean isMarked(long reference) {
-        return ((reference & 0x0000000100000000L) == 0x0000000100000000L);
+    private static boolean stateIsMarked(int state) {
+        return (state & 0x00FF0000) == 0x00FF0000;
     }
 
     /**
-     * Gets the identifier of the access in the specified stamped reference
+     * Gets the marked version of the state for the specified one
      *
-     * @param reference A stamped reference
-     * @return The encapsulated identifier
+     * @param state The initial state of an access
+     * @return The equivalent marked state
      */
-    private static int id(long reference) {
-        return (int) (reference & 0xFFFFFFFFL);
+    private static int stateSetMark(int state) {
+        return state | 0x00FF0000;
     }
 
     /**
-     * Gets the marked reference
+     * Gets the index of the next active access
      *
-     * @param reference The original reference
-     * @return The marked reference
+     * @param state The state of an access
+     * @return The index of the next active access
      */
-    private static long marked(long reference) {
-        return (0x0000000100000000L | reference);
+    private static int stateActiveNext(int state) {
+        return state & 0x000000FF;
+    }
+
+    /**
+     * Gets the new state with a new value for the next active access
+     *
+     * @param state The initial state of an access
+     * @param next  The index of the next active access
+     * @return The new state
+     */
+    private static int stateNewActiveNext(int state, int next) {
+        return (state & 0xFFFFFF00) | next;
+    }
+
+    /**
+     * Gets the index of the next free access
+     *
+     * @param state The state of an access
+     * @return The index of the next free access
+     */
+    private static int stateFreeNext(int state) {
+        return (state & 0x0000FF00) >>> 8;
+    }
+
+    /**
+     * Gets the new state with a new value for the next free access
+     *
+     * @param state The initial state of an access
+     * @param next  The index of the next free access
+     * @return The new state
+     */
+    private static int stateNewFreeNext(int state, int next) {
+        return (state & 0xFFFF00FF) | (next << 8);
+
     }
 
     /**
      * Searches the left and right node in the list for a place to insert the specified access
      *
-     * @param access The access to be inserted
+     * @param toInsert The access to be inserted
      * @return The indices of the left and right nodes
      */
-    private long listSearchInsert(IOAccessOrdered access) {
-        IOAccessOrdered leftNode = listHead;
-        long leftNodeNext = 0x00000000FFFFFFFFL;
-        IOAccessOrdered rightNode;
+    private long listSearchInsert(int toInsert) {
+        Access accessToInsert = accesses[toInsert];
+        int leftNode = -1;
+        int leftNodeState = 0;
+        int rightNode = -1;
 
         while (true) {
             // start by the head
-            IOAccessOrdered currentNode = listHead;
-            long currentNodeNext = listHead.next.get();
+            int currentNode = ACTIVE_HEAD_ID;
+            int currentNodeState = accessesState.get(currentNode);
 
             // 1: Find leftNode and rightNode so that either
             do {
-                if (!isMarked(currentNodeNext)) {
+                if (!stateIsMarked(currentNodeState)) {
                     leftNode = currentNode;
-                    leftNodeNext = currentNodeNext;
+                    leftNodeState = currentNodeState;
                 }
-                currentNode = pool[id(currentNodeNext)];
-                if (currentNode == listTail)
+                int old = currentNode;
+                currentNode = stateActiveNext(currentNodeState);
+                if (currentNode == ACTIVE_TAIL_ID) {
+                    rightNode = currentNode;
                     break;
-                currentNodeNext = currentNode.next.get();
-                if ((access.writable || currentNode.writable) && !isMarked(currentNodeNext) && !access.disjoints(currentNode)) {
+                }
+                if (currentNode == toInsert)
+                    throw new Error("Already in list!");
+                if (accesses[old].location > accesses[currentNode].location)
+                    throw new Error("List is not ordered");
+                currentNodeState = accessesState.get(currentNode);
+                Access accessCurrentNode = accesses[currentNode];
+                if (!stateIsMarked(currentNodeState) && (accessToInsert.writable || accessCurrentNode.writable) && !accessToInsert.disjoints(accessCurrentNode)) {
                     // there is a write overlap
                     return 0xFFFFFFFFFFFFFFFFL;
                 }
-            } while (isMarked(currentNodeNext) || currentNode.location < access.location);
-            rightNode = currentNode;
+                if (!stateIsMarked(currentNodeState)) {
+                    if (accessToInsert.location < accessCurrentNode.location)
+                        rightNode = currentNode;
+                    if (accessCurrentNode.location >= accessToInsert.location + accessToInsert.length)
+                        break;
+                }
+            } while (true);
 
             // 2: Check nodes are adjacent
-            if (id(leftNodeNext) == rightNode.identifier) {
-                if (rightNode != listTail && isMarked(rightNode.next.get()))
+            if (stateActiveNext(leftNodeState) == rightNode) {
+                if (rightNode != ACTIVE_TAIL_ID && stateIsMarked(accessesState.get(rightNode)))
                     continue;
-                return ((long) (leftNode.identifier) << 32)
-                        | ((long) (rightNode.identifier));
+                return (((long) leftNode) << 32)
+                        | ((long) rightNode);
             }
 
             // 3: Remove one or more marked nodes
-            if (leftNode.next.compareAndSet(leftNodeNext, rightNode.identifier)) {
-                poolReturnSequence(id(leftNodeNext), rightNode.identifier);
-                if (rightNode != listTail && isMarked(rightNode.next.get()))
+            if (leftNode == rightNode)
+                throw new Error("oops");
+            if (accessesState.compareAndSet(leftNode, leftNodeState, stateNewActiveNext(leftNodeState, rightNode))) {
+                poolReturnSequence(stateActiveNext(leftNodeState), rightNode);
+                if (rightNode != ACTIVE_TAIL_ID && stateIsMarked(accessesState.get(rightNode)))
                     continue;
-                return ((long) (leftNode.identifier) << 32)
-                        | ((long) (rightNode.identifier));
+                return (((long) leftNode) << 32)
+                        | ((long) rightNode);
             }
         }
     }
 
     /**
-     * Tries to insert an access into the list of live accesses
+     * Tries to insert an access into the list of active accesses
      *
-     * @param access The access to insert
+     * @param toInsert The access to be inserted
      * @return Whether the attempt is successful
      */
-    private boolean listTryInsert(IOAccessOrdered access) {
-        long data = listSearchInsert(access);
+    private boolean listTryInsert(int toInsert) {
+        Access accessToInsert = accesses[toInsert];
+        long data = listSearchInsert(toInsert);
         if (data == 0xFFFFFFFFFFFFFFFFL)
             // there is an overlap
             return false;
-        IOAccessOrdered left = pool[((int) (data >> 32))];
-        IOAccessOrdered right = pool[((int) (data & 0xFFFFFFFFL))];
-        // check for overlaps
-        IOAccessOrdered follower = right;
-        while (follower != listTail && follower.location < access.location + access.length) {
-            long followerNext = follower.next.get();
-            if (isMarked(followerNext))
+        int left = ((int) (data >>> 32));
+        int right = ((int) (data & 0xFFFFFFFFL));
+        int leftState = accessesState.get(left);
+        if (stateActiveNext(leftState) != right)
+            // the list has changed
+            return false;
+        // check for overlaps on followers
+        int follower = right;
+        Access accessFollower = accesses[follower];
+        while (follower != ACTIVE_TAIL_ID && accessFollower.location < accessToInsert.location + accessToInsert.length) {
+            int followerState = accessesState.get(follower);
+            //if (left.next.get() != right.identifier)
+            //    return false;
+            if (stateIsMarked(followerState))
+                // the list
                 return false;
-            if ((access.writable || follower.writable) && !access.disjoints(follower))
+            if ((accessToInsert.writable || accessFollower.writable) && !accessToInsert.disjoints(accessFollower))
+                // there is a write overlap
                 return false;
-            follower = pool[id(followerNext)];
+            follower = stateActiveNext(followerState);
+            accessFollower = accesses[follower];
         }
-        access.next.set(right.identifier);
-        return left.next.compareAndSet(right.identifier, access.identifier);
+        if (right == toInsert || left == toInsert)
+            throw new Error("oops");
+        accessesState.set(toInsert, right);
+        return (accessesState.compareAndSet(left, leftState, stateNewActiveNext(leftState, toInsert)));
     }
 
     /**
      * Inserts an access into the list of live accesses
      * The method returns only when the access is safely inserted, i.e. there is no blocking access
      *
-     * @param access The access to insert
+     * @param toInsert The access to be inserted
      * @return The number of tries
      */
-    private int listInsert(IOAccessOrdered access) {
+    private int listInsert(int toInsert) {
         int count = 1;
-        while (!listTryInsert(access))
+        while (!listTryInsert(toInsert))
             count++;
         return count;
     }
@@ -256,46 +349,48 @@ class IOAccessManager {
     /**
      * Searches the node on the left of the specified access to be removed
      *
-     * @param access The access to look for (to be removed)
+     * @param toRemove The access to be removed
      * @return The indices of the left and right nodes
      */
-    private long listSearchRemove(IOAccessOrdered access) {
-        IOAccessOrdered leftNode = listHead;
-        long leftNodeNext = 0x00000000FFFFFFFFL;
-        IOAccessOrdered rightNode;
+    private long listSearchRemove(int toRemove) {
+        int leftNode = -1;
+        int leftNodeState = 0;
+        int rightNode;
 
         while (true) {
             // start by the head
-            IOAccessOrdered currentNode = listHead;
-            long currentNodeNext = listHead.next.get();
+            int currentNode = ACTIVE_HEAD_ID;
+            int currentNodeState = accessesState.get(currentNode);
 
             // 1: Find leftNode and rightNode so that either
             do {
-                if (!isMarked(currentNodeNext)) {
+                if (!stateIsMarked(currentNodeState)) {
                     leftNode = currentNode;
-                    leftNodeNext = currentNodeNext;
+                    leftNodeState = currentNodeState;
                 }
-                currentNode = pool[id(currentNodeNext)];
-                if (currentNode == listTail)
-                    break;
-                currentNodeNext = currentNode.next.get();
-            } while (isMarked(currentNodeNext) || currentNode != access);
+                int old = currentNode;
+                currentNode = stateActiveNext(currentNodeState);
+                if (currentNode == ACTIVE_TAIL_ID)
+                    throw new Error("WTF!");
+                if (accesses[old].location > accesses[currentNode].location)
+                    throw new Error("List is not ordered");
+                currentNodeState = accessesState.get(currentNode);
+            } while (stateIsMarked(currentNodeState) || currentNode != toRemove);
             rightNode = currentNode;
-            if (rightNode != access) {
-                throw new Error("WTF!");
-            }
 
             // 2: Check nodes are adjacent
-            if (id(leftNodeNext) == rightNode.identifier) {
-                return ((long) (leftNode.identifier) << 32)
-                        | ((long) (rightNode.identifier));
+            if (stateActiveNext(leftNodeState) == rightNode) {
+                return (((long) leftNode) << 32)
+                        | ((long) rightNode);
             }
 
             // 3: Remove one or more marked nodes
-            if (leftNode.next.compareAndSet(leftNodeNext, rightNode.identifier)) {
-                poolReturnSequence(id(leftNodeNext), rightNode.identifier);
-                return ((long) (leftNode.identifier) << 32)
-                        | ((long) (rightNode.identifier));
+            if (leftNode == rightNode)
+                throw new Error("oops");
+            if (accessesState.compareAndSet(leftNode, leftNodeState, stateNewActiveNext(leftNodeState, rightNode))) {
+                poolReturnSequence(stateActiveNext(leftNodeState), rightNode);
+                return (((long) leftNode) << 32)
+                        | ((long) rightNode);
             }
         }
     }
@@ -303,36 +398,42 @@ class IOAccessManager {
     /**
      * Tries to remove an access from the list of live accesses
      *
-     * @param access The access to remove
+     * @param toRemove The access to be removed
      * @return Whether the attempt is successful
      */
-    private boolean listTryRemove(IOAccessOrdered access) {
-        long data = listSearchRemove(access);
-        IOAccessOrdered left = pool[((int) (data >> 32))];
-        IOAccessOrdered right = pool[((int) (data & 0xFFFFFFFFL))];
-        if (right != access)
+    private boolean listTryRemove(int toRemove) {
+        long data = listSearchRemove(toRemove);
+        int left = (int) (data >>> 32);
+        int right = (int) (data & 0xFFFFFFFFL);
+        if (right != toRemove)
             throw new Error("Concurrent removal of the access");
-        long accessNext = access.next.get();
-        if (isMarked(accessNext))
+        int toRemoveState = accessesState.get(toRemove);
+        if (stateIsMarked(toRemoveState))
             throw new Error("Concurrent removal of the access");
         // mark the node for a delete
-        if (!access.next.compareAndSet(accessNext, marked(accessNext)))
+        if (!accessesState.compareAndSet(toRemove, toRemoveState, stateSetMark(toRemoveState)))
             return false;
         // try a simple delete
-        if (left.next.compareAndSet(access.identifier, accessNext))
-            poolReturnAccess(access.identifier);
+        int next = stateActiveNext(toRemoveState);
+        if (next == left)
+            throw new Error("oops");
+        int leftState = accessesState.get(left);
+        int leftExpectedState = (leftState & 0xFF00FF00) | toRemove;
+        int leftNewState = (leftState & 0xFF00FF00) | next;
+        if (accessesState.compareAndSet(left, leftExpectedState, leftNewState))
+            poolReturnAccess(toRemove);
         return true;
     }
 
     /**
      * Removes an access from the list of live accesses
      *
-     * @param access The access to remove
+     * @param toRemove The access to be removed
      * @return The number of tries
      */
-    private int listRemove(IOAccessOrdered access) {
+    private int listRemove(int toRemove) {
         int count = 1;
-        while (!listTryRemove(access))
+        while (!listTryRemove(toRemove))
             count++;
         return count;
     }
@@ -348,13 +449,13 @@ class IOAccessManager {
      * @throws StorageException When an IO error occurs
      */
     public IOAccess get(int location, int length, boolean writable) throws StorageException {
-        IOAccessOrdered access = newAccess();
+        Access access = newAccess();
         access.setupIOData(location, length, writable);
-        onAccess(listInsert(access));
+        onAccess(listInsert(access.identifier));
         try {
             access.setupIOData(backend.onAccessRequested(access));
         } catch (StorageException exception) {
-            onAccess(listRemove(access));
+            onAccess(listRemove(access.identifier));
             throw exception;
         }
         return access;
@@ -370,10 +471,10 @@ class IOAccessManager {
      * @return The new access, or null if it cannot be obtained
      */
     public IOAccess get(int location, int length, boolean writable, IOElement element) {
-        IOAccessOrdered access = newAccess();
+        Access access = newAccess();
         access.setupIOData(location, length, writable);
         access.setupIOData(element);
-        onAccess(listInsert(access));
+        onAccess(listInsert(access.identifier));
         return access;
     }
 
@@ -382,13 +483,13 @@ class IOAccessManager {
      *
      * @param access The access
      */
-    public void onAccessEnd(IOAccessOrdered access) {
+    private void onAccessEnd(Access access) {
         try {
             backend.onAccessTerminated(access, access.element);
         } catch (StorageException exception) {
             Logging.getDefault().error(exception);
         }
-        onAccess(listRemove(access));
+        onAccess(listRemove(access.identifier));
     }
 
     /**
@@ -396,12 +497,13 @@ class IOAccessManager {
      *
      * @return A free access object
      */
-    private IOAccessOrdered newAccess() {
+    private Access newAccess() {
         // if the pool is not full yet, first fill it
         int size = poolSize.get();
         while (size < pool.length) {
             if (poolSize.compareAndSet(size, size + 1)) {
                 IOAccessOrdered newAccess = new IOAccessOrdered(this, size);
+                newAccess.history.add("Created and in use by " + Thread.currentThread().getName());
                 pool[size] = newAccess;
                 return newAccess;
             }
@@ -410,13 +512,23 @@ class IOAccessManager {
         // the pool is full, try to reclaim an access from the queue of free accesses
         while (true) {
             int oldTail = queueTail.get();
-            if (oldTail == queueHead.get()) {
+            long headData = queueHead.get();
+            int headIndex = (int) (headData >>> 32);
+            int headValue = (int) (headData & 0xFFFFFFFFL);
+
+            if (oldTail == headIndex) {
                 // the queue us empty, wait for a free one access to come up
                 continue;
             }
             int newTail = oldTail == queue.length - 1 ? 0 : oldTail + 1;
-            if (queueTail.compareAndSet(oldTail, newTail))
-                return pool[queue[oldTail]];
+            if (queueTail.compareAndSet(oldTail, newTail)) {
+                int index = newTail == headIndex ? headValue : queue[oldTail];
+                if (index < 2)
+                    throw new Error("shit");
+                queue[oldTail] = -1;
+                pool[index].history.add("Reused by " + Thread.currentThread().getName());
+                return pool[index];
+            }
         }
     }
 
@@ -430,7 +542,7 @@ class IOAccessManager {
         IOAccessOrdered access = pool[firstId];
         while (true) {
             long accessNext = access.next.get();
-            if (!isMarked(accessNext))
+            if (!stateIsMarked(accessNext))
                 throw new Error("Trying to return a non-marked access");
             poolReturnAccess(access.identifier);
             int nextId = id(accessNext);
@@ -447,10 +559,16 @@ class IOAccessManager {
      */
     private void poolReturnAccess(int identifier) {
         while (true) {
-            int oldHead = queueHead.get();
-            int newHead = oldHead == queue.length - 1 ? 0 : oldHead + 1;
-            if (queueHead.compareAndSet(oldHead, newHead)) {
-                queue[oldHead] = identifier;
+            long oldHeadData = queueHead.get();
+            int oldHeadIndex = (int) (oldHeadData >>> 32);
+            int oldHeadValue = (int) (oldHeadData & 0xFFFFFFFFL);
+
+            int newHeadIndex = oldHeadIndex == queue.length - 1 ? 0 : oldHeadIndex + 1;
+            long newHeadData = (((long) newHeadIndex) << 32) | ((long) identifier);
+
+            if (queueHead.compareAndSet(oldHeadData, newHeadData)) {
+                queue[oldHeadIndex] = identifier;
+                pool[identifier].history.add("Returned by " + Thread.currentThread().getName());
                 break;
             }
         }
