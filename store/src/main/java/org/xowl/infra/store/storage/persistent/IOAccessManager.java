@@ -158,6 +158,17 @@ class IOAccessManager {
     }
 
     /**
+     * Unsigned promotion of an integer to a long
+     * Replacement for Integer.toUnsignedLong when using JDK 7
+     *
+     * @param i The integer
+     * @return The resulting long
+     */
+    private static long ul(int i) {
+        return (long) i & 0xFFFFFFFFL;
+    }
+
+    /**
      * Gets whether the state of an access indicates that the access is currently active
      *
      * @param state The state of an access
@@ -186,7 +197,7 @@ class IOAccessManager {
     private static long stateSetMark(long state) {
         int version = (int) ((state & 0xFFFFFFFF00000000L) >>> 32) + 1;
         int base = (int) (state & 0x00000000FFFFFFFFL) | 0x00FF0000;
-        return (Integer.toUnsignedLong(version) << 32) | Integer.toUnsignedLong(base);
+        return (ul(version) << 32) | ul(base);
     }
 
     /**
@@ -209,7 +220,7 @@ class IOAccessManager {
     private static long stateNewActiveNext(long state, int next) {
         int version = (int) ((state & 0xFFFFFFFF00000000L) >>> 32) + 1;
         int base = (int) (state & 0x000000000000FF00L) | 0xFF000000 | next;
-        return (Integer.toUnsignedLong(version) << 32) | Integer.toUnsignedLong(base);
+        return (ul(version) << 32) | ul(base);
     }
 
     /**
@@ -232,7 +243,7 @@ class IOAccessManager {
     private static long stateNewFreeNext(long state, int next) {
         int version = (int) ((state & 0xFFFFFFFF00000000L) >>> 32) + 1;
         int base = (int) (state & 0x0000000000FF00FFL) | (next << 8);
-        return (Integer.toUnsignedLong(version) << 32) | Integer.toUnsignedLong(base);
+        return (ul(version) << 32) | ul(base);
     }
 
     /**
