@@ -583,19 +583,17 @@ class IOAccessManager {
         }
         toRemoveState = currentNodeState;
 
-        // 2: Check nodes are adjacent
-        if (stateActiveNext(leftNodeState) == toRemove) {
-            return accessesState.compareAndSet(toRemove, toRemoveState, stateSetLogicallyRemoved(toRemoveState));
-        }
+        // mark the node as logically removed
+        if (!accessesState.compareAndSet(toRemove, toRemoveState, stateSetLogicallyRemoved(toRemoveState)))
+            return false;
 
-        // 3: Remove one or more marked nodes
-        if (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, toRemove))) {
+        if (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, stateActiveNext(toRemoveState)))) {
             // mark the returning nodes
             for (int i = 0; i != removedCount; i++)
                 inspectRemoved(removed[i]);
-            return accessesState.compareAndSet(toRemove, toRemoveState, stateSetLogicallyRemoved(toRemoveState));
+            inspectRemoved(toRemove);
         }
-        return false;
+        return true;
     }
 
     /**
