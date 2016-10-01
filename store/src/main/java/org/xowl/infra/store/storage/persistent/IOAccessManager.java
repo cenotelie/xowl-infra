@@ -193,16 +193,6 @@ class IOAccessManager {
     }
 
     /**
-     * Gets whether the state of an access indicates that the access is free
-     *
-     * @param state The state of an access
-     * @return Whether the access is free
-     */
-    private static boolean stateIsFree(long state) {
-        return (state & 0x00000000FF000000L) == 0x0000000000000000;
-    }
-
-    /**
      * Gets whether the state of an access indicates that the access is active
      *
      * @param state The state of an access
@@ -210,16 +200,6 @@ class IOAccessManager {
      */
     private static boolean stateIsActive(long state) {
         return (state & 0x00000000FF000000L) == 0x0000000001000000;
-    }
-
-    /**
-     * Gets whether the state of an access indicates that the access is logically removed from the active list
-     *
-     * @param state The state of an access
-     * @return Whether the access is logically removed from the active list
-     */
-    private static boolean stateIsLogicallyRemoved(long state) {
-        return (state & 0x00000000FF000000L) == 0x0000000002000000;
     }
 
     /**
@@ -417,10 +397,6 @@ class IOAccessManager {
     private void inspectRemoved(int identifier) {
         while (true) {
             long oldState = accessesState.get(identifier);
-            if (stateIsActive(oldState))
-                throw new Error("Trying to return active access");
-            if (stateIsFree(oldState))
-                throw new Error("Trying to return free access");
             if (stateIsRemoved(oldState) || stateIsReturning(oldState))
                 // someone-else is returning this access, abandon here
                 return;
@@ -433,8 +409,7 @@ class IOAccessManager {
                     // yes, mark as returning
                     oldState = newState;
                     newState = stateSetReturning(oldState);
-                    if (!accessesState.compareAndSet(identifier, oldState, newState))
-                        throw new Error("It's mine!");
+                    accessesState.compareAndSet(identifier, oldState, newState);
                     return;
                 }
                 break;
@@ -450,8 +425,7 @@ class IOAccessManager {
                     && accessesThreads.get() == currentThreads) {
                 oldState = newState;
                 newState = stateSetReturning(oldState);
-                if (!accessesState.compareAndSet(identifier, oldState, newState))
-                    throw new Error("It's mine!");
+                accessesState.compareAndSet(identifier, oldState, newState);
                 return;
             }
         }
@@ -486,23 +460,13 @@ class IOAccessManager {
                 leftNode = currentNode;
                 leftNodeState = currentNodeState;
             }
-
             currentNode = stateActiveNext(currentNodeState);
             if (currentNode == ACTIVE_TAIL_ID)
                 break;
-
-            if (currentNode == toInsert)
-                throw new Error("Already in list!");
-
             currentNodeState = accessesState.get(currentNode);
             if (stateIsRemoved(currentNodeState) || stateIsReturning(currentNodeState))
                 return false;
-            if (stateIsFree(currentNodeState))
-                throw new Error("Free node in active list!");
-
             if (stateIsActive(currentNodeState)) {
-                if (stateKey(leftNodeState) > stateKey(currentNodeState))
-                    throw new Error("List is not ordered");
                 Access accessCurrentNode = accesses[currentNode];
                 if ((accessToInsert.writable || accessCurrentNode.writable) && !accessToInsert.disjoints(accessCurrentNode))
                     // there is a write overlap
@@ -520,18 +484,10 @@ class IOAccessManager {
             currentNode = stateActiveNext(currentNodeState);
             if (currentNode == ACTIVE_TAIL_ID)
                 break;
-            if (currentNode == toInsert)
-                throw new Error("Already in list!");
             currentNodeState = accessesState.get(currentNode);
-
             if (stateIsRemoved(currentNodeState) || stateIsReturning(currentNodeState))
                 return false;
-            if (stateIsFree(currentNodeState))
-                throw new Error("Free node in active list!");
-
             if (stateIsActive(currentNodeState)) {
-                if (stateKey(leftNodeState) > stateKey(currentNodeState))
-                    throw new Error("List is not ordered");
                 Access accessCurrentNode = accesses[currentNode];
                 if ((accessToInsert.writable || accessCurrentNode.writable) && !accessToInsert.disjoints(accessCurrentNode))
                     // there is a write overlap
@@ -543,8 +499,6 @@ class IOAccessManager {
 
         // 2: Check nodes are adjacent
         if (stateActiveNext(leftNodeState) == rightNode) {
-            if (removedCount > 0)
-                throw new Error("oops");
             if (rightNode != ACTIVE_TAIL_ID && !stateIsActive(accessesState.get(rightNode)))
                 return false;
             accessesState.set(toInsert, stateSetupActive(key, rightNode));
@@ -552,17 +506,11 @@ class IOAccessManager {
         }
 
         // 3: Remove one or more marked nodes
-        if (leftNode == rightNode)
-            throw new Error("oops");
-        if (removedCount <= 0)
-            throw new Error("oops");
-
         long leftNodeStateNew = stateSetNextActive(leftNodeState, rightNode);
         if (accessesState.compareAndSet(leftNode, leftNodeState, leftNodeStateNew)) {
             // mark the returning nodes
             for (int i = 0; i != removedCount; i++)
                 inspectRemoved(removed[i]);
-
             leftNodeState = leftNodeStateNew;
             if (rightNode != ACTIVE_TAIL_ID && !stateIsActive(accessesState.get(rightNode)))
                 return false;
@@ -621,22 +569,11 @@ class IOAccessManager {
                 leftNode = currentNode;
                 leftNodeState = currentNodeState;
             }
-
             currentNode = stateActiveNext(currentNodeState);
-
-            if (currentNode == ACTIVE_TAIL_ID)
-                throw new Error("WTF!");
-
             currentNodeState = accessesState.get(currentNode);
-
             if (stateIsRemoved(currentNodeState) || stateIsReturning(currentNodeState))
                 return false;
-            if (stateIsFree(currentNodeState))
-                throw new Error("Free node in active list!");
-
             if (stateIsActive(currentNodeState)) {
-                if (stateKey(leftNodeState) > stateKey(currentNodeState))
-                    throw new Error("List is not ordered");
                 if (currentNode == toRemove)
                     break;
             } else {
@@ -647,22 +584,14 @@ class IOAccessManager {
 
         // 2: Check nodes are adjacent
         if (stateActiveNext(leftNodeState) == toRemove) {
-            if (removedCount > 0)
-                throw new Error("oops");
             return accessesState.compareAndSet(toRemove, toRemoveState, stateSetLogicallyRemoved(toRemoveState));
         }
 
         // 3: Remove one or more marked nodes
-        if (leftNode == toRemove)
-            throw new Error("oops");
-        if (removedCount <= 0)
-            throw new Error("oops");
-
         if (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, toRemove))) {
             // mark the returning nodes
             for (int i = 0; i != removedCount; i++)
                 inspectRemoved(removed[i]);
-
             return accessesState.compareAndSet(toRemove, toRemoveState, stateSetLogicallyRemoved(toRemoveState));
         }
         return false;
@@ -800,23 +729,12 @@ class IOAccessManager {
     private void onAccessReturning(int threadIdentifier, int accessIdentifier, long currentState) {
         // remove the mark for the current thread
         while (true) {
-            if (!stateIsReturning(currentState))
-                throw new Error("WTH!");
             long newState = stateRemoveThread(currentState, threadIdentifier);
-            if (currentState != (newState | (threadIdentifier << 8)))
-                throw new Error("WTH!");
-            if (currentState == newState)
-                throw new Error("WTH!");
-            long before = accessesState.get(accessIdentifier);
-            if ((stateThreads(before) & threadIdentifier) == 0)
-                throw new Error("WTH!");
             boolean success = accessesState.compareAndSet(accessIdentifier, currentState, newState);
             if (success) {
                 currentState = newState;
                 break;
             }
-            if (accessesState.get(accessIdentifier) == newState)
-                throw new Error("WTH!");
             currentState = accessesState.get(accessIdentifier);
         }
 
@@ -828,8 +746,7 @@ class IOAccessManager {
         while (true) {
             int previousFree = accessesFree.get();
             long newState = stateSetNextFree(currentState, previousFree);
-            if (!accessesState.compareAndSet(accessIdentifier, currentState, newState))
-                throw new Error("Who is touching my node!!");
+            accessesState.compareAndSet(accessIdentifier, currentState, newState);
             if (accessesFree.compareAndSet(previousFree, accessIdentifier))
                 return;
             currentState = newState;

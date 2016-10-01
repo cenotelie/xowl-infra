@@ -33,7 +33,7 @@ public class IOAccessManagerTest {
     /**
      * Numbers of threads
      */
-    private static final int THREAD_COUNT = 2;
+    private static final int THREAD_COUNT = 16;
     /**
      * The number of entries to insert
      */
