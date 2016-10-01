@@ -535,6 +535,7 @@ class IOAccessManager {
         while (true) {
             if (listSearchAndInsert(toInsert, key))
                 break;
+            count++;
         }
         endActiveAccess(threadIdentifier);
         poolCleanup(threadIdentifier);
@@ -610,6 +611,7 @@ class IOAccessManager {
         while (true) {
             if (listSearchAndRemove(toRemove))
                 break;
+            count++;
         }
         endActiveAccess(threadIdentifier);
         poolCleanup(threadIdentifier);
