@@ -41,6 +41,10 @@ class IOAccessManager {
      * The index of the tail of the list of active accesses
      */
     private static final int ACTIVE_TAIL_ID = 1;
+    /**
+     * The maximum number of concurrent threads
+     */
+    private static final int THREAD_POOL_SIZE = 16;
 
     /**
      * Represents an access managed by this structure
@@ -83,19 +87,23 @@ class IOAccessManager {
      * The state of an access is composed of:
      * - int: key (access location)
      * - byte: access state (0=free, 1=active, 2=logically removed, 3=returning)
-     * - byte: when returning, the number of threads that can still potentially touch this access
-     * - byte: the index of the next free access, or 00
+     * - byte: when returning: bit-field for remaining touching threads
+     * - byte: when returning: bit-field for remaining touching threads, when free: the index of the next free access, or 00
      * - byte: the index of the next active access
      */
     private final AtomicLongArray accessesState;
     /**
-     * The number of threads touching the active list
+     * The bit-field of current threads touching the list
      */
     private final AtomicInteger accessesThreads;
     /**
      * The index of the next free access
      */
     private final AtomicInteger accessesFree;
+    /**
+     * The pool of free threads identifiers
+     */
+    private final AtomicInteger threads;
     /**
      * The total number of accesses
      */
@@ -157,6 +165,7 @@ class IOAccessManager {
         this.accessesState.set(ACTIVE_TAIL_ID, 0x7FFFFFFF01000001L);
         this.accessesThreads = new AtomicInteger(0);
         this.accessesFree = new AtomicInteger(ACTIVE_HEAD_ID);
+        this.threads = new AtomicInteger(0x00FFFF);
         this.totalAccesses = 0;
         this.totalTries = 0;
         this.statisticsTimestamp = System.nanoTime();
@@ -224,13 +233,13 @@ class IOAccessManager {
     }
 
     /**
-     * When returning an access, gets the number of threads that can still potentially touch the represented access
+     * When returning an access, gets the threads that can touch this access
      *
      * @param state The state of an access
-     * @return The number of threads that can touch the represented access
+     * @return The threads that can touch this access
      */
-    private static int stateReturningCount(long state) {
-        return (int) ((state & 0x0000000000FF0000L) >>> 16);
+    private static int stateThreads(long state) {
+        return (int) ((state & 0x0000000000FFFF00L) >>> 8);
     }
 
     /**
@@ -277,23 +286,24 @@ class IOAccessManager {
     /**
      * Gets the version of the state representing a returning access
      *
-     * @param state       The initial state of an access
-     * @param threadCount The current number of threads accessing the active list
+     * @param state          The initial state of an access
+     * @param currentThreads The current threads accessing the active list
      * @return The equivalent marked state
      */
-    private static long stateSetReturning(long state, int threadCount) {
-        return (state & 0xFFFFFFFF0000FFFFL) | 0x0000000003000000L | ul(threadCount) << 16;
+    private static long stateSetReturning(long state, int currentThreads) {
+        return (state & 0xFFFFFFFF00000FFL) | 0x0000000003000000L | ul(currentThreads) << 8;
     }
 
     /**
-     * Gets the new state with a decremented thread count for a returning access
+     * Gets the new state when removing a thread as potentially touching the access
      *
-     * @param state The initial state of an access
+     * @param state            The initial state of an access
+     * @param threadIdentifier The identifier of the thread to remove
      * @return The new state
      */
-    private static long stateDecrementReturning(long state) {
-        int value = (int) ((state & 0x0000000000FF0000L) >>> 16) - 1;
-        return (state & 0xFFFFFFFFFF00FFFFL) | ul(value) << 16;
+    private static long stateRemoveThread(long state, int threadIdentifier) {
+        long threads = state & 0x0000000000FFFF00L & ~ul(threadIdentifier << 8);
+        return (state & 0xFFFFFFFFFF0000FFL) | threads;
     }
 
     /**
@@ -316,6 +326,69 @@ class IOAccessManager {
      */
     private static long stateSetNextActive(long state, int next) {
         return (state & 0xFFFFFFFFFFFFFF00L) | ul(next);
+    }
+
+    /**
+     * Gets a identifier for this thread
+     *
+     * @return The identifier for this thread
+     */
+    private int getThreadId() {
+        while (true) {
+            int mask = threads.get();
+            for (int i = 0; i != THREAD_POOL_SIZE; i++) {
+                int id = (1 << i);
+                if ((mask & id) == id) {
+                    // the identifier is available
+                    int newMask = mask & ~id;
+                    if (threads.compareAndSet(mask, newMask))
+                        // reserved the identifier
+                        return id;
+                    else
+                        // the mask has changed
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns a thread identifier when no longer required
+     *
+     * @param threadIdentifier The identifier to return
+     */
+    private void returnThreadId(int threadIdentifier) {
+        while (true) {
+            int mask = threads.get();
+            if (threads.compareAndSet(mask, mask | threadIdentifier))
+                return;
+        }
+    }
+
+    /**
+     * Registers the specified thread as accessing the list of active accesses
+     *
+     * @param threadIdentifier The identifier of this thread
+     */
+    private void beginActiveAccess(int threadIdentifier) {
+        while (true) {
+            int mask = accessesThreads.get();
+            if (accessesThreads.compareAndSet(mask, mask | threadIdentifier))
+                return;
+        }
+    }
+
+    /**
+     * Unregisters the specified thread as accessing the list of active accesses
+     *
+     * @param threadIdentifier The identifier of this thread
+     */
+    private void endActiveAccess(int threadIdentifier) {
+        while (true) {
+            int mask = accessesThreads.get();
+            if (accessesThreads.compareAndSet(mask, mask & ~threadIdentifier))
+                return;
+        }
     }
 
     /**
@@ -421,15 +494,20 @@ class IOAccessManager {
         long leftNodeStateNew = stateSetNextActive(leftNodeState, rightNode);
         if (accessesState.compareAndSet(leftNode, leftNodeState, leftNodeStateNew)) {
             // mark the returning nodes
-            int threadsCount = accessesThreads.get();
             for (int i = 0; i != removedCount; i++) {
                 long oldState = accessesState.get(removed[i]);
                 if (stateIsActive(oldState))
                     throw new Error("Trying to return active access");
                 if (stateIsFree(oldState))
                     throw new Error("Trying to return free access");
-                long newState = stateSetReturning(oldState, threadsCount);
-                accessesState.compareAndSet(removed[i], oldState, newState);
+                while (true) {
+                    int currentThreads = accessesThreads.get();
+                    long newState = stateSetReturning(oldState, currentThreads);
+                    if (accessesState.compareAndSet(removed[i], oldState, newState)
+                            && accessesThreads.get() == currentThreads)
+                        break;
+                    oldState = accessesState.get(removed[i]);
+                }
             }
 
             leftNodeState = leftNodeStateNew;
@@ -450,15 +528,16 @@ class IOAccessManager {
      * @return The number of tries
      */
     private int listInsert(int toInsert, int key) {
+        int threadIdentifier = getThreadId();
+        beginActiveAccess(threadIdentifier);
         int count = 1;
         while (true) {
-            accessesThreads.incrementAndGet();
-            boolean success = listSearchAndInsert(toInsert, key);
-            accessesThreads.decrementAndGet();
-            if (success)
+            if (listSearchAndInsert(toInsert, key))
                 break;
         }
-        poolCleanup();
+        endActiveAccess(threadIdentifier);
+        poolCleanup(threadIdentifier);
+        returnThreadId(threadIdentifier);
         return count;
     }
 
@@ -528,15 +607,20 @@ class IOAccessManager {
 
         if (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, toRemove))) {
             // mark the returning nodes
-            int threadsCount = accessesThreads.get();
             for (int i = 0; i != removedCount; i++) {
                 long oldState = accessesState.get(removed[i]);
                 if (stateIsActive(oldState))
                     throw new Error("Trying to return active access");
                 if (stateIsFree(oldState))
                     throw new Error("Trying to return free access");
-                long newState = stateSetReturning(oldState, threadsCount);
-                accessesState.compareAndSet(removed[i], oldState, newState);
+                while (true) {
+                    int currentThreads = accessesThreads.get();
+                    long newState = stateSetReturning(oldState, currentThreads);
+                    if (accessesState.compareAndSet(removed[i], oldState, newState)
+                            && accessesThreads.get() == currentThreads)
+                        break;
+                    oldState = accessesState.get(removed[i]);
+                }
             }
 
             return accessesState.compareAndSet(toRemove, toRemoveState, stateSetLogicallyRemoved(toRemoveState));
@@ -551,15 +635,16 @@ class IOAccessManager {
      * @return The number of tries
      */
     private int listRemove(int toRemove) {
+        int threadIdentifier = getThreadId();
+        beginActiveAccess(threadIdentifier);
         int count = 1;
         while (true) {
-            accessesThreads.incrementAndGet();
-            boolean success = listSearchAndRemove(toRemove);
-            accessesThreads.decrementAndGet();
-            if (success)
+            if (listSearchAndRemove(toRemove))
                 break;
         }
-        poolCleanup();
+        endActiveAccess(threadIdentifier);
+        poolCleanup(threadIdentifier);
+        returnThreadId(threadIdentifier);
         return count;
     }
 
@@ -653,42 +738,40 @@ class IOAccessManager {
 
     /**
      * Collects the returning accesses that are no longer touched by a thread
+     *
+     * @param threadIdentifier The identifier of this thread
      */
-    private void poolCleanup() {
+    private void poolCleanup(int threadIdentifier) {
         int count = accessesCount.get();
         for (int i = 2; i < count; i++) {
             long state = accessesState.get(i);
             if (stateIsReturning(state))
-                onAccessReturning(i, state);
+                onAccessReturning(threadIdentifier, i, state);
         }
     }
 
     /**
      * When a returning access is found while cleaning up the pool
      *
-     * @param identifier   The identifier of the access
-     * @param currentState The supposed current state of the access
+     * @param threadIdentifier The identifier of this thread
+     * @param accessIdentifier The identifier of the access
+     * @param currentState     The supposed current state of the access
      */
-    private void onAccessReturning(int identifier, long currentState) {
-        int threadsCount = stateReturningCount(currentState);
-        if (threadsCount > 0) {
-            // decrement the number of threads
-            while (threadsCount > 0) {
-                long newState = stateDecrementReturning(currentState);
-                if (accessesState.compareAndSet(identifier, currentState, newState)) {
-                    currentState = newState;
-                    break;
-                }
-                // failed to update, get the new data
-                currentState = accessesState.get(identifier);
-                if (!stateIsReturning(currentState))
-                    return;
-                threadsCount = stateReturningCount(currentState);
+    private void onAccessReturning(int threadIdentifier, int accessIdentifier, long currentState) {
+        int threads = stateThreads(currentState);
+        while ((threads & threadIdentifier) == threadIdentifier) {
+            // marked by this thread, un-mark
+            long newState = stateRemoveThread(currentState, threadIdentifier);
+            if (accessesState.compareAndSet(accessIdentifier, currentState, newState)) {
+                currentState = newState;
+                threads = stateThreads(currentState);
+                break;
             }
-            threadsCount--;
+            currentState = accessesState.get(accessIdentifier);
+            threads = stateThreads(currentState);
         }
 
-        if (threadsCount > 0)
+        if (threads != 0)
             // more threads can still touch this access
             return;
 
@@ -696,20 +779,20 @@ class IOAccessManager {
         // try to update the state to a free access
         int previousFree = accessesFree.get();
         long newState = stateSetNextFree(currentState, previousFree);
-        if (!accessesState.compareAndSet(identifier, currentState, newState))
+        if (!accessesState.compareAndSet(accessIdentifier, currentState, newState))
             // failed to update the state, another thread made this access free again
             return;
 
         // push on the stack of free accesses
         while (true) {
-            if (accessesFree.compareAndSet(previousFree, identifier))
+            if (accessesFree.compareAndSet(previousFree, accessIdentifier))
                 break;
             // failed to update the stack of free accesses
             // re-update the state of the access to be returned
             previousFree = accessesFree.get();
             currentState = newState;
             newState = stateSetNextFree(currentState, previousFree);
-            if (!accessesState.compareAndSet(identifier, currentState, newState))
+            if (!accessesState.compareAndSet(accessIdentifier, currentState, newState))
                 throw new Error("Shit happened!");
         }
     }
