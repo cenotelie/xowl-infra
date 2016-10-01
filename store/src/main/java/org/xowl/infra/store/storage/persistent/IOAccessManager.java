@@ -81,11 +81,11 @@ class IOAccessManager {
     /**
      * The state of the accesses managed by this structure
      * The state of an access is composed of:
-     * - int: version (increment at each change)
-     * - byte: mark whether this access is current in the active list
-     * - byte: mark whether this access is logically removed from the list of active accesses
-     * - byte: the index of the next free access (when this access is free)
-     * - byte: the index of the next active access (when this access is in the list of active accesses)
+     * - int: key (access location)
+     * - short: version (increment at each change)
+     * - byte: when this access is free: the index of the next free access
+     * when this access is in use: FF for a logically deleted access, or 00
+     * - byte: the index of the next active access, or FF if the access is not active
      */
     private final AtomicLongArray accessesState;
     /**
@@ -149,8 +149,8 @@ class IOAccessManager {
         this.accesses[ACTIVE_TAIL_ID].setupIOData(Integer.MAX_VALUE, 0, false);
         this.accessesCount = new AtomicInteger(2);
         this.accessesState = new AtomicLongArray(ACCESSES_POOL_SIZE);
-        this.accessesState.set(ACTIVE_HEAD_ID, 0x00000000FF000001L);
-        this.accessesState.set(ACTIVE_TAIL_ID, 0x00000000FF000001L);
+        this.accessesState.set(ACTIVE_HEAD_ID, 0x0000000000000001L);
+        this.accessesState.set(ACTIVE_TAIL_ID, 0x7FFFFFFF00000001L);
         this.accessesFree = new AtomicInteger(ACTIVE_HEAD_ID);
         this.totalAccesses = 0;
         this.totalTries = 0;
@@ -169,35 +169,33 @@ class IOAccessManager {
     }
 
     /**
-     * Gets whether the state of an access indicates that the access is currently active
+     * Gets the key for an access in the specified state
      *
      * @param state The state of an access
-     * @return Whether the access is active according to this state
+     * @return The key for the access
      */
-    private static boolean stateIsActive(long state) {
-        return (state & 0x00000000FF000000L) == 0x00000000FF000000L;
+    private static int stateKey(long state) {
+        return (int) (state >>> 32);
     }
 
     /**
-     * Gets whether the state of an access indicates that the access is marked
+     * Gets whether the state of an access indicates that the access is logically removed from the active list
      *
      * @param state The state of an access
-     * @return Whether the access is marked according to this state
+     * @return Whether the access is logically removed from the active list
      */
-    private static boolean stateIsMarked(long state) {
-        return (state & 0x0000000000FF0000L) == 0x0000000000FF0000L;
+    private static boolean stateIsLogicallyRemoved(long state) {
+        return (state & 0x000000000000FF00L) == 0x000000000000FF00L;
     }
 
     /**
-     * Gets the marked version of the state for the specified one
+     * When the access is free, gets the index of the next free access
      *
-     * @param state The initial state of an access
-     * @return The equivalent marked state
+     * @param state The state of an access
+     * @return The index of the next free access
      */
-    private static long stateSetMark(long state) {
-        int version = (int) ((state & 0xFFFFFFFF00000000L) >>> 32) + 1;
-        int base = (int) (state & 0x00000000FFFFFFFFL) | 0x00FF0000;
-        return (ul(version) << 32) | ul(base);
+    private static int stateFreeNext(long state) {
+        return (int) ((state & 0x000000000000FF00L) >>> 8);
     }
 
     /**
@@ -211,26 +209,28 @@ class IOAccessManager {
     }
 
     /**
-     * Gets the new state with a new value for the next active access
+     * Setups the state of a new active access
      *
-     * @param state The initial state of an access
-     * @param next  The index of the next active access
+     * @param state      The current state
+     * @param key        The new key for the access
+     * @param nextActive The index of the next active access
      * @return The new state
      */
-    private static long stateNewActiveNext(long state, int next) {
-        int version = (int) ((state & 0xFFFFFFFF00000000L) >>> 32) + 1;
-        int base = (int) (state & 0x000000000000FF00L) | 0xFF000000 | next;
-        return (ul(version) << 32) | ul(base);
+    private static long stateSetupActive(long state, int key, int nextActive) {
+        int version = (int) ((state & 0x00000000FFFF0000L) >> 16) + 1;
+        return ul(key) << 32 | ul(version & 0xFFFF) << 16 | nextActive;
     }
 
     /**
-     * Gets the index of the next free access
+     * Gets the marked version of the state for the specified one
      *
-     * @param state The state of an access
-     * @return The index of the next free access
+     * @param state The initial state of an access
+     * @return The equivalent marked state
      */
-    private static int stateFreeNext(long state) {
-        return (int) ((state & 0x000000000000FF00L) >>> 8);
+    private static long stateSetMark(long state) {
+        long base = state & 0xFFFFFFFF000000FFL;
+        int version = (int) ((state & 0x00000000FFFF0000L) >> 16) + 1;
+        return base | ul(version & 0xFFFF) << 16 | 0x000000000000FF00L;
     }
 
     /**
@@ -240,92 +240,105 @@ class IOAccessManager {
      * @param next  The index of the next free access
      * @return The new state
      */
-    private static long stateNewFreeNext(long state, int next) {
-        int version = (int) ((state & 0xFFFFFFFF00000000L) >>> 32) + 1;
-        int base = (int) (state & 0x0000000000FF00FFL) | (next << 8);
-        return (ul(version) << 32) | ul(base);
+    private static long stateSetNextFree(long state, int next) {
+        long base = state & 0xFFFFFFFF000000FFL;
+        int version = (int) ((state & 0x00000000FFFF0000L) >> 16) + 1;
+        return base | ul(version & 0xFFFF) << 16 | ul(next << 8);
+    }
+
+    /**
+     * Gets the new state with a new value for the next active access
+     *
+     * @param state The initial state of an access
+     * @param next  The index of the next active access
+     * @return The new state
+     */
+    private static long stateSetNextActive(long state, int next) {
+        long base = state & 0xFFFFFFFF00000000L;
+        int version = (int) ((state & 0x00000000FFFF0000L) >> 16) + 1;
+        return base | ul(version & 0xFFFF) << 16 | ul(next);
     }
 
     /**
      * Searches the left and right node in the list for a place to insert the specified access and tries to insert the specified access
      *
      * @param toInsert The access to be inserted
+     * @param key      The key to insert at
      * @return Whether the attempt is successful
      */
-    private boolean listSearchAndInsert(int toInsert) {
+    private boolean listSearchAndInsert(int toInsert, int key) {
         Access accessToInsert = accesses[toInsert];
 
         while (true) {
             int leftNode = -1;
             long leftNodeState = 0;
-            int rightNode = -1;
-            long rightNodeState = 0;
-            int leftIndex = -1;
-            int rightIndex = -1;
+            int rightNode;
             // start by the head
-            int currentIndex = 0;
             int currentNode = ACTIVE_HEAD_ID;
             long currentNodeState = accessesState.get(currentNode);
 
             // 1: Find leftNode and rightNode
             do {
-                if (!stateIsMarked(currentNodeState)) {
+                if (!stateIsLogicallyRemoved(currentNodeState)) {
                     leftNode = currentNode;
                     leftNodeState = currentNodeState;
-                    leftIndex = currentIndex;
                 }
                 currentNode = stateActiveNext(currentNodeState);
-                currentIndex++;
-                if (currentNode == ACTIVE_TAIL_ID) {
-                    rightNode = currentNode;
-                    rightNodeState = currentNodeState;
-                    rightIndex = currentIndex;
+                if (currentNode == ACTIVE_TAIL_ID)
                     break;
-                }
-                currentNodeState = accessesState.get(currentNode);
-                if (!stateIsActive(currentNodeState))
-                    // concurrent removal
-                    return false;
                 if (currentNode == toInsert)
                     throw new Error("Already in list!");
-                if (!stateIsMarked(currentNodeState) && accesses[leftNode].location > accesses[currentNode].location)
-                    throw new Error("List is not ordered");
-                Access accessCurrentNode = accesses[currentNode];
-                if (!stateIsMarked(currentNodeState) && (accessToInsert.writable || accessCurrentNode.writable) && !accessToInsert.disjoints(accessCurrentNode))
-                    // there is a write overlap
-                    return false;
-                if (!stateIsMarked(currentNodeState)) {
-                    if (accessToInsert.location < accessCurrentNode.location) {
-                        rightNode = currentNode;
-                        rightNodeState = currentNodeState;
-                        rightIndex = currentIndex;
-                    }
-                    if (accessCurrentNode.location >= accessToInsert.location + accessToInsert.length)
+                currentNodeState = accessesState.get(currentNode);
+                if (!stateIsLogicallyRemoved(currentNodeState)) {
+                    if (stateKey(leftNodeState) > stateKey(currentNodeState))
+                        throw new Error("List is not ordered");
+                    Access accessCurrentNode = accesses[currentNode];
+                    if ((accessToInsert.writable || accessCurrentNode.writable) && !accessToInsert.disjoints(accessCurrentNode))
+                        // there is a write overlap
+                        return false;
+                    if (key < stateKey(currentNodeState))
                         break;
                 }
             } while (true);
-            if (rightIndex <= leftIndex)
-                throw new Error("WTF!");
+            rightNode = currentNode;
+
+            // 1 bis: look for overlapping accesses after that
+            do {
+                currentNode = stateActiveNext(currentNodeState);
+                if (currentNode == ACTIVE_TAIL_ID)
+                    break;
+                if (currentNode == toInsert)
+                    throw new Error("Already in list!");
+                currentNodeState = accessesState.get(currentNode);
+                if (!stateIsLogicallyRemoved(currentNodeState)) {
+                    Access accessCurrentNode = accesses[currentNode];
+                    if ((accessToInsert.writable || accessCurrentNode.writable) && !accessToInsert.disjoints(accessCurrentNode))
+                        // there is a write overlap
+                        return false;
+                    if (stateKey(currentNodeState) >= key + accessToInsert.length)
+                        break;
+                }
+            } while (true);
 
             // 2: Check nodes are adjacent
             if (stateActiveNext(leftNodeState) == rightNode) {
-                if (rightNode != ACTIVE_TAIL_ID && stateIsMarked(rightNodeState))
+                if (rightNode != ACTIVE_TAIL_ID && stateIsLogicallyRemoved(accessesState.get(rightNode)))
                     continue;
-                accessesState.set(toInsert, stateNewActiveNext(accessesState.get(toInsert), rightNode));
-                return (accessesState.compareAndSet(leftNode, leftNodeState, stateNewActiveNext(leftNodeState, toInsert)));
+                accessesState.set(toInsert, stateSetupActive(accessesState.get(toInsert), key, rightNode));
+                return (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, toInsert)));
             }
 
             // 3: Remove one or more marked nodes
             if (leftNode == rightNode)
                 throw new Error("oops");
-            long leftNodeStateNew = stateNewActiveNext(leftNodeState, rightNode);
+            long leftNodeStateNew = stateSetNextActive(leftNodeState, rightNode);
             if (accessesState.compareAndSet(leftNode, leftNodeState, leftNodeStateNew)) {
                 poolReturnSequence(stateActiveNext(leftNodeState), rightNode);
                 leftNodeState = leftNodeStateNew;
-                if (rightNode != ACTIVE_TAIL_ID && stateIsMarked(rightNodeState))
+                if (rightNode != ACTIVE_TAIL_ID && stateIsLogicallyRemoved(accessesState.get(rightNode)))
                     continue;
-                accessesState.set(toInsert, stateNewActiveNext(accessesState.get(toInsert), rightNode));
-                return (accessesState.compareAndSet(leftNode, leftNodeState, stateNewActiveNext(leftNodeState, toInsert)));
+                accessesState.set(toInsert, stateSetupActive(accessesState.get(toInsert), key, rightNode));
+                return (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, toInsert)));
             }
         }
     }
@@ -335,11 +348,12 @@ class IOAccessManager {
      * The method returns only when the access is safely inserted, i.e. there is no blocking access
      *
      * @param toInsert The access to be inserted
+     * @param key      The key to insert at
      * @return The number of tries
      */
-    private int listInsert(int toInsert) {
+    private int listInsert(int toInsert, int key) {
         int count = 1;
-        while (!listSearchAndInsert(toInsert))
+        while (!listSearchAndInsert(toInsert, key))
             count++;
         return count;
     }
@@ -361,7 +375,7 @@ class IOAccessManager {
 
             // 1: Find leftNode and rightNode
             do {
-                if (!stateIsMarked(currentNodeState)) {
+                if (!stateIsLogicallyRemoved(currentNodeState)) {
                     leftNode = currentNode;
                     leftNodeState = currentNodeState;
                 }
@@ -369,12 +383,10 @@ class IOAccessManager {
                 if (currentNode == ACTIVE_TAIL_ID)
                     throw new Error("WTF!");
                 currentNodeState = accessesState.get(currentNode);
-                if (!stateIsActive(currentNodeState))
-                    // concurrent removal
-                    return false;
-                if (!stateIsMarked(currentNodeState) && accesses[leftNode].location > accesses[currentNode].location)
+
+                if (!stateIsLogicallyRemoved(currentNodeState) && stateKey(leftNodeState) > stateKey(currentNodeState))
                     throw new Error("List is not ordered");
-            } while (stateIsMarked(currentNodeState) || currentNode != toRemove);
+            } while (stateIsLogicallyRemoved(currentNodeState) || currentNode != toRemove);
             toRemoveState = currentNodeState;
 
             // 2: Check nodes are adjacent
@@ -385,7 +397,7 @@ class IOAccessManager {
             // 3: Remove one or more marked nodes
             if (leftNode == toRemove)
                 throw new Error("oops");
-            if (accessesState.compareAndSet(leftNode, leftNodeState, stateNewActiveNext(leftNodeState, toRemove))) {
+            if (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, toRemove))) {
                 poolReturnSequence(stateActiveNext(leftNodeState), toRemove);
                 return accessesState.compareAndSet(toRemove, toRemoveState, stateSetMark(toRemoveState));
             }
@@ -418,7 +430,7 @@ class IOAccessManager {
     public IOAccess get(int location, int length, boolean writable) throws StorageException {
         Access access = newAccess();
         access.setupIOData(location, length, writable);
-        onAccess(listInsert(access.identifier));
+        onAccess(listInsert(access.identifier, location));
         try {
             access.setupIOData(backend.onAccessRequested(access));
         } catch (StorageException exception) {
@@ -441,7 +453,7 @@ class IOAccessManager {
         Access access = newAccess();
         access.setupIOData(location, length, writable);
         access.setupIOData(element);
-        onAccess(listInsert(access.identifier));
+        onAccess(listInsert(access.identifier, location));
         return access;
     }
 
@@ -504,10 +516,8 @@ class IOAccessManager {
         int current = firstId;
         while (true) {
             long currentState = accessesState.get(current);
-            if (!stateIsMarked(currentState))
+            if (!stateIsLogicallyRemoved(currentState))
                 throw new Error("Trying to return a non-marked access");
-            if (!stateIsActive(currentState))
-                throw new Error("The access is not active!");
             poolReturnAccess(current);
             int nextId = stateActiveNext(currentState);
             if (nextId == targetId)
@@ -526,7 +536,7 @@ class IOAccessManager {
         while (true) {
             int previousFree = accessesFree.get();
             long oldState = accessesState.get(identifier);
-            long newState = stateNewFreeNext(oldState, previousFree);
+            long newState = stateSetNextFree(oldState, previousFree);
             if (!accessesState.compareAndSet(identifier, oldState, newState))
                 continue;
             if (accessesFree.compareAndSet(previousFree, identifier))
