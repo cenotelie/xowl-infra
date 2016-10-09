@@ -86,7 +86,7 @@ class IOAccessManager {
      * The state of the accesses managed by this structure
      * The state of an access is composed of:
      * - int: key (access location)
-     * - byte: access state (0=free, 1=active, 2=logically removed, 3=removed, 4=returning)
+     * - byte: access state (0=free, 1=active, 2=logically removed, 3=returning)
      * - byte: when returning: bit-field for remaining touching threads
      * - byte: when returning: bit-field for remaining touching threads, when free: the index of the next free access, or 00
      * - byte: the index of the next active access
@@ -203,23 +203,13 @@ class IOAccessManager {
     }
 
     /**
-     * Gets whether the state of an access indicates that the access is no longer accessible from the active list, but not being returned yet
-     *
-     * @param state The state of an access
-     * @return Whether the access is being returned
-     */
-    private static boolean stateIsRemoved(long state) {
-        return (state & 0x00000000FF000000L) == 0x0000000003000000;
-    }
-
-    /**
      * Gets whether the state of an access indicates that the access is being returned to the free access list
      *
      * @param state The state of an access
      * @return Whether the access is being returned
      */
     private static boolean stateIsReturning(long state) {
-        return (state & 0x00000000FF000000L) == 0x0000000004000000;
+        return (state & 0x00000000FF000000L) == 0x0000000003000000;
     }
 
     /**
@@ -274,24 +264,14 @@ class IOAccessManager {
     }
 
     /**
-     * Gets the version of the state representing a removed access (not yet returning)
+     * Gets the version of the state representing a returning access
      *
      * @param state          The initial state of an access
      * @param currentThreads The current threads accessing the active list
      * @return The equivalent marked state
      */
-    private static long stateSetRemoved(long state, int currentThreads) {
+    private static long stateSetReturning(long state, int currentThreads) {
         return (state & 0xFFFFFFFF000000FFL) | 0x0000000003000000L | ul(currentThreads) << 8;
-    }
-
-    /**
-     * Gets the version of the state representing a returning access
-     *
-     * @param state The initial state of an access
-     * @return The equivalent marked state
-     */
-    private static long stateSetReturning(long state) {
-        return (state & 0xFFFFFFFF00FFFFFFL) | 0x0000000004000000L;
     }
 
     /**
@@ -371,6 +351,9 @@ class IOAccessManager {
     private void beginActiveAccess(int threadIdentifier) {
         while (true) {
             int mask = accessesThreads.get();
+            if (mask == -1)
+                // the access is locked out
+                continue;
             if (accessesThreads.compareAndSet(mask, mask | threadIdentifier))
                 return;
         }
@@ -384,51 +367,37 @@ class IOAccessManager {
     private void endActiveAccess(int threadIdentifier) {
         while (true) {
             int mask = accessesThreads.get();
+            if (mask == -1)
+                // the access is locked out
+                continue;
             if (accessesThreads.compareAndSet(mask, mask & ~threadIdentifier))
                 return;
         }
     }
 
     /**
-     * Inspect an access being removed
+     * Prevents the registering and un-registering of threads accessing the list of active accesses
      *
-     * @param identifier The identifier of the access
+     * @return The current threads on the list of active accesses
      */
-    private void inspectRemoved(int identifier) {
+    private int lockActiveAccesses() {
         while (true) {
-            long oldState = accessesState.get(identifier);
-            if (stateIsRemoved(oldState) || stateIsReturning(oldState))
-                // someone-else is returning this access, abandon here
-                return;
-            int currentThreads = accessesThreads.get();
-            long newState = stateSetRemoved(oldState, currentThreads);
-            if (accessesState.compareAndSet(identifier, oldState, newState)) {
-                // we marked the access as returning
-                // are the threads information correct?
-                if (accessesThreads.get() == currentThreads) {
-                    // yes, mark as returning
-                    oldState = newState;
-                    newState = stateSetReturning(oldState);
-                    accessesState.compareAndSet(identifier, oldState, newState);
-                    return;
-                }
-                break;
-            }
+            int mask = accessesThreads.get();
+            if (mask == -1)
+                // the access is locked out
+                continue;
+            if (accessesThreads.compareAndSet(mask, -1))
+                return mask;
         }
-        // here, we marked the access as removed
-        // the threads information are not up to date, update them
-        while (true) {
-            long oldState = accessesState.get(identifier);
-            int currentThreads = accessesThreads.get();
-            long newState = stateSetRemoved(oldState, currentThreads);
-            if (accessesState.compareAndSet(identifier, oldState, newState)
-                    && accessesThreads.get() == currentThreads) {
-                oldState = newState;
-                newState = stateSetReturning(oldState);
-                accessesState.compareAndSet(identifier, oldState, newState);
-                return;
-            }
-        }
+    }
+
+    /**
+     * Re-enable the registering and un-registering of threads accessing the list of active accesses
+     *
+     * @param threads The current threads on the list of active accesses
+     */
+    private void unlockActiveAccesses(int threads) {
+        accessesThreads.compareAndSet(-1, threads);
     }
 
     /**
@@ -440,84 +409,47 @@ class IOAccessManager {
      */
     private boolean listSearchAndInsert(int toInsert, int key) {
         Access accessToInsert = accesses[toInsert];
-        // the buffer of logically removed access that could be freed
-        // we hope that with escape analysis the array is on the stack
-        int[] removed = new int[ACCESSES_POOL_SIZE];
-        int removedCount = 0;
 
-        int leftNode = -1;
-        long leftNodeState = 0;
+        // find the left node
+        int leftNode;
+        long leftNodeState;
         int rightNode;
-        // start by the head
         int currentNode = ACTIVE_HEAD_ID;
         long currentNodeState = accessesState.get(currentNode);
-
-        // 1: Find leftNode and rightNode
         while (true) {
-            if (stateIsActive(currentNodeState)) {
-                // cleanup nodes touched for removal, if any, because we are going to find new one
-                removedCount = 0;
-                leftNode = currentNode;
-                leftNodeState = currentNodeState;
-            }
+            leftNode = currentNode;
+            leftNodeState = currentNodeState;
             currentNode = stateActiveNext(currentNodeState);
-            if (currentNode == ACTIVE_TAIL_ID)
-                break;
             currentNodeState = accessesState.get(currentNode);
-            if (stateIsRemoved(currentNodeState) || stateIsReturning(currentNodeState))
+            if (!stateIsActive(currentNodeState))
                 return false;
-            if (stateIsActive(currentNodeState)) {
-                Access accessCurrentNode = accesses[currentNode];
-                if ((accessToInsert.writable || accessCurrentNode.writable) && !accessToInsert.disjoints(accessCurrentNode))
-                    // there is a write overlap
-                    return false;
-                if (key < stateKey(currentNodeState))
-                    break;
-            } else {
-                removed[removedCount++] = currentNode;
-            }
+            Access accessCurrentNode = accesses[currentNode];
+            if ((accessToInsert.writable || accessCurrentNode.writable) && !accessToInsert.disjoints(accessCurrentNode))
+                // there is a write overlap
+                return false;
+            if (key < stateKey(currentNodeState))
+                break;
         }
         rightNode = currentNode;
 
-        // 1 bis: look for overlapping accesses after that
+        // look for overlap after the insertion point
         while (true) {
             currentNode = stateActiveNext(currentNodeState);
-            if (currentNode == ACTIVE_TAIL_ID)
-                break;
             currentNodeState = accessesState.get(currentNode);
-            if (stateIsRemoved(currentNodeState) || stateIsReturning(currentNodeState))
+            if (!stateIsActive(currentNodeState))
                 return false;
-            if (stateIsActive(currentNodeState)) {
-                Access accessCurrentNode = accesses[currentNode];
-                if ((accessToInsert.writable || accessCurrentNode.writable) && !accessToInsert.disjoints(accessCurrentNode))
-                    // there is a write overlap
-                    return false;
-                if (stateKey(currentNodeState) >= key + accessToInsert.length)
-                    break;
-            }
+            if (stateKey(currentNodeState) >= key + accessToInsert.length)
+                break;
+            Access accessCurrentNode = accesses[currentNode];
+            if ((accessToInsert.writable || accessCurrentNode.writable) && !accessToInsert.disjoints(accessCurrentNode))
+                // there is a write overlap
+                return false;
         }
 
-        // 2: Check nodes are adjacent
-        if (stateActiveNext(leftNodeState) == rightNode) {
-            if (rightNode != ACTIVE_TAIL_ID && !stateIsActive(accessesState.get(rightNode)))
-                return false;
-            accessesState.set(toInsert, stateSetupActive(key, rightNode));
-            return (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, toInsert)));
-        }
-
-        // 3: Remove one or more marked nodes
-        long leftNodeStateNew = stateSetNextActive(leftNodeState, rightNode);
-        if (accessesState.compareAndSet(leftNode, leftNodeState, leftNodeStateNew)) {
-            // mark the returning nodes
-            for (int i = 0; i != removedCount; i++)
-                inspectRemoved(removed[i]);
-            leftNodeState = leftNodeStateNew;
-            if (rightNode != ACTIVE_TAIL_ID && !stateIsActive(accessesState.get(rightNode)))
-                return false;
-            accessesState.set(toInsert, stateSetupActive(key, rightNode));
-            return (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, toInsert)));
-        }
-        return false;
+        // setup the access to insert
+        accessesState.set(toInsert, stateSetupActive(key, rightNode));
+        // try to insert
+        return (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, toInsert)));
     }
 
     /**
@@ -530,15 +462,16 @@ class IOAccessManager {
      */
     private int listInsert(int toInsert, int key) {
         int threadIdentifier = getThreadId();
-        beginActiveAccess(threadIdentifier);
         int count = 1;
         while (true) {
-            if (listSearchAndInsert(toInsert, key))
+            beginActiveAccess(threadIdentifier);
+            boolean success = listSearchAndInsert(toInsert, key);
+            endActiveAccess(threadIdentifier);
+            poolCleanup(threadIdentifier);
+            if (success)
                 break;
             count++;
         }
-        endActiveAccess(threadIdentifier);
-        poolCleanup(threadIdentifier);
         returnThreadId(threadIdentifier);
         return count;
     }
@@ -550,49 +483,39 @@ class IOAccessManager {
      * @return Whether the attempt is successful
      */
     private boolean listSearchAndRemove(int toRemove) {
-        // the buffer of logically removed access that could be freed
-        // we hope that with escape analysis the array is on the stack
-        int[] removed = new int[ACCESSES_POOL_SIZE];
-        int removedCount = 0;
-
-        int leftNode = -1;
-        long leftNodeState = 0;
-        long toRemoveState;
-        // start by the head
+        // find the left node
+        int leftNode;
+        long leftNodeState;
         int currentNode = ACTIVE_HEAD_ID;
         long currentNodeState = accessesState.get(currentNode);
-
-        // 1: Find leftNode and rightNode
         while (true) {
-            if (stateIsActive(currentNodeState)) {
-                // cleanup nodes touched for removal, if any, because we are going to find new one
-                removedCount = 0;
-                leftNode = currentNode;
-                leftNodeState = currentNodeState;
-            }
+            leftNode = currentNode;
+            leftNodeState = currentNodeState;
             currentNode = stateActiveNext(currentNodeState);
+            if (currentNode == toRemove)
+                break;
             currentNodeState = accessesState.get(currentNode);
-            if (stateIsRemoved(currentNodeState) || stateIsReturning(currentNodeState))
+            if (!stateIsActive(currentNodeState))
                 return false;
-            if (stateIsActive(currentNodeState)) {
-                if (currentNode == toRemove)
-                    break;
-            } else {
-                removed[removedCount++] = currentNode;
-            }
         }
-        toRemoveState = currentNodeState;
 
-        // mark the node as logically removed
-        if (!accessesState.compareAndSet(toRemove, toRemoveState, stateSetLogicallyRemoved(toRemoveState)))
+        // mark as logically deleted
+        long oldState = accessesState.get(toRemove);
+        long newState = stateSetLogicallyRemoved(oldState);
+        if (!accessesState.compareAndSet(toRemove, oldState, newState))
+            return false;
+        oldState = newState;
+
+        // try to remove from the list
+        if (!accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, stateActiveNext(oldState))))
             return false;
 
-        if (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, stateActiveNext(toRemoveState)))) {
-            // mark the returning nodes
-            for (int i = 0; i != removedCount; i++)
-                inspectRemoved(removed[i]);
-            inspectRemoved(toRemove);
-        }
+        // no-longer reachable from the list's head
+        // mark the access as returning provided the clearance of current threads
+        int currentThreads = lockActiveAccesses();
+        newState = stateSetReturning(oldState, currentThreads);
+        accessesState.compareAndSet(toRemove, oldState, newState);
+        unlockActiveAccesses(currentThreads);
         return true;
     }
 
@@ -604,15 +527,16 @@ class IOAccessManager {
      */
     private int listRemove(int toRemove) {
         int threadIdentifier = getThreadId();
-        beginActiveAccess(threadIdentifier);
         int count = 1;
         while (true) {
-            if (listSearchAndRemove(toRemove))
+            beginActiveAccess(threadIdentifier);
+            boolean success = listSearchAndRemove(toRemove);
+            endActiveAccess(threadIdentifier);
+            poolCleanup(threadIdentifier);
+            if (success)
                 break;
             count++;
         }
-        endActiveAccess(threadIdentifier);
-        poolCleanup(threadIdentifier);
         returnThreadId(threadIdentifier);
         return count;
     }
