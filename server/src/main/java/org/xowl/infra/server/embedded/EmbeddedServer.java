@@ -28,6 +28,7 @@ import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 /**
  * Implements an embedded server with persisted databases
@@ -56,7 +57,7 @@ public class EmbeddedServer implements XOWLServer {
 
     @Override
     public XSPReply login(String login, String password) {
-        return XSPReplyUnsupported.instance();
+        return controller.login(InetAddress.getLoopbackAddress(), login, password);
     }
 
     @Override
