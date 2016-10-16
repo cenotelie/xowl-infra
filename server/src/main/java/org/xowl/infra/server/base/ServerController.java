@@ -890,23 +890,21 @@ public class ServerController implements Closeable {
     /**
      * Adds a stored procedure in a database
      *
-     * @param client      The requesting client
-     * @param database    The database that would store the procedure
-     * @param iri         The name (IRI) of the procedure
-     * @param sparql      The SPARQL definition of the procedure
-     * @param defaultIRIs The context's default IRIs
-     * @param namedIRIs   The context's named IRIs
-     * @param parameters  The parameters for this procedure
+     * @param client     The requesting client
+     * @param database   The database that would store the procedure
+     * @param iri        The name (IRI) of the procedure
+     * @param sparql     The SPARQL definition of the procedure
+     * @param parameters The parameters for this procedure
      * @return The protocol reply
      */
-    public XSPReply addStoredProcedure(ServerUser client, String database, String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters) {
+    public XSPReply addStoredProcedure(ServerUser client, String database, String iri, String sparql, Collection<String> parameters) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         ServerDatabase db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
-            return db.addStoredProcedure(iri, sparql, defaultIRIs, namedIRIs, parameters);
+            return db.addStoredProcedure(iri, sparql, parameters);
         return XSPReplyUnauthorized.instance();
     }
 

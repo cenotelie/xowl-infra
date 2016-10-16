@@ -146,14 +146,12 @@ public interface XOWLDatabase extends Serializable {
     /**
      * Adds a stored procedure in the form of a SPARQL command
      *
-     * @param iri         The name (iri) for this procedure
-     * @param sparql      The SPARQL command(s)
-     * @param defaultIRIs The context's default IRIs
-     * @param namedIRIs   The context's named IRIs
-     * @param parameters  The names of the parameters for this procedure
+     * @param iri        The name (iri) for this procedure
+     * @param sparql     The SPARQL command(s)
+     * @param parameters The names of the parameters for this procedure
      * @return The protocol reply
      */
-    XSPReply addStoredProcedure(String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters);
+    XSPReply addStoredProcedure(String iri, String sparql, Collection<String> parameters);
 
     /**
      * Remove a stored procedure

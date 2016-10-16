@@ -46,14 +46,6 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
      */
     private final String definition;
     /**
-     * The context's default IRIs
-     */
-    private final List<String> defaultIRIs;
-    /**
-     * The context's named IRIs
-     */
-    private final List<String> namedIRIs;
-    /**
      * The parameters for this procedure
      */
     private final List<String> parameters;
@@ -65,18 +57,14 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
     /**
      * Initializes this procedure
      *
-     * @param name        The procedure's name (IRI)
-     * @param definition  The procedure's definition
-     * @param defaultIRIs The context's default IRIs
-     * @param namedIRIs   The context's named IRIs
-     * @param parameters  The parameters for this procedure
-     * @param sparql      The loaded SPARQL command
+     * @param name       The procedure's name (IRI)
+     * @param definition The procedure's definition
+     * @param parameters The parameters for this procedure
+     * @param sparql     The loaded SPARQL command
      */
-    public BaseStoredProcedure(String name, String definition, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters, Command sparql) {
+    public BaseStoredProcedure(String name, String definition, Collection<String> parameters, Command sparql) {
         this.name = name;
         this.definition = definition;
-        this.defaultIRIs = new ArrayList<>(defaultIRIs);
-        this.namedIRIs = new ArrayList<>(namedIRIs);
         this.parameters = new ArrayList<>(parameters);
         this.sparql = sparql;
     }
@@ -91,8 +79,6 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
     public BaseStoredProcedure(ASTNode root, NodeManager nodes, Logger logger) {
         String vName = null;
         String vDef = "";
-        this.defaultIRIs = new ArrayList<>();
-        this.namedIRIs = new ArrayList<>();
         this.parameters = new ArrayList<>();
         for (ASTNode child : root.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
@@ -111,22 +97,6 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
                     vDef = vDef.substring(1, vDef.length() - 1);
                     break;
                 }
-                case "defaultIRIs": {
-                    for (ASTNode nodeValue : child.getChildren().get(1).getChildren()) {
-                        String value = IOUtils.unescape(nodeValue.getValue());
-                        value = value.substring(1, value.length() - 1);
-                        defaultIRIs.add(value);
-                    }
-                    break;
-                }
-                case "namedIRIs": {
-                    for (ASTNode nodeValue : child.getChildren().get(1).getChildren()) {
-                        String value = IOUtils.unescape(nodeValue.getValue());
-                        value = value.substring(1, value.length() - 1);
-                        namedIRIs.add(value);
-                    }
-                    break;
-                }
                 case "parameters": {
                     for (ASTNode nodeValue : child.getChildren().get(1).getChildren()) {
                         String value = IOUtils.unescape(nodeValue.getValue());
@@ -141,28 +111,10 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
         this.definition = vDef;
         Command vSPARQL = null;
         if (nodes != null) {
-            SPARQLLoader loader = new SPARQLLoader(nodes, defaultIRIs, namedIRIs);
+            SPARQLLoader loader = new SPARQLLoader(nodes);
             vSPARQL = loader.load(logger, new StringReader(this.definition));
         }
         this.sparql = vSPARQL;
-    }
-
-    /**
-     * Gets the context's default IRIs
-     *
-     * @return The context's default IRIs
-     */
-    public List<String> getDefaultIRIs() {
-        return Collections.unmodifiableList(defaultIRIs);
-    }
-
-    /**
-     * Gets the context's named IRIs
-     *
-     * @return The context's named IRIs
-     */
-    public List<String> getNamedIRIs() {
-        return Collections.unmodifiableList(namedIRIs);
     }
 
     /**
@@ -203,23 +155,7 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
         buffer.append(IOUtils.escapeStringJSON(name));
         buffer.append("\", \"definition\": \"");
         buffer.append(IOUtils.escapeStringJSON(definition));
-        buffer.append("\", \"defaultIRIs\": [");
-        for (int i = 0; i != defaultIRIs.size(); i++) {
-            if (i != 0)
-                buffer.append(", ");
-            buffer.append("\"");
-            buffer.append(IOUtils.escapeStringJSON(defaultIRIs.get(i)));
-            buffer.append("\"");
-        }
-        buffer.append("], \"namedIRIs\": [");
-        for (int i = 0; i != namedIRIs.size(); i++) {
-            if (i != 0)
-                buffer.append(", ");
-            buffer.append("\"");
-            buffer.append(IOUtils.escapeStringJSON(namedIRIs.get(i)));
-            buffer.append("\"");
-        }
-        buffer.append("], \"parameters\": [");
+        buffer.append("\", \"parameters\": [");
         for (int i = 0; i != parameters.size(); i++) {
             if (i != 0)
                 buffer.append(", ");

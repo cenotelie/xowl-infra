@@ -143,7 +143,7 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply addStoredProcedure(String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters) {
+    public XSPReply addStoredProcedure(String iri, String sparql, Collection<String> parameters) {
         return XSPReplyFailure.instance();
     }
 

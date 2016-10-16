@@ -413,18 +413,16 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     /**
      * Adds a stored procedure in a database
      *
-     * @param database    The database that would store the procedure
-     * @param iri         The name (IRI) of the procedure
-     * @param sparql      The SPARQL definition of the procedure
-     * @param defaultIRIs The context's default IRIs
-     * @param namedIRIs   The context's named IRIs
-     * @param parameters  The parameters for this procedure
+     * @param database   The database that would store the procedure
+     * @param iri        The name (IRI) of the procedure
+     * @param sparql     The SPARQL definition of the procedure
+     * @param parameters The parameters for this procedure
      * @return The protocol reply
      */
-    XSPReply addStoredProcedure(String database, String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters) {
+    XSPReply addStoredProcedure(String database, String iri, String sparql, Collection<String> parameters) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
-        BaseStoredProcedure procedure = new BaseStoredProcedure(iri, sparql, defaultIRIs, namedIRIs, parameters, null);
+        BaseStoredProcedure procedure = new BaseStoredProcedure(iri, sparql, parameters, null);
         return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/procedures", "PUT", procedure.serializedJSON(), HttpConstants.MIME_JSON, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 

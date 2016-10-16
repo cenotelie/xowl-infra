@@ -130,8 +130,8 @@ class RemoteDatabase extends BaseDatabase {
     }
 
     @Override
-    public XSPReply addStoredProcedure(String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters) {
-        return server.addStoredProcedure(name, iri, sparql, defaultIRIs, namedIRIs, parameters);
+    public XSPReply addStoredProcedure(String iri, String sparql, Collection<String> parameters) {
+        return server.addStoredProcedure(name, iri, sparql, parameters);
     }
 
     @Override

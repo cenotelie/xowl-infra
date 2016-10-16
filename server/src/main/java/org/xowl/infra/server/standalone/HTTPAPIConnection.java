@@ -530,7 +530,7 @@ class HTTPAPIConnection extends SafeRunnable {
                     if (root == null)
                         return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
                     BaseStoredProcedure procedure = new BaseStoredProcedure(root, null, logger);
-                    return response(controller.addStoredProcedure(client, name, procedure.getName(), procedure.getDefinition(), procedure.getDefaultIRIs(), procedure.getNamedIRIs(), procedure.getParameters()));
+                    return response(controller.addStoredProcedure(client, name, procedure.getName(), procedure.getDefinition(), procedure.getParameters()));
                 } catch (IOException exception) {
                     Logging.getDefault().error(exception);
                     return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");

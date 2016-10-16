@@ -528,18 +528,18 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     }
 
     @Override
-    public XSPReply addStoredProcedure(String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters) {
+    public XSPReply addStoredProcedure(String iri, String sparql, Collection<String> parameters) {
         synchronized (procedures) {
             Collection<String> names = configuration.getAll(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES);
             if (names.contains(iri))
                 return new XSPReplyFailure("A procedure with this name alreay exists");
-            SPARQLLoader loader = new SPARQLLoader(repository.getStore(), defaultIRIs, namedIRIs);
+            SPARQLLoader loader = new SPARQLLoader(repository.getStore());
             BufferedLogger bufferedLogger = new BufferedLogger();
             DispatchLogger dispatchLogger = new DispatchLogger(bufferedLogger, logger);
             Command command = loader.load(dispatchLogger, new StringReader(sparql));
             if (!bufferedLogger.getErrorMessages().isEmpty())
                 return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
-            BaseStoredProcedure procedure = new BaseStoredProcedure(iri, sparql, defaultIRIs, namedIRIs, parameters, command);
+            BaseStoredProcedure procedure = new BaseStoredProcedure(iri, sparql, parameters, command);
 
             String name = IOUtils.hashSHA1(iri);
             File folder = new File(location, REPO_PROCEDURES);
