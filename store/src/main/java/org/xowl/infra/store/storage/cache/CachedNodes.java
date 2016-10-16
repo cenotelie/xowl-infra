@@ -25,13 +25,12 @@ import org.xowl.infra.store.rdf.LiteralNode;
 import org.xowl.infra.store.storage.impl.NodeManagerImpl;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Represented a cached store of nodes
+ * This structure is thread-safe.
  *
  * @author Laurent Wouters
  */
@@ -39,114 +38,100 @@ public class CachedNodes extends NodeManagerImpl {
     /**
      * The map of cached IRI nodes
      */
-    private final Map<String, WeakReference<IRINode>> iris;
+    private final ConcurrentHashMap<String, WeakReference<IRINode>> iris;
     /**
      * The map of cached literals (per lexical value)
      */
-    private final Map<String, LiteralBucket> literals;
+    private final ConcurrentHashMap<String, LiteralBucket> literals;
     /**
      * The map of cached anonymous individuals
      */
-    private final Map<String, WeakReference<AnonymousNode>> anonymous;
+    private final ConcurrentHashMap<String, WeakReference<AnonymousNode>> anonymous;
     /**
      * The next blank identifier
      */
-    private long nextBlank;
+    private AtomicLong nextBlank;
 
     /**
      * Initializes this store
      */
     public CachedNodes() {
-        iris = new HashMap<>();
-        literals = new HashMap<>();
-        anonymous = new HashMap<>();
-        nextBlank = 0;
+        iris = new ConcurrentHashMap<>();
+        literals = new ConcurrentHashMap<>();
+        anonymous = new ConcurrentHashMap<>();
+        nextBlank = new AtomicLong(0);
     }
 
     @Override
     public IRINode getIRINode(String iri) {
-        WeakReference<IRINode> ref = iris.get(iri);
-        if (ref == null) {
-            IRINode result = new CachedIRINode(iri);
-            iris.put(iri, new WeakReference<>(result));
-            return result;
-        } else {
-            IRINode result = ref.get();
-            if (result != null)
-                return result;
-            result = new CachedIRINode(iri);
-            iris.put(iri, new WeakReference<>(result));
-            return result;
+        while (true) {
+            WeakReference<IRINode> ref = iris.get(iri);
+            if (ref == null) {
+                IRINode result = new CachedIRINode(iri);
+                WeakReference<IRINode> previous = iris.putIfAbsent(iri, new WeakReference<>(result));
+                if (previous == null)
+                    return result;
+            } else {
+                IRINode result = ref.get();
+                if (result != null)
+                    return result;
+                result = new CachedIRINode(iri);
+                if (iris.replace(iri, ref, new WeakReference<>(result)))
+                    return result;
+            }
         }
     }
 
     @Override
     public IRINode getExistingIRINode(String iri) {
-        WeakReference<IRINode> ref = iris.get(iri);
-        return (ref == null ? null : ref.get());
+        while (true) {
+            WeakReference<IRINode> ref = iris.get(iri);
+            if (ref == null)
+                return null;
+            IRINode result = ref.get();
+            if (result != null)
+                return result;
+            result = new CachedIRINode(iri);
+            if (iris.replace(iri, ref, new WeakReference<>(result)))
+                return result;
+        }
     }
 
     @Override
     public BlankNode getBlankNode() {
-        BlankNode result = new BlankNode(nextBlank);
-        nextBlank++;
-        return result;
+        return new BlankNode(nextBlank.getAndIncrement());
     }
 
     @Override
     public LiteralNode getLiteralNode(String lex, String datatype, String lang) {
-        LiteralBucket bucket = literals.get(lex);
-        if (bucket == null) {
+        while (true) {
+            LiteralBucket bucket = literals.get(lex);
+            if (bucket != null)
+                return bucket.get(lex, datatype, lang);
             bucket = new LiteralBucket();
-            literals.put(lex, bucket);
+            LiteralBucket value = literals.putIfAbsent(lex, bucket);
+            if (value == null)
+                return bucket.get(lex, datatype, lang);
         }
-        return bucket.get(lex, datatype, lang);
     }
 
     @Override
     public AnonymousNode getAnonNode(AnonymousIndividual individual) {
-        WeakReference<AnonymousNode> ref = anonymous.get(individual.getNodeID());
-        if (ref == null) {
-            AnonymousNode result = new CachedAnonNode(individual);
-            anonymous.put(individual.getNodeID(), new WeakReference<>(result));
-            return result;
-        } else {
-            AnonymousNode result = ref.get();
-            if (result != null)
-                return result;
-            result = new CachedAnonNode(individual);
-            anonymous.put(individual.getNodeID(), new WeakReference<>(result));
-            return result;
+        while (true) {
+            WeakReference<AnonymousNode> ref = anonymous.get(individual.getNodeID());
+            if (ref == null) {
+                AnonymousNode result = new CachedAnonNode(individual);
+                WeakReference<AnonymousNode> previous = anonymous.putIfAbsent(individual.getNodeID(), new WeakReference<>(result));
+                if (previous == null)
+                    return result;
+            } else {
+                AnonymousNode result = ref.get();
+                if (result != null)
+                    return result;
+                result = new CachedAnonNode(individual);
+                if (anonymous.replace(individual.getNodeID(), ref, new WeakReference<>(result)))
+                    return result;
+            }
         }
-    }
-
-    /**
-     * Cleanup dead entries in this cache
-     */
-    public void cleanup() {
-        List<String> deads = new ArrayList<>();
-        for (Map.Entry<String, WeakReference<IRINode>> entry : iris.entrySet()) {
-            if (entry.getValue().get() == null)
-                deads.add(entry.getKey());
-        }
-        for (String deadIRI : deads)
-            iris.remove(deadIRI);
-
-        deads.clear();
-        for (Map.Entry<String, LiteralBucket> entry : literals.entrySet()) {
-            entry.getValue().cleanup();
-            if (entry.getValue().getSize() == 0)
-                deads.add(entry.getKey());
-        }
-        for (String deadLiteral : deads)
-            literals.remove(deadLiteral);
-
-        deads.clear();
-        for (Map.Entry<String, WeakReference<AnonymousNode>> entry : anonymous.entrySet()) {
-            if (entry.getValue().get() == null)
-                deads.add(entry.getKey());
-        }
-        for (String deadAnon : deads)
-            anonymous.remove(deadAnon);
     }
 }
