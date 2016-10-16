@@ -90,7 +90,7 @@ public class ServerController implements Closeable {
             isEmpty = children == null || children.length == 0;
         }
         Logging.getDefault().info("Initializing the controller");
-        adminDB = new ServerDatabase(configuration, configuration.getDatabasesFolder());
+        adminDB = new ServerDatabase(configuration, new File(configuration.getDatabasesFolder(), configuration.getAdminDBName()));
         databases.put(configuration.getAdminDBName(), adminDB);
         clients = new HashMap<>();
         users = new HashMap<>();
