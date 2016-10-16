@@ -203,6 +203,38 @@ XOWL.prototype.getDBRuleStatus = function (callback, db, rule) {
     	}, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule) + "&status=", "GET", null, "");
 }
 
+XOWL.prototype.getDBProcedures = function (callback, db) {
+	this.command(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content).payload);
+		} else {
+			callback(code, type, content);
+		}
+	}, "/db/" + encodeURIComponent(db) + "/procedures", "GET", null, "");
+}
+
+XOWL.prototype.getDBProcedure = function (callback, db, procedure) {
+	this.command(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content).payload);
+		} else {
+			callback(code, type, content);
+		}
+	}, "/db/" + encodeURIComponent(db) + "/procedures?id=" + encodeURIComponent(procedure), "GET", null, "");
+}
+
+XOWL.prototype.addDBProcedure = function (callback, db, procedure) {
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/procedures", "PUT", "application/json", procedure);
+}
+
+XOWL.prototype.removeDBProcedure = function (callback, db, procedure) {
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/procedures?id=" + encodeURIComponent(procedure), "DELETE", null, rule);
+}
+
+XOWL.prototype.executeDBProcedure = function (callback, db, procedure, context) {
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/procedures?id=" + encodeURIComponent(procedure), "POST", "application/json", context);
+}
+
 XOWL.prototype.upload = function (callback, db, contentType, content) {
 	this.command(callback, "/db/" + encodeURIComponent(db), "POST", contentType, content);
 }
@@ -229,6 +261,12 @@ XOWL.prototype.jsCommand = function (callback, complement, method, contentType, 
 	    xmlHttp.setRequestHeader("Content-Type", "application/x-xowl-xsp");
 	xmlHttp.withCredentials = true;
 	xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
+	if (content === null)
+    	xmlHttp.send();
+    else if (contentType === "application/json")
+    	xmlHttp.send(JSON.stringify(content));
+    else
+    	xmlHttp.send(payload);
 	xmlHttp.send(content);
 }
 
