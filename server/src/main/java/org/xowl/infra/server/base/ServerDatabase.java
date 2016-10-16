@@ -633,6 +633,10 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
                     return new XSPReplyFailure("Failed to retrieve the procedure");
             }
         }
+        for (String parameter : procedure.getParameters()) {
+            if (context.getParameters().get(parameter) == null)
+                return new XSPReplyFailure("Missing required parameter: " + parameter);
+        }
         Command sparql = procedure.getSPARQL().clone(context.getParameters());
         return sparql(sparql);
     }
