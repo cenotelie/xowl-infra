@@ -19,12 +19,15 @@ package org.xowl.infra.server.standalone;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
+import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLPrivilege;
+import org.xowl.infra.server.api.base.BaseStoredProcedure;
 import org.xowl.infra.server.base.ServerController;
 import org.xowl.infra.server.base.ServerUser;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyUtils;
 import org.xowl.infra.store.EntailmentRegime;
+import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.http.HttpResponse;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
@@ -288,6 +291,8 @@ class HTTPAPIConnection extends SafeRunnable {
             return handleResourceDatabasePrivileges(method, resource);
         if (resource.endsWith("/rules"))
             return handleResourceDatabaseRules(method, resource);
+        if (resource.endsWith("/procedures"))
+            return handleResourceDatabaseProcedures(method, resource);
         return handleResourceDatabaseNaked(method, resource);
     }
 
@@ -488,6 +493,52 @@ class HTTPAPIConnection extends SafeRunnable {
                 if (ids == null || ids.isEmpty())
                     return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
                 return response(controller.removeRule(client, name, ids.get(0)));
+        }
+        return response(HttpURLConnection.HTTP_BAD_METHOD, null);
+    }
+
+    /**
+     * Handles the request
+     *
+     * @param method   The HTTP method
+     * @param resource The accessed resource
+     * @return The response code
+     */
+    private int handleResourceDatabaseProcedures(String method, String resource) {
+        String name = resource.substring("/db/".length(), resource.length() - "/procedures".length());
+        Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+        List<String> ids = params.get("id");
+        switch (method) {
+            case "GET":
+                if (ids == null || ids.isEmpty())
+                    return response(controller.getStoredProcedures(client, name));
+                return response(controller.getStoreProcedure(client, name, ids.get(0)));
+            case "POST":
+                if (ids == null || ids.isEmpty())
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
+                try {
+                    String body = Utils.getRequestBody(httpExchange);
+                    return response(controller.executeStoredProcedure(client, name, ids.get(0), body));
+                } catch (IOException exception) {
+                    Logging.getDefault().error(exception);
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                }
+            case "PUT":
+                try {
+                    String body = Utils.getRequestBody(httpExchange);
+                    ASTNode root = IOUtils.parseJSON(logger, body);
+                    if (root == null)
+                        return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                    BaseStoredProcedure procedure = new BaseStoredProcedure(root, null, logger);
+                    return response(controller.addStoredProcedure(client, name, procedure.getName(), procedure.getDefinition(), procedure.getDefaultIRIs(), procedure.getNamedIRIs(), procedure.getParameters()));
+                } catch (IOException exception) {
+                    Logging.getDefault().error(exception);
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                }
+            case "DELETE":
+                if (ids == null || ids.isEmpty())
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
+                return response(controller.removeStoredProcedure(client, name, ids.get(0)));
         }
         return response(HttpURLConnection.HTTP_BAD_METHOD, null);
     }

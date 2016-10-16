@@ -109,7 +109,7 @@ public class BaseRule implements XOWLRule {
 
     @Override
     public String serializedString() {
-        return null;
+        return name;
     }
 
     @Override

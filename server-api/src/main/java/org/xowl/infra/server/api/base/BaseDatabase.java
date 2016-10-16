@@ -20,6 +20,8 @@ package org.xowl.infra.server.api.base;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLRule;
+import org.xowl.infra.server.api.XOWLStoredProcedure;
+import org.xowl.infra.server.api.XOWLStoredProcedureContext;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyFailure;
 import org.xowl.infra.store.EntailmentRegime;
@@ -127,6 +129,31 @@ public class BaseDatabase implements XOWLDatabase {
 
     @Override
     public XSPReply getRuleStatus(XOWLRule rule) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply getStoreProcedure(String iri) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply getStoredProcedures() {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply addStoredProcedure(String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply removeStoredProcedure(XOWLStoredProcedure procedure) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
         return XSPReplyFailure.instance();
     }
 

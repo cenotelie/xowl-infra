@@ -19,10 +19,7 @@ package org.xowl.infra.server.api.remote;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.*;
-import org.xowl.infra.server.api.base.BaseDatabasePrivileges;
-import org.xowl.infra.server.api.base.BaseRule;
-import org.xowl.infra.server.api.base.BaseUser;
-import org.xowl.infra.server.api.base.BaseUserPrivileges;
+import org.xowl.infra.server.api.base.*;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.EntailmentRegime;
@@ -386,6 +383,76 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
         NQuadsSerializer serializer = new NQuadsSerializer(writer);
         serializer.serialize(Logging.getDefault(), new SingleIterator<>(quad));
         return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/explain?quad=" + URIUtils.encodeComponent(writer.toString()) + "&status=", "GET", HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+    }
+
+    /**
+     * Gets the stored procedure for the specified name
+     *
+     * @param database The target database
+     * @param iri      The name (IRI) of a procedure
+     * @return The protocol reply
+     */
+    XSPReply getStoreProcedure(String database, String iri) {
+        if (connection == null)
+            return XSPReplyNetworkError.instance();
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/procedures?id=" + URIUtils.encodeComponent(iri), "GET", HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+    }
+
+    /**
+     * Gets the stored procedures in a database
+     *
+     * @param database The target database
+     * @return The protocol reply
+     */
+    XSPReply getStoredProcedures(String database) {
+        if (connection == null)
+            return XSPReplyNetworkError.instance();
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/procedures", "GET", HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+    }
+
+    /**
+     * Adds a stored procedure in a database
+     *
+     * @param database    The database that would store the procedure
+     * @param iri         The name (IRI) of the procedure
+     * @param sparql      The SPARQL definition of the procedure
+     * @param defaultIRIs The context's default IRIs
+     * @param namedIRIs   The context's named IRIs
+     * @param parameters  The parameters for this procedure
+     * @return The protocol reply
+     */
+    XSPReply addStoredProcedure(String database, String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters) {
+        if (connection == null)
+            return XSPReplyNetworkError.instance();
+        BaseStoredProcedure procedure = new BaseStoredProcedure(iri, sparql, defaultIRIs, namedIRIs, parameters, null);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/procedures", "PUT", procedure.serializedJSON(), HttpConstants.MIME_JSON, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+    }
+
+    /**
+     * Removes a stored procedure from a database
+     *
+     * @param database  The target database
+     * @param procedure The procedure to remove
+     * @return The protocol reply
+     */
+    XSPReply removeStoredProcedure(String database, XOWLStoredProcedure procedure) {
+        if (connection == null)
+            return XSPReplyNetworkError.instance();
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/rules?id=" + URIUtils.encodeComponent(procedure.getName()), "DELETE", HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+    }
+
+    /**
+     * Executes a stored procedure
+     *
+     * @param database  The target database
+     * @param procedure The procedure to execute
+     * @param context   The context for the execution
+     * @return The protocol reply
+     */
+    XSPReply executeStoredProcedure(String database, XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
+        if (connection == null)
+            return XSPReplyNetworkError.instance();
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/rules?id=" + URIUtils.encodeComponent(procedure.getName()), "POST", context.serializedJSON(), HttpConstants.MIME_JSON, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
     }
 
     /**

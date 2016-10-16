@@ -17,9 +17,14 @@
 
 package org.xowl.infra.server.base;
 
+import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;
+import org.xowl.infra.server.api.XOWLStoredProcedure;
+import org.xowl.infra.server.api.XOWLStoredProcedureContext;
 import org.xowl.infra.server.api.base.BaseDatabase;
 import org.xowl.infra.server.api.base.BaseRule;
+import org.xowl.infra.server.api.base.BaseStoredProcedure;
+import org.xowl.infra.server.api.base.BaseStoredProcedureContext;
 import org.xowl.infra.server.standalone.Program;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.*;
@@ -60,6 +65,10 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
      */
     private static final String REPO_RULES = "rules";
     /**
+     * The name of the sub folder containing the procedures
+     */
+    private static final String REPO_PROCEDURES = "procedures";
+    /**
      * The namespace IRI for rules loaded in a database
      */
     private static final String RULES_RESOURCE = "http://xowl.org/server/rules";
@@ -87,6 +96,14 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
      * The configuration property that holds the active rules
      */
     private static final String CONFIG_ACTIVE_RULES = "actives";
+    /**
+     * The configuration section for the procedures
+     */
+    private static final String CONFIG_SECTION_PROCEDURES = "procedures";
+    /**
+     * The configuration property that holds all the procedures
+     */
+    private static final String CONFIG_ALL_PROCEDURES = "all";
 
     /**
      * The database's location
@@ -108,6 +125,10 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
      * The proxy object representing this database
      */
     private final ProxyObject proxy;
+    /**
+     * The cache of procedures for this database
+     */
+    private final Map<String, BaseStoredProcedure> procedures;
 
     /**
      * Gets the repository backing this database
@@ -142,6 +163,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         BaseStore store = initStore();
         this.repository = new Repository(store);
         this.proxy = repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + confServer.getAdminDBName());
+        this.procedures = new HashMap<>();
         initRepository();
     }
 
@@ -160,6 +182,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         BaseStore store = initStore();
         this.repository = new Repository(store);
         this.proxy = proxy;
+        this.procedures = new HashMap<>();
         initRepository();
     }
 
@@ -454,6 +477,164 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         if (result == null)
             return XSPReplyFailure.instance();
         return new XSPReplyResult<>(result);
+    }
+
+    @Override
+    public XSPReply getStoreProcedure(String iri) {
+        synchronized (procedures) {
+            Collection<String> names = configuration.getAll(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES);
+            if (!names.contains(name))
+                return new XSPReplyFailure("Procedure does not exist");
+            BaseStoredProcedure procedure = procedures.get(iri);
+            if (procedure == null)
+                procedure = cacheProcedure(iri);
+            return new XSPReplyResult<>(procedure);
+        }
+    }
+
+    /**
+     * Caches the existing procedure with the specified name
+     *
+     * @param name The name of a procedure
+     * @return The procedure
+     */
+    private BaseStoredProcedure cacheProcedure(String name) {
+        File folder = new File(location, REPO_PROCEDURES);
+        File file = new File(folder, IOUtils.hashSHA1(name));
+        try (FileInputStream stream = new FileInputStream(file)) {
+            byte[] content = Program.load(stream);
+            String definition = new String(content, Files.CHARSET);
+            ASTNode root = IOUtils.parseJSON(logger, definition);
+            BaseStoredProcedure procedure = new BaseStoredProcedure(root, repository.getStore(), logger);
+            procedures.put(name, procedure);
+            return procedure;
+        } catch (IOException exception) {
+            logger.error(exception);
+            return null;
+        }
+    }
+
+    @Override
+    public XSPReply getStoredProcedures() {
+        synchronized (procedures) {
+            Collection<String> names = configuration.getAll(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES);
+            for (String name : names) {
+                BaseStoredProcedure procedure = procedures.get(name);
+                if (procedure == null)
+                    cacheProcedure(name);
+            }
+            return new XSPReplyResultCollection<>(procedures.values());
+        }
+    }
+
+    @Override
+    public XSPReply addStoredProcedure(String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters) {
+        synchronized (procedures) {
+            Collection<String> names = configuration.getAll(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES);
+            if (names.contains(iri))
+                return new XSPReplyFailure("A procedure with this name alreay exists");
+            SPARQLLoader loader = new SPARQLLoader(repository.getStore(), defaultIRIs, namedIRIs);
+            BufferedLogger bufferedLogger = new BufferedLogger();
+            DispatchLogger dispatchLogger = new DispatchLogger(bufferedLogger, logger);
+            Command command = loader.load(dispatchLogger, new StringReader(sparql));
+            if (!bufferedLogger.getErrorMessages().isEmpty())
+                return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+            BaseStoredProcedure procedure = new BaseStoredProcedure(iri, sparql, defaultIRIs, namedIRIs, parameters, command);
+
+            String name = IOUtils.hashSHA1(iri);
+            File folder = new File(location, REPO_PROCEDURES);
+            File file = new File(folder, name);
+            try (FileOutputStream stream = new FileOutputStream(file)) {
+                stream.write(procedure.serializedJSON().getBytes(Files.CHARSET));
+                stream.flush();
+            } catch (IOException exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+
+            configuration.add(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES, iri);
+            try {
+                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+            } catch (IOException exception) {
+                logger.error(exception);
+            }
+
+            procedures.put(iri, procedure);
+            return new XSPReplyResult<>(procedure);
+        }
+    }
+
+    @Override
+    public XSPReply removeStoredProcedure(XOWLStoredProcedure procedure) {
+        return removeStoredProcedure(procedure.getName());
+    }
+
+    public XSPReply removeStoredProcedure(String iri) {
+        synchronized (procedures) {
+            if (!configuration.getAll(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES).contains(iri))
+                return new XSPReplyFailure("Procedure does not exist");
+            configuration.getAll(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES).remove(iri);
+            try {
+                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+            } catch (IOException exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+
+            File folder = new File(location, REPO_PROCEDURES);
+            File file = new File(folder, IOUtils.hashSHA1(iri));
+            if (!file.delete())
+                logger.error("Failed to delete " + file.getAbsolutePath());
+
+            procedures.remove(iri);
+            return XSPReplySuccess.instance();
+        }
+    }
+
+    @Override
+    public XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
+        return executeStoredProcedure(procedure.getName(), context);
+    }
+
+    /**
+     * Executes a stored procedure
+     *
+     * @param iri               The name (iri) of the procedure to execute
+     * @param contextDefinition The execution context to use (in a serialized JSON form)
+     * @return The protocol reply
+     */
+    public XSPReply executeStoredProcedure(String iri, String contextDefinition) {
+        BufferedLogger bufferedLogger = new BufferedLogger();
+        DispatchLogger dispatchLogger = new DispatchLogger(bufferedLogger, logger);
+        ASTNode root = IOUtils.parseJSON(dispatchLogger, contextDefinition);
+        if (!bufferedLogger.getErrorMessages().isEmpty())
+            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+        BaseStoredProcedureContext context = new BaseStoredProcedureContext(root, repository.getStore());
+        return executeStoredProcedure(iri, context);
+    }
+
+    /**
+     * Executes a stored procedure
+     *
+     * @param iri     The name (iri) of the procedure to execute
+     * @param context The execution context to use
+     * @return The protocol reply
+     */
+    public XSPReply executeStoredProcedure(String iri, XOWLStoredProcedureContext context) {
+        BaseStoredProcedure procedure;
+        synchronized (procedures) {
+            Collection<String> names = configuration.getAll(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES);
+            if (!names.contains(name))
+                return new XSPReplyFailure("Procedure does not exist");
+            procedure = procedures.get(iri);
+            if (procedure == null) {
+                procedure = cacheProcedure(iri);
+                if (procedure == null)
+                    return new XSPReplyFailure("Failed to retrieve the procedure");
+            }
+        }
+        Command sparql = procedure.getSPARQL().clone(context.getParameters());
+        return sparql(sparql);
     }
 
     @Override

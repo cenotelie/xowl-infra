@@ -129,6 +129,50 @@ public interface XOWLDatabase extends Serializable {
     XSPReply getRuleStatus(XOWLRule rule);
 
     /**
+     * Gets the stored procedure for the specified name (iri)
+     *
+     * @param iri The name (iri) of a stored procedure
+     * @return The protocol reply
+     */
+    XSPReply getStoreProcedure(String iri);
+
+    /**
+     * Gets the stored procedures for this database
+     *
+     * @return The protocol reply
+     */
+    XSPReply getStoredProcedures();
+
+    /**
+     * Adds a stored procedure in the form of a SPARQL command
+     *
+     * @param iri         The name (iri) for this procedure
+     * @param sparql      The SPARQL command(s)
+     * @param defaultIRIs The context's default IRIs
+     * @param namedIRIs   The context's named IRIs
+     * @param parameters  The names of the parameters for this procedure
+     * @return The protocol reply
+     */
+    XSPReply addStoredProcedure(String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters);
+
+    /**
+     * Remove a stored procedure
+     *
+     * @param procedure The procedure to remove
+     * @return The protocol reply
+     */
+    XSPReply removeStoredProcedure(XOWLStoredProcedure procedure);
+
+    /**
+     * Executes a stored procedure
+     *
+     * @param procedure The procedure to execute
+     * @param context   The execution context to use
+     * @return The protocol reply
+     */
+    XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context);
+
+    /**
      * Uploads some content to this database
      *
      * @param syntax  The content's syntax

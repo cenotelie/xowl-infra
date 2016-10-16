@@ -845,6 +845,114 @@ public class ServerController implements Closeable {
     }
 
     /**
+     * Gets the stored procedure for the specified name
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @param iri      The name (IRI) of a procedure
+     * @return The protocol reply
+     */
+    public XSPReply getStoreProcedure(ServerUser client, String database, String iri) {
+        if (client == null)
+            return XSPReplyUnauthenticated.instance();
+        ServerDatabase db = doGetDatabase(database);
+        if (db == null)
+            return XSPReplyNotFound.instance();
+        if (checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, db)
+                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD))
+            return db.getStoreProcedure(iri);
+        return XSPReplyUnauthorized.instance();
+    }
+
+    /**
+     * Gets the stored procedures in a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @return The protocol reply
+     */
+    public XSPReply getStoredProcedures(ServerUser client, String database) {
+        if (client == null)
+            return XSPReplyUnauthenticated.instance();
+        ServerDatabase db = doGetDatabase(database);
+        if (db == null)
+            return XSPReplyNotFound.instance();
+        if (checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, db)
+                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD))
+            return db.getStoredProcedures();
+        return XSPReplyUnauthorized.instance();
+    }
+
+    /**
+     * Adds a stored procedure in a database
+     *
+     * @param client      The requesting client
+     * @param database    The database that would store the procedure
+     * @param iri         The name (IRI) of the procedure
+     * @param sparql      The SPARQL definition of the procedure
+     * @param defaultIRIs The context's default IRIs
+     * @param namedIRIs   The context's named IRIs
+     * @param parameters  The parameters for this procedure
+     * @return The protocol reply
+     */
+    public XSPReply addStoredProcedure(ServerUser client, String database, String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters) {
+        if (client == null)
+            return XSPReplyUnauthenticated.instance();
+        ServerDatabase db = doGetDatabase(database);
+        if (db == null)
+            return XSPReplyNotFound.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
+            return db.addStoredProcedure(iri, sparql, defaultIRIs, namedIRIs, parameters);
+        return XSPReplyUnauthorized.instance();
+    }
+
+    /**
+     * Removes a stored procedure from a database
+     *
+     * @param client    The requesting client
+     * @param database  The target database
+     * @param procedure The procedure to remove
+     * @return The protocol reply
+     */
+    public XSPReply removeStoredProcedure(ServerUser client, String database, String procedure) {
+        if (client == null)
+            return XSPReplyUnauthenticated.instance();
+        ServerDatabase db = doGetDatabase(database);
+        if (db == null)
+            return XSPReplyNotFound.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
+            return db.removeStoredProcedure(procedure);
+        return XSPReplyUnauthorized.instance();
+    }
+
+    /**
+     * Executes a stored procedure
+     *
+     * @param client            The requesting client
+     * @param database          The target database
+     * @param procedure         The procedure to execute
+     * @param contextDefinition The context for the execution
+     * @return The protocol reply
+     */
+    public XSPReply executeStoredProcedure(ServerUser client, String database, String procedure, String contextDefinition) {
+        if (client == null)
+            return XSPReplyUnauthenticated.instance();
+        ServerDatabase db = doGetDatabase(database);
+        if (db == null)
+            return XSPReplyNotFound.instance();
+        if (checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, db)
+                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD))
+            return db.executeStoredProcedure(procedure, contextDefinition);
+        return XSPReplyUnauthorized.instance();
+    }
+
+    /**
      * Uploads some content to this database
      *
      * @param client   The requesting client

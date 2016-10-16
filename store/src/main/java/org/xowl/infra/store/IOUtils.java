@@ -18,15 +18,21 @@
 package org.xowl.infra.store;
 
 import org.xowl.hime.redist.ASTNode;
+import org.xowl.hime.redist.ParseError;
+import org.xowl.hime.redist.ParseResult;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.store.loaders.JSONLDLoader;
 import org.xowl.infra.store.owl.AnonymousNode;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.io.Writer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -377,6 +383,31 @@ public class IOUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Parses the JSON content
+     *
+     * @param logger  The logger to use
+     * @param content The content to parse
+     * @return The AST root node, or null of the parsing failed
+     */
+    public static ASTNode parseJSON(Logger logger, String content) {
+        JSONLDLoader loader = new JSONLDLoader(null) {
+            @Override
+            protected Reader getReaderFor(Logger logger, String iri) {
+                return null;
+            }
+        };
+        ParseResult result = loader.parse(logger, new StringReader(content));
+        if (result == null)
+            return null;
+        if (!result.getErrors().isEmpty()) {
+            for (ParseError error : result.getErrors())
+                logger.error(error);
+            return null;
+        }
+        return result.getRoot();
     }
 
     /**

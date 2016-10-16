@@ -19,9 +19,10 @@ package org.xowl.infra.server.api.remote;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;
+import org.xowl.infra.server.api.XOWLStoredProcedure;
+import org.xowl.infra.server.api.XOWLStoredProcedureContext;
 import org.xowl.infra.server.api.base.BaseDatabase;
 import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.server.xsp.XSPReplyResult;
 import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.rdf.Quad;
@@ -116,6 +117,31 @@ class RemoteDatabase extends BaseDatabase {
     @Override
     public XSPReply getRuleStatus(XOWLRule rule) {
         return server.getRuleStatus(name, rule);
+    }
+
+    @Override
+    public XSPReply getStoreProcedure(String iri) {
+        return server.getStoreProcedure(name, iri);
+    }
+
+    @Override
+    public XSPReply getStoredProcedures() {
+        return server.getStoredProcedures(name);
+    }
+
+    @Override
+    public XSPReply addStoredProcedure(String iri, String sparql, List<String> defaultIRIs, List<String> namedIRIs, Collection<String> parameters) {
+        return server.addStoredProcedure(name, iri, sparql, defaultIRIs, namedIRIs, parameters);
+    }
+
+    @Override
+    public XSPReply removeStoredProcedure(XOWLStoredProcedure procedure) {
+        return server.removeStoredProcedure(name, procedure);
+    }
+
+    @Override
+    public XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
+        return server.executeStoredProcedure(name, procedure, context);
     }
 
     @Override
