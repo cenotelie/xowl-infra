@@ -608,21 +608,14 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         return executeStoredProcedure(procedure.getName(), context);
     }
 
-    /**
-     * Executes a stored procedure
-     *
-     * @param iri               The name (iri) of the procedure to execute
-     * @param contextDefinition The execution context to use (in a serialized JSON form)
-     * @return The protocol reply
-     */
-    public XSPReply executeStoredProcedure(String iri, String contextDefinition) {
+    @Override
+    public XSPReply executeStoredProcedure(String procedure, String context) {
         BufferedLogger bufferedLogger = new BufferedLogger();
         DispatchLogger dispatchLogger = new DispatchLogger(bufferedLogger, logger);
-        ASTNode root = IOUtils.parseJSON(dispatchLogger, contextDefinition);
+        ASTNode root = IOUtils.parseJSON(dispatchLogger, context);
         if (!bufferedLogger.getErrorMessages().isEmpty())
             return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
-        BaseStoredProcedureContext context = new BaseStoredProcedureContext(root, repository.getStore());
-        return executeStoredProcedure(iri, context);
+        return executeStoredProcedure(procedure, new BaseStoredProcedureContext(root, repository.getStore()));
     }
 
     /**

@@ -454,6 +454,20 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     /**
+     * Executes a stored procedure
+     *
+     * @param database  The target database
+     * @param procedure The identifier of the procedure to execute
+     * @param context   The definition of the execution context to use
+     * @return The protocol reply
+     */
+    XSPReply executeStoredProcedure(String database, String procedure, String context) {
+        if (connection == null)
+            return XSPReplyNetworkError.instance();
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/rules?id=" + URIUtils.encodeComponent(procedure), "POST", context, HttpConstants.MIME_JSON, HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
+    }
+
+    /**
      * Uploads some content to this database
      *
      * @param database The target database

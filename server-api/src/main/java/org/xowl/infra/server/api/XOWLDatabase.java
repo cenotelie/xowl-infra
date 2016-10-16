@@ -171,6 +171,15 @@ public interface XOWLDatabase extends Serializable {
     XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context);
 
     /**
+     * Executes a stored procedure
+     *
+     * @param procedure The identifier of the procedure to execute
+     * @param context   The definition of the execution context to use
+     * @return The protocol reply
+     */
+    XSPReply executeStoredProcedure(String procedure, String context);
+
+    /**
      * Uploads some content to this database
      *
      * @param syntax  The content's syntax
