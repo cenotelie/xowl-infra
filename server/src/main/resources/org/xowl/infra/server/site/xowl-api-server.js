@@ -266,8 +266,7 @@ XOWL.prototype.jsCommand = function (callback, complement, method, contentType, 
     else if (contentType === "application/json")
     	xmlHttp.send(JSON.stringify(content));
     else
-    	xmlHttp.send(payload);
-	xmlHttp.send(content);
+    	xmlHttp.send(content);
 }
 
 XOWL.prototype.sparql = function (callback, db, sparql) {
