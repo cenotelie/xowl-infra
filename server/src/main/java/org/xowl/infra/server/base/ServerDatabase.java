@@ -483,7 +483,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     public XSPReply getStoreProcedure(String iri) {
         synchronized (procedures) {
             Collection<String> names = configuration.getAll(CONFIG_SECTION_PROCEDURES, CONFIG_ALL_PROCEDURES);
-            if (!names.contains(name))
+            if (!names.contains(iri))
                 return new XSPReplyFailure("Procedure does not exist");
             BaseStoredProcedure procedure = procedures.get(iri);
             if (procedure == null)

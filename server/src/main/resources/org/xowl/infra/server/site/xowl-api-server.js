@@ -228,7 +228,7 @@ XOWL.prototype.addDBProcedure = function (callback, db, procedure) {
 }
 
 XOWL.prototype.removeDBProcedure = function (callback, db, procedure) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/procedures?id=" + encodeURIComponent(procedure), "DELETE", null, rule);
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/procedures?id=" + encodeURIComponent(procedure), "DELETE", null, null);
 }
 
 XOWL.prototype.executeDBProcedure = function (callback, db, procedure, context) {
