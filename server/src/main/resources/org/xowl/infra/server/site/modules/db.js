@@ -32,6 +32,7 @@ function init() {
 	document.getElementById("placeholder-db2").appendChild(document.createTextNode(dbName));
 	document.getElementById("field-rule-definition").value = DEFAULT_RULE;
 	document.getElementById('import-file').addEventListener('change', onFileSelected, false);
+	document.getElementById("new-procedure-link").href = "procedure-new.html?db=" + encodeURIComponent(dbName);
 	var typesField = document.getElementById("import-file-type");
 	for (var i = 0; i != MIME_TYPES.length; i++) {
 		var option = document.createElement("option");
@@ -48,6 +49,13 @@ function init() {
 					xowl.getDBRules(function (code, type, content) {
 						if (code === 200) {
 							renderRules(content);
+							xowl.getDBProcedures(function (code, type, content) {
+                                if (code === 200) {
+                                    renderProcedures(content);
+                                } else {
+                                    displayMessage(getErrorFor(type, content));
+                                }
+                            }, dbName);
 						} else {
 							displayMessage(getErrorFor(type, content));
 						}
@@ -284,6 +292,20 @@ function onDeactivateRule(rule) {
 	}, dbName, rule.name);
 }
 
+function onDeleteProcedure(procedure) {
+	if (FLAG)
+		return;
+	FLAG = true;
+	displayMessage("Removing procedure ...");
+	xowl.removeDBProcedure(function (code, type, content) {
+        if (code === 200) {
+			document.location.reload();
+        } else {
+			displayMessage(getErrorFor(type, content));
+        }
+	}, dbName, procedure.name);
+}
+
 function renderAccesses(accesses) {
 	accesses.sort(function (a, b) {
 		return a.user.localeCompare(b.user);
@@ -427,7 +449,6 @@ function renderRules(rules) {
 		row.appendChild(cells[2]);
 		table.appendChild(row);
 	}
-	displayMessage(null);
 }
 
 function renderRuleName(rule) {
@@ -442,4 +463,37 @@ function renderRuleToggle() {
 	div.classList.add("toggle-button");
 	div.appendChild(document.createElement("button"));
 	return div;
+}
+
+function renderProcedures(procedures) {
+	procedures.sort(function (a, b) {
+		return a.name.localeCompare(b.name);
+	});
+	var table = document.getElementById("procedures");
+	for (var i = 0; i != procedures.length; i++) {
+		var cells = [
+			document.createElement("td"),
+			document.createElement("td")
+		];
+		var revoke = renderRevoke();
+		(function (procedure) {
+			revoke.onclick = function () {
+				onDeleteProcedure(procedure);
+			}
+		})(procedures[i]);
+		cells[0].appendChild(revoke);
+		cells[1].appendChild(renderProcedureName(procedures[i]));
+		var row = document.createElement("tr");
+		row.appendChild(cells[0]);
+		row.appendChild(cells[1]);
+		table.appendChild(row);
+	}
+	displayMessage(null);
+}
+
+function renderProcedureName(procedure) {
+	var a = document.createElement("a");
+	a.href = "procedure.html?db=" + encodeURIComponent(dbName) + "&procedure=" + encodeURIComponent(procedure.name);
+	a.appendChild(document.createTextNode(procedure.name));
+	return a;
 }

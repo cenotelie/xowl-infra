@@ -500,6 +500,10 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
      */
     private BaseStoredProcedure cacheProcedure(String name) {
         File folder = new File(location, REPO_PROCEDURES);
+        if (!folder.exists()) {
+            if (!folder.mkdirs())
+                return null;
+        }
         File file = new File(folder, IOUtils.hashSHA1(name));
         try (FileInputStream stream = new FileInputStream(file)) {
             byte[] content = Program.load(stream);
@@ -543,6 +547,10 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
 
             String name = IOUtils.hashSHA1(iri);
             File folder = new File(location, REPO_PROCEDURES);
+            if (!folder.exists()) {
+                if (!folder.mkdirs())
+                    return XSPReplyFailure.instance();
+            }
             File file = new File(folder, name);
             try (FileOutputStream stream = new FileOutputStream(file)) {
                 stream.write(procedure.serializedJSON().getBytes(Files.CHARSET));
@@ -582,6 +590,10 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
             }
 
             File folder = new File(location, REPO_PROCEDURES);
+            if (!folder.exists()) {
+                if (!folder.mkdirs())
+                    return XSPReplyFailure.instance();
+            }
             File file = new File(folder, IOUtils.hashSHA1(iri));
             if (!file.delete())
                 logger.error("Failed to delete " + file.getAbsolutePath());

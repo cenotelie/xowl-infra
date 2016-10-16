@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>xOWL Server: Procedure Definition</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="../favicon.png" />
+    <link rel="stylesheet" type="text/css" href="../vendors/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../vendors/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../app.css">
+</head>
+
+<body>
+<div class="header">
+    <span style="margin-left: 5px; display: inline-block;">
+      <img class="img-responsive" src="../assets/xowl.svg" width="25px" style="display: inline-block;"/>
+      xOWL Server
+    </span>
+    <div style="display: inline-block; margin-left: 50px;">
+      <span style="display: inline-block;">
+        <ol class="breadcrumb">
+          <li><a href="main.html">Home</a></li>
+		      <li><a href="main.html" id="placeholder-db"></a></li>
+          <li class="active" id="placeholder-procedure">Procedure </li>
+        </ol>
+      </span>
+    </div>
+    <div style="float: right; margin-right: 20px;">
+        <div><a onclick="onButtonLogout()" style="cursor: pointer;" id="btn-logout">Logout</a></div>
+    </div>
+    <hr style="margin-top: 5px; margin-bottom: 5px;" />
+</div>
+<div class="body">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default" id="loader">
+                    <div class="panel-body">
+                        <img src="../assets/xowl.gif" width="32" height="32" />
+                        <span id="loader-text">Loading ...</span>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div style="margin-bottom: 10px;">
+                            <form class="form-inline">
+                                <div class="form-group">
+                                    <label for="field-entailment">Entailment:</label>
+                                    <select id="field-entailment" class="form-control">
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                        <textarea class="form-control" rows="25" id="field-procedure-definition" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../xowl-api-server.js"></script>
+<script src="../xowl-api-ui.js"></script>
+<script src="procedure.js"></script>
+<script>
+    init();
+  </script>
+</body>
+
+</html>
