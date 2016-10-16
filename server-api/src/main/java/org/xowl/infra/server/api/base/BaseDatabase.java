@@ -158,11 +158,6 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply executeStoredProcedure(String procedure, String context) {
-        return XSPReplyFailure.instance();
-    }
-
-    @Override
     public XSPReply upload(String syntax, String content) {
         return XSPReplyFailure.instance();
     }

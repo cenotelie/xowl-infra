@@ -145,11 +145,6 @@ class RemoteDatabase extends BaseDatabase {
     }
 
     @Override
-    public XSPReply executeStoredProcedure(String procedure, String context) {
-        return server.executeStoredProcedure(name, procedure, context);
-    }
-
-    @Override
     public XSPReply upload(String syntax, String content) {
         return server.upload(name, syntax, content);
     }
