@@ -20,7 +20,9 @@ package org.xowl.infra.store.storage.cache;
 import org.xowl.infra.store.rdf.LiteralNode;
 
 import java.lang.ref.WeakReference;
-import java.util.Arrays;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * Represents a bucket of literals with the same lexical value in a RDF graph
@@ -31,33 +33,57 @@ class LiteralBucket {
     /**
      * Initial size of a bucket
      */
-    private static final int INIT_SIZE = 3;
+    private static final int INIT_SIZE = 4;
 
     /**
      * The existing literal nodes
-     * Do not store strong references to the literals so that they can be gc-ed if not used
+     * Do not store strong references to the literals so that they can be garbage-collected if not used
      */
-    private WeakReference<LiteralNode>[] nodes;
+    private AtomicReferenceArray<WeakReference<LiteralNode>> nodes;
     /**
      * The number of literals in this bucket
      */
-    private int size;
-
-    /**
-     * Gets the number of literals in this bucket
-     *
-     * @return The number of literals in this bucket
-     */
-    public int getSize() {
-        return size;
-    }
+    private AtomicInteger size;
 
     /**
      * Initializes this bucket
      */
     public LiteralBucket() {
-        this.nodes = new WeakReference[INIT_SIZE];
-        this.size = 0;
+        this.nodes = new AtomicReferenceArray<>(INIT_SIZE);
+        this.size = new AtomicInteger(0);
+    }
+
+    /**
+     * Try to retrieve a literal with the specified type and language tag
+     *
+     * @param lexical  The original lexical value
+     * @param datatype The datatype to match
+     * @param langTag  The language tag to match
+     * @return The matching literal, or null if the operation failed
+     */
+    private LiteralNode tryGet(String lexical, String datatype, String langTag) {
+        int currentSize = size.get();
+        int insertIndex = -1;
+        WeakReference<LiteralNode> insertRef = null;
+        for (int i = 0; i != currentSize; i++) {
+            WeakReference<LiteralNode> ref = nodes.get(i);
+            LiteralNode candidate = ref.get();
+            if (candidate == null) {
+                insertIndex = i;
+                insertRef = ref;
+                continue;
+            }
+            if (Objects.equals(datatype, candidate.getDatatype()) && Objects.equals(langTag, candidate.getLangTag()))
+                return candidate;
+        }
+        if (insertIndex == -1) {
+            CachedLiteralNode result = new CachedLiteralNode(lexical, datatype, langTag);
+            if (nodes.compareAndSet(insertIndex, insertRef, new WeakReference<LiteralNode>(result)))
+                return result;
+            return null;
+        }
+        // no more space, do not cache ...
+        return new CachedLiteralNode(lexical, datatype, langTag);
     }
 
     /**
@@ -70,46 +96,9 @@ class LiteralBucket {
      */
     public LiteralNode get(String lexical, String datatype, String langTag) {
         LiteralNode result = null;
-        int insert = 0;
-        for (int i = 0; i != size; i++) {
-            LiteralNode candidate = nodes[i].get();
-            if (candidate != null) {
-                nodes[insert] = nodes[i];
-                insert++;
-                if (result == null) {
-                    if (langTag != null) {
-                        if (langTag.equals(candidate.getLangTag()))
-                            result = candidate;
-                    } else if (datatype != null) {
-                        if (datatype.equals(candidate.getDatatype()))
-                            result = candidate;
-                    }
-                }
-            }
+        while (result == null) {
+            result = tryGet(lexical, datatype, langTag);
         }
-        size = insert;
-        if (result != null)
-            return result;
-        if (size == nodes.length)
-            nodes = Arrays.copyOf(nodes, nodes.length + INIT_SIZE);
-        result = new CachedLiteralNode(size == 0 ? lexical : nodes[0].get().getLexicalValue(), datatype, langTag);
-        nodes[size] = new WeakReference<>(result);
-        size++;
         return result;
-    }
-
-    /**
-     * Cleanups dead entries in this bucket
-     */
-    public void cleanup() {
-        int insert = 0;
-        for (int i = 0; i != size; i++) {
-            LiteralNode candidate = nodes[i].get();
-            if (candidate != null) {
-                nodes[insert] = nodes[i];
-                insert++;
-            }
-        }
-        size = insert;
     }
 }
