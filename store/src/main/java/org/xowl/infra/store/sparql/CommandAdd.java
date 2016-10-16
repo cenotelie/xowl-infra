@@ -19,9 +19,11 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Represents the SPARQL ADD command.
@@ -76,5 +78,10 @@ public class CommandAdd implements Command {
         }
         repository.getStore().commit();
         return ResultSuccess.INSTANCE;
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        return new CommandAdd(origins, targets, isSilent);
     }
 }

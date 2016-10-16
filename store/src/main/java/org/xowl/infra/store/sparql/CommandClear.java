@@ -25,6 +25,7 @@ import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Represents the SPARQL CLEAR command.
@@ -93,5 +94,10 @@ public class CommandClear implements Command {
         } catch (UnsupportedNodeType exception) {
             return new ResultFailure(exception.getMessage());
         }
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        return new CommandClear(type, targets, isSilent);
     }
 }

@@ -17,6 +17,10 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
+
+import java.util.Map;
+
 /**
  * Represents a pattern of RDF graphs
  *
@@ -38,4 +42,12 @@ public interface GraphPattern {
      * @param inspector The inspector
      */
     void inspect(Inspector inspector);
+
+    /**
+     * Gets a copy of this pattern
+     *
+     * @param parameters The parameters to be replaced during the clone
+     * @return A copy of this pattern
+     */
+    GraphPattern clone(Map<String, Node> parameters);
 }

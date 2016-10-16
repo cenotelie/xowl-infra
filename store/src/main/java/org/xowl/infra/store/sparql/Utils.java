@@ -34,6 +34,58 @@ import java.util.*;
  */
 class Utils {
     /**
+     * Clones an RDF node with a possible replacement
+     *
+     * @param original   The original RDF node
+     * @param parameters The parameters for replacement
+     * @return The clone
+     */
+    public static Node clone(Node original, Map<String, Node> parameters) {
+        if (original.getNodeType() == Node.TYPE_VARIABLE && parameters != null) {
+            Node result = parameters.get(((VariableNode) original).getName());
+            if (result != null)
+                return result;
+        }
+        return original;
+    }
+
+    /**
+     * Clones an RDF quad with possible replacements
+     *
+     * @param original   The original RDF quad
+     * @param parameters The parameters for replacement
+     * @return The clone
+     */
+    public static Quad clone(Quad original, Map<String, Node> parameters) {
+        return new Quad(
+                (GraphNode) clone(original.getGraph(), parameters),
+                (SubjectNode) clone(original.getSubject(), parameters),
+                (Property) clone(original.getProperty(), parameters),
+                clone(original.getObject(), parameters)
+        );
+    }
+
+    /**
+     * Clones an RDF pattern with possible replacements
+     *
+     * @param original   The original RDF pattern
+     * @param parameters The parameters for replacement
+     * @return The clone
+     */
+    public static RDFPattern clone(RDFPattern original, Map<String, Node> parameters) {
+        RDFPattern result = new RDFPattern();
+        for (Quad positive : original.getPositives())
+            result.getPositives().add(clone(positive, parameters));
+        for (Collection<Quad> set : original.getNegatives()) {
+            Collection<Quad> set2 = new ArrayList<>(set.size());
+            for (Quad quad : set)
+                set2.add(clone(quad, parameters));
+            result.getNegatives().add(set2);
+        }
+        return result;
+    }
+
+    /**
      * Evaluates a dynamic expression to a native value
      *
      * @param context    The evaluation context

@@ -17,10 +17,12 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the call to an external function in an expression
@@ -105,6 +107,15 @@ public class ExpressionFunctionCall implements Expression {
                 return true;
         }
         return false;
+    }
+
+    @Override
+    public Expression clone(Map<String, Node> parameters) {
+        List<Expression> arguments = new ArrayList<>(this.arguments.size());
+        for (Expression argument : this.arguments) {
+            arguments.add(argument.clone(parameters));
+        }
+        return new ExpressionFunctionCall(iri, arguments, isDistinct, separator);
     }
 
     /**

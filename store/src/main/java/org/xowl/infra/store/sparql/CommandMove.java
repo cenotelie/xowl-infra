@@ -19,7 +19,10 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.GraphNode;
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
+
+import java.util.Map;
 
 /**
  * Represents the SPARQL MOVE command.
@@ -73,5 +76,10 @@ public class CommandMove implements Command {
         } catch (UnsupportedNodeType exception) {
             return new ResultFailure(exception.getMessage());
         }
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        return new CommandMove(origin, target, isSilent);
     }
 }

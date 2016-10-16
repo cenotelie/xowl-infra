@@ -18,6 +18,9 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.rdf.Node;
+
+import java.util.Map;
 
 /**
  * Represents SPARQL command
@@ -41,4 +44,12 @@ public interface Command {
      * @return The command's result
      */
     Result execute(Repository repository);
+
+    /**
+     * Gets a copy of this command
+     *
+     * @param parameters The parameters to be replaced during the clone
+     * @return A copy of this command
+     */
+    Command clone(Map<String, Node> parameters);
 }

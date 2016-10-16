@@ -17,10 +17,12 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A SPARQL expression that checks whether a value is within a set of specified ones
@@ -70,5 +72,14 @@ public class ExpressionIn implements Expression {
     @Override
     public boolean containsAggregate() {
         return primary.containsAggregate();
+    }
+
+    @Override
+    public Expression clone(Map<String, Node> parameters) {
+        List<Expression> range = new ArrayList<>(this.range.size());
+        for (Expression argument : this.range) {
+            range.add(argument.clone(parameters));
+        }
+        return new ExpressionIn(primary.clone(parameters), range);
     }
 }

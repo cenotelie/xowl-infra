@@ -21,10 +21,7 @@ import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents the SPARQL DESCRIBE command.
@@ -135,5 +132,14 @@ public class CommandDescribe implements Command {
         Iterator<Quad> iterator = repository.getStore().getAll(node, null, null);
         while (iterator.hasNext())
             quads.add(iterator.next());
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        CommandDescribe result = new CommandDescribe(pattern.clone(parameters));
+        for (VariableNode variable : this.variables)
+            result.variables.add((VariableNode) Utils.clone(variable, parameters));
+        result.iris.addAll(this.iris);
+        return result;
     }
 }

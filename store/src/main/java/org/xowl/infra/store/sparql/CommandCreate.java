@@ -18,6 +18,9 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.rdf.Node;
+
+import java.util.Map;
 
 /**
  * Represents the SPARQL CREATE command.
@@ -53,5 +56,10 @@ public class CommandCreate implements Command {
     @Override
     public Result execute(Repository repository) {
         return ResultSuccess.INSTANCE;
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        return new CommandCreate(target, isSilent);
     }
 }

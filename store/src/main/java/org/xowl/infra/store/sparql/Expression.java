@@ -17,7 +17,10 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
+
+import java.util.Map;
 
 /**
  * Represents an expression in SPARQL
@@ -51,4 +54,12 @@ public interface Expression {
      * @return Whether this expression contains an aggregate
      */
     boolean containsAggregate();
+
+    /**
+     * Gets a copy of this expression
+     *
+     * @param parameters The parameters to be replaced during the clone
+     * @return A copy of this expression
+     */
+    Expression clone(Map<String, Node> parameters);
 }

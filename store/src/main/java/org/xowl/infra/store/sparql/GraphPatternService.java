@@ -19,6 +19,8 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.rdf.Node;
 
+import java.util.Map;
+
 /**
  * A graph pattern to be matched by an distant SPARQL endpoint
  *
@@ -70,5 +72,13 @@ public class GraphPatternService implements GraphPattern {
         inspector.onGraphPattern(this);
         inner.inspect(inspector);
         remote.inspect(inspector);
+    }
+
+    @Override
+    public GraphPattern clone(Map<String, Node> parameters) {
+        return new GraphPatternService(inner.clone(parameters),
+                remote.clone(parameters),
+                Utils.clone(service, parameters),
+                isSilent);
     }
 }

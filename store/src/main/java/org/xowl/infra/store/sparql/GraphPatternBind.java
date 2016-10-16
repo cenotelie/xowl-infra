@@ -23,6 +23,7 @@ import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * A graph pattern represented by the explicit binding of a variable
@@ -77,5 +78,12 @@ public class GraphPatternBind implements GraphPattern {
         inspector.onGraphPattern(this);
         if (origin != null)
             origin.inspect(inspector);
+    }
+
+    @Override
+    public GraphPattern clone(Map<String, Node> parameters) {
+        return new GraphPatternBind(origin != null ? origin.clone(parameters) : null,
+                (VariableNode) Utils.clone(variable, parameters),
+                expression.clone(parameters));
     }
 }

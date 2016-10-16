@@ -18,11 +18,14 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the SPARQL CONSTRUCT command.
@@ -66,5 +69,13 @@ public class CommandConstruct implements Command {
         } catch (EvalException exception) {
             return new ResultFailure(exception.getMessage());
         }
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        List<Quad> template = new ArrayList<>(this.template.size());
+        for (Quad quad : this.template)
+            template.add(Utils.clone(quad, parameters));
+        return new CommandConstruct(pattern.clone(parameters), template);
     }
 }

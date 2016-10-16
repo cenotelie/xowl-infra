@@ -24,6 +24,7 @@ import org.xowl.infra.store.rdf.VariableNode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the use of an RDF value in an expression
@@ -82,5 +83,10 @@ public class ExpressionRDF implements Expression {
     @Override
     public boolean containsAggregate() {
         return false;
+    }
+
+    @Override
+    public Expression clone(Map<String, Node> parameters) {
+        return new ExpressionRDF(Utils.clone(node, parameters));
     }
 }

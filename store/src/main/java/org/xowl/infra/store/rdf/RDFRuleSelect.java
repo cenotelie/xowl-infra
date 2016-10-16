@@ -145,6 +145,11 @@ public class RDFRuleSelect extends RDFRule {
                     patterns.add(graphPatternQuads.getPattern());
                 }
             }
+
+            @Override
+            public void onExpression(Expression expression) {
+                // do nothing
+            }
         };
         antecedent.inspect(inspector);
     }

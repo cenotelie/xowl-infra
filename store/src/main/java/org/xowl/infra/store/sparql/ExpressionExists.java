@@ -17,10 +17,12 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A SPARQL expression verifying whether a graph pattern exists
@@ -60,5 +62,10 @@ public class ExpressionExists implements Expression {
     @Override
     public boolean containsAggregate() {
         return false;
+    }
+
+    @Override
+    public Expression clone(Map<String, Node> parameters) {
+        return new ExpressionExists(pattern.clone(parameters));
     }
 }

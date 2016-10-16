@@ -17,6 +17,10 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
+
+import java.util.Map;
+
 /**
  * A graph pattern represented as the restriction of one by another
  *
@@ -55,5 +59,10 @@ public class GraphPatternMinus implements GraphPattern {
         inspector.onGraphPattern(this);
         original.inspect(inspector);
         restricting.inspect(inspector);
+    }
+
+    @Override
+    public GraphPattern clone(Map<String, Node> parameters) {
+        return new GraphPatternMinus(original.clone(parameters), restricting.clone(parameters));
     }
 }

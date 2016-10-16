@@ -30,4 +30,11 @@ public interface Inspector {
      * @param pattern The graph pattern
      */
     void onGraphPattern(GraphPattern pattern);
+
+    /**
+     * When an expression is reached
+     *
+     * @param expression The expression
+     */
+    void onExpression(Expression expression);
 }

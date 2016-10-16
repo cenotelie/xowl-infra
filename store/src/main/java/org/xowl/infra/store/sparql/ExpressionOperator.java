@@ -25,10 +25,7 @@ import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.utils.collections.Couple;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents an operator in an expression
@@ -101,6 +98,13 @@ public class ExpressionOperator implements Expression {
         return ((operand1 != null && operand1.containsAggregate()) || (operand2 != null && operand2.containsAggregate()));
     }
 
+    @Override
+    public Expression clone(Map<String, Node> parameters) {
+        Expression left = operand1 == null ? null : operand1.clone(parameters);
+        Expression right = operand2 == null ? null : operand2.clone(parameters);
+        return new ExpressionOperator(operator, left, right);
+    }
+
     /**
      * Applies the operator represented by this expression onto the specified values
      *
@@ -168,7 +172,7 @@ public class ExpressionOperator implements Expression {
     /**
      * Coerce an expression to a RDF value
      *
-     * @param value      An expression's value
+     * @param value   An expression's value
      * @param context The evaluation context
      * @return The RDF node equivalent
      */

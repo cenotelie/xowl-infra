@@ -17,10 +17,15 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
+import org.xowl.infra.store.rdf.VariableNode;
+import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A graph pattern represented by explicit (variable, value) associations
@@ -50,5 +55,21 @@ public class GraphPatternInlineData implements GraphPattern {
     @Override
     public void inspect(Inspector inspector) {
         inspector.onGraphPattern(this);
+    }
+
+    @Override
+    public GraphPattern clone(Map<String, Node> parameters) {
+        Collection<RDFPatternSolution> data = new ArrayList<>(this.data.size());
+        for (RDFPatternSolution solution : this.data) {
+            List<Couple<VariableNode, Node>> bindings = new ArrayList<>(solution.size());
+            for (Couple<VariableNode, Node> binding : solution) {
+                bindings.add(new Couple<>(
+                        (VariableNode) Utils.clone(binding.x, parameters),
+                        Utils.clone(binding.y, parameters)
+                ));
+            }
+            data.add(new RDFPatternSolution(bindings));
+        }
+        return new GraphPatternInlineData(data);
     }
 }

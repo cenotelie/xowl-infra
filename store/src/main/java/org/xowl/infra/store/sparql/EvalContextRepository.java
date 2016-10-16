@@ -19,9 +19,9 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.rdf.RDFQuery;
 import org.xowl.infra.store.rdf.RDFPattern;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
+import org.xowl.infra.store.rdf.RDFQuery;
 import org.xowl.infra.store.storage.NodeManager;
 
 import java.util.Collection;

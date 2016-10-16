@@ -17,11 +17,13 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The modifiers of a graph pattern
@@ -148,6 +150,34 @@ public class GraphPatternModifier {
             result = Utils.slice(result, offset, limit);
         if (!groups.isEmpty())
             result = Utils.group(result, groups, context);
+        return result;
+    }
+
+    /**
+     * Clones this modifier
+     *
+     * @param parameters The parameter for replacements
+     * @return The clone
+     */
+    public GraphPatternModifier clone(Map<String, Node> parameters) {
+        GraphPatternModifier result = new GraphPatternModifier();
+        for (Couple<VariableNode, Expression> group : this.groups) {
+            result.groups.add(new Couple<>(
+                    (VariableNode) Utils.clone(group.x, parameters),
+                    group.y.clone(parameters)
+            ));
+        }
+        for (Expression expression : this.having) {
+            result.having.add(expression.clone(parameters));
+        }
+        for (Couple<Expression, Boolean> couple : this.order) {
+            result.order.add(new Couple<>(
+                    couple.x.clone(parameters),
+                    couple.y
+            ));
+        }
+        result.offset = this.offset;
+        result.limit = this.limit;
         return result;
     }
 }

@@ -17,6 +17,10 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
+
+import java.util.Map;
+
 /**
  * A graph pattern represented as the filtering of another one
  *
@@ -70,5 +74,10 @@ public class GraphPatternFilter implements GraphPattern {
     public void inspect(Inspector inspector) {
         inspector.onGraphPattern(this);
         origin.inspect(inspector);
+    }
+
+    @Override
+    public GraphPattern clone(Map<String, Node> parameters) {
+        return new GraphPatternFilter(origin.clone(parameters), expression.clone(parameters));
     }
 }

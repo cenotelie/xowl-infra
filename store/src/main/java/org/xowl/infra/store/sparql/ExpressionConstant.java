@@ -17,10 +17,10 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 /**
  * A constant expression in SPARQL, usually a native value (Integer, Long, Boolean, etc.)
@@ -55,5 +55,10 @@ public class ExpressionConstant implements Expression {
     @Override
     public boolean containsAggregate() {
         return false;
+    }
+
+    @Override
+    public Expression clone(Map<String, Node> parameters) {
+        return new ExpressionConstant(value);
     }
 }

@@ -17,10 +17,13 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the union of multiple graph patterns
@@ -56,5 +59,14 @@ public class GraphPatternUnion implements GraphPattern {
         inspector.onGraphPattern(this);
         for (GraphPattern pattern : elements)
             pattern.inspect(inspector);
+    }
+
+    @Override
+    public GraphPattern clone(Map<String, Node> parameters) {
+        List<GraphPattern> elements = new ArrayList<>(this.elements.size());
+        for (GraphPattern element : this.elements) {
+            elements.add(element.clone(parameters));
+        }
+        return new GraphPatternUnion(elements);
     }
 }

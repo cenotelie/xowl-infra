@@ -18,6 +18,9 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.rdf.Node;
+
+import java.util.Map;
 
 /**
  * Represents the SPARQL SELECT command.
@@ -48,5 +51,10 @@ public class CommandSelect implements Command {
         } catch (EvalException exception) {
             return new ResultFailure(exception.getMessage());
         }
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        return new CommandSelect(pattern.clone(parameters));
     }
 }

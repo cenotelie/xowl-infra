@@ -17,6 +17,10 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
+
+import java.util.Map;
+
 /**
  * A graph pattern that cannot be matched
  *
@@ -31,5 +35,10 @@ public class GraphPatternUnmatchable implements GraphPattern {
     @Override
     public void inspect(Inspector inspector) {
         inspector.onGraphPattern(this);
+    }
+
+    @Override
+    public GraphPattern clone(Map<String, Node> parameters) {
+        return new GraphPatternUnmatchable();
     }
 }

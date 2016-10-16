@@ -18,14 +18,13 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.rdf.Changeset;
-import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.rdf.RDFQuery;
-import org.xowl.infra.store.rdf.RDFPatternSolution;
+import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the SPARQL DELETE WHERE command.
@@ -69,5 +68,13 @@ public class CommandDeleteWhere implements Command {
             return new ResultFailure(exception.getMessage());
         }
         return ResultSuccess.INSTANCE;
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        List<Quad> quads = new ArrayList<>(this.quads.size());
+        for (Quad quad : this.quads)
+            quads.add(Utils.clone(quad, parameters));
+        return new CommandDeleteWhere(quads);
     }
 }

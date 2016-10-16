@@ -17,12 +17,14 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A graph pattern represented by a SELECT query
@@ -121,5 +123,16 @@ public class GraphPatternSelect implements GraphPattern {
         where.inspect(inspector);
         if (values != null)
             values.inspect(inspector);
+    }
+
+    @Override
+    public GraphPattern clone(Map<String, Node> parameters) {
+        return new GraphPatternSelect(
+                isDistinct,
+                isReduced,
+                where.clone(parameters),
+                modifier != null ? modifier.clone(parameters) : null,
+                values != null ? (GraphPatternInlineData) values.clone(parameters) : null
+        );
     }
 }

@@ -19,12 +19,15 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Changeset;
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the SPARQL DELETE/INSERT command.
@@ -103,5 +106,16 @@ public class CommandModify implements Command {
             return new ResultFailure(exception.getMessage());
         }
         return ResultSuccess.INSTANCE;
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        List<Quad> insert = new ArrayList<>(this.insert.size());
+        for (Quad quad : this.insert)
+            insert.add(Utils.clone(quad, parameters));
+        List<Quad> delete = new ArrayList<>(this.delete.size());
+        for (Quad quad : this.delete)
+            delete.add(Utils.clone(quad, parameters));
+        return new CommandModify(insert, delete, where.clone(parameters));
     }
 }

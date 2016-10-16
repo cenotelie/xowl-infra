@@ -18,6 +18,9 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.rdf.Node;
+
+import java.util.Map;
 
 /**
  * Represents the SPARQL ASK command.
@@ -49,5 +52,10 @@ public class CommandAsk implements Command {
         } catch (EvalException exception) {
             return new ResultFailure(exception.getMessage());
         }
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        return new CommandAsk(pattern.clone(parameters));
     }
 }

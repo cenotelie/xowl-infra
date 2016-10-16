@@ -39,7 +39,10 @@ import org.xowl.infra.utils.logging.Logging;
 
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Utilities for SPARQL results
@@ -260,7 +263,7 @@ public class ResultUtils {
                 List<Couple<VariableNode, Node>> bindings = new ArrayList<>();
                 for (ASTNode nodeBinding : nodeSolution.getChildren()) {
                     String varName = nodeBinding.getChildren().get(0).getValue();
-                    VariableNode variable = variables.get(varName.substring(1, varName.length() -1));
+                    VariableNode variable = variables.get(varName.substring(1, varName.length() - 1));
                     Node value = IOUtils.deserializeJSON(nodeManager, nodeBinding.getChildren().get(1));
                     bindings.add(new Couple<>(variable, value));
                 }

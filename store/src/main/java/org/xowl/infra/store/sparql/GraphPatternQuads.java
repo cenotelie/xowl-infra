@@ -22,6 +22,7 @@ import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * A graph pattern represented by a template of quads
@@ -48,6 +49,15 @@ public class GraphPatternQuads implements GraphPattern {
      */
     public GraphPatternQuads() {
         this.pattern = new RDFPattern();
+    }
+
+    /**
+     * Initializes this pattern
+     *
+     * @param pattern The RDF pattern
+     */
+    private GraphPatternQuads(RDFPattern pattern) {
+        this.pattern = pattern;
     }
 
     /**
@@ -83,5 +93,10 @@ public class GraphPatternQuads implements GraphPattern {
     @Override
     public void inspect(Inspector inspector) {
         inspector.onGraphPattern(this);
+    }
+
+    @Override
+    public GraphPattern clone(Map<String, Node> parameters) {
+        return new GraphPatternQuads(Utils.clone(pattern, parameters));
     }
 }

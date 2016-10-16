@@ -18,9 +18,11 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.rdf.Node;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Implements a SPARQL command composed of other commands
@@ -35,6 +37,7 @@ public class CommandComposed implements Command {
 
     /**
      * Initializes this command
+     *
      * @param commands The inner commands
      */
     public CommandComposed(Command[] commands) {
@@ -43,6 +46,7 @@ public class CommandComposed implements Command {
 
     /**
      * Initializes this command
+     *
      * @param commands The inner commands
      */
     public CommandComposed(Collection<Command> commands) {
@@ -61,5 +65,13 @@ public class CommandComposed implements Command {
                 return result;
         }
         return ResultSuccess.INSTANCE;
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        Command[] subs = new Command[commands.length];
+        for (int i = 0; i != commands.length; i++)
+            subs[i] = commands[i].clone(parameters);
+        return new CommandComposed(subs);
     }
 }

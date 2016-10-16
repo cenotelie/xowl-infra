@@ -19,7 +19,10 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.utils.logging.SinkLogger;
+
+import java.util.Map;
 
 /**
  * Represents the SPARQL LOAD command.
@@ -71,5 +74,10 @@ public class CommandLoad implements Command {
         repository.load(logger, iri, target == null ? IRIs.GRAPH_DEFAULT : target, true);
         repository.getStore().commit();
         return !logger.isOnError() || isSilent ? ResultSuccess.INSTANCE : ResultFailure.INSTANCE;
+    }
+
+    @Override
+    public Command clone(Map<String, Node> parameters) {
+        return new CommandLoad(iri, target, isSilent);
     }
 }

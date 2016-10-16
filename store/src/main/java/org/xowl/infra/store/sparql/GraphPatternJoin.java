@@ -17,6 +17,10 @@
 
 package org.xowl.infra.store.sparql;
 
+import org.xowl.infra.store.rdf.Node;
+
+import java.util.Map;
+
 /**
  * A graph pattern as the join of two other patterns
  *
@@ -55,5 +59,10 @@ public class GraphPatternJoin implements GraphPattern {
         inspector.onGraphPattern(this);
         left.inspect(inspector);
         right.inspect(inspector);
+    }
+
+    @Override
+    public GraphPattern clone(Map<String, Node> parameters) {
+        return new GraphPatternJoin(left.clone(parameters), right.clone(parameters));
     }
 }
