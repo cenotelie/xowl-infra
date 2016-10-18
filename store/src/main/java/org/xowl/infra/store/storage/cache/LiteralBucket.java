@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * Represents a bucket of literals with the same lexical value in a RDF graph
+ * This structure is thread-safe.
  *
  * @author Laurent Wouters
  */

@@ -136,7 +136,7 @@ class FileStoreFile extends FileBackend {
      *
      * @param index    The index within this file of the reserved area for the access
      * @param writable Whether the access shall allow writing
-     * @throws StorageException
+     * @throws StorageException When an IO operation fails
      */
     public IOAccess access(int index, boolean writable) throws StorageException {
         try (FileBlockTS block = getBlockFor(index)) {
