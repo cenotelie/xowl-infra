@@ -77,7 +77,7 @@ class LiteralBucket {
             if (Objects.equals(datatype, candidate.getDatatype()) && Objects.equals(langTag, candidate.getLangTag()))
                 return candidate;
         }
-        if (insertIndex == -1) {
+        if (insertIndex != -1) {
             CachedLiteralNode result = new CachedLiteralNode(lexical, datatype, langTag);
             if (nodes.compareAndSet(insertIndex, insertRef, new WeakReference<LiteralNode>(result)))
                 return result;
