@@ -245,8 +245,8 @@ public class SPARQLLoader {
      * @param node The AST node
      */
     void loadPrologue(ASTNode node) {
-        baseURI = null;
-        namespaces = new HashMap<>();
+        if (namespaces == null)
+            namespaces = new HashMap<>();
         for (ASTNode child : node.getChildren()) {
             switch (child.getSymbol().getID()) {
                 case SPARQLParser.ID.decl_base:
