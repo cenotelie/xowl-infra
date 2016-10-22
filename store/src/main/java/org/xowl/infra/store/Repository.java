@@ -32,11 +32,11 @@ import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.writers.OWLSerializer;
 import org.xowl.infra.store.writers.RDFSerializer;
-import org.xowl.infra.utils.collections.SingleIterator;
-import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.collections.Adapter;
 import org.xowl.infra.utils.collections.AdaptingIterator;
+import org.xowl.infra.utils.collections.SingleIterator;
 import org.xowl.infra.utils.collections.SkippableIterator;
+import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
@@ -48,7 +48,7 @@ import java.util.*;
  * Represents a repository of xOWL ontologies
  *
  * @author Laurent Wouters
- * Modified by
+ *         Modified by
  * @author Stephen Creff
  */
 public class Repository extends AbstractRepository {
@@ -496,8 +496,11 @@ public class Repository extends AbstractRepository {
             logger.error(ex);
         }
 
-        for (RDFRule rule : input.getRules()) {
-            getRDFRuleEngine().add(rule);
+        if (!input.getRules().isEmpty()) {
+            for (RDFRule rule : input.getRules()) {
+                getRDFRuleEngine().add(rule);
+            }
+            getRDFRuleEngine().flush();
         }
     }
 
@@ -511,8 +514,11 @@ public class Repository extends AbstractRepository {
             logger.error(ex);
         }
 
-        for (Rule rule : input.getRules()) {
-            getOWLRuleEngine().add(rule, null, null, null);
+        if (!input.getRules().isEmpty()) {
+            for (Rule rule : input.getRules()) {
+                getOWLRuleEngine().add(rule, null, null, null);
+            }
+            getOWLRuleEngine().flush();
         }
     }
 
