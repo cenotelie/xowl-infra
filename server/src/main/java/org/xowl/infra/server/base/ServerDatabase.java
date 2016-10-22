@@ -176,7 +176,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         this.repository = createRepository(configuration, location);
         this.proxy = repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + confServer.getAdminDBName());
         this.procedures = new HashMap<>();
-        this.maxThreads = confServer.getDefaultMaxThreads();
+        this.maxThreads = getMaxThreads(confServer, configuration);
         this.currentThreads = new AtomicInteger(0);
         initRepository();
     }
@@ -184,11 +184,12 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     /**
      * Initializes this database
      *
-     * @param location The database's location
-     * @param proxy    The proxy object representing this database
+     * @param confServer The server configuration
+     * @param location   The database's location
+     * @param proxy      The proxy object representing this database
      * @throws IOException When the location cannot be accessed
      */
-    public ServerDatabase(File location, ProxyObject proxy) throws IOException {
+    public ServerDatabase(ServerConfiguration confServer, File location, ProxyObject proxy) throws IOException {
         super((String) proxy.getDataValue(Schema.ADMIN_NAME));
         this.location = location;
         this.logger = new ConsoleLogger();
@@ -196,7 +197,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         this.repository = createRepository(configuration, location);
         this.proxy = proxy;
         this.procedures = new HashMap<>();
-        this.maxThreads = getMaxThreads(configuration);
+        this.maxThreads = getMaxThreads(confServer, configuration);
         this.currentThreads = new AtomicInteger(0);
         initRepository();
     }
@@ -242,8 +243,10 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
      * @param configuration The current configuration
      * @return The maximum number of concurrent threads for this database
      */
-    private int getMaxThreads(Configuration configuration) {
+    private int getMaxThreads(ServerConfiguration confServer, Configuration configuration) {
         String property = configuration.get(CONFIG_MAX_THREADS);
+        if (property == null)
+            return confServer.getDefaultMaxThreads();
         int value = Integer.parseInt(property);
         if (value <= 0)
             value = Integer.MAX_VALUE;

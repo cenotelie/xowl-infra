@@ -110,7 +110,7 @@ public class ServerController implements Closeable {
                 String name = (String) poDB.getDataValue(Schema.ADMIN_NAME);
                 String location = (String) poDB.getDataValue(Schema.ADMIN_LOCATION);
                 try {
-                    ServerDatabase db = new ServerDatabase(new File(configuration.getDatabasesFolder(), location), poDB);
+                    ServerDatabase db = new ServerDatabase(configuration, new File(configuration.getDatabasesFolder(), location), poDB);
                     databases.put(name, db);
                     Logging.getDefault().info("Loaded database " + poDB.getIRIString() + " as " + name);
                 } catch (IOException exception) {
@@ -562,7 +562,7 @@ public class ServerController implements Closeable {
                 proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(Schema.ADMIN_DATABASE));
                 proxy.setValue(Schema.ADMIN_NAME, name);
                 proxy.setValue(Schema.ADMIN_LOCATION, name);
-                result = new ServerDatabase(folder, proxy);
+                result = new ServerDatabase(configuration, folder, proxy);
                 adminDB.getRepository().getStore().commit();
                 result.getRepository().getStore().commit();
                 databases.put(name, result);
