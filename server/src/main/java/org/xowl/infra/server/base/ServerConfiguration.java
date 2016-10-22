@@ -122,6 +122,15 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets the default maximum of concurrent threads for a database
+     *
+     * @return The default maximum of concurrent threads for a database
+     */
+    public int getDefaultMaxThreads() {
+        return Integer.parseInt(getValue(null, "defaultMaxThreads"));
+    }
+
+    /**
      * Gets the name of the administration database
      *
      * @return The name of the administration database

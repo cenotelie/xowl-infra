@@ -49,6 +49,7 @@ import org.xowl.infra.utils.logging.Logger;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Represents a database hosted on this server
@@ -72,6 +73,10 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
      * The namespace IRI for rules loaded in a database
      */
     private static final String RULES_RESOURCE = "http://xowl.org/server/rules";
+    /**
+     * The configuration property for the maximum of concurrent threads
+     */
+    private static final String CONFIG_MAX_THREADS = "maxThreads";
     /**
      * The configuration property for the storage engine
      */
@@ -129,6 +134,14 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
      * The cache of procedures for this database
      */
     private final Map<String, BaseStoredProcedure> procedures;
+    /**
+     * The maximum number of concurrent threads for this database
+     */
+    private final int maxThreads;
+    /**
+     * The current number of threads on this database
+     */
+    private final AtomicInteger currentThreads;
 
     /**
      * Gets the repository backing this database
@@ -159,11 +172,12 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         super(confServer.getAdminDBName());
         this.location = location;
         this.logger = new ConsoleLogger();
-        this.configuration = new Configuration();
-        BaseStore store = initStore();
-        this.repository = new Repository(store);
+        this.configuration = loadConfiguration(location);
+        this.repository = createRepository(configuration, location);
         this.proxy = repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + confServer.getAdminDBName());
         this.procedures = new HashMap<>();
+        this.maxThreads = confServer.getDefaultMaxThreads();
+        this.currentThreads = new AtomicInteger(0);
         initRepository();
     }
 
@@ -178,34 +192,62 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         super((String) proxy.getDataValue(Schema.ADMIN_NAME));
         this.location = location;
         this.logger = new ConsoleLogger();
-        this.configuration = new Configuration();
-        BaseStore store = initStore();
-        this.repository = new Repository(store);
+        this.configuration = loadConfiguration(location);
+        this.repository = createRepository(configuration, location);
         this.proxy = proxy;
         this.procedures = new HashMap<>();
+        this.maxThreads = getMaxThreads(configuration);
+        this.currentThreads = new AtomicInteger(0);
         initRepository();
     }
 
     /**
-     * Initializes the underlying store
+     * Loads the configuration for this database
      *
-     * @return The store
+     * @param location The database location
+     * @return The configuration
      * @throws IOException When the location cannot be accessed
      */
-    private BaseStore initStore() throws IOException {
+    private Configuration loadConfiguration(File location) throws IOException {
         if (!location.exists()) {
             if (!location.mkdirs()) {
                 throw error(logger, "Failed to create the directory for repository at " + location.getPath());
             }
         }
+        Configuration configuration = new Configuration();
         File configFile = new File(location, REPO_CONF_NAME);
         if (configFile.exists()) {
             configuration.load(configFile.getAbsolutePath(), Files.CHARSET);
         }
-        String cBackend = configuration.get(CONFIG_STORAGE);
-        return Objects.equals(cBackend, CONFIG_STORAGE_MEMORY) ?
+        return configuration;
+    }
+
+    /**
+     * Creates the repository for the database
+     *
+     * @param configuration The current configuration
+     * @param location      The database location
+     * @return The repository
+     */
+    private Repository createRepository(Configuration configuration, File location) {
+        BaseStore store = Objects.equals(configuration.get(CONFIG_STORAGE), CONFIG_STORAGE_MEMORY) ?
                 StoreFactory.create().inMemory().withReasoning().make() :
                 StoreFactory.create().onDisk(location).withReasoning().make();
+        return new Repository(store);
+    }
+
+    /**
+     * Gets the maximum number of concurrent threads for this database
+     *
+     * @param configuration The current configuration
+     * @return The maximum number of concurrent threads for this database
+     */
+    private int getMaxThreads(Configuration configuration) {
+        String property = configuration.get(CONFIG_MAX_THREADS);
+        int value = Integer.parseInt(property);
+        if (value <= 0)
+            value = Integer.MAX_VALUE;
+        return value;
     }
 
     /**
@@ -233,34 +275,75 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         return result;
     }
 
+    /**
+     * When a new threads is touching this database
+     */
+    private void onThreadEnter() {
+        if (maxThreads <= 0)
+            return;
+        int tries = 0;
+        while (true) {
+            int number = currentThreads.get();
+            if (number < maxThreads && currentThreads.compareAndSet(number, number + 1))
+                return;
+            tries++;
+            if (tries > 50) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * When a thread is leaving this database
+     */
+    private void onThreadExit() {
+        if (maxThreads <= 0)
+            return;
+        currentThreads.decrementAndGet();
+    }
+
     @Override
     public XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
-        BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
-        if (defaultIRIs == null)
-            defaultIRIs = Collections.emptyList();
-        if (namedIRIs == null)
-            namedIRIs = Collections.emptyList();
-        SPARQLLoader loader = new SPARQLLoader(repository.getStore(), defaultIRIs, namedIRIs);
-        Command command = loader.load(dispatchLogger, new StringReader(sparql));
-        if (command == null) {
-            // ill-formed request
-            dispatchLogger.error("Failed to parse and load the request");
-            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+        onThreadEnter();
+        try {
+            BufferedLogger bufferedLogger = new BufferedLogger();
+            DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
+            if (defaultIRIs == null)
+                defaultIRIs = Collections.emptyList();
+            if (namedIRIs == null)
+                namedIRIs = Collections.emptyList();
+            SPARQLLoader loader = new SPARQLLoader(repository.getStore(), defaultIRIs, namedIRIs);
+            Command command = loader.load(dispatchLogger, new StringReader(sparql));
+            if (command == null) {
+                // ill-formed request
+                dispatchLogger.error("Failed to parse and load the request");
+                return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+            }
+            return new XSPReplyResult<>(command.execute(repository));
+        } finally {
+            onThreadExit();
         }
-        return new XSPReplyResult<>(command.execute(repository));
     }
 
     @Override
     public XSPReply sparql(Command sparql) {
-        if (sparql == null) {
-            // ill-formed request
-            BufferedLogger bufferedLogger = new BufferedLogger();
-            DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
-            dispatchLogger.error("Failed to parse and load the request");
-            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+        onThreadEnter();
+        try {
+            if (sparql == null) {
+                // ill-formed request
+                BufferedLogger bufferedLogger = new BufferedLogger();
+                DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
+                dispatchLogger.error("Failed to parse and load the request");
+                return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+            }
+            return new XSPReplyResult<>(sparql.execute(repository));
+        } finally {
+            onThreadExit();
         }
-        return new XSPReplyResult<>(sparql.execute(repository));
     }
 
     @Override
@@ -270,23 +353,33 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
 
     @Override
     public XSPReply setEntailmentRegime(EntailmentRegime regime) {
-        repository.setEntailmentRegime(logger, regime);
-        configuration.set(CONFIG_ENTAILMENT, regime.toString());
+        onThreadEnter();
         try {
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
-        } catch (IOException exception) {
-            logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
+            repository.setEntailmentRegime(logger, regime);
+            configuration.set(CONFIG_ENTAILMENT, regime.toString());
+            try {
+                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+            } catch (IOException exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+            repository.getStore().commit();
+            return XSPReplySuccess.instance();
+        } finally {
+            onThreadExit();
         }
-        repository.getStore().commit();
-        return XSPReplySuccess.instance();
     }
 
     public XSPReply setEntailmentRegime(String regime) {
-        EntailmentRegime value = EntailmentRegime.valueOf(regime);
-        if (value == null)
-            return new XSPReplyFailure("Unexpected regime name");
-        return setEntailmentRegime(value);
+        onThreadEnter();
+        try {
+            EntailmentRegime value = EntailmentRegime.valueOf(regime);
+            if (value == null)
+                return new XSPReplyFailure("Unexpected regime name");
+            return setEntailmentRegime(value);
+        } finally {
+            onThreadExit();
+        }
     }
 
     @Override
@@ -329,47 +422,52 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
 
     @Override
     public XSPReply addRule(String content, boolean activate) {
-        File folder = new File(location, REPO_RULES);
-        if (!folder.exists()) {
-            if (!folder.mkdirs())
-                return XSPReplyFailure.instance();
-        }
-
-        BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
-        RDFTLoader loader = new RDFTLoader(repository.getStore());
-        RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(content), RULES_RESOURCE, null);
-        if (result == null) {
-            // ill-formed request
-            dispatchLogger.error("Failed to parse and load the rules");
-            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
-        }
-        if (result.getRules().size() != 1)
-            return new XSPReplyFailure("Expected one rule");
-
-        RDFRule rule = result.getRules().get(0);
-        String name = IOUtils.hashSHA1(rule.getIRI());
-        File file = new File(folder, name);
-        try (FileOutputStream stream = new FileOutputStream(file)) {
-            stream.write(content.getBytes(Files.CHARSET));
-            stream.flush();
-        } catch (IOException exception) {
-            logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
-        }
-
-        configuration.add(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, rule.getIRI());
-        if (activate) {
-            repository.getRDFRuleEngine().add(rule);
-            repository.getRDFRuleEngine().flush();
-            configuration.add(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, rule.getIRI());
-        }
+        onThreadEnter();
         try {
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
-        } catch (IOException exception) {
-            logger.error(exception);
+            File folder = new File(location, REPO_RULES);
+            if (!folder.exists()) {
+                if (!folder.mkdirs())
+                    return XSPReplyFailure.instance();
+            }
+
+            BufferedLogger bufferedLogger = new BufferedLogger();
+            DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
+            RDFTLoader loader = new RDFTLoader(repository.getStore());
+            RDFLoaderResult result = loader.loadRDF(dispatchLogger, new StringReader(content), RULES_RESOURCE, null);
+            if (result == null) {
+                // ill-formed request
+                dispatchLogger.error("Failed to parse and load the rules");
+                return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+            }
+            if (result.getRules().size() != 1)
+                return new XSPReplyFailure("Expected one rule");
+
+            RDFRule rule = result.getRules().get(0);
+            String name = IOUtils.hashSHA1(rule.getIRI());
+            File file = new File(folder, name);
+            try (FileOutputStream stream = new FileOutputStream(file)) {
+                stream.write(content.getBytes(Files.CHARSET));
+                stream.flush();
+            } catch (IOException exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+
+            configuration.add(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, rule.getIRI());
+            if (activate) {
+                repository.getRDFRuleEngine().add(rule);
+                repository.getRDFRuleEngine().flush();
+                configuration.add(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, rule.getIRI());
+            }
+            try {
+                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+            } catch (IOException exception) {
+                logger.error(exception);
+            }
+            return new XSPReplyResult<>(new BaseRule(rule.getIRI(), content, activate));
+        } finally {
+            onThreadExit();
         }
-        return new XSPReplyResult<>(new BaseRule(rule.getIRI(), content, activate));
     }
 
     @Override
@@ -378,24 +476,29 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     }
 
     public XSPReply removeRule(String iri) {
-        if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
-            return new XSPReplyFailure("Rule does not exist");
-        configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).remove(iri);
-        if (configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri)) {
-            configuration.remove(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
-            repository.getRDFRuleEngine().remove(iri);
-        }
+        onThreadEnter();
         try {
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
-        } catch (IOException exception) {
-            logger.error(exception);
-        }
+            if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
+                return new XSPReplyFailure("Rule does not exist");
+            configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).remove(iri);
+            if (configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri)) {
+                configuration.remove(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
+                repository.getRDFRuleEngine().remove(iri);
+            }
+            try {
+                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+            } catch (IOException exception) {
+                logger.error(exception);
+            }
 
-        File folder = new File(location, REPO_RULES);
-        File file = new File(folder, IOUtils.hashSHA1(iri));
-        if (!file.delete())
-            logger.error("Failed to delete " + file.getAbsolutePath());
-        return XSPReplySuccess.instance();
+            File folder = new File(location, REPO_RULES);
+            File file = new File(folder, IOUtils.hashSHA1(iri));
+            if (!file.delete())
+                logger.error("Failed to delete " + file.getAbsolutePath());
+            return XSPReplySuccess.instance();
+        } finally {
+            onThreadExit();
+        }
     }
 
     @Override
@@ -404,21 +507,26 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     }
 
     public XSPReply activateRule(String iri) {
-        if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
-            return new XSPReplyFailure("Rule does not exist");
-        if (configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri))
-            return new XSPReplyFailure("Already active");
-
-        if (!doActivateRule(iri)) {
-            return new XSPReplyFailure("Failed to activate the rule");
-        }
+        onThreadEnter();
         try {
-            configuration.add(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
-        } catch (IOException exception) {
-            logger.error(exception);
+            if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
+                return new XSPReplyFailure("Rule does not exist");
+            if (configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri))
+                return new XSPReplyFailure("Already active");
+
+            if (!doActivateRule(iri)) {
+                return new XSPReplyFailure("Failed to activate the rule");
+            }
+            try {
+                configuration.add(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
+                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+            } catch (IOException exception) {
+                logger.error(exception);
+            }
+            return XSPReplySuccess.instance();
+        } finally {
+            onThreadExit();
         }
-        return XSPReplySuccess.instance();
     }
 
     /**
@@ -450,19 +558,24 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     }
 
     public XSPReply deactivateRule(String iri) {
-        if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
-            return new XSPReplyFailure("Rule does not exist");
-        if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri))
-            return new XSPReplyFailure("Not active");
-
+        onThreadEnter();
         try {
-            configuration.remove(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
-            configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
-        } catch (IOException exception) {
-            logger.error(exception);
+            if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ALL_RULES).contains(iri))
+                return new XSPReplyFailure("Rule does not exist");
+            if (!configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES).contains(iri))
+                return new XSPReplyFailure("Not active");
+
+            try {
+                configuration.remove(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
+                configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
+            } catch (IOException exception) {
+                logger.error(exception);
+            }
+            repository.getRDFRuleEngine().remove(iri);
+            return XSPReplySuccess.instance();
+        } finally {
+            onThreadExit();
         }
-        repository.getRDFRuleEngine().remove(iri);
-        return XSPReplySuccess.instance();
     }
 
     @Override
@@ -655,19 +768,25 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
 
     @Override
     public XSPReply upload(String syntax, String content) {
-        BufferedLogger bufferedLogger = new BufferedLogger();
-        DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
-        repository.loadResource(dispatchLogger, new StringReader(content), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT, syntax);
-        if (!bufferedLogger.getErrorMessages().isEmpty()) {
-            repository.getStore().rollback();
-            return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+        onThreadEnter();
+        try {
+            BufferedLogger bufferedLogger = new BufferedLogger();
+            DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
+            repository.loadResource(dispatchLogger, new StringReader(content), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT, syntax);
+            if (!bufferedLogger.getErrorMessages().isEmpty()) {
+                repository.getStore().rollback();
+                return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
+            }
+            repository.getStore().commit();
+            return XSPReplySuccess.instance();
+        } finally {
+            onThreadExit();
         }
-        repository.getStore().commit();
-        return XSPReplySuccess.instance();
     }
 
     @Override
     public XSPReply upload(Collection<Quad> quads) {
+        onThreadEnter();
         try {
             repository.getStore().insert(Changeset.fromAdded(quads));
             repository.getStore().commit();
@@ -675,6 +794,8 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         } catch (UnsupportedNodeType exception) {
             repository.getStore().rollback();
             return new XSPReplyFailure(exception.getMessage());
+        } finally {
+            onThreadExit();
         }
     }
 
