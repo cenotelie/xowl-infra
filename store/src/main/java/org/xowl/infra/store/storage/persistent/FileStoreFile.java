@@ -158,57 +158,45 @@ class FileStoreFile extends FileBackend {
         int toAllocate = size < FILE_OBJECT_MIN_SIZE ? FILE_OBJECT_MIN_SIZE : size;
         if (size > FILE_OBJECT_MAX_SIZE)
             throw new StorageException("Cannot allocate an object of this size: requested " + size + ", max is " + FILE_OBJECT_MAX_SIZE);
-        try (FileBlockTS preamble = getBlockFor(0)) {
+        try (IOAccess access = access(0, FileBlock.BLOCK_SIZE, true)) {
             // get the number of pools
-            int poolCount;
-            try (IOAccess access = access(12, 4, false, preamble)) {
-                poolCount = access.readInt();
-            }
+            int poolCount = access.seek(12).readInt();
             // look into the pools
-            if (poolCount > 0) {
-                try (IOAccess access = access(FILE_PREAMBLE_HEADER_SIZE, poolCount * FILE_PREAMBLE_ENTRY_SIZE, false, preamble)) {
-                    for (int i = 0; i != poolCount; i++) {
-                        int poolSize = access.readInt();
-                        access.readInt();
-                        if (poolSize == toAllocate) {
-                            // the pool size fits, try to reuse ...
-                            int result = allocateReuse(preamble, i);
-                            if (result != -1)
-                                // success => return the result
-                                return result;
-                            // failed, stop looking into pools
-                            break;
-                        }
-                    }
+            for (int i = 0; i != poolCount; i++) {
+                int poolSize = access.readInt();
+                int poolFirst = access.readInt();
+                if (poolSize == toAllocate) {
+                    // the pool size fits, try to reuse ...
+                    if (poolFirst != 0)
+                        // if the pool is not empty
+                        return allocateReuse(access, i, poolFirst, poolSize);
+                    // failed, stop looking into pools
+                    break;
                 }
             }
             // fall back to direct allocation from the free space
-            return doAllocateDirect(preamble, toAllocate);
+            return doAllocateDirect(access, toAllocate);
         }
     }
 
     /**
      * Tries to allocate an object by reusing the an empty entry in this store
      *
-     * @param preamble  The preamble block
+     * @param access    The access to the preambule
      * @param poolIndex The index of the pool to use
+     * @param target    The first element in the pool
+     * @param size      The size of the objects in the pool
      * @return The key to the object, or -1 if it cannot be allocated in this file
      * @throws StorageException When an IO operation fails
      */
-    private int allocateReuse(FileBlockTS preamble, int poolIndex) throws StorageException {
-        try (IOAccess access = access(FILE_PREAMBLE_HEADER_SIZE + poolIndex * FILE_PREAMBLE_ENTRY_SIZE, 8, true, preamble)) {
-            int size = access.readInt();
-            int target = access.readInt();
-            if (target == 0)
-                return -1;
-            int next;
-            try (IOAccess accessTarget = access(target, 4, true)) {
-                next = accessTarget.readInt();
-                access.reset().writeChar((char) size);
-            }
-            access.seek(4).writeInt(next);
-            return target + 2;
+    private int allocateReuse(IOAccess access, int poolIndex, int target, int size) throws StorageException {
+        int next;
+        try (IOAccess accessTarget = access(target, 4, true)) {
+            next = accessTarget.readInt();
+            accessTarget.reset().writeChar((char) size);
         }
+        access.seek(FILE_PREAMBLE_HEADER_SIZE + poolIndex * FILE_PREAMBLE_ENTRY_SIZE + 4).writeInt(next);
+        return target + 2;
     }
 
     /**
@@ -224,37 +212,35 @@ class FileStoreFile extends FileBackend {
         int toAllocate = size < FILE_OBJECT_MIN_SIZE ? FILE_OBJECT_MIN_SIZE : size;
         if (size > FILE_OBJECT_MAX_SIZE)
             throw new StorageException("Cannot allocate an object of this size: requested " + size + ", max is " + FILE_OBJECT_MAX_SIZE);
-        try (FileBlockTS preamble = getBlockFor(0)) {
-            return doAllocateDirect(preamble, toAllocate);
+        try (IOAccess access = access(0, FileBlock.BLOCK_SIZE, true)) {
+            return doAllocateDirect(access, toAllocate);
         }
     }
 
     /**
      * Allocates at the end
      *
-     * @param size The size of the object
+     * @param access The access to the preambule
+     * @param size   The size of the object
      * @return The key to the object, or -1 if it cannot be allocated in this file
      * @throws StorageException When an IO operation fails
      */
-    private int doAllocateDirect(FileBlockTS preamble, int size) throws StorageException {
-        int target;
-        try (IOAccess access = access(8, 4, true, preamble)) {
-            int freeSpace = access.readInt();
-            target = freeSpace;
-            freeSpace += size + FILE_OBJECT_HEADER_SIZE;
-            if ((freeSpace & INDEX_MASK_UPPER) != (target & INDEX_MASK_UPPER)) {
-                // not the same block, the object would be split between blocks
-                // go to the next block entirely
-                target = freeSpace & INDEX_MASK_UPPER;
-                freeSpace = target + size + FILE_OBJECT_HEADER_SIZE;
-            }
-            if (freeSpace > FILE_MAX_SIZE)
-                // not enough space in this file
-                return -1;
-            access.reset().writeInt(freeSpace);
+    private int doAllocateDirect(IOAccess access, int size) throws StorageException {
+        int freeSpace = access.seek(8).readInt();
+        int target = freeSpace;
+        freeSpace += size + FILE_OBJECT_HEADER_SIZE;
+        if ((freeSpace & INDEX_MASK_UPPER) != (target & INDEX_MASK_UPPER)) {
+            // not the same block, the object would be split between blocks
+            // go to the next block entirely
+            target = freeSpace & INDEX_MASK_UPPER;
+            freeSpace = target + size + FILE_OBJECT_HEADER_SIZE;
         }
-        try (IOAccess access = access(target, 2, true)) {
-            access.writeChar((char) size);
+        if (freeSpace > FILE_MAX_SIZE)
+            // not enough space in this file
+            return -1;
+        access.seek(8).writeInt(freeSpace);
+        try (IOAccess accessTarget = access(target, 2, true)) {
+            accessTarget.writeChar((char) size);
         }
         return target + 2;
     }
