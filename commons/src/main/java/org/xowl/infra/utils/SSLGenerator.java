@@ -15,9 +15,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.utils;
+package org.xowl.infra.utils;
 
-import org.xowl.infra.utils.SHA1;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.*;
