@@ -17,9 +17,9 @@
 
 package org.xowl.infra.store.rdf;
 
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Serializable;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logging;
 
@@ -140,9 +140,9 @@ public abstract class RDFRuleExecution implements Serializable {
                         writer.append(", ");
                     first = false;
                     writer.append("\"");
-                    writer.append(IOUtils.escapeStringJSON(entry.x.getName()));
+                    writer.append(TextUtils.escapeStringJSON(entry.x.getName()));
                     writer.append("\":");
-                    IOUtils.serializeJSON(writer, entry.y);
+                    RDFUtils.serializeJSON(writer, entry.y);
                 }
             }
             writer.append("}}");

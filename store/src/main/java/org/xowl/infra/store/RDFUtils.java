@@ -17,6 +17,7 @@
 
 package org.xowl.infra.store;
 
+import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.lang.actions.DynamicExpression;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.lang.owl2.IRI;
@@ -27,8 +28,11 @@ import org.xowl.infra.store.owl.AnonymousNode;
 import org.xowl.infra.store.owl.DynamicNode;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -150,56 +154,6 @@ public class RDFUtils {
     }
 
     /**
-     * Tests whether the node is a Blank node
-     *
-     * @param node A RDF node
-     * @return true if the node is a blank node
-     */
-    public static boolean isBlankNode(Node node) {
-        return node.getNodeType() == Node.TYPE_BLANK;
-    }
-
-    /**
-     * Tests whether the node is the rdf:nil IRI node
-     *
-     * @param node A RDF node
-     * @return true of the node is the rdf:nil IRI node, false otherwise
-     */
-    public static boolean isRdfNil(Node node) {
-        return (node.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfNil.equals(((IRINode) node).getIRIValue());
-    }
-
-    /**
-     * Tests whether the property is the rdf:first IRI node
-     *
-     * @param property A RDF property
-     * @return true of the node is the rdf:first IRI node, false otherwise
-     */
-    public static boolean isRdfFirst(Property property) {
-        return (property.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfFirst.equals(((IRINode) property).getIRIValue());
-    }
-
-    /**
-     * Tests whether the property is the rdf:rest IRI node
-     *
-     * @param property A RDF property
-     * @return true of the node is the rdf:rest IRI node, false otherwise
-     */
-    public static boolean isRdfRest(Property property) {
-        return (property.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfRest.equals(((IRINode) property).getIRIValue());
-    }
-
-    /**
-     * Tests whether the property is the rdf:type IRI node
-     *
-     * @param property A RDF property
-     * @return true of the node is the rdf:type IRI node, false otherwise
-     */
-    public static boolean isRdfType(Property property) {
-        return (property.getNodeType() == Node.TYPE_IRI) && Vocabulary.rdfType.equals(((IRINode) property).getIRIValue());
-    }
-
-    /**
      * Computes the difference between two sets of quads
      * The result is changeset of positive and negative quads in the set difference: left - right.
      * This means that positive (added) quads are present on the left but not the right.
@@ -311,5 +265,151 @@ public class RDFUtils {
         if (object == null)
             blanks.put((BlankNode) quad1.getObject(), (BlankNode) quad2.getObject());
         return true;
+    }
+
+    /**
+     * Serializes a RDF node in the JSON format
+     *
+     * @param writer The writer to write to
+     * @param node   The RDF node to serialize
+     * @throws IOException When an IO error occurs
+     */
+    public static void serializeXML(Writer writer, Node node) throws IOException {
+        switch (node.getNodeType()) {
+            case Node.TYPE_IRI:
+                writer.write("<uri>");
+                writer.write(((IRINode) node).getIRIValue());
+                writer.write("</uri>");
+                break;
+            case Node.TYPE_BLANK:
+                writer.write("<bnode>");
+                writer.write(Long.toString(((BlankNode) node).getBlankID()));
+                writer.write("</bnode>");
+                break;
+            case Node.TYPE_LITERAL:
+                writer.write("<literal");
+                LiteralNode lit = (LiteralNode) node;
+                if (lit.getLangTag() != null) {
+                    writer.write(" xml:lang=\"");
+                    writer.write(TextUtils.escapeStringW3C(lit.getLangTag()));
+                    writer.write("\">");
+                } else if (lit.getDatatype() != null) {
+                    writer.write(" datatype=\"");
+                    writer.write(TextUtils.escapeStringW3C(lit.getDatatype()));
+                    writer.write("\">");
+                }
+                writer.write(lit.getLexicalValue());
+                writer.write("</literal>");
+                break;
+            case Node.TYPE_VARIABLE:
+                writer.write("<variable>");
+                writer.write(TextUtils.escapeStringW3C(((VariableNode) node).getName()));
+                writer.write("</variable>");
+                break;
+            case Node.TYPE_ANONYMOUS:
+                writer.write("<anon>");
+                writer.write(TextUtils.escapeStringW3C(((AnonymousNode) node).getIndividual().getNodeID()));
+                writer.write("</anon>");
+                break;
+            case Node.TYPE_DYNAMIC:
+                writer.write("<dynamic/>");
+                break;
+        }
+    }
+
+    /**
+     * Serializes a RDF node in the JSON format
+     *
+     * @param writer The writer to write to
+     * @param node   The RDF node to serialize
+     * @throws IOException When an IO error occurs
+     */
+    public static void serializeJSON(Writer writer, Node node) throws IOException {
+        if (node == null) {
+            writer.write("null");
+            return;
+        }
+        switch (node.getNodeType()) {
+            case Node.TYPE_IRI:
+                writer.write("{\"type\": \"uri\", \"value\": \"");
+                writer.write(TextUtils.escapeStringJSON(((IRINode) node).getIRIValue()));
+                writer.write("\"}");
+                break;
+            case Node.TYPE_BLANK:
+                writer.write("{\"type\": \"bnode\", \"value\": \"");
+                writer.write(Long.toString(((BlankNode) node).getBlankID()));
+                writer.write("\"}");
+                break;
+            case Node.TYPE_LITERAL:
+                LiteralNode lit = (LiteralNode) node;
+                writer.write("{\"type\": \"literal\", \"value\": \"");
+                writer.write(TextUtils.escapeStringJSON(lit.getLexicalValue()));
+                writer.write("\"");
+                if (lit.getLangTag() != null) {
+                    writer.write(", \"xml:lang\": \"");
+                    writer.write(TextUtils.escapeStringJSON(lit.getLangTag()));
+                    writer.write("\"");
+                } else if (lit.getDatatype() != null) {
+                    writer.write(", \"datatype\": \"");
+                    writer.write(TextUtils.escapeStringJSON(lit.getDatatype()));
+                    writer.write("\"");
+                }
+                writer.write("}");
+                break;
+            case Node.TYPE_VARIABLE:
+                writer.write("{\"type\": \"variable\", \"value\": \"");
+                writer.write(TextUtils.escapeStringJSON(((VariableNode) node).getName()));
+                writer.write("\"}");
+                break;
+            case Node.TYPE_ANONYMOUS:
+                writer.write("{\"type\": \"anon\", \"value\": \"");
+                writer.write(TextUtils.escapeStringJSON(((AnonymousNode) node).getIndividual().getNodeID()));
+                writer.write("\"}");
+                break;
+            case Node.TYPE_DYNAMIC:
+                writer.write("{\"type\": \"dynamic\"}");
+                break;
+        }
+    }
+
+    /**
+     * De-serializes the RDF node from the specified JSON AST node
+     *
+     * @param nodeManager The node manager to use
+     * @param astNode     The AST node to de-serialize from
+     * @return The RDF node
+     */
+    public static Node deserializeJSON(NodeManager nodeManager, ASTNode astNode) {
+        Map<String, String> properties = new HashMap<>();
+        for (ASTNode child : astNode.getChildren()) {
+            String name = child.getChildren().get(0).getValue();
+            String value = child.getChildren().get(1).getValue();
+            name = name.substring(1, name.length() - 1);
+            value = value.substring(1, value.length() - 1);
+            properties.put(name, value);
+        }
+        String type = properties.get("type");
+        if (type == null)
+            return null;
+        switch (type) {
+            case "uri":
+                return nodeManager.getIRINode(properties.get("value"));
+            case "bnode":
+                return new BlankNode(Long.parseLong(properties.get("value")));
+            case "literal": {
+                String lexical = properties.get("value");
+                String datatype = properties.get("datatype");
+                String langTag = properties.get("xml:lang");
+                return nodeManager.getLiteralNode(lexical, datatype, langTag);
+            }
+            case "variable":
+                return new VariableNode(properties.get("value"));
+            case "anon": {
+                AnonymousIndividual individual = new AnonymousIndividual();
+                individual.setNodeID(properties.get("value"));
+                return nodeManager.getAnonNode(individual);
+            }
+        }
+        return null;
     }
 }

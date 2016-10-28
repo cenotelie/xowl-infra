@@ -27,7 +27,7 @@ import org.xowl.infra.server.base.ServerUser;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyUtils;
 import org.xowl.infra.store.EntailmentRegime;
-import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.store.loaders.JSONLDLoader;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
 import org.xowl.infra.utils.http.HttpResponse;
@@ -526,7 +526,7 @@ class HTTPAPIConnection extends SafeRunnable {
             case "PUT":
                 try {
                     String body = Utils.getRequestBody(httpExchange);
-                    ASTNode root = IOUtils.parseJSON(logger, body);
+                    ASTNode root = JSONLDLoader.parseJSON(logger, body);
                     if (root == null)
                         return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
                     BaseStoredProcedure procedure = new BaseStoredProcedure(root, null, logger);

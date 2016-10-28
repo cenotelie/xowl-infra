@@ -18,9 +18,9 @@
 package org.xowl.infra.store.storage;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Serializable;
 import org.xowl.infra.store.storage.persistent.FileStatistics;
+import org.xowl.infra.utils.TextUtils;
 
 /**
  * Represents the statistics of a store
@@ -50,7 +50,7 @@ public class StoreStatistics implements Serializable {
     public StoreStatistics(ASTNode definition) {
         FileStatistics[] fileStatistics = null;
         for (ASTNode member : definition.getChildren()) {
-            String name = IOUtils.unescape(member.getChildren().get(0).getValue());
+            String name = TextUtils.unescape(member.getChildren().get(0).getValue());
             name = name.substring(1, name.length() - 1);
             switch (name) {
                 case "files": {
@@ -83,7 +83,7 @@ public class StoreStatistics implements Serializable {
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder();
         builder.append("{\"type\": \"");
-        builder.append(IOUtils.escapeStringJSON(StoreStatistics.class.getCanonicalName()));
+        builder.append(TextUtils.escapeStringJSON(StoreStatistics.class.getCanonicalName()));
         builder.append("\", \"files\": [");
         if (fileStatistics != null) {
             for (int i = 0; i != fileStatistics.length; i++) {

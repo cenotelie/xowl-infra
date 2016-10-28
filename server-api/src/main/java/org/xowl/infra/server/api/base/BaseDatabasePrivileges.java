@@ -21,8 +21,8 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLDatabasePrivileges;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.api.XOWLUser;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +60,7 @@ public class BaseDatabasePrivileges implements XOWLDatabasePrivileges {
         this.users = new XOWLUser[4];
         this.privileges = new int[4];
         for (ASTNode member : definition.getChildren()) {
-            String name = IOUtils.unescape(member.getChildren().get(0).getValue());
+            String name = TextUtils.unescape(member.getChildren().get(0).getValue());
             name = name.substring(1, name.length() - 1);
             if (name.equals("accesses")) {
                 loadAccesses(member.getChildren().get(1));
@@ -80,25 +80,25 @@ public class BaseDatabasePrivileges implements XOWLDatabasePrivileges {
             boolean canWrite = false;
             boolean canRead = false;
             for (ASTNode member : access.getChildren()) {
-                String name = IOUtils.unescape(member.getChildren().get(0).getValue());
+                String name = TextUtils.unescape(member.getChildren().get(0).getValue());
                 name = name.substring(1, name.length() - 1);
                 switch (name) {
                     case "user":
-                        userName = IOUtils.unescape(member.getChildren().get(1).getValue());
+                        userName = TextUtils.unescape(member.getChildren().get(1).getValue());
                         userName = userName.substring(1, userName.length() - 1);
                         break;
                     case "isAdmin": {
-                        String value = IOUtils.unescape(member.getChildren().get(1).getValue());
+                        String value = TextUtils.unescape(member.getChildren().get(1).getValue());
                         canAdmin = value.equalsIgnoreCase("true");
                         break;
                     }
                     case "canWrite": {
-                        String value = IOUtils.unescape(member.getChildren().get(1).getValue());
+                        String value = TextUtils.unescape(member.getChildren().get(1).getValue());
                         canWrite = value.equalsIgnoreCase("true");
                         break;
                     }
                     case "canRead": {
-                        String value = IOUtils.unescape(member.getChildren().get(1).getValue());
+                        String value = TextUtils.unescape(member.getChildren().get(1).getValue());
                         canRead = value.equalsIgnoreCase("true");
                         break;
                     }
@@ -183,7 +183,7 @@ public class BaseDatabasePrivileges implements XOWLDatabasePrivileges {
     @Override
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder("{\"type\": \"");
-        builder.append(IOUtils.escapeStringJSON(XOWLDatabasePrivileges.class.getCanonicalName()));
+        builder.append(TextUtils.escapeStringJSON(XOWLDatabasePrivileges.class.getCanonicalName()));
         builder.append("\", \"accesses\": [");
         for (int i = 0; i != users.length; i++) {
             if (users[i] == null)

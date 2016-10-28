@@ -17,12 +17,12 @@
 
 package org.xowl.infra.store.writers;
 
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -92,7 +92,7 @@ public class TurtleSerializer extends StructuredSerializer {
             writer.write("@prefix ");
             writer.write(entry.getValue());
             writer.write(": <");
-            writer.write(IOUtils.escapeAbsoluteURIW3C(entry.getKey()));
+            writer.write(TextUtils.escapeAbsoluteURIW3C(entry.getKey()));
             writer.write("> .");
             writer.write(Files.LINE_SEPARATOR);
         }
@@ -170,7 +170,7 @@ public class TurtleSerializer extends StructuredSerializer {
             String compact = getShortName(iri);
             if (compact == null) {
                 writer.write("<");
-                writer.write(IOUtils.escapeAbsoluteURIW3C(iri));
+                writer.write(TextUtils.escapeAbsoluteURIW3C(iri));
                 writer.write(">");
             } else {
                 writer.write(compact);
@@ -205,7 +205,7 @@ public class TurtleSerializer extends StructuredSerializer {
                 String compact = getShortName(((IRINode) node).getIRIValue());
                 if (compact == null) {
                     writer.write("<");
-                    writer.write(IOUtils.escapeAbsoluteURIW3C(((IRINode) node).getIRIValue()));
+                    writer.write(TextUtils.escapeAbsoluteURIW3C(((IRINode) node).getIRIValue()));
                     writer.write(">");
                 } else {
                     writer.write(compact);
@@ -220,7 +220,7 @@ public class TurtleSerializer extends StructuredSerializer {
             case Node.TYPE_LITERAL: {
                 LiteralNode literalNode = (LiteralNode) node;
                 writer.write("\"");
-                writer.write(IOUtils.escapeStringW3C(literalNode.getLexicalValue()));
+                writer.write(TextUtils.escapeStringW3C(literalNode.getLexicalValue()));
                 writer.write("\"");
                 String datatype = literalNode.getDatatype();
                 String langTag = literalNode.getLangTag();
@@ -232,7 +232,7 @@ public class TurtleSerializer extends StructuredSerializer {
                     String compact = getShortName(datatype);
                     if (compact == null) {
                         writer.write("<");
-                        writer.write(IOUtils.escapeAbsoluteURIW3C(datatype));
+                        writer.write(TextUtils.escapeAbsoluteURIW3C(datatype));
                         writer.write(">");
                     } else {
                         writer.write(compact);

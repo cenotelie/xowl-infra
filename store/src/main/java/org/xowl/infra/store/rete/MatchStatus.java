@@ -16,8 +16,8 @@
  ******************************************************************************/
 package org.xowl.infra.store.rete;
 
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Serializable;
+import org.xowl.infra.utils.TextUtils;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -70,7 +70,7 @@ public class MatchStatus implements Serializable {
     public String serializedJSON() {
         StringWriter writer = new StringWriter();
         writer.write("{ \"type\": \"");
-        writer.write(IOUtils.escapeStringJSON(MatchStatus.class.getCanonicalName()));
+        writer.write(TextUtils.escapeStringJSON(MatchStatus.class.getCanonicalName()));
         writer.write("\", \"steps\": [");
         for (int i = 0; i != steps.size(); i++) {
             if (i != 0)

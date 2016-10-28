@@ -23,7 +23,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
 import org.xowl.infra.server.base.ServerController;
 import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.utils.Base64;
 
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -58,7 +58,7 @@ class Authenticator extends BasicAuthenticator {
         if (headerAuth != null) {
             int index = headerAuth.indexOf(32);
             if (index != -1 && headerAuth.substring(0, index).equals("Basic")) {
-                String authToken = IOUtils.decodeBase64(headerAuth.substring(index + 1));
+                String authToken = Base64.decodeBase64(headerAuth.substring(index + 1));
                 int indexColon = authToken.indexOf(58);
                 if (indexColon != -1) {
                     String login = authToken.substring(0, indexColon);

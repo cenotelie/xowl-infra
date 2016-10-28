@@ -19,8 +19,8 @@ package org.xowl.infra.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.lang.owl2.*;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
 
 import java.util.HashMap;
@@ -129,7 +129,7 @@ public class FunctionalOWL2Deserializer {
         String prefix = node.getChildren().get(0).getValue();
         String uri = node.getChildren().get(1).getValue();
         prefix = prefix.substring(0, prefix.length() - 1);
-        uri = IOUtils.unescape(uri.substring(1, uri.length() - 1));
+        uri = TextUtils.unescape(uri.substring(1, uri.length() - 1));
         namespaces.put(prefix, uri);
     }
 
@@ -142,7 +142,7 @@ public class FunctionalOWL2Deserializer {
     protected String loadIRI(ASTNode node) {
         if (node.getSymbol().getName().equals("IRIREF")) {
             String value = node.getValue();
-            value = IOUtils.unescape(value.substring(1, value.length() - 1));
+            value = TextUtils.unescape(value.substring(1, value.length() - 1));
             return URIUtils.resolveRelative(baseURI, value);
         } else {
             // this is a local name
@@ -157,7 +157,7 @@ public class FunctionalOWL2Deserializer {
      * @return The equivalent full IRI
      */
     protected String getIRIForLocalName(String value) {
-        value = IOUtils.unescape(value);
+        value = TextUtils.unescape(value);
         int index = 0;
         while (index != value.length()) {
             if (value.charAt(index) == ':') {
@@ -165,7 +165,7 @@ public class FunctionalOWL2Deserializer {
                 String uri = namespaces.get(prefix);
                 if (uri != null) {
                     String name = value.substring(index + 1);
-                    return URIUtils.resolveRelative(baseURI, IOUtils.unescape(uri + name));
+                    return URIUtils.resolveRelative(baseURI, TextUtils.unescape(uri + name));
                 }
             }
             index++;

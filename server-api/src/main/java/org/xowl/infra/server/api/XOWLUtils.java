@@ -18,7 +18,7 @@
 package org.xowl.infra.server.api;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.utils.TextUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,7 +51,7 @@ public class XOWLUtils {
         String value = node.getValue();
         if (value != null) {
             if (value.startsWith("\"")) {
-                value = IOUtils.unescape(value);
+                value = TextUtils.unescape(value);
                 return value.substring(1, value.length() - 1);
             }
             return value;
@@ -59,7 +59,7 @@ public class XOWLUtils {
         // this is an object, does it have a type
         ASTNode nodeType = null;
         for (ASTNode memberNode : node.getChildren()) {
-            String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
+            String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
             memberName = memberName.substring(1, memberName.length() - 1);
             ASTNode memberValue = memberNode.getChildren().get(1);
             switch (memberName) {
@@ -70,7 +70,7 @@ public class XOWLUtils {
         }
         if (nodeType != null) {
             // we have a type
-            String type = IOUtils.unescape(nodeType.getValue());
+            String type = TextUtils.unescape(nodeType.getValue());
             type = type.substring(1, type.length() - 1);
             Object result = factory.newObject(type, node);
             if (result != null)
@@ -79,7 +79,7 @@ public class XOWLUtils {
         // fallback to mapping the properties
         Map<String, Object> properties = new HashMap<>();
         for (ASTNode memberNode : node.getChildren()) {
-            String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
+            String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
             memberName = memberName.substring(1, memberName.length() - 1);
             ASTNode memberValue = memberNode.getChildren().get(1);
             properties.put(memberName, getJSONObject(memberValue, factory));

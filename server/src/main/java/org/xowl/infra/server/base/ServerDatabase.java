@@ -29,6 +29,7 @@ import org.xowl.infra.server.standalone.Program;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.*;
 import org.xowl.infra.store.Serializable;
+import org.xowl.infra.store.loaders.JSONLDLoader;
 import org.xowl.infra.store.loaders.RDFLoaderResult;
 import org.xowl.infra.store.loaders.RDFTLoader;
 import org.xowl.infra.store.loaders.SPARQLLoader;
@@ -41,6 +42,7 @@ import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.SHA1;
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.ConsoleLogger;
@@ -392,7 +394,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         if (!names.contains(name))
             return new XSPReplyFailure("Rule does not exist");
         File folder = new File(location, REPO_RULES);
-        File file = new File(folder, IOUtils.hashSHA1(name));
+        File file = new File(folder, SHA1.hashSHA1(name));
         try (FileInputStream stream = new FileInputStream(file)) {
             byte[] content = Program.load(stream);
             String definition = new String(content, Files.CHARSET);
@@ -410,7 +412,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
         Collection<BaseRule> rules = new ArrayList<>(names.size());
         for (String name : names) {
             File folder = new File(location, REPO_RULES);
-            File file = new File(folder, IOUtils.hashSHA1(name));
+            File file = new File(folder, SHA1.hashSHA1(name));
             try (FileInputStream stream = new FileInputStream(file)) {
                 byte[] content = Program.load(stream);
                 String definition = new String(content, Files.CHARSET);
@@ -446,7 +448,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
                 return new XSPReplyFailure("Expected one rule");
 
             RDFRule rule = result.getRules().get(0);
-            String name = IOUtils.hashSHA1(rule.getIRI());
+            String name = SHA1.hashSHA1(rule.getIRI());
             File file = new File(folder, name);
             try (FileOutputStream stream = new FileOutputStream(file)) {
                 stream.write(content.getBytes(Files.CHARSET));
@@ -495,7 +497,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
             }
 
             File folder = new File(location, REPO_RULES);
-            File file = new File(folder, IOUtils.hashSHA1(iri));
+            File file = new File(folder, SHA1.hashSHA1(iri));
             if (!file.delete())
                 logger.error("Failed to delete " + file.getAbsolutePath());
             return XSPReplySuccess.instance();
@@ -540,7 +542,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
      */
     private boolean doActivateRule(String iri) {
         File folder = new File(location, REPO_RULES);
-        File file = new File(folder, IOUtils.hashSHA1(iri));
+        File file = new File(folder, SHA1.hashSHA1(iri));
         RDFRule rule;
         try (FileInputStream stream = new FileInputStream(file)) {
             RDFTLoader loader = new RDFTLoader(repository.getStore());
@@ -620,11 +622,11 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
             if (!folder.mkdirs())
                 return null;
         }
-        File file = new File(folder, IOUtils.hashSHA1(name));
+        File file = new File(folder, SHA1.hashSHA1(name));
         try (FileInputStream stream = new FileInputStream(file)) {
             byte[] content = Program.load(stream);
             String definition = new String(content, Files.CHARSET);
-            ASTNode root = IOUtils.parseJSON(logger, definition);
+            ASTNode root = JSONLDLoader.parseJSON(logger, definition);
             BaseStoredProcedure procedure = new BaseStoredProcedure(root, repository.getStore(), logger);
             procedures.put(name, procedure);
             return procedure;
@@ -661,7 +663,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
                 return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
             BaseStoredProcedure procedure = new BaseStoredProcedure(iri, sparql, parameters, command);
 
-            String name = IOUtils.hashSHA1(iri);
+            String name = SHA1.hashSHA1(iri);
             File folder = new File(location, REPO_PROCEDURES);
             if (!folder.exists()) {
                 if (!folder.mkdirs())
@@ -710,7 +712,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
                 if (!folder.mkdirs())
                     return XSPReplyFailure.instance();
             }
-            File file = new File(folder, IOUtils.hashSHA1(iri));
+            File file = new File(folder, SHA1.hashSHA1(iri));
             if (!file.delete())
                 logger.error("Failed to delete " + file.getAbsolutePath());
 
@@ -734,7 +736,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     public XSPReply executeStoredProcedure(String iri, String contextDefinition) {
         BufferedLogger bufferedLogger = new BufferedLogger();
         DispatchLogger dispatchLogger = new DispatchLogger(bufferedLogger, logger);
-        ASTNode root = IOUtils.parseJSON(dispatchLogger, contextDefinition);
+        ASTNode root = JSONLDLoader.parseJSON(dispatchLogger, contextDefinition);
         if (!bufferedLogger.getErrorMessages().isEmpty())
             return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
         BaseStoredProcedureContext context = new BaseStoredProcedureContext(root, repository.getStore());

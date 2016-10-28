@@ -18,8 +18,8 @@
 package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Serializable;
+import org.xowl.infra.utils.TextUtils;
 
 /**
  * Represents the current statistics about a file
@@ -127,30 +127,30 @@ public class FileStatistics implements Serializable {
         int loadedBlocks = 0;
         int dirtyBlocks = 0;
         for (ASTNode member : definition.getChildren()) {
-            String name = IOUtils.unescape(member.getChildren().get(0).getValue());
+            String name = TextUtils.unescape(member.getChildren().get(0).getValue());
             name = name.substring(1, name.length() - 1);
             switch (name) {
                 case "fileName":
-                    fileName = IOUtils.unescape(member.getChildren().get(1).getValue());
+                    fileName = TextUtils.unescape(member.getChildren().get(1).getValue());
                     fileName = fileName.substring(1, fileName.length() - 1);
                     break;
                 case "accessesPerSecond": {
-                    String value = IOUtils.unescape(member.getChildren().get(1).getValue());
+                    String value = TextUtils.unescape(member.getChildren().get(1).getValue());
                     accessesPerSecond = Long.parseLong(value);
                     break;
                 }
                 case "accessesContention": {
-                    String value = IOUtils.unescape(member.getChildren().get(1).getValue());
+                    String value = TextUtils.unescape(member.getChildren().get(1).getValue());
                     accessesContention = Long.parseLong(value);
                     break;
                 }
                 case "loadedBlocks": {
-                    String value = IOUtils.unescape(member.getChildren().get(1).getValue());
+                    String value = TextUtils.unescape(member.getChildren().get(1).getValue());
                     loadedBlocks = Integer.parseInt(value);
                     break;
                 }
                 case "dirtyBlocks": {
-                    String value = IOUtils.unescape(member.getChildren().get(1).getValue());
+                    String value = TextUtils.unescape(member.getChildren().get(1).getValue());
                     loadedBlocks = Integer.parseInt(value);
                     break;
                 }
@@ -171,9 +171,9 @@ public class FileStatistics implements Serializable {
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                IOUtils.escapeStringJSON(FileStatistics.class.getCanonicalName()) +
+                TextUtils.escapeStringJSON(FileStatistics.class.getCanonicalName()) +
                 "\", \"fileName\": \"" +
-                IOUtils.escapeStringJSON(fileName) +
+                TextUtils.escapeStringJSON(fileName) +
                 "\", \"accessesPerSecond\": " +
                 Long.toString(accessesPerSecond) +
                 ", \"accessesContention\": " +

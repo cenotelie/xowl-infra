@@ -17,9 +17,9 @@
 
 package org.xowl.infra.store.writers;
 
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
@@ -98,7 +98,7 @@ public abstract class NXSerializer implements RDFSerializer {
         switch (node.getNodeType()) {
             case Node.TYPE_IRI: {
                 writer.write("<");
-                writer.write(IOUtils.escapeAbsoluteURIW3C(((IRINode) node).getIRIValue()));
+                writer.write(TextUtils.escapeAbsoluteURIW3C(((IRINode) node).getIRIValue()));
                 writer.write(">");
                 break;
             }
@@ -110,7 +110,7 @@ public abstract class NXSerializer implements RDFSerializer {
             case Node.TYPE_LITERAL: {
                 LiteralNode literalNode = (LiteralNode) node;
                 writer.write("\"");
-                writer.write(IOUtils.escapeStringW3C(literalNode.getLexicalValue()));
+                writer.write(TextUtils.escapeStringW3C(literalNode.getLexicalValue()));
                 writer.write("\"");
                 String datatype = literalNode.getDatatype();
                 String langTag = literalNode.getLangTag();
@@ -119,7 +119,7 @@ public abstract class NXSerializer implements RDFSerializer {
                     writer.write(langTag);
                 } else if (datatype != null) {
                     writer.write("^^<");
-                    writer.write(IOUtils.escapeAbsoluteURIW3C(datatype));
+                    writer.write(TextUtils.escapeAbsoluteURIW3C(datatype));
                     writer.write(">");
                 }
                 break;

@@ -17,8 +17,8 @@
 
 package org.xowl.infra.server.xsp;
 
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Serializable;
+import org.xowl.infra.utils.TextUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -89,7 +89,7 @@ public class XSPReplyResultCollection<T> implements XSPReply {
                 builder.append(((Serializable) obj).serializedJSON());
             else {
                 builder.append("\"");
-                builder.append(IOUtils.escapeStringJSON(obj.toString()));
+                builder.append(TextUtils.escapeStringJSON(obj.toString()));
                 builder.append("\"");
             }
         }

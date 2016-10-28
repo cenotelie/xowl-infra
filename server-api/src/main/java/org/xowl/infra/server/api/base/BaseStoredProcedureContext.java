@@ -19,9 +19,10 @@ package org.xowl.infra.server.api.base;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLStoredProcedureContext;
-import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.utils.TextUtils;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -71,12 +72,12 @@ public class BaseStoredProcedureContext implements XOWLStoredProcedureContext {
         this.parameters = new HashMap<>();
         for (ASTNode child : root.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
-            String name = IOUtils.unescape(nodeMemberName.getValue());
+            String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             switch (name) {
                 case "defaultIRIs": {
                     for (ASTNode nodeValue : child.getChildren().get(1).getChildren()) {
-                        String value = IOUtils.unescape(nodeValue.getValue());
+                        String value = TextUtils.unescape(nodeValue.getValue());
                         value = value.substring(1, value.length() - 1);
                         defaultIRIs.add(value);
                     }
@@ -84,7 +85,7 @@ public class BaseStoredProcedureContext implements XOWLStoredProcedureContext {
                 }
                 case "namedIRIs": {
                     for (ASTNode nodeValue : child.getChildren().get(1).getChildren()) {
-                        String value = IOUtils.unescape(nodeValue.getValue());
+                        String value = TextUtils.unescape(nodeValue.getValue());
                         value = value.substring(1, value.length() - 1);
                         namedIRIs.add(value);
                     }
@@ -93,9 +94,9 @@ public class BaseStoredProcedureContext implements XOWLStoredProcedureContext {
                 case "parameters": {
                     for (ASTNode nodeMap : child.getChildren().get(1).getChildren()) {
                         ASTNode nodeProperty = nodeMap.getChildren().get(0);
-                        String parameterName = IOUtils.unescape(nodeProperty.getChildren().get(0).getValue());
+                        String parameterName = TextUtils.unescape(nodeProperty.getChildren().get(0).getValue());
                         parameterName = parameterName.substring(1, parameterName.length() - 1);
-                        Node parameterValue = IOUtils.deserializeJSON(nodes, nodeProperty.getChildren().get(1));
+                        Node parameterValue = RDFUtils.deserializeJSON(nodes, nodeProperty.getChildren().get(1));
                         parameters.put(parameterName, parameterValue);
                     }
                     break;
@@ -128,13 +129,13 @@ public class BaseStoredProcedureContext implements XOWLStoredProcedureContext {
     public String serializedJSON() {
         StringWriter buffer = new StringWriter();
         buffer.append("{\"type\": \"");
-        buffer.append(IOUtils.escapeStringJSON(XOWLStoredProcedureContext.class.getCanonicalName()));
+        buffer.append(TextUtils.escapeStringJSON(XOWLStoredProcedureContext.class.getCanonicalName()));
         buffer.append("\", \"defaultIRIs\": [");
         for (int i = 0; i != defaultIRIs.size(); i++) {
             if (i != 0)
                 buffer.append(", ");
             buffer.append("\"");
-            buffer.append(IOUtils.escapeStringJSON(defaultIRIs.get(i)));
+            buffer.append(TextUtils.escapeStringJSON(defaultIRIs.get(i)));
             buffer.append("\"");
         }
         buffer.append("], \"namedIRIs\": [");
@@ -142,7 +143,7 @@ public class BaseStoredProcedureContext implements XOWLStoredProcedureContext {
             if (i != 0)
                 buffer.append(", ");
             buffer.append("\"");
-            buffer.append(IOUtils.escapeStringJSON(namedIRIs.get(i)));
+            buffer.append(TextUtils.escapeStringJSON(namedIRIs.get(i)));
             buffer.append("\"");
         }
         buffer.append("], \"parameters\": [");
@@ -152,10 +153,10 @@ public class BaseStoredProcedureContext implements XOWLStoredProcedureContext {
                 buffer.append(", ");
             }
             buffer.append("{\"");
-            buffer.append(IOUtils.escapeStringJSON(entry.getKey()));
+            buffer.append(TextUtils.escapeStringJSON(entry.getKey()));
             buffer.append("\": ");
             try {
-                IOUtils.serializeJSON(buffer, entry.getValue());
+                RDFUtils.serializeJSON(buffer, entry.getValue());
             } catch (IOException exception) {
                 // cannot happen
             }

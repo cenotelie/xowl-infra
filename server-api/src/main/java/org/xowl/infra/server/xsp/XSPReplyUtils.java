@@ -23,12 +23,12 @@ import org.xowl.hime.redist.ParseResult;
 import org.xowl.infra.server.api.XOWLFactory;
 import org.xowl.infra.server.api.XOWLUtils;
 import org.xowl.infra.store.AbstractRepository;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.loaders.JSONLDLoader;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultUtils;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.cache.CachedNodes;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.HttpResponse;
 import org.xowl.infra.utils.logging.BufferedLogger;
@@ -76,7 +76,7 @@ public class XSPReplyUtils {
         if (reply instanceof XSPReplyResult && ((XSPReplyResult) reply).getData() instanceof Result) {
             // special handling for SPARQL
             Result sparqlResult = (Result) ((XSPReplyResult) reply).getData();
-            String resultType = ResultUtils.coerceContentType(sparqlResult, acceptTypes != null ? IOUtils.httpNegotiateContentType(acceptTypes) : AbstractRepository.SYNTAX_NQUADS);
+            String resultType = ResultUtils.coerceContentType(sparqlResult, acceptTypes != null ? httpNegotiateContentType(acceptTypes) : AbstractRepository.SYNTAX_NQUADS);
             StringWriter writer = new StringWriter();
             try {
                 sparqlResult.print(writer, resultType);
@@ -200,7 +200,7 @@ public class XSPReplyUtils {
         ASTNode nodeCause = null;
         ASTNode nodePayload = null;
         for (ASTNode memberNode : root.getChildren()) {
-            String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
+            String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
             memberName = memberName.substring(1, memberName.length() - 1);
             ASTNode memberValue = memberNode.getChildren().get(1);
             switch (memberName) {
@@ -223,7 +223,7 @@ public class XSPReplyUtils {
             return new XSPReplyFailure("Unexpected JSON format");
         boolean isSuccess = "true".equalsIgnoreCase(nodeIsSuccess.getValue());
         if (!isSuccess && nodeCause != null) {
-            String cause = IOUtils.unescape(nodeCause.getValue());
+            String cause = TextUtils.unescape(nodeCause.getValue());
             cause = cause.substring(1, cause.length() - 1);
             if ("UNAUTHENTICATED".equals(cause))
                 return XSPReplyUnauthenticated.instance();
@@ -236,7 +236,7 @@ public class XSPReplyUtils {
             else if ("NETWORK ERROR".equals(cause)) {
                 String msg = null;
                 if (nodeMessage != null) {
-                    msg = IOUtils.unescape(nodeMessage.getValue());
+                    msg = TextUtils.unescape(nodeMessage.getValue());
                     msg = msg.substring(1, msg.length() - 1);
                 }
                 if (msg == null)
@@ -247,7 +247,7 @@ public class XSPReplyUtils {
         } else if (!isSuccess) {
             if (nodeMessage == null)
                 return new XSPReplyFailure("Unexpected JSON format");
-            String message = IOUtils.unescape(nodeMessage.getValue());
+            String message = TextUtils.unescape(nodeMessage.getValue());
             message = message.substring(1, message.length() - 1);
             return new XSPReplyFailure(message);
         } else {
@@ -264,10 +264,37 @@ public class XSPReplyUtils {
             } else {
                 if (nodeMessage == null)
                     return XSPReplySuccess.instance();
-                String message = IOUtils.unescape(nodeMessage.getValue());
+                String message = TextUtils.unescape(nodeMessage.getValue());
                 message = message.substring(1, message.length() - 1);
                 return new XSPReplySuccess(message);
             }
         }
+    }
+
+    /**
+     * Negotiates the content type from the specified requested ones
+     *
+     * @param contentTypes The requested content types by order of preference
+     * @return The accepted content type
+     */
+    private static String httpNegotiateContentType(List<String> contentTypes) {
+        for (String contentType : contentTypes) {
+            switch (contentType) {
+                // The SPARQL result syntaxes
+                case Result.SYNTAX_CSV:
+                case Result.SYNTAX_TSV:
+                case Result.SYNTAX_XML:
+                case Result.SYNTAX_JSON:
+                    // The RDF syntaxes for quads
+                case AbstractRepository.SYNTAX_NTRIPLES:
+                case AbstractRepository.SYNTAX_NQUADS:
+                case AbstractRepository.SYNTAX_TURTLE:
+                case AbstractRepository.SYNTAX_TRIG:
+                case AbstractRepository.SYNTAX_RDFXML:
+                case AbstractRepository.SYNTAX_JSON_LD:
+                    return contentType;
+            }
+        }
+        return AbstractRepository.SYNTAX_NQUADS;
     }
 }

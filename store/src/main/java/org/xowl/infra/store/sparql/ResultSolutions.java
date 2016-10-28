@@ -17,10 +17,11 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.TextUtils;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -151,7 +152,7 @@ public class ResultSolutions implements Result {
                         case Node.TYPE_LITERAL:
                             LiteralNode lit = (LiteralNode) value;
                             writer.write('"');
-                            writer.write(IOUtils.escapeStringCSV(lit.getLexicalValue()));
+                            writer.write(TextUtils.escapeStringCSV(lit.getLexicalValue()));
                             writer.write('"');
                             break;
                     }
@@ -185,7 +186,7 @@ public class ResultSolutions implements Result {
                     switch (value.getNodeType()) {
                         case Node.TYPE_IRI:
                             writer.write("<");
-                            writer.write(IOUtils.escapeAbsoluteURIW3C(((IRINode) value).getIRIValue()));
+                            writer.write(TextUtils.escapeAbsoluteURIW3C(((IRINode) value).getIRIValue()));
                             writer.write(">");
                             break;
                         case Node.TYPE_BLANK:
@@ -195,7 +196,7 @@ public class ResultSolutions implements Result {
                         case Node.TYPE_LITERAL:
                             LiteralNode lit = (LiteralNode) value;
                             writer.write('"');
-                            writer.write(IOUtils.escapeStringTSV(lit.getLexicalValue()));
+                            writer.write(TextUtils.escapeStringTSV(lit.getLexicalValue()));
                             writer.write('"');
                             if (lit.getLangTag() != null) {
                                 writer.write("@");
@@ -203,12 +204,12 @@ public class ResultSolutions implements Result {
                             } else if (lit.getDatatype() != null) {
                                 String datatype = lit.getDatatype();
                                 if (datatype.startsWith(Vocabulary.xsd)) {
-                                    datatype = "xsd:" + IOUtils.escapeAbsoluteURIW3C(datatype.substring(Vocabulary.xsd.length()));
+                                    datatype = "xsd:" + TextUtils.escapeAbsoluteURIW3C(datatype.substring(Vocabulary.xsd.length()));
                                     writer.write("^^");
                                     writer.write(datatype);
                                 } else {
                                     writer.write("^^<");
-                                    writer.write(IOUtils.escapeAbsoluteURIW3C(datatype));
+                                    writer.write(TextUtils.escapeAbsoluteURIW3C(datatype));
                                     writer.write(">");
                                 }
                             }
@@ -244,7 +245,7 @@ public class ResultSolutions implements Result {
                     writer.write("<binding name=\"");
                     writer.write(variables.get(i).getName());
                     writer.write("\">");
-                    IOUtils.serializeXML(writer, value);
+                    RDFUtils.serializeXML(writer, value);
                     writer.write("</binding>");
                 }
             }
@@ -266,7 +267,7 @@ public class ResultSolutions implements Result {
             if (i != 0)
                 writer.write(", ");
             writer.write("\"");
-            writer.write(IOUtils.escapeStringJSON(variables.get(i).getName()));
+            writer.write(TextUtils.escapeStringJSON(variables.get(i).getName()));
             writer.write("\"");
         }
         writer.write("] }, \"results\": { \"bindings\": [");
@@ -284,9 +285,9 @@ public class ResultSolutions implements Result {
                         writer.write(", ");
                     firstBinding = false;
                     writer.write("\"");
-                    writer.write(IOUtils.escapeStringJSON(variables.get(i).getName()));
+                    writer.write(TextUtils.escapeStringJSON(variables.get(i).getName()));
                     writer.write("\": ");
-                    IOUtils.serializeJSON(writer, value);
+                    RDFUtils.serializeJSON(writer, value);
                 }
             }
             writer.write(" }");

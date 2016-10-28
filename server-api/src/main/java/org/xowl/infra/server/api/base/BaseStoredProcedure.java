@@ -19,10 +19,10 @@ package org.xowl.infra.server.api.base;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.loaders.SPARQLLoader;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.StringReader;
@@ -82,24 +82,24 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
         this.parameters = new ArrayList<>();
         for (ASTNode child : root.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
-            String name = IOUtils.unescape(nodeMemberName.getValue());
+            String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             switch (name) {
                 case "name": {
                     ASTNode nodeValue = child.getChildren().get(1);
-                    vName = IOUtils.unescape(nodeValue.getValue());
+                    vName = TextUtils.unescape(nodeValue.getValue());
                     vName = vName.substring(1, vName.length() - 1);
                     break;
                 }
                 case "definition": {
                     ASTNode nodeValue = child.getChildren().get(1);
-                    vDef = IOUtils.unescape(nodeValue.getValue());
+                    vDef = TextUtils.unescape(nodeValue.getValue());
                     vDef = vDef.substring(1, vDef.length() - 1);
                     break;
                 }
                 case "parameters": {
                     for (ASTNode nodeValue : child.getChildren().get(1).getChildren()) {
-                        String value = IOUtils.unescape(nodeValue.getValue());
+                        String value = TextUtils.unescape(nodeValue.getValue());
                         value = value.substring(1, value.length() - 1);
                         parameters.add(value);
                     }
@@ -150,17 +150,17 @@ public class BaseStoredProcedure implements XOWLStoredProcedure {
     public String serializedJSON() {
         StringBuilder buffer = new StringBuilder();
         buffer.append("{\"type\": \"");
-        buffer.append(IOUtils.escapeStringJSON(XOWLStoredProcedure.class.getCanonicalName()));
+        buffer.append(TextUtils.escapeStringJSON(XOWLStoredProcedure.class.getCanonicalName()));
         buffer.append("\", \"name\": \"");
-        buffer.append(IOUtils.escapeStringJSON(name));
+        buffer.append(TextUtils.escapeStringJSON(name));
         buffer.append("\", \"definition\": \"");
-        buffer.append(IOUtils.escapeStringJSON(definition));
+        buffer.append(TextUtils.escapeStringJSON(definition));
         buffer.append("\", \"parameters\": [");
         for (int i = 0; i != parameters.size(); i++) {
             if (i != 0)
                 buffer.append(", ");
             buffer.append("\"");
-            buffer.append(IOUtils.escapeStringJSON(parameters.get(i)));
+            buffer.append(TextUtils.escapeStringJSON(parameters.get(i)));
             buffer.append("\"");
         }
         buffer.append("]}");

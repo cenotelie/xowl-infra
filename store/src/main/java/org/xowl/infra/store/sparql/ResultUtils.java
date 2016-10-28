@@ -21,8 +21,8 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.infra.store.AbstractRepository;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.IRIs;
+import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
@@ -30,6 +30,7 @@ import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.cache.CachedNodes;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.BufferedLogger;
@@ -205,7 +206,7 @@ public class ResultUtils {
         ASTNode nodeBoolean = null;
         ASTNode nodeError = null;
         for (ASTNode memberNode : nodeRoot.getChildren()) {
-            String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
+            String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
             memberName = memberName.substring(1, memberName.length() - 1);
             ASTNode memberValue = memberNode.getChildren().get(1);
             switch (memberName) {
@@ -230,7 +231,7 @@ public class ResultUtils {
                 return new ResultFailure("Unexpected JSON format");
             ASTNode nodeVars = null;
             for (ASTNode memberNode : nodeHead.getChildren()) {
-                String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
+                String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
                 memberName = memberName.substring(1, memberName.length() - 1);
                 ASTNode memberValue = memberNode.getChildren().get(1);
                 if ("vars".equals(memberName)) {
@@ -242,13 +243,13 @@ public class ResultUtils {
                 return new ResultFailure("Unexpected JSON format");
             Map<String, VariableNode> variables = new HashMap<>();
             for (ASTNode nodeVariable : nodeVars.getChildren()) {
-                String name = IOUtils.unescape(nodeVariable.getValue());
+                String name = TextUtils.unescape(nodeVariable.getValue());
                 name = name.substring(1, name.length() - 1);
                 variables.put(name, new VariableNode(name));
             }
             ASTNode nodeBindings = null;
             for (ASTNode memberNode : nodeResults.getChildren()) {
-                String memberName = IOUtils.unescape(memberNode.getChildren().get(0).getValue());
+                String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
                 memberName = memberName.substring(1, memberName.length() - 1);
                 ASTNode memberValue = memberNode.getChildren().get(1);
                 if ("bindings".equals(memberName)) {
@@ -264,7 +265,7 @@ public class ResultUtils {
                 for (ASTNode nodeBinding : nodeSolution.getChildren()) {
                     String varName = nodeBinding.getChildren().get(0).getValue();
                     VariableNode variable = variables.get(varName.substring(1, varName.length() - 1));
-                    Node value = IOUtils.deserializeJSON(nodeManager, nodeBinding.getChildren().get(1));
+                    Node value = RDFUtils.deserializeJSON(nodeManager, nodeBinding.getChildren().get(1));
                     bindings.add(new Couple<>(variable, value));
                 }
                 solutions.add(new RDFPatternSolution(bindings));
@@ -272,12 +273,12 @@ public class ResultUtils {
             return new ResultSolutions(solutions);
         } else if (nodeError != null) {
             // this is an error
-            String error = IOUtils.unescape(nodeError.getValue());
+            String error = TextUtils.unescape(nodeError.getValue());
             error = error.substring(1, error.length() - 1);
             return new ResultFailure(error);
         } else if (nodeBoolean != null) {
             // this is a boolean value
-            String value = IOUtils.unescape(nodeBoolean.getValue());
+            String value = TextUtils.unescape(nodeBoolean.getValue());
             value = value.substring(1, value.length() - 1);
             return new ResultYesNo(value.equalsIgnoreCase("true"));
         } else {

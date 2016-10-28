@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store;
+package org.xowl.infra.utils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,23 +25,23 @@ import org.junit.Test;
  *
  * @author Laurent Wouters
  */
-public class IOUtilsTest {
+public class Base64Test {
 
     @Test
     public void testEncodeBase64() {
-        Assert.assertEquals("YW55IGNhcm5hbCBwbGVhc3VyZS4=", IOUtils.encodeBase64("any carnal pleasure."));
-        Assert.assertEquals("YW55IGNhcm5hbCBwbGVhc3VyZQ==", IOUtils.encodeBase64("any carnal pleasure"));
-        Assert.assertEquals("YW55IGNhcm5hbCBwbGVhc3Vy", IOUtils.encodeBase64("any carnal pleasur"));
-        Assert.assertEquals("YW55IGNhcm5hbCBwbGVhc3U=", IOUtils.encodeBase64("any carnal pleasu"));
-        Assert.assertEquals("YW55IGNhcm5hbCBwbGVhcw==", IOUtils.encodeBase64("any carnal pleas"));
+        Assert.assertEquals("YW55IGNhcm5hbCBwbGVhc3VyZS4=", Base64.encodeBase64("any carnal pleasure."));
+        Assert.assertEquals("YW55IGNhcm5hbCBwbGVhc3VyZQ==", Base64.encodeBase64("any carnal pleasure"));
+        Assert.assertEquals("YW55IGNhcm5hbCBwbGVhc3Vy", Base64.encodeBase64("any carnal pleasur"));
+        Assert.assertEquals("YW55IGNhcm5hbCBwbGVhc3U=", Base64.encodeBase64("any carnal pleasu"));
+        Assert.assertEquals("YW55IGNhcm5hbCBwbGVhcw==", Base64.encodeBase64("any carnal pleas"));
     }
 
     @Test
     public void testDecodeBase64() {
-        Assert.assertEquals("any carnal pleasure.", IOUtils.decodeBase64("YW55IGNhcm5hbCBwbGVhc3VyZS4="));
-        Assert.assertEquals("any carnal pleasure", IOUtils.decodeBase64("YW55IGNhcm5hbCBwbGVhc3VyZQ=="));
-        Assert.assertEquals("any carnal pleasur", IOUtils.decodeBase64("YW55IGNhcm5hbCBwbGVhc3Vy"));
-        Assert.assertEquals("any carnal pleasu", IOUtils.decodeBase64("YW55IGNhcm5hbCBwbGVhc3U="));
-        Assert.assertEquals("any carnal pleas", IOUtils.decodeBase64("YW55IGNhcm5hbCBwbGVhcw=="));
+        Assert.assertEquals("any carnal pleasure.", Base64.decodeBase64("YW55IGNhcm5hbCBwbGVhc3VyZS4="));
+        Assert.assertEquals("any carnal pleasure", Base64.decodeBase64("YW55IGNhcm5hbCBwbGVhc3VyZQ=="));
+        Assert.assertEquals("any carnal pleasur", Base64.decodeBase64("YW55IGNhcm5hbCBwbGVhc3Vy"));
+        Assert.assertEquals("any carnal pleasu", Base64.decodeBase64("YW55IGNhcm5hbCBwbGVhc3U="));
+        Assert.assertEquals("any carnal pleas", Base64.decodeBase64("YW55IGNhcm5hbCBwbGVhcw=="));
     }
 }

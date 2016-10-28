@@ -22,13 +22,13 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.infra.store.Datatypes;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logger;
@@ -272,7 +272,7 @@ public class SPARQLLoader {
         String prefix = node.getChildren().get(0).getValue();
         String uri = node.getChildren().get(1).getValue();
         prefix = prefix.substring(0, prefix.length() - 1);
-        uri = IOUtils.unescape(uri.substring(1, uri.length() - 1));
+        uri = TextUtils.unescape(uri.substring(1, uri.length() - 1));
         namespaces.put(prefix, uri);
     }
 
@@ -283,7 +283,7 @@ public class SPARQLLoader {
      */
     private void loadBase(ASTNode node) {
         String value = node.getChildren().get(0).getValue();
-        value = IOUtils.unescape(value.substring(1, value.length() - 1));
+        value = TextUtils.unescape(value.substring(1, value.length() - 1));
         baseURI = URIUtils.resolveRelative(baseURI, value);
     }
 
@@ -1316,13 +1316,13 @@ public class SPARQLLoader {
                 case SPARQLLexer.ID.STRING_LITERAL_QUOTE:
                     separator = childString.getValue();
                     separator = separator.substring(1, separator.length() - 1);
-                    separator = IOUtils.unescape(separator);
+                    separator = TextUtils.unescape(separator);
                     break;
                 case SPARQLLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
                 case SPARQLLexer.ID.STRING_LITERAL_LONG_QUOTE:
                     separator = childString.getValue();
                     separator = separator.substring(3, separator.length() - 3);
-                    separator = IOUtils.unescape(separator);
+                    separator = TextUtils.unescape(separator);
                     break;
             }
         }
@@ -1620,7 +1620,7 @@ public class SPARQLLoader {
      */
     private IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getValue();
-        value = IOUtils.unescape(value.substring(1, value.length() - 1));
+        value = TextUtils.unescape(value.substring(1, value.length() - 1));
         return store.getIRINode(URIUtils.resolveRelative(baseURI, value));
     }
 
@@ -1643,7 +1643,7 @@ public class SPARQLLoader {
      */
     private IRINode getNodePNameNS(ASTNode node) {
         String value = node.getValue();
-        value = IOUtils.unescape(value.substring(0, value.length() - 1));
+        value = TextUtils.unescape(value.substring(0, value.length() - 1));
         value = namespaces.get(value);
         return store.getIRINode(value);
     }
@@ -1656,7 +1656,7 @@ public class SPARQLLoader {
      * @return The equivalent full IRI
      */
     private String getIRIForLocalName(ASTNode node, String value) throws LoaderException {
-        value = IOUtils.unescape(value);
+        value = TextUtils.unescape(value);
         int index = 0;
         while (index != value.length()) {
             if (value.charAt(index) == ':') {
@@ -1664,7 +1664,7 @@ public class SPARQLLoader {
                 String uri = namespaces.get(prefix);
                 if (uri != null) {
                     String name = value.substring(index + 1);
-                    return URIUtils.resolveRelative(baseURI, IOUtils.unescape(uri + name));
+                    return URIUtils.resolveRelative(baseURI, TextUtils.unescape(uri + name));
                 }
             }
             index++;
@@ -1681,7 +1681,7 @@ public class SPARQLLoader {
      */
     private Node getNodeBlank(SPARQLContext context, ASTNode node) {
         String value = node.getValue();
-        value = IOUtils.unescape(value.substring(2));
+        value = TextUtils.unescape(value.substring(2));
         return context.resolveBlankNode(value);
     }
 
@@ -1776,13 +1776,13 @@ public class SPARQLLoader {
             case SPARQLLexer.ID.STRING_LITERAL_QUOTE:
                 value = childString.getValue();
                 value = value.substring(1, value.length() - 1);
-                value = IOUtils.unescape(value);
+                value = TextUtils.unescape(value);
                 break;
             case SPARQLLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
             case SPARQLLexer.ID.STRING_LITERAL_LONG_QUOTE:
                 value = childString.getValue();
                 value = value.substring(3, value.length() - 3);
-                value = IOUtils.unescape(value);
+                value = TextUtils.unescape(value);
                 break;
         }
 
@@ -1798,7 +1798,7 @@ public class SPARQLLoader {
         } else if (suffixChild.getSymbol().getID() == SPARQLLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getValue();
-            iri = IOUtils.unescape(iri.substring(1, iri.length() - 1));
+            iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
             return store.getLiteralNode(value, URIUtils.resolveRelative(baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == SPARQLLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
@@ -1807,7 +1807,7 @@ public class SPARQLLoader {
         } else if (suffixChild.getSymbol().getID() == SPARQLLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getValue();
-            ns = IOUtils.unescape(ns.substring(0, ns.length() - 1));
+            ns = TextUtils.unescape(ns.substring(0, ns.length() - 1));
             ns = namespaces.get(ns);
             return store.getLiteralNode(value, ns, null);
         }

@@ -17,11 +17,11 @@
 
 package org.xowl.infra.store.writers;
 
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -98,9 +98,9 @@ public class JSONLDSerializer extends StructuredSerializer {
                 writer.write(", ");
             first = false;
             writer.write("\"");
-            writer.write(IOUtils.escapeStringJSON(entry.getValue()));
+            writer.write(TextUtils.escapeStringJSON(entry.getValue()));
             writer.write("\": \"");
-            writer.write(IOUtils.escapeStringJSON(entry.getKey()));
+            writer.write(TextUtils.escapeStringJSON(entry.getKey()));
             writer.write("\"");
         }
         writer.write("}");
@@ -121,7 +121,7 @@ public class JSONLDSerializer extends StructuredSerializer {
         if (graph.getNodeType() == Node.TYPE_IRI) {
             String iri = ((IRINode) graph).getIRIValue();
             String shortName = getShortName(iri);
-            writer.write(IOUtils.escapeStringJSON(shortName != null ? shortName : iri));
+            writer.write(TextUtils.escapeStringJSON(shortName != null ? shortName : iri));
         } else {
             int id = getBlankID((BlankNode) graph);
             writer.write("_:" + Integer.toString(id));
@@ -149,7 +149,7 @@ public class JSONLDSerializer extends StructuredSerializer {
             if (entry.getKey().getNodeType() == Node.TYPE_IRI) {
                 String iri = ((IRINode) entry.getKey()).getIRIValue();
                 String shortName = getShortName(iri);
-                writer.write(IOUtils.escapeStringJSON(shortName != null ? shortName : iri));
+                writer.write(TextUtils.escapeStringJSON(shortName != null ? shortName : iri));
             } else {
                 int id = getBlankID((BlankNode) entry.getKey());
                 writer.write("_:" + Integer.toString(id));
@@ -201,7 +201,7 @@ public class JSONLDSerializer extends StructuredSerializer {
         } else {
             writer.write("\"");
             String shortName = getShortName(iri);
-            writer.write(IOUtils.escapeStringJSON(shortName != null ? shortName : iri));
+            writer.write(TextUtils.escapeStringJSON(shortName != null ? shortName : iri));
             writer.write("\": ");
         }
 
@@ -232,7 +232,7 @@ public class JSONLDSerializer extends StructuredSerializer {
                 String iri = ((IRINode) node).getIRIValue();
                 String shortName = getShortName(iri);
                 writer.write("{\"@id\": \"");
-                writer.write(IOUtils.escapeStringJSON(shortName != null ? shortName : iri));
+                writer.write(TextUtils.escapeStringJSON(shortName != null ? shortName : iri));
                 writer.write("\"}");
                 break;
             }
@@ -249,20 +249,20 @@ public class JSONLDSerializer extends StructuredSerializer {
                 String langTag = literalNode.getLangTag();
                 if (langTag != null) {
                     writer.write("{\"@value\": \"");
-                    writer.write(IOUtils.escapeStringJSON(lexical));
+                    writer.write(TextUtils.escapeStringJSON(lexical));
                     writer.write("\", \"@language\": \"");
-                    writer.write(IOUtils.escapeStringJSON(langTag));
+                    writer.write(TextUtils.escapeStringJSON(langTag));
                     writer.write("\"}");
                 } else if (datatype != null && !Vocabulary.xsdString.equals(datatype)) {
                     String compact = getShortName(datatype);
                     writer.write("{\"@value\": \"");
-                    writer.write(IOUtils.escapeStringJSON(lexical));
+                    writer.write(TextUtils.escapeStringJSON(lexical));
                     writer.write("\", \"@type\": \"");
-                    writer.write(IOUtils.escapeStringJSON(compact != null ? compact : datatype));
+                    writer.write(TextUtils.escapeStringJSON(compact != null ? compact : datatype));
                     writer.write("\"}");
                 } else {
                     writer.write("\"");
-                    writer.write(IOUtils.escapeStringJSON(lexical));
+                    writer.write(TextUtils.escapeStringJSON(lexical));
                     writer.write("\"");
                 }
                 break;

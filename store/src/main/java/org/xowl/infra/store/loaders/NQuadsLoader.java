@@ -21,11 +21,11 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -148,7 +148,7 @@ public class NQuadsLoader implements Loader {
      */
     private Node translateIRIREF(ASTNode node) throws LoaderException {
         String value = node.getValue();
-        value = IOUtils.unescape(value.substring(1, value.length() - 1));
+        value = TextUtils.unescape(value.substring(1, value.length() - 1));
         if (!URIUtils.isAbsolute(value))
             throw new LoaderException("IRI must be absolute", node);
         return store.getIRINode(value);
@@ -179,14 +179,14 @@ public class NQuadsLoader implements Loader {
      */
     private Node translateLiteral(ASTNode node) throws LoaderException {
         String value = node.getValue();
-        value = IOUtils.unescape(value.substring(1, value.length() - 1));
+        value = TextUtils.unescape(value.substring(1, value.length() - 1));
         if (node.getChildren().size() == 0) {
             return store.getLiteralNode(value, Vocabulary.xsdString, null);
         }
         ASTNode child = node.getChildren().get(0);
         if (child.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
             String type = child.getValue();
-            type = IOUtils.unescape(type.substring(1, type.length() - 1));
+            type = TextUtils.unescape(type.substring(1, type.length() - 1));
             if (!URIUtils.isAbsolute(type))
                 throw new LoaderException("IRI must be absolute", node);
             return store.getLiteralNode(value, type, null);
@@ -207,7 +207,7 @@ public class NQuadsLoader implements Loader {
     private GraphNode translateGraphLabel(ASTNode node) throws LoaderException {
         if (node.getSymbol().getID() == NTriplesLexer.ID.IRIREF) {
             String value = node.getValue();
-            value = IOUtils.unescape(value.substring(1, value.length() - 1));
+            value = TextUtils.unescape(value.substring(1, value.length() - 1));
             if (!URIUtils.isAbsolute(value))
                 throw new LoaderException("IRI must be absolute", node);
             return store.getIRINode(value);

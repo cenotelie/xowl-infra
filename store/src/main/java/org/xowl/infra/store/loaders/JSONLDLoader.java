@@ -21,17 +21,18 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.*;
 
 /**
@@ -133,7 +134,7 @@ public abstract class JSONLDLoader implements Loader {
             case JSONLDLexer.ID.LITERAL_STRING:
                 String value = node.getValue();
                 value = value.substring(1, value.length() - 1);
-                return IOUtils.unescape(value);
+                return TextUtils.unescape(value);
             case JSONLDLexer.ID.LITERAL_NULL:
                 return null;
             case JSONLDLexer.ID.LITERAL_TRUE:
@@ -145,6 +146,30 @@ public abstract class JSONLDLoader implements Loader {
         }
     }
 
+    /**
+     * Parses the JSON content
+     *
+     * @param logger  The logger to use
+     * @param content The content to parse
+     * @return The AST root node, or null of the parsing failed
+     */
+    public static ASTNode parseJSON(Logger logger, String content) {
+        JSONLDLoader loader = new JSONLDLoader(null) {
+            @Override
+            protected Reader getReaderFor(Logger logger, String iri) {
+                return null;
+            }
+        };
+        ParseResult result = loader.parse(logger, new StringReader(content));
+        if (result == null)
+            return null;
+        if (!result.getErrors().isEmpty()) {
+            for (ParseError error : result.getErrors())
+                logger.error(error);
+            return null;
+        }
+        return result.getRoot();
+    }
 
     /**
      * The RDF store to create nodes from

@@ -20,8 +20,8 @@ package org.xowl.infra.store.loaders;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Adapter;
 import org.xowl.infra.utils.collections.AdaptingIterator;
 import org.xowl.infra.utils.collections.Couple;
@@ -296,7 +296,7 @@ class XMLElement implements Iterable<XMLElement> {
      */
     private String resolveLocalName(String localName) {
         XMLElement current = this;
-        localName = IOUtils.unescape(localName);
+        localName = TextUtils.unescape(localName);
         if (!localName.contains(":"))
             return currentNamespace + localName;
         while (current != null) {
@@ -307,7 +307,7 @@ class XMLElement implements Iterable<XMLElement> {
                     String uri = current.namespaces.get(prefix);
                     if (uri != null) {
                         String name = localName.substring(index + 1);
-                        return URIUtils.resolveRelative(baseURI, IOUtils.unescape(uri + name));
+                        return URIUtils.resolveRelative(baseURI, TextUtils.unescape(uri + name));
                     }
                 }
                 index++;
@@ -324,7 +324,7 @@ class XMLElement implements Iterable<XMLElement> {
      * @return The resolved and normalized IRI
      */
     public String resolve(String iri) {
-        return URIUtils.resolveRelative(baseURI != null ? baseURI : resource, IOUtils.unescape(iri));
+        return URIUtils.resolveRelative(baseURI != null ? baseURI : resource, TextUtils.unescape(iri));
     }
 
     /**

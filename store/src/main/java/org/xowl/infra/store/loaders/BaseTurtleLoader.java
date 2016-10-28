@@ -22,10 +22,10 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.hime.redist.parsers.BaseLRParser;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -173,7 +173,7 @@ public abstract class BaseTurtleLoader implements Loader {
         String prefix = node.getChildren().get(0).getValue();
         String uri = node.getChildren().get(1).getValue();
         prefix = prefix.substring(0, prefix.length() - 1);
-        uri = IOUtils.unescape(uri.substring(1, uri.length() - 1));
+        uri = TextUtils.unescape(uri.substring(1, uri.length() - 1));
         namespaces.put(prefix, uri);
     }
 
@@ -184,7 +184,7 @@ public abstract class BaseTurtleLoader implements Loader {
      */
     protected void loadBase(ASTNode node) {
         String value = node.getChildren().get(0).getValue();
-        value = IOUtils.unescape(value.substring(1, value.length() - 1));
+        value = TextUtils.unescape(value.substring(1, value.length() - 1));
         baseURI = URIUtils.resolveRelative(baseURI, value);
     }
 
@@ -264,7 +264,7 @@ public abstract class BaseTurtleLoader implements Loader {
      */
     protected IRINode getNodeIRIRef(ASTNode node) {
         String value = node.getValue();
-        value = IOUtils.unescape(value.substring(1, value.length() - 1));
+        value = TextUtils.unescape(value.substring(1, value.length() - 1));
         return store.getIRINode(URIUtils.resolveRelative(baseURI, value));
     }
 
@@ -287,7 +287,7 @@ public abstract class BaseTurtleLoader implements Loader {
      */
     protected IRINode getNodePNameNS(ASTNode node) {
         String value = node.getValue();
-        value = IOUtils.unescape(value.substring(0, value.length() - 1));
+        value = TextUtils.unescape(value.substring(0, value.length() - 1));
         value = namespaces.get(value);
         return store.getIRINode(value);
     }
@@ -300,7 +300,7 @@ public abstract class BaseTurtleLoader implements Loader {
      */
     protected BlankNode getNodeBlank(ASTNode node) {
         String value = node.getValue();
-        value = IOUtils.unescape(value.substring(2));
+        value = TextUtils.unescape(value.substring(2));
         BlankNode blank = blanks.get(value);
         if (blank != null)
             return blank;
@@ -388,13 +388,13 @@ public abstract class BaseTurtleLoader implements Loader {
             case TurtleLexer.ID.STRING_LITERAL_QUOTE:
                 value = childString.getValue();
                 value = value.substring(1, value.length() - 1);
-                value = IOUtils.unescape(value);
+                value = TextUtils.unescape(value);
                 break;
             case TurtleLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
             case TurtleLexer.ID.STRING_LITERAL_LONG_QUOTE:
                 value = childString.getValue();
                 value = value.substring(3, value.length() - 3);
-                value = IOUtils.unescape(value);
+                value = TextUtils.unescape(value);
                 break;
         }
 
@@ -410,7 +410,7 @@ public abstract class BaseTurtleLoader implements Loader {
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getValue();
-            iri = IOUtils.unescape(iri.substring(1, iri.length() - 1));
+            iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
             return store.getLiteralNode(value, URIUtils.resolveRelative(baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
@@ -419,7 +419,7 @@ public abstract class BaseTurtleLoader implements Loader {
         } else if (suffixChild.getSymbol().getID() == TurtleLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getValue();
-            ns = IOUtils.unescape(ns.substring(0, ns.length() - 1));
+            ns = TextUtils.unescape(ns.substring(0, ns.length() - 1));
             ns = namespaces.get(ns);
             return store.getLiteralNode(value, ns, null);
         }
@@ -471,7 +471,7 @@ public abstract class BaseTurtleLoader implements Loader {
      * @return The equivalent full IRI
      */
     protected String getIRIForLocalName(ASTNode node, String value) throws LoaderException {
-        value = IOUtils.unescape(value);
+        value = TextUtils.unescape(value);
         int index = 0;
         while (index != value.length()) {
             if (value.charAt(index) == ':') {

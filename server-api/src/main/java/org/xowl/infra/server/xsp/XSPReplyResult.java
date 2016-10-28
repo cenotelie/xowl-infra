@@ -17,8 +17,8 @@
 
 package org.xowl.infra.server.xsp;
 
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Serializable;
+import org.xowl.infra.utils.TextUtils;
 
 /**
  * Implements a successful reply to a xOWL server request with an object of type T as a response
@@ -71,6 +71,6 @@ public class XSPReplyResult<T> implements XSPReply {
             return "{ \"isSuccess\": false, \"message\": \"NO DATA\", \"payload\": \"\" }";
         if (data instanceof Serializable)
             return "{ \"isSuccess\": true, \"message\": \"\", \"payload\": " + ((Serializable) data).serializedJSON() + " }";
-        return "{ \"isSuccess\": true, \"message\": \"\", \"payload\": \"" + IOUtils.escapeStringJSON(data.toString()) + "\" }";
+        return "{ \"isSuccess\": true, \"message\": \"\", \"payload\": \"" + TextUtils.escapeStringJSON(data.toString()) + "\" }";
     }
 }

@@ -19,7 +19,7 @@ package org.xowl.infra.server.api.base;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLUser;
-import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.utils.TextUtils;
 
 /**
  * Base implementation of a user
@@ -50,11 +50,11 @@ public class BaseUser implements XOWLUser {
         String value = null;
         for (ASTNode child : root.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
-            String name = IOUtils.unescape(nodeMemberName.getValue());
+            String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             if (name.equals("name")) {
                 ASTNode nodeValue = child.getChildren().get(1);
-                value = IOUtils.unescape(nodeValue.getValue());
+                value = TextUtils.unescape(nodeValue.getValue());
                 value = value.substring(1, value.length() - 1);
             }
         }
@@ -73,7 +73,7 @@ public class BaseUser implements XOWLUser {
 
     @Override
     public String serializedJSON() {
-        return "{\"type\": \"" + IOUtils.escapeStringJSON(XOWLUser.class.getCanonicalName()) + "\", \"name\": \"" + IOUtils.escapeStringJSON(getName()) + "\"}";
+        return "{\"type\": \"" + TextUtils.escapeStringJSON(XOWLUser.class.getCanonicalName()) + "\", \"name\": \"" + TextUtils.escapeStringJSON(getName()) + "\"}";
     }
 
     @Override

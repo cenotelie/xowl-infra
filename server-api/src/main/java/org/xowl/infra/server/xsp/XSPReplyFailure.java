@@ -17,7 +17,7 @@
 
 package org.xowl.infra.server.xsp;
 
-import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.utils.TextUtils;
 
 /**
  * Implements a reply to a xOWL server protocol request when the request failed
@@ -72,6 +72,6 @@ public class XSPReplyFailure implements XSPReply {
 
     @Override
     public String serializedJSON() {
-        return "{ \"isSuccess\": false, \"message\": \"" + (message == null ? "" : IOUtils.escapeStringJSON(message)) + "\" }";
+        return "{ \"isSuccess\": false, \"message\": \"" + (message == null ? "" : TextUtils.escapeStringJSON(message)) + "\" }";
     }
 }

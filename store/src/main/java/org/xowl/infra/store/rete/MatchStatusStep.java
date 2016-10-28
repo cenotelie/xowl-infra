@@ -16,11 +16,12 @@
  ******************************************************************************/
 package org.xowl.infra.store.rete;
 
-import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.VariableNode;
+import org.xowl.infra.utils.TextUtils;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -89,13 +90,13 @@ public class MatchStatusStep {
      */
     public void printJSON(Writer writer) throws IOException {
         writer.write("{ \"pattern\": { \"subject\": ");
-        IOUtils.serializeJSON(writer, pattern.getSubject());
+        RDFUtils.serializeJSON(writer, pattern.getSubject());
         writer.write(", \"property\": ");
-        IOUtils.serializeJSON(writer, pattern.getProperty());
+        RDFUtils.serializeJSON(writer, pattern.getProperty());
         writer.write(", \"object\": ");
-        IOUtils.serializeJSON(writer, pattern.getObject());
+        RDFUtils.serializeJSON(writer, pattern.getObject());
         writer.write(", \"graph\": ");
-        IOUtils.serializeJSON(writer, pattern.getGraph());
+        RDFUtils.serializeJSON(writer, pattern.getGraph());
         writer.write("}, \"bindings\": [");
         boolean firstSolution = true;
         for (RDFPatternSolution solution : bindings) {
@@ -111,9 +112,9 @@ public class MatchStatusStep {
                         writer.write(", ");
                     firstBinding = false;
                     writer.write("\"");
-                    writer.write(IOUtils.escapeStringJSON(variable.getName()));
+                    writer.write(TextUtils.escapeStringJSON(variable.getName()));
                     writer.write("\": ");
-                    IOUtils.serializeJSON(writer, value);
+                    RDFUtils.serializeJSON(writer, value);
                 }
             }
             writer.write("}");

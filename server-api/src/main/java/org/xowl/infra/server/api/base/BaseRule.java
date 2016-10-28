@@ -19,7 +19,7 @@ package org.xowl.infra.server.api.base;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;
-import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.utils.TextUtils;
 
 /**
  * The base implementation of a rule
@@ -64,24 +64,24 @@ public class BaseRule implements XOWLRule {
         boolean vActive = false;
         for (ASTNode child : root.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
-            String name = IOUtils.unescape(nodeMemberName.getValue());
+            String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             switch (name) {
                 case "name": {
                     ASTNode nodeValue = child.getChildren().get(1);
-                    vName = IOUtils.unescape(nodeValue.getValue());
+                    vName = TextUtils.unescape(nodeValue.getValue());
                     vName = vName.substring(1, vName.length() - 1);
                     break;
                 }
                 case "definition": {
                     ASTNode nodeValue = child.getChildren().get(1);
-                    vDef = IOUtils.unescape(nodeValue.getValue());
+                    vDef = TextUtils.unescape(nodeValue.getValue());
                     vDef = vDef.substring(1, vDef.length() - 1);
                     break;
                 }
                 case "isActive": {
                     ASTNode nodeValue = child.getChildren().get(1);
-                    String value = IOUtils.unescape(nodeValue.getValue());
+                    String value = TextUtils.unescape(nodeValue.getValue());
                     vActive = value.equalsIgnoreCase("true");
                     break;
                 }
@@ -115,11 +115,11 @@ public class BaseRule implements XOWLRule {
     @Override
     public String serializedJSON() {
         return "{\"type\": \"" +
-                IOUtils.escapeStringJSON(XOWLRule.class.getCanonicalName()) +
+                TextUtils.escapeStringJSON(XOWLRule.class.getCanonicalName()) +
                 "\", \"name\": \"" +
-                IOUtils.escapeStringJSON(name) +
+                TextUtils.escapeStringJSON(name) +
                 "\", \"definition\": \"" +
-                IOUtils.escapeStringJSON(definition) +
+                TextUtils.escapeStringJSON(definition) +
                 "\", \"isActive\": " +
                 Boolean.toString(isActive) +
                 "}";

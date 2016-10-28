@@ -19,11 +19,11 @@ package org.xowl.infra.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.parsers.BaseLRParser;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.http.URIUtils;
 
 import java.io.IOException;
@@ -169,13 +169,13 @@ public class TriGLoader extends BaseTurtleLoader {
             case TriGLexer.ID.STRING_LITERAL_QUOTE:
                 value = childString.getValue();
                 value = value.substring(1, value.length() - 1);
-                value = IOUtils.unescape(value);
+                value = TextUtils.unescape(value);
                 break;
             case TriGLexer.ID.STRING_LITERAL_LONG_SINGLE_QUOTE:
             case TriGLexer.ID.STRING_LITERAL_LONG_QUOTE:
                 value = childString.getValue();
                 value = value.substring(3, value.length() - 3);
-                value = IOUtils.unescape(value);
+                value = TextUtils.unescape(value);
                 break;
         }
 
@@ -191,7 +191,7 @@ public class TriGLoader extends BaseTurtleLoader {
         } else if (suffixChild.getSymbol().getID() == TriGLexer.ID.IRIREF) {
             // Datatype is specified with an IRI
             String iri = suffixChild.getValue();
-            iri = IOUtils.unescape(iri.substring(1, iri.length() - 1));
+            iri = TextUtils.unescape(iri.substring(1, iri.length() - 1));
             return store.getLiteralNode(value, URIUtils.resolveRelative(baseURI, iri), null);
         } else if (suffixChild.getSymbol().getID() == TriGLexer.ID.PNAME_LN) {
             // Datatype is specified with a local name
@@ -200,7 +200,7 @@ public class TriGLoader extends BaseTurtleLoader {
         } else if (suffixChild.getSymbol().getID() == TriGLexer.ID.PNAME_NS) {
             // Datatype is specified with a namespace
             String ns = suffixChild.getValue();
-            ns = IOUtils.unescape(ns.substring(0, ns.length() - 1));
+            ns = TextUtils.unescape(ns.substring(0, ns.length() - 1));
             ns = namespaces.get(ns);
             return store.getLiteralNode(value, ns, null);
         }

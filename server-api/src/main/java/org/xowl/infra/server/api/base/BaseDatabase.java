@@ -25,9 +25,9 @@ import org.xowl.infra.server.api.XOWLStoredProcedureContext;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyFailure;
 import org.xowl.infra.store.EntailmentRegime;
-import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
+import org.xowl.infra.utils.TextUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -61,11 +61,11 @@ public class BaseDatabase implements XOWLDatabase {
         String value = null;
         for (ASTNode child : root.getChildren()) {
             ASTNode nodeMemberName = child.getChildren().get(0);
-            String name = IOUtils.unescape(nodeMemberName.getValue());
+            String name = TextUtils.unescape(nodeMemberName.getValue());
             name = name.substring(1, name.length() - 1);
             if (name.equals("name")) {
                 ASTNode nodeValue = child.getChildren().get(1);
-                value = IOUtils.unescape(nodeValue.getValue());
+                value = TextUtils.unescape(nodeValue.getValue());
                 value = value.substring(1, value.length() - 1);
             }
         }
@@ -179,7 +179,7 @@ public class BaseDatabase implements XOWLDatabase {
 
     @Override
     public String serializedJSON() {
-        return "{\"type\": \"" + IOUtils.escapeStringJSON(XOWLDatabase.class.getCanonicalName()) + "\", \"name\": \"" + IOUtils.escapeStringJSON(getName()) + "\"}";
+        return "{\"type\": \"" + TextUtils.escapeStringJSON(XOWLDatabase.class.getCanonicalName()) + "\", \"name\": \"" + TextUtils.escapeStringJSON(getName()) + "\"}";
     }
 
     @Override
