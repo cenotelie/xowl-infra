@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 /**
  * Testing the execution of xOWL ontologies with Clojure
@@ -30,7 +31,7 @@ import org.xowl.infra.store.Repository;
 public class ExecutionTest {
     @Test
     public void testExecutionHello() {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         ClojureEvaluator evaluator = new ClojureEvaluator();
         Repository repository = new Repository(evaluator);
         repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
@@ -43,7 +44,7 @@ public class ExecutionTest {
 
     @Test
     public void testExecutionInnerCall() {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         ClojureEvaluator evaluator = new ClojureEvaluator();
         Repository repository = new Repository(evaluator);
         repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
@@ -56,7 +57,7 @@ public class ExecutionTest {
 
     @Test
     public void testExecutionInnerRule() {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository repository = new Repository(new ClojureEvaluator());
         repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
         repository.load(logger, "http://xowl.org/engine/tests/Sample");

@@ -19,6 +19,7 @@ package org.xowl.infra.generator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.utils.config.Configuration;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 /**
  * Tests for the generator
@@ -32,7 +33,7 @@ public class GeneratorTest {
      */
     @Test
     public void reflectiveXOWLGeneration() {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Configuration config = new Configuration();
         config.add(null, "input", "http://xowl.org/lang/owl2");
         config.add(null, "input", "http://xowl.org/lang/actions");
