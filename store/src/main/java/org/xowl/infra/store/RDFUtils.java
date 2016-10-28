@@ -24,8 +24,6 @@ import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Literal;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.runtime.Entity;
-import org.xowl.infra.store.owl.AnonymousNode;
-import org.xowl.infra.store.owl.DynamicNode;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.TextUtils;

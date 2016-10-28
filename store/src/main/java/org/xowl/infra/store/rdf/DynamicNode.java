@@ -15,12 +15,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.owl;
+package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.lang.actions.DynamicExpression;
-import org.xowl.infra.store.rdf.GraphNode;
-import org.xowl.infra.store.rdf.Property;
-import org.xowl.infra.store.rdf.SubjectNode;
 
 import java.util.ArrayList;
 import java.util.Collection;

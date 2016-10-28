@@ -18,11 +18,7 @@
 package org.xowl.infra.store.storage;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
-import org.xowl.infra.store.owl.AnonymousNode;
-import org.xowl.infra.store.rdf.BlankNode;
-import org.xowl.infra.store.rdf.GraphNode;
-import org.xowl.infra.store.rdf.IRINode;
-import org.xowl.infra.store.rdf.LiteralNode;
+import org.xowl.infra.store.rdf.*;
 
 /**
  * Represents the public API of an entity that stores and manages nodes for a dataset

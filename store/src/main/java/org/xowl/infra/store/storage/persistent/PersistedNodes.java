@@ -18,11 +18,7 @@
 package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
-import org.xowl.infra.store.owl.AnonymousNode;
-import org.xowl.infra.store.rdf.BlankNode;
-import org.xowl.infra.store.rdf.IRINode;
-import org.xowl.infra.store.rdf.LiteralNode;
-import org.xowl.infra.store.rdf.Node;
+import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.storage.impl.NodeManagerImpl;
 import org.xowl.infra.utils.Files;

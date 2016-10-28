@@ -15,10 +15,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.owl;
+package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
-import org.xowl.infra.store.rdf.SubjectNode;
 
 /**
  * Represents a RDF store associated to an anonymous individual

@@ -18,7 +18,6 @@ package org.xowl.infra.store;
 
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Ontology;
-import org.xowl.infra.store.owl.DynamicNode;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.collections.*;

@@ -21,7 +21,6 @@ import org.xowl.infra.lang.actions.DynamicExpression;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.store.Datatypes;
 import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.owl.DynamicNode;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.utils.collections.Couple;
 

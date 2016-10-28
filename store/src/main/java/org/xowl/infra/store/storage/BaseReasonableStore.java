@@ -20,7 +20,6 @@ package org.xowl.infra.store.storage;
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.owl.AnonymousNode;
 import org.xowl.infra.store.rdf.*;
 
 import java.util.ArrayList;

@@ -17,7 +17,6 @@
 
 package org.xowl.infra.store.storage.cache;
 
-import org.xowl.infra.store.owl.AnonymousNode;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.storage.impl.DatasetImpl;
