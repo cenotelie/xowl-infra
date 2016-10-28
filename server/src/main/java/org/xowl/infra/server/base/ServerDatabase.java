@@ -261,7 +261,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     private void initRepository() {
         String cRegime = configuration.get(CONFIG_ENTAILMENT);
         if (cRegime != null)
-            repository.setEntailmentRegime(logger, EntailmentRegime.valueOf(cRegime));
+            repository.setEntailmentRegime(EntailmentRegime.valueOf(cRegime));
         for (String rule : configuration.getAll(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES)) {
             doActivateRule(rule);
         }
@@ -360,7 +360,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     public XSPReply setEntailmentRegime(EntailmentRegime regime) {
         onThreadEnter();
         try {
-            repository.setEntailmentRegime(logger, regime);
+            repository.setEntailmentRegime(regime);
             configuration.set(CONFIG_ENTAILMENT, regime.toString());
             try {
                 configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
@@ -775,15 +775,11 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     public XSPReply upload(String syntax, String content) {
         onThreadEnter();
         try {
-            BufferedLogger bufferedLogger = new BufferedLogger();
-            DispatchLogger dispatchLogger = new DispatchLogger(logger, bufferedLogger);
-            repository.loadResource(dispatchLogger, new StringReader(content), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT, syntax);
-            if (!bufferedLogger.getErrorMessages().isEmpty()) {
-                repository.getStore().rollback();
-                return new XSPReplyFailure(bufferedLogger.getErrorsAsString());
-            }
+            repository.loadResource(new StringReader(content), IRIs.GRAPH_DEFAULT, IRIs.GRAPH_DEFAULT, syntax);
             repository.getStore().commit();
             return XSPReplySuccess.instance();
+        } catch (IOException exception) {
+            return new XSPReplyFailure(exception.getMessage());
         } finally {
             onThreadExit();
         }

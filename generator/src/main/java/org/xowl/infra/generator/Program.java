@@ -19,11 +19,13 @@ package org.xowl.infra.generator;
 
 import org.xowl.infra.generator.builder.Builder;
 import org.xowl.infra.generator.model.Model;
+import org.xowl.infra.store.IRIMapper;
 import org.xowl.infra.store.RepositoryDirectSemantics;
-import org.xowl.infra.utils.logging.ConsoleLogger;
-import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.config.Configuration;
+import org.xowl.infra.utils.logging.ConsoleLogger;
+import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -168,11 +170,16 @@ public class Program {
      */
     public void execute() {
         // load the inputs
-        RepositoryDirectSemantics repository = new RepositoryDirectSemantics();
+        RepositoryDirectSemantics repository = new RepositoryDirectSemantics(Logging.getDefault(), IRIMapper.getDefault(), null);
         for (Couple<String, String> mapping : repositories)
             repository.getIRIMapper().addRegexpMap(mapping.x, mapping.y);
-        for (String input : inputs)
-            repository.load(logger, input);
+        for (String input : inputs) {
+            try {
+                repository.load(input);
+            } catch (IOException exception) {
+                Logging.getDefault().error(exception);
+            }
+        }
 
         Model model = new Model(repository, basePackage);
         model.load();

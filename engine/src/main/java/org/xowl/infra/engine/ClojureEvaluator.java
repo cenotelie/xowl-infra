@@ -20,11 +20,8 @@ package org.xowl.infra.engine;
 import clojure.lang.Compiler;
 import clojure.lang.*;
 import org.xowl.infra.lang.actions.DynamicExpression;
-import org.xowl.infra.lang.actions.FunctionExpression;
 import org.xowl.infra.lang.actions.OpaqueExpression;
-import org.xowl.infra.lang.owl2.*;
-import org.xowl.infra.lang.runtime.*;
-import org.xowl.infra.lang.runtime.Literal;
+import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Vocabulary;
@@ -192,40 +189,5 @@ public class ClojureEvaluator implements Evaluator {
 
         RT.CURRENT_NS.bindRoot(old);
         return result;
-    }
-
-    @Override
-    public org.xowl.infra.lang.runtime.Class evalClass(ClassExpression expression) {
-        return null;
-    }
-
-    @Override
-    public ObjectProperty evalObjectProperty(ObjectPropertyExpression expression) {
-        return null;
-    }
-
-    @Override
-    public DataProperty evalDataProperty(DataPropertyExpression expression) {
-        return null;
-    }
-
-    @Override
-    public Datatype evalDatatype(Datarange expression) {
-        return null;
-    }
-
-    @Override
-    public Individual evalIndividual(IndividualExpression expression) {
-        return null;
-    }
-
-    @Override
-    public Literal evalLiteral(LiteralExpression expression) {
-        return null;
-    }
-
-    @Override
-    public Function evalFunction(FunctionExpression expression) {
-        return null;
     }
 }
