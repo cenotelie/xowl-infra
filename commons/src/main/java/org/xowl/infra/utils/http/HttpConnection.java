@@ -40,6 +40,34 @@ import java.security.cert.X509Certificate;
  */
 public class HttpConnection implements Closeable {
     /**
+     * Represents a trust manager that accepts all certificates
+     */
+    private static final TrustManager TRUST_MANAGER_ACCEPT_ALL = new X509TrustManager() {
+        @Override
+        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+        }
+    };
+
+    /**
+     * Represents a hostname verifier that accepts all hosts
+     */
+    private static final HostnameVerifier HOSTNAME_VERIFIER_ACCEPT_ALL = new HostnameVerifier() {
+        @Override
+        public boolean verify(String s, SSLSession sslSession) {
+            return true;
+        }
+    };
+
+    /**
      * The SSL context for HTTPS connections
      */
     private final SSLContext sslContext;
@@ -67,35 +95,12 @@ public class HttpConnection implements Closeable {
         SSLContext sc = null;
         try {
             sc = SSLContext.getInstance("SSL");
-            sc.init(null, new TrustManager[]{
-                    new X509TrustManager() {
-                        @Override
-                        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                            // TODO: check certificate
-                        }
-
-                        @Override
-                        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
-                            // TODO: check certificate
-                        }
-
-                        @Override
-                        public X509Certificate[] getAcceptedIssuers() {
-                            return new X509Certificate[0];
-                        }
-                    }
-            }, new SecureRandom());
+            sc.init(null, new TrustManager[]{TRUST_MANAGER_ACCEPT_ALL}, new SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException exception) {
             Logging.getDefault().error(exception);
         }
         sslContext = sc;
-        hostnameVerifier = new HostnameVerifier() {
-            @Override
-            public boolean verify(String s, SSLSession sslSession) {
-                // TODO: check host name
-                return true;
-            }
-        };
+        hostnameVerifier = HOSTNAME_VERIFIER_ACCEPT_ALL;
         this.endpoint = endpoint;
         if (login != null && password != null) {
             String buffer = (login + ":" + password);
