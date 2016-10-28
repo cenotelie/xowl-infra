@@ -18,12 +18,12 @@
 package org.xowl.infra.store.storage.remote;
 
 import org.xowl.infra.store.AbstractRepository;
-import org.xowl.infra.store.http.HttpConnection;
-import org.xowl.infra.store.http.HttpResponse;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.sparql.ResultUtils;
+import org.xowl.infra.utils.http.HttpConnection;
+import org.xowl.infra.utils.http.HttpResponse;
 
 import java.net.HttpURLConnection;
 

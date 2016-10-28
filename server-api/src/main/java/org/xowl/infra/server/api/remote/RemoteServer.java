@@ -24,8 +24,6 @@ import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.URIUtils;
-import org.xowl.infra.store.http.HttpConnection;
-import org.xowl.infra.store.http.HttpConstants;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
@@ -33,6 +31,8 @@ import org.xowl.infra.store.storage.StoreStatistics;
 import org.xowl.infra.store.writers.NQuadsSerializer;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.collections.SingleIterator;
+import org.xowl.infra.utils.http.HttpConnection;
+import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logging;
 

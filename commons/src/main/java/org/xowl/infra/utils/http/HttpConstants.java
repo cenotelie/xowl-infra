@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.http;
+package org.xowl.infra.utils.http;
 
 /**
  * Constants for using the HTTP protocol

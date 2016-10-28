@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.http;
+package org.xowl.infra.utils.http;
 
 import org.xowl.infra.store.IOUtils;
 import org.xowl.infra.utils.Files;
