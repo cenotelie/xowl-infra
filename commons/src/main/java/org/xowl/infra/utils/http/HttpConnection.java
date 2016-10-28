@@ -17,7 +17,7 @@
 
 package org.xowl.infra.utils.http;
 
-import org.xowl.infra.store.IOUtils;
+import org.xowl.infra.utils.Base64;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logging;
 
@@ -99,7 +99,7 @@ public class HttpConnection implements Closeable {
         this.endpoint = endpoint;
         if (login != null && password != null) {
             String buffer = (login + ":" + password);
-            this.authToken = IOUtils.encodeBase64(buffer);
+            this.authToken = Base64.encodeBase64(buffer);
         } else {
             this.authToken = null;
         }
