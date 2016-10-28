@@ -20,11 +20,11 @@ package org.xowl.infra.store.loaders;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.parsers.BaseLRParser;
 import org.xowl.infra.store.IOUtils;
-import org.xowl.infra.store.URIUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.http.URIUtils;
 
 import java.io.IOException;
 import java.io.Reader;

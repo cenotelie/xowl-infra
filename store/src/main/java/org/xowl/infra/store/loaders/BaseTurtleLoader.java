@@ -23,10 +23,10 @@ import org.xowl.hime.redist.ParseResult;
 import org.xowl.hime.redist.TextContext;
 import org.xowl.hime.redist.parsers.BaseLRParser;
 import org.xowl.infra.store.IOUtils;
-import org.xowl.infra.store.URIUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.IOException;

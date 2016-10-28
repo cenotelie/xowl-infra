@@ -15,11 +15,10 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.loaders;
+package org.xowl.infra.utils.http;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xowl.infra.store.URIUtils;
 
 /**
  * Test suite for the implementation of RFC 3986

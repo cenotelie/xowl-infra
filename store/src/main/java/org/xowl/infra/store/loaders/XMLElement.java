@@ -21,11 +21,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xowl.infra.store.IOUtils;
-import org.xowl.infra.store.URIUtils;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.collections.Adapter;
 import org.xowl.infra.utils.collections.AdaptingIterator;
 import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.http.URIUtils;
 
 import java.util.*;
 
