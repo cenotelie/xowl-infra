@@ -18,7 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.Evaluator;
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.RDFPattern;
 import org.xowl.infra.store.rdf.RDFPatternSolution;
 import org.xowl.infra.store.rdf.RDFQuery;
@@ -35,14 +35,14 @@ public class EvalContextRepository implements EvalContext {
     /**
      * The repository
      */
-    private final Repository repository;
+    private final RepositoryRDF repository;
 
     /**
      * Initializes this context
      *
      * @param repository The repository
      */
-    public EvalContextRepository(Repository repository) {
+    public EvalContextRepository(RepositoryRDF repository) {
         this.repository = repository;
     }
 

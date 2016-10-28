@@ -18,7 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.IRIs;
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.IRINode;
 import org.xowl.infra.store.rdf.Node;
@@ -65,7 +65,7 @@ public class CommandClear implements Command {
     }
 
     @Override
-    public Result execute(Repository repository) {
+    public Result execute(RepositoryRDF repository) {
         try {
             switch (type) {
                 case Single:

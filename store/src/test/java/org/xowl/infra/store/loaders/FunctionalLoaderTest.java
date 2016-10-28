@@ -18,8 +18,10 @@ package org.xowl.infra.store.loaders;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.utils.logging.SinkLogger;
+
+import java.io.IOException;
 
 /**
  * Tests for the functional loaders
@@ -35,8 +37,12 @@ public class FunctionalLoaderTest {
      */
     protected void testLoading(String uri) {
         SinkLogger logger = new SinkLogger();
-        Repository repository = new Repository();
-        repository.load(logger, uri);
+        RepositoryRDF repository = new RepositoryRDF(logger);
+        try {
+            repository.load(uri);
+        } catch (IOException exception) {
+            Assert.fail("Failed to load resource " + exception.getMessage());
+        }
         Assert.assertFalse("Failed to load resource " + uri, logger.isOnError());
     }
 

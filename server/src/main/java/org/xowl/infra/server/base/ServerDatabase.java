@@ -123,7 +123,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
     /**
      * The repository
      */
-    private final Repository repository;
+    private final RepositoryRDF repository;
     /**
      * The current configuration for this database
      */
@@ -150,7 +150,7 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
      *
      * @return The repository backing this database
      */
-    public Repository getRepository() {
+    public RepositoryRDF getRepository() {
         return repository;
     }
 
@@ -232,11 +232,11 @@ public class ServerDatabase extends BaseDatabase implements Serializable, Closea
      * @param location      The database location
      * @return The repository
      */
-    private Repository createRepository(Configuration configuration, File location) {
+    private RepositoryRDF createRepository(Configuration configuration, File location) {
         BaseStore store = Objects.equals(configuration.get(CONFIG_STORAGE), CONFIG_STORAGE_MEMORY) ?
                 StoreFactory.create().inMemory().withReasoning().make() :
                 StoreFactory.create().onDisk(location).withReasoning().make();
-        return new Repository(store);
+        return new RepositoryRDF(store);
     }
 
     /**

@@ -22,10 +22,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
-import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.IRIMapper;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.loaders.SPARQLLoader;
 import org.xowl.infra.store.loaders.W3CTestSuite;
 import org.xowl.infra.store.rdf.Quad;
@@ -160,14 +160,14 @@ public abstract class BaseSPARQLTest {
      */
     protected void testUpdateEvaluation(String resource, Couple<String, String>[] inputs, Couple<String, String>[] outputs) {
         SinkLogger logger = new SinkLogger();
-        Repository before = prepare(logger, inputs);
+        RepositoryRDF before = prepare(logger, inputs);
         Assert.assertFalse("Failed to prepare the repository", logger.isOnError());
-        Repository after = prepare(logger, outputs);
+        RepositoryRDF after = prepare(logger, outputs);
         Assert.assertFalse("Failed to prepare the repository", logger.isOnError());
         String request = before.getIRIMapper().get(resource);
-        request = request.substring(AbstractRepository.SCHEME_RESOURCE.length());
+        request = request.substring(Repository.SCHEME_RESOURCE.length());
         request = readResource(request);
-        Result result = before.execute(logger, request);
+        Result result = before.execute(request);
         Assert.assertFalse("Error while executing the request", logger.isOnError());
         Assert.assertTrue("Error while executing the request", result.isSuccess());
         W3CTestSuite.matchesQuads(getQuads(after), getQuads(before));
@@ -181,12 +181,12 @@ public abstract class BaseSPARQLTest {
      */
     protected void testQueryEvaluation(String resource, String[] inputs, String output) {
         SinkLogger logger = new SinkLogger();
-        Repository before = prepare(logger, inputs);
+        RepositoryRDF before = prepare(logger, inputs);
         Assert.assertFalse("Failed to prepare the repository", logger.isOnError());
         String request = before.getIRIMapper().get(resource);
-        request = request.substring(AbstractRepository.SCHEME_RESOURCE.length());
+        request = request.substring(Repository.SCHEME_RESOURCE.length());
         request = readResource(request);
-        Result result = before.execute(logger, request);
+        Result result = before.execute(request);
         Assert.assertFalse("Error while executing the request", logger.isOnError());
         Assert.assertTrue("Error while executing the request", result.isSuccess());
         compare(result, output);
@@ -478,9 +478,13 @@ public abstract class BaseSPARQLTest {
      */
     private void compareQuads(ResultQuads result, String expected) {
         SinkLogger logger = new SinkLogger();
-        Repository repository = new Repository();
+        RepositoryRDF repository = new RepositoryRDF(logger);
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
-        repository.load(logger, expected, IRIs.GRAPH_DEFAULT, true);
+        try {
+            repository.load(expected, IRIs.GRAPH_DEFAULT, true);
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
         Assert.assertFalse("Failed to load the expected results", logger.isOnError());
         W3CTestSuite.matchesQuads(getQuads(repository), new ArrayList<>(result.getQuads()));
     }
@@ -491,7 +495,7 @@ public abstract class BaseSPARQLTest {
      * @param repository The repository
      * @return The extracted quads
      */
-    private List<Quad> getQuads(Repository repository) {
+    private List<Quad> getQuads(RepositoryRDF repository) {
         List<Quad> quads = new ArrayList<>();
         Iterator<Quad> iterator = repository.getStore().getAll();
         while (iterator.hasNext())
@@ -506,11 +510,15 @@ public abstract class BaseSPARQLTest {
      * @param inputs The inputs
      * @return The repository
      */
-    private Repository prepare(Logger logger, Couple<String, String>[] inputs) {
-        Repository repository = new Repository();
+    private RepositoryRDF prepare(Logger logger, Couple<String, String>[] inputs) {
+        RepositoryRDF repository = new RepositoryRDF(logger);
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
         for (Couple<String, String> input : inputs) {
-            repository.load(logger, input.x, input.y == null ? IRIs.GRAPH_DEFAULT : input.y, true);
+            try {
+                repository.load(input.x, input.y == null ? IRIs.GRAPH_DEFAULT : input.y, true);
+            } catch (IOException exception) {
+                logger.error(exception);
+            }
         }
         return repository;
     }
@@ -522,11 +530,16 @@ public abstract class BaseSPARQLTest {
      * @param inputs The inputs
      * @return The repository
      */
-    private Repository prepare(Logger logger, String[] inputs) {
-        Repository repository = new Repository();
+    private RepositoryRDF prepare(Logger logger, String[] inputs) {
+        RepositoryRDF repository = new RepositoryRDF(logger);
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
-        for (String input : inputs)
-            repository.load(logger, input, IRIs.GRAPH_DEFAULT, true);
+        for (String input : inputs) {
+            try {
+                repository.load(input, IRIs.GRAPH_DEFAULT, true);
+            } catch (IOException exception) {
+                logger.error(exception);
+            }
+        }
         return repository;
     }
 

@@ -17,7 +17,7 @@
 package org.xowl.infra.store.entailment;
 
 import org.xowl.infra.store.ProxyObject;
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.SinkLogger;
 
@@ -37,10 +37,14 @@ public class OWLTestSuiteGenerator {
      */
     public void generate() {
         SinkLogger logger = new SinkLogger();
-        Repository repository = new Repository();
+        RepositoryRDF repository = new RepositoryRDF(logger);
         repository.getIRIMapper().addRegexpMap("http://owl.semanticweb.org/exports/(.*)", "resource:///tests/\\1");
-        repository.load(logger, "http://owl.semanticweb.org/exports/testOntology.rdf");
-        repository.load(logger, "http://owl.semanticweb.org/exports/all.rdf");
+        try {
+            repository.load("http://owl.semanticweb.org/exports/testOntology.rdf");
+            repository.load("http://owl.semanticweb.org/exports/all.rdf");
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
 
         ProxyObject classTestCase = repository.resolveProxy("http://www.w3.org/2007/OWL/testOntology#TestCase");
         for (ProxyObject test : classTestCase.getInstances()) {

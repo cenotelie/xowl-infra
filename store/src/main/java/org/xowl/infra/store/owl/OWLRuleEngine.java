@@ -89,7 +89,7 @@ public class OWLRuleEngine {
         GraphNode graphTarget = getGraph(target, false);
         GraphNode graphMeta = getGraph(meta, false);
         RDFRuleSimple rdfRule = new RDFRuleSimple(rule.getHasIRI().getHasValue(), false);
-        Translator translator = new Translator(translationContext, outputStore, null);
+        Translator translator = new Translator(translationContext, outputStore);
         List<Axiom> positiveNormal = new ArrayList<>();
         List<Axiom> positiveMeta = new ArrayList<>();
         try {

@@ -18,10 +18,11 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.IRIs;
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.utils.logging.SinkLogger;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -69,9 +70,13 @@ public class CommandLoad implements Command {
     }
 
     @Override
-    public Result execute(Repository repository) {
+    public Result execute(RepositoryRDF repository) {
         SinkLogger logger = new SinkLogger();
-        repository.load(logger, iri, target == null ? IRIs.GRAPH_DEFAULT : target, true);
+        try {
+            repository.load(iri, target == null ? IRIs.GRAPH_DEFAULT : target, true);
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
         repository.getStore().commit();
         return !logger.isOnError() || isSilent ? ResultSuccess.INSTANCE : ResultFailure.INSTANCE;
     }

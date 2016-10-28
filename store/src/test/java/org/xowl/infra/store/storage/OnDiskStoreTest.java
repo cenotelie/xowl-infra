@@ -20,10 +20,8 @@ package org.xowl.infra.store.storage;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xowl.infra.store.IRIs;
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,9 +46,8 @@ public class OnDiskStoreTest {
     public void testInsert() throws Exception {
         Path p = Files.createTempDirectory("testInsert");
         OnDiskStore store = new OnDiskStore(p.toFile(), false);
-        Logger logger = new SinkLogger();
-        Repository repo = new Repository(store);
-        repo.load(logger, IRIs.RDF);
+        RepositoryRDF repo = new RepositoryRDF(store);
+        repo.load(IRIs.RDF);
         store.commit();
         store.close();
 
@@ -67,8 +64,7 @@ public class OnDiskStoreTest {
     public void testInsert2() throws Exception {
         Path p = Files.createTempDirectory("testInsert");
         OnDiskStore store = new OnDiskStore(p.toFile(), false);
-        Logger logger = new SinkLogger();
-        Repository repo = new Repository(store);
+        RepositoryRDF repo = new RepositoryRDF(store);
 
         Quad quad1 = new Quad(
                 store.getIRINode("http://xowl.org/tests/g"),

@@ -37,7 +37,7 @@ public class ProxyObject {
     /**
      * The parent repository
      */
-    protected Repository repository;
+    protected RepositoryRDF repository;
     /**
      * The containing ontology
      */
@@ -54,7 +54,7 @@ public class ProxyObject {
      * @param ontology   The containing ontology
      * @param subject    The represented entity as a subject RDF node
      */
-    protected ProxyObject(Repository repository, Ontology ontology, SubjectNode subject) {
+    protected ProxyObject(RepositoryRDF repository, Ontology ontology, SubjectNode subject) {
         this.repository = repository;
         this.ontology = ontology;
         this.subject = subject;
@@ -65,7 +65,7 @@ public class ProxyObject {
      *
      * @return The parent repository
      */
-    public Repository getRepository() {
+    public RepositoryRDF getRepository() {
         return repository;
     }
 

@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Changeset;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
@@ -89,7 +89,7 @@ public class CommandModify implements Command {
     }
 
     @Override
-    public Result execute(Repository repository) {
+    public Result execute(RepositoryRDF repository) {
         try {
             EvalContext context = new EvalContextRepository(repository);
             Solutions solutions = where.eval(context);

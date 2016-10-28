@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.storage.remote;
 
-import org.xowl.infra.store.AbstractRepository;
+import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
@@ -46,7 +46,7 @@ public class SPARQLConnection extends HttpConnection implements Connection {
 
     @Override
     public Result sparql(String command) {
-        HttpResponse response = request(null, "POST", command, Command.MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON);
+        HttpResponse response = request(null, "POST", command, Command.MIME_SPARQL_QUERY, Repository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON);
         if (response == null)
             return new ResultFailure("connection failed");
         if (response.getCode() != HttpURLConnection.HTTP_OK)

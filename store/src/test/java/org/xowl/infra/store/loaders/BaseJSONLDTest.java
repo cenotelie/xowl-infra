@@ -18,8 +18,8 @@
 package org.xowl.infra.store.loaders;
 
 import org.junit.Assert;
-import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,7 +67,7 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
      */
     protected void fromRdfTest(String expectedURI, String testedURI) {
         // load RDF file and serialize it in jsonld
-        String generatedURI = testedURI.replace(AbstractRepository.EXT_NQUADS, "_generatedFromRDF" + AbstractRepository.EXT_JSON_LD);
+        String generatedURI = testedURI.replace(Repository.SYNTAX_NQUADS_EXTENSION, "_generatedFromRDF" + Repository.SYNTAX_JSON_LD_EXTENSION);
         File generated = generateJSONLDFromRdfFile(testedURI, generatedURI);
         if (generated == null) {
             // cannot happen due to the assertion failure, but get rid of the null warning
@@ -89,21 +89,29 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
         // the temporary generated file
         File file;
         try {
-            file = File.createTempFile("tempXOWLTest", AbstractRepository.EXT_JSON_LD);
+            file = File.createTempFile("tempXOWLTest", Repository.SYNTAX_JSON_LD_EXTENSION);
         } catch (IOException exception) {
             Assert.fail(exception.getMessage());
             return null;
         }
 
         // loads the tested file
-        Repository repository = new Repository();
-        repository.getIRIMapper().addRegexpMap(NAMESPACE + "(.*)", AbstractRepository.SCHEME_RESOURCE + PHYSICAL + "\\1");
+        RepositoryRDF repository = new RepositoryRDF();
+        repository.getIRIMapper().addRegexpMap(NAMESPACE + "(.*)", Repository.SCHEME_RESOURCE + PHYSICAL + "\\1");
         repository.getIRIMapper().addSimpleMap(generatedURI, "file://" + file.getAbsolutePath());
-        repository.load(logger, testedURI);
+        try {
+            repository.load(testedURI);
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
         Assert.assertFalse("Failed to load the ontology(ies)", logger.isOnError());
 
         // export the test file to a JSON-LD temporary file
-        repository.exportAll(logger, generatedURI);
+        try {
+            repository.exportAll(generatedURI);
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
         Assert.assertFalse("Failed to generated the target", logger.isOnError());
         return file;
     }

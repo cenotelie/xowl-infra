@@ -22,7 +22,7 @@ import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.runtime.Class;
 import org.xowl.infra.lang.runtime.*;
 import org.xowl.infra.store.Vocabulary;
-import org.xowl.infra.store.owl.DirectSemantics;
+import org.xowl.infra.store.RepositoryDirectSemantics;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
@@ -43,7 +43,7 @@ public class Model {
     /**
      * The repository
      */
-    private DirectSemantics repository;
+    private RepositoryDirectSemantics repository;
     /**
      * The name of the base package
      */
@@ -71,7 +71,7 @@ public class Model {
      * @param repository  The base repository
      * @param basePackage The namle of the base package
      */
-    public Model(DirectSemantics repository, String basePackage) {
+    public Model(RepositoryDirectSemantics repository, String basePackage) {
         this.repository = repository;
         this.basePackage = basePackage;
         this.packages = new HashMap<>();
@@ -85,7 +85,7 @@ public class Model {
      *
      * @return The repository
      */
-    public DirectSemantics getRepository() {
+    public RepositoryDirectSemantics getRepository() {
         return repository;
     }
 

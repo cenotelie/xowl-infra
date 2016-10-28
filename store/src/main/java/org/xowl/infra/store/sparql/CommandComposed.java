@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Node;
 
 import java.util.Arrays;
@@ -58,7 +58,7 @@ public class CommandComposed implements Command {
     }
 
     @Override
-    public Result execute(Repository repository) {
+    public Result execute(RepositoryRDF repository) {
         for (int i = 0; i != commands.length; i++) {
             Result result = commands[i].execute(repository);
             if (result.isFailure())

@@ -14,17 +14,21 @@
  * Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package org.xowl.infra.store.owl;
+
+package org.xowl.infra.store;
 
 import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
 import org.xowl.infra.lang.actions.FunctionExpression;
 import org.xowl.infra.lang.owl2.*;
 import org.xowl.infra.lang.runtime.Entity;
-import org.xowl.infra.store.AbstractRepository;
-import org.xowl.infra.store.IRIMapper;
-import org.xowl.infra.store.loaders.Loader;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
 import org.xowl.infra.store.loaders.RDFLoaderResult;
+import org.xowl.infra.store.owl.OWLQueryEngine;
+import org.xowl.infra.store.owl.OWLRuleEngine;
+import org.xowl.infra.store.rdf.RDFQueryEngine;
+import org.xowl.infra.store.rdf.RDFRuleEngine;
+import org.xowl.infra.store.storage.NodeManager;
+import org.xowl.infra.store.storage.cache.CachedNodes;
 import org.xowl.infra.store.writers.OWLSerializer;
 import org.xowl.infra.store.writers.RDFSerializer;
 import org.xowl.infra.utils.logging.Logger;
@@ -36,7 +40,11 @@ import java.util.*;
  *
  * @author Laurent Wouters
  */
-public class DirectSemantics extends AbstractRepository {
+public class RepositoryDirectSemantics extends Repository {
+    /**
+     * The node manager used for loading
+     */
+    private final NodeManager nodeManager;
     /**
      * The entities contained by the ontologies
      */
@@ -83,10 +91,15 @@ public class DirectSemantics extends AbstractRepository {
     private final List<org.xowl.infra.lang.owl2.AnonymousIndividual> anonymousIndividuals;
 
     /**
-     * Initializes this interpreter
+     * Initializes this repository
+     *
+     * @param logger    The logger associated to this repository
+     * @param mapper    The IRI mapper to use
+     * @param evaluator The evaluator to use
      */
-    public DirectSemantics() {
-        super(IRIMapper.getDefault());
+    public RepositoryDirectSemantics(Logger logger, IRIMapper mapper, Evaluator evaluator) {
+        super(logger, mapper, evaluator);
+        this.nodeManager = new CachedNodes();
         this.mapEntities = new HashMap<>();
         this.classUnions = new ArrayList<>();
         this.classIntersections = new ArrayList<>();
@@ -98,6 +111,62 @@ public class DirectSemantics extends AbstractRepository {
         this.dataOneOfs = new ArrayList<>();
         this.dataComplements = new ArrayList<>();
         this.anonymousIndividuals = new ArrayList<>();
+    }
+
+    @Override
+    public OWLQueryEngine getOWLQueryEngine() {
+        return null;
+    }
+
+    @Override
+    public RDFQueryEngine getRDFQueryEngine() {
+        return null;
+    }
+
+    @Override
+    public OWLRuleEngine getOWLRuleEngine() {
+        return null;
+    }
+
+    @Override
+    public RDFRuleEngine getRDFRuleEngine() {
+        return null;
+    }
+
+    @Override
+    public void setEntailmentRegime(EntailmentRegime regime) {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
+    @Override
+    protected NodeManager getNodeManager() {
+        return nodeManager;
+    }
+
+    @Override
+    protected void loadResourceRDF(Ontology ontology, RDFLoaderResult input) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected void loadResourceOWL(Ontology ontology, OWLLoaderResult input) {
+        for (Axiom axiom : input.getAxioms())
+            apply(axiom, false);
+    }
+
+    @Override
+    protected void exportResourceRDF(Ontology ontology, RDFSerializer output) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected void exportResourceRDF(RDFSerializer output) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected void exportResourceOWL(Ontology ontology, OWLSerializer output) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -267,34 +336,6 @@ public class DirectSemantics extends AbstractRepository {
         org.xowl.infra.lang.runtime.Function interpretation = new org.xowl.infra.lang.runtime.Function();
         entity.addInterpretedAs(interpretation);
         return interpretation;
-    }
-
-    @Override
-    protected Loader newRDFLoader(String syntax) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected void loadResourceRDF(Logger logger, Ontology ontology, RDFLoaderResult input) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input) {
-        for (Axiom axiom : input.getAxioms())
-            apply(axiom, false);
-    }
-
-    protected void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output) {
-        throw new UnsupportedOperationException();
-    }
-
-    protected void exportResourceRDF(Logger logger, RDFSerializer output) {
-        throw new UnsupportedOperationException();
-    }
-
-    protected void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output) {
-        throw new UnsupportedOperationException();
     }
 
     /**

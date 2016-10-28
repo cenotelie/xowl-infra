@@ -19,9 +19,9 @@ package org.xowl.infra.store.loaders;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.IRIMapper;
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
@@ -77,21 +77,21 @@ public abstract class W3CTestSuite {
      * @return The appropriate loader
      */
     protected Loader getLoader(String resource) {
-        String syntax = AbstractRepository.getSyntax(resource);
+        String syntax = Repository.getSyntax(resource);
         if (syntax == null)
             return null;
         switch (syntax) {
-            case AbstractRepository.SYNTAX_NTRIPLES:
+            case Repository.SYNTAX_NTRIPLES:
                 return new NTriplesLoader(store);
-            case AbstractRepository.SYNTAX_NQUADS:
+            case Repository.SYNTAX_NQUADS:
                 return new NQuadsLoader(store);
-            case AbstractRepository.SYNTAX_TURTLE:
+            case Repository.SYNTAX_TURTLE:
                 return new TurtleLoader(store);
-            case AbstractRepository.SYNTAX_RDFT:
+            case Repository.SYNTAX_RDFT:
                 return new RDFTLoader(store);
-            case AbstractRepository.SYNTAX_RDFXML:
+            case Repository.SYNTAX_RDFXML:
                 return new RDFXMLLoader(store);
-            case AbstractRepository.SYNTAX_JSON_LD:
+            case Repository.SYNTAX_JSON_LD:
                 return new JSONLDLoader(store) {
                     @Override
                     protected Reader getReaderFor(Logger logger, String iri) {
@@ -103,7 +103,7 @@ public abstract class W3CTestSuite {
                         return getResourceReader(resource);
                     }
                 };
-            case AbstractRepository.SYNTAX_TRIG:
+            case Repository.SYNTAX_TRIG:
                 return new TriGLoader(store);
         }
         return null;
@@ -117,7 +117,7 @@ public abstract class W3CTestSuite {
      */
     protected Reader getResourceReader(String resource) {
         try {
-            Reader reader = AbstractRepository.getReaderFor(resource);
+            Reader reader = Repository.getReaderFor(resource);
             if (reader != null)
                 return reader;
             // expect a local test resource

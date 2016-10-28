@@ -38,7 +38,6 @@ import org.xowl.infra.lang.owl2.ObjectPropertyAssertion;
 import org.xowl.infra.lang.owl2.ObjectSomeValuesFrom;
 import org.xowl.infra.lang.runtime.Class;
 import org.xowl.infra.lang.runtime.*;
-import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
 import org.xowl.infra.store.rdf.*;
@@ -71,24 +70,18 @@ public class Translator {
      * The translation context
      */
     protected TranslationContext context;
-    /**
-     * The evaluator for dynamic expressions
-     */
-    protected final Evaluator evaluator;
 
     /**
      * Initializes this translator
      *
-     * @param context   The existing translation context, or null if a new one shall be used
-     * @param store     The XOWL store used for the creation of new RDF nodes
-     * @param evaluator The evaluator for dynamic expressions, or null if dynamic expression shall no be translated and kept as is
+     * @param context The existing translation context, or null if a new one shall be used
+     * @param store   The XOWL store used for the creation of new RDF nodes
      */
-    public Translator(TranslationContext context, BaseStore store, Evaluator evaluator) {
+    public Translator(TranslationContext context, BaseStore store) {
         this.store = store;
         this.context = context;
         if (this.context == null)
             this.context = new TranslationContext();
-        this.evaluator = evaluator;
     }
 
     /**
@@ -905,17 +898,10 @@ public class Translator {
      * @throws TranslationException When a runtime entity is not named
      */
     protected SubjectNode translateClassExpression(ClassExpression expression) throws TranslationException {
-        if (expression instanceof QueryVariable) {
-            if (evaluator != null)
-                return translateClassRuntime(evaluator.evalClass(expression));
-            else
-                return context.resolve((QueryVariable) expression, Class.class);
-        }
-        if (expression instanceof DynamicExpression) {
-            if (evaluator != null)
-                return translateClassRuntime(evaluator.evalClass(expression));
+        if (expression instanceof QueryVariable)
+            return context.resolve((QueryVariable) expression, Class.class);
+        if (expression instanceof DynamicExpression)
             return getDynamicNode((DynamicExpression) expression, Class.class);
-        }
         if (expression instanceof IRI)
             return translateClassIRI((IRI) expression);
         if (expression instanceof ObjectUnionOf)
@@ -963,20 +949,6 @@ public class Translator {
      */
     protected SubjectNode translateClassIRI(IRI expression) {
         return store.getIRINode(expression.getHasValue());
-    }
-
-    /**
-     * Translate the specified runtime class
-     *
-     * @param expression A runtime class
-     * @return The RDF node representing the expression
-     * @throws TranslationException When the runtime class is not a named class
-     */
-    protected SubjectNode translateClassRuntime(org.xowl.infra.lang.runtime.Class expression) throws TranslationException {
-        // Here an OWL Class is expected to be a named Class
-        if (expression.getInterpretationOf() == null)
-            throw new TranslationException("Cannot translate anonymous entities");
-        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
     }
 
     /**
@@ -1328,17 +1300,10 @@ public class Translator {
      * @throws TranslationException when a runtime object property is not named
      */
     protected SubjectNode translateObjectPropertyExpression(ObjectPropertyExpression expression) throws TranslationException {
-        if (expression instanceof QueryVariable) {
-            if (evaluator != null)
-                return translateObjectPropertyRuntime(evaluator.evalObjectProperty(expression));
-            else
-                return context.resolve((QueryVariable) expression, ObjectProperty.class);
-        }
-        if (expression instanceof DynamicExpression) {
-            if (evaluator != null)
-                return translateObjectPropertyRuntime(evaluator.evalObjectProperty(expression));
+        if (expression instanceof QueryVariable)
+            return context.resolve((QueryVariable) expression, ObjectProperty.class);
+        if (expression instanceof DynamicExpression)
             return getDynamicNode((DynamicExpression) expression, ObjectProperty.class);
-        }
         if (expression instanceof IRI)
             return translateObjectPropertyIRI((IRI) expression);
         if (expression instanceof ObjectInverseOf)
@@ -1354,19 +1319,6 @@ public class Translator {
      */
     protected SubjectNode translateObjectPropertyIRI(IRI expression) {
         return store.getIRINode(expression.getHasValue());
-    }
-
-    /**
-     * Translate the specified runtime object property
-     *
-     * @param expression A runtime object property
-     * @return The RDF node representing the expression
-     * @throws TranslationException when a runtime object property is not named
-     */
-    protected SubjectNode translateObjectPropertyRuntime(org.xowl.infra.lang.runtime.ObjectProperty expression) throws TranslationException {
-        if (expression.getInterpretationOf() == null)
-            throw new TranslationException("Cannot translate anonymous entities");
-        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
     }
 
     /**
@@ -1391,17 +1343,10 @@ public class Translator {
      * @throws TranslationException when a runtime data property is not named
      */
     protected SubjectNode translateDataPropertyExpression(DataPropertyExpression expression) throws TranslationException {
-        if (expression instanceof QueryVariable) {
-            if (evaluator != null)
-                return translateDataPropertyRuntime(evaluator.evalDataProperty(expression));
-            else
-                return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.DataProperty.class);
-        }
-        if (expression instanceof DynamicExpression) {
-            if (evaluator != null)
-                return translateDataPropertyRuntime(evaluator.evalDataProperty(expression));
+        if (expression instanceof QueryVariable)
+            return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.DataProperty.class);
+        if (expression instanceof DynamicExpression)
             return getDynamicNode((DynamicExpression) expression, DataProperty.class);
-        }
         if (expression instanceof IRI) return translateDataPropertyIRI((IRI) expression);
         return null;
     }
@@ -1417,19 +1362,6 @@ public class Translator {
     }
 
     /**
-     * Translate the specified runtime data property
-     *
-     * @param expression A runtime data property
-     * @return The RDF node representing the expression
-     * @throws TranslationException when a runtime data property is not named
-     */
-    protected SubjectNode translateDataPropertyRuntime(DataProperty expression) throws TranslationException {
-        if (expression.getInterpretationOf() == null)
-            throw new TranslationException("Cannot translate anonymous entities");
-        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
-    }
-
-    /**
      * Translate the specified datarange
      *
      * @param expression An datarange
@@ -1437,17 +1369,10 @@ public class Translator {
      * @throws TranslationException when a runtime datatype is not named
      */
     protected SubjectNode translateDatarange(Datarange expression) throws TranslationException {
-        if (expression instanceof QueryVariable) {
-            if (evaluator != null)
-                return translateDatatype(evaluator.evalDatatype(expression));
-            else
-                return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.Datatype.class);
-        }
-        if (expression instanceof DynamicExpression) {
-            if (evaluator != null)
-                return translateDatatype(evaluator.evalDatatype(expression));
+        if (expression instanceof QueryVariable)
+            return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.Datatype.class);
+        if (expression instanceof DynamicExpression)
             return getDynamicNode((DynamicExpression) expression, Datatype.class);
-        }
         if (expression instanceof IRI)
             return translateDatatypeIRI((IRI) expression);
         if (expression instanceof DataComplementOf)
@@ -1471,19 +1396,6 @@ public class Translator {
      */
     protected SubjectNode translateDatatypeIRI(IRI expression) {
         return store.getIRINode(expression.getHasValue());
-    }
-
-    /**
-     * Translate the specified datatype
-     *
-     * @param expression A datatype
-     * @return The RDF node representing the expression
-     * @throws TranslationException when a runtime datatype is not named
-     */
-    protected SubjectNode translateDatatype(Datatype expression) throws TranslationException {
-        if (expression.getInterpretationOf() == null)
-            throw new TranslationException("Cannot translate anonymous entities");
-        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
     }
 
     /**
@@ -1599,26 +1511,10 @@ public class Translator {
      * @throws TranslationException when a runtime individual is not named
      */
     protected SubjectNode translateIndividualExpression(IndividualExpression expression) throws TranslationException {
-        if (expression instanceof QueryVariable) {
-            if (evaluator != null) {
-                Individual ind = evaluator.evalIndividual(expression);
-                if (ind instanceof AnonymousIndividual)
-                    return translateAnonymousIndividual((AnonymousIndividual) ind);
-                if (ind instanceof NamedIndividual)
-                    return translateNamedIndividual((NamedIndividual) ind);
-            } else
-                return context.resolve((org.xowl.infra.lang.actions.QueryVariable) expression, org.xowl.infra.lang.runtime.Individual.class);
-        }
-        if (expression instanceof DynamicExpression) {
-            if (evaluator != null) {
-                Individual ind = evaluator.evalIndividual(expression);
-                if (ind instanceof AnonymousIndividual)
-                    return translateAnonymousIndividual((AnonymousIndividual) ind);
-                if (ind instanceof org.xowl.infra.lang.runtime.NamedIndividual)
-                    return translateNamedIndividual((NamedIndividual) ind);
-            } else
-                return getDynamicNode((DynamicExpression) expression, Individual.class);
-        }
+        if (expression instanceof QueryVariable)
+            return context.resolve((org.xowl.infra.lang.actions.QueryVariable) expression, org.xowl.infra.lang.runtime.Individual.class);
+        if (expression instanceof DynamicExpression)
+            return getDynamicNode((DynamicExpression) expression, Individual.class);
         if (expression instanceof IRI)
             return translateNamedIndividualIRI((IRI) expression);
         if (expression instanceof AnonymousIndividual)
@@ -1634,19 +1530,6 @@ public class Translator {
      */
     protected SubjectNode translateNamedIndividualIRI(IRI expression) {
         return store.getIRINode(expression.getHasValue());
-    }
-
-    /**
-     * Translate the specified named individual
-     *
-     * @param expression A named individual
-     * @return The RDF node representing the expression
-     * @throws TranslationException when a runtime individual is not named
-     */
-    protected SubjectNode translateNamedIndividual(NamedIndividual expression) throws TranslationException {
-        if (expression.getInterpretationOf() == null)
-            throw new TranslationException("Cannot translate anonymous entities");
-        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
     }
 
     /**
@@ -1666,30 +1549,13 @@ public class Translator {
      * @return The RDF node representing the expression
      */
     protected Node translateLiteralExpression(LiteralExpression expression) {
-        if (expression instanceof QueryVariable) {
-            if (evaluator != null)
-                return translateLiteralRuntime(evaluator.evalLiteral(expression));
-            else
-                return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.Literal.class);
-        }
-        if (expression instanceof DynamicExpression) {
-            if (evaluator != null)
-                return translateLiteralRuntime(evaluator.evalLiteral(expression));
+        if (expression instanceof QueryVariable)
+            return context.resolve((QueryVariable) expression, org.xowl.infra.lang.runtime.Literal.class);
+        if (expression instanceof DynamicExpression)
             return getDynamicNode((DynamicExpression) expression, Literal.class);
-        }
         if (expression instanceof Literal)
             return translateLiteral((Literal) expression);
         return null;
-    }
-
-    /**
-     * Translate the specified runtime literal
-     *
-     * @param expression A runtime literal
-     * @return The RDF node representing the expression
-     */
-    protected LiteralNode translateLiteralRuntime(org.xowl.infra.lang.runtime.Literal expression) {
-        return store.getLiteralNode(expression.getLexicalValue(), expression.getMemberOf().getInterpretationOf().getHasIRI().getHasValue(), expression.getLangTag());
     }
 
     /**
@@ -1710,17 +1576,10 @@ public class Translator {
      * @throws TranslationException When a runtime entity is not named
      */
     protected SubjectNode translateFunctionExpression(FunctionExpression expression) throws TranslationException {
-        if (expression instanceof QueryVariable) {
-            if (evaluator != null)
-                return translateFunctionRuntime(evaluator.evalFunction(expression));
-            else
-                return context.resolve((QueryVariable) expression, Function.class);
-        }
-        if (expression instanceof DynamicExpression) {
-            if (evaluator != null)
-                return translateFunctionRuntime(evaluator.evalFunction(expression));
+        if (expression instanceof QueryVariable)
+            return context.resolve((QueryVariable) expression, Function.class);
+        if (expression instanceof DynamicExpression)
             return getDynamicNode((DynamicExpression) expression, Function.class);
-        }
         if (expression instanceof IRI)
             return translateFunctionIRI((IRI) expression);
 
@@ -1735,20 +1594,6 @@ public class Translator {
      */
     protected SubjectNode translateFunctionIRI(IRI expression) {
         return store.getIRINode(expression.getHasValue());
-    }
-
-    /**
-     * Translate the specified runtime function
-     *
-     * @param expression A runtime function
-     * @return The RDF node representing the expression
-     * @throws TranslationException When the runtime function is not a named function
-     */
-    protected SubjectNode translateFunctionRuntime(Function expression) throws TranslationException {
-        // Here an OWL Class is expected to be a named Class
-        if (expression.getInterpretationOf() == null)
-            throw new TranslationException("Cannot translate anonymous entities");
-        return store.getIRINode(expression.getInterpretationOf().getHasIRI().getHasValue());
     }
 
     /**

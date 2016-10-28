@@ -18,10 +18,11 @@
 package org.xowl.infra.store.entailment;
 
 import org.xowl.infra.store.ProxyObject;
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.logging.SinkLogger;
 
+import java.io.IOException;
 import java.util.Collection;
 
 /**
@@ -36,9 +37,13 @@ public class RDFTestSuiteGenerator {
      */
     public void generate() {
         SinkLogger logger = new SinkLogger();
-        Repository repository = new Repository();
+        RepositoryRDF repository = new RepositoryRDF(logger);
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
-        repository.load(logger, "http://www.w3.org/2013/rdf-mt-tests/manifest.ttl");
+        try {
+            repository.load("http://www.w3.org/2013/rdf-mt-tests/manifest.ttl");
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
 
         ProxyObject manifest = repository.resolveProxy("http://www.w3.org/2013/rdf-mt-tests/manifest.ttl");
         ProxyObject list = manifest.getObjectValue("http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#entries");

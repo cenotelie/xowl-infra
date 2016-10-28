@@ -98,7 +98,7 @@ public class OWLQueryEngine {
      */
     private RDFQuery translate(OWLQuery query, TranslationContext context) throws TranslationException {
         RDFQuery result = new RDFQuery();
-        Translator translator = new Translator(context, store, evaluator);
+        Translator translator = new Translator(context, store);
         // translate the positive axioms
         result.getPositives().addAll(translator.translate(query.getPositives(), graph));
         // translate the negative conjunctions

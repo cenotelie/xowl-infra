@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.GraphNode;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
@@ -64,7 +64,7 @@ public class CommandMove implements Command {
     }
 
     @Override
-    public Result execute(Repository repository) {
+    public Result execute(RepositoryRDF repository) {
         if (origin.equals(target))
             return ResultSuccess.INSTANCE;
         GraphNode graphOrigin = repository.getStore().getIRINode(origin);

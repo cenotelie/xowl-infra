@@ -20,9 +20,9 @@ package org.xowl.infra.store.sparql;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
-import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
+import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
@@ -61,15 +61,15 @@ public class ResultUtils {
     public static String coerceContentType(Result result, String type) {
         if (result instanceof ResultQuads) {
             switch (type) {
-                case AbstractRepository.SYNTAX_NTRIPLES:
-                case AbstractRepository.SYNTAX_NQUADS:
-                case AbstractRepository.SYNTAX_TURTLE:
-                case AbstractRepository.SYNTAX_TRIG:
-                case AbstractRepository.SYNTAX_RDFXML:
-                case AbstractRepository.SYNTAX_JSON_LD:
+                case Repository.SYNTAX_NTRIPLES:
+                case Repository.SYNTAX_NQUADS:
+                case Repository.SYNTAX_TURTLE:
+                case Repository.SYNTAX_TRIG:
+                case Repository.SYNTAX_RDFXML:
+                case Repository.SYNTAX_JSON_LD:
                     return type;
                 default:
-                    return AbstractRepository.SYNTAX_NQUADS;
+                    return Repository.SYNTAX_NQUADS;
             }
         } else {
             switch (type) {
@@ -99,12 +99,12 @@ public class ResultUtils {
                 return new ResultFailure("No response");
             switch (contentType) {
                 // empty quads
-                case AbstractRepository.SYNTAX_NQUADS:
-                case AbstractRepository.SYNTAX_NTRIPLES:
-                case AbstractRepository.SYNTAX_TURTLE:
-                case AbstractRepository.SYNTAX_TRIG:
-                case AbstractRepository.SYNTAX_RDFXML:
-                case AbstractRepository.SYNTAX_JSON_LD:
+                case Repository.SYNTAX_NQUADS:
+                case Repository.SYNTAX_NTRIPLES:
+                case Repository.SYNTAX_TURTLE:
+                case Repository.SYNTAX_TRIG:
+                case Repository.SYNTAX_RDFXML:
+                case Repository.SYNTAX_JSON_LD:
                     return new ResultQuads(new ArrayList<Quad>(0));
                 // empty solutions
                 case Result.SYNTAX_JSON:
@@ -125,17 +125,17 @@ public class ResultUtils {
             return new ResultYesNo(false);
         if (contentType != null) {
             switch (contentType) {
-                case AbstractRepository.SYNTAX_NQUADS:
+                case Repository.SYNTAX_NQUADS:
                     return parseResponseQuads(content, new NQuadsLoader(new CachedNodes()));
-                case AbstractRepository.SYNTAX_NTRIPLES:
+                case Repository.SYNTAX_NTRIPLES:
                     return parseResponseQuads(content, new NTriplesLoader(new CachedNodes()));
-                case AbstractRepository.SYNTAX_TURTLE:
+                case Repository.SYNTAX_TURTLE:
                     return parseResponseQuads(content, new TurtleLoader(new CachedNodes()));
-                case AbstractRepository.SYNTAX_TRIG:
+                case Repository.SYNTAX_TRIG:
                     return parseResponseQuads(content, new TriGLoader(new CachedNodes()));
-                case AbstractRepository.SYNTAX_RDFXML:
+                case Repository.SYNTAX_RDFXML:
                     return parseResponseQuads(content, new RDFXMLLoader(new CachedNodes()));
-                case AbstractRepository.SYNTAX_JSON_LD:
+                case Repository.SYNTAX_JSON_LD:
                     return parseResponseQuads(content, new JSONLDLoader(new CachedNodes()) {
                         @Override
                         protected Reader getReaderFor(Logger logger, String iri) {

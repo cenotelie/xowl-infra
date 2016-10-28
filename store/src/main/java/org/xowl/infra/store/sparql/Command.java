@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Node;
 
 import java.util.Map;
@@ -43,7 +43,7 @@ public interface Command {
      * @param repository The repository on which to execute the command
      * @return The command's result
      */
-    Result execute(Repository repository);
+    Result execute(RepositoryRDF repository);
 
     /**
      * Gets a copy of this command

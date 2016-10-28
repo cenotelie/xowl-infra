@@ -18,8 +18,10 @@
 package org.xowl.infra.store.loaders;
 
 import org.xowl.infra.store.ProxyObject;
-import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.utils.logging.SinkLogger;
+
+import java.io.IOException;
 
 /**
  * The generator of the test suite for the JSON-LD syntax
@@ -31,9 +33,13 @@ public class JSONLDTestSuiteGenerator {
 
     public void generateToRdfTests() {
         SinkLogger logger = new SinkLogger();
-        Repository repository = new Repository();
+        RepositoryRDF repository = new RepositoryRDF(logger);
         repository.getIRIMapper().addRegexpMap(BaseJSONLDTest.NAMESPACE + "(.*)", "resource://" + BaseJSONLDTest.PHYSICAL + "\\1");
-        repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/toRdf-manifest.jsonld");
+        try {
+            repository.load(BaseJSONLDTest.NAMESPACE + "tests/toRdf-manifest.jsonld");
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
         //repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/normalize-manifest.jsonld");
 
         ProxyObject classRDFTestCase = repository.resolveProxy("http://json-ld.org/test-suite/vocab#ToRDFTest");
@@ -47,10 +53,14 @@ public class JSONLDTestSuiteGenerator {
 
     public void generateFromRdfTests() {
         SinkLogger logger = new SinkLogger();
-        Repository repository = new Repository();
+        RepositoryRDF repository = new RepositoryRDF(logger);
 
         repository.getIRIMapper().addRegexpMap(BaseJSONLDTest.NAMESPACE + "(.*)", "resource://" + BaseJSONLDTest.PHYSICAL + "\\1");
-        repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/fromRdf-manifest.jsonld");
+        try {
+            repository.load(BaseJSONLDTest.NAMESPACE + "tests/fromRdf-manifest.jsonld");
+        } catch (IOException exception) {
+            logger.error(exception);
+        }
 
         ProxyObject classRDFTestCase = repository.resolveProxy("http://json-ld.org/test-suite/vocab#FromRDFTest");
         for (ProxyObject test : classRDFTestCase.getInstances()) {

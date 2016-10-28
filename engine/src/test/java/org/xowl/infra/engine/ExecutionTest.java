@@ -19,8 +19,8 @@ package org.xowl.infra.engine;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.Repository;
+import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.utils.logging.SinkLogger;
 
 /**
@@ -33,8 +33,8 @@ public class ExecutionTest {
     public void testExecutionHello() {
         SinkLogger logger = new SinkLogger();
         ClojureEvaluator evaluator = new ClojureEvaluator();
-        Repository repository = new Repository(evaluator);
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
+        RepositoryRDF repository = new RepositoryRDF(evaluator);
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
         repository.load(logger, "http://xowl.org/engine/tests/Sample");
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
         Object result = evaluator.execute(repository.getProxy("http://xowl.org/engine/tests/Sample#hello"));
@@ -46,8 +46,8 @@ public class ExecutionTest {
     public void testExecutionInnerCall() {
         SinkLogger logger = new SinkLogger();
         ClojureEvaluator evaluator = new ClojureEvaluator();
-        Repository repository = new Repository(evaluator);
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
+        RepositoryRDF repository = new RepositoryRDF(evaluator);
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
         repository.load(logger, "http://xowl.org/engine/tests/Sample");
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
         Object result = evaluator.execute(repository.getProxy("http://xowl.org/engine/tests/Sample#total"), 2);
@@ -58,8 +58,8 @@ public class ExecutionTest {
     @Test
     public void testExecutionInnerRule() {
         SinkLogger logger = new SinkLogger();
-        Repository repository = new Repository(new ClojureEvaluator());
-        repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", AbstractRepository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
+        RepositoryRDF repository = new RepositoryRDF(new ClojureEvaluator());
+        repository.getIRIMapper().addSimpleMap("http://xowl.org/engine/tests/Sample", Repository.SCHEME_RESOURCE + "/org/xowl/infra/engine/Sample.xowl");
         repository.load(logger, "http://xowl.org/engine/tests/Sample");
         Assert.assertFalse("Failed to load the xOWL ontology", logger.isOnError());
         repository.getOWLRuleEngine().flush();

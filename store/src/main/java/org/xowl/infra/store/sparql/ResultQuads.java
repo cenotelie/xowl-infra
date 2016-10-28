@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.sparql;
 
-import org.xowl.infra.store.AbstractRepository;
+import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.writers.*;
 import org.xowl.infra.utils.logging.SinkLogger;
@@ -71,22 +71,22 @@ public class ResultQuads implements Result {
     public void print(Writer writer, String syntax) throws IOException {
         RDFSerializer serializer;
         switch (syntax) {
-            case AbstractRepository.SYNTAX_NTRIPLES:
+            case Repository.SYNTAX_NTRIPLES:
                 serializer = new NTripleSerializer(writer);
                 break;
-            case AbstractRepository.SYNTAX_NQUADS:
+            case Repository.SYNTAX_NQUADS:
                 serializer = new NQuadsSerializer(writer);
                 break;
-            case AbstractRepository.SYNTAX_TURTLE:
+            case Repository.SYNTAX_TURTLE:
                 serializer = new TurtleSerializer(writer);
                 break;
-            case AbstractRepository.SYNTAX_TRIG:
+            case Repository.SYNTAX_TRIG:
                 serializer = new TriGSerializer(writer);
                 break;
-            case AbstractRepository.SYNTAX_RDFXML:
+            case Repository.SYNTAX_RDFXML:
                 serializer = new RDFXMLSerializer(writer);
                 break;
-            case AbstractRepository.SYNTAX_JSON_LD:
+            case Repository.SYNTAX_JSON_LD:
                 serializer = new JSONLDSerializer(writer);
                 break;
             default:

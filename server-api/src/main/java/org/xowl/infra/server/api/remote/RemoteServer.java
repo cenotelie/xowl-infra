@@ -21,7 +21,7 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.*;
 import org.xowl.infra.server.api.base.*;
 import org.xowl.infra.server.xsp.*;
-import org.xowl.infra.store.AbstractRepository;
+import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
@@ -250,7 +250,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
             return new XSPReplyFailure("The specification of default graphs is not supported");
         if (namedIRIs != null && !namedIRIs.isEmpty())
             return new XSPReplyFailure("The specification of named graphs is not supported");
-        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/sparql", "POST", sparql, Command.MIME_SPARQL_QUERY, AbstractRepository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON), this);
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/sparql", "POST", sparql, Command.MIME_SPARQL_QUERY, Repository.SYNTAX_NQUADS + ", " + Result.SYNTAX_JSON), this);
     }
 
     /**
@@ -493,7 +493,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
         serializer.serialize(logger, quads.iterator());
         if (!logger.getErrorMessages().isEmpty())
             return new XSPReplyFailure(logger.getErrorsAsString());
-        return upload(database, writer.toString(), AbstractRepository.SYNTAX_NQUADS);
+        return upload(database, writer.toString(), Repository.SYNTAX_NQUADS);
     }
 
     /**

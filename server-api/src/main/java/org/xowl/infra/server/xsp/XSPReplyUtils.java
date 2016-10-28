@@ -22,7 +22,7 @@ import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.infra.server.api.XOWLFactory;
 import org.xowl.infra.server.api.XOWLUtils;
-import org.xowl.infra.store.AbstractRepository;
+import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.loaders.JSONLDLoader;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultUtils;
@@ -76,7 +76,7 @@ public class XSPReplyUtils {
         if (reply instanceof XSPReplyResult && ((XSPReplyResult) reply).getData() instanceof Result) {
             // special handling for SPARQL
             Result sparqlResult = (Result) ((XSPReplyResult) reply).getData();
-            String resultType = ResultUtils.coerceContentType(sparqlResult, acceptTypes != null ? httpNegotiateContentType(acceptTypes) : AbstractRepository.SYNTAX_NQUADS);
+            String resultType = ResultUtils.coerceContentType(sparqlResult, acceptTypes != null ? httpNegotiateContentType(acceptTypes) : Repository.SYNTAX_NQUADS);
             StringWriter writer = new StringWriter();
             try {
                 sparqlResult.print(writer, resultType);
@@ -286,15 +286,15 @@ public class XSPReplyUtils {
                 case Result.SYNTAX_XML:
                 case Result.SYNTAX_JSON:
                     // The RDF syntaxes for quads
-                case AbstractRepository.SYNTAX_NTRIPLES:
-                case AbstractRepository.SYNTAX_NQUADS:
-                case AbstractRepository.SYNTAX_TURTLE:
-                case AbstractRepository.SYNTAX_TRIG:
-                case AbstractRepository.SYNTAX_RDFXML:
-                case AbstractRepository.SYNTAX_JSON_LD:
+                case Repository.SYNTAX_NTRIPLES:
+                case Repository.SYNTAX_NQUADS:
+                case Repository.SYNTAX_TURTLE:
+                case Repository.SYNTAX_TRIG:
+                case Repository.SYNTAX_RDFXML:
+                case Repository.SYNTAX_JSON_LD:
                     return contentType;
             }
         }
-        return AbstractRepository.SYNTAX_NQUADS;
+        return Repository.SYNTAX_NQUADS;
     }
 }

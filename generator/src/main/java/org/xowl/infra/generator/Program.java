@@ -19,7 +19,7 @@ package org.xowl.infra.generator;
 
 import org.xowl.infra.generator.builder.Builder;
 import org.xowl.infra.generator.model.Model;
-import org.xowl.infra.store.owl.DirectSemantics;
+import org.xowl.infra.store.RepositoryDirectSemantics;
 import org.xowl.infra.utils.logging.ConsoleLogger;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.collections.Couple;
@@ -168,7 +168,7 @@ public class Program {
      */
     public void execute() {
         // load the inputs
-        DirectSemantics repository = new DirectSemantics();
+        RepositoryDirectSemantics repository = new RepositoryDirectSemantics();
         for (Couple<String, String> mapping : repositories)
             repository.getIRIMapper().addRegexpMap(mapping.x, mapping.y);
         for (String input : inputs)
