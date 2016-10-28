@@ -22,15 +22,19 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
-import org.xowl.infra.store.*;
+import org.xowl.infra.store.AbstractRepository;
+import org.xowl.infra.store.IRIMapper;
+import org.xowl.infra.store.IRIs;
+import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.loaders.SPARQLLoader;
 import org.xowl.infra.store.loaders.W3CTestSuite;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.utils.Files;
-import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -111,7 +115,7 @@ public abstract class BaseSPARQLTest {
      * @param resource The resource to load
      */
     protected void testPositiveSyntax(String resource) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         BaseStore store = StoreFactory.create().make();
         IRIMapper mapper = new IRIMapper();
         mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/sparql/\\1");
@@ -132,7 +136,7 @@ public abstract class BaseSPARQLTest {
      * @param resource The resource to load
      */
     protected void testNegativeSyntax(String resource) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         BaseStore store = StoreFactory.create().make();
         IRIMapper mapper = new IRIMapper();
         mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/sparql/\\1");
@@ -155,7 +159,7 @@ public abstract class BaseSPARQLTest {
      * @param outputs  The data after the request's execution
      */
     protected void testUpdateEvaluation(String resource, Couple<String, String>[] inputs, Couple<String, String>[] outputs) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository before = prepare(logger, inputs);
         Assert.assertFalse("Failed to prepare the repository", logger.isOnError());
         Repository after = prepare(logger, outputs);
@@ -176,7 +180,7 @@ public abstract class BaseSPARQLTest {
      * @param inputs   The data before the request's execution
      */
     protected void testQueryEvaluation(String resource, String[] inputs, String output) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository before = prepare(logger, inputs);
         Assert.assertFalse("Failed to prepare the repository", logger.isOnError());
         String request = before.getIRIMapper().get(resource);
@@ -473,7 +477,7 @@ public abstract class BaseSPARQLTest {
      * @param expected The expected result
      */
     private void compareQuads(ResultQuads result, String expected) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
         repository.load(logger, expected, IRIs.GRAPH_DEFAULT, true);

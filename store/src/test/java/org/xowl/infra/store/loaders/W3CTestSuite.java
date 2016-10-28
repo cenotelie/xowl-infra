@@ -22,12 +22,12 @@ import org.junit.Before;
 import org.xowl.infra.store.AbstractRepository;
 import org.xowl.infra.store.IRIMapper;
 import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.TestLogger;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,7 +47,7 @@ public abstract class W3CTestSuite {
     /**
      * The logger
      */
-    protected TestLogger logger;
+    protected SinkLogger logger;
     /**
      * The store to use
      */
@@ -59,7 +59,7 @@ public abstract class W3CTestSuite {
 
     @Before
     public void setup() throws IOException {
-        logger = new TestLogger();
+        logger = new SinkLogger();
         store = StoreFactory.create().make();
         mapper = IRIMapper.getDefault();
     }

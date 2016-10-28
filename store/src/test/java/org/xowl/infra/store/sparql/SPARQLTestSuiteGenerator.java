@@ -19,9 +19,9 @@ package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.TestLogger;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ public class SPARQLTestSuiteGenerator {
      * Generates the SPARQL test suite
      */
     public void generate() {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository repository = new Repository();
 
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");

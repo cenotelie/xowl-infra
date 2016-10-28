@@ -17,15 +17,18 @@
 package org.xowl.infra.store.loaders;
 
 import org.junit.Assert;
-import org.xowl.infra.store.TestLogger;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.logging.SinkLogger;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Iterator;
 
 /**
@@ -70,7 +73,7 @@ public class W3CTestSuiteGenerator {
      */
     public void generate(String manifest) {
         BaseStore store = StoreFactory.create().make();
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
 
         InputStream stream = W3CTestSuite.class.getResourceAsStream(manifest);
         Reader reader = reader = new InputStreamReader(stream, Files.CHARSET);

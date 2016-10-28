@@ -19,8 +19,8 @@ package org.xowl.infra.store.entailment;
 
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.TestLogger;
 import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.util.Collection;
 
@@ -35,7 +35,7 @@ public class RDFTestSuiteGenerator {
      * Generates the RDF test suite
      */
     public void generate() {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
         repository.load(logger, "http://www.w3.org/2013/rdf-mt-tests/manifest.ttl");

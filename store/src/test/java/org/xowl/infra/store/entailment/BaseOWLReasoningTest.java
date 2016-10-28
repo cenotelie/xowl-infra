@@ -20,9 +20,9 @@ import org.junit.Assert;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.TestLogger;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.util.*;
 
@@ -39,7 +39,7 @@ public class BaseOWLReasoningTest {
      * @param conclusionResource The resource for the conclusion
      */
     protected void testPositiveEntailment(String premiseResource, String conclusionResource) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
 
         // load the conclusion ontology at get all the quads in it
         Repository repository = new Repository();
@@ -101,7 +101,7 @@ public class BaseOWLReasoningTest {
      * @param conclusionResource The resource for the conclusion
      */
     protected void testNegativeEntailment(String premiseResource, String conclusionResource) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
 
         // load the conclusion ontology at get all the quads in it
         Repository repository = new Repository();
@@ -162,7 +162,7 @@ public class BaseOWLReasoningTest {
      * @param premiseResource The resource for the premise
      */
     protected void testConsistency(String premiseResource) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository repository = new Repository();
         // add mapping for imported remote ontologies
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
@@ -194,7 +194,7 @@ public class BaseOWLReasoningTest {
      * @param premiseResource The resource for the premise
      */
     protected void testInconsistency(String premiseResource) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository repository = new Repository();
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
 

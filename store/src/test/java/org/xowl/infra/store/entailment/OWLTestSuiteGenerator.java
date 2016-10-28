@@ -18,8 +18,8 @@ package org.xowl.infra.store.entailment;
 
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.TestLogger;
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -36,7 +36,7 @@ public class OWLTestSuiteGenerator {
      * Generates the OWL2 test suite
      */
     public void generate() {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://owl.semanticweb.org/exports/(.*)", "resource:///tests/\\1");
         repository.load(logger, "http://owl.semanticweb.org/exports/testOntology.rdf");

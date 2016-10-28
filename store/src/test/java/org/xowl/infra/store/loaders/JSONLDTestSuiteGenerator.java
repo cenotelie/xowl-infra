@@ -19,7 +19,7 @@ package org.xowl.infra.store.loaders;
 
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.TestLogger;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 /**
  * The generator of the test suite for the JSON-LD syntax
@@ -30,7 +30,7 @@ import org.xowl.infra.store.TestLogger;
 public class JSONLDTestSuiteGenerator {
 
     public void generateToRdfTests() {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap(BaseJSONLDTest.NAMESPACE + "(.*)", "resource://" + BaseJSONLDTest.PHYSICAL + "\\1");
         repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/toRdf-manifest.jsonld");
@@ -46,8 +46,8 @@ public class JSONLDTestSuiteGenerator {
     }
 
     public void generateFromRdfTests() {
-        TestLogger logger = new TestLogger();
-        Repository repository  = new Repository();
+        SinkLogger logger = new SinkLogger();
+        Repository repository = new Repository();
 
         repository.getIRIMapper().addRegexpMap(BaseJSONLDTest.NAMESPACE + "(.*)", "resource://" + BaseJSONLDTest.PHYSICAL + "\\1");
         repository.load(logger, BaseJSONLDTest.NAMESPACE + "tests/fromRdf-manifest.jsonld");

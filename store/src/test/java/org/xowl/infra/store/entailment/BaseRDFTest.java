@@ -20,11 +20,11 @@ package org.xowl.infra.store.entailment;
 import org.junit.Assert;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.Repository;
-import org.xowl.infra.store.TestLogger;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.loaders.W3CTestSuite;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,7 +44,7 @@ public class BaseRDFTest {
      * @param result The expected result, or null if inconsistency shall be detected
      */
     protected void testPositiveEntailment(String input, EntailmentRegime regime, String result) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
         repository.setEntailmentRegime(logger, regime);
@@ -84,7 +84,7 @@ public class BaseRDFTest {
      * @param result The expected result, or null if inconsistency shall be detected
      */
     protected void testNegativeEntailment(String input, EntailmentRegime regime, String result) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
         repository.setEntailmentRegime(logger, regime);
@@ -123,7 +123,7 @@ public class BaseRDFTest {
      * @return The contained quads
      */
     private List<Quad> load(String resource) {
-        TestLogger logger = new TestLogger();
+        SinkLogger logger = new SinkLogger();
         Repository repository = new Repository();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
         Assert.assertFalse("Failed to activate the entailment regime", logger.isOnError());
