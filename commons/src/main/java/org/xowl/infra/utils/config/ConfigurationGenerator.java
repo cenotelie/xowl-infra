@@ -21,7 +21,6 @@ import org.xowl.infra.utils.Files;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -76,7 +75,7 @@ public class ConfigurationGenerator {
     public void generate() throws IOException {
         Configuration config = new Configuration();
         config.load(input);
-        List<String> properties = new ArrayList<>(config.getGlobalSection().getProperties());
+        List<String> properties = config.getGlobalSection().getProperties();
         Collections.sort(properties);
         Writer writer = null;
         try {

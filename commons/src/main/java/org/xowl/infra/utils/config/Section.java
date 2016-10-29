@@ -25,6 +25,7 @@ import java.util.*;
 
 /**
  * Represents a section in a configuration file
+ * This structure is NOT thread safe
  *
  * @author Laurent Wouters
  */
@@ -71,8 +72,8 @@ public class Section {
      *
      * @return The set of properties defined in this section
      */
-    public Set<String> getProperties() {
-        return properties.keySet();
+    public List<String> getProperties() {
+        return new ArrayList<>(properties.keySet());
     }
 
     /**
@@ -83,8 +84,8 @@ public class Section {
      */
     public List<String> getAll(String property) {
         if (!properties.containsKey(property))
-            return new ArrayList<>();
-        return properties.get(property);
+            return Collections.emptyList();
+        return new ArrayList<>(properties.get(property));
     }
 
     /**

@@ -25,6 +25,7 @@ import java.util.*;
 
 /**
  * Represents a configuration with values associated to properties
+ * This structure is NOT thread safe
  *
  * @author Laurent Wouters
  */
@@ -52,7 +53,7 @@ public class Configuration {
      * @return The named sections
      */
     public Collection<Section> getSections() {
-        return sections.values();
+        return new ArrayList<>(sections.values());
     }
 
     /**
@@ -110,7 +111,7 @@ public class Configuration {
             return global.getAll(property);
         Section current = sections.get(section);
         if (current == null)
-            return new ArrayList<>();
+            return Collections.emptyList();
         return current.getAll(property);
     }
 
