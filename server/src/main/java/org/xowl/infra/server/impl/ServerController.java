@@ -64,7 +64,7 @@ public class ServerController implements Closeable {
     /**
      * The logger for this controller
      */
-    private final Logger logger;
+    protected final Logger logger;
     /**
      * The current configuration
      */
@@ -937,7 +937,6 @@ public class ServerController implements Closeable {
                 || checkIsDBAdmin(client, db)
                 || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANWRITE)
                 || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANREAD)) {
-
             try {
                 RDFRuleStatus status = db.controller.getRuleStatus(rule);
                 if (status == null)
@@ -1234,7 +1233,7 @@ public class ServerController implements Closeable {
      * @param login A login
      * @return The user, or null if it is not found
      */
-    private UserImpl doGetUser(String login) {
+    protected UserImpl doGetUser(String login) {
         synchronized (users) {
             UserImpl result = users.get(login);
             if (result != null)

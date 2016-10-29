@@ -21,10 +21,10 @@ import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLServer;
 import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.impl.ServerConfiguration;
-import org.xowl.infra.server.impl.ServerController;
-import org.xowl.infra.server.impl.ServerUser;
+import org.xowl.infra.server.impl.UserImpl;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyUnsupported;
+import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
@@ -39,19 +39,21 @@ public class EmbeddedServer implements XOWLServer {
     /**
      * The server controller
      */
-    private final ServerController controller;
+    private final EmbeddedController controller;
     /**
      * The client user to use
      */
-    private final ServerUser admin;
+    private final UserImpl admin;
 
     /**
      * Initializes this embedded server
      *
+     * @param logger        The logger for this server
      * @param configuration The server configuration
+     * @throws Exception When the location cannot be accessed
      */
-    public EmbeddedServer(ServerConfiguration configuration) throws IOException {
-        this.controller = new ServerController(configuration);
+    public EmbeddedServer(Logger logger, ServerConfiguration configuration) throws Exception {
+        this.controller = new EmbeddedController(logger, configuration);
         this.admin = controller.getPrincipal(configuration.getAdminDefaultUser());
     }
 
