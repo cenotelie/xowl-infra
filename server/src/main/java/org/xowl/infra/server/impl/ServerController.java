@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.base;
+package org.xowl.infra.server.impl;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.xowl.infra.server.api.XOWLDatabase;

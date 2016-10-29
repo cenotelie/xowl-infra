@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.base;
+package org.xowl.infra.server.impl;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;

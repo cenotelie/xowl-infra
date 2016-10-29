@@ -17,8 +17,8 @@
 
 package org.xowl.infra.server.standalone;
 
-import org.xowl.infra.server.base.ServerConfiguration;
-import org.xowl.infra.server.base.ServerController;
+import org.xowl.infra.server.impl.ServerConfiguration;
+import org.xowl.infra.server.impl.ServerController;
 import org.xowl.infra.utils.logging.ConsoleLogger;
 import org.xowl.infra.utils.logging.DispatchLogger;
 import org.xowl.infra.utils.logging.FileLogger;
