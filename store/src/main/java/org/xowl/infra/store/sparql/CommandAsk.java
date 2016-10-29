@@ -45,6 +45,11 @@ public class CommandAsk implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return false;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         try {
             Solutions solutions = pattern.eval(new EvalContextRepository(repository));

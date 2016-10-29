@@ -57,6 +57,11 @@ public class CommandInsertData implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return true;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         try {
             repository.getStore().insert(Changeset.fromAdded(quads));

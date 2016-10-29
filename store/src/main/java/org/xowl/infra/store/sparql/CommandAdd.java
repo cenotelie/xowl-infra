@@ -62,6 +62,11 @@ public class CommandAdd implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return true;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         for (String origin : origins) {
             GraphNode graphOrigin = repository.getStore().getIRINode(origin);

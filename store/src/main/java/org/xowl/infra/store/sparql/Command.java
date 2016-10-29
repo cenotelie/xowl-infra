@@ -38,6 +38,15 @@ public interface Command {
     String MIME_SPARQL_UPDATE = "application/sparql-update";
 
     /**
+     * Gets whether this command is an update command
+     * Update commands are ADD, CLEAR, COPY, CREATE, DELETE, DELETE WHERE, DROP, INSERT DATA, LOAD, MODIFY and MOVE
+     * Other commands are ASK, CONSTRUCT, DESCRIBE and SELECT
+     *
+     * @return Whether this command is an update command
+     */
+    boolean isUpdateCommand();
+
+    /**
      * Executes this command on the specified repository
      *
      * @param repository The repository on which to execute the command

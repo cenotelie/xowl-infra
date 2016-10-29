@@ -64,6 +64,11 @@ public class CommandMove implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return true;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         if (origin.equals(target))
             return ResultSuccess.INSTANCE;

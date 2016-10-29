@@ -45,6 +45,11 @@ public class CommandSelect implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return false;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         try {
             return new ResultSolutions(pattern.eval(new EvalContextRepository(repository)));

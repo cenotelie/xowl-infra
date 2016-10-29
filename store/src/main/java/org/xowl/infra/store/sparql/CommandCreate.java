@@ -54,6 +54,11 @@ public class CommandCreate implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return true;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         return ResultSuccess.INSTANCE;
     }

@@ -70,6 +70,11 @@ public class CommandLoad implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return true;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         SinkLogger logger = new SinkLogger();
         try {

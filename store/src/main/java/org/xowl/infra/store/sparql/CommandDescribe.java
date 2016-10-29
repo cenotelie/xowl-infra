@@ -48,6 +48,11 @@ public class CommandDescribe implements Command {
      */
     private final Collection<String> iris;
 
+    @Override
+    public boolean isUpdateCommand() {
+        return false;
+    }
+
     /**
      * Initializes this command
      *

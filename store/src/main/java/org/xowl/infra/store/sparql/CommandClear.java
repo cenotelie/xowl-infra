@@ -65,6 +65,11 @@ public class CommandClear implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return true;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         try {
             switch (type) {

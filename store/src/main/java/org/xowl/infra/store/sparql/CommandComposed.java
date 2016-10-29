@@ -58,6 +58,15 @@ public class CommandComposed implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        for (int i = 0; i != commands.length; i++) {
+            if (commands[i].isUpdateCommand())
+                return true;
+        }
+        return false;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         for (int i = 0; i != commands.length; i++) {
             Result result = commands[i].execute(repository);

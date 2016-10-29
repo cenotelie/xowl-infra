@@ -52,6 +52,11 @@ public class CommandDeleteWhere implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return true;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         RDFQuery query = new RDFQuery();
         query.getPositives().addAll(quads);

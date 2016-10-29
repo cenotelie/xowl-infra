@@ -66,6 +66,11 @@ public class CommandCopy implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return true;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         List<String> overwritten = new ArrayList<>();
         for (String origin : origins) {

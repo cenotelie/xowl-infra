@@ -89,6 +89,11 @@ public class CommandModify implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return true;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         try {
             EvalContext context = new EvalContextRepository(repository);

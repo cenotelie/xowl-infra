@@ -58,6 +58,11 @@ public class CommandConstruct implements Command {
     }
 
     @Override
+    public boolean isUpdateCommand() {
+        return false;
+    }
+
+    @Override
     public Result execute(RepositoryRDF repository) {
         try {
             EvalContext context = new EvalContextRepository(repository);
