@@ -15,14 +15,14 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.api.remote;
+package org.xowl.infra.server.remote;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.*;
-import org.xowl.infra.server.api.base.*;
+import org.xowl.infra.server.base.*;
 import org.xowl.infra.server.xsp.*;
-import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.EntailmentRegime;
+import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;

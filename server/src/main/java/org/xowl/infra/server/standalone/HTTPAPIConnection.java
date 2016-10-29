@@ -21,7 +21,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLPrivilege;
-import org.xowl.infra.server.api.base.BaseStoredProcedure;
+import org.xowl.infra.server.base.BaseStoredProcedure;
 import org.xowl.infra.server.impl.ServerController;
 import org.xowl.infra.server.impl.ServerUser;
 import org.xowl.infra.server.xsp.XSPReply;

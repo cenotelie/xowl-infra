@@ -17,7 +17,7 @@
 
 package org.xowl.infra.server.impl;
 
-import org.xowl.infra.server.api.base.BaseUser;
+import org.xowl.infra.server.base.BaseUser;
 import org.xowl.infra.store.ProxyObject;
 
 /**

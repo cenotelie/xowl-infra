@@ -15,180 +15,147 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.api.base;
+package org.xowl.infra.server.remote;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
 import org.xowl.infra.server.api.XOWLStoredProcedureContext;
+import org.xowl.infra.server.base.BaseDatabase;
 import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.server.xsp.XSPReplyFailure;
+import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
-import org.xowl.infra.utils.TextUtils;
 
 import java.util.Collection;
 import java.util.List;
 
 /**
- * Base implementation of a database
+ * Represents a database on a remote xOWL Server
  *
  * @author Laurent Wouters
  */
-public class BaseDatabase implements XOWLDatabase {
+class RemoteDatabase extends BaseDatabase {
     /**
-     * The database's name
+     * The parent server
      */
-    protected final String name;
+    private final RemoteServer server;
 
     /**
      * Initializes this database
      *
-     * @param name The database's name
+     * @param server The parent server
+     * @param name   The database's name
      */
-    public BaseDatabase(String name) {
-        this.name = name;
+    public RemoteDatabase(RemoteServer server, String name) {
+        super(name);
+        this.server = server;
     }
 
     /**
      * Initializes this database
      *
-     * @param root The database's definition
+     * @param server The parent server
+     * @param root   The database's definition
      */
-    public BaseDatabase(ASTNode root) {
-        String value = null;
-        for (ASTNode child : root.getChildren()) {
-            ASTNode nodeMemberName = child.getChildren().get(0);
-            String name = TextUtils.unescape(nodeMemberName.getValue());
-            name = name.substring(1, name.length() - 1);
-            if (name.equals("name")) {
-                ASTNode nodeValue = child.getChildren().get(1);
-                value = TextUtils.unescape(nodeValue.getValue());
-                value = value.substring(1, value.length() - 1);
-            }
-        }
-        this.name = value;
-    }
-
-    @Override
-    public String getName() {
-        return name;
+    public RemoteDatabase(RemoteServer server, ASTNode root) {
+        super(root);
+        this.server = server;
     }
 
     @Override
     public XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
-        return XSPReplyFailure.instance();
+        return server.sparql(name, sparql, defaultIRIs, namedIRIs);
     }
 
     @Override
     public XSPReply sparql(Command sparql) {
-        return XSPReplyFailure.instance();
+        return XSPReplyUnsupported.instance();
     }
 
     @Override
     public XSPReply getEntailmentRegime() {
-        return XSPReplyFailure.instance();
+        return server.getEntailmentRegime(name);
     }
 
     @Override
     public XSPReply setEntailmentRegime(EntailmentRegime regime) {
-        return XSPReplyFailure.instance();
+        return server.setEntailmentRegime(name, regime);
     }
 
     @Override
     public XSPReply getRule(String name) {
-        return XSPReplyFailure.instance();
+        return server.getRule(this.name, name);
     }
 
     @Override
     public XSPReply getRules() {
-        return XSPReplyFailure.instance();
+        return server.getRules(name);
     }
 
     @Override
     public XSPReply addRule(String content, boolean activate) {
-        return XSPReplyFailure.instance();
+        return server.addRule(name, content, activate);
     }
 
     @Override
     public XSPReply removeRule(XOWLRule rule) {
-        return XSPReplyFailure.instance();
+        return server.removeRule(name, rule);
     }
 
     @Override
     public XSPReply activateRule(XOWLRule rule) {
-        return XSPReplyFailure.instance();
+        return server.activateRule(name, rule);
     }
 
     @Override
     public XSPReply deactivateRule(XOWLRule rule) {
-        return XSPReplyFailure.instance();
+        return server.deactivateRule(name, rule);
     }
 
     @Override
     public XSPReply getRuleStatus(XOWLRule rule) {
-        return XSPReplyFailure.instance();
+        return server.getRuleStatus(name, rule);
     }
 
     @Override
     public XSPReply getStoreProcedure(String iri) {
-        return XSPReplyFailure.instance();
+        return server.getStoreProcedure(name, iri);
     }
 
     @Override
     public XSPReply getStoredProcedures() {
-        return XSPReplyFailure.instance();
+        return server.getStoredProcedures(name);
     }
 
     @Override
     public XSPReply addStoredProcedure(String iri, String sparql, Collection<String> parameters) {
-        return XSPReplyFailure.instance();
+        return server.addStoredProcedure(name, iri, sparql, parameters);
     }
 
     @Override
     public XSPReply removeStoredProcedure(XOWLStoredProcedure procedure) {
-        return XSPReplyFailure.instance();
+        return server.removeStoredProcedure(name, procedure);
     }
 
     @Override
     public XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
-        return XSPReplyFailure.instance();
+        return server.executeStoredProcedure(name, procedure, context);
     }
 
     @Override
     public XSPReply upload(String syntax, String content) {
-        return XSPReplyFailure.instance();
+        return server.upload(name, syntax, content);
     }
 
     @Override
     public XSPReply upload(Collection<Quad> quads) {
-        return XSPReplyFailure.instance();
+        return server.upload(name, quads);
     }
 
     @Override
     public XSPReply getStatistics() {
-        return XSPReplyFailure.instance();
-    }
-
-    @Override
-    public String serializedString() {
-        return getName();
-    }
-
-    @Override
-    public String serializedJSON() {
-        return "{\"type\": \"" + TextUtils.escapeStringJSON(XOWLDatabase.class.getCanonicalName()) + "\", \"name\": \"" + TextUtils.escapeStringJSON(getName()) + "\"}";
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof XOWLDatabase && name.equals(((XOWLDatabase) obj).getName());
+        return server.getStatistics(name);
     }
 }
