@@ -17,8 +17,8 @@
 
 package org.xowl.infra.server.api;
 
-import org.xowl.infra.store.Serializable;
 import org.xowl.infra.store.rdf.Node;
+import org.xowl.infra.utils.Serializable;
 
 import java.util.List;
 import java.util.Map;

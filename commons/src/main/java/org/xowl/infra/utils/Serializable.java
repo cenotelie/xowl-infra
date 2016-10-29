@@ -15,7 +15,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store;
+package org.xowl.infra.utils;
 
 /**
  * Represents a serializable entity

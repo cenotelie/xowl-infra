@@ -18,7 +18,7 @@
 package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.store.RDFUtils;
-import org.xowl.infra.store.Serializable;
+import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.Logging;

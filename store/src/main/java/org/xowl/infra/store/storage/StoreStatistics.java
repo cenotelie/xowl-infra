@@ -18,8 +18,8 @@
 package org.xowl.infra.store.storage;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.infra.store.Serializable;
 import org.xowl.infra.store.storage.persistent.FileStatistics;
+import org.xowl.infra.utils.Serializable;
 import org.xowl.infra.utils.TextUtils;
 
 /**

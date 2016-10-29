@@ -17,7 +17,7 @@
 
 package org.xowl.infra.server.api;
 
-import org.xowl.infra.store.Serializable;
+import org.xowl.infra.utils.Serializable;
 
 import java.util.Collection;
 

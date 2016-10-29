@@ -19,9 +19,9 @@ package org.xowl.infra.server.api;
 
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.store.EntailmentRegime;
-import org.xowl.infra.store.Serializable;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.sparql.Command;
+import org.xowl.infra.utils.Serializable;
 
 import java.util.Collection;
 import java.util.List;
