@@ -794,7 +794,7 @@ public abstract class Repository {
             URLConnection connection = url.openConnection();
             return new InputStreamReader(connection.getInputStream(), Files.CHARSET);
         } else if (resource.startsWith(SCHEME_RESOURCE)) {
-            InputStream stream = RepositoryRDF.class.getResourceAsStream(resource.substring(SCHEME_RESOURCE.length()));
+            InputStream stream = Repository.class.getResourceAsStream(resource.substring(SCHEME_RESOURCE.length()));
             return new InputStreamReader(stream, Files.CHARSET);
         } else if (resource.startsWith(SCHEME_JAR)) {
             String parts[] = resource.substring(SCHEME_JAR.length()).split("!");

@@ -48,7 +48,7 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
      * @param testedURI   The URI of the tested JSON-LD document
      */
     protected void toRdfTest(String expectedURI, String testedURI) {
-        mapper.addRegexpMap(NAMESPACE + "(.*)", PHYSICAL + "\\1");
+        mapper.addRegexpMap(NAMESPACE + "(.*)", Repository.SCHEME_RESOURCE + PHYSICAL + "\\1");
         testEval(mapper.get(expectedURI), expectedURI, mapper.get(testedURI), testedURI);
     }
 
@@ -73,7 +73,7 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
             // cannot happen due to the assertion failure, but get rid of the null warning
             return;
         }
-        mapper.addRegexpMap(NAMESPACE + "(.*)", PHYSICAL + "\\1");
+        mapper.addRegexpMap(NAMESPACE + "(.*)", Repository.SCHEME_RESOURCE + PHYSICAL + "\\1");
         mapper.addSimpleMap(generatedURI, "file://" + generated.getAbsolutePath());
         testEval(mapper.get(expectedURI), expectedURI, mapper.get(generatedURI), testedURI);
     }

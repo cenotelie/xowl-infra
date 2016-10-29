@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.loaders;
 
+import org.xowl.infra.store.Repository;
+
 /**
  * Base class for the TriG loader tests
  *
@@ -31,11 +33,11 @@ public abstract class BaseTriGTest extends W3CTestSuite {
     /**
      * Tests that the specified TriG resource is loaded and evaluated as the specified NQuad resource
      *
-     * @param trigResource  A TriG resource
+     * @param trigResource A TriG resource
      * @param quadResource A NTriple resource
      */
     protected void testTrigEval(String trigResource, String quadResource) {
-        testEval("/trig/" + quadResource, BASE_LOCATION + quadResource, "/trig/" + trigResource, BASE_LOCATION + trigResource);
+        testEval(Repository.SCHEME_RESOURCE + "/trig/" + quadResource, BASE_LOCATION + quadResource, Repository.SCHEME_RESOURCE + "/trig/" + trigResource, BASE_LOCATION + trigResource);
     }
 
     /**
@@ -44,7 +46,7 @@ public abstract class BaseTriGTest extends W3CTestSuite {
      * @param resource A TriG resource
      */
     protected void testTrigPositiveSyntax(String resource) {
-        testPositiveSyntax("/trig/" + resource, BASE_LOCATION + resource);
+        testPositiveSyntax(Repository.SCHEME_RESOURCE + "/trig/" + resource, BASE_LOCATION + resource);
     }
 
     /**
@@ -53,6 +55,6 @@ public abstract class BaseTriGTest extends W3CTestSuite {
      * @param resource A TriG resource
      */
     protected void testTrigNegativeSyntax(String resource) {
-        testNegativeSyntax("/trig/" + resource, BASE_LOCATION + resource);
+        testNegativeSyntax(Repository.SCHEME_RESOURCE + "/trig/" + resource, BASE_LOCATION + resource);
     }
 }

@@ -52,7 +52,7 @@ public class OnDiskStoreTest {
         repo.load(logger, IRIs.RDF);
         store.commit();
         store.close();
-        Assert.assertFalse("Failed to load", !logger.isOnError());
+        Assert.assertFalse("Failed to load", logger.isOnError());
 
         store = new OnDiskStore(p.toFile(), true);
         Iterator<Quad> iterator = store.getAll();

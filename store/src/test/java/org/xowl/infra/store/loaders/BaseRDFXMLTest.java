@@ -16,6 +16,8 @@
  ******************************************************************************/
 package org.xowl.infra.store.loaders;
 
+import org.xowl.infra.store.Repository;
+
 /**
  * Base class for the RDF/XML loader tests
  *
@@ -34,7 +36,7 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      * @param triplesResource A NTriple resource
      */
     protected void testXMLEval(String rdfResource, String triplesResource) {
-        testEval("/rdfxml/" + triplesResource, BASE_LOCATION + triplesResource, "/rdfxml/" + rdfResource, BASE_LOCATION + rdfResource);
+        testEval(Repository.SCHEME_RESOURCE + "/rdfxml/" + triplesResource, BASE_LOCATION + triplesResource, Repository.SCHEME_RESOURCE + "/rdfxml/" + rdfResource, BASE_LOCATION + rdfResource);
     }
 
     /**
@@ -43,7 +45,7 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      * @param resource A RDF/XML resource
      */
     protected void testXMLPositiveSyntax(String resource) {
-        testPositiveSyntax("/rdfxml/" + resource, BASE_LOCATION + resource);
+        testPositiveSyntax(Repository.SCHEME_RESOURCE + "/rdfxml/" + resource, BASE_LOCATION + resource);
     }
 
     /**
@@ -52,6 +54,6 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      * @param resource A RDF/XML resource
      */
     protected void testXMLNegativeSyntax(String resource) {
-        testNegativeSyntax("/rdfxml/" + resource, BASE_LOCATION + resource);
+        testNegativeSyntax(Repository.SCHEME_RESOURCE + "/rdfxml/" + resource, BASE_LOCATION + resource);
     }
 }

@@ -16,6 +16,8 @@
  ******************************************************************************/
 package org.xowl.infra.store.loaders;
 
+import org.xowl.infra.store.Repository;
+
 /**
  * Base class for the NQuads loader tests
  *
@@ -33,7 +35,7 @@ public abstract class BaseNQuadsTest extends W3CTestSuite {
      * @param resource A NQuads resource
      */
     protected void testNQuadsPositiveSyntax(String resource) {
-        testPositiveSyntax("/nquads/" + resource, BASE_LOCATION + resource);
+        testPositiveSyntax(Repository.SCHEME_RESOURCE + "/nquads/" + resource, BASE_LOCATION + resource);
     }
 
     /**
@@ -42,6 +44,6 @@ public abstract class BaseNQuadsTest extends W3CTestSuite {
      * @param resource A NQuads resource
      */
     protected void testNQuadsNegativeSyntax(String resource) {
-        testNegativeSyntax("/nquads/" + resource, BASE_LOCATION + resource);
+        testNegativeSyntax(Repository.SCHEME_RESOURCE + "/nquads/" + resource, BASE_LOCATION + resource);
     }
 }
