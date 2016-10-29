@@ -19,6 +19,8 @@ package org.xowl.infra.utils;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utility methods for handling files
@@ -34,14 +36,31 @@ public class Files {
      * The charset to use for xOWL
      */
     public static final Charset CHARSET = Charset.forName("UTF-8");
+    /**
+     * The size of buffers for loading content
+     */
+    private static final int BUFFER_SIZE = 1024;
+    /**
+     * The byte-order mark for UTF-8
+     */
+    private static final int[] BOM_UTF8 = new int[]{0xEF, 0xBB, 0xBF};
+    /**
+     * The byte-order mark for UTF-16 little endian
+     */
+    private static final int[] BOM_UTF16_LE = new int[]{0xFF, 0xFE};
+    /**
+     * The byte-order mark for UTF-16 big endian
+     */
+    private static final int[] BOM_UTF16_BE = new int[]{0xFE, 0xFF};
+    /**
+     * The byte-order mark for UTF-32 little endian
+     */
+    private static final int[] BOM_UTF32_LE = new int[]{0xFF, 0xFE, 0x00, 0x00};
+    /**
+     * The byte-order mark for UTF-32 big endian
+     */
+    private static final int[] BOM_UTF32_BE = new int[]{0x00, 0x00, 0xFE, 0xFF};
 
-    private static final int bufferSize = 1024;
-
-    private static final int[] bomUTF8 = new int[]{0xEF, 0xBB, 0xBF};
-    private static final int[] bomUTF16LE = new int[]{0xFF, 0xFE};
-    private static final int[] bomUTF16BE = new int[]{0xFE, 0xFF};
-    private static final int[] bomUTF32LE = new int[]{0xFF, 0xFE, 0x00, 0x00};
-    private static final int[] bomUTF32BE = new int[]{0x00, 0x00, 0xFE, 0xFF};
 
     /**
      * Gets a reader for the specified file
@@ -54,11 +73,11 @@ public class Files {
         Charset charset = detectEncoding(file);
         InputStream stream = new java.io.FileInputStream(file);
         int[] overflow = null;
-        if (charset.name().equals("UTF-8")) overflow = strip(stream, bomUTF8);
-        else if (charset.name().equals("UTF-16LE")) overflow = strip(stream, bomUTF16LE);
-        else if (charset.name().equals("UTF-16BE")) overflow = strip(stream, bomUTF16BE);
-        else if (charset.name().equals("UTF-32LE")) overflow = strip(stream, bomUTF32LE);
-        else if (charset.name().equals("UTF-32BE")) overflow = strip(stream, bomUTF32BE);
+        if (charset.name().equals("UTF-8")) overflow = strip(stream, BOM_UTF8);
+        else if (charset.name().equals("UTF-16LE")) overflow = strip(stream, BOM_UTF16_LE);
+        else if (charset.name().equals("UTF-16BE")) overflow = strip(stream, BOM_UTF16_BE);
+        else if (charset.name().equals("UTF-32LE")) overflow = strip(stream, BOM_UTF32_LE);
+        else if (charset.name().equals("UTF-32BE")) overflow = strip(stream, BOM_UTF32_BE);
         if (overflow != null)
             stream = new CompositeInputStream(overflow, stream);
         return new InputStreamReader(stream, charset);
@@ -96,13 +115,58 @@ public class Files {
      */
     public static String read(Reader reader) throws IOException {
         StringBuilder fileData = new StringBuilder(1000);
-        char[] buf = new char[bufferSize];
+        char[] buf = new char[BUFFER_SIZE];
         int numRead;
         while ((numRead = reader.read(buf)) != -1) {
             fileData.append(buf, 0, numRead);
         }
         reader.close();
         return fileData.toString();
+    }
+
+    /**
+     * Loads all the content from the specified input stream
+     *
+     * @param stream The stream to load from
+     * @return The loaded content
+     * @throws IOException When the reading the stream fails
+     */
+    public static byte[] load(InputStream stream) throws IOException {
+        List<byte[]> content = new ArrayList<>();
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int length = 0;
+        int read;
+        int size = 0;
+        while (true) {
+            read = stream.read(buffer, length, BUFFER_SIZE - length);
+            if (read == -1) {
+                if (length != 0) {
+                    content.add(buffer);
+                    size += length;
+                }
+                break;
+            }
+            length += read;
+            if (length == BUFFER_SIZE) {
+                content.add(buffer);
+                size += BUFFER_SIZE;
+                buffer = new byte[BUFFER_SIZE];
+                length = 0;
+            }
+        }
+
+        byte[] result = new byte[size];
+        int current = 0;
+        for (int i = 0; i != content.size(); i++) {
+            if (i == content.size() - 1) {
+                // the last buffer
+                System.arraycopy(content.get(i), 0, result, current, size - current);
+            } else {
+                System.arraycopy(content.get(i), 0, result, current, BUFFER_SIZE);
+                current += BUFFER_SIZE;
+            }
+        }
+        return result;
     }
 
     /**
@@ -132,30 +196,30 @@ public class Files {
             stream.close();
             return Charset.forName("UTF-8");
         }
-        if (b0 == bomUTF16BE[0] && b1 == bomUTF16BE[1]) {
+        if (b0 == BOM_UTF16_BE[0] && b1 == BOM_UTF16_BE[1]) {
             stream.close();
             return Charset.forName("UTF-16BE");
         }
         int b2 = stream.read();
         if (b2 == -1) {
             stream.close();
-            if (b0 == bomUTF16LE[0] && b1 == bomUTF16LE[1]) return Charset.forName("UTF-16LE");
+            if (b0 == BOM_UTF16_LE[0] && b1 == BOM_UTF16_LE[1]) return Charset.forName("UTF-16LE");
             return Charset.forName("UTF-8");
         }
-        if (b0 == bomUTF8[0] && b1 == bomUTF8[1] && b2 == bomUTF8[2]) {
+        if (b0 == BOM_UTF8[0] && b1 == BOM_UTF8[1] && b2 == BOM_UTF8[2]) {
             stream.close();
             return Charset.forName("UTF-8");
         }
         int b3 = stream.read();
         if (b3 == -1) {
             stream.close();
-            if (b0 == bomUTF16LE[0] && b1 == bomUTF16LE[1]) return Charset.forName("UTF-16LE");
+            if (b0 == BOM_UTF16_LE[0] && b1 == BOM_UTF16_LE[1]) return Charset.forName("UTF-16LE");
             return Charset.forName("UTF-8");
         }
 
-        if (b0 == bomUTF32BE[0] && b1 == bomUTF32BE[1] && b2 == bomUTF32BE[2] && b3 == bomUTF32BE[3])
+        if (b0 == BOM_UTF32_BE[0] && b1 == BOM_UTF32_BE[1] && b2 == BOM_UTF32_BE[2] && b3 == BOM_UTF32_BE[3])
             return Charset.forName("UTF-32BE");
-        if (b0 == bomUTF32LE[0] && b1 == bomUTF32LE[1] && b2 == bomUTF32LE[2] && b3 == bomUTF32LE[3])
+        if (b0 == BOM_UTF32_LE[0] && b1 == BOM_UTF32_LE[1] && b2 == BOM_UTF32_LE[2] && b3 == BOM_UTF32_LE[3])
             return Charset.forName("UTF-32LE");
         return Charset.forName("UTF-8");
     }
@@ -177,5 +241,25 @@ public class Files {
                 return overflow;
         }
         return null;
+    }
+
+    /**
+     * Deletes a folder
+     *
+     * @param folder The folder to delete
+     * @return true if the operation succeeded, false otherwise
+     */
+    public static boolean deleteFolder(File folder) {
+        boolean success = false;
+        File[] children = folder.listFiles();
+        if (children == null)
+            return false;
+        for (int i = 0; i != children.length; i++) {
+            if (children[i].isFile())
+                success |= children[i].delete();
+            else
+                success |= deleteFolder(children[i]);
+        }
+        return success;
     }
 }

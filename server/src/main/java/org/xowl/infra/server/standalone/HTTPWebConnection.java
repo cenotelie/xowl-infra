@@ -104,7 +104,7 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
             return;
         }
         try {
-            buffer = Program.load(input);
+            buffer = Files.load(input);
             input.close();
         } catch (IOException exception) {
             // do nothing

@@ -26,9 +26,6 @@ import org.xowl.infra.utils.logging.Logging;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -164,73 +161,4 @@ public class Program {
         controller = null;
     }
 
-    /**
-     * The size of buffers for loading content
-     */
-    private static final int BUFFER_SIZE = 1024;
-
-    /**
-     * Loads all the content from the specified input stream
-     *
-     * @param stream The stream to load from
-     * @return The loaded content
-     * @throws IOException When the reading the stream fails
-     */
-    public static byte[] load(InputStream stream) throws IOException {
-        List<byte[]> content = new ArrayList<>();
-        byte[] buffer = new byte[BUFFER_SIZE];
-        int length = 0;
-        int read;
-        int size = 0;
-        while (true) {
-            read = stream.read(buffer, length, BUFFER_SIZE - length);
-            if (read == -1) {
-                if (length != 0) {
-                    content.add(buffer);
-                    size += length;
-                }
-                break;
-            }
-            length += read;
-            if (length == BUFFER_SIZE) {
-                content.add(buffer);
-                size += BUFFER_SIZE;
-                buffer = new byte[BUFFER_SIZE];
-                length = 0;
-            }
-        }
-
-        byte[] result = new byte[size];
-        int current = 0;
-        for (int i = 0; i != content.size(); i++) {
-            if (i == content.size() - 1) {
-                // the last buffer
-                System.arraycopy(content.get(i), 0, result, current, size - current);
-            } else {
-                System.arraycopy(content.get(i), 0, result, current, BUFFER_SIZE);
-                current += BUFFER_SIZE;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Deletes a folder
-     *
-     * @param folder The folder to delete
-     * @return true if the operation succeeded, false otherwise
-     */
-    public static boolean delete(File folder) {
-        boolean success = false;
-        File[] children = folder.listFiles();
-        if (children == null)
-            return false;
-        for (int i = 0; i != children.length; i++) {
-            if (children[i].isFile())
-                success |= children[i].delete();
-            else
-                success |= delete(children[i]);
-        }
-        return success;
-    }
 }

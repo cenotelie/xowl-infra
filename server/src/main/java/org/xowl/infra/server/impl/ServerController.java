@@ -22,10 +22,10 @@ import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.base.BaseDatabasePrivileges;
 import org.xowl.infra.server.base.BaseUserPrivileges;
-import org.xowl.infra.server.standalone.Program;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.Closeable;
@@ -595,7 +595,7 @@ public class ServerController implements Closeable {
             } catch (IOException exception) {
                 Logging.getDefault().error(exception);
             }
-            if (!Program.delete(folder)) {
+            if (!Files.deleteFolder(folder)) {
                 Logging.getDefault().error("Failed to delete " + folder.getAbsolutePath());
             }
             database.getProxy().delete();
