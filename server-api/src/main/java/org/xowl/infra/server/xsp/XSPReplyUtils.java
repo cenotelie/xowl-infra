@@ -21,7 +21,6 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.hime.redist.ParseError;
 import org.xowl.hime.redist.ParseResult;
 import org.xowl.infra.server.api.XOWLFactory;
-import org.xowl.infra.server.api.XOWLUtils;
 import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.loaders.JSONLDLoader;
 import org.xowl.infra.store.sparql.Result;
@@ -42,7 +41,9 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utility APIs for the xOWL Server Protocol
@@ -256,10 +257,10 @@ public class XSPReplyUtils {
                 if ("array".equals(nodePayload.getSymbol().getName())) {
                     List<Object> payload = new ArrayList<>(nodePayload.getChildren().size());
                     for (ASTNode child : nodePayload.getChildren())
-                        payload.add(XOWLUtils.getJSONObject(child, factory));
+                        payload.add(getJSONObject(child, factory));
                     return new XSPReplyResultCollection<>(payload);
                 } else {
-                    return new XSPReplyResult<>(XOWLUtils.getJSONObject(nodePayload, factory));
+                    return new XSPReplyResult<>(getJSONObject(nodePayload, factory));
                 }
             } else {
                 if (nodeMessage == null)
@@ -296,5 +297,61 @@ public class XSPReplyUtils {
             }
         }
         return Repository.SYNTAX_NQUADS;
+    }
+
+    /**
+     * Gets an object representing the specified JSON object
+     *
+     * @param node    The root AST for the object
+     * @param factory The factory to use
+     * @return The JSON object
+     */
+    public static Object getJSONObject(ASTNode node, XOWLFactory factory) {
+        // is this an array ?
+        if ("array".equals(node.getSymbol().getName())) {
+            List<Object> value = new ArrayList<>();
+            for (ASTNode child : node.getChildren()) {
+                value.add(getJSONObject(child, factory));
+            }
+            return value;
+        }
+        // is this a simple value ?
+        String value = node.getValue();
+        if (value != null) {
+            if (value.startsWith("\"")) {
+                value = TextUtils.unescape(value);
+                return value.substring(1, value.length() - 1);
+            }
+            return value;
+        }
+        // this is an object, does it have a type
+        ASTNode nodeType = null;
+        for (ASTNode memberNode : node.getChildren()) {
+            String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
+            memberName = memberName.substring(1, memberName.length() - 1);
+            ASTNode memberValue = memberNode.getChildren().get(1);
+            switch (memberName) {
+                case "type":
+                    nodeType = memberValue;
+                    break;
+            }
+        }
+        if (nodeType != null) {
+            // we have a type
+            String type = TextUtils.unescape(nodeType.getValue());
+            type = type.substring(1, type.length() - 1);
+            Object result = factory.newObject(type, node);
+            if (result != null)
+                return result;
+        }
+        // fallback to mapping the properties
+        Map<String, Object> properties = new HashMap<>();
+        for (ASTNode memberNode : node.getChildren()) {
+            String memberName = TextUtils.unescape(memberNode.getChildren().get(0).getValue());
+            memberName = memberName.substring(1, memberName.length() - 1);
+            ASTNode memberValue = memberNode.getChildren().get(1);
+            properties.put(memberName, getJSONObject(memberValue, factory));
+        }
+        return properties;
     }
 }
