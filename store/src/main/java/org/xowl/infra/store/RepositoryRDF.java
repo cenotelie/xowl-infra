@@ -257,17 +257,19 @@ public class RepositoryRDF extends Repository {
      * @return The proxy
      */
     public ProxyObject resolveProxy(Ontology ontology, SubjectNode subject) {
-        Map<SubjectNode, ProxyObject> sub = proxies.get(ontology);
-        if (sub == null) {
-            sub = new HashMap<>();
-            proxies.put(ontology, sub);
-        }
-        ProxyObject proxy = sub.get(subject);
-        if (proxy != null)
+        synchronized (proxies) {
+            Map<SubjectNode, ProxyObject> sub = proxies.get(ontology);
+            if (sub == null) {
+                sub = new HashMap<>();
+                proxies.put(ontology, sub);
+            }
+            ProxyObject proxy = sub.get(subject);
+            if (proxy != null)
+                return proxy;
+            proxy = new ProxyObject(this, ontology, subject);
+            sub.put(subject, proxy);
             return proxy;
-        proxy = new ProxyObject(this, ontology, subject);
-        sub.put(subject, proxy);
-        return proxy;
+        }
     }
 
     /**
@@ -301,15 +303,17 @@ public class RepositoryRDF extends Repository {
      * @return A proxy on the new object
      */
     public ProxyObject newObject(Ontology ontology) {
-        Map<SubjectNode, ProxyObject> sub = proxies.get(ontology);
-        if (sub == null) {
-            sub = new HashMap<>();
-            proxies.put(ontology, sub);
+        synchronized (proxies) {
+            Map<SubjectNode, ProxyObject> sub = proxies.get(ontology);
+            if (sub == null) {
+                sub = new HashMap<>();
+                proxies.put(ontology, sub);
+            }
+            IRINode entity = backend.getIRINode(getGraph(ontology));
+            ProxyObject proxy = new ProxyObject(this, ontology, entity);
+            sub.put(entity, proxy);
+            return proxy;
         }
-        IRINode entity = backend.getIRINode(getGraph(ontology));
-        ProxyObject proxy = new ProxyObject(this, ontology, entity);
-        sub.put(entity, proxy);
-        return proxy;
     }
 
     /**
@@ -331,16 +335,18 @@ public class RepositoryRDF extends Repository {
      * @return The associated graph node
      */
     public GraphNode getGraph(Ontology ontology) {
-        GraphNode node = graphs.get(ontology);
-        if (node != null)
+        synchronized (graphs) {
+            GraphNode node = graphs.get(ontology);
+            if (node != null)
+                return node;
+            node = backend.getIRINode(ontology.getHasIRI().getHasValue());
+            graphs.put(ontology, node);
             return node;
-        node = backend.getIRINode(ontology.getHasIRI().getHasValue());
-        graphs.put(ontology, node);
-        return node;
+        }
     }
 
     @Override
-    public OWLQueryEngine getOWLQueryEngine() {
+    public synchronized OWLQueryEngine getOWLQueryEngine() {
         if (queryEngine == null)
             queryEngine = new OWLQueryEngine(backend, evaluator);
         return queryEngine;
@@ -352,7 +358,7 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    public OWLRuleEngine getOWLRuleEngine() {
+    public synchronized OWLRuleEngine getOWLRuleEngine() {
         if (ruleEngine == null)
             ruleEngine = new OWLRuleEngine(backend, backend, evaluator);
         return ruleEngine;
