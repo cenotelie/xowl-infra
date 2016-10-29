@@ -38,13 +38,13 @@ import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.StoreFactory;
-import org.xowl.infra.store.storage.StoreStatistics;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.SHA1;
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.metrics.MetricSnapshot;
 
 import java.io.*;
 import java.util.*;
@@ -817,8 +817,10 @@ public class DatabaseController implements Closeable {
      *
      * @return The statistics for this database
      */
-    public StoreStatistics getStatistics() {
-        return repository.getStore().getStatistics();
+    public MetricSnapshot getStatistics() {
+        MetricSnapshot snapshot = new MetricSnapshot();
+        repository.getStore().getStatistics(snapshot);
+        return snapshot;
     }
 
     @Override

@@ -80,13 +80,11 @@ public class MetricSnapshot implements Iterable<Couple<String, Object>>, Seriali
     @Override
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        boolean first = true;
+        builder.append("{\"type\": \"");
+        builder.append(TextUtils.escapeStringJSON(MetricSnapshot.class.getCanonicalName()));
+        builder.append("\"");
         for (Couple<String, Object> map : values) {
-            if (!first)
-                builder.append(", ");
-            first = false;
-            builder.append("\"");
+            builder.append(", \"");
             builder.append(TextUtils.escapeStringJSON(map.x));
             builder.append("\": \"");
             builder.append(TextUtils.escapeStringJSON(map.y.toString()));
