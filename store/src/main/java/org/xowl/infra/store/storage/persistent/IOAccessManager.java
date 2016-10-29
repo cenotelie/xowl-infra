@@ -18,7 +18,9 @@
 package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.logging.Logging;
+import org.xowl.infra.utils.metrics.MetricSnapshot;
 
+import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLongArray;
 
@@ -118,33 +120,15 @@ class IOAccessManager {
     private long statisticsTimestamp;
 
     /**
-     * Gets the mean number of tries for performing an access operation
+     * Gets the current statistics for this file
      *
-     * @return The mean number of tries
+     * @param file     The parent file
+     * @param snapshot The snapshot to fill
      */
-    public long getStatisticsContention() {
-        long timestamp = System.nanoTime();
-        if (timestamp >= statisticsTimestamp + FileStatistics.REFRESH_PERIOD) {
-            totalAccesses = 0;
-            totalTries = 0;
-            statisticsTimestamp = timestamp;
-        }
-        return totalAccesses == 0 ? 1 : totalTries / totalAccesses;
-    }
-
-    /**
-     * Gets the current mean of number of accesses per second
-     *
-     * @return The mean number of accesses per second
-     */
-    public long getStatisticsAccessPerSecond() {
-        long timestamp = System.nanoTime();
-        if (timestamp >= statisticsTimestamp + FileStatistics.REFRESH_PERIOD) {
-            totalAccesses = 0;
-            totalTries = 0;
-            statisticsTimestamp = timestamp;
-        }
-        return totalAccesses * (1000000000 / FileStatistics.REFRESH_PERIOD);
+    public void getStatistics(String file, MetricSnapshot snapshot) {
+        long contention = totalAccesses == 0 ? 1 : totalTries / totalAccesses;
+        snapshot.add(IOAccessManager.class.getCanonicalName() + ".contention[" + file + "]", contention);
+        snapshot.add(IOAccessManager.class.getCanonicalName() + ".accesses[" + file + "]", totalAccesses);
     }
 
     /**
@@ -683,14 +667,8 @@ class IOAccessManager {
      * @param tries The number of tries that it took to perform the access initialization or closure
      */
     private void onAccess(int tries) {
-        long timestamp = System.nanoTime();
-        if (timestamp >= statisticsTimestamp + FileStatistics.REFRESH_PERIOD) {
-            totalAccesses = 1;
-            totalTries = tries;
-            statisticsTimestamp = timestamp;
-        } else {
-            totalAccesses++;
-            totalTries += tries;
-        }
+        totalAccesses++;
+        totalTries += tries;
+        statisticsTimestamp = System.nanoTime();
     }
 }

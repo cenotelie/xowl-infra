@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.logging.Logging;
+import org.xowl.infra.utils.metrics.MetricSnapshot;
 
 import java.io.File;
 import java.io.IOException;
@@ -111,16 +112,14 @@ class FileStore implements AutoCloseable {
     }
 
     /**
-     * Gets the file statistics for this store
+     * Gets the current statistics for this file
      *
-     * @return The file statistics for this store
+     * @param snapshot The snapshot to fill
      */
-    public FileStatistics[] getStatistics() {
-        FileStatistics[] parts = new FileStatistics[files.size()];
-        for (int i = 0; i != parts.length; i++) {
-            parts[i] = files.get(i).getStatistics();
+    public void getStatistics(MetricSnapshot snapshot) {
+        for (int i = 0; i != files.size(); i++) {
+            files.get(i).getStatistics(snapshot);
         }
-        return parts;
     }
 
     /**

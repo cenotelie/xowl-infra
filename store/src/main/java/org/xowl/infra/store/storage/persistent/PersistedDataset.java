@@ -23,6 +23,7 @@ import org.xowl.infra.store.storage.impl.DatasetImpl;
 import org.xowl.infra.store.storage.impl.MQuad;
 import org.xowl.infra.utils.collections.*;
 import org.xowl.infra.utils.logging.Logging;
+import org.xowl.infra.utils.metrics.MetricSnapshot;
 
 import java.io.File;
 import java.util.*;
@@ -307,12 +308,12 @@ public class PersistedDataset extends DatasetImpl implements AutoCloseable {
     }
 
     /**
-     * Gets the statistics about the files backing this store
+     * Gets the current statistics for this store
      *
-     * @return The file statistics
+     * @param snapshot The snapshot to store
      */
-    public FileStatistics[] getFileStatistics() {
-        return store.getStatistics();
+    public void getStatistics(MetricSnapshot snapshot) {
+        store.getStatistics(snapshot);
     }
 
     /**

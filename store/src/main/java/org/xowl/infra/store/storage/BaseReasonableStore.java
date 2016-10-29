@@ -21,6 +21,7 @@ import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.*;
+import org.xowl.infra.utils.metrics.MetricSnapshot;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,8 +69,8 @@ class BaseReasonableStore extends BaseStore {
     }
 
     @Override
-    public StoreStatistics getStatistics() {
-        return groundStore.getStatistics();
+    public void getStatistics(MetricSnapshot snapshot) {
+        groundStore.getStatistics(snapshot);
     }
 
     @Override

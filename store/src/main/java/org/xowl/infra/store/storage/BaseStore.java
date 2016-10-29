@@ -17,7 +17,7 @@
 
 package org.xowl.infra.store.storage;
 
-import org.xowl.infra.store.storage.persistent.FileStatistics;
+import org.xowl.infra.utils.metrics.MetricSnapshot;
 
 /**
  * Represents the public API of a data store (a dataset and a node manager)
@@ -26,12 +26,11 @@ import org.xowl.infra.store.storage.persistent.FileStatistics;
  */
 public abstract class BaseStore implements Dataset, NodeManager, AutoCloseable {
     /**
-     * Gets the statistics for this store
+     * Gets the current statistics for this store
      *
-     * @return The statistics for this store
+     * @param snapshot The snapshot to store
      */
-    public StoreStatistics getStatistics() {
-        return new StoreStatistics((FileStatistics[]) null);
+    public void getStatistics(MetricSnapshot snapshot) {
     }
 
     /**

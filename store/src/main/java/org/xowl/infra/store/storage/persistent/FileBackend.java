@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.storage.persistent;
 
+import org.xowl.infra.utils.metrics.MetricSnapshot;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -127,19 +129,17 @@ class FileBackend implements IOBackend, Closeable {
     /**
      * Gets the current statistics for this file
      *
-     * @return The current statistics
+     * @param snapshot The snapshot to fill
      */
-    public FileStatistics getStatistics() {
+    public void getStatistics(MetricSnapshot snapshot) {
         int dirty = 0;
         for (int i = 0; i != blockCount.get(); i++) {
             if (blocks[i].isDirty)
                 dirty++;
         }
-        return new FileStatistics(fileName,
-                accessManager.getStatisticsAccessPerSecond(),
-                accessManager.getStatisticsContention(),
-                blockCount.get(),
-                dirty);
+        snapshot.add(FileBackend.class.getCanonicalName() + ".totalBlocks[" + fileName + "]", blockCount.get());
+        snapshot.add(FileBackend.class.getCanonicalName() + ".dirtyBlocks[" + fileName + "]", dirty);
+        accessManager.getStatistics(fileName, snapshot);
     }
 
     /**

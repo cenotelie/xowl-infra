@@ -23,6 +23,7 @@ import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.store.storage.impl.NodeManagerImpl;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logging;
+import org.xowl.infra.utils.metrics.MetricSnapshot;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -148,12 +149,12 @@ public class PersistedNodes extends NodeManagerImpl implements AutoCloseable {
     }
 
     /**
-     * Gets the statistics about the files backing this store
+     * Gets the current statistics for this store
      *
-     * @return The file statistics
+     * @param snapshot The snapshot to store
      */
-    public FileStatistics[] getFileStatistics() {
-        return store.getStatistics();
+    public void getStatistics(MetricSnapshot snapshot) {
+        store.getStatistics(snapshot);
     }
 
     /**
