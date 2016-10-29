@@ -23,7 +23,7 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.base.BaseStoredProcedure;
 import org.xowl.infra.server.impl.ServerController;
-import org.xowl.infra.server.impl.ServerUser;
+import org.xowl.infra.server.impl.UserImpl;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyUtils;
 import org.xowl.infra.store.EntailmentRegime;
@@ -66,7 +66,7 @@ class HTTPAPIConnection extends SafeRunnable {
     /**
      * The client
      */
-    private ServerUser client;
+    private UserImpl client;
 
     /**
      * Initializes this connection
@@ -256,7 +256,7 @@ class HTTPAPIConnection extends SafeRunnable {
         if (method.equals("DELETE"))
             return response(controller.deleteUser(client, name));
         if (method.equals("PUT")) {
-            ServerUser user = controller.getPrincipal(name);
+            UserImpl user = controller.getPrincipal(name);
             try {
                 String password = Utils.getRequestBody(httpExchange);
                 if (user == null)

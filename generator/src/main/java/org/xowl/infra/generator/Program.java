@@ -170,13 +170,13 @@ public class Program {
      */
     public void execute() {
         // load the inputs
-        RepositoryDirectSemantics repository = new RepositoryDirectSemantics(Logging.getDefault(), IRIMapper.getDefault(), null);
+        RepositoryDirectSemantics repository = new RepositoryDirectSemantics(IRIMapper.getDefault(), null);
         for (Couple<String, String> mapping : repositories)
             repository.getIRIMapper().addRegexpMap(mapping.x, mapping.y);
         for (String input : inputs) {
             try {
-                repository.load(input);
-            } catch (IOException exception) {
+                repository.load(Logging.getDefault(), input);
+            } catch (Exception exception) {
                 Logging.getDefault().error(exception);
             }
         }

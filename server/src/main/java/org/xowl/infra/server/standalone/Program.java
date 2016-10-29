@@ -117,7 +117,7 @@ public class Program {
         }
         Logging.setDefault(new DispatchLogger(new FileLogger(new File(configuration.getStartupFolder(), "server.log")), new ConsoleLogger()));
         try {
-            controller = new ServerController(configuration) {
+            controller = new ServerController(Logging.getDefault(), configuration) {
 
                 @Override
                 public void onRequestShutdown() {
@@ -131,7 +131,7 @@ public class Program {
                     signal.countDown();
                 }
             };
-        } catch (IOException exception) {
+        } catch (Exception exception) {
             Logging.getDefault().error(exception);
             return false;
         }

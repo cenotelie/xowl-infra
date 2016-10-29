@@ -17,7 +17,10 @@
 
 package org.xowl.infra.server.embedded;
 
-import org.xowl.infra.server.impl.*;
+import org.xowl.infra.server.impl.DatabaseController;
+import org.xowl.infra.server.impl.DatabaseImpl;
+import org.xowl.infra.server.impl.ServerConfiguration;
+import org.xowl.infra.server.impl.ServerController;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.utils.logging.Logger;
 
@@ -36,16 +39,6 @@ class EmbeddedController extends ServerController {
      */
     public EmbeddedController(Logger logger, ServerConfiguration configuration) throws Exception {
         super(logger, configuration);
-    }
-
-    /**
-     * Gets the user for the specified login
-     *
-     * @param login The login of a user
-     * @return The user, or null if there is none for this login
-     */
-    protected UserImpl getPrincipal(String login) {
-        return doGetUser(login);
     }
 
     @Override

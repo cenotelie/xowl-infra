@@ -201,6 +201,15 @@ public class ServerController implements Closeable {
         logger.info("All databases closed");
     }
 
+    /**
+     * Gets the user for the specified login
+     *
+     * @param login The login of a user
+     * @return The user, or null if there is none for this login
+     */
+    public UserImpl getPrincipal(String login) {
+        return doGetUser(login);
+    }
 
     /**
      * Login a user
@@ -1233,7 +1242,7 @@ public class ServerController implements Closeable {
      * @param login A login
      * @return The user, or null if it is not found
      */
-    protected UserImpl doGetUser(String login) {
+    private UserImpl doGetUser(String login) {
         synchronized (users) {
             UserImpl result = users.get(login);
             if (result != null)
