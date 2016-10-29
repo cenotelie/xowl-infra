@@ -24,7 +24,6 @@ import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.logging.SinkLogger;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -43,14 +42,14 @@ public class BaseOWLReasoningTest {
         SinkLogger logger = new SinkLogger();
 
         // load the conclusion ontology at get all the quads in it
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         // add mapping for imported remote ontologies
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/conclusion", "resource:///entailment/" + conclusionResource);
         Ontology ontologyConclusion;
         try {
-            ontologyConclusion = repository.load("http://xowl.org/store/tests/entailment/conclusion");
-        } catch (IOException exception) {
+            ontologyConclusion = repository.load(logger, "http://xowl.org/store/tests/entailment/conclusion");
+        } catch (Exception exception) {
             Assert.fail("Some error occurred: " + exception.getMessage());
             return;
         }
@@ -69,8 +68,8 @@ public class BaseOWLReasoningTest {
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
         try {
             repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
-            repository.load("http://xowl.org/store/tests/entailment/premise");
-        } catch (IOException exception) {
+            repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
+        } catch (Exception exception) {
             Assert.fail("Some error occurred: " + exception.getMessage());
             return;
         }
@@ -116,14 +115,14 @@ public class BaseOWLReasoningTest {
         SinkLogger logger = new SinkLogger();
 
         // load the conclusion ontology at get all the quads in it
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         // add mapping for imported remote ontologies
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/conclusion", "resource:///entailment/" + conclusionResource);
         Ontology ontologyConclusion;
         try {
-            ontologyConclusion = repository.load("http://xowl.org/store/tests/entailment/conclusion");
-        } catch (IOException exception) {
+            ontologyConclusion = repository.load(logger, "http://xowl.org/store/tests/entailment/conclusion");
+        } catch (Exception exception) {
             Assert.fail("Some error occurred: " + exception.getMessage());
             return;
         }
@@ -142,8 +141,8 @@ public class BaseOWLReasoningTest {
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
         try {
             repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
-            repository.load("http://xowl.org/store/tests/entailment/premise");
-        } catch (IOException exception) {
+            repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
+        } catch (Exception exception) {
             Assert.fail("Some error occurred: " + exception.getMessage());
             return;
         }
@@ -186,18 +185,23 @@ public class BaseOWLReasoningTest {
      */
     protected void testConsistency(String premiseResource) {
         SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         // add mapping for imported remote ontologies
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2002/03owlt/imports/(.*)", "resource:///imports/\\1.rdf");
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
 
         // activate the default reasoning rules
-        repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
+        try {
+            repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
+        } catch (Exception exception) {
+            Assert.fail("Some error occurred: " + exception.getMessage());
+            return;
+        }
         // load the premise ontology and the default ontologies
         Ontology ontologyPremise;
         try {
-            ontologyPremise = repository.load("http://xowl.org/store/tests/entailment/premise");
-        } catch (IOException exception) {
+            ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
+        } catch (Exception exception) {
             Assert.fail("Some error occurred: " + exception.getMessage());
             return;
         }
@@ -224,16 +228,21 @@ public class BaseOWLReasoningTest {
      */
     protected void testInconsistency(String premiseResource) {
         SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         repository.getIRIMapper().addSimpleMap("http://xowl.org/store/tests/entailment/premise", "resource:///entailment/" + premiseResource);
 
         // activate the default reasoning rules
-        repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
+        try {
+            repository.setEntailmentRegime(EntailmentRegime.OWL2_RDF);
+        } catch (Exception exception) {
+            Assert.fail("Some error occurred: " + exception.getMessage());
+            return;
+        }
         // load the premise ontology and the default ontologies
         Ontology ontologyPremise;
         try {
-            ontologyPremise = repository.load("http://xowl.org/store/tests/entailment/premise");
-        } catch (IOException exception) {
+            ontologyPremise = repository.load(logger, "http://xowl.org/store/tests/entailment/premise");
+        } catch (Exception exception) {
             Assert.fail("Some error occurred: " + exception.getMessage());
             return;
         }

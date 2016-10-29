@@ -100,16 +100,16 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
         repository.getIRIMapper().addRegexpMap(NAMESPACE + "(.*)", Repository.SCHEME_RESOURCE + PHYSICAL + "\\1");
         repository.getIRIMapper().addSimpleMap(generatedURI, "file://" + file.getAbsolutePath());
         try {
-            repository.load(testedURI);
-        } catch (IOException exception) {
+            repository.load(logger, testedURI);
+        } catch (Exception exception) {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to load the ontology(ies)", logger.isOnError());
 
         // export the test file to a JSON-LD temporary file
         try {
-            repository.exportAll(generatedURI);
-        } catch (IOException exception) {
+            repository.exportAll(logger, generatedURI);
+        } catch (Exception exception) {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to generated the target", logger.isOnError());

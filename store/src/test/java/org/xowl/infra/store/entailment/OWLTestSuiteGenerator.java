@@ -37,12 +37,12 @@ public class OWLTestSuiteGenerator {
      */
     public void generate() {
         SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         repository.getIRIMapper().addRegexpMap("http://owl.semanticweb.org/exports/(.*)", "resource:///tests/\\1");
         try {
-            repository.load("http://owl.semanticweb.org/exports/testOntology.rdf");
-            repository.load("http://owl.semanticweb.org/exports/all.rdf");
-        } catch (IOException exception) {
+            repository.load(logger, "http://owl.semanticweb.org/exports/testOntology.rdf");
+            repository.load(logger, "http://owl.semanticweb.org/exports/all.rdf");
+        } catch (Exception exception) {
             logger.error(exception);
         }
 

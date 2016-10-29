@@ -26,7 +26,6 @@ import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
 import org.xowl.infra.utils.logging.SinkLogger;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -46,13 +45,16 @@ public class BaseRDFTest {
      */
     protected void testPositiveEntailment(String input, EntailmentRegime regime, String result) {
         SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
-        repository.setEntailmentRegime(regime);
-        Assert.assertFalse("Failed to activate the entailment regime", logger.isOnError());
         try {
-            repository.load(input);
-        } catch (IOException exception) {
+            repository.setEntailmentRegime(regime);
+        } catch (Exception exception) {
+            Assert.fail("Failed to activate the entailment regime");
+        }
+        try {
+            repository.load(logger, input);
+        } catch (Exception exception) {
             Assert.fail(exception.getMessage());
         }
         Assert.assertFalse("Failed to load the input", logger.isOnError());
@@ -90,13 +92,16 @@ public class BaseRDFTest {
      */
     protected void testNegativeEntailment(String input, EntailmentRegime regime, String result) {
         SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
-        repository.setEntailmentRegime(regime);
-        Assert.assertFalse("Failed to activate the entailment regime", logger.isOnError());
         try {
-            repository.load(input);
-        } catch (IOException exception) {
+            repository.setEntailmentRegime(regime);
+        } catch (Exception exception) {
+            Assert.fail("Failed to activate the entailment regime");
+        }
+        try {
+            repository.load(logger, input);
+        } catch (Exception exception) {
             Assert.fail(exception.getMessage());
         }
         Assert.assertFalse("Failed to load the input", logger.isOnError());
@@ -133,12 +138,12 @@ public class BaseRDFTest {
      */
     private List<Quad> load(String resource) {
         SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
         Assert.assertFalse("Failed to activate the entailment regime", logger.isOnError());
         try {
-            repository.load(resource);
-        } catch (IOException exception) {
+            repository.load(logger, resource);
+        } catch (Exception exception) {
             Assert.fail(exception.getMessage());
         }
         Assert.assertFalse("Failed to load the resource", logger.isOnError());

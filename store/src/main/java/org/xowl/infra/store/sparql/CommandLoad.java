@@ -20,9 +20,8 @@ package org.xowl.infra.store.sparql;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Node;
-import org.xowl.infra.utils.logging.SinkLogger;
+import org.xowl.infra.utils.logging.BufferedLogger;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -76,14 +75,18 @@ public class CommandLoad implements Command {
 
     @Override
     public Result execute(RepositoryRDF repository) {
-        SinkLogger logger = new SinkLogger();
+        BufferedLogger logger = new BufferedLogger();
         try {
-            repository.load(iri, target == null ? IRIs.GRAPH_DEFAULT : target, true);
-        } catch (IOException exception) {
-            logger.error(exception);
+            repository.load(logger, iri, target == null ? IRIs.GRAPH_DEFAULT : target, true);
+            repository.getStore().commit();
+        } catch (Exception exception) {
+            if (isSilent)
+                return ResultSuccess.INSTANCE;
+            return new ResultFailure(exception.getMessage());
         }
-        repository.getStore().commit();
-        return !logger.isOnError() || isSilent ? ResultSuccess.INSTANCE : ResultFailure.INSTANCE;
+        if (isSilent || logger.getErrorMessages().isEmpty())
+            return ResultSuccess.INSTANCE;
+        return new ResultFailure(logger.getErrorsAsString());
     }
 
     @Override

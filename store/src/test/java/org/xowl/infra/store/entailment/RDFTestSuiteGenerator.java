@@ -22,7 +22,6 @@ import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.logging.SinkLogger;
 
-import java.io.IOException;
 import java.util.Collection;
 
 /**
@@ -37,11 +36,11 @@ public class RDFTestSuiteGenerator {
      */
     public void generate() {
         SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
         try {
-            repository.load("http://www.w3.org/2013/rdf-mt-tests/manifest.ttl");
-        } catch (IOException exception) {
+            repository.load(logger, "http://www.w3.org/2013/rdf-mt-tests/manifest.ttl");
+        } catch (Exception exception) {
             logger.error(exception);
         }
 

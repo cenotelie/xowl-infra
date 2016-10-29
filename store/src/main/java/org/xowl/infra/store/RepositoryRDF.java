@@ -24,7 +24,6 @@ import org.xowl.infra.store.loaders.RDFLoaderResult;
 import org.xowl.infra.store.loaders.SPARQLLoader;
 import org.xowl.infra.store.owl.OWLQueryEngine;
 import org.xowl.infra.store.owl.OWLRuleEngine;
-import org.xowl.infra.store.owl.TranslationException;
 import org.xowl.infra.store.owl.Translator;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.sparql.Command;
@@ -43,7 +42,6 @@ import org.xowl.infra.utils.collections.SkippableIterator;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
 
@@ -98,16 +96,7 @@ public class RepositoryRDF extends Repository {
      * Initializes this repository
      */
     public RepositoryRDF() {
-        this(getDefaultStore(), Logging.getDefault(), IRIMapper.getDefault(), getDefaultEvaluator());
-    }
-
-    /**
-     * Initializes this repository
-     *
-     * @param logger The logger associated to this repository
-     */
-    public RepositoryRDF(Logger logger) {
-        this(getDefaultStore(), logger, IRIMapper.getDefault(), getDefaultEvaluator());
+        this(getDefaultStore(), IRIMapper.getDefault(), getDefaultEvaluator());
     }
 
     /**
@@ -116,7 +105,7 @@ public class RepositoryRDF extends Repository {
      * @param store The store to use as backend
      */
     public RepositoryRDF(BaseStore store) {
-        this(store, Logging.getDefault(), IRIMapper.getDefault(), getDefaultEvaluator());
+        this(store, IRIMapper.getDefault(), getDefaultEvaluator());
     }
 
     /**
@@ -125,7 +114,7 @@ public class RepositoryRDF extends Repository {
      * @param mapper The IRI mapper to use
      */
     public RepositoryRDF(IRIMapper mapper) {
-        this(getDefaultStore(), Logging.getDefault(), mapper, getDefaultEvaluator());
+        this(getDefaultStore(), mapper, getDefaultEvaluator());
     }
 
     /**
@@ -134,7 +123,7 @@ public class RepositoryRDF extends Repository {
      * @param evaluator The evaluator to use
      */
     public RepositoryRDF(Evaluator evaluator) {
-        this(getDefaultStore(), Logging.getDefault(), IRIMapper.getDefault(), evaluator);
+        this(getDefaultStore(), IRIMapper.getDefault(), evaluator);
     }
 
     /**
@@ -144,7 +133,7 @@ public class RepositoryRDF extends Repository {
      * @param mapper The IRI mapper to use
      */
     public RepositoryRDF(BaseStore store, IRIMapper mapper) {
-        this(store, Logging.getDefault(), mapper, getDefaultEvaluator());
+        this(store, mapper, getDefaultEvaluator());
     }
 
     /**
@@ -154,7 +143,7 @@ public class RepositoryRDF extends Repository {
      * @param evaluator The evaluator to use
      */
     public RepositoryRDF(BaseStore store, Evaluator evaluator) {
-        this(store, Logging.getDefault(), IRIMapper.getDefault(), evaluator);
+        this(store, IRIMapper.getDefault(), evaluator);
     }
 
     /**
@@ -164,7 +153,7 @@ public class RepositoryRDF extends Repository {
      * @param evaluator The evaluator to use
      */
     public RepositoryRDF(IRIMapper mapper, Evaluator evaluator) {
-        this(getDefaultStore(), Logging.getDefault(), mapper, evaluator);
+        this(getDefaultStore(), mapper, evaluator);
     }
 
     /**
@@ -174,8 +163,8 @@ public class RepositoryRDF extends Repository {
      * @param mapper    The IRI mapper to use
      * @param evaluator The evaluator to use
      */
-    public RepositoryRDF(BaseStore store, Logger logger, IRIMapper mapper, Evaluator evaluator) {
-        super(logger, mapper, evaluator);
+    public RepositoryRDF(BaseStore store, IRIMapper mapper, Evaluator evaluator) {
+        super(mapper, evaluator);
         this.backend = store;
         this.graphs = new HashMap<>();
         this.proxies = new HashMap<>();
@@ -184,10 +173,11 @@ public class RepositoryRDF extends Repository {
     /**
      * Executes the specified SPARQL command
      *
+     * @param logger The logger to use
      * @param sparql A SPARQL command
      * @return The result
      */
-    public Result execute(String sparql) {
+    public Result execute(Logger logger, String sparql) {
         SPARQLLoader loader = new SPARQLLoader(getNodeManager());
         Command command = loader.load(logger, new StringReader(sparql));
         if (command == null)
@@ -374,31 +364,26 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    public void setEntailmentRegime(EntailmentRegime regime) {
+    public void setEntailmentRegime(EntailmentRegime regime) throws Exception {
         if (this.regime != EntailmentRegime.none) {
-            logger.error("Entailment regime is already set");
-            return;
+            throw new IllegalArgumentException("Entailment regime is already set");
         }
         this.regime = regime;
-        try {
-            switch (this.regime) {
-                case RDF:
-                    load(IRIs.RDF);
-                    break;
-                case RDFS:
-                    load(IRIs.RDFS);
-                    break;
-                case OWL2_RDF:
-                case OWL2_DIRECT:
-                    load(IRIs.RDF);
-                    load(IRIs.RDFS);
-                    load(IRIs.OWL2);
-                    load(IRIs.XOWL_RULES + "owl2");
-                    load(IRIs.XOWL_RULES + "xowl");
-                    break;
-            }
-        } catch (IOException exception) {
-            logger.error(exception);
+        switch (this.regime) {
+            case RDF:
+                load(Logging.getDefault(), IRIs.RDF);
+                break;
+            case RDFS:
+                load(Logging.getDefault(), IRIs.RDFS);
+                break;
+            case OWL2_RDF:
+            case OWL2_DIRECT:
+                load(Logging.getDefault(), IRIs.RDF);
+                load(Logging.getDefault(), IRIs.RDFS);
+                load(Logging.getDefault(), IRIs.OWL2);
+                load(Logging.getDefault(), IRIs.XOWL_RULES + "owl2");
+                load(Logging.getDefault(), IRIs.XOWL_RULES + "xowl");
+                break;
         }
     }
 
@@ -408,13 +393,9 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    protected void loadResourceRDF(Ontology ontology, RDFLoaderResult input) {
+    protected void loadResourceRDF(Logger logger, Ontology ontology, RDFLoaderResult input) throws Exception {
         getGraph(ontology);
-        try {
-            backend.insert(Changeset.fromAdded(input.getQuads()));
-        } catch (UnsupportedNodeType ex) {
-            logger.error(ex);
-        }
+        backend.insert(Changeset.fromAdded(input.getQuads()));
 
         if (!input.getRules().isEmpty()) {
             for (RDFRule rule : input.getRules()) {
@@ -425,14 +406,10 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    protected void loadResourceOWL(Ontology ontology, OWLLoaderResult input) {
-        try {
-            Translator translator = new Translator(null, backend);
-            Collection<Quad> quads = translator.translate(input);
-            backend.insert(Changeset.fromAdded(quads));
-        } catch (TranslationException | UnsupportedNodeType ex) {
-            logger.error(ex);
-        }
+    protected void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input) throws Exception {
+        Translator translator = new Translator(null, backend);
+        Collection<Quad> quads = translator.translate(input);
+        backend.insert(Changeset.fromAdded(quads));
 
         if (!input.getRules().isEmpty()) {
             for (Rule rule : input.getRules()) {
@@ -443,21 +420,17 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    protected void exportResourceRDF(Ontology ontology, RDFSerializer output) {
-        try {
-            output.serialize(logger, backend.getAll(getGraph(ontology)));
-        } catch (UnsupportedNodeType exception) {
-            Logging.getDefault().error(exception);
-        }
+    protected void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output) throws Exception {
+        output.serialize(logger, backend.getAll(getGraph(ontology)));
     }
 
     @Override
-    protected void exportResourceRDF(RDFSerializer output) {
+    protected void exportResourceRDF(Logger logger, RDFSerializer output) throws Exception {
         output.serialize(logger, backend.getAll());
     }
 
     @Override
-    protected void exportResourceOWL(Ontology ontology, OWLSerializer output) {
+    protected void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output) throws Exception {
         throw new UnsupportedOperationException();
     }
 }

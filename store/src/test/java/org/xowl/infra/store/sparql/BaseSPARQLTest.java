@@ -167,7 +167,7 @@ public abstract class BaseSPARQLTest {
         String request = before.getIRIMapper().get(resource);
         request = request.substring(Repository.SCHEME_RESOURCE.length());
         request = readResource(request);
-        Result result = before.execute(request);
+        Result result = before.execute(logger, request);
         Assert.assertFalse("Error while executing the request", logger.isOnError());
         Assert.assertTrue("Error while executing the request", result.isSuccess());
         W3CTestSuite.matchesQuads(getQuads(after), getQuads(before));
@@ -186,7 +186,7 @@ public abstract class BaseSPARQLTest {
         String request = before.getIRIMapper().get(resource);
         request = request.substring(Repository.SCHEME_RESOURCE.length());
         request = readResource(request);
-        Result result = before.execute(request);
+        Result result = before.execute(logger, request);
         Assert.assertFalse("Error while executing the request", logger.isOnError());
         Assert.assertTrue("Error while executing the request", result.isSuccess());
         compare(result, output);
@@ -478,11 +478,11 @@ public abstract class BaseSPARQLTest {
      */
     private void compareQuads(ResultQuads result, String expected) {
         SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
         try {
-            repository.load(expected, IRIs.GRAPH_DEFAULT, true);
-        } catch (IOException exception) {
+            repository.load(logger, expected, IRIs.GRAPH_DEFAULT, true);
+        } catch (Exception exception) {
             logger.error(exception);
         }
         Assert.assertFalse("Failed to load the expected results", logger.isOnError());
@@ -511,12 +511,12 @@ public abstract class BaseSPARQLTest {
      * @return The repository
      */
     private RepositoryRDF prepare(Logger logger, Couple<String, String>[] inputs) {
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
         for (Couple<String, String> input : inputs) {
             try {
-                repository.load(input.x, input.y == null ? IRIs.GRAPH_DEFAULT : input.y, true);
-            } catch (IOException exception) {
+                repository.load(logger, input.x, input.y == null ? IRIs.GRAPH_DEFAULT : input.y, true);
+            } catch (Exception exception) {
                 logger.error(exception);
             }
         }
@@ -531,12 +531,12 @@ public abstract class BaseSPARQLTest {
      * @return The repository
      */
     private RepositoryRDF prepare(Logger logger, String[] inputs) {
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
         for (String input : inputs) {
             try {
-                repository.load(input, IRIs.GRAPH_DEFAULT, true);
-            } catch (IOException exception) {
+                repository.load(logger, input, IRIs.GRAPH_DEFAULT, true);
+            } catch (Exception exception) {
                 logger.error(exception);
             }
         }

@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.utils.logging.SinkLogger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,11 +46,13 @@ public class OnDiskStoreTest {
     @Test
     public void testInsert() throws Exception {
         Path p = Files.createTempDirectory("testInsert");
+        SinkLogger logger = new SinkLogger();
         OnDiskStore store = new OnDiskStore(p.toFile(), false);
         RepositoryRDF repo = new RepositoryRDF(store);
-        repo.load(IRIs.RDF);
+        repo.load(logger, IRIs.RDF);
         store.commit();
         store.close();
+        Assert.assertFalse("Failed to load", !logger.isOnError());
 
         store = new OnDiskStore(p.toFile(), true);
         Iterator<Quad> iterator = store.getAll();

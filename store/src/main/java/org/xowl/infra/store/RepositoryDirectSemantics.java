@@ -93,12 +93,11 @@ public class RepositoryDirectSemantics extends Repository {
     /**
      * Initializes this repository
      *
-     * @param logger    The logger associated to this repository
      * @param mapper    The IRI mapper to use
      * @param evaluator The evaluator to use
      */
-    public RepositoryDirectSemantics(Logger logger, IRIMapper mapper, Evaluator evaluator) {
-        super(logger, mapper, evaluator);
+    public RepositoryDirectSemantics(IRIMapper mapper, Evaluator evaluator) {
+        super(mapper, evaluator);
         this.nodeManager = new CachedNodes();
         this.mapEntities = new HashMap<>();
         this.classUnions = new ArrayList<>();
@@ -144,28 +143,28 @@ public class RepositoryDirectSemantics extends Repository {
     }
 
     @Override
-    protected void loadResourceRDF(Ontology ontology, RDFLoaderResult input) {
+    protected void loadResourceRDF(Logger logger, Ontology ontology, RDFLoaderResult input) throws Exception {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void loadResourceOWL(Ontology ontology, OWLLoaderResult input) {
+    protected void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input) throws Exception {
         for (Axiom axiom : input.getAxioms())
             apply(axiom, false);
     }
 
     @Override
-    protected void exportResourceRDF(Ontology ontology, RDFSerializer output) {
+    protected void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output) throws Exception {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void exportResourceRDF(RDFSerializer output) {
+    protected void exportResourceRDF(Logger logger, RDFSerializer output) throws Exception {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void exportResourceOWL(Ontology ontology, OWLSerializer output) {
+    protected void exportResourceOWL(Logger logger, Ontology ontology, OWLSerializer output) throws Exception {
         throw new UnsupportedOperationException();
     }
 

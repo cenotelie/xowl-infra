@@ -23,7 +23,6 @@ import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.collections.Couple;
 import org.xowl.infra.utils.logging.SinkLogger;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,43 +42,43 @@ public class SPARQLTestSuiteGenerator {
      */
     public void generate() {
         SinkLogger logger = new SinkLogger();
-        RepositoryRDF repository = new RepositoryRDF(logger);
+        RepositoryRDF repository = new RepositoryRDF();
 
         repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
         try {
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-fed/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-query/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-update-1/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-update-2/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-fed/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-query/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-update-1/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-update-2/manifest.ttl");
 
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/add/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/basic-update/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/clear/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/copy/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/delete/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/delete-data/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/delete-insert/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/delete-where/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/drop/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/move/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/update-silent/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/add/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/basic-update/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/clear/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/copy/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/delete/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/delete-data/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/delete-insert/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/delete-where/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/drop/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/move/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/update-silent/manifest.ttl");
 
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/aggregates/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/bind/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/bindings/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/construct/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/csv-tsv-res/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/exists/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/grouping/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/json-res/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/negation/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/project-expression/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/property-path/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/service/manifest.ttl");
-            repository.load("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/subquery/manifest.ttl");
-        } catch (IOException exception) {
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/aggregates/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/bind/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/bindings/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/construct/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/csv-tsv-res/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/entailment/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/exists/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/functions/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/grouping/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/json-res/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/negation/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/project-expression/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/property-path/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/service/manifest.ttl");
+            repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/subquery/manifest.ttl");
+        } catch (Exception exception) {
             logger.error(exception);
         }
 
