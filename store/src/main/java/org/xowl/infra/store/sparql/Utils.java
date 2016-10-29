@@ -18,8 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.lang.actions.DynamicExpression;
-import org.xowl.infra.lang.owl2.IRI;
-import org.xowl.infra.store.Datatypes;
+import org.xowl.infra.store.EvaluatorContext;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.utils.collections.Couple;
@@ -96,9 +95,10 @@ class Utils {
         Map<String, Object> bindings = new HashMap<>();
         for (Couple<VariableNode, Node> binding : solution)
             bindings.put(binding.x.getName(), RDFUtils.getNative(binding.y));
-        context.getEvaluator().push(bindings);
+        EvaluatorContext evaluatorContext = EvaluatorContext.get();
+        evaluatorContext.push(bindings);
         Object result = context.getEvaluator().eval(expression);
-        context.getEvaluator().pop();
+        evaluatorContext.pop();
         return result;
     }
 
@@ -133,14 +133,7 @@ class Utils {
         }
         if (result.getNodeType() == Node.TYPE_DYNAMIC && context.getEvaluator() != null) {
             Object value = evaluateNative(context, solution, ((DynamicNode) result).getDynamicExpression());
-            if (value instanceof Node) {
-                result = (Node) value;
-            } else if (value instanceof IRI) {
-                result = context.getNodes().getIRINode(((IRI) value).getHasValue());
-            } else {
-                Couple<String, String> literal = Datatypes.toLiteral(value);
-                result = context.getNodes().getLiteralNode(literal.x, literal.y, null);
-            }
+            return RDFUtils.getRDF(context.getNodes(), value);
         }
         return result;
     }

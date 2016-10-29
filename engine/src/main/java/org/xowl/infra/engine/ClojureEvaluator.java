@@ -23,6 +23,7 @@ import org.xowl.infra.lang.actions.DynamicExpression;
 import org.xowl.infra.lang.actions.OpaqueExpression;
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.store.Evaluator;
+import org.xowl.infra.store.EvaluatorContext;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.Files;
@@ -105,15 +106,9 @@ public class ClojureEvaluator implements Evaluator {
     }
 
     /**
-     * The stack of lexical bindings
-     */
-    private final Stack<Map<String, Object>> contexts;
-
-    /**
      * Initializes this evaluator
      */
     public ClojureEvaluator() {
-        this.contexts = new Stack<>();
     }
 
     /**
@@ -156,31 +151,17 @@ public class ClojureEvaluator implements Evaluator {
     }
 
     @Override
-    public void push(Map<String, Object> context) {
-        contexts.push(context);
-    }
-
-    @Override
-    public void pop() {
-        contexts.pop();
-    }
-
-    @Override
     public Object eval(DynamicExpression expression) {
         compileOutstandings();
         Namespace old = (Namespace) RT.CURRENT_NS.deref();
         RT.CURRENT_NS.bindRoot(CLJ_NAMESPACE_ROOT);
 
         List content = new ArrayList();
-        HashSet<String> names = new HashSet<>();
-        for (int i = 0; i != contexts.size(); i++) {
-            for (Map.Entry<String, Object> binding : contexts.get(i).entrySet()) {
-                if (!names.contains(binding.getKey()) && !(binding.getValue() instanceof IRI)) {
-                    content.add(Symbol.create(binding.getKey()));
-                    content.add(binding.getValue());
-                    names.add(binding.getKey());
-                }
-            }
+        for (Map.Entry<String, Object> binding : EvaluatorContext.get().getBindings().entrySet()) {
+            if (binding.getValue() instanceof IRI)
+                continue;
+            content.add(Symbol.create(binding.getKey()));
+            content.add(binding.getValue());
         }
         PersistentVector content1 = PersistentVector.create(content.toArray());
         Object cljExp = ((OpaqueExpression) expression).getValue();

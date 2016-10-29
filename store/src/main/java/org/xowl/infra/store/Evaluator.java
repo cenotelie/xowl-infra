@@ -19,26 +19,12 @@ package org.xowl.infra.store;
 
 import org.xowl.infra.lang.actions.DynamicExpression;
 
-import java.util.Map;
-
 /**
  * Represents an evaluator of xOWL dynamic expressions
  *
  * @author Laurent Wouters
  */
 public interface Evaluator {
-    /**
-     * Pushes a new context onto the stack of this evaluator
-     *
-     * @param context The context to push
-     */
-    void push(Map<String, Object> context);
-
-    /**
-     * Pops the head context from the stack of this evaluator
-     */
-    void pop();
-
     /**
      * Evaluates the specified expression
      *
