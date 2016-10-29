@@ -393,7 +393,7 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    protected void loadResourceRDF(Logger logger, Ontology ontology, RDFLoaderResult input) throws Exception {
+    protected void doLoadRDF(Logger logger, Ontology ontology, RDFLoaderResult input) throws Exception {
         getGraph(ontology);
         backend.insert(Changeset.fromAdded(input.getQuads()));
 
@@ -406,7 +406,7 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    protected void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input) throws Exception {
+    protected void doLoadOWL(Logger logger, Ontology ontology, OWLLoaderResult input) throws Exception {
         Translator translator = new Translator(null, backend);
         Collection<Quad> quads = translator.translate(input);
         backend.insert(Changeset.fromAdded(quads));
@@ -420,12 +420,12 @@ public class RepositoryRDF extends Repository {
     }
 
     @Override
-    protected void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output) throws Exception {
+    protected void doExportRDF(Logger logger, Ontology ontology, RDFSerializer output) throws Exception {
         output.serialize(logger, backend.getAll(getGraph(ontology)));
     }
 
     @Override
-    protected void exportResourceRDF(Logger logger, RDFSerializer output) throws Exception {
+    protected void doExportRDF(Logger logger, RDFSerializer output) throws Exception {
         output.serialize(logger, backend.getAll());
     }
 

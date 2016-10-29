@@ -38,6 +38,7 @@ import java.util.jar.JarFile;
 /**
  * Represents a repository of xOWL ontologies
  * This class does not specify the storage method for the ontologies.
+ * This class is thread-safe.
  *
  * @author Laurent Wouters
  *         Modification
@@ -198,21 +199,31 @@ public abstract class Repository {
 
 
     /**
+     * The data for the resource
+     */
+    private static class Resource {
+        /**
+         * The ontology for the resource
+         */
+        public Ontology ontology;
+        /**
+         * The dependencies for the resource
+         */
+        public Collection<String> dependencies;
+    }
+
+    /**
      * The IRI mapper
      */
     protected final IRIMapper mapper;
     /**
      * The loaded resources
      */
-    protected final Map<String, Ontology> resources;
+    protected final Map<String, Resource> resources;
     /**
      * The loaded ontologies by IRI
      */
     protected final Map<String, Ontology> ontologies;
-    /**
-     * The remaining dependencies
-     */
-    protected final List<String> dependencies;
     /**
      * The evaluator to use
      */
@@ -241,7 +252,6 @@ public abstract class Repository {
         this.mapper = mapper;
         this.resources = new HashMap<>();
         this.ontologies = new HashMap<>();
-        this.dependencies = new ArrayList<>();
         this.evaluator = evaluator;
         this.regime = EntailmentRegime.none;
     }
@@ -346,13 +356,15 @@ public abstract class Repository {
      * @return The corresponding ontology
      */
     public Ontology resolveOntology(String iri) {
-        Ontology ontology = ontologies.get(iri);
-        if (ontology == null) {
-            ontology = new Ontology();
-            ontology.setHasIRI(getIRI(iri));
-            ontologies.put(iri, ontology);
+        synchronized (ontologies) {
+            Ontology ontology = ontologies.get(iri);
+            if (ontology == null) {
+                ontology = new Ontology();
+                ontology.setHasIRI(getIRI(iri));
+                ontologies.put(iri, ontology);
+            }
+            return ontology;
         }
-        return ontology;
     }
 
     /**
@@ -380,19 +392,41 @@ public abstract class Repository {
      * @throws IOException When the reader cannot be created
      */
     public Ontology load(Logger logger, String resourceIRI, String ontologyIRI, boolean forceReload) throws Exception {
-        Ontology result = loadResource(logger, resourceIRI, ontologyIRI, forceReload);
-        while (!dependencies.isEmpty()) {
-            List<String> batch = new ArrayList<>(dependencies);
-            dependencies.clear();
-            for (String dependency : batch) {
-                loadResource(logger, dependency, dependency, false);
+        // register the resource to be loaded
+        Resource metadata;
+        synchronized (resources) {
+            metadata = resources.get(resourceIRI);
+            if (metadata != null) {
+                if (!forceReload)
+                    return metadata.ontology;
+            } else {
+                metadata = new Resource();
+                resources.put(resourceIRI, metadata);
             }
         }
-        return result;
+
+        // resolve the target physical location
+        String physicalResource = mapper.get(resourceIRI);
+        if (physicalResource == null)
+            throw new IOException("Cannot identify the location of " + resourceIRI);
+
+        // gets the reader for the resource and load
+        try (Reader reader = getReaderFor(physicalResource)) {
+            String syntax = getSyntax(physicalResource);
+            if (syntax == null)
+                throw new IOException("Failed to determine the syntax of resource " + resourceIRI);
+            loadInput(logger, reader, resourceIRI, ontologyIRI, syntax, metadata);
+        }
+
+        // resolve the dependencies
+        for (String dependency : metadata.dependencies) {
+            load(logger, dependency, dependency, false);
+        }
+        return metadata.ontology;
     }
 
     /**
-     * Loads data from the specified reader
+     * Loads data from the specified reader, do not resolve the dependencies
      *
      * @param logger      The logger to use
      * @param reader      The reader to use
@@ -404,15 +438,102 @@ public abstract class Repository {
      * @throws IOException When the reader cannot be created
      */
     public Ontology load(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax) throws Exception {
-        Ontology result = loadResource(logger, reader, resourceIRI, ontologyIRI, syntax);
-        while (!dependencies.isEmpty()) {
-            List<String> batch = new ArrayList<>(dependencies);
-            dependencies.clear();
-            for (String dependency : batch) {
-                loadResource(logger, dependency, dependency, false);
-            }
+        Resource metadata = loadInput(logger, reader, resourceIRI, ontologyIRI, syntax, new Resource());
+        return metadata.ontology;
+    }
+
+    /**
+     * Loads a resource
+     *
+     * @param logger      The logger to use
+     * @param reader      The input reader
+     * @param resourceIRI The resource's IRI
+     * @param ontologyIRI The IRI of the ontology within the document
+     * @param syntax      The resource's syntax
+     * @param metadata    The metadata for the resource
+     * @return The loaded ontology
+     * @throws Exception                When an error occurred during the operation
+     * @throws IllegalArgumentException When the syntax is not supported
+     */
+    private Resource loadInput(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax, Resource metadata) throws Exception {
+        switch (syntax) {
+            case SYNTAX_NTRIPLES:
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new NTriplesLoader(getNodeManager()));
+            case SYNTAX_NQUADS:
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new NQuadsLoader(getNodeManager()));
+            case SYNTAX_TURTLE:
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TurtleLoader(getNodeManager()));
+            case SYNTAX_RDFT:
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new RDFTLoader(getNodeManager()));
+            case SYNTAX_RDFXML:
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new RDFXMLLoader(getNodeManager()));
+            case SYNTAX_JSON_LD:
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new JSONLDLoader(getNodeManager()) {
+                    @Override
+                    protected Reader getReaderFor(Logger logger, String iri) {
+                        String resource = mapper.get(iri);
+                        if (resource == null) {
+                            logger.error("Cannot identify the location of " + iri);
+                            return null;
+                        }
+                        try {
+                            return Repository.getReaderFor(resource);
+                        } catch (IOException ex) {
+                            logger.error(ex);
+                            return null;
+                        }
+                    }
+                });
+            case SYNTAX_TRIG:
+                return loadInputRDF(logger, reader, resourceIRI, ontologyIRI, metadata, new TriGLoader(getNodeManager()));
+            case SYNTAX_FUNCTIONAL_OWL2:
+                return loadInputOWL(logger, reader, resourceIRI, metadata, new FunctionalOWL2Loader());
+            case SYNTAX_OWLXML:
+                return loadInputOWL(logger, reader, resourceIRI, metadata, new OWLXMLLoader());
+            case SYNTAX_XOWL:
+                return loadInputOWL(logger, reader, resourceIRI, metadata, new XOWLLoader());
+            default:
+                throw new IllegalArgumentException("Unsupported syntax: " + syntax);
         }
-        return result;
+    }
+
+    /**
+     * Loads an RDF input
+     *
+     * @param logger      The logger to use
+     * @param reader      The input reader
+     * @param resourceIRI The resource's IRI
+     * @param ontologyIRI The IRI of the ontology within the document
+     * @param metadata    The metadata for the resource
+     * @param loader      The RDF loader to use
+     * @return The metadata for the resource
+     * @throws Exception When an error occurred during the operation
+     */
+    private Resource loadInputRDF(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, Resource metadata, Loader loader) throws Exception {
+        RDFLoaderResult input = loader.loadRDF(logger, reader, resourceIRI, ontologyIRI);
+        metadata.ontology = resolveOntology(ontologyIRI);
+        metadata.dependencies = input.getImports();
+        doLoadRDF(logger, metadata.ontology, input);
+        return metadata;
+    }
+
+    /**
+     * Loads an OWL input
+     *
+     * @param logger      The logger to use
+     * @param reader      The input reader
+     * @param resourceIRI The resource's IRI
+     * @param metadata    The metadata for the resource
+     * @param loader      The RDF loader to use
+     * @return The metadata for the resource
+     * @throws Exception When an error occurred during the operation
+     */
+    private Resource loadInputOWL(Logger logger, Reader reader, String resourceIRI, Resource metadata, Loader loader) throws Exception {
+        OWLLoaderResult input = loader.loadOWL(logger, reader, resourceIRI);
+        metadata.ontology = resolveOntology(input.getIRI());
+        metadata.dependencies = input.getImports();
+        doLoadOWL(logger, metadata.ontology, input);
+        return metadata;
     }
 
     /**
@@ -461,119 +582,6 @@ public abstract class Repository {
     }
 
     /**
-     * Loads a resource
-     *
-     * @param logger      The logger to use
-     * @param resourceIRI The resource's IRI
-     * @param ontologyIRI The IRI of the ontology within the document
-     * @param forceReload Whether to force the reloading of the resource
-     * @return The loaded ontology
-     * @throws Exception   When an error occurred during the operation
-     * @throws IOException When the reader cannot be created
-     */
-    private Ontology loadResource(Logger logger, String resourceIRI, String ontologyIRI, boolean forceReload) throws Exception {
-        String resource = mapper.get(resourceIRI);
-        if (resource == null)
-            throw new IOException("Cannot identify the location of " + resourceIRI);
-        if (!forceReload) {
-            Ontology ontology = resources.get(resourceIRI);
-            if (ontology != null)
-                // the resource is already loaded
-                return ontology;
-        }
-        try (Reader reader = getReaderFor(resource)) {
-            String syntax = getSyntax(resource);
-            if (syntax == null)
-                throw new IOException("Failed to determine the syntax of resource " + resource);
-            return loadResource(logger, reader, resourceIRI, ontologyIRI, syntax);
-        }
-    }
-
-    /**
-     * Loads a resource
-     *
-     * @param logger      The logger to use
-     * @param reader      The input reader
-     * @param resourceIRI The resource's IRI
-     * @param ontologyIRI The IRI of the ontology within the document
-     * @param syntax      The resource's syntax
-     * @return The loaded ontology
-     * @throws Exception                When an error occurred during the operation
-     * @throws IllegalArgumentException When the syntax is not supported
-     */
-    private Ontology loadResource(Logger logger, Reader reader, String resourceIRI, String ontologyIRI, String syntax) throws Exception {
-        switch (syntax) {
-            case SYNTAX_NTRIPLES: {
-                Loader loader = new NTriplesLoader(getNodeManager());
-                RDFLoaderResult input = loader.loadRDF(logger, reader, resourceIRI, ontologyIRI);
-                return input == null ? null : loadResourceRDF(logger, resourceIRI, ontologyIRI, input);
-            }
-            case SYNTAX_NQUADS: {
-                Loader loader = new NQuadsLoader(getNodeManager());
-                RDFLoaderResult input = loader.loadRDF(logger, reader, resourceIRI, ontologyIRI);
-                return input == null ? null : loadResourceRDF(logger, resourceIRI, ontologyIRI, input);
-            }
-            case SYNTAX_TURTLE: {
-                Loader loader = new TurtleLoader(getNodeManager());
-                RDFLoaderResult input = loader.loadRDF(logger, reader, resourceIRI, ontologyIRI);
-                return input == null ? null : loadResourceRDF(logger, resourceIRI, ontologyIRI, input);
-            }
-            case SYNTAX_RDFT: {
-                Loader loader = new RDFTLoader(getNodeManager());
-                RDFLoaderResult input = loader.loadRDF(logger, reader, resourceIRI, ontologyIRI);
-                return input == null ? null : loadResourceRDF(logger, resourceIRI, ontologyIRI, input);
-            }
-            case SYNTAX_RDFXML: {
-                Loader loader = new RDFXMLLoader(getNodeManager());
-                RDFLoaderResult input = loader.loadRDF(logger, reader, resourceIRI, ontologyIRI);
-                return input == null ? null : loadResourceRDF(logger, resourceIRI, ontologyIRI, input);
-            }
-            case SYNTAX_JSON_LD: {
-                Loader loader = new JSONLDLoader(getNodeManager()) {
-                    @Override
-                    protected Reader getReaderFor(Logger logger, String iri) {
-                        String resource = mapper.get(iri);
-                        if (resource == null) {
-                            logger.error("Cannot identify the location of " + iri);
-                            return null;
-                        }
-                        try {
-                            return Repository.getReaderFor(resource);
-                        } catch (IOException ex) {
-                            logger.error(ex);
-                            return null;
-                        }
-                    }
-                };
-                RDFLoaderResult input = loader.loadRDF(logger, reader, resourceIRI, ontologyIRI);
-                return input == null ? null : loadResourceRDF(logger, resourceIRI, ontologyIRI, input);
-            }
-            case SYNTAX_TRIG: {
-                Loader loader = new TriGLoader(getNodeManager());
-                RDFLoaderResult input = loader.loadRDF(logger, reader, resourceIRI, ontologyIRI);
-                return input == null ? null : loadResourceRDF(logger, resourceIRI, ontologyIRI, input);
-            }
-            case SYNTAX_FUNCTIONAL_OWL2: {
-                Loader loader = new FunctionalOWL2Loader();
-                OWLLoaderResult input = loader.loadOWL(logger, reader, resourceIRI);
-                return input == null ? null : loadResourceOWL(logger, resourceIRI, input);
-            }
-            case SYNTAX_OWLXML: {
-                Loader loader = new OWLXMLLoader();
-                OWLLoaderResult input = loader.loadOWL(logger, reader, resourceIRI);
-                return input == null ? null : loadResourceOWL(logger, resourceIRI, input);
-            }
-            case SYNTAX_XOWL: {
-                Loader loader = new XOWLLoader();
-                OWLLoaderResult input = loader.loadOWL(logger, reader, resourceIRI);
-                return input == null ? null : loadResourceOWL(logger, resourceIRI, input);
-            }
-            default:
-                throw new IllegalArgumentException("Unsupported syntax: " + syntax);
-        }
-    }
-
-    /**
      * Exports a resource
      *
      * @param logger   The logger to use
@@ -587,32 +595,32 @@ public abstract class Repository {
         switch (syntax) {
             case SYNTAX_NTRIPLES: {
                 RDFSerializer serializer = new NTripleSerializer(writer);
-                exportResourceRDF(logger, ontology, serializer);
+                doExportRDF(logger, ontology, serializer);
                 break;
             }
             case SYNTAX_NQUADS: {
                 RDFSerializer serializer = new NQuadsSerializer(writer);
-                exportResourceRDF(logger, ontology, serializer);
+                doExportRDF(logger, ontology, serializer);
                 break;
             }
             case SYNTAX_TURTLE: {
                 RDFSerializer serializer = new TurtleSerializer(writer);
-                exportResourceRDF(logger, ontology, serializer);
+                doExportRDF(logger, ontology, serializer);
                 break;
             }
             case SYNTAX_TRIG: {
                 RDFSerializer serializer = new TriGSerializer(writer);
-                exportResourceRDF(logger, ontology, serializer);
+                doExportRDF(logger, ontology, serializer);
                 break;
             }
             case SYNTAX_RDFXML: {
                 RDFSerializer serializer = new RDFXMLSerializer(writer);
-                exportResourceRDF(logger, ontology, serializer);
+                doExportRDF(logger, ontology, serializer);
                 break;
             }
             case SYNTAX_JSON_LD: {
                 RDFSerializer serializer = new JSONLDSerializer(writer);
-                exportResourceRDF(logger, ontology, serializer);
+                doExportRDF(logger, ontology, serializer);
                 break;
             }
             case SYNTAX_RDFT:
@@ -642,32 +650,32 @@ public abstract class Repository {
         switch (syntax) {
             case SYNTAX_NTRIPLES: {
                 RDFSerializer serializer = new NTripleSerializer(writer);
-                exportResourceRDF(logger, this.getOntology(resourceIRI), serializer);
+                doExportRDF(logger, this.getOntology(resourceIRI), serializer);
                 break;
             }
             case SYNTAX_NQUADS: {
                 RDFSerializer serializer = new NQuadsSerializer(writer);
-                exportResourceRDF(logger, serializer);
+                doExportRDF(logger, serializer);
                 break;
             }
             case SYNTAX_TURTLE: {
                 RDFSerializer serializer = new TurtleSerializer(writer);
-                exportResourceRDF(logger, this.getOntology(resourceIRI), serializer);
+                doExportRDF(logger, this.getOntology(resourceIRI), serializer);
                 break;
             }
             case SYNTAX_TRIG: {
                 RDFSerializer serializer = new TriGSerializer(writer);
-                exportResourceRDF(logger, serializer);
+                doExportRDF(logger, serializer);
                 break;
             }
             case SYNTAX_RDFXML: {
                 RDFSerializer serializer = new RDFXMLSerializer(writer);
-                exportResourceRDF(logger, this.getOntology(resourceIRI), serializer);
+                doExportRDF(logger, this.getOntology(resourceIRI), serializer);
                 break;
             }
             case SYNTAX_JSON_LD: {
                 RDFSerializer serializer = new JSONLDSerializer(writer);
-                exportResourceRDF(logger, serializer);
+                doExportRDF(logger, serializer);
                 break;
             }
             case SYNTAX_RDFT:
@@ -684,54 +692,6 @@ public abstract class Repository {
     }
 
     /**
-     * Loads an RDF resource
-     *
-     * @param logger      The logger to use
-     * @param resourceIRI The resource's IRI
-     * @param ontologyIRI The IRI of the ontology within the document
-     * @param input       The resource's content
-     * @return The loaded ontology
-     * @throws Exception When an error occurred during the operation
-     */
-    private Ontology loadResourceRDF(Logger logger, String resourceIRI, String ontologyIRI, RDFLoaderResult input) throws Exception {
-        Ontology ontology = registerResource(resourceIRI, ontologyIRI);
-        for (String importedIRI : input.getImports())
-            dependencies.add(importedIRI);
-        loadResourceRDF(logger, ontology, input);
-        return ontology;
-    }
-
-    /**
-     * Loads an OWL resource
-     *
-     * @param logger      The logger to use
-     * @param resourceIRI The resource's IRI
-     * @param input       The resource's content
-     * @return The loaded ontology
-     * @throws Exception When an error occurred during the operation
-     */
-    private Ontology loadResourceOWL(Logger logger, String resourceIRI, OWLLoaderResult input) throws Exception {
-        Ontology ontology = registerResource(resourceIRI, input.getIRI());
-        for (String importedIRI : input.getImports())
-            dependencies.add(importedIRI);
-        loadResourceOWL(logger, ontology, input);
-        return ontology;
-    }
-
-    /**
-     * Registers a loaded resource
-     *
-     * @param documentIRI The document's IRI
-     * @param ontologyIRI The IRI of the ontology within the document
-     * @return The corresponding Ontology
-     */
-    private Ontology registerResource(String documentIRI, String ontologyIRI) {
-        Ontology ontology = resolveOntology(ontologyIRI);
-        resources.put(documentIRI, ontology);
-        return ontology;
-    }
-
-    /**
      * Loads a collection of quads
      *
      * @param logger   The logger to use
@@ -739,7 +699,7 @@ public abstract class Repository {
      * @param input    The input data
      * @throws Exception When an error occurred during the operation
      */
-    protected abstract void loadResourceRDF(Logger logger, Ontology ontology, RDFLoaderResult input) throws Exception;
+    protected abstract void doLoadRDF(Logger logger, Ontology ontology, RDFLoaderResult input) throws Exception;
 
     /**
      * Loads an ontology as a set of axioms
@@ -749,7 +709,7 @@ public abstract class Repository {
      * @param input    The input data
      * @throws Exception When an error occurred during the operation
      */
-    protected abstract void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input) throws Exception;
+    protected abstract void doLoadOWL(Logger logger, Ontology ontology, OWLLoaderResult input) throws Exception;
 
     /**
      * Exports a collection of quads
@@ -759,7 +719,7 @@ public abstract class Repository {
      * @param output   The output
      * @throws Exception When an error occurred during the operation
      */
-    protected abstract void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output) throws Exception;
+    protected abstract void doExportRDF(Logger logger, Ontology ontology, RDFSerializer output) throws Exception;
 
     /**
      * Exports a collection of quads from the whole repository
@@ -768,7 +728,7 @@ public abstract class Repository {
      * @param output The output
      * @throws Exception When an error occurred during the operation
      */
-    protected abstract void exportResourceRDF(Logger logger, RDFSerializer output) throws Exception;
+    protected abstract void doExportRDF(Logger logger, RDFSerializer output) throws Exception;
 
     /**
      * Exports a collection of quads

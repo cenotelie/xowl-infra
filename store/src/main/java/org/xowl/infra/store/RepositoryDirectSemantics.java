@@ -143,23 +143,23 @@ public class RepositoryDirectSemantics extends Repository {
     }
 
     @Override
-    protected void loadResourceRDF(Logger logger, Ontology ontology, RDFLoaderResult input) throws Exception {
+    protected void doLoadRDF(Logger logger, Ontology ontology, RDFLoaderResult input) throws Exception {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void loadResourceOWL(Logger logger, Ontology ontology, OWLLoaderResult input) throws Exception {
+    protected void doLoadOWL(Logger logger, Ontology ontology, OWLLoaderResult input) throws Exception {
         for (Axiom axiom : input.getAxioms())
             apply(axiom, false);
     }
 
     @Override
-    protected void exportResourceRDF(Logger logger, Ontology ontology, RDFSerializer output) throws Exception {
+    protected void doExportRDF(Logger logger, Ontology ontology, RDFSerializer output) throws Exception {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void exportResourceRDF(Logger logger, RDFSerializer output) throws Exception {
+    protected void doExportRDF(Logger logger, RDFSerializer output) throws Exception {
         throw new UnsupportedOperationException();
     }
 
