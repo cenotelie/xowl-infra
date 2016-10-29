@@ -21,31 +21,22 @@ import org.xowl.infra.server.base.BaseUser;
 import org.xowl.infra.store.ProxyObject;
 
 /**
- * Represents a user on this server
+ * Implementation of a XOWL User
  *
  * @author Laurent Wouters
  */
-public class ServerUser extends BaseUser {
+public class UserImpl extends BaseUser {
     /**
-     * The proxy object representing this user
+     * The proxy object representing this user in the administration database
      */
-    private final ProxyObject proxy;
-
-    /**
-     * Gets the proxy object representing this user
-     *
-     * @return The proxy object representing this user
-     */
-    public ProxyObject getProxy() {
-        return proxy;
-    }
+    protected final ProxyObject proxy;
 
     /**
      * Initializes this user
      *
-     * @param proxy The proxy object representing this user
+     * @param proxy The proxy object representing this user in the administration database
      */
-    public ServerUser(ProxyObject proxy) {
+    public UserImpl(ProxyObject proxy) {
         super((String) proxy.getDataValue(Schema.ADMIN_NAME));
         this.proxy = proxy;
     }

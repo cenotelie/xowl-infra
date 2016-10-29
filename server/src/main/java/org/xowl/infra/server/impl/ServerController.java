@@ -20,13 +20,19 @@ package org.xowl.infra.server.impl;
 import org.mindrot.jbcrypt.BCrypt;
 import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLPrivilege;
+import org.xowl.infra.server.api.XOWLRule;
+import org.xowl.infra.server.api.XOWLStoredProcedure;
 import org.xowl.infra.server.base.BaseDatabasePrivileges;
 import org.xowl.infra.server.base.BaseUserPrivileges;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.Vocabulary;
+import org.xowl.infra.store.rdf.RDFRuleStatus;
+import org.xowl.infra.store.sparql.Result;
+import org.xowl.infra.store.sparql.ResultFailure;
 import org.xowl.infra.utils.Files;
-import org.xowl.infra.utils.logging.Logging;
+import org.xowl.infra.utils.logging.BufferedLogger;
+import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Closeable;
 import java.io.File;
@@ -35,7 +41,8 @@ import java.net.InetAddress;
 import java.util.*;
 
 /**
- * Implements the server API for this server
+ * A server controller is an entity that serves and controls a set of persisted databases.
+ * The controller is responsible for enforcing the access policy.
  *
  * @author Laurent Wouters
  */
@@ -55,33 +62,39 @@ public class ServerController implements Closeable {
     }
 
     /**
+     * The logger for this controller
+     */
+    private final Logger logger;
+    /**
      * The current configuration
      */
     private final ServerConfiguration configuration;
     /**
      * The currently hosted repositories
      */
-    private final Map<String, ServerDatabase> databases;
+    private final Map<String, DatabaseImpl> databases;
     /**
      * The administration database
      */
-    private final ServerDatabase adminDB;
+    private final DatabaseImpl adminDB;
+    /**
+     * The map of current users on this server
+     */
+    private final Map<String, UserImpl> users;
     /**
      * The map of clients with failed login attempts
      */
     private final Map<InetAddress, ClientLogin> clients;
-    /**
-     * The map of current users on this server
-     */
-    private final Map<String, ServerUser> users;
 
     /**
      * Initializes this controller
      *
+     * @param logger        The logger for this controller
      * @param configuration The current configuration
-     * @throws IOException When the location cannot be accessed
+     * @throws Exception When the location cannot be accessed
      */
-    public ServerController(ServerConfiguration configuration) throws IOException {
+    public ServerController(Logger logger, ServerConfiguration configuration) throws Exception {
+        this.logger = logger;
         this.configuration = configuration;
         this.databases = new HashMap<>();
         boolean isEmpty = true;
@@ -89,53 +102,75 @@ public class ServerController implements Closeable {
             String[] children = configuration.getDatabasesFolder().list();
             isEmpty = children == null || children.length == 0;
         }
-        Logging.getDefault().info("Initializing the controller");
-        adminDB = new ServerDatabase(configuration, new File(configuration.getDatabasesFolder(), configuration.getAdminDBName()));
-        databases.put(configuration.getAdminDBName(), adminDB);
+        logger.info("Initializing the controller");
+        DatabaseController dbCtrl = new DatabaseController(new File(configuration.getDatabasesFolder(), configuration.getAdminDBName()), configuration.getDefaultMaxThreads());
+        adminDB = newDB(dbCtrl,
+                dbCtrl.getRepository().resolveProxy(Schema.ADMIN_GRAPH_DBS + configuration.getAdminDBName()),
+                configuration.getAdminDBName());
+        databases.put(adminDB.getName(), adminDB);
         clients = new HashMap<>();
         users = new HashMap<>();
-        if (isEmpty) {
-            adminDB.getProxy().setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(Schema.ADMIN_DATABASE));
-            adminDB.getProxy().setValue(Schema.ADMIN_NAME, configuration.getAdminDBName());
-            adminDB.getProxy().setValue(Schema.ADMIN_LOCATION, ".");
-            ServerUser admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
-            admin.getProxy().addValue(Schema.ADMIN_ADMINOF, adminDB.getProxy());
-            adminDB.getRepository().getStore().commit();
-        } else {
-            ProxyObject classDB = adminDB.getRepository().resolveProxy(Schema.ADMIN_DATABASE);
-            for (ProxyObject poDB : classDB.getInstances()) {
-                if (poDB == adminDB.getProxy())
-                    continue;
-                Logging.getDefault().info("Found database " + poDB.getIRIString());
-                String name = (String) poDB.getDataValue(Schema.ADMIN_NAME);
-                String location = (String) poDB.getDataValue(Schema.ADMIN_LOCATION);
-                try {
-                    ServerDatabase db = new ServerDatabase(configuration, new File(configuration.getDatabasesFolder(), location), poDB);
-                    databases.put(name, db);
-                    Logging.getDefault().info("Loaded database " + poDB.getIRIString() + " as " + name);
-                } catch (IOException exception) {
-                    // do nothing, this exception is reported by the db Logging.getDefault()
-                    Logging.getDefault().error("Failed to load database " + poDB.getIRIString() + " as " + name);
-                }
-            }
-        }
-        Logging.getDefault().info("Controller is ready");
+        if (isEmpty)
+            initializeAdminDB();
+        else
+            initializeDatabases();
+        logger.info("Controller is ready");
     }
 
-    @Override
-    public void close() throws IOException {
-        Logging.getDefault().info("Closing all databases ...");
-        for (Map.Entry<String, ServerDatabase> entry : databases.entrySet()) {
-            Logging.getDefault().info("Closing database " + entry.getKey());
+    /**
+     * Initializes the administration database
+     */
+    private void initializeAdminDB() {
+        adminDB.proxy.setValue(Vocabulary.rdfType, adminDB.controller.getRepository().resolveProxy(Schema.ADMIN_DATABASE));
+        adminDB.proxy.setValue(Schema.ADMIN_NAME, adminDB.getName());
+        adminDB.proxy.setValue(Schema.ADMIN_LOCATION, ".");
+        UserImpl admin = doCreateUser(configuration.getAdminDefaultUser(), configuration.getAdminDefaultPassword());
+        admin.proxy.addValue(Schema.ADMIN_ADMINOF, adminDB.proxy);
+        adminDB.controller.getRepository().getStore().commit();
+    }
+
+    /**
+     * Initializes the databases managed by this controller
+     */
+    private void initializeDatabases() {
+        ProxyObject classDB = adminDB.controller.getRepository().resolveProxy(Schema.ADMIN_DATABASE);
+        for (ProxyObject poDB : classDB.getInstances()) {
+            if (poDB == adminDB.proxy)
+                continue;
+            logger.info("Found database " + poDB.getIRIString());
+            String name = (String) poDB.getDataValue(Schema.ADMIN_NAME);
+            String location = (String) poDB.getDataValue(Schema.ADMIN_LOCATION);
             try {
-                entry.getValue().close();
-            } catch (IOException exception) {
-                Logging.getDefault().error(exception);
+                DatabaseController controller = new DatabaseController(new File(configuration.getDatabasesFolder(), location), configuration.getDefaultMaxThreads());
+                DatabaseImpl db = newDB(controller, poDB);
+                databases.put(db.getName(), db);
+                logger.info("Loaded database " + poDB.getIRIString() + " as " + db.getName());
+            } catch (Exception exception) {
+                // do nothing, this exception is reported by the db logger
+                logger.error("Failed to load database " + poDB.getIRIString() + " as " + name);
             }
-            Logging.getDefault().info("Closed database " + entry.getKey());
         }
-        databases.clear();
-        Logging.getDefault().info("All databases closed");
+    }
+
+    /**
+     * Creates a new database
+     *
+     * @param controller The associated database controller
+     * @param proxy      The proxy object that represents the database in the administration database
+     */
+    protected DatabaseImpl newDB(DatabaseController controller, ProxyObject proxy) {
+        return new DatabaseImpl(controller, proxy);
+    }
+
+    /**
+     * Creates a new database
+     *
+     * @param controller The associated database controller
+     * @param proxy      The proxy object that represents the database in the administration database
+     * @param name       The name of the database
+     */
+    protected DatabaseImpl newDB(DatabaseController controller, ProxyObject proxy, String name) {
+        return new DatabaseImpl(controller, proxy, name);
     }
 
     /**
@@ -150,15 +185,22 @@ public class ServerController implements Closeable {
     protected void onRequestRestart() {
     }
 
-    /**
-     * Gets the requesting client for the specified login
-     *
-     * @param login The login of a user
-     * @return The client
-     */
-    public ServerUser getPrincipal(String login) {
-        return doGetUser(login);
+    @Override
+    public void close() throws IOException {
+        logger.info("Closing all databases ...");
+        for (Map.Entry<String, DatabaseImpl> entry : databases.entrySet()) {
+            logger.info("Closing database " + entry.getKey());
+            try {
+                entry.getValue().controller.close();
+            } catch (IOException exception) {
+                logger.error(exception);
+            }
+            logger.info("Closed database " + entry.getKey());
+        }
+        databases.clear();
+        logger.info("All databases closed");
     }
+
 
     /**
      * Login a user
@@ -173,35 +215,35 @@ public class ServerController implements Closeable {
             return null;
         if (login == null || login.isEmpty() || password == null || password.isEmpty()) {
             boolean banned = onLoginFailure(client);
-            Logging.getDefault().info("Login failure for " + login + " from " + client.toString());
+            logger.info("Login failure for " + login + " from " + client.toString());
             return banned ? null : XSPReplyFailure.instance();
         }
         String userIRI = Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
         String hash = null;
         synchronized (adminDB) {
-            proxy = adminDB.getRepository().getProxy(userIRI);
+            proxy = adminDB.controller.getRepository().getProxy(userIRI);
             if (proxy != null)
                 hash = (String) proxy.getDataValue(Schema.ADMIN_PASSWORD);
         }
         if (proxy == null) {
             boolean banned = onLoginFailure(client);
-            Logging.getDefault().info("Login failure for " + login + " from " + client.toString());
+            logger.info("Login failure for " + login + " from " + client.toString());
             return banned ? null : XSPReplyFailure.instance();
         }
         if (!BCrypt.checkpw(password, hash)) {
             boolean banned = onLoginFailure(client);
-            Logging.getDefault().info("Login failure for " + login + " from " + client.toString());
+            logger.info("Login failure for " + login + " from " + client.toString());
             return banned ? null : XSPReplyFailure.instance();
         } else {
             synchronized (clients) {
                 clients.remove(client);
             }
-            ServerUser user;
+            UserImpl user;
             synchronized (users) {
                 user = users.get(login);
                 if (user == null) {
-                    user = new ServerUser(proxy);
+                    user = new UserImpl(proxy);
                     users.put(login, user);
                 }
             }
@@ -215,7 +257,7 @@ public class ServerController implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply serverShutdown(ServerUser client) {
+    public XSPReply serverShutdown(UserImpl client) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
@@ -230,7 +272,7 @@ public class ServerController implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply serverRestart(ServerUser client) {
+    public XSPReply serverRestart(UserImpl client) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
@@ -246,12 +288,12 @@ public class ServerController implements Closeable {
      * @param login  The requested user name
      * @return The protocol reply
      */
-    public XSPReply getUser(ServerUser client, String login) {
+    public XSPReply getUser(UserImpl client, String login) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (client.getName().equals(login))
             return new XSPReplyResult<>(client);
-        ServerUser user = doGetUser(login);
+        UserImpl user = doGetUser(login);
         if (user == null)
             return XSPReplyNotFound.instance();
         return new XSPReplyResult<>(user);
@@ -263,18 +305,18 @@ public class ServerController implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply getUsers(ServerUser client) {
+    public XSPReply getUsers(UserImpl client) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        Collection<ServerUser> result = new ArrayList<>();
+        Collection<UserImpl> result = new ArrayList<>();
         synchronized (adminDB) {
-            ProxyObject classUser = adminDB.getRepository().resolveProxy(Schema.ADMIN_USER);
+            ProxyObject classUser = adminDB.controller.getRepository().resolveProxy(Schema.ADMIN_USER);
             for (ProxyObject poUser : classUser.getInstances()) {
                 String name = (String) poUser.getDataValue(Schema.ADMIN_NAME);
                 synchronized (users) {
-                    ServerUser user = users.get(name);
+                    UserImpl user = users.get(name);
                     if (user == null) {
-                        user = new ServerUser(poUser);
+                        user = new UserImpl(poUser);
                         users.put(name, user);
                     }
                     result.add(user);
@@ -292,7 +334,7 @@ public class ServerController implements Closeable {
      * @param password The password for the new user
      * @return The protocol reply
      */
-    public XSPReply createUser(ServerUser client, String login, String password) {
+    public XSPReply createUser(UserImpl client, String login, String password) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
@@ -301,7 +343,7 @@ public class ServerController implements Closeable {
             return new XSPReplyFailure("Login does not meet requirements ([_a-zA-Z0-9]+)");
         if (password.length() < configuration.getSecurityMinPasswordLength())
             return new XSPReplyFailure("Password does not meet requirements (min length " + configuration.getSecurityMinPasswordLength() + ")");
-        ServerUser user = doCreateUser(login, password);
+        UserImpl user = doCreateUser(login, password);
         if (user == null)
             return new XSPReplyFailure("User already exists");
         return new XSPReplyResult<>(user);
@@ -314,12 +356,12 @@ public class ServerController implements Closeable {
      * @param toDelete The user to delete
      * @return The protocol reply
      */
-    public XSPReply deleteUser(ServerUser client, String toDelete) {
+    public XSPReply deleteUser(UserImpl client, String toDelete) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
             return XSPReplyUnauthorized.instance();
-        ServerUser user = doGetUser(toDelete);
+        UserImpl user = doGetUser(toDelete);
         if (user == null)
             return XSPReplyNotFound.instance();
         synchronized (users) {
@@ -328,8 +370,8 @@ public class ServerController implements Closeable {
         if (user == null)
             return XSPReplyNotFound.instance();
         synchronized (adminDB) {
-            user.getProxy().delete();
-            adminDB.getRepository().getStore().commit();
+            user.proxy.delete();
+            adminDB.controller.getRepository().getStore().commit();
         }
         return XSPReplySuccess.instance();
     }
@@ -341,7 +383,7 @@ public class ServerController implements Closeable {
      * @param password The new password
      * @return The protocol reply
      */
-    public XSPReply changePassword(ServerUser client, String password) {
+    public XSPReply changePassword(UserImpl client, String password) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         return doResetPassword(client.getName(), password);
@@ -355,7 +397,7 @@ public class ServerController implements Closeable {
      * @param password The new password
      * @return The protocol reply
      */
-    public XSPReply resetPassword(ServerUser client, String target, String password) {
+    public XSPReply resetPassword(UserImpl client, String target, String password) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (client.getName().equals(target) || checkIsServerAdmin(client))
@@ -370,24 +412,24 @@ public class ServerController implements Closeable {
      * @param name   The target user
      * @return The protocol reply
      */
-    public XSPReply getPrivilegesUser(ServerUser client, String name) {
+    public XSPReply getPrivilegesUser(UserImpl client, String name) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (client.getName().equals(name) || checkIsServerAdmin(client)) {
-            ServerUser user = doGetUser(name);
+            UserImpl user = doGetUser(name);
             if (user == null)
                 return XSPReplyNotFound.instance();
             BaseUserPrivileges result = new BaseUserPrivileges(checkIsServerAdmin(user));
-            for (ProxyObject value : user.getProxy().getObjectValues(Schema.ADMIN_ADMINOF)) {
-                ServerDatabase database = doGetDatabase(value);
+            for (ProxyObject value : user.proxy.getObjectValues(Schema.ADMIN_ADMINOF)) {
+                DatabaseImpl database = doGetDatabase(value);
                 result.add(database, XOWLPrivilege.ADMIN);
             }
-            for (ProxyObject value : user.getProxy().getObjectValues(Schema.ADMIN_CANWRITE)) {
-                ServerDatabase database = doGetDatabase(value);
+            for (ProxyObject value : user.proxy.getObjectValues(Schema.ADMIN_CANWRITE)) {
+                DatabaseImpl database = doGetDatabase(value);
                 result.add(database, XOWLPrivilege.WRITE);
             }
-            for (ProxyObject value : user.getProxy().getObjectValues(Schema.ADMIN_CANREAD)) {
-                ServerDatabase database = doGetDatabase(value);
+            for (ProxyObject value : user.proxy.getObjectValues(Schema.ADMIN_CANREAD)) {
+                DatabaseImpl database = doGetDatabase(value);
                 result.add(database, XOWLPrivilege.READ);
             }
             return new XSPReplyResult<>(result);
@@ -402,15 +444,15 @@ public class ServerController implements Closeable {
      * @param name   The target user
      * @return The protocol reply
      */
-    public XSPReply grantServerAdmin(ServerUser client, String name) {
+    public XSPReply grantServerAdmin(UserImpl client, String name) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
             return XSPReplyUnauthorized.instance();
-        ServerUser target = doGetUser(name);
+        UserImpl target = doGetUser(name);
         if (target == null)
             return XSPReplyNotFound.instance();
-        boolean success = doChangeUserPrivilege(target.getProxy(), adminDB.getProxy(), Schema.ADMIN_ADMINOF, true);
+        boolean success = doChangeUserPrivilege(target.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF, true);
         return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
     }
 
@@ -421,15 +463,15 @@ public class ServerController implements Closeable {
      * @param name   The target user
      * @return The protocol reply
      */
-    public XSPReply revokeServerAdmin(ServerUser client, String name) {
+    public XSPReply revokeServerAdmin(UserImpl client, String name) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
             return XSPReplyUnauthorized.instance();
-        ServerUser target = doGetUser(name);
+        UserImpl target = doGetUser(name);
         if (target == null)
             return XSPReplyNotFound.instance();
-        boolean success = doChangeUserPrivilege(target.getProxy(), adminDB.getProxy(), Schema.ADMIN_ADMINOF, false);
+        boolean success = doChangeUserPrivilege(target.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF, false);
         return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
     }
 
@@ -442,20 +484,20 @@ public class ServerController implements Closeable {
      * @param privilege The privilege
      * @return The protocol reply
      */
-    public XSPReply grantDB(ServerUser client, String user, String database, int privilege) {
+    public XSPReply grantDB(UserImpl client, String user, String database, int privilege) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
-            ServerUser target = doGetUser(user);
+            UserImpl target = doGetUser(user);
             if (target == null)
                 return XSPReplyNotFound.instance();
             String priv = (privilege == XOWLPrivilege.ADMIN ? Schema.ADMIN_ADMINOF : (privilege == XOWLPrivilege.WRITE ? Schema.ADMIN_CANWRITE : (privilege == XOWLPrivilege.READ ? Schema.ADMIN_CANREAD : null)));
             if (priv == null)
                 return XSPReplyNotFound.instance();
-            boolean success = doChangeUserPrivilege(target.getProxy(), db.getProxy(), priv, true);
+            boolean success = doChangeUserPrivilege(target.proxy, db.proxy, priv, true);
             return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
         }
         return XSPReplyUnauthorized.instance();
@@ -470,20 +512,20 @@ public class ServerController implements Closeable {
      * @param privilege The privilege
      * @return The protocol reply
      */
-    public XSPReply revokeDB(ServerUser client, String user, String database, int privilege) {
+    public XSPReply revokeDB(UserImpl client, String user, String database, int privilege) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
-            ServerUser target = doGetUser(user);
+            UserImpl target = doGetUser(user);
             if (target == null)
                 return XSPReplyNotFound.instance();
             String priv = (privilege == XOWLPrivilege.ADMIN ? Schema.ADMIN_ADMINOF : (privilege == XOWLPrivilege.WRITE ? Schema.ADMIN_CANWRITE : (privilege == XOWLPrivilege.READ ? Schema.ADMIN_CANREAD : null)));
             if (priv == null)
                 return XSPReplyNotFound.instance();
-            boolean success = doChangeUserPrivilege(target.getProxy(), db.getProxy(), priv, false);
+            boolean success = doChangeUserPrivilege(target.proxy, db.proxy, priv, false);
             return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
         }
         return XSPReplyUnauthorized.instance();
@@ -496,16 +538,16 @@ public class ServerController implements Closeable {
      * @param name   The target database
      * @return The protocol reply
      */
-    public XSPReply getDatabase(ServerUser client, String name) {
+    public XSPReply getDatabase(UserImpl client, String name) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(name);
+        DatabaseImpl db = doGetDatabase(name);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, db)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD)) {
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANREAD)) {
             return new XSPReplyResult<>(db);
         }
         return XSPReplyUnauthorized.instance();
@@ -517,7 +559,7 @@ public class ServerController implements Closeable {
      * @param client The requesting client
      * @return The protocol reply
      */
-    public XSPReply getDatabases(ServerUser client) {
+    public XSPReply getDatabases(UserImpl client) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         Collection<XOWLDatabase> result = new ArrayList<>();
@@ -526,11 +568,11 @@ public class ServerController implements Closeable {
                 result.addAll(databases.values());
                 return new XSPReplyResultCollection<>(result);
             }
-            for (ServerDatabase database : databases.values()) {
+            for (DatabaseImpl database : databases.values()) {
                 if (checkIsServerAdmin(client)
                         || checkIsDBAdmin(client, database)
-                        || checkIsAllowed(client.getProxy(), database.getProxy(), Schema.ADMIN_CANREAD)
-                        || checkIsAllowed(client.getProxy(), database.getProxy(), Schema.ADMIN_CANWRITE))
+                        || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANREAD)
+                        || checkIsAllowed(client.proxy, database.proxy, Schema.ADMIN_CANWRITE))
                     result.add(database);
             }
         }
@@ -544,7 +586,7 @@ public class ServerController implements Closeable {
      * @param name   The name of the new database
      * @return The protocol reply
      */
-    public XSPReply createDatabase(ServerUser client, String name) {
+    public XSPReply createDatabase(UserImpl client, String name) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
@@ -553,21 +595,22 @@ public class ServerController implements Closeable {
             return new XSPReplyFailure("Database name does not match requirements ([_a-zA-Z0-9]+)");
 
         synchronized (databases) {
-            ServerDatabase result = databases.get(name);
+            DatabaseImpl result = databases.get(name);
             if (result != null)
                 return new XSPReplyFailure("The database already exists");
             File folder = new File(configuration.getDatabasesFolder(), name);
             try {
-                ProxyObject proxy = adminDB.getRepository().resolveProxy(Schema.ADMIN_GRAPH_DBS + name);
-                proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(Schema.ADMIN_DATABASE));
+                ProxyObject proxy = adminDB.controller.getRepository().resolveProxy(Schema.ADMIN_GRAPH_DBS + name);
+                proxy.setValue(Vocabulary.rdfType, adminDB.controller.getRepository().resolveProxy(Schema.ADMIN_DATABASE));
                 proxy.setValue(Schema.ADMIN_NAME, name);
                 proxy.setValue(Schema.ADMIN_LOCATION, name);
-                result = new ServerDatabase(configuration, folder, proxy);
-                adminDB.getRepository().getStore().commit();
-                result.getRepository().getStore().commit();
+                DatabaseController controller = new DatabaseController(folder, configuration.getDefaultMaxThreads());
+                result = newDB(controller, proxy);
+                adminDB.controller.getRepository().getStore().commit();
+                result.controller.getRepository().getStore().commit();
                 databases.put(name, result);
                 return new XSPReplyResult<>(result);
-            } catch (IOException exception) {
+            } catch (Exception exception) {
                 return XSPReplyFailure.instance();
             }
         }
@@ -580,26 +623,26 @@ public class ServerController implements Closeable {
      * @param name   The target database
      * @return The protocol reply
      */
-    public XSPReply dropDatabase(ServerUser client, String name) {
+    public XSPReply dropDatabase(UserImpl client, String name) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (!checkIsServerAdmin(client))
             return XSPReplyUnauthorized.instance();
         synchronized (databases) {
-            ServerDatabase database = databases.remove(name);
+            DatabaseImpl database = databases.remove(name);
             if (database == null)
                 return XSPReplyNotFound.instance();
-            File folder = new File(configuration.getDatabasesFolder(), (String) database.getProxy().getDataValue(Schema.ADMIN_LOCATION));
+            File folder = new File(configuration.getDatabasesFolder(), (String) database.proxy.getDataValue(Schema.ADMIN_LOCATION));
             try {
-                database.close();
+                database.controller.close();
             } catch (IOException exception) {
-                Logging.getDefault().error(exception);
+                logger.error(exception);
             }
             if (!Files.deleteFolder(folder)) {
-                Logging.getDefault().error("Failed to delete " + folder.getAbsolutePath());
+                logger.error("Failed to delete " + folder.getAbsolutePath());
             }
-            database.getProxy().delete();
-            adminDB.getRepository().getStore().commit();
+            database.proxy.delete();
+            adminDB.controller.getRepository().getStore().commit();
         }
         return XSPReplySuccess.instance();
     }
@@ -611,24 +654,24 @@ public class ServerController implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getPrivilegesDB(ServerUser client, String database) {
+    public XSPReply getPrivilegesDB(UserImpl client, String database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
             BaseDatabasePrivileges result = new BaseDatabasePrivileges();
-            for (ProxyObject value : db.getProxy().getObjectsFrom(Schema.ADMIN_ADMINOF)) {
-                ServerUser user = doGetUser(value);
+            for (ProxyObject value : db.proxy.getObjectsFrom(Schema.ADMIN_ADMINOF)) {
+                UserImpl user = doGetUser(value);
                 result.add(user, XOWLPrivilege.ADMIN);
             }
-            for (ProxyObject value : db.getProxy().getObjectsFrom(Schema.ADMIN_CANWRITE)) {
-                ServerUser user = doGetUser(value);
+            for (ProxyObject value : db.proxy.getObjectsFrom(Schema.ADMIN_CANWRITE)) {
+                UserImpl user = doGetUser(value);
                 result.add(user, XOWLPrivilege.WRITE);
             }
-            for (ProxyObject value : db.getProxy().getObjectsFrom(Schema.ADMIN_CANREAD)) {
-                ServerUser user = doGetUser(value);
+            for (ProxyObject value : db.proxy.getObjectsFrom(Schema.ADMIN_CANREAD)) {
+                UserImpl user = doGetUser(value);
                 result.add(user, XOWLPrivilege.READ);
             }
             return new XSPReplyResult<>(result);
@@ -646,17 +689,20 @@ public class ServerController implements Closeable {
      * @param namedIRIs   The context's named IRIs
      * @return The protocol reply
      */
-    public XSPReply sparql(ServerUser client, String database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
+    public XSPReply sparql(UserImpl client, String database, String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client)
+        boolean canWrite = checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, db)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD)) {
-            return db.sparql(sparql, defaultIRIs, namedIRIs);
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANWRITE);
+        if (canWrite || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANREAD)) {
+            Result result = db.controller.sparql(sparql, defaultIRIs, namedIRIs, !canWrite);
+            if (result.isFailure())
+                return new XSPReplyFailure(((ResultFailure) result).getMessage());
+            return new XSPReplyResult<>(result);
         } else {
             return XSPReplyUnauthorized.instance();
         }
@@ -669,17 +715,17 @@ public class ServerController implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getEntailmentRegime(ServerUser client, String database) {
+    public XSPReply getEntailmentRegime(UserImpl client, String database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, db)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD))
-            return db.getEntailmentRegime();
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANREAD))
+            return new XSPReplyResult<>(db.controller.getEntailmentRegime());
         return XSPReplyUnauthorized.instance();
     }
 
@@ -691,14 +737,21 @@ public class ServerController implements Closeable {
      * @param regime   The entailment regime
      * @return The protocol reply
      */
-    public XSPReply setEntailmentRegime(ServerUser client, String database, String regime) {
+    public XSPReply setEntailmentRegime(UserImpl client, String database, String regime) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
-            return db.setEntailmentRegime(regime);
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
+            try {
+                db.controller.setEntailmentRegime(regime);
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+            return XSPReplySuccess.instance();
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -710,17 +763,26 @@ public class ServerController implements Closeable {
      * @param name     The name (IRI) of a rule
      * @return The protocol reply
      */
-    public XSPReply getRule(ServerUser client, String database, String name) {
+    public XSPReply getRule(UserImpl client, String database, String name) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, db)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD))
-            return db.getRule(name);
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANREAD)) {
+            try {
+                XOWLRule rule = db.controller.getRule(name);
+                if (rule == null)
+                    return XSPReplyNotFound.instance();
+                return new XSPReplyResult<>(rule);
+            } catch (IOException exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -731,17 +793,24 @@ public class ServerController implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getRules(ServerUser client, String database) {
+    public XSPReply getRules(UserImpl client, String database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, db)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD))
-            return db.getRules();
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANREAD)) {
+            try {
+                Collection<XOWLRule> rules = db.controller.getRules();
+                return new XSPReplyResultCollection<>(rules);
+            } catch (IOException exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -754,14 +823,21 @@ public class ServerController implements Closeable {
      * @param activate Whether to readily activate the rule
      * @return The protocol reply
      */
-    public XSPReply addRule(ServerUser client, String database, String content, boolean activate) {
+    public XSPReply addRule(UserImpl client, String database, String content, boolean activate) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
-            return db.addRule(content, activate);
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
+            try {
+                XOWLRule rule = db.controller.addRule(content, activate);
+                return new XSPReplyResult<>(rule);
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -773,14 +849,21 @@ public class ServerController implements Closeable {
      * @param rule     The rule to remove
      * @return The protocol reply
      */
-    public XSPReply removeRule(ServerUser client, String database, String rule) {
+    public XSPReply removeRule(UserImpl client, String database, String rule) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
-            return db.removeRule(rule);
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
+            try {
+                db.controller.removeRule(rule);
+                return XSPReplySuccess.instance();
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -792,14 +875,21 @@ public class ServerController implements Closeable {
      * @param rule     The rule to activate
      * @return The protocol reply
      */
-    public XSPReply activateRule(ServerUser client, String database, String rule) {
+    public XSPReply activateRule(UserImpl client, String database, String rule) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
-            return db.activateRule(rule);
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
+            try {
+                db.controller.activateRule(rule);
+                return XSPReplySuccess.instance();
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -811,14 +901,21 @@ public class ServerController implements Closeable {
      * @param rule     The rule to deactivate
      * @return The protocol reply
      */
-    public XSPReply deactivateRule(ServerUser client, String database, String rule) {
+    public XSPReply deactivateRule(UserImpl client, String database, String rule) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
-            return db.deactivateRule(rule);
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
+            try {
+                db.controller.deactivateRule(rule);
+                return XSPReplySuccess.instance();
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -830,17 +927,27 @@ public class ServerController implements Closeable {
      * @param rule     The rule to inquire
      * @return The protocol reply
      */
-    public XSPReply getRuleStatus(ServerUser client, String database, String rule) {
+    public XSPReply getRuleStatus(UserImpl client, String database, String rule) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, db)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD))
-            return db.getRuleStatus(rule);
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANREAD)) {
+
+            try {
+                RDFRuleStatus status = db.controller.getRuleStatus(rule);
+                if (status == null)
+                    return new XSPReplyFailure("The rule is not active");
+                return new XSPReplyResult<>(status);
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -852,17 +959,26 @@ public class ServerController implements Closeable {
      * @param iri      The name (IRI) of a procedure
      * @return The protocol reply
      */
-    public XSPReply getStoreProcedure(ServerUser client, String database, String iri) {
+    public XSPReply getStoreProcedure(UserImpl client, String database, String iri) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, db)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD))
-            return db.getStoreProcedure(iri);
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANREAD)) {
+            try {
+                XOWLStoredProcedure procedure = db.controller.getStoredProcedure(iri);
+                if (procedure == null)
+                    return XSPReplyNotFound.instance();
+                return new XSPReplyResult<>(procedure);
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -873,17 +989,24 @@ public class ServerController implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getStoredProcedures(ServerUser client, String database) {
+    public XSPReply getStoredProcedures(UserImpl client, String database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, db)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD))
-            return db.getStoredProcedures();
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANWRITE)
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANREAD)) {
+            try {
+                Collection<XOWLStoredProcedure> procedures = db.controller.getStoredProcedures();
+                return new XSPReplyResultCollection<>(procedures);
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -897,14 +1020,21 @@ public class ServerController implements Closeable {
      * @param parameters The parameters for this procedure
      * @return The protocol reply
      */
-    public XSPReply addStoredProcedure(ServerUser client, String database, String iri, String sparql, Collection<String> parameters) {
+    public XSPReply addStoredProcedure(UserImpl client, String database, String iri, String sparql, Collection<String> parameters) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
-            return db.addStoredProcedure(iri, sparql, parameters);
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
+            try {
+                XOWLStoredProcedure procedure = db.controller.addStoredProcedure(iri, sparql, parameters);
+                return new XSPReplyResult<>(procedure);
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -916,14 +1046,21 @@ public class ServerController implements Closeable {
      * @param procedure The procedure to remove
      * @return The protocol reply
      */
-    public XSPReply removeStoredProcedure(ServerUser client, String database, String procedure) {
+    public XSPReply removeStoredProcedure(UserImpl client, String database, String procedure) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
-            return db.removeStoredProcedure(procedure);
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
+            try {
+                db.controller.removeStoredProcedure(procedure);
+                return XSPReplySuccess.instance();
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -936,17 +1073,26 @@ public class ServerController implements Closeable {
      * @param contextDefinition The context for the execution
      * @return The protocol reply
      */
-    public XSPReply executeStoredProcedure(ServerUser client, String database, String procedure, String contextDefinition) {
+    public XSPReply executeStoredProcedure(UserImpl client, String database, String procedure, String contextDefinition) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client)
+        boolean canWrite = checkIsServerAdmin(client)
                 || checkIsDBAdmin(client, db)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANWRITE)
-                || checkIsAllowed(client.getProxy(), db.getProxy(), Schema.ADMIN_CANREAD))
-            return db.executeStoredProcedure(procedure, contextDefinition);
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANWRITE);
+        if (canWrite || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANREAD)) {
+            try {
+                Result result = db.controller.executeStoredProcedure(procedure, contextDefinition, !canWrite);
+                if (result.isFailure())
+                    return new XSPReplyFailure(((ResultFailure) result).getMessage());
+                return new XSPReplyResult<>(result);
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -959,14 +1105,26 @@ public class ServerController implements Closeable {
      * @param content  The content
      * @return The protocol reply
      */
-    public XSPReply upload(ServerUser client, String database, String syntax, String content) {
+    public XSPReply upload(UserImpl client, String database, String syntax, String content) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
-            return db.upload(syntax, content);
+        if (checkIsServerAdmin(client)
+                || checkIsDBAdmin(client, db)
+                || checkIsAllowed(client.proxy, db.proxy, Schema.ADMIN_CANWRITE)) {
+            try {
+                BufferedLogger logger = new BufferedLogger();
+                db.controller.upload(logger, syntax, content);
+                if (!logger.getErrorMessages().isEmpty())
+                    return new XSPReplyFailure(logger.getErrorsAsString());
+                return XSPReplySuccess.instance();
+            } catch (Exception exception) {
+                logger.error(exception);
+                return new XSPReplyFailure(exception.getMessage());
+            }
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -977,14 +1135,15 @@ public class ServerController implements Closeable {
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getStatistics(ServerUser client, String database) {
+    public XSPReply getStatistics(UserImpl client, String database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
-        ServerDatabase db = doGetDatabase(database);
+        DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
-        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db))
-            return db.getStatistics();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
+            return new XSPReplyResult<>(db.controller.getStatistics());
+        }
         return XSPReplyUnauthorized.instance();
     }
 
@@ -1034,7 +1193,7 @@ public class ServerController implements Closeable {
             }
             if (cl.failedAttempt >= configuration.getSecurityMaxLoginAttempt()) {
                 // too much failure, ban this client for a while
-                Logging.getDefault().info("Banned client " + client.toString() + " for " + configuration.getSecurityBanLength() + " seconds");
+                logger.info("Banned client " + client.toString() + " for " + configuration.getSecurityBanLength() + " seconds");
                 cl.banTimeStamp = Calendar.getInstance().getTime().getTime();
                 return true;
             }
@@ -1049,20 +1208,20 @@ public class ServerController implements Closeable {
      * @param password The password for the new user
      * @return The created user
      */
-    private ServerUser doCreateUser(String login, String password) {
+    private UserImpl doCreateUser(String login, String password) {
         String userIRI = Schema.ADMIN_GRAPH_USERS + login;
         ProxyObject proxy;
         synchronized (adminDB) {
-            proxy = adminDB.getRepository().getProxy(userIRI);
+            proxy = adminDB.controller.getRepository().getProxy(userIRI);
             if (proxy != null)
                 return null;
-            proxy = adminDB.getRepository().resolveProxy(userIRI);
-            proxy.setValue(Vocabulary.rdfType, adminDB.getRepository().resolveProxy(Schema.ADMIN_USER));
+            proxy = adminDB.controller.getRepository().resolveProxy(userIRI);
+            proxy.setValue(Vocabulary.rdfType, adminDB.controller.getRepository().resolveProxy(Schema.ADMIN_USER));
             proxy.setValue(Schema.ADMIN_NAME, login);
             proxy.setValue(Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
-            adminDB.getRepository().getStore().commit();
+            adminDB.controller.getRepository().getStore().commit();
         }
-        ServerUser result = new ServerUser(proxy);
+        UserImpl result = new UserImpl(proxy);
         synchronized (users) {
             users.put(login, result);
         }
@@ -1075,9 +1234,9 @@ public class ServerController implements Closeable {
      * @param login A login
      * @return The user, or null if it is not found
      */
-    private ServerUser doGetUser(String login) {
+    private UserImpl doGetUser(String login) {
         synchronized (users) {
-            ServerUser result = users.get(login);
+            UserImpl result = users.get(login);
             if (result != null)
                 return result;
         }
@@ -1085,16 +1244,16 @@ public class ServerController implements Closeable {
         ProxyObject proxy;
         String name = null;
         synchronized (adminDB) {
-            proxy = adminDB.getRepository().getProxy(userIRI);
+            proxy = adminDB.controller.getRepository().getProxy(userIRI);
             if (proxy != null)
                 name = (String) proxy.getDataValue(Schema.ADMIN_NAME);
         }
         if (proxy == null)
             return null;
         synchronized (users) {
-            ServerUser result = users.get(name);
+            UserImpl result = users.get(name);
             if (result == null) {
-                result = new ServerUser(proxy);
+                result = new UserImpl(proxy);
                 users.put(name, result);
             }
             return result;
@@ -1107,13 +1266,13 @@ public class ServerController implements Closeable {
      * @param proxy A proxy
      * @return The user
      */
-    private ServerUser doGetUser(ProxyObject proxy) {
+    private UserImpl doGetUser(ProxyObject proxy) {
         synchronized (users) {
-            for (ServerUser user : users.values()) {
-                if (user.getProxy() == proxy)
+            for (UserImpl user : users.values()) {
+                if (user.proxy == proxy)
                     return user;
             }
-            ServerUser user = new ServerUser(proxy);
+            UserImpl user = new UserImpl(proxy);
             users.put(user.getName(), user);
             return user;
         }
@@ -1125,7 +1284,7 @@ public class ServerController implements Closeable {
      * @param name The name of a database
      * @return The database, or null if it is unknown
      */
-    private ServerDatabase doGetDatabase(String name) {
+    private DatabaseImpl doGetDatabase(String name) {
         synchronized (databases) {
             return databases.get(name);
         }
@@ -1137,10 +1296,10 @@ public class ServerController implements Closeable {
      * @param proxy A proxy
      * @return The database, or null if it is unknown
      */
-    private ServerDatabase doGetDatabase(ProxyObject proxy) {
+    private DatabaseImpl doGetDatabase(ProxyObject proxy) {
         synchronized (databases) {
-            for (ServerDatabase db : databases.values()) {
-                if (db.getProxy() == proxy)
+            for (DatabaseImpl db : databases.values()) {
+                if (db.proxy == proxy)
                     return db;
             }
         }
@@ -1170,8 +1329,8 @@ public class ServerController implements Closeable {
      * @param database A database
      * @return Whether the user is an administrator of the database
      */
-    private boolean checkIsDBAdmin(ServerUser user, ServerDatabase database) {
-        return checkIsAllowed(user.getProxy(), database.getProxy(), Schema.ADMIN_ADMINOF);
+    private boolean checkIsDBAdmin(UserImpl user, DatabaseImpl database) {
+        return checkIsAllowed(user.proxy, database.proxy, Schema.ADMIN_ADMINOF);
     }
 
     /**
@@ -1180,8 +1339,8 @@ public class ServerController implements Closeable {
      * @param user A user
      * @return Whether the user is a server administrator
      */
-    private boolean checkIsServerAdmin(ServerUser user) {
-        return checkIsAllowed(user.getProxy(), adminDB.getProxy(), Schema.ADMIN_ADMINOF);
+    private boolean checkIsServerAdmin(UserImpl user) {
+        return checkIsAllowed(user.proxy, adminDB.proxy, Schema.ADMIN_ADMINOF);
     }
 
     /**
@@ -1194,13 +1353,13 @@ public class ServerController implements Closeable {
     private XSPReply doResetPassword(String name, String password) {
         if (password.length() < configuration.getSecurityMinPasswordLength())
             return new XSPReplyFailure("Password does not meet requirements");
-        ServerUser user = doGetUser(name);
+        UserImpl user = doGetUser(name);
         if (user == null)
             return XSPReplyNotFound.instance();
         synchronized (adminDB) {
-            user.getProxy().removeAllValues(Schema.ADMIN_PASSWORD);
-            user.getProxy().setValue(Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
-            adminDB.getRepository().getStore().commit();
+            user.proxy.removeAllValues(Schema.ADMIN_PASSWORD);
+            user.proxy.setValue(Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
+            adminDB.controller.getRepository().getStore().commit();
         }
         return XSPReplySuccess.instance();
     }
@@ -1226,7 +1385,7 @@ public class ServerController implements Closeable {
                     return false;
                 user.removeValue(privilege, database);
             }
-            adminDB.getRepository().getStore().commit();
+            adminDB.controller.getRepository().getStore().commit();
         }
         return true;
     }
