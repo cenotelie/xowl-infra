@@ -104,6 +104,20 @@ public class Section {
     }
 
     /**
+     * Gets whether the specified property and associated value are present in this section
+     *
+     * @param property A property
+     * @param value    An associated value
+     * @return Whether the property has the associated value
+     */
+    public boolean hasValue(String property, String value) {
+        List<String> values = properties.get(property);
+        if (values.isEmpty())
+            return false;
+        return values.contains(value);
+    }
+
+    /**
      * Adds the specified property - value pair to this section
      *
      * @param property A property

@@ -132,6 +132,21 @@ public class Configuration {
     }
 
     /**
+     * Gets whether the specified property and associated value are present in a section
+     *
+     * @param section  A section
+     * @param property A property
+     * @param value    An associated value
+     * @return Whether the property has the associated value
+     */
+    public boolean hasValue(String section, String property, String value) {
+        if (section == null)
+            return global.hasValue(property, value);
+        Section current = sections.get(section);
+        return current != null && current.hasValue(property, value);
+    }
+
+    /**
      * Adds the specified property-value pair in the specified section
      *
      * @param property A property in the section
