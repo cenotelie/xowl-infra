@@ -209,20 +209,20 @@ public class PropertyInterface extends PropertyData {
     private void writeInterfaceVector(Writer writer, String type) throws IOException {
         String property = getProperty().getName();
         property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writeJavadocAdd(writer, type);
+        writeJavadocAdd(writer, property);
         writer.append("    boolean add").append(property).append("(").append(type).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
-        writeJavadocRemove(writer, type);
+        writeJavadocRemove(writer, property);
         writer.append("    boolean remove").append(property).append("(").append(type).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain()) {
-            writeJavadocGetAll(writer, type);
+            writeJavadocGetAll(writer, property);
             writer.append("    Collection<").append(type).append("> getAll").append(property).append("();").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         } else {
-            writeJavadocGetAllTyped(writer, type);
+            writeJavadocGetAllTyped(writer, property);
             writer.append("    Collection<").append(type).append("> getAll").append(property).append("As(").append(type).append(" type);").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         }
@@ -238,16 +238,16 @@ public class PropertyInterface extends PropertyData {
     private void writeInterfaceScalar(Writer writer, String type) throws IOException {
         String property = getProperty().getName();
         property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writeJavadocSet(writer, type);
+        writeJavadocSet(writer, property);
         writer.append("    void set").append(property).append("(").append(type).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain()) {
-            writeJavadocGet(writer, type);
+            writeJavadocGet(writer, property);
             writer.append("    ").append(type).append(" get").append(property).append("();").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         } else {
-            writeJavadocGetTyped(writer, type);
+            writeJavadocGetTyped(writer, property);
             writer.append("    ").append(type).append(" get").append(property).append("As(").append(type).append(" type);").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         }
