@@ -19,6 +19,7 @@ package org.xowl.infra.store.rete;
 
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
+import org.xowl.infra.store.storage.Dataset;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,8 +43,8 @@ class AlphaGraph extends AlphaMemoryBucket {
         }
 
         @Override
-        protected AlphaMemoryBucketElement createSub() {
-            return new AlphaMemory();
+        protected AlphaMemoryBucketElement createSub(Quad pattern, Dataset store) {
+            return new AlphaMemory(pattern, store);
         }
     }
 
@@ -57,7 +58,7 @@ class AlphaGraph extends AlphaMemoryBucket {
         }
 
         @Override
-        protected AlphaMemoryBucketElement createSub() {
+        protected AlphaMemoryBucketElement createSub(Quad pattern, Dataset store) {
             return new BucketObject();
         }
     }
@@ -72,21 +73,15 @@ class AlphaGraph extends AlphaMemoryBucket {
         }
 
         @Override
-        protected AlphaMemoryBucketElement createSub() {
+        protected AlphaMemoryBucketElement createSub(Quad pattern, Dataset store) {
             return new BucketProperty();
         }
     }
 
     /**
-     * A buffer for caching results
-     */
-    private final AlphaMemoryBuffer buffer;
-
-    /**
      * Initializes this buffer
      */
     public AlphaGraph() {
-        buffer = new AlphaMemoryBuffer();
     }
 
     @Override
@@ -95,7 +90,7 @@ class AlphaGraph extends AlphaMemoryBucket {
     }
 
     @Override
-    protected AlphaMemoryBucketElement createSub() {
+    protected AlphaMemoryBucketElement createSub(Quad pattern, Dataset store) {
         return new BucketSubject();
     }
 
@@ -105,10 +100,10 @@ class AlphaGraph extends AlphaMemoryBucket {
      * @param quad A quad
      */
     public void fire(Quad quad) {
+        AlphaMemoryBuffer buffer = new AlphaMemoryBuffer();
         matchMemories(buffer, quad);
         for (int i = 0; i != buffer.size(); i++)
             buffer.get(i).activateFact(quad);
-        buffer.clear();
     }
 
     /**
@@ -117,10 +112,10 @@ class AlphaGraph extends AlphaMemoryBucket {
      * @param quad A quad
      */
     public void unfire(Quad quad) {
+        AlphaMemoryBuffer buffer = new AlphaMemoryBuffer();
         matchMemories(buffer, quad);
         for (int i = 0; i != buffer.size(); i++)
             buffer.get(i).deactivateFact(quad);
-        buffer.clear();
     }
 
     /**
@@ -160,6 +155,7 @@ class AlphaGraph extends AlphaMemoryBucket {
      * @return The dispatching data associating alpha memory to the relevant collections of quads
      */
     private Map<AlphaMemory, Collection<Quad>> buildDispatch(Collection<Quad> quads) {
+        AlphaMemoryBuffer buffer = new AlphaMemoryBuffer();
         Map<AlphaMemory, Collection<Quad>> map = new IdentityHashMap<>();
         for (Quad quad : quads) {
             matchMemories(buffer, quad);

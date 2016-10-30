@@ -37,19 +37,19 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
     /**
      * The buffer of recognized nodes
      */
-    private Node[] nodes;
+    private volatile Node[] nodes;
     /**
      * The buffer of matching elements
      */
-    private AlphaMemoryBucketElement[] subs;
+    private volatile AlphaMemoryBucketElement[] subs;
     /**
      * The catch-all sub-element
      */
-    private AlphaMemoryBucketElement catchAll;
+    private volatile AlphaMemoryBucketElement catchAll;
     /**
      * The current number of registered memories in the buffer
      */
-    private int size;
+    private volatile int size;
 
     /**
      * Initializes this bucket
@@ -70,9 +70,11 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
     /**
      * Create a sub-bucket
      *
+     * @param pattern The data to match
+     * @param store   The RDF data
      * @return A new sub-bucket
      */
-    protected abstract AlphaMemoryBucketElement createSub();
+    protected abstract AlphaMemoryBucketElement createSub(Quad pattern, Dataset store);
 
     @Override
     public void matchMemories(AlphaMemoryBuffer buffer, Quad quad) {
@@ -92,38 +94,46 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
     public AlphaMemory resolveMemory(Quad pattern, Dataset store) {
         Node node = getNode(pattern);
         if (node == null || node.getNodeType() == Node.TYPE_VARIABLE) {
-            if (catchAll == null)
-                catchAll = createSub();
+            synchronized (this) {
+                if (catchAll == null)
+                    catchAll = createSub(pattern, store);
+            }
             return catchAll.resolveMemory(pattern, store);
         }
 
-        for (int i = 0; i != nodes.length; i++) {
-            if (RDFUtils.same(nodes[i], node)) {
-                return subs[i].resolveMemory(pattern, store);
+        AlphaMemoryBucketElement sub = null;
+        synchronized (this) {
+            for (int i = 0; i != nodes.length; i++) {
+                if (RDFUtils.same(nodes[i], node)) {
+                    sub = subs[i];
+                    break;
+                }
             }
         }
 
-        if (size == nodes.length) {
-            nodes = Arrays.copyOf(nodes, nodes.length + INIT_SIZE);
-            subs = Arrays.copyOf(subs, subs.length + INIT_SIZE);
-            AlphaMemoryBucketElement sub = createSub();
-            nodes[size] = node;
-            subs[size] = sub;
-            size++;
-            return sub.resolveMemory(pattern, store);
-        }
-
-        for (int i = 0; i != nodes.length; i++) {
-            if (nodes[i] == null) {
-                nodes[i] = node;
-                subs[i] = createSub();
-                size++;
-                return subs[i].resolveMemory(pattern, store);
+        while (sub == null) {
+            synchronized (this) {
+                if (size == nodes.length) {
+                    nodes = Arrays.copyOf(nodes, nodes.length + INIT_SIZE);
+                    subs = Arrays.copyOf(subs, subs.length + INIT_SIZE);
+                    sub = createSub(pattern, store);
+                    nodes[size] = node;
+                    subs[size] = sub;
+                    size++;
+                } else {
+                    for (int i = 0; i != nodes.length; i++) {
+                        if (nodes[i] == null) {
+                            sub = createSub(pattern, store);
+                            nodes[i] = node;
+                            subs[i] = sub;
+                            size++;
+                            break;
+                        }
+                    }
+                }
             }
         }
-
-        // cannot happen
-        return null;
+        return sub.resolveMemory(pattern, store);
     }
 
     /**

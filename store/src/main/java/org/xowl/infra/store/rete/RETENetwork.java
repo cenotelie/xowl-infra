@@ -129,7 +129,9 @@ public class RETENetwork {
 
         // Append output node
         last.addChild(rule.getOutput());
-        rules.put(rule, ruleData);
+        synchronized (rules) {
+            rules.put(rule, ruleData);
+        }
 
         // push the dummy token into this network to trigger the beta network
         if (!ruleData.positives.isEmpty()) {
@@ -151,7 +153,10 @@ public class RETENetwork {
      * @param rule The rule to removeMemoryFor
      */
     public void removeRule(RETERule rule) {
-        RuleData data = rules.get(rule);
+        RuleData data;
+        synchronized (rules) {
+            data = rules.get(rule);
+        }
         if (data == null)
             // the rule is not in this network ...
             return;
@@ -193,9 +198,11 @@ public class RETENetwork {
      * Removes all the rules from this network
      */
     public void removeAllRules() {
+        synchronized (rules) {
+            rules.clear();
+        }
         alpha.clear();
         BetaMemory.getDummy().removeAllChildren();
-        rules.clear();
     }
 
     /**
@@ -205,7 +212,10 @@ public class RETENetwork {
      * @return The rule's status
      */
     public MatchStatus getStatus(RETERule rule) {
-        RuleData data = rules.get(rule);
+        RuleData data;
+        synchronized (rules) {
+            data = rules.get(rule);
+        }
         MatchStatus result = new MatchStatus();
         if (data == null)
             // the rule is not in this network ...

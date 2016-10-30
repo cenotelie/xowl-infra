@@ -19,9 +19,11 @@ package org.xowl.infra.store.rete;
 
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.Dataset;
+import org.xowl.infra.utils.collections.ConcurrentReverseListIterator;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -33,15 +35,15 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     /**
      * The parent RDF store
      */
-    private Dataset store;
+    private final Dataset store;
     /**
      * The pattern matched by this memory
      */
-    private Quad pattern;
+    private final Quad pattern;
     /**
      * The cache of facts
      */
-    private Collection<Quad> cache;
+    private volatile Collection<Quad> cache;
     /**
      * List of the children of this node
      */
@@ -49,55 +51,82 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
 
     /**
      * Initializes this memory
+     *
+     * @param pattern The data to match
+     * @param store   The RDF data
      */
-    public AlphaMemory() {
-        children = new ArrayList<>();
+    public AlphaMemory(Quad pattern, Dataset store) {
+        this.store = store;
+        this.pattern = pattern;
+        this.children = new ArrayList<>();
     }
 
     @Override
     public Collection<Quad> getFacts() {
+        Collection<Quad> result = cache;
         if (cache == null) {
-            cache = new FactCollection(store, pattern);
+            result = new FactCollection(store, pattern);
+            cache = result;
         }
-        return cache;
+        return result;
     }
 
     @Override
     public void addChild(FactActivable node) {
-        children.add(node);
+        synchronized (children) {
+            children.add(node);
+        }
     }
 
     @Override
     public void removeChild(FactActivable node) {
-        children.remove(node);
+        synchronized (children) {
+            children.remove(node);
+        }
     }
 
     @Override
     public void activateFact(Quad fact) {
         cache = null;
-        for (int i = children.size() - 1; i != -1; i--)
-            children.get(i).activateFact(fact);
+        Iterator<FactActivable> iterator = new ConcurrentReverseListIterator<>(children);
+        while (iterator.hasNext()) {
+            FactActivable child = iterator.next();
+            if (child != null)
+                child.activateFact(fact);
+        }
     }
 
     @Override
     public void deactivateFact(Quad fact) {
         cache = null;
-        for (int i = children.size() - 1; i != -1; i--)
-            children.get(i).deactivateFact(fact);
+        Iterator<FactActivable> iterator = new ConcurrentReverseListIterator<>(children);
+        while (iterator.hasNext()) {
+            FactActivable child = iterator.next();
+            if (child != null)
+                child.deactivateFact(fact);
+        }
     }
 
     @Override
     public void activateFacts(Collection<Quad> facts) {
         cache = null;
-        for (int i = children.size() - 1; i != -1; i--)
-            children.get(i).activateFacts(new FastBuffer<>(facts));
+        Iterator<FactActivable> iterator = new ConcurrentReverseListIterator<>(children);
+        while (iterator.hasNext()) {
+            FactActivable child = iterator.next();
+            if (child != null)
+                child.activateFacts(new FastBuffer<>(facts));
+        }
     }
 
     @Override
     public void deactivateFacts(Collection<Quad> facts) {
         cache = null;
-        for (int i = children.size() - 1; i != -1; i--)
-            children.get(i).deactivateFacts(new FastBuffer<>(facts));
+        Iterator<FactActivable> iterator = new ConcurrentReverseListIterator<>(children);
+        while (iterator.hasNext()) {
+            FactActivable child = iterator.next();
+            if (child != null)
+                child.deactivateFacts(new FastBuffer<>(facts));
+        }
     }
 
     @Override
@@ -107,11 +136,6 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
 
     @Override
     public AlphaMemory resolveMemory(Quad pattern, Dataset store) {
-        if (this.store == null) {
-            this.store = store;
-            this.pattern = pattern;
-            this.cache = null;
-        }
         return this;
     }
 }
