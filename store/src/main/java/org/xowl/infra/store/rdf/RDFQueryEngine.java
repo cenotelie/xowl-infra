@@ -28,6 +28,7 @@ import java.util.*;
 
 /**
  * Represents a query engine for a RDF store
+ * This structure is thread-safe.
  *
  * @author Laurent Wouters
  */
