@@ -530,10 +530,17 @@ public class RDFRuleEngine implements ChangeListener {
 
     /**
      * Flushes any outstanding changes in the input or the output
+     */
+    public void flush() {
+        flush(getIO());
+    }
+
+    /**
+     * Flushes any outstanding changes in the input or the output
      *
      * @param io The thread-specific inputs and outputs
      */
-    public void flush(EngineIO io) {
+    private void flush(EngineIO io) {
         if (io.isFlushing)
             return;
         io.isFlushing = true;
