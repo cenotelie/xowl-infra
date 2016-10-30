@@ -20,10 +20,7 @@ package org.xowl.infra.store.rdf;
 import org.xowl.infra.store.Evaluator;
 import org.xowl.infra.store.storage.NodeManager;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a simple RDF rule for a rule engine
@@ -120,8 +117,10 @@ public class RDFRuleSimple extends RDFRule {
     @Override
     public void onPatternMatched(RDFRuleEngine.ProductionHandler handler, RDFPattern pattern, RDFPatternMatch match) {
         if (distinct) {
-            for (RDFRuleExecution execution : handler.getExecutions()) {
-                if (((RDFRuleExecutionSimple) execution).getMatch().sameAs(match))
+            Iterator<RDFRuleExecution> executions = handler.getExecutions();
+            while (executions.hasNext()) {
+                RDFRuleExecution execution = executions.next();
+                if (execution != null && ((RDFRuleExecutionSimple) execution).getMatch().sameAs(match))
                     return;
             }
         }
@@ -130,8 +129,10 @@ public class RDFRuleSimple extends RDFRule {
 
     @Override
     public void onPatternDematched(RDFRuleEngine.ProductionHandler handler, RDFPattern pattern, RDFPatternMatch match) {
-        for (RDFRuleExecution execution : handler.getExecutions()) {
-            if (((RDFRuleExecutionSimple) execution).getMatch() == match) {
+        Iterator<RDFRuleExecution> executions = handler.getExecutions();
+        while (executions.hasNext()) {
+            RDFRuleExecution execution = executions.next();
+            if (execution != null && ((RDFRuleExecutionSimple) execution).getMatch() == match) {
                 handler.onInvalidate(execution);
                 return;
             }

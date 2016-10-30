@@ -238,7 +238,13 @@ public class RDFRuleSelect extends RDFRule {
      */
     private void onSolutionsChanged(RDFRuleEngine.ProductionHandler handler, Solutions solutions) {
         // build the data
-        List<RDFRuleExecutionSelect> executions = new ArrayList<>((Collection) handler.getExecutions());
+        List<RDFRuleExecutionSelect> executions = new ArrayList<>();
+        Iterator<RDFRuleExecution> iterator = handler.getExecutions();
+        while (iterator.hasNext()) {
+            RDFRuleExecution execution = iterator.next();
+            if (execution != null)
+                executions.add((RDFRuleExecutionSelect) execution);
+        }
         List<RDFPatternSolution> newSolutions = new ArrayList<>(solutions.size());
         for (RDFPatternSolution solution : solutions)
             newSolutions.add(solution);

@@ -19,7 +19,9 @@ package org.xowl.infra.store.rdf;
 
 import org.xowl.infra.utils.Serializable;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Represents the current status of a RDF rule
@@ -35,8 +37,13 @@ public class RDFRuleStatus implements Serializable {
      *
      * @param executions The known executions
      */
-    public RDFRuleStatus(Collection<RDFRuleExecution> executions) {
-        this.executions = executions;
+    public RDFRuleStatus(Iterator<RDFRuleExecution> executions) {
+        this.executions = new ArrayList<>();
+        while (executions.hasNext()) {
+            RDFRuleExecution execution = executions.next();
+            if (execution != null)
+                this.executions.add(execution);
+        }
     }
 
     @Override

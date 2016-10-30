@@ -26,12 +26,14 @@ import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
+import org.xowl.infra.utils.collections.ConcurrentListIterator;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.util.*;
 
 /**
  * Represents a rule engine operating over a RDF dataset
+ * This structure is thread-safe.
  *
  * @author Laurent Wouters
  */
@@ -59,7 +61,7 @@ public class RDFRuleEngine implements ChangeListener {
          *
          * @return The executions
          */
-        Collection<RDFRuleExecution> getExecutions();
+        Iterator<RDFRuleExecution> getExecutions();
 
         /**
          * Gets the node manager
@@ -91,7 +93,7 @@ public class RDFRuleEngine implements ChangeListener {
         /**
          * The rule executions
          */
-        public final Collection<RDFRuleExecution> executions;
+        public final List<RDFRuleExecution> executions;
 
         /**
          * Initializes this data
@@ -106,20 +108,23 @@ public class RDFRuleEngine implements ChangeListener {
 
         @Override
         public void onTrigger(RDFRuleExecution execution) {
-            executions.add(execution);
-            requestsToFire.add(execution);
+            synchronized (executions) {
+                executions.add(execution);
+            }
+            getIO().addRequestToFire(execution);
         }
 
         @Override
         public void onInvalidate(RDFRuleExecution execution) {
-            executions.remove(execution);
-            if (!requestsToFire.remove(execution))
-                requestsToUnfire.add(execution);
+            synchronized (executions) {
+                if (executions.remove(execution))
+                    getIO().addRequestToUnfire(execution);
+            }
         }
 
         @Override
-        public Collection<RDFRuleExecution> getExecutions() {
-            return executions;
+        public Iterator<RDFRuleExecution> getExecutions() {
+            return new ConcurrentListIterator<>(executions);
         }
 
         @Override
@@ -180,6 +185,177 @@ public class RDFRuleEngine implements ChangeListener {
         }
     }
 
+    /**
+     * Represents the thread-specific inputs and outputs of the engine
+     */
+    private static class EngineIO {
+        /**
+         * Buffer of positive quads yet to be flushed
+         */
+        private Collection<Quad> bufferPositives;
+        /**
+         * Buffer of negative quads yet ro be flushed
+         */
+        private Collection<Quad> bufferNegatives;
+        /**
+         * The current requests to fire a rule
+         */
+        private Collection<RDFRuleExecution> requestsToFire;
+        /**
+         * The current requests to unfire a rule
+         */
+        private Collection<RDFRuleExecution> requestsToUnfire;
+        /**
+         * Flag whether outstanding changes are currently being applied
+         */
+        public boolean isFlushing;
+
+        /**
+         * Gets whether there are outstanding changes
+         *
+         * @return Whether there are outstanding changes
+         */
+        public boolean hasOutstandingChanges() {
+            return (bufferPositives != null && !bufferPositives.isEmpty())
+                    || (bufferNegatives != null && !bufferNegatives.isEmpty())
+                    || (requestsToFire != null && !requestsToFire.isEmpty())
+                    || (requestsToUnfire != null && !requestsToUnfire.isEmpty());
+        }
+
+        /**
+         * Gets the positive quads to be injected (and resets the buffer)
+         *
+         * @return The positive quads to be injected
+         */
+        public Collection<Quad> checkoutPositivesQuads() {
+            Collection<Quad> result = bufferPositives == null ? Collections.<Quad>emptyList() : bufferPositives;
+            bufferPositives = null;
+            return result;
+        }
+
+        /**
+         * Gets the negative quads to be injected (and resets the buffer)
+         *
+         * @return The negative quads to be injected
+         */
+        public Collection<Quad> checkoutNegativeQuads() {
+            Collection<Quad> result = bufferNegatives == null ? Collections.<Quad>emptyList() : bufferNegatives;
+            bufferNegatives = null;
+            return result;
+        }
+
+        /**
+         * Gets the requests to fire (and resets the buffer)
+         *
+         * @return The requests to fire
+         */
+        public Collection<RDFRuleExecution> checkoutRequestsToFire() {
+            Collection<RDFRuleExecution> result = requestsToFire == null ? Collections.<RDFRuleExecution>emptyList() : requestsToFire;
+            requestsToFire = null;
+            return result;
+        }
+
+        /**
+         * Gets the requests to un-fire (and resets the buffer)
+         *
+         * @return The requests to un-fire
+         */
+        public Collection<RDFRuleExecution> checkoutRequestsToUnfire() {
+            Collection<RDFRuleExecution> result = requestsToUnfire == null ? Collections.<RDFRuleExecution>emptyList() : requestsToUnfire;
+            requestsToUnfire = null;
+            return result;
+        }
+
+        /**
+         * Adds a request to fire a rule
+         *
+         * @param execution The requested rule execution
+         */
+        public void addRequestToFire(RDFRuleExecution execution) {
+            if (requestsToFire == null)
+                requestsToFire = new ArrayList<>();
+            requestsToFire.add(execution);
+        }
+
+        /**
+         * Adds a request to un-fire a rule
+         *
+         * @param execution The rule execution to retract
+         */
+        public void addRequestToUnfire(RDFRuleExecution execution) {
+            if (requestsToFire != null) {
+                if (requestsToFire.remove(execution))
+                    return;
+            }
+            if (requestsToUnfire == null)
+                requestsToUnfire = new ArrayList<>();
+            requestsToUnfire.add(execution);
+        }
+
+        /**
+         * Adds a quad that is being added
+         *
+         * @param quad The added quad
+         */
+        public void addAddedQuad(Quad quad) {
+            if (bufferPositives == null)
+                bufferPositives = new ArrayList<>();
+            bufferPositives.add(quad);
+        }
+
+        /**
+         * Adds a quad that is being removed
+         *
+         * @param quad The removed quad
+         */
+        public void addRemovedQuad(Quad quad) {
+            if (bufferNegatives == null)
+                bufferNegatives = new ArrayList<>();
+            bufferNegatives.add(quad);
+        }
+
+        /**
+         * Adds a changeset being injected
+         *
+         * @param changeset The injected changeset
+         */
+        public void addChangeset(Changeset changeset) {
+            if (!changeset.getAdded().isEmpty()) {
+                if (bufferPositives == null)
+                    bufferPositives = new ArrayList<>();
+                bufferPositives.addAll(changeset.getAdded());
+            }
+            if (!changeset.getDecremented().isEmpty()) {
+                if (bufferNegatives == null)
+                    bufferNegatives = new ArrayList<>();
+                bufferNegatives.addAll(changeset.getDecremented());
+            }
+            if (!changeset.getRemoved().isEmpty()) {
+                if (bufferNegatives == null)
+                    bufferNegatives = new ArrayList<>();
+                bufferNegatives.addAll(changeset.getRemoved());
+            }
+        }
+
+        /**
+         * Adds a negative changeset being injected
+         *
+         * @param changeset The injected negative changeset
+         */
+        public void addChangesetNegative(Changeset changeset) {
+            if (!changeset.getAdded().isEmpty()) {
+                if (bufferNegatives == null)
+                    bufferNegatives = new ArrayList<>();
+                bufferNegatives.addAll(changeset.getAdded());
+            }
+            if (!changeset.getRemoved().isEmpty()) {
+                if (bufferPositives == null)
+                    bufferPositives = new ArrayList<>();
+                bufferPositives.addAll(changeset.getRemoved());
+            }
+        }
+    }
+
     /*
     Engine input, output and backend RETE network
      */
@@ -195,50 +371,14 @@ public class RDFRuleEngine implements ChangeListener {
      * The evaluator for this engine
      */
     private final Evaluator evaluator;
-
-    /*
-    Data for handling incoming changes to the input dataset
-     */
-    /**
-     * The new added quads since the last application
-     */
-    private final List<Quad> newAdded;
-    /**
-     * The new removed quads since the last application
-     */
-    private final List<Quad> newRemoved;
-    /**
-     * The new changesets since the last application
-     */
-    private final List<Changeset> newChangesets;
-    /**
-     * Buffer of positive quads
-     */
-    private final Collection<Quad> bufferPositives;
-    /**
-     * Buffer of negative quads
-     */
-    private final Collection<Quad> bufferNegatives;
-    /**
-     * Flag whether outstanding changes are currently being applied
-     */
-    private boolean isFlushing;
-
-    /*
-    Engine rule management data
-     */
     /**
      * The corpus of active rules
      */
     private final Map<RDFRule, RuleData> rulesData;
     /**
-     * The current requests to fire a rule
+     * The thread-specific engine inputs and outputs
      */
-    private final Collection<RDFRuleExecution> requestsToFire;
-    /**
-     * The current requests to unfire a rule
-     */
-    private final Collection<RDFRuleExecution> requestsToUnfire;
+    private final ThreadLocal<EngineIO> threadIO;
 
     /**
      * Initializes this engine
@@ -251,15 +391,23 @@ public class RDFRuleEngine implements ChangeListener {
         this.outputStore = outputStore;
         this.rete = new RETENetwork(inputStore);
         this.evaluator = evaluator;
-        this.newAdded = new ArrayList<>();
-        this.newRemoved = new ArrayList<>();
-        this.newChangesets = new ArrayList<>();
-        this.bufferPositives = new ArrayList<>();
-        this.bufferNegatives = new ArrayList<>();
         this.rulesData = new HashMap<>();
-        this.requestsToFire = new ArrayList<>();
-        this.requestsToUnfire = new ArrayList<>();
+        this.threadIO = new ThreadLocal<>();
         inputStore.addListener(this);
+    }
+
+    /**
+     * Gets the thread-specific engine inputs and outputs
+     *
+     * @return The engine inputs and outputs for this thread
+     */
+    private EngineIO getIO() {
+        EngineIO result = threadIO.get();
+        if (result == null) {
+            result = new EngineIO();
+            threadIO.set(result);
+        }
+        return result;
     }
 
     /**
@@ -268,7 +416,9 @@ public class RDFRuleEngine implements ChangeListener {
      * @return The active rules
      */
     public Collection<RDFRule> getRules() {
-        return rulesData.keySet();
+        synchronized (rulesData) {
+            return new ArrayList<>(rulesData.keySet());
+        }
     }
 
     /**
@@ -285,7 +435,9 @@ public class RDFRuleEngine implements ChangeListener {
             data.matchers[i].getNegatives().addAll(part.getNegatives());
             i++;
         }
-        rulesData.put(rule, data);
+        synchronized (rulesData) {
+            rulesData.put(rule, data);
+        }
         for (i = 0; i != data.matchers.length; i++)
             rete.addRule(data.matchers[i]);
     }
@@ -296,12 +448,20 @@ public class RDFRuleEngine implements ChangeListener {
      * @param rule The rule to remove
      */
     public void remove(RDFRule rule) {
-        RuleData data = rulesData.remove(rule);
+        RuleData data;
+        synchronized (rulesData) {
+            data = rulesData.remove(rule);
+        }
         if (data == null)
             return;
         for (RETERule matcher : data.matchers)
             rete.removeRule(matcher);
-        for (RDFRuleExecution execution : data.executions) {
+        Iterator<RDFRuleExecution> executions = data.getExecutions();
+        while (executions.hasNext()) {
+            RDFRuleExecution execution = executions.next();
+            if (execution == null)
+                continue;
+            // invalidate the consequents of all executions of the rule
             Changeset changeset = data.original.produce(execution, outputStore, evaluator);
             if (changeset == null) {
                 Logging.getDefault().error("Failed to process changeset for rule " + data.original.getIRI());
@@ -321,12 +481,17 @@ public class RDFRuleEngine implements ChangeListener {
      * @param iri The IRI of the rule to remove
      */
     public void remove(String iri) {
-        for (RDFRule rule : rulesData.keySet()) {
-            if (rule.getIRI().equals(iri)) {
-                remove(rule);
-                return;
+        RDFRule rule = null;
+        synchronized (rulesData) {
+            for (RDFRule r : rulesData.keySet()) {
+                if (r.getIRI().equals(iri)) {
+                    rule = r;
+                    break;
+                }
             }
         }
+        if (rule != null)
+            remove(rule);
     }
 
     @Override
@@ -337,25 +502,25 @@ public class RDFRuleEngine implements ChangeListener {
     @Override
     public void onDecremented(Quad quad) {
         // re-inject decremented quads as negative
-        newRemoved.add(quad);
+        getIO().addRemovedQuad(quad);
         flush();
     }
 
     @Override
     public void onAdded(Quad quad) {
-        newAdded.add(quad);
+        getIO().addAddedQuad(quad);
         flush();
     }
 
     @Override
     public void onRemoved(Quad quad) {
-        newRemoved.add(quad);
+        getIO().addRemovedQuad(quad);
         flush();
     }
 
     @Override
     public void onChange(Changeset changeset) {
-        newChangesets.add(changeset);
+        getIO().addChangeset(changeset);
         flush();
     }
 
@@ -363,83 +528,47 @@ public class RDFRuleEngine implements ChangeListener {
      * Flushes any outstanding changes in the input or the output
      */
     public void flush() {
-        if (isFlushing)
+        EngineIO io = getIO();
+        if (io.isFlushing)
             return;
-        isFlushing = true;
-        while (!newAdded.isEmpty() || !newRemoved.isEmpty() || !newChangesets.isEmpty() || !requestsToFire.isEmpty() || !requestsToUnfire.isEmpty()) {
-            injectChanges();
-            performUnfire();
-            performFire();
+        io.isFlushing = true;
+        while (io.hasOutstandingChanges()) {
+            // inject in the RETE network
+            rete.injectPositives(io.checkoutPositivesQuads());
+            rete.injectNegatives(io.checkoutNegativeQuads());
+
+            // un-fire rules
+            Collection<RDFRuleExecution> requests = io.checkoutRequestsToUnfire();
+            for (RDFRuleExecution execution : requests) {
+                Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
+                if (changeset == null) {
+                    Logging.getDefault().error("Failed to process the changeset for rule " + execution.getRule().getIRI());
+                    continue;
+                }
+                io.addChangesetNegative(changeset);
+            }
+
+            // fire rules
+            requests = io.checkoutRequestsToFire();
+            for (RDFRuleExecution execution : requests) {
+                Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
+                if (changeset == null) {
+                    Logging.getDefault().error("Failed to process the changeset for rule " + execution.getRule().getIRI());
+                    continue;
+                }
+                io.addChangeset(changeset);
+            }
+
             // inject the changes if necessary
-            if (!bufferPositives.isEmpty() || !bufferNegatives.isEmpty()) {
+            if (io.hasOutstandingChanges()) {
                 try {
-                    outputStore.insert(Changeset.fromAddedRemoved(bufferPositives, bufferNegatives));
+                    outputStore.insert(Changeset.fromAddedRemoved(io.checkoutPositivesQuads(), io.checkoutNegativeQuads()));
                 } catch (UnsupportedNodeType ex) {
                     Logging.getDefault().error(ex);
                 }
-                bufferPositives.clear();
-                bufferNegatives.clear();
             }
         }
-        isFlushing = false;
-    }
-
-    /**
-     * Inject the outstanding changes in the RETE network
-     */
-    private void injectChanges() {
-        // build the buffer for the injection in the RETE network
-        bufferPositives.addAll(newAdded);
-        bufferNegatives.addAll(newRemoved);
-        newAdded.clear();
-        newRemoved.clear();
-        for (Changeset changeset : newChangesets) {
-            // re-inject decremented quads as negative
-            // do nothing with the incremented quads
-            bufferPositives.addAll(changeset.getAdded());
-            bufferNegatives.addAll(changeset.getRemoved());
-            bufferNegatives.addAll(changeset.getDecremented());
-        }
-        newChangesets.clear();
-        // inject in the RETE network
-        rete.injectPositives(bufferPositives);
-        rete.injectNegatives(bufferNegatives);
-        bufferPositives.clear();
-        bufferNegatives.clear();
-    }
-
-    /**
-     * Performs the outstanding unfiring requests
-     */
-    private void performUnfire() {
-        List<RDFRuleExecution> requests = new ArrayList<>(requestsToUnfire);
-        requestsToUnfire.clear();
-        for (RDFRuleExecution execution : requests) {
-            Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
-            if (changeset == null) {
-                Logging.getDefault().error("Failed to process the changeset for rule " + execution.getRule().getIRI());
-                continue;
-            }
-            bufferPositives.addAll(changeset.getRemoved());
-            bufferNegatives.addAll(changeset.getAdded());
-        }
-    }
-
-    /**
-     * Performs the outstanding firing requests
-     */
-    private void performFire() {
-        List<RDFRuleExecution> requests = new ArrayList<>(requestsToFire);
-        requestsToFire.clear();
-        for (RDFRuleExecution execution : requests) {
-            Changeset changeset = execution.getRule().produce(execution, outputStore, evaluator);
-            if (changeset == null) {
-                Logging.getDefault().error("Failed to process the changeset for rule " + execution.getRule().getIRI());
-                continue;
-            }
-            bufferPositives.addAll(changeset.getAdded());
-            bufferNegatives.addAll(changeset.getRemoved());
-        }
+        io.isFlushing = false;
     }
 
     /**
@@ -449,13 +578,16 @@ public class RDFRuleEngine implements ChangeListener {
      * @return The status of the rule, or null if it is not in this engine
      */
     public RDFRuleStatus getMatchStatus(String rule) {
-        for (Map.Entry<RDFRule, RuleData> entry : rulesData.entrySet()) {
-            if (entry.getKey().getIRI().equals(rule)) {
-                return new RDFRuleStatus(new ArrayList<>(entry.getValue().executions));
+        RuleData data = null;
+        synchronized (rulesData) {
+            for (Map.Entry<RDFRule, RuleData> entry : rulesData.entrySet()) {
+                if (entry.getKey().getIRI().equals(rule)) {
+                    data = entry.getValue();
+                    break;
+                }
             }
         }
-        // not a rule in this engine
-        return null;
+        return data == null ? null : new RDFRuleStatus(data.getExecutions());
     }
 
     /**
@@ -468,6 +600,6 @@ public class RDFRuleEngine implements ChangeListener {
         RuleData data = rulesData.get(rule);
         if (data == null)
             return null;
-        return new RDFRuleStatus(new ArrayList<>(data.executions));
+        return new RDFRuleStatus(data.getExecutions());
     }
 }
