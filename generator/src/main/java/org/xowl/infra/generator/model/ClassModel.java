@@ -655,10 +655,6 @@ public class ClassModel {
 
         // writes constructor
         writer.append("    public ").append(getName()).append("() {").append(Files.LINE_SEPARATOR);
-
-        // writes Implementations' constructors
-        for (PropertyImplementation implementation : getPropertyImplementations())
-            implementation.writeStandaloneConstructor(writer);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append("}").append(Files.LINE_SEPARATOR);
         writer.close();
