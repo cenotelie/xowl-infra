@@ -42,7 +42,7 @@ public class GeneratorTest {
         config.add(null, "input", "http://xowl.org/lang/instrumentation");
         config.add(null, "basePackage", "org.xowl.lang");
         config.add(null, "output", "target/tests/");
-        config.add(null, "jarName", "XOWLModel.jar");
+        config.add(null, "jarName", "XOWLModel");
         Program program = new Program(logger, config);
         program.execute();
         Assert.assertFalse("Failed to re-generate xOWL abstract syntax", logger.isOnError());
