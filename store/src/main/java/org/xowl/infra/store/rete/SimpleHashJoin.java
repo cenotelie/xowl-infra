@@ -28,7 +28,7 @@ import java.util.*;
  * @param <RIGHT> The type fo the right elements
  * @author Laurent Wouters
  */
-abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterator<Couple> {
+abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterator<JoinMatch> {
     /**
      * Hash map of the left elements
      */
@@ -48,7 +48,7 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
     /**
      * Next matching couple
      */
-    private Couple nextCouple = null;
+    private JoinMatch nextJoinMatch = null;
 
     /**
      * Initializes this strategy
@@ -70,7 +70,7 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
      * @param t2 The right element
      * @return The corresponding couple
      */
-    protected abstract Couple createCouple(LEFT t1, RIGHT t2);
+    protected abstract JoinMatch createCouple(LEFT t1, RIGHT t2);
 
     /**
      * Gets the value for the specified left element
@@ -97,23 +97,23 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
      * @param rightElements A collection of right elements
      * @return An iterator over the join results
      */
-    protected Iterator<Couple> joinGenerics(Collection<LEFT> leftElements, Collection<RIGHT> rightElements) {
+    protected Iterator<JoinMatch> joinGenerics(Collection<LEFT> leftElements, Collection<RIGHT> rightElements) {
         for (LEFT token : leftElements)
             insertLeft(token);
         rightIterator = rightElements.iterator();
-        nextCouple = findNext();
+        nextJoinMatch = findNext();
         return this;
     }
 
     @Override
     public boolean hasNext() {
-        return (nextCouple != null);
+        return (nextJoinMatch != null);
     }
 
     @Override
-    public Couple next() {
-        Couple result = nextCouple;
-        nextCouple = findNext();
+    public JoinMatch next() {
+        JoinMatch result = nextJoinMatch;
+        nextJoinMatch = findNext();
         return result;
     }
 
@@ -126,7 +126,7 @@ abstract class SimpleHashJoin<LEFT, RIGHT> extends JoinStrategy implements Itera
      *
      * @return The next result
      */
-    private Couple findNext() {
+    private JoinMatch findNext() {
         while (leftIterator == null || !leftIterator.hasNext()) {
             if (!rightIterator.hasNext())
                 return null;

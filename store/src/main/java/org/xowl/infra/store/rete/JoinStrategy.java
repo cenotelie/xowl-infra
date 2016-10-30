@@ -47,5 +47,5 @@ abstract class JoinStrategy extends JoinBase {
      * @param facts  A collection of facts
      * @return The result
      */
-    public abstract Iterator<Couple> join(Collection<Token> tokens, Collection<Quad> facts);
+    public abstract Iterator<JoinMatch> join(Collection<Token> tokens, Collection<Quad> facts);
 }

@@ -17,6 +17,8 @@
 
 package org.xowl.infra.store.rete;
 
+import org.xowl.infra.utils.collections.FastBuffer;
+
 import java.util.Collection;
 
 /**

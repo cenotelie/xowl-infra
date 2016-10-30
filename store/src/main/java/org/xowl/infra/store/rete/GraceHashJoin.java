@@ -28,7 +28,7 @@ import java.util.*;
  * @param <RIGHT> The type of the right elements to join
  * @author Laurent Wouters
  */
-abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterator<Couple> {
+abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterator<JoinMatch> {
     /**
      * Map of all the left elements
      */
@@ -80,7 +80,7 @@ abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterat
     /**
      * Next matching couple
      */
-    private Couple nextCouple = null;
+    private JoinMatch nextJoinMatch = null;
 
     /**
      * Initializes this strategy
@@ -103,7 +103,7 @@ abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterat
      * @param right The right element
      * @return The corresponding couple
      */
-    protected abstract Couple createCouple(LEFT left, RIGHT right);
+    protected abstract JoinMatch createCouple(LEFT left, RIGHT right);
 
     /**
      * Gets the value for the specified left element
@@ -130,7 +130,7 @@ abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterat
      * @param rightElements A collection of right elements
      * @return An iterator over the join results
      */
-    protected Iterator<Couple> joinGenerics(Collection<LEFT> leftElements, Collection<RIGHT> rightElements) {
+    protected Iterator<JoinMatch> joinGenerics(Collection<LEFT> leftElements, Collection<RIGHT> rightElements) {
         for (LEFT left : leftElements)
             insertLeft(left);
         for (RIGHT right : rightElements)
@@ -149,20 +149,20 @@ abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterat
                 rightIterator = currentRightElements.iterator();
             leftIterator = currentInner.getValue().iterator();
             currentLeft = leftIterator.next();
-            nextCouple = createCouple(currentLeft, rightIterator.next());
+            nextJoinMatch = createCouple(currentLeft, rightIterator.next());
         }
         return this;
     }
 
     @Override
     public boolean hasNext() {
-        return (nextCouple != null);
+        return (nextJoinMatch != null);
     }
 
     @Override
-    public Couple next() {
-        Couple result = nextCouple;
-        nextCouple = findNext();
+    public JoinMatch next() {
+        JoinMatch result = nextJoinMatch;
+        nextJoinMatch = findNext();
         return result;
     }
 
@@ -175,7 +175,7 @@ abstract class GraceHashJoin<LEFT, RIGHT> extends JoinStrategy implements Iterat
      *
      * @return The next result
      */
-    private Couple findNext() {
+    private JoinMatch findNext() {
         while (rightIterator == null || !rightIterator.hasNext()) {
             while (leftIterator == null || !leftIterator.hasNext()) {
                 findNextKeyMatch();

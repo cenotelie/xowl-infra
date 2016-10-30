@@ -27,7 +27,7 @@ import java.util.Iterator;
  *
  * @author Laurent Wouters
  */
-class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
+class NestedLoopJoin extends JoinStrategy implements Iterator<JoinMatch> {
     /**
      * The tokens to join
      */
@@ -47,7 +47,7 @@ class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
     /**
      * The next resulting couple
      */
-    private Couple nextCouple = null;
+    private JoinMatch nextJoinMatch = null;
 
     /**
      * Initializes this strategy
@@ -62,24 +62,24 @@ class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
     }
 
     @Override
-    public Iterator<Couple> join(Collection<Token> tokens, Collection<Quad> facts) {
+    public Iterator<JoinMatch> join(Collection<Token> tokens, Collection<Quad> facts) {
         this.tokens = tokens;
         this.iterFacts = facts.iterator();
         this.iterTokens = tokens.iterator();
         this.nextFact = this.iterFacts.next();
-        this.nextCouple = findNext();
+        this.nextJoinMatch = findNext();
         return this;
     }
 
     @Override
     public boolean hasNext() {
-        return (nextCouple != null);
+        return (nextJoinMatch != null);
     }
 
     @Override
-    public Couple next() {
-        Couple result = nextCouple;
-        nextCouple = findNext();
+    public JoinMatch next() {
+        JoinMatch result = nextJoinMatch;
+        nextJoinMatch = findNext();
         return result;
     }
 
@@ -92,7 +92,7 @@ class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
      *
      * @return The next couple
      */
-    private Couple findNext() {
+    private JoinMatch findNext() {
         while (iterTokens != null) {
             Token currentToken = iterTokens.next();
             Quad currentFact = nextFact;
@@ -110,7 +110,7 @@ class NestedLoopJoin extends JoinStrategy implements Iterator<Couple> {
             }
             // test values
             if (passTests(currentToken, currentFact))
-                return new Couple(currentFact, currentToken);
+                return new JoinMatch(currentFact, currentToken);
         }
         return null;
     }

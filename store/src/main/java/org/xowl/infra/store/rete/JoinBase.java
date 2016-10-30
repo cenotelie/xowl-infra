@@ -46,7 +46,7 @@ class JoinBase {
      *
      * @param tests The tests to use (array of size 4)
      */
-    public JoinBase(JoinTest[] tests) {
+    public JoinBase(JoinTest... tests) {
         this.test1 = tests[0];
         this.test2 = tests[1];
         this.test3 = tests[2];

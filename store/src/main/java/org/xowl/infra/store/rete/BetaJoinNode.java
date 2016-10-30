@@ -22,7 +22,6 @@ import org.xowl.infra.store.rdf.Quad;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Represents a join node in the beta graph of a RETE network
@@ -55,21 +54,19 @@ class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
     /**
      * Initializes this join node
      *
-     * @param alpha   The upstream alpha memory
-     * @param beta    The upstream beta memory
-     * @param tests   The joining tests
-     * @param binders The binding operations
+     * @param alpha        The upstream alpha memory
+     * @param beta         The upstream beta memory
+     * @param tests        The joining tests (array of size 4)
+     * @param binders      The binding operations (array of size 4)
+     * @param bindersCount The number of binders (maximum 4)
      */
-    public BetaJoinNode(FactHolder alpha, TokenHolder beta, List<JoinTest> tests, Collection<Binder> binders) {
-        super(tests.size() > 0 ? tests.get(0) : null,
-                tests.size() > 1 ? tests.get(1) : null,
-                tests.size() > 2 ? tests.get(2) : null,
-                tests.size() > 3 ? tests.get(3) : null);
+    public BetaJoinNode(FactHolder alpha, TokenHolder beta, JoinTest[] tests, Binder[] binders, int bindersCount) {
+        super(tests);
         this.alphaMem = alpha;
         this.betaMem = beta;
         this.alphaMem.addChild(this);
         this.betaMem.addChild(this);
-        this.child = new BetaMemory(binders);
+        this.child = new BetaMemory(binders, bindersCount);
     }
 
     /**
@@ -146,7 +143,7 @@ class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
      * @param facts  A collection of facts
      * @return An iterator over the joined couples
      */
-    private Iterator<Couple> getJoin(Collection<Token> tokens, Collection<Quad> facts) {
+    private Iterator<JoinMatch> getJoin(Collection<Token> tokens, Collection<Quad> facts) {
         int size = tokens.size() * facts.size();
         JoinStrategy join;
         if (size <= MAX_SIZE_JOIN_LOOPS)
@@ -168,8 +165,8 @@ class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
     private JoinStrategy createDoubeHashJoin() {
         return new GraceHashJoin<Token, Quad>(test1, test2, test3, test4) {
             @Override
-            protected Couple createCouple(Token left, Quad right) {
-                return new Couple(right, left);
+            protected JoinMatch createCouple(Token left, Quad right) {
+                return new JoinMatch(right, left);
             }
 
             @Override
@@ -183,7 +180,7 @@ class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
             }
 
             @Override
-            public Iterator<Couple> join(Collection<Token> tokens, Collection<Quad> facts) {
+            public Iterator<JoinMatch> join(Collection<Token> tokens, Collection<Quad> facts) {
                 return joinGenerics(tokens, facts);
             }
         };
@@ -197,8 +194,8 @@ class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
     private JoinStrategy createSimpleHashJoinToken() {
         return new SimpleHashJoin<Token, Quad>(test1, test2, test3, test4) {
             @Override
-            protected Couple createCouple(Token left, Quad right) {
-                return new Couple(right, left);
+            protected JoinMatch createCouple(Token left, Quad right) {
+                return new JoinMatch(right, left);
             }
 
             @Override
@@ -212,7 +209,7 @@ class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
             }
 
             @Override
-            public Iterator<Couple> join(Collection<Token> tokens, Collection<Quad> facts) {
+            public Iterator<JoinMatch> join(Collection<Token> tokens, Collection<Quad> facts) {
                 return joinGenerics(tokens, facts);
             }
         };
@@ -226,8 +223,8 @@ class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
     private JoinStrategy createSimpleHashJoinFact() {
         return new SimpleHashJoin<Quad, Token>(test1, test2, test3, test4) {
             @Override
-            protected Couple createCouple(Quad left, Token right) {
-                return new Couple(left, right);
+            protected JoinMatch createCouple(Quad left, Token right) {
+                return new JoinMatch(left, right);
             }
 
             @Override
@@ -241,7 +238,7 @@ class BetaJoinNode extends JoinBase implements FactActivable, TokenActivable {
             }
 
             @Override
-            public Iterator<Couple> join(Collection<Token> tokens, Collection<Quad> facts) {
+            public Iterator<JoinMatch> join(Collection<Token> tokens, Collection<Quad> facts) {
                 return joinGenerics(facts, tokens);
             }
         };

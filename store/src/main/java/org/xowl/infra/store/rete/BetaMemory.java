@@ -20,10 +20,7 @@ package org.xowl.infra.store.rete;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.Node;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.utils.collections.Adapter;
-import org.xowl.infra.utils.collections.AdaptingIterator;
-import org.xowl.infra.utils.collections.CombiningIterator;
-import org.xowl.infra.utils.collections.SparseIterator;
+import org.xowl.infra.utils.collections.*;
 
 import java.util.*;
 
@@ -38,55 +35,58 @@ class BetaMemory implements TokenHolder {
      */
     private static final int CHILDREN_SIZE = 8;
 
+    /**
+     * A DUMMY beta memory
+     */
+    private static BetaMemory DUMMY;
 
     /**
-     * A dummy beta memory
+     * Gets a DUMMY beta memory
+     *
+     * @return A DUMMY beta memory
      */
-    private static BetaMemory dummy;
+    public static synchronized BetaMemory getDummy() {
+        if (DUMMY != null)
+            return DUMMY;
+        DUMMY = new BetaMemory(null, 0);
+        FastBuffer<Token> children = new FastBuffer<>(1);
+        children.add(new Token());
+        DUMMY.store.put(null, children);
+        return DUMMY;
+    }
+
     /**
      * The store of tokens
      */
-    private Map<Token, Token[]> store;
+    private final Map<Token, FastBuffer<Token>> store;
     /**
      * The buffer of this node
      */
-    private List<TokenActivable> children;
+    private final FastBuffer<TokenActivable> children;
     /**
      * The binding operations in this node
      */
-    private final List<Binder> binders;
+    private final Binder[] binders;
 
     /**
      * Initializes this node
      *
-     * @param binders The binders for this memory
+     * @param binders      The binders for this memory (array of size 4)
+     * @param bindersCount The total number of binders (maximum 4)
      */
-    public BetaMemory(Collection<Binder> binders) {
+    public BetaMemory(Binder[] binders, int bindersCount) {
         this.store = new HashMap<>();
-        this.children = new ArrayList<>();
-        this.binders = new ArrayList<>(binders);
-    }
-
-    /**
-     * Gets a dummy beta memory
-     *
-     * @return A dummy beta memory
-     */
-    public static synchronized BetaMemory getDummy() {
-        if (dummy != null)
-            return dummy;
-        dummy = new BetaMemory(new ArrayList<Binder>(0));
-        Token[] children = new Token[1];
-        children[0] = new Token();
-        dummy.store.put(null, children);
-        return dummy;
+        this.children = new FastBuffer<>(8);
+        this.binders = bindersCount > 0 ? Arrays.copyOf(binders, bindersCount) : null;
     }
 
     /**
      * Removes all the children of this memory
      */
     void removeAllChildren() {
-        children.clear();
+        synchronized (children) {
+            children.clear();
+        }
     }
 
     @Override
@@ -95,10 +95,9 @@ class BetaMemory implements TokenHolder {
             @Override
             protected int getSize() {
                 int result = 0;
-                for (Token[] children : store.values()) {
-                    for (Token child : children) {
-                        if (child != null)
-                            result++;
+                synchronized (store) {
+                    for (FastBuffer<Token> children : store.values()) {
+                        result += children.size();
                     }
                 }
                 return result;
@@ -106,9 +105,9 @@ class BetaMemory implements TokenHolder {
 
             @Override
             protected boolean contains(Token token) {
-                for (Token[] children : store.values()) {
-                    for (Token child : children) {
-                        if (child == token)
+                synchronized (store) {
+                    for (FastBuffer<Token> children : store.values()) {
+                        if (children.contains(token))
                             return true;
                     }
                 }
@@ -117,16 +116,17 @@ class BetaMemory implements TokenHolder {
 
             @Override
             public Iterator<Token> iterator() {
-                CombiningIterator<Map.Entry<Token, Token[]>, Token> coupleIterator = new CombiningIterator<>(store.entrySet().iterator(), new Adapter<Iterator<Token>>() {
+                CombiningIterator<Map.Entry<Token, FastBuffer<Token>>, Token> coupleIterator = new CombiningIterator<>(store.entrySet().iterator(), new Adapter<Iterator<Token>>() {
                     @Override
                     public <X> Iterator<Token> adapt(X element) {
-                        return new SparseIterator<>(((Map.Entry<Token, Token[]>) element).getValue());
+                        FastBuffer<Token> children = ((Map.Entry<Token, FastBuffer<Token>>) element).getValue();
+                        return new SkippableIterator<>(children.iterator());
                     }
                 });
                 return new AdaptingIterator<>(coupleIterator, new Adapter<Token>() {
                     @Override
                     public <X> Token adapt(X element) {
-                        return ((org.xowl.infra.utils.collections.Couple<Map.Entry<Token, Token[]>, Token>) element).y;
+                        return ((Couple<Map.Entry<Token, FastBuffer<Token>>, Token>) element).y;
                     }
                 });
             }
@@ -145,8 +145,12 @@ class BetaMemory implements TokenHolder {
 
     @Override
     public void onDestroy() {
-        store = null;
-        children = null;
+        synchronized (children) {
+            children.clear();
+        }
+        synchronized (store) {
+            store.clear();
+        }
     }
 
     /**
@@ -159,8 +163,12 @@ class BetaMemory implements TokenHolder {
         Token newToken = buildChildToken(token, fact);
         if (newToken == null)
             return;
-        for (int i = children.size() - 1; i != -1; i--)
-            children.get(i).activateToken(newToken);
+        Iterator<TokenActivable> iterator = children.reverseIterator();
+        while (iterator.hasNext()) {
+            TokenActivable child = iterator.next();
+            if (child != null)
+                child.activateToken(newToken);
+        }
     }
 
     /**
@@ -168,17 +176,22 @@ class BetaMemory implements TokenHolder {
      *
      * @param buffer A buffer of couples
      */
-    public void activate(Iterator<Couple> buffer) {
+    public void activate(Iterator<JoinMatch> buffer) {
         Collection<Token> result = new ArrayList<>();
         while (buffer.hasNext()) {
-            Couple couple = buffer.next();
-            Token newToken = buildChildToken(couple.token, couple.fact);
+            JoinMatch joinMatch = buffer.next();
+            Token newToken = buildChildToken(joinMatch.token, joinMatch.fact);
             if (newToken != null)
                 result.add(newToken);
         }
-        if (!result.isEmpty())
-            for (int i = children.size() - 1; i != -1; i--)
-                children.get(i).activateTokens(new FastBuffer<>(result));
+        if (!result.isEmpty()) {
+            Iterator<TokenActivable> iterator = children.reverseIterator();
+            while (iterator.hasNext()) {
+                TokenActivable child = iterator.next();
+                if (child != null)
+                    child.activateTokens(new FastBuffer<>(result));
+            }
+        }
     }
 
     /**
@@ -189,38 +202,38 @@ class BetaMemory implements TokenHolder {
      * @return The corresponding child token if it is new, null otherwise
      */
     private Token buildChildToken(Token token, Quad fact) {
-        Token[] tChildren = store.get(token);
-        if (tChildren == null) {
-            tChildren = new Token[binders.isEmpty() ? 1 : CHILDREN_SIZE];
-            store.put(token, tChildren);
+        FastBuffer<Token> tChildren;
+        synchronized (store) {
+            tChildren = store.get(token);
+            if (tChildren == null) {
+                tChildren = new FastBuffer<>(binders == null ? 1 : CHILDREN_SIZE);
+                store.put(token, tChildren);
+            }
         }
 
-        if (binders.isEmpty()) {
+        if (binders == null) {
             // no binders, there can be only one child
-            if (tChildren[0] != null) {
-                // already here
-                tChildren[0].multiplicity++;
-                return null;
+            synchronized (store) {
+                if (tChildren.isEmpty()) {
+                    // not here, build the child
+                    Token child = new Token(token, 0);
+                    tChildren.add(child);
+                    return child;
+                } else {
+                    // already here
+                    tChildren.first().increment();
+                    return null;
+                }
             }
-            // not here, build the child
-            tChildren[0] = new Token(token, binders.size());
-            return tChildren[0];
         }
 
         // create the child token
-        Token childToken = new Token(token, binders.size());
-        for (Binder binder : binders)
-            binder.execute(childToken, fact);
-        for (int i = 0; i != tChildren.length; i++) {
-            if (tChildren[i] == null) {
-                tChildren[i] = childToken;
-                return childToken;
-            }
+        Token childToken = new Token(token, binders.length);
+        for (int i = 0; i != binders.length; i++)
+            binders[i].execute(childToken, fact);
+        synchronized (store) {
+            tChildren.add(childToken);
         }
-        int index = tChildren.length;
-        tChildren = Arrays.copyOf(tChildren, tChildren.length + CHILDREN_SIZE);
-        tChildren[index] = childToken;
-        store.put(token, tChildren);
         return childToken;
     }
 
@@ -230,18 +243,18 @@ class BetaMemory implements TokenHolder {
      * @param token A token
      */
     public void deactivateToken(Token token) {
-        Token[] tChildren = store.remove(token);
-        if (tChildren == null)
-            return;
-        Collection<Token> buffer = new ArrayList<>();
-        for (int i = 0; i != tChildren.length; i++) {
-            if (tChildren[i] != null) {
-                buffer.add(tChildren[i]);
-            }
+        FastBuffer<Token> tChildren;
+        synchronized (store) {
+            tChildren = store.remove(token);
         }
-        if (!buffer.isEmpty())
-            for (int i = children.size() - 1; i != -1; i--)
-                children.get(i).deactivateTokens(new FastBuffer<>(buffer));
+        if (tChildren == null || tChildren.isEmpty())
+            return;
+        Iterator<TokenActivable> iterator = children.reverseIterator();
+        while (iterator.hasNext()) {
+            TokenActivable child = iterator.next();
+            if (child != null)
+                child.deactivateTokens(new FastBuffer<>(tChildren));
+        }
     }
 
     /**
@@ -251,34 +264,16 @@ class BetaMemory implements TokenHolder {
      * @param fact  A fact
      */
     public void deactivateCouple(Token token, Quad fact) {
-        Token[] tChildren = store.get(token);
-        if (tChildren == null)
-            return;
         Collection<Token> buffer = new ArrayList<>();
-        boolean isEmpty = true;
-        if (binders.isEmpty()) {
-            tChildren[0].multiplicity--;
-            if (tChildren[0].multiplicity <= 0)
-                buffer.add(tChildren[0]);
-            else
-                isEmpty = false;
-        } else {
-            for (int i = 0; i != tChildren.length; i++) {
-                if (tChildren[i] != null) {
-                    if (matches(tChildren[i], fact)) {
-                        buffer.add(tChildren[i]);
-                        tChildren[i] = null;
-                    } else {
-                        isEmpty = false;
-                    }
-                }
+        deactivateJoinMatch(token, fact, buffer);
+        if (!buffer.isEmpty()) {
+            Iterator<TokenActivable> iterator = children.reverseIterator();
+            while (iterator.hasNext()) {
+                TokenActivable child = iterator.next();
+                if (child != null)
+                    child.deactivateTokens(new FastBuffer<>(buffer));
             }
         }
-        if (isEmpty)
-            store.remove(token);
-        if (!buffer.isEmpty())
-            for (int i = children.size() - 1; i != -1; i--)
-                children.get(i).deactivateTokens(new FastBuffer<>(buffer));
     }
 
     /**
@@ -289,18 +284,22 @@ class BetaMemory implements TokenHolder {
     public void deactivateTokens(Collection<Token> tokens) {
         Collection<Token> buffer = new ArrayList<>();
         for (Token token : tokens) {
-            Token[] tChildren = store.remove(token);
-            if (tChildren == null)
-                continue;
-            for (int i = 0; i != tChildren.length; i++) {
-                if (tChildren[i] != null) {
-                    buffer.add(tChildren[i]);
-                }
+            FastBuffer<Token> tChildren;
+            synchronized (store) {
+                tChildren = store.remove(token);
+                if (tChildren == null)
+                    continue;
+                buffer.addAll(tChildren);
             }
         }
-        if (!buffer.isEmpty())
-            for (int i = children.size() - 1; i != -1; i--)
-                children.get(i).deactivateTokens(new FastBuffer<>(buffer));
+        if (!buffer.isEmpty()) {
+            Iterator<TokenActivable> iterator = children.reverseIterator();
+            while (iterator.hasNext()) {
+                TokenActivable child = iterator.next();
+                if (child != null)
+                    child.deactivateTokens(new FastBuffer<>(buffer));
+            }
+        }
     }
 
     /**
@@ -308,38 +307,63 @@ class BetaMemory implements TokenHolder {
      *
      * @param couples Some couples
      */
-    public void deactivateCouples(Iterator<Couple> couples) {
+    public void deactivateCouples(Iterator<JoinMatch> couples) {
         Collection<Token> buffer = new ArrayList<>();
         while (couples.hasNext()) {
-            Couple couple = couples.next();
-            Token[] tChildren = store.get(couple.token);
-            if (tChildren == null)
-                continue;
-            boolean isEmpty = true;
-            if (binders.isEmpty()) {
-                tChildren[0].multiplicity--;
-                if (tChildren[0].multiplicity <= 0)
-                    buffer.add(tChildren[0]);
-                else
-                    isEmpty = false;
-            } else {
-                for (int i = 0; i != tChildren.length; i++) {
-                    if (tChildren[i] != null) {
-                        if (matches(tChildren[i], couple.fact)) {
-                            buffer.add(tChildren[i]);
-                            tChildren[i] = null;
-                        } else {
-                            isEmpty = false;
-                        }
+            JoinMatch joinMatch = couples.next();
+            deactivateJoinMatch(joinMatch.token, joinMatch.fact, buffer);
+        }
+        if (!buffer.isEmpty()) {
+            Iterator<TokenActivable> iterator = children.reverseIterator();
+            while (iterator.hasNext()) {
+                TokenActivable child = iterator.next();
+                if (child != null)
+                    child.deactivateTokens(new FastBuffer<>(buffer));
+            }
+        }
+    }
+
+    /**
+     * Deactivates a join match
+     *
+     * @param token  The matching token
+     * @param fact   The matching quad
+     * @param buffer The buffer of child tokens to be deactivated
+     */
+    private void deactivateJoinMatch(Token token, Quad fact, Collection<Token> buffer) {
+        FastBuffer<Token> tChildren;
+        synchronized (store) {
+            tChildren = store.get(token);
+        }
+        if (tChildren == null)
+            return;
+        boolean isEmpty = true;
+        if (binders == null) {
+            Token first = tChildren.first();
+            if (first != null) {
+                if (first.decrement())
+                    buffer.add(first);
+            } else
+                isEmpty = false;
+        } else {
+            Iterator<Token> iterator = tChildren.iterator();
+            while (iterator.hasNext()) {
+                Token child = iterator.next();
+                if (child != null) {
+                    if (matches(child, fact)) {
+                        buffer.add(child);
+                        iterator.remove();
+                    } else {
+                        isEmpty = false;
                     }
                 }
             }
-            if (isEmpty)
-                store.remove(couple.token);
         }
-        if (!buffer.isEmpty())
-            for (int i = children.size() - 1; i != -1; i--)
-                children.get(i).deactivateTokens(new FastBuffer<>(buffer));
+        if (isEmpty) {
+            synchronized (store) {
+                store.remove(token);
+            }
+        }
     }
 
     /**
@@ -350,9 +374,11 @@ class BetaMemory implements TokenHolder {
      * @return true if te token and fact matches
      */
     private boolean matches(Token token, Quad fact) {
-        for (Binder binder : binders) {
-            Node value1 = token.getLocalBinding(binder.getVariable());
-            Node value2 = fact.getField(binder.getField());
+        if (binders == null)
+            return true;
+        for (int i = 0; i != binders.length; i++) {
+            Node value1 = token.getLocalBinding(binders[i].getVariable());
+            Node value2 = fact.getField(binders[i].getField());
             if (!RDFUtils.same(value1, value2))
                 return false;
         }

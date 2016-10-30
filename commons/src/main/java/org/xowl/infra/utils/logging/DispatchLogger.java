@@ -17,9 +17,6 @@
 
 package org.xowl.infra.utils.logging;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Logger that dispatches its messages to other loggers
  *
@@ -29,10 +26,10 @@ public class DispatchLogger implements Logger {
     /**
      * The inner loggers
      */
-    private final List<Logger> inners;
+    private final Logger[] inners;
 
     public DispatchLogger(Logger... inners) {
-        this.inners = Arrays.asList(inners);
+        this.inners = inners;
     }
 
     @Override

@@ -20,11 +20,11 @@ package org.xowl.infra.store.rete;
 import org.xowl.infra.store.rdf.Quad;
 
 /**
- * Represents a couple of matching items
+ * Represents the match of a token and a fact for a join operation
  *
  * @author Laurent Wouters
  */
-class Couple {
+class JoinMatch {
     /**
      * A triple fact
      */
@@ -40,7 +40,7 @@ class Couple {
      * @param fact  The triple fact
      * @param token The token
      */
-    public Couple(Quad fact, Token token) {
+    public JoinMatch(Quad fact, Token token) {
         this.fact = fact;
         this.token = token;
     }

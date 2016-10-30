@@ -18,6 +18,7 @@
 package org.xowl.infra.utils.collections;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -57,7 +58,10 @@ public class FastBuffer<T> implements Collection<T> {
     public FastBuffer(Collection<T> init) {
         if (init instanceof FastBuffer)
             copy((FastBuffer<T>) init);
-        else {
+        else if (init instanceof ArrayList) {
+            this.inner = (T[]) init.toArray();
+            this.size = init.size();
+        } else {
             this.inner = (T[]) (new Object[init.size()]);
             this.size = 0;
             int i = 0;
@@ -107,6 +111,22 @@ public class FastBuffer<T> implements Collection<T> {
                 size -= (previous == null ? 0 : 1);
             }
         };
+    }
+
+    /**
+     * Gets the first element of this buffer
+     *
+     * @return The first element of this buffer
+     */
+    public T first() {
+        if (size == 0)
+            return null;
+        for (int i = 0; i != inner.length; i++) {
+            T candidate = inner[i];
+            if (candidate != null)
+                return candidate;
+        }
+        return null;
     }
 
     @Override

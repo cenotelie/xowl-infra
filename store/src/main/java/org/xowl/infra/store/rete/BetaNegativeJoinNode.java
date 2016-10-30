@@ -20,6 +20,7 @@ package org.xowl.infra.store.rete;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.utils.collections.Adapter;
 import org.xowl.infra.utils.collections.AdaptingIterator;
+import org.xowl.infra.utils.collections.FastBuffer;
 import org.xowl.infra.utils.collections.SkippableIterator;
 
 import java.util.*;
@@ -62,13 +63,10 @@ class BetaNegativeJoinNode extends JoinBase implements TokenHolder, TokenActivab
      *
      * @param alpha The parent alpha memory
      * @param beta  The parent beta memory
-     * @param tests The joining tests
+     * @param tests The joining tests (array of size 4)
      */
-    public BetaNegativeJoinNode(FactHolder alpha, TokenHolder beta, List<JoinTest> tests) {
-        super(tests.size() > 0 ? tests.get(0) : null,
-                tests.size() > 1 ? tests.get(1) : null,
-                tests.size() > 2 ? tests.get(2) : null,
-                tests.size() > 3 ? tests.get(3) : null);
+    public BetaNegativeJoinNode(FactHolder alpha, TokenHolder beta, JoinTest[] tests) {
+        super(tests);
         this.alphaMem = alpha;
         this.betaMem = beta;
         this.alphaMem.addChild(this);
