@@ -93,6 +93,22 @@ public class FastBuffer<T> implements Collection<T> {
         };
     }
 
+    /**
+     * Gets an iterator over this buffer that iterate in the reverse order
+     *
+     * @return A reverse iterator for this buffer
+     */
+    public Iterator<T> reverseIterator() {
+        return new ReverseSparseIterator<T>(inner) {
+            @Override
+            public void remove() {
+                T previous = content[lastIndex];
+                content[lastIndex] = null;
+                size -= (previous == null ? 0 : 1);
+            }
+        };
+    }
+
     @Override
     public int size() {
         return size;

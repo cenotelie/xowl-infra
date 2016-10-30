@@ -19,12 +19,10 @@ package org.xowl.infra.store.rete;
 
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.storage.Dataset;
-import org.xowl.infra.utils.collections.ConcurrentReverseListIterator;
+import org.xowl.infra.utils.collections.FastBuffer;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Represents an alpha memory in a RETE graph
@@ -47,7 +45,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     /**
      * List of the children of this node
      */
-    private final List<FactActivable> children;
+    private final FastBuffer<FactActivable> children;
 
     /**
      * Initializes this memory
@@ -58,7 +56,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     public AlphaMemory(Quad pattern, Dataset store) {
         this.store = store;
         this.pattern = pattern;
-        this.children = new ArrayList<>();
+        this.children = new FastBuffer<>(8);
     }
 
     @Override
@@ -88,7 +86,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     @Override
     public void activateFact(Quad fact) {
         cache = null;
-        Iterator<FactActivable> iterator = new ConcurrentReverseListIterator<>(children);
+        Iterator<FactActivable> iterator = children.reverseIterator();
         while (iterator.hasNext()) {
             FactActivable child = iterator.next();
             if (child != null)
@@ -99,7 +97,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     @Override
     public void deactivateFact(Quad fact) {
         cache = null;
-        Iterator<FactActivable> iterator = new ConcurrentReverseListIterator<>(children);
+        Iterator<FactActivable> iterator = children.reverseIterator();
         while (iterator.hasNext()) {
             FactActivable child = iterator.next();
             if (child != null)
@@ -110,7 +108,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     @Override
     public void activateFacts(Collection<Quad> facts) {
         cache = null;
-        Iterator<FactActivable> iterator = new ConcurrentReverseListIterator<>(children);
+        Iterator<FactActivable> iterator = children.reverseIterator();
         while (iterator.hasNext()) {
             FactActivable child = iterator.next();
             if (child != null)
@@ -121,7 +119,7 @@ class AlphaMemory implements FactActivable, FactHolder, AlphaMemoryBucketElement
     @Override
     public void deactivateFacts(Collection<Quad> facts) {
         cache = null;
-        Iterator<FactActivable> iterator = new ConcurrentReverseListIterator<>(children);
+        Iterator<FactActivable> iterator = children.reverseIterator();
         while (iterator.hasNext()) {
             FactActivable child = iterator.next();
             if (child != null)

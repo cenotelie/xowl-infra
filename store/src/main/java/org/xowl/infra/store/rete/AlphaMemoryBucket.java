@@ -140,9 +140,11 @@ abstract class AlphaMemoryBucket implements AlphaMemoryBucketElement {
      * Clears the content of this bucket
      */
     public void clear() {
-        this.nodes = new Node[INIT_SIZE];
-        this.subs = new AlphaMemoryBucketElement[INIT_SIZE];
-        this.catchAll = null;
-        this.size = 0;
+        synchronized (this) {
+            this.nodes = new Node[INIT_SIZE];
+            this.subs = new AlphaMemoryBucketElement[INIT_SIZE];
+            this.catchAll = null;
+            this.size = 0;
+        }
     }
 }
