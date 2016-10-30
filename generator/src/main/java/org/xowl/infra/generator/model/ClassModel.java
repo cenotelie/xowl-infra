@@ -622,7 +622,11 @@ public class ClassModel {
         if (isAbstract())
             return;
 
-        Writer writer = Files.getWriter(new File(folder, getName() + "Impl.java").getAbsolutePath());
+        String name = getPackage().getName();
+        name = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
+        name = name + getName() + "Impl";
+
+        Writer writer = Files.getWriter(new File(folder, name + ".java").getAbsolutePath());
         String[] lines = header.split(Files.LINE_SEPARATOR);
         writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
         for (String line : lines) {
@@ -632,7 +636,7 @@ public class ClassModel {
         }
         writer.append(" ******************************************************************************/").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
-        writer.append("package ").append(getPackage().getFullName()).append(";").append(Files.LINE_SEPARATOR);
+        writer.append("package ").append(getPackage().getModel().getBasePackage()).append(".impl;").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
         writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
@@ -642,7 +646,7 @@ public class ClassModel {
         writer.append(" *").append(Files.LINE_SEPARATOR);
         writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
         writer.append(" */").append(Files.LINE_SEPARATOR);
-        writer.append("public class ").append(getName()).append("Impl implements ").append(getJavaName()).append(" {").append(Files.LINE_SEPARATOR);
+        writer.append("public class ").append(name).append(" implements ").append(getJavaName()).append(" {").append(Files.LINE_SEPARATOR);
 
         // writes all Implementations
         for (PropertyImplementation implementation : getPropertyImplementations()) {
@@ -654,7 +658,7 @@ public class ClassModel {
         }
 
         // writes constructor
-        writer.append("    public ").append(getName()).append("() {").append(Files.LINE_SEPARATOR);
+        writer.append("    public ").append(name).append("() {").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append("}").append(Files.LINE_SEPARATOR);
         writer.close();
