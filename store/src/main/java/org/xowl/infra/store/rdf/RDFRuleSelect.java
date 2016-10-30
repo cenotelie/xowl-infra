@@ -82,12 +82,14 @@ public class RDFRuleSelect extends RDFRule {
          * @param match   The match
          */
         public void addMatch(RDFPattern pattern, RDFPatternMatch match) {
-            Collection<RDFPatternMatch> patternMatches = matches.get(pattern);
-            if (patternMatches == null) {
-                patternMatches = new ArrayList<>();
-                matches.put(pattern, patternMatches);
+            synchronized (matches) {
+                Collection<RDFPatternMatch> patternMatches = matches.get(pattern);
+                if (patternMatches == null) {
+                    patternMatches = new ArrayList<>();
+                    matches.put(pattern, patternMatches);
+                }
+                patternMatches.add(match);
             }
-            patternMatches.add(match);
         }
 
         /**
@@ -97,9 +99,11 @@ public class RDFRuleSelect extends RDFRule {
          * @param match   The match
          */
         public void removeMatch(RDFPattern pattern, RDFPatternMatch match) {
-            Collection<RDFPatternMatch> patternMatches = matches.get(pattern);
-            if (patternMatches != null)
-                patternMatches.remove(match);
+            synchronized (matches) {
+                Collection<RDFPatternMatch> patternMatches = matches.get(pattern);
+                if (patternMatches != null)
+                    patternMatches.remove(match);
+            }
         }
 
         @Override
@@ -114,14 +118,16 @@ public class RDFRuleSelect extends RDFRule {
 
         @Override
         public Solutions getSolutions(RDFPattern pattern) {
-            Collection<RDFPatternMatch> patternMatches = matches.get(pattern);
-            if (patternMatches == null)
-                return new SolutionsMultiset(0);
-            SolutionsMultiset solutions = new SolutionsMultiset(patternMatches.size());
-            for (RDFPatternMatch match : patternMatches) {
-                solutions.add(match.getSolution());
+            synchronized (matches) {
+                Collection<RDFPatternMatch> patternMatches = matches.get(pattern);
+                if (patternMatches == null)
+                    return new SolutionsMultiset(0);
+                SolutionsMultiset solutions = new SolutionsMultiset(patternMatches.size());
+                for (RDFPatternMatch match : patternMatches) {
+                    solutions.add(match.getSolution());
+                }
+                return solutions;
             }
-            return solutions;
         }
     }
 
@@ -182,12 +188,14 @@ public class RDFRuleSelect extends RDFRule {
      * @return The associated state
      */
     private State getState(RDFRuleEngine.ProductionHandler handler) {
-        State state = states.get(handler);
-        if (state == null) {
-            state = new State(handler);
-            states.put(handler, state);
+        synchronized (states) {
+            State state = states.get(handler);
+            if (state == null) {
+                state = new State(handler);
+                states.put(handler, state);
+            }
+            return state;
         }
-        return state;
     }
 
     @Override
