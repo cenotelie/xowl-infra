@@ -26,7 +26,7 @@ import org.xowl.infra.store.storage.BaseStore;
 import org.xowl.infra.store.storage.Dataset;
 import org.xowl.infra.store.storage.NodeManager;
 import org.xowl.infra.store.storage.UnsupportedNodeType;
-import org.xowl.infra.utils.collections.ConcurrentListIterator;
+import org.xowl.infra.utils.collections.FastBuffer;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.util.*;
@@ -93,7 +93,7 @@ public class RDFRuleEngine implements ChangeListener {
         /**
          * The rule executions
          */
-        public final List<RDFRuleExecution> executions;
+        public final FastBuffer<RDFRuleExecution> executions;
 
         /**
          * Initializes this data
@@ -103,7 +103,7 @@ public class RDFRuleEngine implements ChangeListener {
         public RuleData(RDFRule original) {
             this.original = original;
             this.matchers = new RETERule[original.getPatterns().size()];
-            this.executions = new ArrayList<>();
+            this.executions = new FastBuffer<>(8);
         }
 
         @Override
@@ -124,7 +124,7 @@ public class RDFRuleEngine implements ChangeListener {
 
         @Override
         public Iterator<RDFRuleExecution> getExecutions() {
-            return new ConcurrentListIterator<>(executions);
+            return executions.iterator();
         }
 
         @Override

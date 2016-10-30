@@ -22,7 +22,7 @@ import org.xowl.infra.store.rete.RETERule;
 import org.xowl.infra.store.rete.Token;
 import org.xowl.infra.store.rete.TokenActivable;
 import org.xowl.infra.store.storage.Dataset;
-import org.xowl.infra.utils.collections.ConcurrentListIterator;
+import org.xowl.infra.utils.collections.FastBuffer;
 
 import java.util.*;
 
@@ -53,7 +53,7 @@ public class RDFQueryEngine implements ChangeListener {
         /**
          * The solution tokens
          */
-        private final List<Token> tokens;
+        private final FastBuffer<Token> tokens;
         /**
          * The number of times this query has been used
          * The count is approximate in multi-threading environment but this should be good enough
@@ -70,7 +70,7 @@ public class RDFQueryEngine implements ChangeListener {
             this.rule = new RETERule(this);
             this.rule.getPositives().addAll(query.getPositives());
             this.rule.getNegatives().addAll(query.getNegatives());
-            this.tokens = new ArrayList<>();
+            this.tokens = new FastBuffer<>(8);
             this.hitCount = 0;
         }
 
@@ -138,9 +138,7 @@ public class RDFQueryEngine implements ChangeListener {
         public List<RDFPatternSolution> getSolutions() {
             hitCount++;
             List<RDFPatternSolution> results = new ArrayList<>();
-            Iterator<Token> iterator = new ConcurrentListIterator<>(tokens);
-            while (iterator.hasNext()) {
-                Token token = iterator.next();
+            for (Token token : tokens) {
                 if (token != null)
                     results.add(new RDFPatternSolution(token.getBindings()));
             }
@@ -291,12 +289,18 @@ public class RDFQueryEngine implements ChangeListener {
      */
     public Collection<RDFPatternSolution> execute(RDFQuery query) {
         // try from the cache
-        Iterator<CacheElem> iterator = new ConcurrentListIterator<>(cache);
-        while (iterator.hasNext()) {
-            CacheElem element = iterator.next();
-            if (element == null || !element.matches(query))
-                continue;
-            Collection<RDFPatternSolution> result = element.getSolutions();
+
+        CacheElem target = null;
+        synchronized (cache) {
+            for (CacheElem element : cache) {
+                if (element.matches(query)) {
+                    target = element;
+                    break;
+                }
+            }
+        }
+        if (target != null) {
+            Collection<RDFPatternSolution> result = target.getSolutions();
             // re-sort the cache by hit count (hottest on top)
             synchronized (cache) {
                 Collections.sort(cache, new Comparator<CacheElem>() {
@@ -309,23 +313,22 @@ public class RDFQueryEngine implements ChangeListener {
             return result;
         }
 
-        while (cache.size() >= CACHE_MAX_SIZE) {
-            int index = cache.size() - 1;
-            try {
-                CacheElem toDrop = cache.remove(index);
-                rete.removeRule(toDrop.getRule());
-            } catch (IndexOutOfBoundsException exception) {
-                // ignore
-            }
-        }
-
-        // build the new query and register it in the cache
-        CacheElem element = new CacheElem(query);
         synchronized (cache) {
-            cache.add(element);
+            while (cache.size() >= CACHE_MAX_SIZE) {
+                int index = cache.size() - 1;
+                try {
+                    CacheElem toDrop = cache.remove(index);
+                    rete.removeRule(toDrop.getRule());
+                } catch (IndexOutOfBoundsException exception) {
+                    // ignore
+                }
+            }
+            // build the new query and register it in the cache
+            target = new CacheElem(query);
+            cache.add(target);
         }
-        rete.addRule(element.getRule());
-        return element.getSolutions();
+        rete.addRule(target.getRule());
+        return target.getSolutions();
     }
 
     @Override

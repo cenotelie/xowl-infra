@@ -15,18 +15,21 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.store.rete;
+package org.xowl.infra.utils.collections;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * Represents a fast buffer of T elements with a fixed size
+ * Represents a buffer of T elements that is fast when removing elements from it
+ * This class is NOT thread-safe when inserting and removing elements.
+ * However, due to its inner representation, the provided iterator is thread-safe.
  *
  * @author Laurent Wouters
  */
-class FastBuffer<T> implements Collection<T> {
+public class FastBuffer<T> implements Collection<T> {
     /**
      * The internal representation
      */
@@ -35,6 +38,16 @@ class FastBuffer<T> implements Collection<T> {
      * The number of elements in this buffer
      */
     private int size;
+
+    /**
+     * Initializes this buffer
+     *
+     * @param capacity The initial capacity
+     */
+    public FastBuffer(int capacity) {
+        this.inner = (T[]) (new Object[capacity]);
+        this.size = 0;
+    }
 
     /**
      * Initializes this buffer with the specified elements
@@ -70,40 +83,11 @@ class FastBuffer<T> implements Collection<T> {
 
     @Override
     public Iterator<T> iterator() {
-        return new Iterator<T>() {
-            private int index = 0;
-            private int last = 0;
-
-            {
-                lookupNext();
-            }
-
-            @Override
-            public boolean hasNext() {
-                return (index != inner.length);
-            }
-
-            @Override
-            public T next() {
-                T current = inner[index];
-                last = index;
-                index++;
-                lookupNext();
-                return current;
-            }
-
+        return new SparseIterator<T>(inner) {
             @Override
             public void remove() {
-                inner[last] = null;
+                content[lastIndex] = null;
                 size--;
-            }
-
-            private void lookupNext() {
-                while (index != inner.length) {
-                    if (inner[index] != null)
-                        return;
-                    index++;
-                }
             }
         };
     }
@@ -120,6 +104,8 @@ class FastBuffer<T> implements Collection<T> {
 
     @Override
     public boolean contains(Object o) {
+        if (size == 0)
+            return false;
         for (int i = 0; i != inner.length; i++)
             if (inner[i] == o)
                 return true;
@@ -127,54 +113,88 @@ class FastBuffer<T> implements Collection<T> {
     }
 
     @Override
-    public boolean containsAll(Collection<?> clctn) {
-        return false;
+    public boolean containsAll(Collection<? extends Object> clctn) {
+        for (Object element : clctn) {
+            if (!contains(element))
+                return false;
+        }
+        return true;
     }
 
     @Override
     public boolean add(T e) {
+        if (inner.length == size) {
+            int index = inner.length;
+            inner = Arrays.copyOf(inner, inner.length * 2);
+            inner[index] = e;
+            return true;
+        }
+        for (int i = 0; i != inner.length; i++) {
+            if (inner[i] == null) {
+                inner[i] = e;
+                return true;
+            }
+        }
         return false;
     }
 
     @Override
     public boolean remove(Object o) {
+        if (size == 0)
+            return false;
+        for (int i = 0; i != inner.length; i++) {
+            if (inner[i] == o) {
+                inner[i] = null;
+                size--;
+                return true;
+            }
+        }
         return false;
     }
 
     @Override
     public boolean addAll(Collection<? extends T> clctn) {
-        return false;
+        for (T element : clctn) {
+            add(element);
+        }
+        return true;
     }
 
     @Override
     public boolean removeAll(Collection<?> clctn) {
-        return false;
+        for (Object element : clctn) {
+            remove(element);
+        }
+        return true;
     }
 
     @Override
     public boolean retainAll(Collection<?> clctn) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void clear() {
+        for (int i = 0; i != inner.length; i++)
+            inner[i] = null;
+        size = 0;
     }
 
     @Override
     public Object[] toArray() {
-        Object[] temp = new Object[size];
+        return toArray(inner);
+    }
+
+    @Override
+    public <X> X[] toArray(X[] ts) {
+        X[] temp = (X[]) Array.newInstance(ts.getClass().getComponentType(), size);
         int index = 0;
         for (int i = 0; i != inner.length; i++) {
             if (inner[i] != null) {
-                temp[index] = inner[i];
+                temp[index] = (X) inner[i];
                 index++;
             }
         }
         return temp;
-    }
-
-    @Override
-    public <T> T[] toArray(T[] ts) {
-        return null;
     }
 }
