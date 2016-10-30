@@ -73,11 +73,23 @@ public class Files {
         Charset charset = detectEncoding(file);
         InputStream stream = new java.io.FileInputStream(file);
         int[] overflow = null;
-        if (charset.name().equals("UTF-8")) overflow = strip(stream, BOM_UTF8);
-        else if (charset.name().equals("UTF-16LE")) overflow = strip(stream, BOM_UTF16_LE);
-        else if (charset.name().equals("UTF-16BE")) overflow = strip(stream, BOM_UTF16_BE);
-        else if (charset.name().equals("UTF-32LE")) overflow = strip(stream, BOM_UTF32_LE);
-        else if (charset.name().equals("UTF-32BE")) overflow = strip(stream, BOM_UTF32_BE);
+        switch (charset.name()) {
+            case "UTF-8":
+                overflow = strip(stream, BOM_UTF8);
+                break;
+            case "UTF-16LE":
+                overflow = strip(stream, BOM_UTF16_LE);
+                break;
+            case "UTF-16BE":
+                overflow = strip(stream, BOM_UTF16_BE);
+                break;
+            case "UTF-32LE":
+                overflow = strip(stream, BOM_UTF32_LE);
+                break;
+            case "UTF-32BE":
+                overflow = strip(stream, BOM_UTF32_BE);
+                break;
+        }
         if (overflow != null)
             stream = new CompositeInputStream(overflow, stream);
         return new InputStreamReader(stream, charset);
