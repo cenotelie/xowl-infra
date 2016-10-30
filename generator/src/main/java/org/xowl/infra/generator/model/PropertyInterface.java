@@ -71,25 +71,132 @@ public class PropertyInterface extends PropertyData {
     }
 
     /**
-     * Generates and writes the code for this property interface as a standalone distribution
+     * Generates and writes the code for this property interface
      *
      * @param writer The writer to write to
-     * @throws java.io.IOException When an IO error occurs
+     * @throws IOException When an IO error occurs
      */
-    public void writeStandalone(Writer writer) throws IOException {
-        writer.append("    // <editor-fold defaultstate=\"collapsed\" desc=\"Property " + getProperty().getName() + "\">").append(Files.LINE_SEPARATOR);
+    public void writeInterface(Writer writer) throws IOException {
         String type;
         if (getRangeClass() != null)
             type = getRangeClass().getJavaName();
         else
             type = getRangeDatatype().getJavaType();
-        if (getProperty().getDomain() == getParentClass())
-            writeStandaloneInterface(writer, type);
         if (isVector())
-            writeStandaloneAsVector(writer, type);
+            writeInterfaceVector(writer, type);
         else
-            writeStandaloneAsScalar(writer, type);
-        writer.append("    // </editor-fold>").append(Files.LINE_SEPARATOR);
+            writeInterfaceScalar(writer, type);
+    }
+
+    /**
+     * Writes the javadoc for the add method
+     *
+     * @param writer   The writer to write to
+     * @param property The property's type as a string
+     * @throws IOException When an IO error occurs
+     */
+    public void writeJavadocAdd(Writer writer, String property) throws IOException {
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Adds an element to the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param elem The element to add").append(Files.LINE_SEPARATOR);
+        writer.append("     * @return Whether the operation resulted in a new element (false if the element was already there)").append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the javadoc for the remove method
+     *
+     * @param writer   The writer to write to
+     * @param property The property's type as a string
+     * @throws IOException When an IO error occurs
+     */
+    public void writeJavadocRemove(Writer writer, String property) throws IOException {
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Removes an element from the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param elem The element to remove").append(Files.LINE_SEPARATOR);
+        writer.append("     * @return Whether the operation resulted in the element being removed").append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the javadoc for the getAll method
+     *
+     * @param writer   The writer to write to
+     * @param property The property's type as a string
+     * @throws IOException When an IO error occurs
+     */
+    public void writeJavadocGetAll(Writer writer, String property) throws IOException {
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Gets all the elements for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @return The elements for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the javadoc for the typed getAll method
+     *
+     * @param writer   The writer to write to
+     * @param property The property's type as a string
+     * @throws IOException When an IO error occurs
+     */
+    public void writeJavadocGetAllTyped(Writer writer, String property) throws IOException {
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Gets all the elements for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param type An element of the type expected in result (may be null)").append(Files.LINE_SEPARATOR);
+        writer.append("     *             This parameter is used to disambiguate among overloads.").append(Files.LINE_SEPARATOR);
+        writer.append("     * @return The elements for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the javadoc for the get method
+     *
+     * @param writer   The writer to write to
+     * @param property The property's type as a string
+     * @throws IOException When an IO error occurs
+     */
+    public void writeJavadocSet(Writer writer, String property) throws IOException {
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Sets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param elem The value to set").append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the javadoc for the get method
+     *
+     * @param writer   The writer to write to
+     * @param property The property's type as a string
+     * @throws IOException When an IO error occurs
+     */
+    public void writeJavadocGet(Writer writer, String property) throws IOException {
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Gets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @return The value for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the javadoc for the typed get method
+     *
+     * @param writer   The writer to write to
+     * @param property The property's type as a string
+     * @throws IOException When an IO error occurs
+     */
+    public void writeJavadocGetTyped(Writer writer, String property) throws IOException {
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Gets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param type An element of the type expected in result (may be null)").append(Files.LINE_SEPARATOR);
+        writer.append("     *             This parameter is used to disambiguate among overloads.").append(Files.LINE_SEPARATOR);
+        writer.append("     * @return The value for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
     }
 
     /**
@@ -97,17 +204,28 @@ public class PropertyInterface extends PropertyData {
      *
      * @param writer The writer to write to
      * @param type   The property's type as a string
-     * @throws java.io.IOException When an IO error occurs
+     * @throws IOException When an IO error occurs
      */
-    private void writeStandaloneAsVector(Writer writer, String type) throws IOException {
+    private void writeInterfaceVector(Writer writer, String type) throws IOException {
         String property = getProperty().getName();
         property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writer.append("    boolean add" + property + "(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("    boolean remove" + property + "(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain())
-            writer.append("    Collection<" + type + "> getAll" + property + "();").append(Files.LINE_SEPARATOR);
-        else
-            writer.append("    Collection<" + type + "> getAll" + property + "As(" + type + " type);").append(Files.LINE_SEPARATOR);
+        writeJavadocAdd(writer, type);
+        writer.append("    boolean add").append(property).append("(").append(type).append(" elem);").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writeJavadocRemove(writer, type);
+        writer.append("    boolean remove").append(property).append("(").append(type).append(" elem);").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain()) {
+            writeJavadocGetAll(writer, type);
+            writer.append("    Collection<").append(type).append("> getAll").append(property).append("();").append(Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
+        } else {
+            writeJavadocGetAllTyped(writer, type);
+            writer.append("    Collection<").append(type).append("> getAll").append(property).append("As(").append(type).append(" type);").append(Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
+        }
     }
 
     /**
@@ -115,41 +233,23 @@ public class PropertyInterface extends PropertyData {
      *
      * @param writer The writer to write to
      * @param type   The property's type as a string
-     * @throws java.io.IOException When an IO error occurs
+     * @throws IOException When an IO error occurs
      */
-    private void writeStandaloneAsScalar(Writer writer, String type) throws IOException {
+    private void writeInterfaceScalar(Writer writer, String type) throws IOException {
         String property = getProperty().getName();
         property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writer.append("    boolean set" + property + "(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain())
-            writer.append("    " + type + " get" + property + "();").append(Files.LINE_SEPARATOR);
-        else
-            writer.append("    " + type + " get" + property + "As(" + type + " type);").append(Files.LINE_SEPARATOR);
-    }
+        writeJavadocSet(writer, type);
+        writer.append("    void set").append(property).append("(").append(type).append(" elem);").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
 
-    /**
-     * Generates and writes the code for this property reification interface
-     *
-     * @param writer The writer to write to
-     * @param type   The property's type as a string
-     * @throws java.io.IOException When an IO error occurs
-     */
-    private void writeStandaloneInterface(Writer writer, String type) throws IOException {
-        writer.append("    public static interface " + getProperty().getName() + " {").append(Files.LINE_SEPARATOR);
-        writer.append("        boolean check_contains(" + type + " elem);").append(Files.LINE_SEPARATOR);
-
-        writer.append("        boolean user_check_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        boolean user_check_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        boolean user_check_replace(" + type + " oldElem, " + type + "  newElem);").append(Files.LINE_SEPARATOR);
-        writer.append("        void user_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        void user_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
-
-        writer.append("        boolean inverse_check_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        boolean inverse_check_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        boolean inverse_check_replace(" + type + " oldElem, " + type + "  newElem);").append(Files.LINE_SEPARATOR);
-        writer.append("        void inverse_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        void inverse_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append("    " + getProperty().getName() + " __getImplOf" + getProperty().getName() + "();").append(Files.LINE_SEPARATOR);
+        if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain()) {
+            writeJavadocGet(writer, type);
+            writer.append("    ").append(type).append(" get").append(property).append("();").append(Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
+        } else {
+            writeJavadocGetTyped(writer, type);
+            writer.append("    ").append(type).append(" get").append(property).append("As(").append(type).append(" type);").append(Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
+        }
     }
 }

@@ -27,6 +27,7 @@ import org.xowl.infra.utils.logging.ConsoleLogger;
 import org.xowl.infra.utils.logging.Logger;
 import org.xowl.infra.utils.logging.Logging;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -199,11 +200,12 @@ public class Program {
         model.load();
         model.build(logger);
 
+
         // generate the code
-        if (!outputDirectory.endsWith("/"))
-            outputDirectory += "/";
+        File outputSrc = new File(new File(outputDirectory), "src");
         try {
-            model.writeStandalone(outputDirectory + "src/", fileHeader);
+            model.writeInterface(outputSrc, fileHeader);
+            model.writeStandalone(outputSrc, fileHeader);
         } catch (Exception ex) {
             logger.error(ex);
         }

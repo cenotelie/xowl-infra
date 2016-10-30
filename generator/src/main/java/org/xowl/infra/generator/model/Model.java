@@ -333,20 +333,36 @@ public class Model {
     }
 
     /**
+     * Generates and writes the interface code for this model
+     *
+     * @param folder The target folder
+     * @param header The header to use
+     * @throws IOException When an IO error occurs
+     */
+    public void writeInterface(File folder, String header) throws IOException {
+        File target = folder;
+        for (String sub : basePackage.split("\\."))
+            target = new File(target, sub);
+        if (!target.exists() && !target.mkdirs())
+            throw new IOException("Failed to create folder " + target);
+        for (PackageModel packageModel : packages.values())
+            packageModel.writeInterface(target, header);
+    }
+
+    /**
      * Generates and writes the code for this model as a standalone distribution
      *
      * @param folder The target folder
      * @param header The header to use
-     * @throws java.io.IOException When an IO error occurs
+     * @throws IOException When an IO error occurs
      */
-    public void writeStandalone(String folder, String header) throws IOException {
-        String[] subs = basePackage.split("\\.");
-        for (String sub : subs)
-            folder += sub + "/";
-        File dir = new File(folder);
-        if (!dir.exists() && !dir.mkdirs())
-            throw new IOException("Failed to create folder " + folder);
+    public void writeStandalone(File folder, String header) throws IOException {
+        File target = folder;
+        for (String sub : basePackage.split("\\."))
+            target = new File(target, sub);
+        if (!target.exists() && !target.mkdirs())
+            throw new IOException("Failed to create folder " + target);
         for (PackageModel packageModel : packages.values())
-            packageModel.writeStandalone(folder, header);
+            packageModel.writeStandalone(target, header);
     }
 }

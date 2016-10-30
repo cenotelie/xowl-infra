@@ -256,7 +256,7 @@ public class PropertyImplementation extends PropertyData {
      * Generates and writes the code for this property implementation as a standalone distribution
      *
      * @param writer The writer to write to
-     * @throws java.io.IOException When an IO error occurs
+     * @throws IOException When an IO error occurs
      */
     public void writeStandalone(Writer writer) throws IOException {
         boolean isInTypeRestrictionChain = false;
@@ -266,59 +266,21 @@ public class PropertyImplementation extends PropertyData {
                 break;
             }
         }
-        String property = getProperty().getName();
-        property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
 
-        writer.append("    // <editor-fold defaultstate=\"collapsed\" desc=\"Property " + getProperty().getName() + "\">").append(Files.LINE_SEPARATOR);
-        if (getDomain() == getParentClass()) {
-            if (getProperty().isObjectProperty())
-                writeStandalonePropertyClassInterface(writer, getRangeClass().getJavaName());
-            else writeStandalonePropertyClassInterface(writer, getRangeDatatype().getJavaType());
-        }
-        if (getProperty().isObjectProperty()) {
-            if (getRange() == null || getRange() == getRangeClass())
-                writeStandalonePropertyClassSameType(writer, getRangeClass().getJavaName());
-            else
-                writeStandalonePropertyClassTranstype(writer, getRange().getJavaName(), getRangeClass().getJavaName());
+        writeStandaloneFields(writer);
+
+        if (!getProperty().isObjectProperty()) {
+            for (PropertyInterface inter : getInterfaces()) {
+                if (inter.isVector())
+                    writeStandaloneDatatypeVector(writer, inter);
+                else
+                    writeStandaloneDatatypeScalar(writer, inter);
+            }
         } else {
-            writeStandalonePropertyClassSameType(writer, getRangeDatatype().getJavaType());
+            for (PropertyInterface inter : getInterfaces()) {
+                writeStandaloneObject(writer, inter, isInTypeRestrictionChain);
+            }
         }
-        writer.append("    private ").append(getProperty().getName()).append("_impl data").append(property).append(";").append(Files.LINE_SEPARATOR);
-        writer.append("    public ").append(getDomain().getJavaName()).append(".").append(getProperty().getName()).append(" __getImplOf").append(getProperty().getName()).append("() { return data").append(property).append("; }").append(Files.LINE_SEPARATOR);
-
-        if (!getProperty().isObjectProperty())
-            writeStandaloneDatatype(writer);
-        else {
-            for (PropertyInterface inter : getInterfaces())
-                writeStandaloneObjectInterface(writer, inter, isInTypeRestrictionChain);
-        }
-        writer.append("    // </editor-fold>").append(Files.LINE_SEPARATOR);
-    }
-
-    /**
-     * Writes the interface of the property reification class
-     *
-     * @param writer The writer to write to
-     * @param type   The property's type
-     * @throws IOException When an IO error occurs
-     */
-    private void writeStandalonePropertyClassInterface(Writer writer, String type) throws IOException {
-        writer.append("    public static interface " + getProperty().getName());
-        writer.append(" {").append(Files.LINE_SEPARATOR);
-        writer.append("        boolean check_contains(" + type + " elem);").append(Files.LINE_SEPARATOR);
-
-        writer.append("        boolean user_check_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        boolean user_check_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        boolean user_check_replace(" + type + " oldElem, " + type + "  newElem);").append(Files.LINE_SEPARATOR);
-        writer.append("        void user_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        void user_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
-
-        writer.append("        boolean inverse_check_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        boolean inverse_check_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        boolean inverse_check_replace(" + type + " oldElem, " + type + "  newElem);").append(Files.LINE_SEPARATOR);
-        writer.append("        void inverse_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        void inverse_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
     }
 
     /**
@@ -786,44 +748,117 @@ public class PropertyImplementation extends PropertyData {
         writer.append("    }").append(Files.LINE_SEPARATOR);
     }
 
-    private void writeStandaloneDatatype(Writer writer) throws IOException {
-        for (PropertyInterface inter : getInterfaces()) {
-            if (inter.isVector())
-                writeStandaloneDatatypeInterfaceVector(writer, inter);
-            else
-                writeStandaloneDatatypeInterfaceScalar(writer, inter);
+    /**
+     * Writes the fields for the standalone generation
+     *
+     * @param writer The write to use
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneFields(Writer writer) throws IOException {
+        String type = getRepresentationRange();
+        String property = getProperty().getName();
+        property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
+
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * The backing data for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+        if (isVector())
+            writer.append("    public Collection<").append(type).append("> __impl").append(property).append(";").append(Files.LINE_SEPARATOR);
+        else
+            writer.append("    public ").append(type).append(" __impl").append(property).append(";").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the standalone implementation of this datatype scalar property
+     *
+     * @param writer The write to use
+     * @param inter  The property interface to implement
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneDatatypeScalar(Writer writer, PropertyInterface inter) throws IOException {
+        String type = getRepresentationRange();
+        String property = inter.getProperty().getName();
+        property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
+
+        if (getDomain() == getParentClass())
+            inter.writeJavadocGet(writer, property);
+        else
+            writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public ").append(type).append(" get").append(property).append("() {").append(Files.LINE_SEPARATOR);
+        writer.append("        return __impl").append(property).append(";").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        if (getDomain() == getParentClass())
+            inter.writeJavadocSet(writer, property);
+        else
+            writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public void set").append(property).append("(").append(type).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("        __impl").append(property).append(" = elem;").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the standalone implementation of this datatype vector property
+     *
+     * @param writer The write to use
+     * @param inter  The property interface to implement
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneDatatypeVector(Writer writer, PropertyInterface inter) throws IOException {
+        String type = getRepresentationRange();
+        String property = inter.getProperty().getName();
+        property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
+
+        if (getDomain() == getParentClass())
+            inter.writeJavadocGetAll(writer, property);
+        else
+            writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public Collection<").append(type).append("> getAll").append(property).append("() {").append(Files.LINE_SEPARATOR);
+        writer.append("        return Collections.unmodifiableCollection(__impl").append(property).append(");").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        if (getDomain() == getParentClass())
+            inter.writeJavadocAdd(writer, property);
+        else
+            writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public boolean add").append(property).append("(").append(type).append(" elem) {").append(Files.LINE_SEPARATOR);
+        if (getCardMax() != Integer.MAX_VALUE) {
+            writer.append("        if (__impl").append(property).append(".size() >= ").append(Integer.toString(getCardMax())).append(")").append(Files.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is ").append(Integer.toString(getCardMax())).append("\");").append(Files.LINE_SEPARATOR);
         }
+        writer.append("        return __impl").append(property).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        if (getDomain() == getParentClass())
+            inter.writeJavadocRemove(writer, property);
+        else
+            writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public boolean remove").append(property).append("(").append(type).append(" elem) {").append(Files.LINE_SEPARATOR);
+        if (getCardMin() > 0) {
+            writer.append("        if (!__impl").append(property).append(".contains(elem))").append(Files.LINE_SEPARATOR);
+            writer.append("            return false;").append(Files.LINE_SEPARATOR);
+            writer.append("        if (__impl").append(property).append(".size() <= ").append(Integer.toString(getCardMin())).append(")").append(Files.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Minimum cardinality is ").append(Integer.toString(getCardMin())).append("\");").append(Files.LINE_SEPARATOR);
+        }
+        writer.append("        return __impl").append(property).append(".remove(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
     }
 
-    private void writeStandaloneDatatypeInterfaceScalar(Writer writer, PropertyInterface inter) throws IOException {
-        String type = getRepresentationRange();
-        String property = inter.getProperty().getName();
-        property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writer.append("    public boolean set" + property + "(" + type + " elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        data" + property + ".simple_add(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append("    public " + type + " get" + property + "() { return data" + property + ".get(); }").append(Files.LINE_SEPARATOR);
-    }
-
-    private void writeStandaloneDatatypeInterfaceVector(Writer writer, PropertyInterface inter) throws IOException {
-        String type = getRepresentationRange();
-        String property = inter.getProperty().getName();
-        property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writer.append("    public boolean add" + property + "(" + type + " elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (!data" + property + ".user_check_add(elem)) return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        data" + property + ".user_add(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append("    public boolean remove" + property + "(" + type + " elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (!data" + property + ".user_check_remove(elem)) return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        data" + property + ".user_remove(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append("    public java.util.Collection<" + type + "> getAll" + property + "() { return data" + property + ".get(); }").append(Files.LINE_SEPARATOR);
-    }
-
-    private void writeStandaloneObjectInterface(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
+    /**
+     * Writes the standalone implementation of this object property
+     *
+     * @param writer                The write to use
+     * @param inter                 The property interface to implement
+     * @param isInTypeRestrictChain Whether this property is in a type restriction chain
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneObject(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
         ClassModel interfaceRange = inter.getRangeClass();
         if (inter.isVector()) {
             if (interfaceRange == getRangeClass())
@@ -832,37 +867,52 @@ public class PropertyImplementation extends PropertyData {
                 writeStandaloneObjectInterfaceVector_Transtype(writer, inter);
         } else {
             if (interfaceRange == getRangeClass())
-                writeStandaloneObjectInterfaceScalar_SameType(writer, inter, isInTypeRestrictChain);
+                writeStandaloneObjectScalar(writer, inter, isInTypeRestrictChain);
             else
                 writeStandaloneObjectInterfaceScalar_Transtype(writer, inter);
         }
     }
 
-    private void writeStandaloneObjectInterfaceScalar_SameType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
-        String interType = getRangeClass().getJavaName();
+    private void writeStandaloneObjectScalar(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
+        String implType = getRangeClass().getJavaName();
+        String interType = inter.getRepresentationRange();
         String property = inter.getProperty().getName();
         property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writer.append("    public boolean set" + property + "(" + interType + " elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (data" + property + ".get() != null) {").append(Files.LINE_SEPARATOR);
-        writer.append("            if (elem == null) {").append(Files.LINE_SEPARATOR);
-        writer.append("                if (!data" + property + ".user_check_remove(data" + property + ".get())) return false;").append(Files.LINE_SEPARATOR);
-        writer.append("                data" + property + ".user_remove(data" + property + ".get());").append(Files.LINE_SEPARATOR);
-        writer.append("            } else {").append(Files.LINE_SEPARATOR);
-        writer.append("                if (!data" + property + ".user_check_replace(data" + property + ".get(), elem)) return false;").append(Files.LINE_SEPARATOR);
-        writer.append("                data" + property + ".user_remove(data" + property + ".get());").append(Files.LINE_SEPARATOR);
-        writer.append("                data" + property + ".user_add(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("            }").append(Files.LINE_SEPARATOR);
-        writer.append("        } else {").append(Files.LINE_SEPARATOR);
-        writer.append("            if (elem == null) return true;").append(Files.LINE_SEPARATOR);
-        writer.append("            if (!data" + property + ".user_check_add(elem)) return false;").append(Files.LINE_SEPARATOR);
-        writer.append("            data" + property + ".user_add(elem);").append(Files.LINE_SEPARATOR);
-        writer.append("        }").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        if (!isInTypeRestrictChain)
-            writer.append("    public " + interType + " get" + property + "() { return data" + property + ".get(); }").append(Files.LINE_SEPARATOR);
+
+        if (getDomain() == getParentClass())
+            inter.writeJavadocGet(writer, property);
         else
-            writer.append("    public " + interType + " get" + property + "As(" + interType + " type) { return data" + property + ".get(); }").append(Files.LINE_SEPARATOR);
+            writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        if (isInTypeRestrictChain)
+            writer.append("    public ").append(interType).append(" get").append(property).append("As(").append(interType).append(" type) {").append(Files.LINE_SEPARATOR);
+        else
+            writer.append("    public ").append(interType).append(" get").append(property).append("() {").append(Files.LINE_SEPARATOR);
+        writer.append("        return __impl").append(property).append(";").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        if (getDomain() == getParentClass())
+            inter.writeJavadocSet(writer, property);
+        else
+            writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public void set").append(property).append("(").append(interType).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(property).append(" == elem)").append(Files.LINE_SEPARATOR);
+        writer.append("            return;").append(Files.LINE_SEPARATOR);
+        if (!interType.equals(implType)) {
+            // check type
+            writer.append("        if (!(elem instanceof ").append(implType).append("))").append(Files.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Expected type").append(implType).append(" \");").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(property).append(" = (").append(implType).append(") elem;").append(Files.LINE_SEPARATOR);
+
+            for (PropertyModel propertyModel : getInverses()) {
+
+            }
+
+        } else {
+            writer.append("        __impl").append(property).append(" = elem;").append(Files.LINE_SEPARATOR);
+        }
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
     }
 
     private void writeStandaloneObjectInterfaceScalar_Transtype(Writer writer, PropertyInterface inter) throws IOException {
@@ -962,7 +1012,7 @@ public class PropertyImplementation extends PropertyData {
      */
     public void writeStandaloneConstructor(Writer writer) throws IOException {
         String property = getProperty().getName();
-        property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writer.append("        data" + property + " = new " + getProperty().getName() + "_impl(this);").append(Files.LINE_SEPARATOR);
+        //property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
+        //writer.append("        data" + property + " = new " + getProperty().getName() + "_impl(this);").append(Files.LINE_SEPARATOR);
     }
 }

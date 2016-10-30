@@ -24,6 +24,7 @@ import org.xowl.infra.lang.runtime.Interpretation;
 import org.xowl.infra.lang.runtime.Property;
 import org.xowl.infra.store.Vocabulary;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -101,7 +102,12 @@ public class ReflectionPackage extends PackageModel {
     }
 
     @Override
-    public void writeStandalone(String folder, String header) throws IOException {
+    public void writeInterface(File folder, String header) throws IOException {
+        // do nothing
+    }
+
+    @Override
+    public void writeStandalone(File folder, String header) throws IOException {
         // do nothing
     }
 

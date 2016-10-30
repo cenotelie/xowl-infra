@@ -22,9 +22,11 @@ import org.xowl.infra.lang.runtime.Class;
 import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.infra.lang.runtime.Interpretation;
 import org.xowl.infra.lang.runtime.Property;
+import org.xowl.infra.utils.Files;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -176,22 +178,112 @@ public class PackageModel {
     }
 
     /**
+     * Generates and writes the interface code
+     *
+     * @param folder The target folder
+     * @param header The header to use
+     * @throws IOException When an IO error occurs
+     */
+    public void writeInterface(File folder, String header) throws IOException {
+        if ((classes.size() + anonymousClasses.size()) == 0)
+            return;
+        File target = new File(folder, name);
+        if (!target.exists() && !target.mkdirs())
+            throw new IOException("Failed to create folder " + target);
+        for (ClassModel classModel : classes.values())
+            classModel.writeInterface(target, header);
+        for (ClassModel classModel : anonymousClasses.values())
+            classModel.writeInterface(target, header);
+    }
+
+    /**
      * Generates and writes the code for this package as a standalone distribution
      *
      * @param folder The target folder
      * @param header The header to use
-     * @throws java.io.IOException When an IO error occurs
+     * @throws IOException When an IO error occurs
      */
-    public void writeStandalone(String folder, String header) throws IOException {
+    public void writeStandalone(File folder, String header) throws IOException {
         if ((classes.size() + anonymousClasses.size()) == 0)
             return;
-        String myFolder = folder + name + "/";
-        File directory = new File(myFolder);
-        if (!directory.exists() && !directory.mkdir())
-            throw new IOException("Failed to create folder " + folder);
+        File target = new File(folder, "impl");
+        if (!target.exists() && !target.mkdirs())
+            throw new IOException("Failed to create folder " + target);
         for (ClassModel classModel : classes.values())
-            classModel.writeStandalone(myFolder, header);
+            classModel.writeStandalone(target, header);
         for (ClassModel classModel : anonymousClasses.values())
-            classModel.writeStandalone(myFolder, header);
+            classModel.writeStandalone(target, header);
+        // write the factory
+        target = new File(folder, name);
+        if (!target.exists() && !target.mkdirs())
+            throw new IOException("Failed to create folder " + target);
+        writeStandaloneFactory(target, header);
+    }
+
+    /**
+     * Writes the factory class for the standalone implementation
+     *
+     * @param folder The target folder
+     * @param header The header to use
+     * @throws IOException When an IO error occurs
+     */
+    private void writeStandaloneFactory(File folder, String header) throws IOException {
+        String name = getName();
+        name = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
+
+        Writer writer = Files.getWriter(new File(folder, name + "Factory.java").getAbsolutePath());
+        String[] lines = header.split(Files.LINE_SEPARATOR);
+        writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
+        for (String line : lines) {
+            writer.append(" * ");
+            writer.append(line);
+            writer.append(Files.LINE_SEPARATOR);
+        }
+        writer.append(" ******************************************************************************/").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+        writer.append("package ").append(getFullName()).append(";").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+        writer.append("import ").append(parent.getBasePackage()).append(".impl.*;").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+        writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("/**").append(Files.LINE_SEPARATOR);
+        writer.append(" * The default implementation for the concrete OWL class ").append(getName()).append(Files.LINE_SEPARATOR);
+        writer.append(" *").append(Files.LINE_SEPARATOR);
+        writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
+        writer.append(" */").append(Files.LINE_SEPARATOR);
+        writer.append("public class ").append(name).append("Factory {").append(Files.LINE_SEPARATOR);
+
+        for (ClassModel classModel : classes.values()) {
+            if (classModel.isAbstract())
+                continue;
+            writer.append("    /**").append(Files.LINE_SEPARATOR);
+            writer.append("     * Creates a new instance of ").append(classModel.getName()).append(Files.LINE_SEPARATOR);
+            writer.append("     *").append(Files.LINE_SEPARATOR);
+            writer.append("     * @return A new instance of ").append(classModel.getName()).append(Files.LINE_SEPARATOR);
+            writer.append("     */").append(Files.LINE_SEPARATOR);
+            writer.append("    public new").append(classModel.getName()).append("() {").append(Files.LINE_SEPARATOR);
+            writer.append("        return new ").append(classModel.getName()).append("();").append(Files.LINE_SEPARATOR);
+            writer.append("    }").append(Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
+        }
+
+        for (ClassModel classModel : anonymousClasses.values()) {
+            if (classModel.isAbstract())
+                continue;
+            writer.append("    /**").append(Files.LINE_SEPARATOR);
+            writer.append("     * Creates a new instance of ").append(classModel.getName()).append(Files.LINE_SEPARATOR);
+            writer.append("     *").append(Files.LINE_SEPARATOR);
+            writer.append("     * @return A new instance of ").append(classModel.getName()).append(Files.LINE_SEPARATOR);
+            writer.append("     */").append(Files.LINE_SEPARATOR);
+            writer.append("    public new").append(classModel.getName()).append("() {").append(Files.LINE_SEPARATOR);
+            writer.append("        return new ").append(classModel.getName()).append("();").append(Files.LINE_SEPARATOR);
+            writer.append("    }").append(Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
+        }
+
+        writer.append("}").append(Files.LINE_SEPARATOR);
+        writer.close();
     }
 }

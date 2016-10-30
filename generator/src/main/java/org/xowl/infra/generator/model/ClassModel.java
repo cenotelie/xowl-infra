@@ -22,6 +22,7 @@ import org.xowl.infra.lang.runtime.*;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
@@ -563,41 +564,39 @@ public class ClassModel {
     }
 
     /**
-     * Generates and writes the code for this class as a standalone distribution
+     * Generates and writes the code for the interface of this OWL class
      *
      * @param folder The target folder
      * @param header The header to use
-     * @throws java.io.IOException When an IO error occurs
+     * @throws IOException When an IO error occurs
      */
-    public void writeStandalone(String folder, String header) throws IOException {
-        Writer writer = Files.getWriter(folder + getName() + ".java");
+    public void writeInterface(File folder, String header) throws IOException {
+        Writer writer = Files.getWriter(new File(folder, getName() + ".java").getAbsolutePath());
         String[] lines = header.split(Files.LINE_SEPARATOR);
         writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
         for (String line : lines) {
             writer.append(" * ");
             writer.append(line);
-            writer.append("").append(Files.LINE_SEPARATOR);
+            writer.append(Files.LINE_SEPARATOR);
         }
         writer.append(" ******************************************************************************/").append(Files.LINE_SEPARATOR);
-        writer.append("").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
         writer.append("package ").append(getPackage().getFullName()).append(";").append(Files.LINE_SEPARATOR);
-        writer.append("").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
         writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
-        writer.append("").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
 
-        if (!isAbstract())
-            writer.append("public class ").append(getName());
-        else
-            writer.append("public interface ").append(getName());
+        writer.append("/**").append(Files.LINE_SEPARATOR);
+        writer.append(" * Represents the base interface for the OWL class ").append(getName()).append(Files.LINE_SEPARATOR);
+        writer.append(" *").append(Files.LINE_SEPARATOR);
+        writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
+        writer.append(" */").append(Files.LINE_SEPARATOR);
+        writer.append("public interface ").append(getName());
 
-        // writes parency
         boolean first = true;
         for (ClassModel parent : superClasses) {
             if (first) {
-                if (!isAbstract())
-                    writer.append(" implements ");
-                else
-                    writer.append(" extends ");
+                writer.append(" extends ");
             } else
                 writer.append(", ");
             writer.append(parent.getJavaName());
@@ -605,32 +604,53 @@ public class ClassModel {
         }
         writer.append(" {").append(Files.LINE_SEPARATOR);
 
-        if (isAbstract())
-            for (PropertyInterface inter : getPropertyInterfaces())
-                inter.writeStandalone(writer);
-        else
-            writeStandaloneImplementations(writer);
+        for (PropertyInterface inter : getPropertyInterfaces())
+            inter.writeInterface(writer);
 
         writer.append("}").append(Files.LINE_SEPARATOR);
         writer.close();
     }
 
     /**
-     * Generates and writes the property implementations as a standalone distribution
+     * Generates and writes the code for the standalone implementation of this OWL class
      *
-     * @param writer The writer to write to
-     * @throws java.io.IOException When an IO error occurs
+     * @param folder The target folder
+     * @param header The header to use
+     * @throws IOException When an IO error occurs
      */
-    private void writeStandaloneImplementations(Writer writer) throws IOException {
+    public void writeStandalone(File folder, String header) throws IOException {
+        if (isAbstract())
+            return;
+
+        Writer writer = Files.getWriter(new File(folder, getName() + "Impl.java").getAbsolutePath());
+        String[] lines = header.split(Files.LINE_SEPARATOR);
+        writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
+        for (String line : lines) {
+            writer.append(" * ");
+            writer.append(line);
+            writer.append(Files.LINE_SEPARATOR);
+        }
+        writer.append(" ******************************************************************************/").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+        writer.append("package ").append(getPackage().getFullName()).append(";").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+        writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("/**").append(Files.LINE_SEPARATOR);
+        writer.append(" * The default implementation for the concrete OWL class ").append(getName()).append(Files.LINE_SEPARATOR);
+        writer.append(" *").append(Files.LINE_SEPARATOR);
+        writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
+        writer.append(" */").append(Files.LINE_SEPARATOR);
+        writer.append("public class ").append(getName()).append("Impl implements ").append(getJavaName()).append(" {").append(Files.LINE_SEPARATOR);
+
         // writes all Implementations
         for (PropertyImplementation implementation : getPropertyImplementations()) {
             implementation.writeStandalone(writer);
-            writer.append("").append(Files.LINE_SEPARATOR);
         }
         // writes all static instances
         for (InstanceModel instance : getStaticInstances()) {
             instance.writeStandalone(writer);
-            writer.append("").append(Files.LINE_SEPARATOR);
         }
 
         // writes constructor
@@ -640,6 +660,7 @@ public class ClassModel {
         for (PropertyImplementation implementation : getPropertyImplementations())
             implementation.writeStandaloneConstructor(writer);
         writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append("").append(Files.LINE_SEPARATOR);
+        writer.append("}").append(Files.LINE_SEPARATOR);
+        writer.close();
     }
 }

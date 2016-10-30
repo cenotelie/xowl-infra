@@ -96,7 +96,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelByte extends DatatypeModel {
         public DatatypeModelByte(Datatype datatype, String iri) {
-            super(datatype, iri, "Byte");
+            super(datatype, iri, "byte");
         }
 
         @Override
@@ -115,7 +115,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelShort extends DatatypeModel {
         public DatatypeModelShort(Datatype datatype, String iri) {
-            super(datatype, iri, "Short");
+            super(datatype, iri, "short");
         }
 
         @Override
@@ -134,7 +134,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelInteger extends DatatypeModel {
         public DatatypeModelInteger(Datatype datatype, String iri) {
-            super(datatype, iri, "Integer");
+            super(datatype, iri, "int");
         }
 
         @Override
@@ -153,7 +153,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelLong extends DatatypeModel {
         public DatatypeModelLong(Datatype datatype, String iri) {
-            super(datatype, iri, "Long");
+            super(datatype, iri, "long");
         }
 
         @Override
@@ -172,7 +172,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelFloat extends DatatypeModel {
         public DatatypeModelFloat(Datatype datatype, String iri) {
-            super(datatype, iri, "Float");
+            super(datatype, iri, "float");
         }
 
         @Override
@@ -191,7 +191,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelDouble extends DatatypeModel {
         public DatatypeModelDouble(Datatype datatype, String iri) {
-            super(datatype, iri, "Double");
+            super(datatype, iri, "double");
         }
 
         @Override
@@ -210,7 +210,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelBoolean extends DatatypeModel {
         public DatatypeModelBoolean(Datatype datatype, String iri) {
-            super(datatype, iri, "Boolean");
+            super(datatype, iri, "boolean");
         }
 
         @Override
@@ -248,7 +248,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelDate extends DatatypeModel {
         public DatatypeModelDate(Datatype datatype, String iri) {
-            super(datatype, iri, "java.util.Date");
+            super(datatype, iri, "Date");
         }
 
         @Override
