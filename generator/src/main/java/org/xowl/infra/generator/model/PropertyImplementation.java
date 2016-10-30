@@ -404,10 +404,30 @@ public class PropertyImplementation extends PropertyData {
             // check type
             writer.append("        if (!(elem instanceof ").append(implType).append("))").append(Files.LINE_SEPARATOR);
             writer.append("            throw new IllegalArgumentException(\"Expected type").append(implType).append(" \");").append(Files.LINE_SEPARATOR);
-            writer.append("        __impl").append(property).append(" = (").append(implType).append(") elem;").append(Files.LINE_SEPARATOR);
-        } else {
-            writer.append("        __impl").append(property).append(" = elem;").append(Files.LINE_SEPARATOR);
         }
+        for (PropertyImplementation ancestor : getAncestors()) {
+            String name = ancestor.getProperty().getName();
+            name = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
+            if (!ancestor.isVector())
+                writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
+            else
+                writer.append("        __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        }
+        for (PropertyImplementation descendant : getDescendants()) {
+            String name = descendant.getProperty().getName();
+            name = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
+            writer.append("        if (elem instanceof ").append(descendant.getRepresentationRange()).append(")").append(Files.LINE_SEPARATOR);
+            if (!descendant.isVector()) {
+                writer.append("            __impl").append(name).append(" = (").append(descendant.getRepresentationRange()).append(") elem;").append(Files.LINE_SEPARATOR);
+                writer.append("        else").append(Files.LINE_SEPARATOR);
+                writer.append("            __impl").append(name).append(" = null;").append(Files.LINE_SEPARATOR);
+            } else
+                writer.append("            __impl").append(name).append(".add((").append(descendant.getRepresentationRange()).append(") elem);").append(Files.LINE_SEPARATOR);
+        }
+        if (!interType.equals(implType))
+            writer.append("        __impl").append(property).append(" = (").append(implType).append(") elem;").append(Files.LINE_SEPARATOR);
+        else
+            writer.append("        __impl").append(property).append(" = elem;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
@@ -445,10 +465,30 @@ public class PropertyImplementation extends PropertyData {
             // check type
             writer.append("        if (!(elem instanceof ").append(implType).append("))").append(Files.LINE_SEPARATOR);
             writer.append("            throw new IllegalArgumentException(\"Expected type").append(implType).append(" \");").append(Files.LINE_SEPARATOR);
-            writer.append("        return __impl").append(property).append(".add((").append(implType).append(") elem);").append(Files.LINE_SEPARATOR);
-        } else {
-            writer.append("        return __impl").append(property).append(".add(elem);").append(Files.LINE_SEPARATOR);
         }
+        for (PropertyImplementation ancestor : getAncestors()) {
+            String name = ancestor.getProperty().getName();
+            name = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
+            if (!ancestor.isVector())
+                writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
+            else
+                writer.append("        __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        }
+        for (PropertyImplementation descendant : getDescendants()) {
+            String name = descendant.getProperty().getName();
+            name = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
+            writer.append("        if (elem instanceof ").append(descendant.getRepresentationRange()).append(")").append(Files.LINE_SEPARATOR);
+            if (!descendant.isVector()) {
+                writer.append("            __impl").append(name).append(" = (").append(descendant.getRepresentationRange()).append(") elem;").append(Files.LINE_SEPARATOR);
+                writer.append("        else").append(Files.LINE_SEPARATOR);
+                writer.append("            __impl").append(name).append(" = null;").append(Files.LINE_SEPARATOR);
+            } else
+                writer.append("            __impl").append(name).append(".add((").append(descendant.getRepresentationRange()).append(") elem);").append(Files.LINE_SEPARATOR);
+        }
+        if (!interType.equals(implType))
+            writer.append("        return __impl").append(property).append(".add((").append(implType).append(") elem);").append(Files.LINE_SEPARATOR);
+        else
+            writer.append("        return __impl").append(property).append(".add(elem);").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
@@ -464,10 +504,28 @@ public class PropertyImplementation extends PropertyData {
             // check type
             writer.append("        if (!(elem instanceof ").append(implType).append("))").append(Files.LINE_SEPARATOR);
             writer.append("            throw new IllegalArgumentException(\"Expected type").append(implType).append(" \");").append(Files.LINE_SEPARATOR);
-            writer.append("        return __impl").append(property).append(".remove((").append(implType).append(") elem);").append(Files.LINE_SEPARATOR);
-        } else {
-            writer.append("        return __impl").append(property).append(".remove(elem);").append(Files.LINE_SEPARATOR);
         }
+        for (PropertyImplementation ancestor : getAncestors()) {
+            String name = ancestor.getProperty().getName();
+            name = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
+            if (!ancestor.isVector())
+                writer.append("        __impl").append(name).append(" = null;").append(Files.LINE_SEPARATOR);
+            else
+                writer.append("        __impl").append(name).append(".remove(elem);").append(Files.LINE_SEPARATOR);
+        }
+        for (PropertyImplementation descendant : getDescendants()) {
+            String name = descendant.getProperty().getName();
+            name = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
+            writer.append("        if (elem instanceof ").append(descendant.getRepresentationRange()).append(")").append(Files.LINE_SEPARATOR);
+            if (!descendant.isVector())
+                writer.append("            __impl").append(name).append(" = null;").append(Files.LINE_SEPARATOR);
+            else
+                writer.append("            __impl").append(name).append(".remove((").append(descendant.getRepresentationRange()).append(") elem);").append(Files.LINE_SEPARATOR);
+        }
+        if (!interType.equals(implType))
+            writer.append("        return __impl").append(property).append(".remove((").append(implType).append(") elem);").append(Files.LINE_SEPARATOR);
+        else
+            writer.append("        return __impl").append(property).append(".remove(elem);").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
