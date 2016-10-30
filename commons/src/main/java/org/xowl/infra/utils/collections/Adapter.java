@@ -31,5 +31,5 @@ public interface Adapter<T> {
      * @param <X>     The type of the element to adapt
      * @return The adapted element
      */
-    public <X> T adapt(X element);
+    <X> T adapt(X element);
 }

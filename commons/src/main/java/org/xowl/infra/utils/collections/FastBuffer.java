@@ -86,8 +86,9 @@ public class FastBuffer<T> implements Collection<T> {
         return new SparseIterator<T>(inner) {
             @Override
             public void remove() {
+                T previous = content[lastIndex];
                 content[lastIndex] = null;
-                size--;
+                size -= (previous == null ? 0 : 1);
             }
         };
     }
