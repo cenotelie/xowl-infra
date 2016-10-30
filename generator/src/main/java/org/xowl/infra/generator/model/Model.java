@@ -21,13 +21,16 @@ import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.runtime.Class;
 import org.xowl.infra.lang.runtime.*;
-import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.store.RepositoryDirectSemantics;
+import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a model as sets of OWL2 ontologies
@@ -333,9 +336,10 @@ public class Model {
      * Generates and writes the code for this model as a standalone distribution
      *
      * @param folder The target folder
+     * @param header The header to use
      * @throws java.io.IOException When an IO error occurs
      */
-    public void writeStandalone(String folder) throws IOException {
+    public void writeStandalone(String folder, String header) throws IOException {
         String[] subs = basePackage.split("\\.");
         for (String sub : subs)
             folder += sub + "/";
@@ -343,6 +347,6 @@ public class Model {
         if (!dir.exists() && !dir.mkdirs())
             throw new IOException("Failed to create folder " + folder);
         for (PackageModel packageModel : packages.values())
-            packageModel.writeStandalone(folder);
+            packageModel.writeStandalone(folder, header);
     }
 }

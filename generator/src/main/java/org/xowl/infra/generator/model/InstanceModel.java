@@ -18,6 +18,7 @@
 package org.xowl.infra.generator.model;
 
 import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.utils.Files;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -89,11 +90,11 @@ public class InstanceModel {
      * @throws java.io.IOException When an IO error occurs
      */
     public void writeStandalone(Writer writer) throws IOException {
-        writer.write("    // <editor-fold defaultstate=\"collapsed\" desc=\"Static instance " + getName() + "\">\n");
-        writer.write("    private static " + getType().getJavaName() + " " + getName() + ";\n");
-        writer.write("    public static " + getType().getJavaName() + " get_" + getName() + "() {\n");
-        writer.write("        if (" + getName() + " != null) return " + getName() + ";\n");
-        writer.write("        " + getName() + " = new " + getType().getJavaName() + "();\n");
+        writer.append("    // <editor-fold defaultstate=\"collapsed\" desc=\"Static instance " + getName() + "\">").append(Files.LINE_SEPARATOR);
+        writer.append("    private static " + getType().getJavaName() + " " + getName() + ";").append(Files.LINE_SEPARATOR);
+        writer.append("    public static " + getType().getJavaName() + " get_" + getName() + "() {").append(Files.LINE_SEPARATOR);
+        writer.append("        if (" + getName() + " != null) return " + getName() + ";").append(Files.LINE_SEPARATOR);
+        writer.append("        " + getName() + " = new " + getType().getJavaName() + "();").append(Files.LINE_SEPARATOR);
 
         for (PropertyAssertion assertion : getOWLIndividual().getAllAsserts()) {
             if (assertion instanceof ObjectPropertyAssertion) {
@@ -106,9 +107,9 @@ public class InstanceModel {
                     String className = getType().getPackage().getModel().getBasePackage() + ".";
                     className += getType().getPackage().getModel().getModelFor(value.getOWLIndividual().getInterpretationOf().getContainedBy()).getName() + ".";
                     className += value.getName();
-                    writer.write("        " + getName() + ".data" + property + ".user_add(" + className + ".class);\n");
+                    writer.append("        " + getName() + ".data" + property + ".user_add(" + className + ".class);").append(Files.LINE_SEPARATOR);
                 } else
-                    writer.write("        " + getName() + ".data" + property + ".user_add(" + value.getType().getJavaName() + ".get_" + value.getName() + "());\n");
+                    writer.append("        " + getName() + ".data" + property + ".user_add(" + value.getType().getJavaName() + ".get_" + value.getName() + "());").append(Files.LINE_SEPARATOR);
 
             } else {
                 DataPropertyAssertion dataPropertyAssertion = (DataPropertyAssertion) assertion;
@@ -118,12 +119,12 @@ public class InstanceModel {
                 Literal value = dataPropertyAssertion.getValueLiteral();
                 DatatypeModel datatype = propertyImplementation.getProperty().getModelFor(value.getMemberOf());
                 String data = datatype.getToValue("\"" + value.getLexicalValue() + "\"");
-                writer.write("        " + getName() + ".data" + property + ".user_add(" + data + ");\n");
+                writer.append("        " + getName() + ".data" + property + ".user_add(" + data + ");").append(Files.LINE_SEPARATOR);
             }
         }
 
-        writer.write("        return " + getName() + ";\n");
-        writer.write("    }\n");
-        writer.write("    // </editor-fold>\n");
+        writer.append("        return " + getName() + ";").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append("    // </editor-fold>").append(Files.LINE_SEPARATOR);
     }
 }

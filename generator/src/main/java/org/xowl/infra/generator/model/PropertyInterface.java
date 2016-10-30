@@ -17,6 +17,8 @@
 
 package org.xowl.infra.generator.model;
 
+import org.xowl.infra.utils.Files;
+
 import java.io.IOException;
 import java.io.Writer;
 
@@ -75,7 +77,7 @@ public class PropertyInterface extends PropertyData {
      * @throws java.io.IOException When an IO error occurs
      */
     public void writeStandalone(Writer writer) throws IOException {
-        writer.write("    // <editor-fold defaultstate=\"collapsed\" desc=\"Property " + getProperty().getName() + "\">\n");
+        writer.append("    // <editor-fold defaultstate=\"collapsed\" desc=\"Property " + getProperty().getName() + "\">").append(Files.LINE_SEPARATOR);
         String type;
         if (getRangeClass() != null)
             type = getRangeClass().getJavaName();
@@ -87,7 +89,7 @@ public class PropertyInterface extends PropertyData {
             writeStandaloneAsVector(writer, type);
         else
             writeStandaloneAsScalar(writer, type);
-        writer.write("    // </editor-fold>\n");
+        writer.append("    // </editor-fold>").append(Files.LINE_SEPARATOR);
     }
 
     /**
@@ -100,12 +102,12 @@ public class PropertyInterface extends PropertyData {
     private void writeStandaloneAsVector(Writer writer, String type) throws IOException {
         String property = getProperty().getName();
         property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writer.append("    boolean add" + property + "(" + type + " elem);\n");
-        writer.append("    boolean remove" + property + "(" + type + " elem);\n");
+        writer.append("    boolean add" + property + "(" + type + " elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    boolean remove" + property + "(" + type + " elem);").append(Files.LINE_SEPARATOR);
         if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain())
-            writer.append("    Collection<" + type + "> getAll" + property + "();\n");
+            writer.append("    Collection<" + type + "> getAll" + property + "();").append(Files.LINE_SEPARATOR);
         else
-            writer.append("    Collection<" + type + "> getAll" + property + "As(" + type + " type);\n");
+            writer.append("    Collection<" + type + "> getAll" + property + "As(" + type + " type);").append(Files.LINE_SEPARATOR);
     }
 
     /**
@@ -118,11 +120,11 @@ public class PropertyInterface extends PropertyData {
     private void writeStandaloneAsScalar(Writer writer, String type) throws IOException {
         String property = getProperty().getName();
         property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writer.append("    boolean set" + property + "(" + type + " elem);\n");
+        writer.append("    boolean set" + property + "(" + type + " elem);").append(Files.LINE_SEPARATOR);
         if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain())
-            writer.append("    " + type + " get" + property + "();\n");
+            writer.append("    " + type + " get" + property + "();").append(Files.LINE_SEPARATOR);
         else
-            writer.append("    " + type + " get" + property + "As(" + type + " type);\n");
+            writer.append("    " + type + " get" + property + "As(" + type + " type);").append(Files.LINE_SEPARATOR);
     }
 
     /**
@@ -133,21 +135,21 @@ public class PropertyInterface extends PropertyData {
      * @throws java.io.IOException When an IO error occurs
      */
     private void writeStandaloneInterface(Writer writer, String type) throws IOException {
-        writer.append("    public static interface " + getProperty().getName() + " {\n");
-        writer.append("        boolean check_contains(" + type + " elem);\n");
+        writer.append("    public static interface " + getProperty().getName() + " {").append(Files.LINE_SEPARATOR);
+        writer.append("        boolean check_contains(" + type + " elem);").append(Files.LINE_SEPARATOR);
 
-        writer.append("        boolean user_check_add(" + type + " elem);\n");
-        writer.append("        boolean user_check_remove(" + type + " elem);\n");
-        writer.append("        boolean user_check_replace(" + type + " oldElem, " + type + "  newElem);\n");
-        writer.append("        void user_add(" + type + " elem);\n");
-        writer.append("        void user_remove(" + type + " elem);\n");
+        writer.append("        boolean user_check_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        boolean user_check_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        boolean user_check_replace(" + type + " oldElem, " + type + "  newElem);").append(Files.LINE_SEPARATOR);
+        writer.append("        void user_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        void user_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
 
-        writer.append("        boolean inverse_check_add(" + type + " elem);\n");
-        writer.append("        boolean inverse_check_remove(" + type + " elem);\n");
-        writer.append("        boolean inverse_check_replace(" + type + " oldElem, " + type + "  newElem);\n");
-        writer.append("        void inverse_add(" + type + " elem);\n");
-        writer.append("        void inverse_remove(" + type + " elem);\n");
-        writer.append("    }\n");
-        writer.append("    " + getProperty().getName() + " __getImplOf" + getProperty().getName() + "();\n");
+        writer.append("        boolean inverse_check_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        boolean inverse_check_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        boolean inverse_check_replace(" + type + " oldElem, " + type + "  newElem);").append(Files.LINE_SEPARATOR);
+        writer.append("        void inverse_add(" + type + " elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        void inverse_remove(" + type + " elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append("    " + getProperty().getName() + " __getImplOf" + getProperty().getName() + "();").append(Files.LINE_SEPARATOR);
     }
 }

@@ -179,9 +179,10 @@ public class PackageModel {
      * Generates and writes the code for this package as a standalone distribution
      *
      * @param folder The target folder
+     * @param header The header to use
      * @throws java.io.IOException When an IO error occurs
      */
-    public void writeStandalone(String folder) throws IOException {
+    public void writeStandalone(String folder, String header) throws IOException {
         if ((classes.size() + anonymousClasses.size()) == 0)
             return;
         String myFolder = folder + name + "/";
@@ -189,8 +190,8 @@ public class PackageModel {
         if (!directory.exists() && !directory.mkdir())
             throw new IOException("Failed to create folder " + folder);
         for (ClassModel classModel : classes.values())
-            classModel.writeStandalone(myFolder);
+            classModel.writeStandalone(myFolder, header);
         for (ClassModel classModel : anonymousClasses.values())
-            classModel.writeStandalone(myFolder);
+            classModel.writeStandalone(myFolder, header);
     }
 }

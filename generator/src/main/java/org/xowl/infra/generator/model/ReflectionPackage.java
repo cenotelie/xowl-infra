@@ -101,7 +101,7 @@ public class ReflectionPackage extends PackageModel {
     }
 
     @Override
-    public void writeStandalone(String folder) throws IOException {
+    public void writeStandalone(String folder, String header) throws IOException {
         // do nothing
     }
 
