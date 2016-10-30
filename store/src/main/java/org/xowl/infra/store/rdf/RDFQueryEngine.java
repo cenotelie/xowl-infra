@@ -339,27 +339,31 @@ public class RDFQueryEngine implements ChangeListener {
 
     @Override
     public void onAdded(Quad quad) {
-        getIO().addAddedQuad(quad);
-        flush();
+        EngineIO io = getIO();
+        io.addAddedQuad(quad);
+        flush(io);
     }
 
     @Override
     public void onRemoved(Quad quad) {
-        getIO().addRemovedQuad(quad);
-        flush();
+        EngineIO io = getIO();
+        io.addRemovedQuad(quad);
+        flush(io);
     }
 
     @Override
     public void onChange(Changeset changeset) {
-        getIO().addChangeset(changeset);
-        flush();
+        EngineIO io = getIO();
+        io.addChangeset(changeset);
+        flush(io);
     }
 
     /**
      * Flushes any outstanding changes in the input or the output
+     *
+     * @param io The thread-specific inputs and outputs
      */
-    public void flush() {
-        EngineIO io = getIO();
+    public void flush(EngineIO io) {
         if (io.isFlushing)
             return;
         io.isFlushing = true;
