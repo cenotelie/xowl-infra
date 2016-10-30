@@ -115,7 +115,7 @@ public class ReflectionPackage extends PackageModel {
 
         @Override
         public String getJavaName() {
-            return "java.lang.Object";
+            return "Object";
         }
     }
 
@@ -129,7 +129,7 @@ public class ReflectionPackage extends PackageModel {
 
         @Override
         public String getJavaName() {
-            return "java.lang.Class";
+            return "Class";
         }
     }
 }

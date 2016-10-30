@@ -282,8 +282,8 @@ public class PropertyImplementation extends PropertyData {
         } else {
             writeStandalonePropertyClassSameType(writer, getRangeDatatype().getJavaType());
         }
-        writer.append("    private " + getProperty().getName() + "_impl data" + property + ";\n");
-        writer.append("    public " + getDomain().getJavaName() + "." + getProperty().getName() + " __getImplOf" + getProperty().getName() + "() { return data" + property + "; }\n");
+        writer.append("    private ").append(getProperty().getName()).append("_impl data").append(property).append(";\n");
+        writer.append("    public ").append(getDomain().getJavaName()).append(".").append(getProperty().getName()).append(" __getImplOf").append(getProperty().getName()).append("() { return data").append(property).append("; }\n");
 
         if (!getProperty().isObjectProperty())
             writeStandaloneDatatype(writer);

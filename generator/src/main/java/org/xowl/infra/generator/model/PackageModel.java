@@ -186,7 +186,8 @@ public class PackageModel {
             return;
         String myFolder = folder + name + "/";
         File directory = new File(myFolder);
-        directory.mkdir();
+        if (!directory.exists() && !directory.mkdir())
+            throw new IOException("Failed to create folder " + folder);
         for (ClassModel classModel : classes.values())
             classModel.writeStandalone(myFolder);
         for (ClassModel classModel : anonymousClasses.values())

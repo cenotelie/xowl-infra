@@ -340,7 +340,8 @@ public class Model {
         for (String sub : subs)
             folder += sub + "/";
         File dir = new File(folder);
-        dir.mkdirs();
+        if (!dir.exists() && !dir.mkdirs())
+            throw new IOException("Failed to create folder " + folder);
         for (PackageModel packageModel : packages.values())
             packageModel.writeStandalone(folder);
     }

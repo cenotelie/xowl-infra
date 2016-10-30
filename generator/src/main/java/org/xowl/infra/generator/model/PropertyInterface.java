@@ -103,9 +103,9 @@ public class PropertyInterface extends PropertyData {
         writer.append("    boolean add" + property + "(" + type + " elem);\n");
         writer.append("    boolean remove" + property + "(" + type + " elem);\n");
         if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain())
-            writer.append("    java.util.Collection<" + type + "> getAll" + property + "();\n");
+            writer.append("    Collection<" + type + "> getAll" + property + "();\n");
         else
-            writer.append("    java.util.Collection<" + type + "> getAll" + property + "As(" + type + " type);\n");
+            writer.append("    Collection<" + type + "> getAll" + property + "As(" + type + " type);\n");
     }
 
     /**

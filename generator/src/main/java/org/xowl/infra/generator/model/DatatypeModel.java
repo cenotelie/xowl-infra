@@ -21,6 +21,7 @@ import org.xowl.infra.lang.runtime.Datatype;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.logging.Logging;
 
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -95,7 +96,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelByte extends DatatypeModel {
         public DatatypeModelByte(Datatype datatype, String iri) {
-            super(datatype, iri, "java.lang.Byte");
+            super(datatype, iri, "Byte");
         }
 
         @Override
@@ -105,7 +106,7 @@ public abstract class DatatypeModel {
 
         @Override
         public String getToValue(String expression) {
-            return "java.lang.Byte.valueOf(" + expression + ")";
+            return "Byte.valueOf(" + expression + ")";
         }
     }
 
@@ -114,7 +115,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelShort extends DatatypeModel {
         public DatatypeModelShort(Datatype datatype, String iri) {
-            super(datatype, iri, "java.lang.Short");
+            super(datatype, iri, "Short");
         }
 
         @Override
@@ -124,7 +125,7 @@ public abstract class DatatypeModel {
 
         @Override
         public String getToValue(String expression) {
-            return "java.lang.Short.valueOf(" + expression + ")";
+            return "Short.valueOf(" + expression + ")";
         }
     }
 
@@ -133,7 +134,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelInteger extends DatatypeModel {
         public DatatypeModelInteger(Datatype datatype, String iri) {
-            super(datatype, iri, "java.lang.Integer");
+            super(datatype, iri, "Integer");
         }
 
         @Override
@@ -143,7 +144,7 @@ public abstract class DatatypeModel {
 
         @Override
         public String getToValue(String expression) {
-            return "java.lang.Integer.valueOf(" + expression + ")";
+            return "Integer.valueOf(" + expression + ")";
         }
     }
 
@@ -152,7 +153,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelLong extends DatatypeModel {
         public DatatypeModelLong(Datatype datatype, String iri) {
-            super(datatype, iri, "java.lang.Long");
+            super(datatype, iri, "Long");
         }
 
         @Override
@@ -162,7 +163,7 @@ public abstract class DatatypeModel {
 
         @Override
         public String getToValue(String expression) {
-            return "java.lang.Long.valueOf(" + expression + ")";
+            return "Long.valueOf(" + expression + ")";
         }
     }
 
@@ -171,7 +172,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelFloat extends DatatypeModel {
         public DatatypeModelFloat(Datatype datatype, String iri) {
-            super(datatype, iri, "java.lang.Float");
+            super(datatype, iri, "Float");
         }
 
         @Override
@@ -181,7 +182,7 @@ public abstract class DatatypeModel {
 
         @Override
         public String getToValue(String expression) {
-            return "java.lang.Float.valueOf(" + expression + ")";
+            return "Float.valueOf(" + expression + ")";
         }
     }
 
@@ -190,7 +191,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelDouble extends DatatypeModel {
         public DatatypeModelDouble(Datatype datatype, String iri) {
-            super(datatype, iri, "java.lang.Double");
+            super(datatype, iri, "Double");
         }
 
         @Override
@@ -200,7 +201,7 @@ public abstract class DatatypeModel {
 
         @Override
         public String getToValue(String expression) {
-            return "java.lang.Double.valueOf(" + expression + ")";
+            return "Double.valueOf(" + expression + ")";
         }
     }
 
@@ -209,7 +210,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelBoolean extends DatatypeModel {
         public DatatypeModelBoolean(Datatype datatype, String iri) {
-            super(datatype, iri, "java.lang.Boolean");
+            super(datatype, iri, "Boolean");
         }
 
         @Override
@@ -219,7 +220,7 @@ public abstract class DatatypeModel {
 
         @Override
         public String getToValue(String expression) {
-            return "java.lang.Boolean.valueOf(" + expression + ")";
+            return "Boolean.valueOf(" + expression + ")";
         }
     }
 
@@ -228,7 +229,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelString extends DatatypeModel {
         public DatatypeModelString(Datatype datatype, String iri) {
-            super(datatype, iri, "java.lang.String");
+            super(datatype, iri, "String");
         }
 
         @Override
@@ -309,7 +310,7 @@ public abstract class DatatypeModel {
         Class<? extends DatatypeModel> datatypeClass = REGISTER.get(iri);
         DatatypeModel datatypeModel = null;
         try {
-            java.lang.reflect.Constructor constructor = datatypeClass.getConstructor(Datatype.class, String.class);
+            Constructor constructor = datatypeClass.getConstructor(Datatype.class, String.class);
             datatypeModel = (DatatypeModel) constructor.newInstance(datatype, iri);
         } catch (Exception exception) {
             Logging.getDefault().error(exception);
