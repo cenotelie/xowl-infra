@@ -26,6 +26,7 @@ import org.xowl.infra.utils.collections.Couple;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Represent a token in a RETE network, i.e. a piece of matching data
@@ -40,15 +41,15 @@ public class Token implements RDFPatternMatch {
     /**
      * The variables bound in this token
      */
-    private VariableNode[] variables;
+    private final VariableNode[] variables;
     /**
      * The values for the bound variables
      */
-    private Node[] values;
+    private final Node[] values;
     /**
      * The token's multiplicity
      */
-    int multiplicity;
+    private final AtomicInteger multiplicity;
 
     /**
      * Initializes a dummy token
@@ -57,7 +58,7 @@ public class Token implements RDFPatternMatch {
         this.parent = null;
         this.variables = null;
         this.values = null;
-        this.multiplicity = 1;
+        this.multiplicity = new AtomicInteger(1);
     }
 
     /**
@@ -71,7 +72,11 @@ public class Token implements RDFPatternMatch {
         if (bindingCount > 0) {
             this.variables = new VariableNode[bindingCount];
             this.values = new Node[bindingCount];
+        } else {
+            this.variables = null;
+            this.values = null;
         }
+        this.multiplicity = new AtomicInteger(0);
     }
 
     /**
@@ -84,12 +89,30 @@ public class Token implements RDFPatternMatch {
     }
 
     /**
+     * Increments the token's multiplicity
+     */
+    public void increment() {
+        multiplicity.incrementAndGet();
+    }
+
+    /**
+     * Decrement's the tokens multiplicity
+     *
+     * @return Whether the token's multiplicity reached 0
+     */
+    public boolean decrement() {
+        return (multiplicity.decrementAndGet() <= 0);
+    }
+
+    /**
      * Binds the specified variable to the specified value in this token
      *
      * @param variable A variable
      * @param value    A value
      */
     public void bind(VariableNode variable, Node value) {
+        if (variables == null || values == null)
+            throw new IllegalArgumentException("This token is not supposed to contain bindings");
         for (int i = 0; i != variables.length; i++) {
             if (variables[i] == null) {
                 variables[i] = variable;
@@ -106,7 +129,7 @@ public class Token implements RDFPatternMatch {
      * @return The local binding of the variable
      */
     public Node getLocalBinding(VariableNode variable) {
-        if (variables == null)
+        if (variables == null || values == null)
             return null;
         for (int i = 0; i != variables.length; i++) {
             if (RDFUtils.same(variables[i], variable))
@@ -124,7 +147,7 @@ public class Token implements RDFPatternMatch {
         Collection<Couple<VariableNode, Node>> result = new ArrayList<>();
         Token current = this;
         while (current != null) {
-            if (current.variables != null) {
+            if (current.variables != null && current.values != null) {
                 for (int i = 0; i != current.variables.length; i++)
                     result.add(new Couple<>(current.variables[i], current.values[i]));
             }
@@ -161,8 +184,8 @@ public class Token implements RDFPatternMatch {
     private static boolean sameBindings(Token token1, Token token2) {
         if (token1 == token2)
             return true;
-        if (token1.variables != null) {
-            if (token2.variables != null) {
+        if (token1.variables != null && token1.values != null) {
+            if (token2.variables != null && token2.values != null) {
                 if (token1.variables.length != token2.variables.length)
                     return false;
                 for (int i = 0; i != token1.variables.length; i++) {

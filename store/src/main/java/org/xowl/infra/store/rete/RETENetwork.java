@@ -98,7 +98,7 @@ public class RETENetwork {
             JoinData data = iterator.next();
             ruleData.positives.add(data);
             FactHolder alpha = this.alpha.resolveMemory(pattern, input);
-            data.nodeJoin = new BetaJoinNode(alpha, beta, data.tests, data.binders);
+            data.nodeJoin = new BetaJoinNode(alpha, beta, data.tests, data.binders, data.bindersCount);
             beta = data.nodeJoin.getChild();
         }
 
@@ -117,7 +117,7 @@ public class RETENetwork {
                 for (Quad pattern : conjunction) {
                     JoinData data = iterator.next();
                     FactHolder alpha = this.alpha.resolveMemory(pattern, input);
-                    BetaJoinNode join = new BetaJoinNode(alpha, last, data.tests, data.binders);
+                    BetaJoinNode join = new BetaJoinNode(alpha, last, data.tests, data.binders, data.bindersCount);
                     last = join.getChild();
                 }
                 last.addChild(entry.getExitNode());
@@ -285,15 +285,15 @@ public class RETENetwork {
             VariableNode variable = (VariableNode) node;
             if (boundVariables.contains(variable)) {
                 // the variable is bound, test the value of the fact against the bound variable's value
-                data.tests.add(new JoinTestBound(variable, field));
+                data.tests[data.testsCount++] = new JoinTestBound(variable, field);
             } else if (unboundVariables.containsKey(variable)) {
                 // the value is not bound but it has already been found in another field
                 // test that the two fields are the same
-                data.tests.add(new JoinTestUnbound(unboundVariables.get(variable), field));
+                data.tests[data.testsCount++] = new JoinTestUnbound(unboundVariables.get(variable), field);
             } else {
                 // this variable is not known
                 // create the binder and register it as an unbound variable at this point
-                data.binders.add(new Binder(variable, field));
+                data.binders[data.bindersCount++] = new Binder(variable, field);
                 unboundVariables.put(variable, field);
             }
         }
@@ -328,22 +328,34 @@ public class RETENetwork {
         /**
          * The tests for the join
          */
-        public final List<JoinTest> tests;
+        public final JoinTest[] tests;
         /**
          * The binding operations
          */
-        public final List<Binder> binders;
+        public final Binder[] binders;
         /**
          * The corresponding join node
          */
         public BetaJoinNode nodeJoin;
+        /**
+         * The number of tests
+         */
+        public int testsCount;
+        /**
+         * The number of binders
+         */
+        public int bindersCount;
 
         /**
          * Initializes the data
          */
         public JoinData() {
-            this.tests = new ArrayList<>(4);
-            this.binders = new ArrayList<>();
+            // 4 is the number of fields in a quad
+            // there cannot be more that 4 tests and binders
+            this.tests = new JoinTest[4];
+            this.binders = new Binder[4];
+            this.testsCount = 0;
+            this.bindersCount = 0;
         }
     }
 }

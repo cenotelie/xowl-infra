@@ -44,16 +44,13 @@ class JoinBase {
     /**
      * Initializes this element
      *
-     * @param test1 The first test
-     * @param test2 The second test
-     * @param test3 The third test
-     * @param test4 The fourth test
+     * @param tests The tests to use (array of size 4)
      */
-    public JoinBase(JoinTest test1, JoinTest test2, JoinTest test3, JoinTest test4) {
-        this.test1 = test1;
-        this.test2 = test2;
-        this.test3 = test3;
-        this.test4 = test4;
+    public JoinBase(JoinTest[] tests) {
+        this.test1 = tests[0];
+        this.test2 = tests[1];
+        this.test3 = tests[2];
+        this.test4 = tests[3];
     }
 
     /**
