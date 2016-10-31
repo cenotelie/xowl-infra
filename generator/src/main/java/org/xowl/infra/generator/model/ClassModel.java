@@ -660,7 +660,7 @@ public class ClassModel {
         // writes constructor
         writer.append("    public ").append(name).append("() {").append(Files.LINE_SEPARATOR);
         for (PropertyImplementation implementation : getPropertyImplementations()) {
-            implementation.writeStandalineConstructor(writer);
+            implementation.writeStandaloneConstructor(writer);
         }
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append("}").append(Files.LINE_SEPARATOR);
