@@ -75,34 +75,34 @@ public class Program {
      * @param args The command-line arguments
      */
     public static void main(String[] args) {
-        Logger log = new ConsoleLogger();
+        Logger logger = new ConsoleLogger();
         if (args.length == 0) {
-            log.error("No config file in parameters");
+            logger.error("No config file in parameters");
             return;
         }
         Configuration config = new Configuration();
         try {
             config.load(args[0]);
         } catch (IOException ex) {
-            log.error("Failed to load configuration file: " + args[0]);
+            logger.error("Failed to load configuration file: " + args[0]);
             return;
         }
-        Program app = new Program(log, config);
+        Program app = new Program(logger, config);
         app.execute();
     }
 
     /**
      * The logger
      */
-    private Logger logger;
+    private final Logger logger;
     /**
      * The repository specifications as IRI mappings
      */
-    private List<Couple<String, String>> repositories;
+    private final List<Couple<String, String>> repositories;
     /**
      * The input resources to generate code from
      */
-    private List<String> inputs;
+    private final List<String> inputs;
     /**
      * The base Java package for the generated code
      */
@@ -202,7 +202,8 @@ public class Program {
 
 
         // generate the code
-        File outputSrc = new File(new File(outputDirectory), "src");
+        File output = new File(outputDirectory);
+        File outputSrc = new File(output, "src");
         try {
             model.writeInterface(outputSrc, fileHeader);
             model.writeStandalone(outputSrc, fileHeader);
@@ -213,7 +214,7 @@ public class Program {
         // build the code, if required
         if (outputJarName != null) {
             try {
-                Builder builder = new Builder(outputDirectory, debug);
+                Builder builder = new Builder(output, debug);
                 builder.build(outputJarName);
             } catch (Exception ex) {
                 logger.error(ex);

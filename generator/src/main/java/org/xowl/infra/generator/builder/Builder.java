@@ -44,31 +44,27 @@ public class Builder {
     /**
      * The source folder
      */
-    private String folderSrc;
+    private final File folderSrc;
     /**
      * The build folder
      */
-    private String folderBuild;
+    private final File folderBuild;
     /**
      * The binary results folder
      */
-    private String folderBin;
+    private final File folderBin;
     /**
      * Whether to emit debuggable bytecode
      */
-    private boolean debug;
+    private final boolean debug;
     /**
      * Java file manager
      */
-    private StandardJavaFileManager fileManager;
+    private final StandardJavaFileManager fileManager;
     /**
      * The libraries to link against
      */
-    private List<String> libraries;
-    /**
-     * The root output node
-     */
-    private JarNodeDirectory root;
+    private final List<String> libraries;
 
     /**
      * Adds a library to link against
@@ -85,11 +81,11 @@ public class Builder {
      * @param projectFolder The folder containing the project to build
      * @param debug         Whether to emit debuggable bytecode
      */
-    public Builder(String projectFolder, boolean debug) {
+    public Builder(File projectFolder, boolean debug) {
         this.libraries = new ArrayList<>();
-        this.folderSrc = projectFolder + "src/";
-        this.folderBuild = projectFolder + "build/";
-        this.folderBin = projectFolder + "dist/";
+        this.folderSrc = new File(projectFolder, "src");
+        this.folderBuild = new File(projectFolder, "build");
+        this.folderBin = new File(projectFolder, "dist");
         this.debug = debug;
         this.fileManager = ToolProvider.getSystemJavaCompiler().getStandardFileManager(new DiagnosticCollector<JavaFileObject>(), null, null);
     }
@@ -98,29 +94,34 @@ public class Builder {
      * Builds the project to the specified jar name
      *
      * @param jarName The name of the jar to generate
-     * @throws java.io.IOException            When an IO error occurs
-     * @throws java.lang.InterruptedException When the process is interrupted
+     * @throws IOException          When an IO error occurs
+     * @throws InterruptedException When the process is interrupted
      */
-    public void build(String jarName) throws java.io.IOException, java.lang.InterruptedException {
+    public void build(String jarName) throws IOException, InterruptedException {
         // compiling
-        File directory = new File(folderBuild);
-        if (directory.exists())
-            deleteDirectory(directory);
-        directory.mkdir();
-        OutputStreamWriter writer = new OutputStreamWriter(System.out, Files.CHARSET);
-        List<String> options = buildJavacParameters();
-        JavaCompiler.CompilationTask task = ToolProvider.getSystemJavaCompiler().getTask(writer, fileManager, null, options, null, fileManager.getJavaFileObjectsFromFiles(buildSourcesList()));
-        task.call();
+        if (folderBuild.exists())
+            deleteDirectory(folderBuild);
+        if (!folderBuild.mkdirs())
+            throw new IOException("Failed to create directory " + folderBuild.getAbsolutePath());
+        try (OutputStreamWriter writer = new OutputStreamWriter(System.out, Files.CHARSET)) {
+            JavaCompiler.CompilationTask task = ToolProvider.getSystemJavaCompiler().getTask(
+                    writer,
+                    fileManager,
+                    null,
+                    buildJavacParameters(),
+                    null,
+                    fileManager.getJavaFileObjectsFromFiles(buildSourcesList()));
+            task.call();
+        }
 
         // creating the jar
-        directory = new File(folderBin);
-        if (directory.exists())
-            deleteDirectory(directory);
-        directory.mkdir();
-        root = new JarNodeDirectory("");
-        buildJarTree(new File(folderBuild), "", false);
-        try {
-            FileOutputStream output = new FileOutputStream(folderBin + jarName + ".jar");
+        if (folderBin.exists())
+            deleteDirectory(folderBin);
+        if (!folderBin.mkdirs())
+            throw new IOException("Failed to create directory " + folderBin.getAbsolutePath());
+        JarNodeDirectory root = new JarNodeDirectory("");
+        buildJarTree(root, folderBuild, "", false);
+        try (FileOutputStream output = new FileOutputStream(new File(folderBin, jarName + ".jar"))) {
             Manifest manifest = new Manifest();
             Attributes manifestAttr = manifest.getMainAttributes();
             manifestAttr.putValue("Manifest-Version", "1.0");
@@ -129,9 +130,6 @@ public class Builder {
             root.createEntry(jarStream);
             jarStream.flush();
             jarStream.close();
-            output.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
 
@@ -142,7 +140,7 @@ public class Builder {
      */
     private List<File> buildSourcesList() {
         List<File> sources = new ArrayList<>();
-        buildSourcesListFromDirectory(sources, new File(folderSrc));
+        buildSourcesListFromDirectory(sources, folderSrc);
         return sources;
     }
 
@@ -153,7 +151,10 @@ public class Builder {
      * @param directory The directory to inspect
      */
     private void buildSourcesListFromDirectory(List<File> sources, File directory) {
-        for (File element : directory.listFiles()) {
+        File[] files = directory.listFiles();
+        if (files == null)
+            return;
+        for (File element : files) {
             if (element.isDirectory())
                 buildSourcesListFromDirectory(sources, element);
             else if (element.getName().endsWith(JAVA_FILE_EXTENSION))
@@ -173,7 +174,7 @@ public class Builder {
         else
             options.add("-g:none");
         options.add("-d");
-        options.add(folderBuild);
+        options.add(folderBuild.getPath());
         options.add("-encoding");
         options.add("UTF-8");
         if (libraries.size() != 0) {
@@ -210,35 +211,46 @@ public class Builder {
      *
      * @param directory The directory to delete
      */
-    private void deleteDirectory(File directory) {
-        File[] children = directory.listFiles();
-        if (children == null)
+    private void deleteDirectory(File directory) throws IOException {
+        if (!directory.exists())
             return;
-        for (int i = 0; i != children.length; i++) {
-            if (children[i].isDirectory())
-                deleteDirectory(children[i]);
-            else if (!children[i].delete()) {
-                System.err.println("failed to delete: " + children[i].toString());
+        File[] children = directory.listFiles();
+        if (children != null) {
+            for (int i = 0; i != children.length; i++) {
+                if (children[i].isDirectory())
+                    deleteDirectory(children[i]);
+                else if (!children[i].delete()) {
+                    throw new IOException("Failed to delete " + children[i].getPath());
+                }
             }
         }
-        directory.delete();
+        if (!directory.delete())
+            throw new IOException("Failed to delete " + directory.getPath());
     }
 
     /**
      * Builds the jar tree
      *
+     * @param root        The root jar node
      * @param directory   The current directory to inspect
      * @param localPath   The local path so far
      * @param createEntry Whether to create an entry for this directory
      */
-    private void buildJarTree(File directory, String localPath, boolean createEntry) {
+    private void buildJarTree(JarNodeDirectory root, File directory, String localPath, boolean createEntry) {
         if (createEntry)
             root.add(localPath);
-        for (java.io.File element : directory.listFiles()) {
-            if (element.isDirectory())
-                buildJarTree(element, localPath + element.getName() + JarNodeDirectory.SEPARATOR, true);
-            else
-                root.add(localPath + element.getName(), element);
+        File[] children = directory.listFiles();
+        if (children != null) {
+            for (File element : children) {
+                if (element.isDirectory())
+                    buildJarTree(
+                            root,
+                            element,
+                            localPath + element.getName() + JarNodeDirectory.SEPARATOR,
+                            true);
+                else
+                    root.add(localPath + element.getName(), element);
+            }
         }
     }
 }

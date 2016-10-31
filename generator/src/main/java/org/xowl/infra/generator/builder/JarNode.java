@@ -17,6 +17,7 @@
 package org.xowl.infra.generator.builder;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.jar.JarOutputStream;
 
 /**
@@ -39,7 +40,7 @@ interface JarNode {
      * Creates the entry in the specified stream
      *
      * @param stream The stream
-     * @throws java.io.IOException When a serialization error occurs
+     * @throws IOException When a serialization error occurs
      */
-    void createEntry(JarOutputStream stream) throws java.io.IOException;
+    void createEntry(JarOutputStream stream) throws IOException;
 }

@@ -16,7 +16,8 @@
  ******************************************************************************/
 package org.xowl.infra.generator.builder;
 
-import java.io.BufferedInputStream;
+import org.xowl.infra.utils.Files;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,18 +31,13 @@ import java.util.jar.JarOutputStream;
  */
 class JarNodeFile implements JarNode {
     /**
-     * the size of the writing buffer
-     */
-    private static final int WRITE_BUFFER_SIZE = 1024;
-
-    /**
      * The full path for this entry
      */
-    private String path;
+    private final String path;
     /**
      * The file at this entry
      */
-    private File file;
+    private final File file;
 
     /**
      * Initializes this entry
@@ -60,16 +56,12 @@ class JarNodeFile implements JarNode {
 
     @Override
     public void createEntry(JarOutputStream stream) throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
         JarEntry fileEntry = new JarEntry(path);
         stream.putNextEntry(fileEntry);
-        byte[] data = new byte[WRITE_BUFFER_SIZE];
-        int byteCount;
-        while ((byteCount = bufferedInputStream.read(data, 0, WRITE_BUFFER_SIZE)) > -1) {
-            stream.write(data, 0, byteCount);
+        byte[] bytes;
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            bytes = Files.load(fileInputStream);
         }
-        bufferedInputStream.close();
-        fileInputStream.close();
+        stream.write(bytes, 0, bytes.length);
     }
 }

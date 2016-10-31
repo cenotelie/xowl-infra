@@ -80,7 +80,7 @@ class JarNodeDirectory implements JarNode {
                 return;
             if (children.containsKey(current))
                 return;
-            JarNode child = null;
+            JarNode child;
             if (file == null)
                 child = new JarNodeDirectory(path);
             else
