@@ -291,10 +291,31 @@ public class PropertyImplementation extends PropertyData {
 
         if (!getProperty().isObjectProperty()) {
             for (PropertyInterface inter : getInterfaces()) {
-                if (inter.isVector())
-                    writeStandaloneDatatypeVector(writer, inter);
-                else
-                    writeStandaloneDatatypeScalar(writer, inter);
+                if (inter.isVector()) {
+                    if (isVector()) {
+                        // implemented as a vector
+                        writeStandaloneDatatypeVectorInterfaceOnVectorImpl(writer, inter);
+                    } else {
+                        // implemented as a scalar
+                        if (getDefaultValue().equals("null")) {
+                            writeStandaloneDatatypeVectorInterfaceOnObjectScalarImpl(writer, inter);
+                        } else {
+                            writeStandaloneDatatypeVectorInterfaceOnPrimitiveScalarImpl(writer, inter);
+                        }
+                    }
+                } else {
+                    if (isVector()) {
+                        // implemented as a vector
+                        if (getDefaultValue().equals("null")) {
+                            writeStandaloneDatatypeScalarInterfaceOnObjectVectorImpl(writer, inter);
+                        } else {
+                            writeStandaloneDatatypeScalarInterfaceOnPrimitiveVectorImpl(writer, inter);
+                        }
+                    } else {
+                        // implemented as a scalar
+                        writeStandaloneDatatypeScalarInterfaceOnScalarImpl(writer, inter);
+                    }
+                }
             }
         } else {
             for (PropertyInterface inter : getInterfaces()) {
@@ -340,125 +361,185 @@ public class PropertyImplementation extends PropertyData {
     }
 
     /**
-     * Writes the standalone implementation of this datatype scalar property
+     * Writes the standalone implementation of this datatype scalar property implemented as a scalar
      *
      * @param writer The write to use
      * @param inter  The property interface to implement
      * @throws IOException When writing failed
      */
-    private void writeStandaloneDatatypeScalar(Writer writer, PropertyInterface inter) throws IOException {
+    private void writeStandaloneDatatypeScalarInterfaceOnScalarImpl(Writer writer, PropertyInterface inter) throws IOException {
         String name = getJavaName();
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public ").append(inter.getJavaRangeScalar()).append(" get").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        if (isVector()) {
-            // implemented as a vector
-            writer.append("        if (__impl)").append(name).append(".isEmpty())").append(Files.LINE_SEPARATOR);
-            writer.append("            return ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
-            writer.append("        return __impl").append(name).append(".get(0);").append(Files.LINE_SEPARATOR);
-        } else {
-            // implemented as a scalar
-            writer.append("        return __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
-        }
+        writer.append("        return __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        if (isVector()) {
-            // implemented as a vector
-            if (getDefaultValue().equals("null")) {
-                // not primitive => null means removal
-                writer.append("        __impl").append(name).append(".clear();").append(Files.LINE_SEPARATOR);
-                writer.append("        if (elem != null)").append(Files.LINE_SEPARATOR);
-                writer.append("            __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
-            } else {
-                // primitive
-                writer.append("        __impl").append(name).append(".clear();").append(Files.LINE_SEPARATOR);
-                writer.append("        __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
-            }
-        } else {
-            // implemented as a scalar
-            writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
-        }
+        writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
 
     /**
-     * Writes the standalone implementation of this datatype vector property
+     * Writes the standalone implementation of this datatype scalar property implemented as a vector of primitives
      *
      * @param writer The write to use
      * @param inter  The property interface to implement
      * @throws IOException When writing failed
      */
-    private void writeStandaloneDatatypeVector(Writer writer, PropertyInterface inter) throws IOException {
+    private void writeStandaloneDatatypeScalarInterfaceOnPrimitiveVectorImpl(Writer writer, PropertyInterface inter) throws IOException {
+        String name = getJavaName();
+
+        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public ").append(inter.getJavaRangeScalar()).append(" get").append(name).append("() {").append(Files.LINE_SEPARATOR);
+        writer.append("        if (__impl)").append(name).append(".isEmpty())").append(Files.LINE_SEPARATOR);
+        writer.append("            return ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
+        writer.append("        return __impl").append(name).append(".get(0);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("        __impl").append(name).append(".clear();").append(Files.LINE_SEPARATOR);
+        writer.append("        __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the standalone implementation of this datatype scalar property implemented as a vector of objects
+     *
+     * @param writer The write to use
+     * @param inter  The property interface to implement
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneDatatypeScalarInterfaceOnObjectVectorImpl(Writer writer, PropertyInterface inter) throws IOException {
+        String name = getJavaName();
+
+        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public ").append(inter.getJavaRangeScalar()).append(" get").append(name).append("() {").append(Files.LINE_SEPARATOR);
+        writer.append("        if (__impl)").append(name).append(".isEmpty())").append(Files.LINE_SEPARATOR);
+        writer.append("            return ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
+        writer.append("        return __impl").append(name).append(".get(0);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("        __impl").append(name).append(".clear();").append(Files.LINE_SEPARATOR);
+        writer.append("        if (elem != null)").append(Files.LINE_SEPARATOR);
+        writer.append("            __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the standalone implementation of this datatype vector property implemented as a primitive scalar
+     *
+     * @param writer The write to use
+     * @param inter  The property interface to implement
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneDatatypeVectorInterfaceOnPrimitiveScalarImpl(Writer writer, PropertyInterface inter) throws IOException {
         String name = getJavaName();
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public Collection<").append(inter.getJavaRangeVector()).append("> getAll").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        if (isVector()) {
-            // implemented as a vector
-            writer.append("        return Collections.unmodifiableCollection(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-        } else {
-            // implemented as a scalar
-            if (getDefaultValue().equals("null")) {
-                // not primitive => null means no value
-                writer.append("        if (__impl").append(name).append(" == null)").append(Files.LINE_SEPARATOR);
-                writer.append("            return Collections.emptyList();").append(Files.LINE_SEPARATOR);
-                writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-            } else {
-                // primitive
-                writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
-            }
-        }
+        writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        if (isVector()) {
-            // implemented as a vector
-            if (getCardMax() != Integer.MAX_VALUE) {
-                writer.append("        if (__impl").append(name).append(".size() >= ").append(Integer.toString(getCardMax())).append(")").append(Files.LINE_SEPARATOR);
-                writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is ").append(Integer.toString(getCardMax())).append("\");").append(Files.LINE_SEPARATOR);
-            }
-            writer.append("        return __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
-        } else {
-            // implemented as a scalar
-            if (getDefaultValue().equals("null")) {
-                // not primitive => not null means there is a value
-                writer.append("        if (__impl").append(name).append(" != null)").append(Files.LINE_SEPARATOR);
-                writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(Files.LINE_SEPARATOR);
-            }
-            writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
-            writer.append("        return true;").append(Files.LINE_SEPARATOR);
-        }
+        writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
+        writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        if (isVector()) {
-            // implemented as a vector
-            if (inter.getJavaRangeScalar().equals("int"))
-                // special case for int due to confusion between remove(int) and remove(Object)
-                writer.append("        return __impl").append(name).append(".remove((Integer) elem);").append(Files.LINE_SEPARATOR);
-            else
-                writer.append("        return __impl").append(name).append(".remove(elem);").append(Files.LINE_SEPARATOR);
-        } else {
-            // implemented as a scalar
-            if (getDefaultValue().equals("null")) {
-                // not primitive => not null means there is a value
-                writer.append("        if (!Objects.equals(__impl").append(name).append(", elem))").append(Files.LINE_SEPARATOR);
-                writer.append("            return false;").append(Files.LINE_SEPARATOR);
-            } else {
-                writer.append("        if (__impl").append(name).append(" != elem)").append(Files.LINE_SEPARATOR);
-                writer.append("            return false;").append(Files.LINE_SEPARATOR);
-            }
-            writer.append("        __impl").append(name).append(" = ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
-            writer.append("        return true;").append(Files.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" != elem)").append(Files.LINE_SEPARATOR);
+        writer.append("            return false;").append(Files.LINE_SEPARATOR);
+        writer.append("        __impl").append(name).append(" = ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
+        writer.append("        return true;").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the standalone implementation of this datatype vector property implemented as an object scalar
+     *
+     * @param writer The write to use
+     * @param inter  The property interface to implement
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneDatatypeVectorInterfaceOnObjectScalarImpl(Writer writer, PropertyInterface inter) throws IOException {
+        String name = getJavaName();
+
+        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public Collection<").append(inter.getJavaRangeVector()).append("> getAll").append(name).append("() {").append(Files.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" == null)").append(Files.LINE_SEPARATOR);
+        writer.append("            return Collections.emptyList();").append(Files.LINE_SEPARATOR);
+        writer.append("        return Collections.singletonList(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" != null)").append(Files.LINE_SEPARATOR);
+        writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(Files.LINE_SEPARATOR);
+        writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
+        writer.append("        return true;").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("        if (!Objects.equals(__impl").append(name).append(", elem))").append(Files.LINE_SEPARATOR);
+        writer.append("            return false;").append(Files.LINE_SEPARATOR);
+        writer.append("        __impl").append(name).append(" = ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
+        writer.append("        return true;").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the standalone implementation of this datatype vector property implemented as a vector
+     *
+     * @param writer The write to use
+     * @param inter  The property interface to implement
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneDatatypeVectorInterfaceOnVectorImpl(Writer writer, PropertyInterface inter) throws IOException {
+        String name = getJavaName();
+
+        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public Collection<").append(inter.getJavaRangeVector()).append("> getAll").append(name).append("() {").append(Files.LINE_SEPARATOR);
+        writer.append("        return Collections.unmodifiableCollection(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        // implemented as a vector
+        if (getCardMax() != Integer.MAX_VALUE) {
+            writer.append("        if (__impl").append(name).append(".size() >= ").append(Integer.toString(getCardMax())).append(")").append(Files.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is ").append(Integer.toString(getCardMax())).append("\");").append(Files.LINE_SEPARATOR);
         }
+        writer.append("        return __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    @Override").append(Files.LINE_SEPARATOR);
+        writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        if (inter.getJavaRangeScalar().equals("int"))
+            // special case for int due to confusion between remove(int) and remove(Object)
+            writer.append("        return __impl").append(name).append(".remove((Integer) elem);").append(Files.LINE_SEPARATOR);
+        else
+            writer.append("        return __impl").append(name).append(".remove(elem);").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
