@@ -43,23 +43,49 @@ public abstract class DatatypeModel {
     /**
      * The implemented OWL2 datatype
      */
-    protected Datatype datatype;
+    protected final Datatype datatype;
     /**
      * IRI of the implemented OWL2 datatype
      */
-    protected String iri;
+    protected final String iri;
     /**
-     * The implementing Java class
+     * The implementing Java object class
      */
-    protected String javaType;
+    protected final String javaObjectType;
+    /**
+     * The implementing Java primitive type
+     */
+    protected final String javaPrimitiveType;
+    /**
+     * The default value for this datatype
+     */
+    protected final String javaDefault;
 
     /**
-     * Gets the implementing Java class
+     * Gets the scalar type for this datatype
      *
-     * @return The implementing Java class
+     * @return The scalar type for this datatype
      */
-    public String getJavaType() {
-        return javaType;
+    public String getScalarType() {
+        return javaPrimitiveType != null ? javaPrimitiveType : javaObjectType;
+    }
+
+    /**
+     * Gets the vector type for this datatype
+     *
+     * @return Vector type
+     */
+    public String getVectorType() {
+        return javaObjectType;
+    }
+
+    /**
+     * Gets the default value for this datatype
+     *
+     * @return The default value
+     */
+    public String getDefaultValue() {
+        return javaDefault;
     }
 
     /**
@@ -81,14 +107,18 @@ public abstract class DatatypeModel {
     /**
      * Initializes this implementation
      *
-     * @param datatype The implemented OWL2 datatype
-     * @param iri      The IRI of the implemented OWL2 datatype
-     * @param javaType The implementing Java class
+     * @param datatype          The implemented OWL2 datatype
+     * @param iri               The IRI of the implemented OWL2 datatype
+     * @param javaObjectType    The implementing Java object class
+     * @param javaPrimitiveType The implementing Java primitive type
+     *                          The default value for this datatype
      */
-    public DatatypeModel(Datatype datatype, String iri, String javaType) {
+    public DatatypeModel(Datatype datatype, String iri, String javaObjectType, String javaPrimitiveType, String javaDefault) {
         this.datatype = datatype;
         this.iri = iri;
-        this.javaType = javaType;
+        this.javaObjectType = javaObjectType;
+        this.javaPrimitiveType = javaPrimitiveType;
+        this.javaDefault = javaDefault;
     }
 
     /**
@@ -96,7 +126,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelByte extends DatatypeModel {
         public DatatypeModelByte(Datatype datatype, String iri) {
-            super(datatype, iri, "byte");
+            super(datatype, iri, "Byte", "byte", "0");
         }
 
         @Override
@@ -115,7 +145,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelShort extends DatatypeModel {
         public DatatypeModelShort(Datatype datatype, String iri) {
-            super(datatype, iri, "short");
+            super(datatype, iri, "Short", "short", "0");
         }
 
         @Override
@@ -134,7 +164,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelInteger extends DatatypeModel {
         public DatatypeModelInteger(Datatype datatype, String iri) {
-            super(datatype, iri, "int");
+            super(datatype, iri, "Integer", "int", "0");
         }
 
         @Override
@@ -153,7 +183,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelLong extends DatatypeModel {
         public DatatypeModelLong(Datatype datatype, String iri) {
-            super(datatype, iri, "long");
+            super(datatype, iri, "Long", "long", "0");
         }
 
         @Override
@@ -172,7 +202,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelFloat extends DatatypeModel {
         public DatatypeModelFloat(Datatype datatype, String iri) {
-            super(datatype, iri, "float");
+            super(datatype, iri, "Float", "float", "0");
         }
 
         @Override
@@ -191,7 +221,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelDouble extends DatatypeModel {
         public DatatypeModelDouble(Datatype datatype, String iri) {
-            super(datatype, iri, "double");
+            super(datatype, iri, "Double", "double", "0");
         }
 
         @Override
@@ -210,7 +240,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelBoolean extends DatatypeModel {
         public DatatypeModelBoolean(Datatype datatype, String iri) {
-            super(datatype, iri, "boolean");
+            super(datatype, iri, "Boolean", "boolean", "false");
         }
 
         @Override
@@ -229,7 +259,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelString extends DatatypeModel {
         public DatatypeModelString(Datatype datatype, String iri) {
-            super(datatype, iri, "String");
+            super(datatype, iri, "String", null, "null");
         }
 
         @Override
@@ -248,7 +278,7 @@ public abstract class DatatypeModel {
      */
     private static class DatatypeModelDate extends DatatypeModel {
         public DatatypeModelDate(Datatype datatype, String iri) {
-            super(datatype, iri, "Date");
+            super(datatype, iri, "Date", null, "null");
         }
 
         @Override

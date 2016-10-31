@@ -148,15 +148,44 @@ public abstract class PropertyData {
     }
 
     /**
-     * Gets the string representation of the range's type
+     * Gets the name of this property when composed in Java
      *
-     * @return The string representation of the range's type
+     * @return The name of this property when composed in Java
      */
-    public String getRepresentationRange() {
+    public String getJavaName() {
+        String name = getProperty().getName();
+        return String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
+    }
+
+    /**
+     * Gets the scalar Java representation of the property's range
+     *
+     * @return The scalar Java representation of the property's range
+     */
+    public String getJavaRangeScalar() {
         if (property.isObjectProperty())
             return rangeClass.getJavaName();
-        else
-            return rangeDatatype.getJavaType();
+        return rangeDatatype.getScalarType();
+    }
+
+    /**
+     * Gets the Java representation of the property's range when in a vector
+     *
+     * @return The Java representation of the property's range when in a vector
+     */
+    public String getJavaRangeVector() {
+        if (property.isObjectProperty())
+            return rangeClass.getJavaName();
+        return rangeDatatype.getVectorType();
+    }
+
+    /**
+     * Gets the default value (usually null)
+     *
+     * @return The default value (usually null)
+     */
+    public String getDefaultValue() {
+        return (property.isObjectProperty()) ? "null" : rangeDatatype.getDefaultValue();
     }
 
     /**

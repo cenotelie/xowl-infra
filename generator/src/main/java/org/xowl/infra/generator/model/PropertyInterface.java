@@ -77,15 +77,10 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeInterface(Writer writer) throws IOException {
-        String type;
-        if (getRangeClass() != null)
-            type = getRangeClass().getJavaName();
-        else
-            type = getRangeDatatype().getJavaType();
         if (isVector())
-            writeInterfaceVector(writer, type);
+            writeInterfaceVector(writer);
         else
-            writeInterfaceScalar(writer, type);
+            writeInterfaceScalar(writer);
     }
 
     /**
@@ -203,27 +198,26 @@ public class PropertyInterface extends PropertyData {
      * Generates and writes the code for this property getter and setter
      *
      * @param writer The writer to write to
-     * @param type   The property's type as a string
      * @throws IOException When an IO error occurs
      */
-    private void writeInterfaceVector(Writer writer, String type) throws IOException {
-        String property = getProperty().getName();
-        property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writeJavadocAdd(writer, property);
-        writer.append("    boolean add").append(property).append("(").append(type).append(" elem);").append(Files.LINE_SEPARATOR);
+    private void writeInterfaceVector(Writer writer) throws IOException {
+        String name = getJavaName();
+
+        writeJavadocAdd(writer, name);
+        writer.append("    boolean add").append(name).append("(").append(getJavaRangeScalar()).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
-        writeJavadocRemove(writer, property);
-        writer.append("    boolean remove").append(property).append("(").append(type).append(" elem);").append(Files.LINE_SEPARATOR);
+        writeJavadocRemove(writer, name);
+        writer.append("    boolean remove").append(name).append("(").append(getJavaRangeScalar()).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain()) {
-            writeJavadocGetAll(writer, property);
-            writer.append("    Collection<").append(type).append("> getAll").append(property).append("();").append(Files.LINE_SEPARATOR);
+            writeJavadocGetAll(writer, name);
+            writer.append("    Collection<").append(getJavaRangeVector()).append("> getAll").append(name).append("();").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         } else {
-            writeJavadocGetAllTyped(writer, property);
-            writer.append("    Collection<").append(type).append("> getAll").append(property).append("As(").append(type).append(" type);").append(Files.LINE_SEPARATOR);
+            writeJavadocGetAllTyped(writer, name);
+            writer.append("    Collection<").append(getJavaRangeVector()).append("> getAll").append(name).append("As(").append(getJavaRangeScalar()).append(" type);").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         }
     }
@@ -232,23 +226,22 @@ public class PropertyInterface extends PropertyData {
      * Generates and writes the code for this property getter and setter
      *
      * @param writer The writer to write to
-     * @param type   The property's type as a string
      * @throws IOException When an IO error occurs
      */
-    private void writeInterfaceScalar(Writer writer, String type) throws IOException {
-        String property = getProperty().getName();
-        property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-        writeJavadocSet(writer, property);
-        writer.append("    void set").append(property).append("(").append(type).append(" elem);").append(Files.LINE_SEPARATOR);
+    private void writeInterfaceScalar(Writer writer) throws IOException {
+        String name = getJavaName();
+
+        writeJavadocSet(writer, name);
+        writer.append("    void set").append(name).append("(").append(getJavaRangeScalar()).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain()) {
-            writeJavadocGet(writer, property);
-            writer.append("    ").append(type).append(" get").append(property).append("();").append(Files.LINE_SEPARATOR);
+            writeJavadocGet(writer, name);
+            writer.append("    ").append(getJavaRangeScalar()).append(" get").append(name).append("();").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         } else {
-            writeJavadocGetTyped(writer, property);
-            writer.append("    ").append(type).append(" get").append(property).append("As(").append(type).append(" type);").append(Files.LINE_SEPARATOR);
+            writeJavadocGetTyped(writer, name);
+            writer.append("    ").append(getJavaRangeScalar()).append(" get").append(name).append("As(").append(getJavaRangeScalar()).append(" type);").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         }
     }
