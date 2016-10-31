@@ -108,18 +108,22 @@ public class RDFRuleEngine implements ChangeListener {
 
         @Override
         public void onTrigger(RDFRuleExecution execution) {
+            boolean fire;
             synchronized (executions) {
-                executions.add(execution);
+                fire = executions.add(execution);
             }
-            getIO().addRequestToFire(execution);
+            if (fire)
+                getIO().addRequestToFire(execution);
         }
 
         @Override
         public void onInvalidate(RDFRuleExecution execution) {
+            boolean unfire;
             synchronized (executions) {
-                if (executions.remove(execution))
-                    getIO().addRequestToUnfire(execution);
+                unfire = executions.remove(execution);
             }
+            if (unfire)
+                getIO().addRequestToUnfire(execution);
         }
 
         @Override

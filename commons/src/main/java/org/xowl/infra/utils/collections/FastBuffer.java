@@ -164,11 +164,13 @@ public class FastBuffer<T> implements Collection<T> {
             int index = inner.length;
             inner = Arrays.copyOf(inner, inner.length * 2);
             inner[index] = e;
+            size++;
             return true;
         }
         for (int i = 0; i != inner.length; i++) {
             if (inner[i] == null) {
                 inner[i] = e;
+                size++;
                 return true;
             }
         }
