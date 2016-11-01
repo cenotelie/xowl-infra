@@ -330,6 +330,8 @@ public class Model {
         for (ClassModel classModel : anonymousClasses.values())
             for (PropertyImplementation propertyImplementation : classModel.getPropertyImplementations())
                 propertyImplementation.buildPropertyGraph();
+        for (ClassModel classModel : anonymousClasses.values())
+            classModel.rebuildName();
     }
 
     /**

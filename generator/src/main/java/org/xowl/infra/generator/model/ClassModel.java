@@ -34,23 +34,13 @@ import java.util.*;
  */
 public class ClassModel {
     /**
-     * Maximum length of the generated class names for the unions and intersections
-     */
-    public static final int MAX_NAME_LENGTH = 100;
-
-    /**
-     * The counter for the truncated names
-     */
-    private static int counter = 0;
-
-    /**
      * The parent package
      */
-    private PackageModel parent;
+    private final PackageModel parent;
     /**
      * The associated OWL class
      */
-    private Class classe;
+    private final Class classe;
     /**
      * The name of this class
      */
@@ -58,31 +48,31 @@ public class ClassModel {
     /**
      * The equivalent classes
      */
-    private List<ClassModel> equivalents;
+    private final List<ClassModel> equivalents;
     /**
      * The super classes
      */
-    private List<ClassModel> superClasses;
+    private final List<ClassModel> superClasses;
     /**
      * The sub classes
      */
-    private List<ClassModel> subClasses;
+    private final List<ClassModel> subClasses;
     /**
      * The properties for which this class is the domain
      */
-    private List<PropertyModel> properties;
+    private final List<PropertyModel> properties;
     /**
      * The property interfaces owned by this class
      */
-    private List<PropertyInterface> propertyInterfaces;
+    private final List<PropertyInterface> propertyInterfaces;
     /**
      * The property implementations owned by this class
      */
-    private Map<PropertyModel, PropertyImplementation> propertyImplementations;
+    private final Map<PropertyModel, PropertyImplementation> propertyImplementations;
     /**
      * The static instances of this class
      */
-    private List<InstanceModel> staticInstances;
+    private final List<InstanceModel> staticInstances;
 
     /**
      * Gets the parent package
@@ -302,82 +292,48 @@ public class ClassModel {
      * @param classe       The associated OWL class
      */
     public ClassModel(PackageModel packageModel, Class classe) {
-        parent = packageModel;
+        this(packageModel, classe, getNameFromEntity(classe));
+    }
+
+    /**
+     * Initializes this class
+     *
+     * @param packageModel The parent package
+     * @param classe       The associated OWL class
+     * @param name         The name for this class
+     */
+    public ClassModel(PackageModel packageModel, Class classe, String name) {
+        this.parent = packageModel;
         this.classe = classe;
-        equivalents = new ArrayList<>();
-        superClasses = new ArrayList<>();
-        subClasses = new ArrayList<>();
-        properties = new ArrayList<>();
-        propertyInterfaces = new ArrayList<>();
-        propertyImplementations = new HashMap<>();
-        staticInstances = new ArrayList<>();
-        if (this.classe.getInterpretationOf() == null) {
-            if (!this.classe.getAllClassUnionOf().isEmpty())
-                buildUnionName();
-            else if (!this.classe.getAllClassIntersectionOf().isEmpty())
-                buildIntersectionName();
-        } else {
-            String iri = this.classe.getInterpretationOf().getHasIRI().getHasValue();
-            String[] parts = iri.split("#");
-            name = parts[parts.length - 1];
-            for (Individual individual : this.classe.getAllClassifies()) {
-                if (individual instanceof NamedIndividual) {
-                    InstanceModel instanceModel = new InstanceModel(this, (NamedIndividual) individual);
-                    packageModel.getModel().register((NamedIndividual) individual, instanceModel);
-                    staticInstances.add(instanceModel);
-                }
+        this.name = name;
+        this.equivalents = new ArrayList<>();
+        this.superClasses = new ArrayList<>();
+        this.subClasses = new ArrayList<>();
+        this.properties = new ArrayList<>();
+        this.propertyInterfaces = new ArrayList<>();
+        this.propertyImplementations = new HashMap<>();
+        this.staticInstances = new ArrayList<>();
+        for (Individual individual : classe.getAllClassifies()) {
+            if (individual instanceof NamedIndividual) {
+                InstanceModel instanceModel = new InstanceModel(this, (NamedIndividual) individual);
+                packageModel.getModel().register((NamedIndividual) individual, instanceModel);
+                staticInstances.add(instanceModel);
             }
         }
     }
 
     /**
-     * Builds this class as a union
+     * Gets the name of the class from the entity
+     *
+     * @param classe The OWL class
+     * @return The name for the class model
      */
-    private void buildUnionName() {
-        StringBuilder builder = new StringBuilder();
-        List<String> names = new ArrayList<>();
-        for (Class member : classe.getAllClassUnionOf()) {
-            ClassModel gen = getModelFor(member);
-            if (gen == null)
-                continue;
-            names.add(gen.name);
-        }
-        Collections.sort(names);
-        for (String name : names) {
-            if (builder.length() != 0)
-                builder.append("_OR_");
-            builder.append(name);
-        }
-        name = builder.toString();
-        if (name.length() > MAX_NAME_LENGTH) {
-            name = name.substring(0, MAX_NAME_LENGTH - 1) + Integer.toString(counter);
-            counter++;
-        }
-    }
-
-    /**
-     * Builds this class as an intersection
-     */
-    private void buildIntersectionName() {
-        StringBuilder builder = new StringBuilder();
-        List<String> names = new ArrayList<>();
-        for (Class member : classe.getAllClassIntersectionOf()) {
-            ClassModel gen = getModelFor(member);
-            if (gen == null)
-                continue;
-            names.add(gen.name);
-        }
-        Collections.sort(names);
-        for (String name : names) {
-            if (builder.length() != 0)
-                builder.append("_AND_");
-            builder.append(name);
-        }
-        name = builder.toString();
-        if (name.length() > MAX_NAME_LENGTH) {
-            name = name.substring(0, MAX_NAME_LENGTH - 1) + Integer.toString(counter);
-            counter++;
-        }
+    private static String getNameFromEntity(Class classe) {
+        if (classe.getInterpretationOf() == null)
+            return null;
+        String iri = classe.getInterpretationOf().getHasIRI().getHasValue();
+        String[] parts = iri.split("#");
+        return parts[parts.length - 1];
     }
 
     /**
@@ -590,6 +546,42 @@ public class ClassModel {
             for (PropertyInterface inter : interfaces.get(property))
                 implementation.addInterface(inter);
             implementation.close(logger);
+        }
+    }
+
+    /**
+     * Rebuilds the name of this class (if anonymous)
+     */
+    public void rebuildName() {
+        if (name != null)
+            return;
+        // look for a property for which this is the domain
+        for (PropertyInterface inter : propertyInterfaces) {
+            String genName = "DomainOf" + inter.getJavaName();
+            if (parent.isNameFree(genName)) {
+                this.name = genName;
+                return;
+            }
+        }
+        // look for a property for which this is the range
+        for (ClassModel model : parent.getClasses()) {
+            for (PropertyImplementation property : model.getPropertyImplementations()) {
+                if (property.getRange() == this) {
+                    String genName = "RangeOf" + property.getJavaName();
+                    if (parent.isNameFree(genName)) {
+                        this.name = genName;
+                        return;
+                    }
+                }
+            }
+        }
+        int counter = 0;
+        while (true) {
+            String genName = "AnonymousClass" + counter;
+            if (parent.isNameFree(genName)) {
+                this.name = genName;
+                return;
+            }
         }
     }
 

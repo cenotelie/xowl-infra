@@ -135,6 +135,20 @@ public class PackageModel {
     }
 
     /**
+     * Gets whether the specified class name is free
+     *
+     * @param name A generated class name
+     * @return true if the name is free, false otherwise
+     */
+    public boolean isNameFree(String name) {
+        for (ClassModel anonymous : anonymousClasses.values()) {
+            if (Objects.equals(name, anonymous.getName()))
+                return false;
+        }
+        return true;
+    }
+
+    /**
      * Initializes this package
      *
      * @param model    The parent model
