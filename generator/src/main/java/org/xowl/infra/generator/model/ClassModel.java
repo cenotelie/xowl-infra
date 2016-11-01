@@ -667,6 +667,9 @@ public class ClassModel {
         }
 
         // writes constructor
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Constructor for the implementation of ").append(name).append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
         writer.append("    public ").append(name).append("() {").append(Files.LINE_SEPARATOR);
         for (PropertyImplementation implementation : getPropertyImplementations()) {
             implementation.writeStandaloneConstructor(writer);
