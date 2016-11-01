@@ -103,16 +103,15 @@ public class Builder {
             deleteDirectory(folderBuild);
         if (!folderBuild.mkdirs())
             throw new IOException("Failed to create directory " + folderBuild.getAbsolutePath());
-        try (OutputStreamWriter writer = new OutputStreamWriter(System.out, Files.CHARSET)) {
-            JavaCompiler.CompilationTask task = ToolProvider.getSystemJavaCompiler().getTask(
-                    writer,
-                    fileManager,
-                    null,
-                    buildJavacParameters(),
-                    null,
-                    fileManager.getJavaFileObjectsFromFiles(buildSourcesList()));
-            task.call();
-        }
+        OutputStreamWriter writer = new OutputStreamWriter(System.out, Files.CHARSET);
+        JavaCompiler.CompilationTask task = ToolProvider.getSystemJavaCompiler().getTask(
+                writer,
+                fileManager,
+                null,
+                buildJavacParameters(),
+                null,
+                fileManager.getJavaFileObjectsFromFiles(buildSourcesList()));
+        task.call();
 
         // creating the jar
         if (folderBin.exists())
