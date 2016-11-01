@@ -263,7 +263,7 @@ public class PackageModel {
             writer.append("     *").append(Files.LINE_SEPARATOR);
             writer.append("     * @return A new instance of ").append(classModel.getName()).append(Files.LINE_SEPARATOR);
             writer.append("     */").append(Files.LINE_SEPARATOR);
-            writer.append("    public ").append(classModel.getName()).append(" new").append(classModel.getName()).append("() {").append(Files.LINE_SEPARATOR);
+            writer.append("    public static ").append(classModel.getName()).append(" new").append(classModel.getName()).append("() {").append(Files.LINE_SEPARATOR);
             writer.append("        return new ").append(classModel.getJavaImplName()).append("();").append(Files.LINE_SEPARATOR);
             writer.append("    }").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
