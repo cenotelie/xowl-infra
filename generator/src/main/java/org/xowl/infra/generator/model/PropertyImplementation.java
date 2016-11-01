@@ -345,7 +345,7 @@ public class PropertyImplementation extends PropertyData {
      * @throws IOException When writing failed
      */
     private void writeStandaloneFields(Writer writer) throws IOException {
-        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         String name = getJavaName();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * The backing data for the property ").append(name).append(Files.LINE_SEPARATOR);
@@ -365,7 +365,7 @@ public class PropertyImplementation extends PropertyData {
      * @throws IOException When writing failed
      */
     public void writeStandaloneConstructor(Writer writer) throws IOException {
-        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         String name = getJavaName();
         writer.append("        // initialize property ").append(iri).append(Files.LINE_SEPARATOR);
         if (isVector())
@@ -737,7 +737,7 @@ public class PropertyImplementation extends PropertyData {
      * @throws IOException When writing failed
      */
     private void writeStandaloneObjectMutators(Writer writer) throws IOException {
-        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         String name = getJavaName();
 
         List<String> inverseDomains = new ArrayList<>();

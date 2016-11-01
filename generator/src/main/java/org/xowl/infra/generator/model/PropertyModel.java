@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the model of a property
+ * Represents the model of an OWL property
  *
  * @author Laurent Wouters
  */
@@ -32,15 +32,15 @@ public class PropertyModel {
     /**
      * The parent package
      */
-    private PackageModel parent;
+    private final PackageModel parent;
     /**
      * The associated OWL property
      */
-    private Property property;
+    private final Property property;
     /**
      * The property's name
      */
-    private String name;
+    private final String name;
     /**
      * The property's domain
      */
@@ -84,7 +84,7 @@ public class PropertyModel {
      *
      * @return The represented OWL property
      */
-    public Property getOWLProperty() {
+    public Property getOWL() {
         return property;
     }
 
@@ -159,7 +159,7 @@ public class PropertyModel {
      *
      * @return All the super properties
      */
-    public java.util.List<PropertyModel> getSuperProperties() {
+    public List<PropertyModel> getSuperProperties() {
         List<PropertyModel> ancestors = new ArrayList<>(superProperties);
         for (int i = 0; i != ancestors.size(); i++) {
             for (PropertyModel ancestor : ancestors.get(i).superProperties) {
@@ -219,9 +219,7 @@ public class PropertyModel {
      * @return Whether this is a functional property
      */
     public boolean isFunctional() {
-        Boolean value = property.getIsFunctional();
-        if (value == null) return false;
-        return value;
+        return property.getIsFunctional();
     }
 
     /**
@@ -239,9 +237,7 @@ public class PropertyModel {
      * @return Whether the inverse of this property is functional
      */
     public boolean isInverseFunctional() {
-        Boolean value = ((ObjectProperty) property).getIsInverseFunctional();
-        if (value == null) return false;
-        return value;
+        return ((ObjectProperty) property).getIsInverseFunctional();
     }
 
     /**
@@ -250,9 +246,7 @@ public class PropertyModel {
      * @return Whether this property is symmetric
      */
     public boolean isSymmetric() {
-        Boolean value = ((ObjectProperty) property).getIsSymmetric();
-        if (value == null) return false;
-        return value;
+        return ((ObjectProperty) property).getIsSymmetric();
     }
 
     /**
@@ -261,9 +255,7 @@ public class PropertyModel {
      * @return Whether this property is asymmetric
      */
     public boolean isAsymmetric() {
-        Boolean value = ((ObjectProperty) property).getIsAsymmetric();
-        if (value == null) return false;
-        return value;
+        return ((ObjectProperty) property).getIsAsymmetric();
     }
 
     /**
@@ -272,9 +264,7 @@ public class PropertyModel {
      * @return Whether this property is reflexive
      */
     public boolean isReflexive() {
-        Boolean value = ((ObjectProperty) property).getIsReflexive();
-        if (value == null) return false;
-        return value;
+        return ((ObjectProperty) property).getIsReflexive();
     }
 
     /**
@@ -283,9 +273,7 @@ public class PropertyModel {
      * @return Whether this property is irreflexive
      */
     public boolean isIrreflexive() {
-        Boolean value = ((ObjectProperty) property).getIsIrreflexive();
-        if (value == null) return false;
-        return value;
+        return ((ObjectProperty) property).getIsIrreflexive();
     }
 
     /**
@@ -294,39 +282,7 @@ public class PropertyModel {
      * @return Whether this property is transitive
      */
     public boolean isTransitive() {
-        Boolean value = ((ObjectProperty) property).getIsTransitive();
-        if (value == null) return false;
-        return value;
-    }
-
-    /**
-     * Gets the model for the specified OWL class
-     *
-     * @param classe An OWL class
-     * @return The associated model
-     */
-    protected ClassModel getModelFor(Class classe) {
-        return parent.getModel().getModelFor(classe);
-    }
-
-    /**
-     * Gets the model for the specified OWL property
-     *
-     * @param property An OWL property
-     * @return The associated model
-     */
-    protected PropertyModel getModelFor(Property property) {
-        return parent.getModel().getModelFor(property);
-    }
-
-    /**
-     * Gets the model for the specified OWL datatype
-     *
-     * @param datatype An OWL datatype
-     * @return The associated model
-     */
-    protected DatatypeModel getModelFor(Datatype datatype) {
-        return parent.getModel().getModelFor(datatype);
+        return ((ObjectProperty) property).getIsTransitive();
     }
 
     /**
@@ -340,10 +296,10 @@ public class PropertyModel {
         this.property = property;
         String iri = this.property.getInterpretationOf().getHasIRI().getHasValue();
         String[] parts = iri.split("#");
-        name = parts[parts.length - 1];
-        equivalents = new ArrayList<>();
-        superProperties = new ArrayList<>();
-        subProperties = new ArrayList<>();
+        this.name = parts[parts.length - 1];
+        this.equivalents = new ArrayList<>();
+        this.superProperties = new ArrayList<>();
+        this.subProperties = new ArrayList<>();
     }
 
     /**
@@ -398,5 +354,35 @@ public class PropertyModel {
                 propertyModel.subProperties.add(this);
             }
         }
+    }
+
+    /**
+     * Gets the model for the specified OWL class
+     *
+     * @param classe An OWL class
+     * @return The associated model
+     */
+    private ClassModel getModelFor(Class classe) {
+        return parent.getModel().getModelFor(classe);
+    }
+
+    /**
+     * Gets the model for the specified OWL property
+     *
+     * @param property An OWL property
+     * @return The associated model
+     */
+    private PropertyModel getModelFor(Property property) {
+        return parent.getModel().getModelFor(property);
+    }
+
+    /**
+     * Gets the model for the specified OWL datatype
+     *
+     * @param datatype An OWL datatype
+     * @return The associated model
+     */
+    private DatatypeModel getModelFor(Datatype datatype) {
+        return parent.getModel().getModelFor(datatype);
     }
 }

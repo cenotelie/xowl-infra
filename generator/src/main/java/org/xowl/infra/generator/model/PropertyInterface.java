@@ -91,7 +91,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocAdd(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Adds an element to the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -109,7 +109,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocRemove(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Removes an element from the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -127,7 +127,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGetAll(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets all the elements for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -144,7 +144,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGetAllTyped(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets all the elements for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -163,7 +163,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocSet(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Sets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -180,7 +180,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGet(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -197,7 +197,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGetTyped(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);

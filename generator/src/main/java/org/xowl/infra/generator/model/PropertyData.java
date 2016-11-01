@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a set of data about a property
+ * Represents the base data for a property to be generated
  *
  * @author Laurent Wouters
  */
@@ -261,7 +261,7 @@ public abstract class PropertyData {
                 rangeClass = parentClass.getModelFor(this.parentClass.getPackage().getModel().getRepository().interpretAsClass(parentClass.getPackage().getModel().getRepository().resolveEntity(Vocabulary.owlThing)));
         } else {
             if (rangeDatatype == null)
-                rangeDatatype = property.getModelFor(parentClass.getPackage().getModel().getRepository().interpretAsDatatype(parentClass.getPackage().getModel().getRepository().resolveEntity(Vocabulary.xsdString)));
+                rangeDatatype = parentClass.getPackage().getModel().getModelFor(parentClass.getPackage().getModel().getRepository().interpretAsDatatype(parentClass.getPackage().getModel().getRepository().resolveEntity(Vocabulary.xsdString)));
         }
     }
 
@@ -298,7 +298,7 @@ public abstract class PropertyData {
      * @param restriction A class restriction on an object property
      */
     private void applyRestrictionOnObjectProperty(ObjectPropertyRestriction restriction) {
-        if (property.getOWLProperty() != restriction.getObjectProperty())
+        if (property.getOWL() != restriction.getObjectProperty())
             return;
         if (restriction instanceof ObjectAllValuesFrom) {
             ObjectAllValuesFrom objectAllValuesFrom = (ObjectAllValuesFrom) restriction;
@@ -342,7 +342,7 @@ public abstract class PropertyData {
      * @param restriction A class restriction on a data property
      */
     private void applyRestrictionOnDataProperty(DataPropertyRestriction restriction) {
-        if (property.getOWLProperty() != restriction.getDataProperty())
+        if (property.getOWL() != restriction.getDataProperty())
             return;
         if (restriction instanceof DataHasValue) {
             DataHasValue dataHasValue = (DataHasValue) restriction;
@@ -372,11 +372,11 @@ public abstract class PropertyData {
      * @param restriction A class restriction on multiple properties
      */
     private void applyRestrictionOnNAryProperties(NAryDataPropertyRestriction restriction) {
-        if (!restriction.getAllDataProperties().contains(property.getOWLProperty()))
+        if (!restriction.getAllDataProperties().contains(property.getOWL()))
             return;
         if (restriction instanceof DataAllValuesFrom) {
             Datatype datatype = restriction.getDatatype();
-            rangeDatatype = property.getModelFor(datatype);
+            rangeDatatype = parentClass.getPackage().getModel().getModelFor(datatype);
             restrictType = true;
         }
     }

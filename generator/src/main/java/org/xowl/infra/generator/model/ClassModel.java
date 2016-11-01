@@ -174,7 +174,7 @@ public class ClassModel {
      */
     public PropertyImplementation getPropertyImplementation(Property property) {
         for (PropertyModel gen : propertyImplementations.keySet())
-            if (gen.getOWLProperty() == property)
+            if (gen.getOWL() == property)
                 return propertyImplementations.get(gen);
         return null;
     }
