@@ -19,10 +19,7 @@ package org.xowl.infra.store;
 
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.lang.actions.DynamicExpression;
-import org.xowl.infra.lang.owl2.AnonymousIndividual;
-import org.xowl.infra.lang.owl2.IRI;
-import org.xowl.infra.lang.owl2.Literal;
-import org.xowl.infra.lang.owl2.Ontology;
+import org.xowl.infra.lang.owl2.*;
 import org.xowl.infra.lang.runtime.Entity;
 import org.xowl.infra.store.rdf.*;
 import org.xowl.infra.store.storage.NodeManager;
@@ -64,7 +61,7 @@ public class RDFUtils {
     public static Object getNative(Node node) {
         switch (node.getNodeType()) {
             case Node.TYPE_IRI: {
-                IRI iri = new IRI();
+                IRI iri = Owl2Factory.newIRI();
                 iri.setHasValue(((IRINode) node).getIRIValue());
                 return iri;
             }
@@ -90,19 +87,19 @@ public class RDFUtils {
     public static Object getOWL(Node node) {
         switch (node.getNodeType()) {
             case Node.TYPE_IRI: {
-                IRI iri = new IRI();
+                IRI iri = Owl2Factory.newIRI();
                 iri.setHasValue(((IRINode) node).getIRIValue());
                 return iri;
             }
             case Node.TYPE_LITERAL: {
                 LiteralNode literalNode = (LiteralNode) node;
-                Literal result = new Literal();
+                Literal result = Owl2Factory.newLiteral();
                 String value = literalNode.getLexicalValue();
                 if (value != null)
                     result.setLexicalValue(value);
                 value = literalNode.getDatatype();
                 if (value != null) {
-                    IRI iri = new IRI();
+                    IRI iri = Owl2Factory.newIRI();
                     iri.setHasValue(value);
                     result.setMemberOf(iri);
                 }
@@ -403,7 +400,7 @@ public class RDFUtils {
             case "variable":
                 return new VariableNode(properties.get("value"));
             case "anon": {
-                AnonymousIndividual individual = new AnonymousIndividual();
+                AnonymousIndividual individual = Owl2Factory.newAnonymousIndividual();
                 individual.setNodeID(properties.get("value"));
                 return nodeManager.getAnonNode(individual);
             }

@@ -180,7 +180,7 @@ public class FunctionalOWL2Deserializer {
      * @return The annotation
      */
     protected Annotation loadAnnotation(ASTNode node) {
-        Annotation result = new Annotation();
+        Annotation result = Owl2Factory.newAnnotation();
         // loads the annotations on this annotation
         for (ASTNode child : node.getChildren().get(0).getChildren()) {
             result.addAnnotations(loadAnnotation(child));
@@ -297,7 +297,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomDeclaration(ASTNode node) {
-        Declaration axiom = new Declaration();
+        Declaration axiom = Owl2Factory.newDeclaration();
         loadAxiomBase(node, axiom);
         axiom.setType(node.getChildren().get(1).getValue());
         axiom.setEntity(loadEntity(node.getChildren().get(2)));
@@ -311,7 +311,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomSubClassOf(ASTNode node) {
-        SubClassOf axiom = new SubClassOf();
+        SubClassOf axiom = Owl2Factory.newSubClassOf();
         loadAxiomBase(node, axiom);
         axiom.setClasse(loadExpClass(node.getChildren().get(1)));
         axiom.setSuperClass(loadExpClass(node.getChildren().get(2)));
@@ -325,11 +325,11 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomEquivalentClasses(ASTNode node) {
-        EquivalentClasses axiom = new EquivalentClasses();
+        EquivalentClasses axiom = Owl2Factory.newEquivalentClasses();
         loadAxiomBase(node, axiom);
-        ClassSequence seq = new ClassSequence();
+        ClassSequence seq = Owl2Factory.newClassSequence();
         for (int i = 1; i != node.getChildren().size(); i++) {
-            ClassElement element = new ClassElement();
+            ClassElement element = Owl2Factory.newClassElement();
             element.setClasse(loadExpClass(node.getChildren().get(i)));
             element.setIndex(i - 1);
             seq.addClassElements(element);
@@ -345,11 +345,11 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomDisjointClasses(ASTNode node) {
-        DisjointClasses axiom = new DisjointClasses();
+        DisjointClasses axiom = Owl2Factory.newDisjointClasses();
         loadAxiomBase(node, axiom);
-        ClassSequence seq = new ClassSequence();
+        ClassSequence seq = Owl2Factory.newClassSequence();
         for (int i = 1; i != node.getChildren().size(); i++) {
-            ClassElement element = new ClassElement();
+            ClassElement element = Owl2Factory.newClassElement();
             element.setClasse(loadExpClass(node.getChildren().get(i)));
             element.setIndex(i - 1);
             seq.addClassElements(element);
@@ -365,12 +365,12 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomDisjointUnion(ASTNode node) {
-        DisjointUnion axiom = new DisjointUnion();
+        DisjointUnion axiom = Owl2Factory.newDisjointUnion();
         loadAxiomBase(node, axiom);
         axiom.setClasse(loadExpClass(node.getChildren().get(1)));
-        ClassSequence seq = new ClassSequence();
+        ClassSequence seq = Owl2Factory.newClassSequence();
         for (int i = 2; i != node.getChildren().size(); i++) {
-            ClassElement element = new ClassElement();
+            ClassElement element = Owl2Factory.newClassElement();
             element.setClasse(loadExpClass(node.getChildren().get(i)));
             element.setIndex(i - 1);
             seq.addClassElements(element);
@@ -386,13 +386,13 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomSubObjectPropertyOf(ASTNode node) {
-        SubObjectPropertyOf axiom = new SubObjectPropertyOf();
+        SubObjectPropertyOf axiom = Owl2Factory.newSubObjectPropertyOf();
         loadAxiomBase(node, axiom);
         if (node.getChildren().get(1).getSymbol().getName().equals("expObjectPropertyChain")) {
-            ObjectPropertySequence seq = new ObjectPropertySequence();
+            ObjectPropertySequence seq = Owl2Factory.newObjectPropertySequence();
             int index = 0;
             for (ASTNode child : node.getChildren().get(1).getChildren()) {
-                ObjectPropertyElement element = new ObjectPropertyElement();
+                ObjectPropertyElement element = Owl2Factory.newObjectPropertyElement();
                 element.setObjectProperty(loadExpObjectProperty(child));
                 element.setIndex(index);
                 index++;
@@ -413,11 +413,11 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomEquivalentObjectProperties(ASTNode node) {
-        EquivalentObjectProperties axiom = new EquivalentObjectProperties();
+        EquivalentObjectProperties axiom = Owl2Factory.newEquivalentObjectProperties();
         loadAxiomBase(node, axiom);
-        ObjectPropertySequence seq = new ObjectPropertySequence();
+        ObjectPropertySequence seq = Owl2Factory.newObjectPropertySequence();
         for (int i = 1; i != node.getChildren().size(); i++) {
-            ObjectPropertyElement element = new ObjectPropertyElement();
+            ObjectPropertyElement element = Owl2Factory.newObjectPropertyElement();
             element.setObjectProperty(loadExpObjectProperty(node.getChildren().get(i)));
             element.setIndex(i - 1);
             seq.addObjectPropertyElements(element);
@@ -433,11 +433,11 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomDisjointObjectProperties(ASTNode node) {
-        DisjointObjectProperties axiom = new DisjointObjectProperties();
+        DisjointObjectProperties axiom = Owl2Factory.newDisjointObjectProperties();
         loadAxiomBase(node, axiom);
-        ObjectPropertySequence seq = new ObjectPropertySequence();
+        ObjectPropertySequence seq = Owl2Factory.newObjectPropertySequence();
         for (int i = 1; i != node.getChildren().size(); i++) {
-            ObjectPropertyElement element = new ObjectPropertyElement();
+            ObjectPropertyElement element = Owl2Factory.newObjectPropertyElement();
             element.setObjectProperty(loadExpObjectProperty(node.getChildren().get(i)));
             element.setIndex(i - 1);
             seq.addObjectPropertyElements(element);
@@ -453,7 +453,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomInverseObjectProperties(ASTNode node) {
-        InverseObjectProperties axiom = new InverseObjectProperties();
+        InverseObjectProperties axiom = Owl2Factory.newInverseObjectProperties();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         axiom.setInverse(loadExpObjectProperty(node.getChildren().get(2)));
@@ -467,7 +467,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomObjectPropertyDomain(ASTNode node) {
-        ObjectPropertyDomain axiom = new ObjectPropertyDomain();
+        ObjectPropertyDomain axiom = Owl2Factory.newObjectPropertyDomain();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         axiom.setClasse(loadExpClass(node.getChildren().get(2)));
@@ -481,7 +481,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomObjectPropertyRange(ASTNode node) {
-        ObjectPropertyRange axiom = new ObjectPropertyRange();
+        ObjectPropertyRange axiom = Owl2Factory.newObjectPropertyRange();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         axiom.setClasse(loadExpClass(node.getChildren().get(2)));
@@ -495,7 +495,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomFunctionalObjectProperty(ASTNode node) {
-        FunctionalObjectProperty axiom = new FunctionalObjectProperty();
+        FunctionalObjectProperty axiom = Owl2Factory.newFunctionalObjectProperty();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         return axiom;
@@ -508,7 +508,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomInverseFunctionalObjectProperty(ASTNode node) {
-        InverseFunctionalObjectProperty axiom = new InverseFunctionalObjectProperty();
+        InverseFunctionalObjectProperty axiom = Owl2Factory.newInverseFunctionalObjectProperty();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         return axiom;
@@ -521,7 +521,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomReflexiveObjectProperty(ASTNode node) {
-        ReflexiveObjectProperty axiom = new ReflexiveObjectProperty();
+        ReflexiveObjectProperty axiom = Owl2Factory.newReflexiveObjectProperty();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         return axiom;
@@ -534,7 +534,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomIrreflexiveObjectProperty(ASTNode node) {
-        IrreflexiveObjectProperty axiom = new IrreflexiveObjectProperty();
+        IrreflexiveObjectProperty axiom = Owl2Factory.newIrreflexiveObjectProperty();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         return axiom;
@@ -547,7 +547,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomSymmetricObjectProperty(ASTNode node) {
-        SymmetricObjectProperty axiom = new SymmetricObjectProperty();
+        SymmetricObjectProperty axiom = Owl2Factory.newSymmetricObjectProperty();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         return axiom;
@@ -560,7 +560,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomAsymmetricObjectProperty(ASTNode node) {
-        AsymmetricObjectProperty axiom = new AsymmetricObjectProperty();
+        AsymmetricObjectProperty axiom = Owl2Factory.newAsymmetricObjectProperty();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         return axiom;
@@ -573,7 +573,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomTransitiveObjectProperty(ASTNode node) {
-        TransitiveObjectProperty axiom = new TransitiveObjectProperty();
+        TransitiveObjectProperty axiom = Owl2Factory.newTransitiveObjectProperty();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         return axiom;
@@ -586,7 +586,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomSubDataPropertyOf(ASTNode node) {
-        SubDataPropertyOf axiom = new SubDataPropertyOf();
+        SubDataPropertyOf axiom = Owl2Factory.newSubDataPropertyOf();
         loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(node.getChildren().get(1)));
         axiom.setSuperDataProperty(loadExpDataProperty(node.getChildren().get(2)));
@@ -600,11 +600,11 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomEquivalentDataProperties(ASTNode node) {
-        EquivalentDataProperties axiom = new EquivalentDataProperties();
+        EquivalentDataProperties axiom = Owl2Factory.newEquivalentDataProperties();
         loadAxiomBase(node, axiom);
-        DataPropertySequence seq = new DataPropertySequence();
+        DataPropertySequence seq = Owl2Factory.newDataPropertySequence();
         for (int i = 1; i != node.getChildren().size(); i++) {
-            DataPropertyElement element = new DataPropertyElement();
+            DataPropertyElement element = Owl2Factory.newDataPropertyElement();
             element.setDataProperty(loadExpDataProperty(node.getChildren().get(i)));
             element.setIndex(i - 1);
             seq.addDataPropertyElements(element);
@@ -620,11 +620,11 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomDisjointDataProperties(ASTNode node) {
-        DisjointDataProperties axiom = new DisjointDataProperties();
+        DisjointDataProperties axiom = Owl2Factory.newDisjointDataProperties();
         loadAxiomBase(node, axiom);
-        DataPropertySequence seq = new DataPropertySequence();
+        DataPropertySequence seq = Owl2Factory.newDataPropertySequence();
         for (int i = 1; i != node.getChildren().size(); i++) {
-            DataPropertyElement element = new DataPropertyElement();
+            DataPropertyElement element = Owl2Factory.newDataPropertyElement();
             element.setDataProperty(loadExpDataProperty(node.getChildren().get(i)));
             element.setIndex(i - 1);
             seq.addDataPropertyElements(element);
@@ -640,7 +640,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomDataPropertyDomain(ASTNode node) {
-        DataPropertyDomain axiom = new DataPropertyDomain();
+        DataPropertyDomain axiom = Owl2Factory.newDataPropertyDomain();
         loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(node.getChildren().get(1)));
         axiom.setClasse(loadExpClass(node.getChildren().get(2)));
@@ -654,7 +654,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomDataPropertyRange(ASTNode node) {
-        DataPropertyRange axiom = new DataPropertyRange();
+        DataPropertyRange axiom = Owl2Factory.newDataPropertyRange();
         loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(node.getChildren().get(1)));
         axiom.setDatarange(loadExpDatarange(node.getChildren().get(2)));
@@ -668,7 +668,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomFunctionalDataProperty(ASTNode node) {
-        FunctionalDataProperty axiom = new FunctionalDataProperty();
+        FunctionalDataProperty axiom = Owl2Factory.newFunctionalDataProperty();
         loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(node.getChildren().get(1)));
         return axiom;
@@ -681,7 +681,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomDatatypeDefinition(ASTNode node) {
-        DatatypeDefinition axiom = new DatatypeDefinition();
+        DatatypeDefinition axiom = Owl2Factory.newDatatypeDefinition();
         loadAxiomBase(node, axiom);
         axiom.setDatatype(loadExpDatarange(node.getChildren().get(1)));
         axiom.setDatarange(loadExpDatarange(node.getChildren().get(2)));
@@ -695,23 +695,23 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomHasKey(ASTNode node) {
-        HasKey axiom = new HasKey();
+        HasKey axiom = Owl2Factory.newHasKey();
         loadAxiomBase(node, axiom);
         axiom.setClasse(loadExpClass(node.getChildren().get(1)));
-        ObjectPropertySequence seq1 = new ObjectPropertySequence();
+        ObjectPropertySequence seq1 = Owl2Factory.newObjectPropertySequence();
         int index = 0;
         for (ASTNode child : node.getChildren().get(1).getChildren()) {
-            ObjectPropertyElement element = new ObjectPropertyElement();
+            ObjectPropertyElement element = Owl2Factory.newObjectPropertyElement();
             element.setObjectProperty(loadExpObjectProperty(child));
             element.setIndex(index);
             seq1.addObjectPropertyElements(element);
             index++;
         }
         axiom.setObjectPropertySeq(seq1);
-        DataPropertySequence seq2 = new DataPropertySequence();
+        DataPropertySequence seq2 = Owl2Factory.newDataPropertySequence();
         index = 0;
         for (ASTNode child : node.getChildren().get(2).getChildren()) {
-            DataPropertyElement element = new DataPropertyElement();
+            DataPropertyElement element = Owl2Factory.newDataPropertyElement();
             element.setDataProperty(loadExpDataProperty(child));
             element.setIndex(index);
             seq2.addDataPropertyElements(element);
@@ -728,11 +728,11 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomSameIndividual(ASTNode node) {
-        SameIndividual axiom = new SameIndividual();
+        SameIndividual axiom = Owl2Factory.newSameIndividual();
         loadAxiomBase(node, axiom);
-        IndividualSequence seq = new IndividualSequence();
+        IndividualSequence seq = Owl2Factory.newIndividualSequence();
         for (int i = 1; i != node.getChildren().size(); i++) {
-            IndividualElement element = new IndividualElement();
+            IndividualElement element = Owl2Factory.newIndividualElement();
             element.setIndividual(loadExpIndividual(node.getChildren().get(i)));
             element.setIndex(i - 1);
             seq.addIndividualElements(element);
@@ -748,11 +748,11 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomDifferentIndividuals(ASTNode node) {
-        DifferentIndividuals axiom = new DifferentIndividuals();
+        DifferentIndividuals axiom = Owl2Factory.newDifferentIndividuals();
         loadAxiomBase(node, axiom);
-        IndividualSequence seq = new IndividualSequence();
+        IndividualSequence seq = Owl2Factory.newIndividualSequence();
         for (int i = 1; i != node.getChildren().size(); i++) {
-            IndividualElement element = new IndividualElement();
+            IndividualElement element = Owl2Factory.newIndividualElement();
             element.setIndividual(loadExpIndividual(node.getChildren().get(i)));
             element.setIndex(i - 1);
             seq.addIndividualElements(element);
@@ -768,7 +768,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomClassAssertion(ASTNode node) {
-        ClassAssertion axiom = new ClassAssertion();
+        ClassAssertion axiom = Owl2Factory.newClassAssertion();
         loadAxiomBase(node, axiom);
         axiom.setClasse(loadExpClass(node.getChildren().get(1)));
         axiom.setIndividual(loadExpIndividual(node.getChildren().get(2)));
@@ -782,7 +782,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomObjectPropertyAssertion(ASTNode node) {
-        ObjectPropertyAssertion axiom = new ObjectPropertyAssertion();
+        ObjectPropertyAssertion axiom = Owl2Factory.newObjectPropertyAssertion();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         axiom.setIndividual(loadExpIndividual(node.getChildren().get(2)));
@@ -797,7 +797,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomNegativeObjectPropertyAssertion(ASTNode node) {
-        NegativeObjectPropertyAssertion axiom = new NegativeObjectPropertyAssertion();
+        NegativeObjectPropertyAssertion axiom = Owl2Factory.newNegativeObjectPropertyAssertion();
         loadAxiomBase(node, axiom);
         axiom.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         axiom.setIndividual(loadExpIndividual(node.getChildren().get(2)));
@@ -812,7 +812,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomDataPropertyAssertion(ASTNode node) {
-        DataPropertyAssertion axiom = new DataPropertyAssertion();
+        DataPropertyAssertion axiom = Owl2Factory.newDataPropertyAssertion();
         loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(node.getChildren().get(1)));
         axiom.setIndividual(loadExpIndividual(node.getChildren().get(2)));
@@ -827,7 +827,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomNegativeDataPropertyAssertion(ASTNode node) {
-        NegativeDataPropertyAssertion axiom = new NegativeDataPropertyAssertion();
+        NegativeDataPropertyAssertion axiom = Owl2Factory.newNegativeDataPropertyAssertion();
         loadAxiomBase(node, axiom);
         axiom.setDataProperty(loadExpDataProperty(node.getChildren().get(1)));
         axiom.setIndividual(loadExpIndividual(node.getChildren().get(2)));
@@ -842,7 +842,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomAnnotationAssertion(ASTNode node) {
-        AnnotationAssertion axiom = new AnnotationAssertion();
+        AnnotationAssertion axiom = Owl2Factory.newAnnotationAssertion();
         loadAxiomBase(node, axiom);
         axiom.setAnnotProperty(loadExpAnnotationProperty(node.getChildren().get(1)));
         axiom.setAnnotSubject(loadExpAnnotationSubject(node.getChildren().get(2)));
@@ -857,7 +857,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomSubAnnotationPropertyOf(ASTNode node) {
-        SubAnnotationPropertyOf axiom = new SubAnnotationPropertyOf();
+        SubAnnotationPropertyOf axiom = Owl2Factory.newSubAnnotationPropertyOf();
         loadAxiomBase(node, axiom);
         axiom.setAnnotProperty(loadExpAnnotationProperty(node.getChildren().get(1)));
         axiom.setSuperAnnotProperty(loadExpAnnotationProperty(node.getChildren().get(2)));
@@ -871,7 +871,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomAnnotationPropertyDomain(ASTNode node) {
-        AnnotationPropertyDomain axiom = new AnnotationPropertyDomain();
+        AnnotationPropertyDomain axiom = Owl2Factory.newAnnotationPropertyDomain();
         loadAxiomBase(node, axiom);
         axiom.setAnnotProperty(loadExpAnnotationProperty(node.getChildren().get(1)));
         axiom.setAnnotDomain(loadEntity(node.getChildren().get(2)));
@@ -885,7 +885,7 @@ public class FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomAnnotationPropertyRange(ASTNode node) {
-        AnnotationPropertyRange axiom = new AnnotationPropertyRange();
+        AnnotationPropertyRange axiom = Owl2Factory.newAnnotationPropertyRange();
         loadAxiomBase(node, axiom);
         axiom.setAnnotProperty(loadExpAnnotationProperty(node.getChildren().get(1)));
         axiom.setAnnotRange(loadEntity(node.getChildren().get(2)));
@@ -918,7 +918,7 @@ public class FunctionalOWL2Deserializer {
             case "IRIREF":
             case "PNAME_LN":
                 // named individual
-                IRI entity = new IRI();
+                IRI entity = Owl2Factory.newIRI();
                 entity.setHasValue(loadIRI(node));
                 return entity;
         }
@@ -978,10 +978,10 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpObjectIntersectionOf(ASTNode node) {
-        ObjectIntersectionOf expression = new ObjectIntersectionOf();
-        ClassSequence seq = new ClassSequence();
+        ObjectIntersectionOf expression = Owl2Factory.newObjectIntersectionOf();
+        ClassSequence seq = Owl2Factory.newClassSequence();
         for (int i = 0; i != node.getChildren().size(); i++) {
-            ClassElement element = new ClassElement();
+            ClassElement element = Owl2Factory.newClassElement();
             element.setClasse(loadExpClass(node.getChildren().get(i)));
             element.setIndex(i);
             seq.addClassElements(element);
@@ -997,10 +997,10 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpObjectUnionOf(ASTNode node) {
-        ObjectUnionOf expression = new ObjectUnionOf();
-        ClassSequence seq = new ClassSequence();
+        ObjectUnionOf expression = Owl2Factory.newObjectUnionOf();
+        ClassSequence seq = Owl2Factory.newClassSequence();
         for (int i = 0; i != node.getChildren().size(); i++) {
-            ClassElement element = new ClassElement();
+            ClassElement element = Owl2Factory.newClassElement();
             element.setClasse(loadExpClass(node.getChildren().get(i)));
             element.setIndex(i);
             seq.addClassElements(element);
@@ -1016,7 +1016,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpObjectComplementOf(ASTNode node) {
-        ObjectComplementOf expression = new ObjectComplementOf();
+        ObjectComplementOf expression = Owl2Factory.newObjectComplementOf();
         expression.setClasse(loadExpClass(node.getChildren().get(0)));
         return expression;
     }
@@ -1028,10 +1028,10 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpObjectOneOf(ASTNode node) {
-        ObjectOneOf expression = new ObjectOneOf();
-        IndividualSequence seq = new IndividualSequence();
+        ObjectOneOf expression = Owl2Factory.newObjectOneOf();
+        IndividualSequence seq = Owl2Factory.newIndividualSequence();
         for (int i = 0; i != node.getChildren().size(); i++) {
-            IndividualElement element = new IndividualElement();
+            IndividualElement element = Owl2Factory.newIndividualElement();
             element.setIndividual(loadExpIndividual(node.getChildren().get(i)));
             element.setIndex(i);
             seq.addIndividualElements(element);
@@ -1047,7 +1047,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpObjectSomeValuesFrom(ASTNode node) {
-        ObjectSomeValuesFrom expression = new ObjectSomeValuesFrom();
+        ObjectSomeValuesFrom expression = Owl2Factory.newObjectSomeValuesFrom();
         expression.setObjectProperty(loadExpObjectProperty(node.getChildren().get(0)));
         expression.setClasse(loadExpClass(node.getChildren().get(1)));
         return expression;
@@ -1060,7 +1060,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpObjectAllValuesFrom(ASTNode node) {
-        ObjectAllValuesFrom expression = new ObjectAllValuesFrom();
+        ObjectAllValuesFrom expression = Owl2Factory.newObjectAllValuesFrom();
         expression.setObjectProperty(loadExpObjectProperty(node.getChildren().get(0)));
         expression.setClasse(loadExpClass(node.getChildren().get(1)));
         return expression;
@@ -1073,7 +1073,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpObjectHasValue(ASTNode node) {
-        ObjectHasValue expression = new ObjectHasValue();
+        ObjectHasValue expression = Owl2Factory.newObjectHasValue();
         expression.setObjectProperty(loadExpObjectProperty(node.getChildren().get(0)));
         expression.setIndividual(loadExpIndividual(node.getChildren().get(1)));
         return expression;
@@ -1086,7 +1086,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpObjectHasSelf(ASTNode node) {
-        ObjectHasSelf expression = new ObjectHasSelf();
+        ObjectHasSelf expression = Owl2Factory.newObjectHasSelf();
         expression.setObjectProperty(loadExpObjectProperty(node.getChildren().get(0)));
         return expression;
     }
@@ -1098,7 +1098,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpObjectMinCardinality(ASTNode node) {
-        ObjectMinCardinality expression = new ObjectMinCardinality();
+        ObjectMinCardinality expression = Owl2Factory.newObjectMinCardinality();
         expression.setCardinality(loadExpLiteral(node.getChildren().get(0)));
         expression.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         if (node.getChildren().size() > 2)
@@ -1113,7 +1113,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpObjectMaxCardinality(ASTNode node) {
-        ObjectMaxCardinality expression = new ObjectMaxCardinality();
+        ObjectMaxCardinality expression = Owl2Factory.newObjectMaxCardinality();
         expression.setCardinality(loadExpLiteral(node.getChildren().get(0)));
         expression.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         if (node.getChildren().size() > 2)
@@ -1128,7 +1128,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpObjectExactCardinality(ASTNode node) {
-        ObjectExactCardinality expression = new ObjectExactCardinality();
+        ObjectExactCardinality expression = Owl2Factory.newObjectExactCardinality();
         expression.setCardinality(loadExpLiteral(node.getChildren().get(0)));
         expression.setObjectProperty(loadExpObjectProperty(node.getChildren().get(1)));
         if (node.getChildren().size() > 2)
@@ -1143,10 +1143,10 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpDataSomeValuesFrom(ASTNode node) {
-        DataSomeValuesFrom expression = new DataSomeValuesFrom();
-        DataPropertySequence seq = new DataPropertySequence();
+        DataSomeValuesFrom expression = Owl2Factory.newDataSomeValuesFrom();
+        DataPropertySequence seq = Owl2Factory.newDataPropertySequence();
         for (int i = 0; i != node.getChildren().size() - 1; i++) {
-            DataPropertyElement element = new DataPropertyElement();
+            DataPropertyElement element = Owl2Factory.newDataPropertyElement();
             element.setDataProperty(loadExpDataProperty(node.getChildren().get(i)));
             element.setIndex(i);
             seq.addDataPropertyElements(element);
@@ -1163,10 +1163,10 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpDataAllValuesFrom(ASTNode node) {
-        DataAllValuesFrom expression = new DataAllValuesFrom();
-        DataPropertySequence seq = new DataPropertySequence();
+        DataAllValuesFrom expression = Owl2Factory.newDataAllValuesFrom();
+        DataPropertySequence seq = Owl2Factory.newDataPropertySequence();
         for (int i = 0; i != node.getChildren().size() - 1; i++) {
-            DataPropertyElement element = new DataPropertyElement();
+            DataPropertyElement element = Owl2Factory.newDataPropertyElement();
             element.setDataProperty(loadExpDataProperty(node.getChildren().get(i)));
             element.setIndex(i);
             seq.addDataPropertyElements(element);
@@ -1183,7 +1183,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpDataHasValue(ASTNode node) {
-        DataHasValue expression = new DataHasValue();
+        DataHasValue expression = Owl2Factory.newDataHasValue();
         expression.setDataProperty(loadExpDataProperty(node.getChildren().get(0)));
         expression.setLiteral(loadExpLiteral(node.getChildren().get(1)));
         return expression;
@@ -1196,7 +1196,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpDataMinCardinality(ASTNode node) {
-        DataMinCardinality expression = new DataMinCardinality();
+        DataMinCardinality expression = Owl2Factory.newDataMinCardinality();
         expression.setCardinality(loadExpLiteral(node.getChildren().get(0)));
         expression.setDataProperty(loadExpDataProperty(node.getChildren().get(1)));
         if (node.getChildren().size() > 2)
@@ -1211,7 +1211,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpDataMaxCardinality(ASTNode node) {
-        DataMaxCardinality expression = new DataMaxCardinality();
+        DataMaxCardinality expression = Owl2Factory.newDataMaxCardinality();
         expression.setCardinality(loadExpLiteral(node.getChildren().get(0)));
         expression.setDataProperty(loadExpDataProperty(node.getChildren().get(1)));
         if (node.getChildren().size() > 2)
@@ -1226,7 +1226,7 @@ public class FunctionalOWL2Deserializer {
      * @return The class expression
      */
     protected ClassExpression loadExpDataExactCardinality(ASTNode node) {
-        DataExactCardinality expression = new DataExactCardinality();
+        DataExactCardinality expression = Owl2Factory.newDataExactCardinality();
         expression.setCardinality(loadExpLiteral(node.getChildren().get(0)));
         expression.setDataProperty(loadExpDataProperty(node.getChildren().get(1)));
         if (node.getChildren().size() > 2)
@@ -1259,7 +1259,7 @@ public class FunctionalOWL2Deserializer {
         AnonymousIndividual result = blanks.get(name);
         if (result != null)
             return result;
-        result = new AnonymousIndividual();
+        result = Owl2Factory.newAnonymousIndividual();
         result.setNodeID(UUID.randomUUID().toString());
         blanks.put(name, result);
         return result;
@@ -1294,10 +1294,10 @@ public class FunctionalOWL2Deserializer {
      * @return The datarange expression
      */
     protected Datarange loadExpDataIntersectionOf(ASTNode node) {
-        DataIntersectionOf expression = new DataIntersectionOf();
-        DatarangeSequence seq = new DatarangeSequence();
+        DataIntersectionOf expression = Owl2Factory.newDataIntersectionOf();
+        DatarangeSequence seq = Owl2Factory.newDatarangeSequence();
         for (int i = 0; i != node.getChildren().size(); i++) {
-            DatarangeElement element = new DatarangeElement();
+            DatarangeElement element = Owl2Factory.newDatarangeElement();
             element.setDatarange(loadExpDatarange(node.getChildren().get(i)));
             element.setIndex(i);
             seq.addDatarangeElements(element);
@@ -1313,10 +1313,10 @@ public class FunctionalOWL2Deserializer {
      * @return The datarange expression
      */
     protected Datarange loadExpDataUnionOf(ASTNode node) {
-        DataUnionOf expression = new DataUnionOf();
-        DatarangeSequence seq = new DatarangeSequence();
+        DataUnionOf expression = Owl2Factory.newDataUnionOf();
+        DatarangeSequence seq = Owl2Factory.newDatarangeSequence();
         for (int i = 0; i != node.getChildren().size(); i++) {
-            DatarangeElement element = new DatarangeElement();
+            DatarangeElement element = Owl2Factory.newDatarangeElement();
             element.setDatarange(loadExpDatarange(node.getChildren().get(i)));
             element.setIndex(i);
             seq.addDatarangeElements(element);
@@ -1332,7 +1332,7 @@ public class FunctionalOWL2Deserializer {
      * @return The datarange expression
      */
     protected Datarange loadExpDataComplementOf(ASTNode node) {
-        DataComplementOf expression = new DataComplementOf();
+        DataComplementOf expression = Owl2Factory.newDataComplementOf();
         expression.setDatarange(loadExpDatarange(node.getChildren().get(0)));
         return expression;
     }
@@ -1344,10 +1344,10 @@ public class FunctionalOWL2Deserializer {
      * @return The datarange expression
      */
     protected Datarange loadExpDataOneOf(ASTNode node) {
-        DataOneOf expression = new DataOneOf();
-        LiteralSequence seq = new LiteralSequence();
+        DataOneOf expression = Owl2Factory.newDataOneOf();
+        LiteralSequence seq = Owl2Factory.newLiteralSequence();
         for (int i = 0; i != node.getChildren().size(); i++) {
-            LiteralElement element = new LiteralElement();
+            LiteralElement element = Owl2Factory.newLiteralElement();
             element.setLiteral(loadExpLiteral(node.getChildren().get(i)));
             element.setIndex(i);
             seq.addLiteralElements(element);
@@ -1363,7 +1363,7 @@ public class FunctionalOWL2Deserializer {
      * @return The datarange expression
      */
     protected Datarange loadExpDatatypeRestriction(ASTNode node) {
-        DatatypeRestriction expression = new DatatypeRestriction();
+        DatatypeRestriction expression = Owl2Factory.newDatatypeRestriction();
         List<ASTNode> children = node.getChildren();
         expression.setDatarange(loadExpDatarange(children.get(0)));
         for (int i = 1; i != children.size(); i++)
@@ -1378,7 +1378,7 @@ public class FunctionalOWL2Deserializer {
      * @return The facet restriction
      */
     protected FacetRestriction loadExpFacetRestriction(ASTNode node) {
-        FacetRestriction restriction = new FacetRestriction();
+        FacetRestriction restriction = Owl2Factory.newFacetRestriction();
         restriction.setConstrainingFacet(loadEntity(node.getChildren().get(0)));
         restriction.setConstrainingValue((Literal) loadExpLiteral(node.getChildren().get(1)));
         return restriction;
@@ -1405,7 +1405,7 @@ public class FunctionalOWL2Deserializer {
      * @return The object property expression
      */
     protected ObjectPropertyExpression loaExpInverseObjectProperty(ASTNode node) {
-        ObjectInverseOf expression = new ObjectInverseOf();
+        ObjectInverseOf expression = Owl2Factory.newObjectInverseOf();
         expression.setInverse(loadExpObjectProperty(node.getChildren().get(0)));
         return expression;
     }
@@ -1446,10 +1446,10 @@ public class FunctionalOWL2Deserializer {
      * @return The literal expression
      */
     protected Literal loadExpIntegerLiteral(ASTNode node) {
-        Literal result = new Literal();
+        Literal result = Owl2Factory.newLiteral();
         String value = node.getValue();
         result.setLexicalValue(value);
-        IRI type = new IRI();
+        IRI type = Owl2Factory.newIRI();
         type.setHasValue(Vocabulary.xsdInt);
         result.setMemberOf(type);
         return result;
@@ -1462,11 +1462,11 @@ public class FunctionalOWL2Deserializer {
      * @return The literal expression
      */
     protected Literal loadExpStringLiteral(ASTNode node) {
-        Literal result = new Literal();
+        Literal result = Owl2Factory.newLiteral();
         String value = node.getChildren().get(0).getValue();
         value = value.substring(1, value.length() - 1);
         result.setLexicalValue(value);
-        IRI type = new IRI();
+        IRI type = Owl2Factory.newIRI();
         type.setHasValue(Vocabulary.xsdString);
         result.setMemberOf(type);
         return result;
@@ -1479,11 +1479,11 @@ public class FunctionalOWL2Deserializer {
      * @return The literal expression
      */
     protected Literal loadExpTypedLiteral(ASTNode node) {
-        Literal result = new Literal();
+        Literal result = Owl2Factory.newLiteral();
         String value = node.getChildren().get(0).getValue();
         value = value.substring(1, value.length() - 1);
         result.setLexicalValue(value);
-        IRI type = new IRI();
+        IRI type = Owl2Factory.newIRI();
         type.setHasValue(loadIRI(node.getChildren().get(1)));
         result.setMemberOf(type);
         return result;
@@ -1496,13 +1496,13 @@ public class FunctionalOWL2Deserializer {
      * @return The literal expression
      */
     protected Literal loadExpLangTaggedLiteral(ASTNode node) {
-        Literal result = new Literal();
+        Literal result = Owl2Factory.newLiteral();
         String value = node.getChildren().get(0).getValue();
         value = value.substring(1, value.length() - 1);
         result.setLexicalValue(value);
         String tag = node.getChildren().get(1).getValue();
         result.setLangTag(tag.substring(1));
-        IRI type = new IRI();
+        IRI type = Owl2Factory.newIRI();
         type.setHasValue(Vocabulary.rdfLangString);
         result.setMemberOf(type);
         return result;

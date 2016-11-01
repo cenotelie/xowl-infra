@@ -18,6 +18,7 @@
 package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.lang.owl2.AnonymousIndividual;
+import org.xowl.infra.lang.owl2.Owl2Factory;
 import org.xowl.infra.store.rdf.AnonymousNode;
 
 /**
@@ -71,7 +72,7 @@ class PersistedAnonNode extends AnonymousNode implements PersistedNode {
     @Override
     public AnonymousIndividual getIndividual() {
         if (individual == null) {
-            individual = new AnonymousIndividual();
+            individual = Owl2Factory.newAnonymousIndividual();
             try {
                 individual.setNodeID(backend.retrieveString(key));
             } catch (StorageException exception) {

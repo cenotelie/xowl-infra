@@ -16,6 +16,7 @@
  ******************************************************************************/
 package org.xowl.infra.store.loaders;
 
+import org.xowl.infra.lang.actions.ActionsFactory;
 import org.xowl.infra.lang.actions.QueryVariable;
 
 import java.util.HashMap;
@@ -68,7 +69,7 @@ public class LexicalContext {
             current = current.parent;
         }
         // not found in the parents
-        QueryVariable variable = new QueryVariable();
+        QueryVariable variable = ActionsFactory.newQueryVariable();
         variable.setName(name);
         queryVariables.put(name, variable);
         return variable;

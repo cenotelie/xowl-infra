@@ -18,6 +18,7 @@
 package org.xowl.infra.store.loaders;
 
 import org.xowl.hime.redist.ASTNode;
+import org.xowl.infra.lang.actions.ActionsFactory;
 import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
 import org.xowl.infra.lang.actions.FunctionExpression;
 import org.xowl.infra.lang.actions.OpaqueExpression;
@@ -26,6 +27,7 @@ import org.xowl.infra.lang.owl2.EntityExpression;
 import org.xowl.infra.lang.owl2.LiteralExpression;
 import org.xowl.infra.lang.rules.Assertion;
 import org.xowl.infra.lang.rules.Rule;
+import org.xowl.infra.lang.rules.RulesFactory;
 
 /**
  * Implements the deserialization of xOWL ontologies
@@ -63,7 +65,7 @@ public abstract class XOWLDeserializer extends FunctionalOWL2Deserializer {
      * @return The axiom
      */
     protected Axiom loadAxiomFunctionDefinition(ASTNode node) {
-        FunctionDefinitionAxiom axiom = new FunctionDefinitionAxiom();
+        FunctionDefinitionAxiom axiom = ActionsFactory.newFunctionDefinitionAxiom();
         loadAxiomBase(node, axiom);
         axiom.setFunction(loadExpFunction(node.getChildren().get(1)));
         axiom.setDefinition(loadForm(node.getChildren().get(2)));
@@ -78,14 +80,14 @@ public abstract class XOWLDeserializer extends FunctionalOWL2Deserializer {
      */
     protected Rule loadRule(ASTNode node) {
         context = new LexicalContext();
-        Rule rule = new Rule();
+        Rule rule = RulesFactory.newRule();
         rule.setHasIRI(loadEntity(node.getChildren().get(0)));
         for (ASTNode child : node.getChildren().get(1).getChildren())
             rule.addAntecedents(loadAssertion(child));
         for (ASTNode child : node.getChildren().get(2).getChildren())
             rule.addConsequents(loadAssertion(child));
         for (ASTNode child : node.getChildren().get(3).getChildren()) {
-            OpaqueExpression expression = new OpaqueExpression();
+            OpaqueExpression expression = ActionsFactory.newOpaqueExpression();
             expression.setValue(loadForm(child));
             rule.setGuard(expression);
         }
@@ -99,7 +101,7 @@ public abstract class XOWLDeserializer extends FunctionalOWL2Deserializer {
      * @return The rule assertion element
      */
     protected Assertion loadAssertion(ASTNode node) {
-        Assertion assertion = new Assertion();
+        Assertion assertion = RulesFactory.newAssertion();
         assertion.setIsPositive(true);
         assertion.setIsMeta(false);
         for (ASTNode child : node.getChildren()) {
@@ -121,7 +123,7 @@ public abstract class XOWLDeserializer extends FunctionalOWL2Deserializer {
             case XOWLLexer.ID.XOWL_QVAR:
                 return context.resolveQVar(node.getValue().substring(1));
             case XOWLLexer.ID.XOWL_OPAQUE_EXP:
-                OpaqueExpression expression = new OpaqueExpression();
+                OpaqueExpression expression = ActionsFactory.newOpaqueExpression();
                 expression.setValue(loadForm(node.getChildren().get(0)));
                 return expression;
             default:
@@ -135,7 +137,7 @@ public abstract class XOWLDeserializer extends FunctionalOWL2Deserializer {
             case XOWLLexer.ID.XOWL_QVAR:
                 return context.resolveQVar(node.getValue().substring(1));
             case XOWLLexer.ID.XOWL_OPAQUE_EXP:
-                OpaqueExpression expression = new OpaqueExpression();
+                OpaqueExpression expression = ActionsFactory.newOpaqueExpression();
                 expression.setValue(loadForm(node.getChildren().get(0)));
                 return expression;
             default:

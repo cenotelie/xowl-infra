@@ -19,6 +19,7 @@ package org.xowl.infra.store;
 
 import org.xowl.infra.lang.owl2.IRI;
 import org.xowl.infra.lang.owl2.Ontology;
+import org.xowl.infra.lang.owl2.Owl2Factory;
 import org.xowl.infra.store.loaders.*;
 import org.xowl.infra.store.owl.OWLQueryEngine;
 import org.xowl.infra.store.owl.OWLRuleEngine;
@@ -344,7 +345,7 @@ public abstract class Repository {
      * @return The IRI
      */
     public IRI getIRI(String value) {
-        IRI iri = new IRI();
+        IRI iri = Owl2Factory.newIRI();
         iri.setHasValue(value);
         return iri;
     }
@@ -359,7 +360,7 @@ public abstract class Repository {
         synchronized (ontologies) {
             Ontology ontology = ontologies.get(iri);
             if (ontology == null) {
-                ontology = new Ontology();
+                ontology = Owl2Factory.newOntology();
                 ontology.setHasIRI(getIRI(iri));
                 ontologies.put(iri, ontology);
             }

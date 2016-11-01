@@ -311,10 +311,10 @@ public class RDFParser {
      * @return The sequence
      */
     private DatarangeSequence getSequenceDatarange(List<Node> nodes) {
-        DatarangeSequence sequence = new DatarangeSequence();
+        DatarangeSequence sequence = Owl2Factory.newDatarangeSequence();
         int i = 0;
         for (Node node : nodes) {
-            DatarangeElement element = new DatarangeElement();
+            DatarangeElement element = Owl2Factory.newDatarangeElement();
             element.setIndex(i);
             element.setDatarange(getExpressionDatarange(node));
             sequence.addDatarangeElements(element);
@@ -329,10 +329,10 @@ public class RDFParser {
      * @return The sequence
      */
     private ClassSequence getSequenceClass(List<Node> nodes) {
-        ClassSequence sequence = new ClassSequence();
+        ClassSequence sequence = Owl2Factory.newClassSequence();
         int i = 0;
         for (Node node : nodes) {
-            ClassElement element = new ClassElement();
+            ClassElement element = Owl2Factory.newClassElement();
             element.setIndex(i);
             element.setClasse(getExpressionClass(node));
             sequence.addClassElements(element);
@@ -347,10 +347,10 @@ public class RDFParser {
      * @return The sequence
      */
     private DataPropertySequence getSequenceDataProperty(List<Node> nodes) {
-        DataPropertySequence sequence = new DataPropertySequence();
+        DataPropertySequence sequence = Owl2Factory.newDataPropertySequence();
         int i = 0;
         for (Node node : nodes) {
-            DataPropertyElement element = new DataPropertyElement();
+            DataPropertyElement element = Owl2Factory.newDataPropertyElement();
             element.setIndex(i);
             element.setDataProperty(getExpressionDataProperty(node));
             sequence.addDataPropertyElements(element);
@@ -365,10 +365,10 @@ public class RDFParser {
      * @return The sequence
      */
     private ObjectPropertySequence getSequenceObjectProperty(List<Node> nodes) {
-        ObjectPropertySequence sequence = new ObjectPropertySequence();
+        ObjectPropertySequence sequence = Owl2Factory.newObjectPropertySequence();
         int i = 0;
         for (Node node : nodes) {
-            ObjectPropertyElement element = new ObjectPropertyElement();
+            ObjectPropertyElement element = Owl2Factory.newObjectPropertyElement();
             element.setIndex(i);
             element.setObjectProperty(getExpressionObjectProperty(node));
             sequence.addObjectPropertyElements(element);
@@ -383,10 +383,10 @@ public class RDFParser {
      * @return The sequence
      */
     private LiteralSequence getSequenceLiteral(List<Node> nodes) {
-        LiteralSequence sequence = new LiteralSequence();
+        LiteralSequence sequence = Owl2Factory.newLiteralSequence();
         int i = 0;
         for (Node node : nodes) {
-            LiteralElement element = new LiteralElement();
+            LiteralElement element = Owl2Factory.newLiteralElement();
             element.setIndex(i);
             element.setLiteral(getExpressionLiteral(node));
             sequence.addLiteralElements(element);
@@ -401,10 +401,10 @@ public class RDFParser {
      * @return The sequence
      */
     private IndividualSequence getSequenceIndividual(List<Node> nodes) {
-        IndividualSequence sequence = new IndividualSequence();
+        IndividualSequence sequence = Owl2Factory.newIndividualSequence();
         int i = 0;
         for (Node node : nodes) {
-            IndividualElement element = new IndividualElement();
+            IndividualElement element = Owl2Factory.newIndividualElement();
             element.setIndex(i);
             element.setIndividual(getExpressionIndividual(node));
             sequence.addIndividualElements(element);
@@ -594,7 +594,7 @@ public class RDFParser {
                 expObjProperties.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectInverseOf value = new ObjectInverseOf();
+                        ObjectInverseOf value = Owl2Factory.newObjectInverseOf();
                         value.setInverse(getExpressionObjectProperty(y));
                         return value;
                     }
@@ -621,7 +621,7 @@ public class RDFParser {
                 expDatarange.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataIntersectionOf value = new DataIntersectionOf();
+                        DataIntersectionOf value = Owl2Factory.newDataIntersectionOf();
                         value.setDatarangeSeq(getSequenceDatarange(intersected));
                         return value;
                     }
@@ -648,7 +648,7 @@ public class RDFParser {
                 expDatarange.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataUnionOf value = new DataUnionOf();
+                        DataUnionOf value = Owl2Factory.newDataUnionOf();
                         value.setDatarangeSeq(getSequenceDatarange(unioned));
                         return value;
                     }
@@ -674,7 +674,7 @@ public class RDFParser {
                 expDatarange.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataComplementOf value = new DataComplementOf();
+                        DataComplementOf value = Owl2Factory.newDataComplementOf();
                         value.setDatarange(getExpressionDatarange(y));
                         return value;
                     }
@@ -701,7 +701,7 @@ public class RDFParser {
                 expDatarange.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataOneOf value = new DataOneOf();
+                        DataOneOf value = Owl2Factory.newDataOneOf();
                         value.setLiteralSeq(getSequenceLiteral(individuals));
                         return value;
                     }
@@ -730,10 +730,10 @@ public class RDFParser {
                 expDatarange.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DatatypeRestriction value = new DatatypeRestriction();
+                        DatatypeRestriction value = Owl2Factory.newDatatypeRestriction();
                         value.setDatarange(getExpressionDatarange(y));
                         for (Node restrictNode : restrictions) {
-                            FacetRestriction facet = new FacetRestriction();
+                            FacetRestriction facet = Owl2Factory.newFacetRestriction();
                             Quad triple = getTriple((SubjectNode) restrictNode);
                             facet.setConstrainingFacet((IRI) RDFUtils.getOWL(triple.getProperty()));
                             facet.setConstrainingValue((Literal) getExpressionLiteral(triple.getObject()));
@@ -764,7 +764,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectIntersectionOf value = new ObjectIntersectionOf();
+                        ObjectIntersectionOf value = Owl2Factory.newObjectIntersectionOf();
                         value.setClassSeq(getSequenceClass(intersected));
                         return value;
                     }
@@ -791,7 +791,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectUnionOf value = new ObjectUnionOf();
+                        ObjectUnionOf value = Owl2Factory.newObjectUnionOf();
                         value.setClassSeq(getSequenceClass(unified));
                         return value;
                     }
@@ -817,7 +817,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectComplementOf value = new ObjectComplementOf();
+                        ObjectComplementOf value = Owl2Factory.newObjectComplementOf();
                         value.setClasse(getExpressionClass(y));
                         return value;
                     }
@@ -844,7 +844,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectOneOf value = new ObjectOneOf();
+                        ObjectOneOf value = Owl2Factory.newObjectOneOf();
                         value.setIndividualSeq(getSequenceIndividual(unified));
                         return value;
                     }
@@ -874,7 +874,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectAllValuesFrom value = new ObjectAllValuesFrom();
+                        ObjectAllValuesFrom value = Owl2Factory.newObjectAllValuesFrom();
                         value.setObjectProperty(getExpressionObjectProperty(y));
                         value.setClasse(getExpressionClass(z));
                         return value;
@@ -905,7 +905,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectSomeValuesFrom value = new ObjectSomeValuesFrom();
+                        ObjectSomeValuesFrom value = Owl2Factory.newObjectSomeValuesFrom();
                         value.setObjectProperty(getExpressionObjectProperty(y));
                         value.setClasse(getExpressionClass(z));
                         return value;
@@ -936,7 +936,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectHasValue value = new ObjectHasValue();
+                        ObjectHasValue value = Owl2Factory.newObjectHasValue();
                         value.setObjectProperty(getExpressionObjectProperty(y));
                         value.setIndividual(getExpressionIndividual(z));
                         return value;
@@ -964,7 +964,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectHasSelf value = new ObjectHasSelf();
+                        ObjectHasSelf value = Owl2Factory.newObjectHasSelf();
                         value.setObjectProperty(getExpressionObjectProperty(y));
                         return value;
                     }
@@ -996,7 +996,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectMinCardinality value = new ObjectMinCardinality();
+                        ObjectMinCardinality value = Owl2Factory.newObjectMinCardinality();
                         value.setObjectProperty(getExpressionObjectProperty(y));
                         value.setClasse(getExpressionClass(z));
                         value.setCardinality(getExpressionLiteral(n));
@@ -1030,7 +1030,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectMaxCardinality value = new ObjectMaxCardinality();
+                        ObjectMaxCardinality value = Owl2Factory.newObjectMaxCardinality();
                         value.setObjectProperty(getExpressionObjectProperty(y));
                         value.setClasse(getExpressionClass(z));
                         value.setCardinality(getExpressionLiteral(n));
@@ -1063,7 +1063,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectExactCardinality value = new ObjectExactCardinality();
+                        ObjectExactCardinality value = Owl2Factory.newObjectExactCardinality();
                         value.setObjectProperty(getExpressionObjectProperty(y));
                         value.setClasse(getExpressionClass(z));
                         value.setCardinality(getExpressionLiteral(n));
@@ -1095,7 +1095,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectMinCardinality value = new ObjectMinCardinality();
+                        ObjectMinCardinality value = Owl2Factory.newObjectMinCardinality();
                         value.setObjectProperty(getExpressionObjectProperty(y));
                         value.setCardinality(getExpressionLiteral(n));
                         return value;
@@ -1126,7 +1126,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectMaxCardinality value = new ObjectMaxCardinality();
+                        ObjectMaxCardinality value = Owl2Factory.newObjectMaxCardinality();
                         value.setObjectProperty(getExpressionObjectProperty(y));
                         value.setCardinality(getExpressionLiteral(n));
                         return value;
@@ -1157,7 +1157,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        ObjectExactCardinality value = new ObjectExactCardinality();
+                        ObjectExactCardinality value = Owl2Factory.newObjectExactCardinality();
                         value.setObjectProperty(getExpressionObjectProperty(y));
                         value.setCardinality(getExpressionLiteral(n));
                         return value;
@@ -1188,7 +1188,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataHasValue value = new DataHasValue();
+                        DataHasValue value = Owl2Factory.newDataHasValue();
                         value.setDataProperty(getExpressionDataProperty(y));
                         value.setLiteral(getExpressionLiteral(z));
                         return value;
@@ -1219,7 +1219,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataAllValuesFrom value = new DataAllValuesFrom();
+                        DataAllValuesFrom value = Owl2Factory.newDataAllValuesFrom();
                         List<Node> list = new ArrayList<>();
                         list.add(y);
                         value.setDataPropertySeq(getSequenceDataProperty(list));
@@ -1252,7 +1252,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataSomeValuesFrom value = new DataSomeValuesFrom();
+                        DataSomeValuesFrom value = Owl2Factory.newDataSomeValuesFrom();
                         List<Node> list = new ArrayList<>();
                         list.add(y);
                         value.setDataPropertySeq(getSequenceDataProperty(list));
@@ -1286,7 +1286,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataAllValuesFrom value = new DataAllValuesFrom();
+                        DataAllValuesFrom value = Owl2Factory.newDataAllValuesFrom();
                         value.setDataPropertySeq(getSequenceDataProperty(list));
                         value.setDatarange(getExpressionDatarange(z));
                         return value;
@@ -1318,7 +1318,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataSomeValuesFrom value = new DataSomeValuesFrom();
+                        DataSomeValuesFrom value = Owl2Factory.newDataSomeValuesFrom();
                         value.setDataPropertySeq(getSequenceDataProperty(list));
                         value.setDatarange(getExpressionDatarange(z));
                         return value;
@@ -1351,7 +1351,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataMinCardinality value = new DataMinCardinality();
+                        DataMinCardinality value = Owl2Factory.newDataMinCardinality();
                         value.setDataProperty(getExpressionDataProperty(y));
                         value.setDatarange(getExpressionDatarange(z));
                         value.setCardinality(getExpressionLiteral(n));
@@ -1385,7 +1385,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataMaxCardinality value = new DataMaxCardinality();
+                        DataMaxCardinality value = Owl2Factory.newDataMaxCardinality();
                         value.setDataProperty(getExpressionDataProperty(y));
                         value.setDatarange(getExpressionDatarange(z));
                         value.setCardinality(getExpressionLiteral(n));
@@ -1419,7 +1419,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataExactCardinality value = new DataExactCardinality();
+                        DataExactCardinality value = Owl2Factory.newDataExactCardinality();
                         value.setDataProperty(getExpressionDataProperty(y));
                         value.setDatarange(getExpressionDatarange(z));
                         value.setCardinality(getExpressionLiteral(n));
@@ -1451,7 +1451,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataMinCardinality value = new DataMinCardinality();
+                        DataMinCardinality value = Owl2Factory.newDataMinCardinality();
                         value.setDataProperty(getExpressionDataProperty(y));
                         value.setCardinality(getExpressionLiteral(n));
                         return value;
@@ -1482,7 +1482,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataMaxCardinality value = new DataMaxCardinality();
+                        DataMaxCardinality value = Owl2Factory.newDataMaxCardinality();
                         value.setDataProperty(getExpressionDataProperty(y));
                         value.setCardinality(getExpressionLiteral(n));
                         return value;
@@ -1513,7 +1513,7 @@ public class RDFParser {
                 expClasses.put(x, new RDFParserExpressionSolver() {
                     @Override
                     public Expression getExpression() {
-                        DataExactCardinality value = new DataExactCardinality();
+                        DataExactCardinality value = Owl2Factory.newDataExactCardinality();
                         value.setDataProperty(getExpressionDataProperty(y));
                         value.setCardinality(getExpressionLiteral(n));
                         return value;
@@ -1536,7 +1536,7 @@ public class RDFParser {
             public void activate(Map<VariableNode, Node> bindings) {
                 Node sup = getValue(bindings, "super");
                 Node sub = getValue(bindings, "sub");
-                SubClassOf axiom = new SubClassOf();
+                SubClassOf axiom = Owl2Factory.newSubClassOf();
                 axiom.setClasse(getExpressionClass(sub));
                 axiom.setSuperClass(getExpressionClass(sup));
                 axioms.add(axiom);
@@ -1561,7 +1561,7 @@ public class RDFParser {
                     return;
                 if (!isOfType((SubjectNode) c2, Vocabulary.owlClass))
                     return;
-                EquivalentClasses axiom = new EquivalentClasses();
+                EquivalentClasses axiom = Owl2Factory.newEquivalentClasses();
                 List<Node> list = new ArrayList<>();
                 list.add(c1);
                 list.add(c2);
@@ -1584,7 +1584,7 @@ public class RDFParser {
             public void activate(Map<VariableNode, Node> bindings) {
                 Node c1 = getValue(bindings, "c1");
                 Node c2 = getValue(bindings, "c2");
-                DisjointClasses axiom = new DisjointClasses();
+                DisjointClasses axiom = Owl2Factory.newDisjointClasses();
                 List<Node> list = new ArrayList<>();
                 list.add(c1);
                 list.add(c2);
@@ -1607,7 +1607,7 @@ public class RDFParser {
             @Override
             public void activate(Map<VariableNode, Node> bindings) {
                 List<Node> list = getListUnordered(getValue(bindings, "y"));
-                DisjointClasses axiom = new DisjointClasses();
+                DisjointClasses axiom = Owl2Factory.newDisjointClasses();
                 axiom.setClassSeq(getSequenceClass(list));
                 axioms.add(axiom);
             }
@@ -1627,7 +1627,7 @@ public class RDFParser {
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
                 List<Node> list = getListUnordered(getValue(bindings, "y"));
-                DisjointUnion axiom = new DisjointUnion();
+                DisjointUnion axiom = Owl2Factory.newDisjointUnion();
                 axiom.setClasse(getExpressionClass(x));
                 axiom.setClassSeq(getSequenceClass(list));
                 axioms.add(axiom);
@@ -1650,7 +1650,7 @@ public class RDFParser {
                 Node sub = getValue(bindings, "sub");
                 if (!isOfType((SubjectNode) sub, Vocabulary.owlObjectProperty))
                     return;
-                SubObjectPropertyOf axiom = new SubObjectPropertyOf();
+                SubObjectPropertyOf axiom = Owl2Factory.newSubObjectPropertyOf();
                 axiom.setObjectProperty(getExpressionObjectProperty(sub));
                 axiom.setSuperObjectProperty(getExpressionObjectProperty(sup));
                 axioms.add(axiom);
@@ -1671,7 +1671,7 @@ public class RDFParser {
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
                 List<Node> chain = getListOrdered(getValue(bindings, "y"));
-                SubObjectPropertyOf axiom = new SubObjectPropertyOf();
+                SubObjectPropertyOf axiom = Owl2Factory.newSubObjectPropertyOf();
                 axiom.setObjectPropertyChain(getSequenceObjectProperty(chain));
                 axiom.setSuperObjectProperty(getExpressionObjectProperty(x));
                 axioms.add(axiom);
@@ -1696,7 +1696,7 @@ public class RDFParser {
                     return;
                 if (!isOfType((SubjectNode) c2, Vocabulary.owlObjectProperty))
                     return;
-                EquivalentObjectProperties axiom = new EquivalentObjectProperties();
+                EquivalentObjectProperties axiom = Owl2Factory.newEquivalentObjectProperties();
                 List<Node> list = new ArrayList<>();
                 list.add(c1);
                 list.add(c2);
@@ -1723,7 +1723,7 @@ public class RDFParser {
                     return;
                 if (!isOfType((SubjectNode) c2, Vocabulary.owlObjectProperty))
                     return;
-                DisjointObjectProperties axiom = new DisjointObjectProperties();
+                DisjointObjectProperties axiom = Owl2Factory.newDisjointObjectProperties();
                 List<Node> list = new ArrayList<>();
                 list.add(c1);
                 list.add(c2);
@@ -1749,7 +1749,7 @@ public class RDFParser {
                 if (!isOfType((SubjectNode) getValue(bindings, "z"), Vocabulary.owlObjectProperty))
                     return;
                 List<Node> list = getListUnordered(getValue(bindings, "y"));
-                DisjointObjectProperties axiom = new DisjointObjectProperties();
+                DisjointObjectProperties axiom = Owl2Factory.newDisjointObjectProperties();
                 axiom.setObjectPropertySeq(getSequenceObjectProperty(list));
                 axioms.add(axiom);
             }
@@ -1771,7 +1771,7 @@ public class RDFParser {
                 Node y = getValue(bindings, "y");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                ObjectPropertyDomain axiom = new ObjectPropertyDomain();
+                ObjectPropertyDomain axiom = Owl2Factory.newObjectPropertyDomain();
                 axiom.setObjectProperty(getExpressionObjectProperty(x));
                 axiom.setClasse(getExpressionClass(y));
                 axioms.add(axiom);
@@ -1794,7 +1794,7 @@ public class RDFParser {
                 Node y = getValue(bindings, "y");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                ObjectPropertyRange axiom = new ObjectPropertyRange();
+                ObjectPropertyRange axiom = Owl2Factory.newObjectPropertyRange();
                 axiom.setObjectProperty(getExpressionObjectProperty(x));
                 axiom.setClasse(getExpressionClass(y));
                 axioms.add(axiom);
@@ -1819,7 +1819,7 @@ public class RDFParser {
                     return;
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                InverseObjectProperties axiom = new InverseObjectProperties();
+                InverseObjectProperties axiom = Owl2Factory.newInverseObjectProperties();
                 axiom.setObjectProperty(getExpressionObjectProperty(x));
                 axiom.setInverse(getExpressionObjectProperty(y));
                 axioms.add(axiom);
@@ -1841,7 +1841,7 @@ public class RDFParser {
                 Node x = getValue(bindings, "x");
                 if (!isOfType((SubjectNode) x, Vocabulary.owlObjectProperty))
                     return;
-                FunctionalObjectProperty axiom = new FunctionalObjectProperty();
+                FunctionalObjectProperty axiom = Owl2Factory.newFunctionalObjectProperty();
                 axiom.setObjectProperty(getExpressionObjectProperty(x));
                 axioms.add(axiom);
             }
@@ -1860,7 +1860,7 @@ public class RDFParser {
             @Override
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
-                InverseFunctionalObjectProperty axiom = new InverseFunctionalObjectProperty();
+                InverseFunctionalObjectProperty axiom = Owl2Factory.newInverseFunctionalObjectProperty();
                 axiom.setObjectProperty(getExpressionObjectProperty(x));
                 axioms.add(axiom);
             }
@@ -1879,7 +1879,7 @@ public class RDFParser {
             @Override
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
-                ReflexiveObjectProperty axiom = new ReflexiveObjectProperty();
+                ReflexiveObjectProperty axiom = Owl2Factory.newReflexiveObjectProperty();
                 axiom.setObjectProperty(getExpressionObjectProperty(x));
                 axioms.add(axiom);
             }
@@ -1898,7 +1898,7 @@ public class RDFParser {
             @Override
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
-                IrreflexiveObjectProperty axiom = new IrreflexiveObjectProperty();
+                IrreflexiveObjectProperty axiom = Owl2Factory.newIrreflexiveObjectProperty();
                 axiom.setObjectProperty(getExpressionObjectProperty(x));
                 axioms.add(axiom);
             }
@@ -1917,7 +1917,7 @@ public class RDFParser {
             @Override
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
-                SymmetricObjectProperty axiom = new SymmetricObjectProperty();
+                SymmetricObjectProperty axiom = Owl2Factory.newSymmetricObjectProperty();
                 axiom.setObjectProperty(getExpressionObjectProperty(x));
                 axioms.add(axiom);
             }
@@ -1936,7 +1936,7 @@ public class RDFParser {
             @Override
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
-                AsymmetricObjectProperty axiom = new AsymmetricObjectProperty();
+                AsymmetricObjectProperty axiom = Owl2Factory.newAsymmetricObjectProperty();
                 axiom.setObjectProperty(getExpressionObjectProperty(x));
                 axioms.add(axiom);
             }
@@ -1955,7 +1955,7 @@ public class RDFParser {
             @Override
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
-                TransitiveObjectProperty axiom = new TransitiveObjectProperty();
+                TransitiveObjectProperty axiom = Owl2Factory.newTransitiveObjectProperty();
                 axiom.setObjectProperty(getExpressionObjectProperty(x));
                 axioms.add(axiom);
             }
@@ -1977,7 +1977,7 @@ public class RDFParser {
                 Node sub = getValue(bindings, "sub");
                 if (!isOfType((SubjectNode) sub, Vocabulary.owlDataProperty))
                     return;
-                SubDataPropertyOf axiom = new SubDataPropertyOf();
+                SubDataPropertyOf axiom = Owl2Factory.newSubDataPropertyOf();
                 axiom.setDataProperty(getExpressionDataProperty(sub));
                 axiom.setSuperDataProperty(getExpressionDataProperty(sup));
                 axioms.add(axiom);
@@ -2002,7 +2002,7 @@ public class RDFParser {
                     return;
                 if (!isOfType((SubjectNode) c2, Vocabulary.owlDataProperty))
                     return;
-                EquivalentDataProperties axiom = new EquivalentDataProperties();
+                EquivalentDataProperties axiom = Owl2Factory.newEquivalentDataProperties();
                 List<Node> list = new ArrayList<>();
                 list.add(c1);
                 list.add(c2);
@@ -2029,7 +2029,7 @@ public class RDFParser {
                     return;
                 if (!isOfType((SubjectNode) c2, Vocabulary.owlDataProperty))
                     return;
-                DisjointDataProperties axiom = new DisjointDataProperties();
+                DisjointDataProperties axiom = Owl2Factory.newDisjointDataProperties();
                 List<Node> list = new ArrayList<>();
                 list.add(c1);
                 list.add(c2);
@@ -2055,7 +2055,7 @@ public class RDFParser {
                 if (!isOfType((SubjectNode) getValue(bindings, "z"), Vocabulary.owlDataProperty))
                     return;
                 List<Node> list = getListUnordered(getValue(bindings, "y"));
-                DisjointDataProperties axiom = new DisjointDataProperties();
+                DisjointDataProperties axiom = Owl2Factory.newDisjointDataProperties();
                 axiom.setDataPropertySeq(getSequenceDataProperty(list));
                 axioms.add(axiom);
             }
@@ -2077,7 +2077,7 @@ public class RDFParser {
                 Node y = getValue(bindings, "y");
                 if (!isOfType((SubjectNode) x, Vocabulary.owlDataProperty))
                     return;
-                DataPropertyDomain axiom = new DataPropertyDomain();
+                DataPropertyDomain axiom = Owl2Factory.newDataPropertyDomain();
                 axiom.setDataProperty(getExpressionDataProperty(x));
                 axiom.setClasse(getExpressionClass(y));
                 axioms.add(axiom);
@@ -2100,7 +2100,7 @@ public class RDFParser {
                 Node y = getValue(bindings, "y");
                 if (!isOfType((SubjectNode) x, Vocabulary.owlDataProperty))
                     return;
-                DataPropertyRange axiom = new DataPropertyRange();
+                DataPropertyRange axiom = Owl2Factory.newDataPropertyRange();
                 axiom.setDataProperty(getExpressionDataProperty(x));
                 axiom.setDatarange(getExpressionDatarange(y));
                 axioms.add(axiom);
@@ -2122,7 +2122,7 @@ public class RDFParser {
                 Node x = getValue(bindings, "x");
                 if (!isOfType((SubjectNode) x, Vocabulary.owlDataProperty))
                     return;
-                FunctionalDataProperty axiom = new FunctionalDataProperty();
+                FunctionalDataProperty axiom = Owl2Factory.newFunctionalDataProperty();
                 axiom.setDataProperty(getExpressionDataProperty(x));
                 axioms.add(axiom);
             }
@@ -2146,7 +2146,7 @@ public class RDFParser {
                     return;
                 if (!isOfType((SubjectNode) c2, Vocabulary.rdfsDatatype))
                     return;
-                DatatypeDefinition axiom = new DatatypeDefinition();
+                DatatypeDefinition axiom = Owl2Factory.newDatatypeDefinition();
                 axiom.setDatatype(getExpressionDatarange(c1));
                 axiom.setDatarange(getExpressionDatarange(c2));
                 axioms.add(axiom);
@@ -2175,7 +2175,7 @@ public class RDFParser {
                     else
                         dataProps.add(elem);
                 }
-                HasKey axiom = new HasKey();
+                HasKey axiom = Owl2Factory.newHasKey();
                 axiom.setClasse(getExpressionClass(x));
                 axiom.setObjectPropertySeq(getSequenceObjectProperty(objProps));
                 axiom.setDataPropertySeq(getSequenceDataProperty(dataProps));
@@ -2197,7 +2197,7 @@ public class RDFParser {
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
                 Node y = getValue(bindings, "y");
-                SameIndividual axiom = new SameIndividual();
+                SameIndividual axiom = Owl2Factory.newSameIndividual();
                 List<Node> list = new ArrayList<>();
                 list.add(x);
                 list.add(y);
@@ -2220,7 +2220,7 @@ public class RDFParser {
             public void activate(Map<VariableNode, Node> bindings) {
                 Node x = getValue(bindings, "x");
                 Node y = getValue(bindings, "y");
-                DifferentIndividuals axiom = new DifferentIndividuals();
+                DifferentIndividuals axiom = Owl2Factory.newDifferentIndividuals();
                 List<Node> list = new ArrayList<>();
                 list.add(x);
                 list.add(y);
@@ -2243,7 +2243,7 @@ public class RDFParser {
             @Override
             public void activate(Map<VariableNode, Node> bindings) {
                 List<Node> list = getListUnordered(getValue(bindings, "y"));
-                DifferentIndividuals axiom = new DifferentIndividuals();
+                DifferentIndividuals axiom = Owl2Factory.newDifferentIndividuals();
                 axiom.setIndividualSeq(getSequenceIndividual(list));
                 axioms.add(axiom);
             }
@@ -2265,7 +2265,7 @@ public class RDFParser {
                 Node y = getValue(bindings, "y");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlClass))
                     return;
-                ClassAssertion axiom = new ClassAssertion();
+                ClassAssertion axiom = Owl2Factory.newClassAssertion();
                 axiom.setIndividual(getExpressionIndividual(x));
                 axiom.setClasse(getExpressionClass(y));
                 axioms.add(axiom);
@@ -2289,7 +2289,7 @@ public class RDFParser {
                 Node z = getValue(bindings, "z");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlObjectProperty))
                     return;
-                ObjectPropertyAssertion axiom = new ObjectPropertyAssertion();
+                ObjectPropertyAssertion axiom = Owl2Factory.newObjectPropertyAssertion();
                 axiom.setIndividual(getExpressionIndividual(x));
                 axiom.setObjectProperty(getExpressionObjectProperty(y));
                 axiom.setValueIndividual(getExpressionIndividual(z));
@@ -2314,7 +2314,7 @@ public class RDFParser {
                 Node z = getValue(bindings, "z");
                 if (!isOfType((SubjectNode) y, Vocabulary.owlDataProperty))
                     return;
-                DataPropertyAssertion axiom = new DataPropertyAssertion();
+                DataPropertyAssertion axiom = Owl2Factory.newDataPropertyAssertion();
                 axiom.setIndividual(getExpressionIndividual(x));
                 axiom.setDataProperty(getExpressionDataProperty(y));
                 axiom.setValueLiteral(getExpressionLiteral(z));
@@ -2340,7 +2340,7 @@ public class RDFParser {
                 Node w = getValue(bindings, "w");
                 Node y = getValue(bindings, "y");
                 Node z = getValue(bindings, "z");
-                ObjectPropertyAssertion axiom = new ObjectPropertyAssertion();
+                ObjectPropertyAssertion axiom = Owl2Factory.newObjectPropertyAssertion();
                 axiom.setIndividual(getExpressionIndividual(w));
                 axiom.setObjectProperty(getExpressionObjectProperty(y));
                 axiom.setValueIndividual(getExpressionIndividual(z));
@@ -2366,7 +2366,7 @@ public class RDFParser {
                 Node w = getValue(bindings, "w");
                 Node y = getValue(bindings, "y");
                 Node z = getValue(bindings, "z");
-                DataPropertyAssertion axiom = new DataPropertyAssertion();
+                DataPropertyAssertion axiom = Owl2Factory.newDataPropertyAssertion();
                 axiom.setIndividual(getExpressionIndividual(w));
                 axiom.setDataProperty(getExpressionDataProperty(y));
                 axiom.setValueLiteral(getExpressionLiteral(z));
@@ -2390,7 +2390,7 @@ public class RDFParser {
                 Node sub = getValue(bindings, "sub");
                 if (!isOfType((SubjectNode) sub, Vocabulary.owlAnnotationProperty))
                     return;
-                SubAnnotationPropertyOf axiom = new SubAnnotationPropertyOf();
+                SubAnnotationPropertyOf axiom = Owl2Factory.newSubAnnotationPropertyOf();
                 axiom.setAnnotProperty(getExpressionAnnotationProperty(sub));
                 axiom.setSuperAnnotProperty(getExpressionAnnotationProperty(sup));
                 axioms.add(axiom);
@@ -2413,7 +2413,7 @@ public class RDFParser {
                 Node y = getValue(bindings, "y");
                 if (!isOfType((SubjectNode) x, Vocabulary.owlAnnotationProperty))
                     return;
-                AnnotationPropertyDomain axiom = new AnnotationPropertyDomain();
+                AnnotationPropertyDomain axiom = Owl2Factory.newAnnotationPropertyDomain();
                 axiom.setAnnotProperty(getExpressionAnnotationProperty(x));
                 axiom.setAnnotDomain(getExpressionAnnotationProperty(y));
                 axioms.add(axiom);
@@ -2436,7 +2436,7 @@ public class RDFParser {
                 Node y = getValue(bindings, "y");
                 if (!isOfType((SubjectNode) x, Vocabulary.owlAnnotationProperty))
                     return;
-                AnnotationPropertyRange axiom = new AnnotationPropertyRange();
+                AnnotationPropertyRange axiom = Owl2Factory.newAnnotationPropertyRange();
                 axiom.setAnnotProperty(getExpressionAnnotationProperty(x));
                 axiom.setAnnotRange(getExpressionAnnotationProperty(y));
                 axioms.add(axiom);

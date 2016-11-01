@@ -21,6 +21,7 @@ import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
 import org.xowl.infra.lang.actions.FunctionExpression;
 import org.xowl.infra.lang.owl2.*;
 import org.xowl.infra.lang.runtime.Entity;
+import org.xowl.infra.lang.runtime.RuntimeFactory;
 import org.xowl.infra.store.loaders.OWLLoaderResult;
 import org.xowl.infra.store.loaders.RDFLoaderResult;
 import org.xowl.infra.store.owl.OWLQueryEngine;
@@ -231,8 +232,8 @@ public class RepositoryDirectSemantics extends Repository {
         Entity entity = sub.get(name);
         if (entity != null)
             return entity;
-        entity = new Entity();
-        IRI iri = new IRI();
+        entity = RuntimeFactory.newEntity();
+        IRI iri = Owl2Factory.newIRI();
         iri.setHasValue(iriValue);
         entity.setHasIRI(iri);
         if (ontology != null)
@@ -252,7 +253,7 @@ public class RepositoryDirectSemantics extends Repository {
             if (interpretation instanceof org.xowl.infra.lang.runtime.Class)
                 return (org.xowl.infra.lang.runtime.Class) interpretation;
         }
-        org.xowl.infra.lang.runtime.Class interpretation = new org.xowl.infra.lang.runtime.Class();
+        org.xowl.infra.lang.runtime.Class interpretation = RuntimeFactory.newClass();
         entity.addInterpretedAs(interpretation);
         return interpretation;
     }
@@ -268,7 +269,7 @@ public class RepositoryDirectSemantics extends Repository {
             if (interpretation instanceof org.xowl.infra.lang.runtime.NamedIndividual)
                 return (org.xowl.infra.lang.runtime.NamedIndividual) interpretation;
         }
-        org.xowl.infra.lang.runtime.NamedIndividual interpretation = new org.xowl.infra.lang.runtime.NamedIndividual();
+        org.xowl.infra.lang.runtime.NamedIndividual interpretation = RuntimeFactory.newNamedIndividual();
         entity.addInterpretedAs(interpretation);
         return interpretation;
     }
@@ -284,7 +285,7 @@ public class RepositoryDirectSemantics extends Repository {
             if (interpretation instanceof org.xowl.infra.lang.runtime.ObjectProperty)
                 return (org.xowl.infra.lang.runtime.ObjectProperty) interpretation;
         }
-        org.xowl.infra.lang.runtime.ObjectProperty interpretation = new org.xowl.infra.lang.runtime.ObjectProperty();
+        org.xowl.infra.lang.runtime.ObjectProperty interpretation = RuntimeFactory.newObjectProperty();
         entity.addInterpretedAs(interpretation);
         return interpretation;
     }
@@ -300,7 +301,7 @@ public class RepositoryDirectSemantics extends Repository {
             if (interpretation instanceof org.xowl.infra.lang.runtime.DataProperty)
                 return (org.xowl.infra.lang.runtime.DataProperty) interpretation;
         }
-        org.xowl.infra.lang.runtime.DataProperty interpretation = new org.xowl.infra.lang.runtime.DataProperty();
+        org.xowl.infra.lang.runtime.DataProperty interpretation = RuntimeFactory.newDataProperty();
         entity.addInterpretedAs(interpretation);
         return interpretation;
     }
@@ -316,7 +317,7 @@ public class RepositoryDirectSemantics extends Repository {
             if (interpretation instanceof org.xowl.infra.lang.runtime.Datatype)
                 return (org.xowl.infra.lang.runtime.Datatype) interpretation;
         }
-        org.xowl.infra.lang.runtime.Datatype interpretation = new org.xowl.infra.lang.runtime.Datatype();
+        org.xowl.infra.lang.runtime.Datatype interpretation = RuntimeFactory.newDatatype();
         entity.addInterpretedAs(interpretation);
         return interpretation;
     }
@@ -332,7 +333,7 @@ public class RepositoryDirectSemantics extends Repository {
             if (interpretation instanceof org.xowl.infra.lang.runtime.Function)
                 return (org.xowl.infra.lang.runtime.Function) interpretation;
         }
-        org.xowl.infra.lang.runtime.Function interpretation = new org.xowl.infra.lang.runtime.Function();
+        org.xowl.infra.lang.runtime.Function interpretation = RuntimeFactory.newFunction();
         entity.addInterpretedAs(interpretation);
         return interpretation;
     }
@@ -344,82 +345,81 @@ public class RepositoryDirectSemantics extends Repository {
      * @param negative Whether to add or remove the axiom
      */
     private void apply(Axiom axiom, boolean negative) {
-        java.lang.Class c = axiom.getClass();
-        if (c == org.xowl.infra.lang.owl2.Declaration.class)
+        if (axiom instanceof org.xowl.infra.lang.owl2.Declaration)
             applyAxiomDeclaration((org.xowl.infra.lang.owl2.Declaration) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.DatatypeDefinition.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.DatatypeDefinition)
             applyAxiomDatatypeDefinition((org.xowl.infra.lang.owl2.DatatypeDefinition) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.SubClassOf.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.SubClassOf)
             applyAxiomSubClassOf((org.xowl.infra.lang.owl2.SubClassOf) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.EquivalentClasses.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.EquivalentClasses)
             applyAxiomEquivalentClasses((org.xowl.infra.lang.owl2.EquivalentClasses) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.DisjointClasses.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.DisjointClasses)
             applyAxiomDisjointClasses((org.xowl.infra.lang.owl2.DisjointClasses) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.DisjointUnion.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.DisjointUnion)
             applyAxiomDisjointUnion((org.xowl.infra.lang.owl2.DisjointUnion) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.SubObjectPropertyOf.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.SubObjectPropertyOf)
             applyAxiomSubObjectPropertyOf((org.xowl.infra.lang.owl2.SubObjectPropertyOf) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.EquivalentObjectProperties.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.EquivalentObjectProperties)
             applyAxiomEquivalentObjectProperties((org.xowl.infra.lang.owl2.EquivalentObjectProperties) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.DisjointObjectProperties.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.DisjointObjectProperties)
             applyAxiomDisjointObjectProperties((org.xowl.infra.lang.owl2.DisjointObjectProperties) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.InverseObjectProperties.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.InverseObjectProperties)
             applyAxiomInverseObjectProperties((org.xowl.infra.lang.owl2.InverseObjectProperties) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.ObjectPropertyDomain.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.ObjectPropertyDomain)
             applyAxiomObjectPropertyDomain((org.xowl.infra.lang.owl2.ObjectPropertyDomain) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.ObjectPropertyRange.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.ObjectPropertyRange)
             applyAxiomObjectPropertyRange((org.xowl.infra.lang.owl2.ObjectPropertyRange) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.FunctionalObjectProperty.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.FunctionalObjectProperty)
             applyAxiomFunctionalObjectProperty((org.xowl.infra.lang.owl2.FunctionalObjectProperty) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.InverseFunctionalObjectProperty.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.InverseFunctionalObjectProperty)
             applyAxiomInverseFunctionalObjectProperty((org.xowl.infra.lang.owl2.InverseFunctionalObjectProperty) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.ReflexiveObjectProperty.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.ReflexiveObjectProperty)
             applyAxiomReflexiveObjectProperty((org.xowl.infra.lang.owl2.ReflexiveObjectProperty) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.IrreflexiveObjectProperty.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.IrreflexiveObjectProperty)
             applyAxiomIrreflexiveObjectProperty((org.xowl.infra.lang.owl2.IrreflexiveObjectProperty) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.SymmetricObjectProperty.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.SymmetricObjectProperty)
             applyAxiomSymmetricObjectProperty((org.xowl.infra.lang.owl2.SymmetricObjectProperty) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.AsymmetricObjectProperty.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.AsymmetricObjectProperty)
             applyAxiomAsymmetricObjectProperty((org.xowl.infra.lang.owl2.AsymmetricObjectProperty) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.TransitiveObjectProperty.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.TransitiveObjectProperty)
             applyAxiomTransitiveObjectProperty((org.xowl.infra.lang.owl2.TransitiveObjectProperty) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.SubDataPropertyOf.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.SubDataPropertyOf)
             applyAxiomSubDataPropertyOf((org.xowl.infra.lang.owl2.SubDataPropertyOf) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.EquivalentDataProperties.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.EquivalentDataProperties)
             applyAxiomEquivalentDataProperties((org.xowl.infra.lang.owl2.EquivalentDataProperties) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.DisjointDataProperties.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.DisjointDataProperties)
             applyAxiomDisjointDataProperties((org.xowl.infra.lang.owl2.DisjointDataProperties) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.DataPropertyDomain.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.DataPropertyDomain)
             applyAxiomDataPropertyDomain((org.xowl.infra.lang.owl2.DataPropertyDomain) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.DataPropertyRange.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.DataPropertyRange)
             applyAxiomDataPropertyRange((org.xowl.infra.lang.owl2.DataPropertyRange) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.FunctionalDataProperty.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.FunctionalDataProperty)
             applyAxiomFunctionalDataProperty((org.xowl.infra.lang.owl2.FunctionalDataProperty) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.SameIndividual.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.SameIndividual)
             applyAxiomSameIndividual((org.xowl.infra.lang.owl2.SameIndividual) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.DifferentIndividuals.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.DifferentIndividuals)
             applyAxiomDifferentIndividuals((org.xowl.infra.lang.owl2.DifferentIndividuals) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.ClassAssertion.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.ClassAssertion)
             applyAxiomClassAssertion((org.xowl.infra.lang.owl2.ClassAssertion) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.ObjectPropertyAssertion.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.ObjectPropertyAssertion)
             applyAxiomObjectPropertyAssertion((org.xowl.infra.lang.owl2.ObjectPropertyAssertion) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.NegativeObjectPropertyAssertion.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.NegativeObjectPropertyAssertion)
             applyAxiomNegativeObjectPropertyAssertion((org.xowl.infra.lang.owl2.NegativeObjectPropertyAssertion) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.DataPropertyAssertion.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.DataPropertyAssertion)
             applyAxiomDataPropertyAssertion((org.xowl.infra.lang.owl2.DataPropertyAssertion) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.NegativeDataPropertyAssertion.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.NegativeDataPropertyAssertion)
             applyAxiomNegativeDataPropertyAssertion((org.xowl.infra.lang.owl2.NegativeDataPropertyAssertion) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.HasKey.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.HasKey)
             applyAxiomHasKey((org.xowl.infra.lang.owl2.HasKey) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.SubAnnotationPropertyOf.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.SubAnnotationPropertyOf)
             applyAxiomSubAnnotationPropertyOf((org.xowl.infra.lang.owl2.SubAnnotationPropertyOf) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.AnnotationPropertyDomain.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.AnnotationPropertyDomain)
             applyAxiomAnnotationPropertyDomain((org.xowl.infra.lang.owl2.AnnotationPropertyDomain) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.AnnotationPropertyRange.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.AnnotationPropertyRange)
             applyAxiomAnnotationPropertyRange((org.xowl.infra.lang.owl2.AnnotationPropertyRange) axiom, negative);
-        else if (c == org.xowl.infra.lang.owl2.AnnotationAssertion.class)
+        else if (axiom instanceof org.xowl.infra.lang.owl2.AnnotationAssertion)
             applyAxiomAnnotationAssertion((org.xowl.infra.lang.owl2.AnnotationAssertion) axiom, negative);
-        else if (c == FunctionDefinitionAxiom.class)
+        else if (axiom instanceof FunctionDefinitionAxiom)
             applyAxiomFunctionDefinition((FunctionDefinitionAxiom) axiom, negative);
     }
 
@@ -828,7 +828,7 @@ public class RepositoryDirectSemantics extends Repository {
         org.xowl.infra.lang.runtime.Individual value = evalIndividual(axiom.getValueIndividual());
 
         if (!negative) {
-            org.xowl.infra.lang.runtime.ObjectPropertyAssertion assertion = new org.xowl.infra.lang.runtime.ObjectPropertyAssertion();
+            org.xowl.infra.lang.runtime.ObjectPropertyAssertion assertion = RuntimeFactory.newObjectPropertyAssertion();
             assertion.setProperty(property);
             assertion.setIsNegative(false);
             assertion.setValueIndividual(value);
@@ -858,7 +858,7 @@ public class RepositoryDirectSemantics extends Repository {
         org.xowl.infra.lang.runtime.Individual value = evalIndividual(axiom.getValueIndividual());
 
         if (!negative) {
-            org.xowl.infra.lang.runtime.ObjectPropertyAssertion assertion = new org.xowl.infra.lang.runtime.ObjectPropertyAssertion();
+            org.xowl.infra.lang.runtime.ObjectPropertyAssertion assertion = RuntimeFactory.newObjectPropertyAssertion();
             assertion.setProperty(property);
             assertion.setIsNegative(true);
             assertion.setValueIndividual(value);
@@ -888,7 +888,7 @@ public class RepositoryDirectSemantics extends Repository {
         org.xowl.infra.lang.runtime.Literal value = evalLiteral(axiom.getValueLiteral());
 
         if (!negative) {
-            org.xowl.infra.lang.runtime.DataPropertyAssertion assertion = new org.xowl.infra.lang.runtime.DataPropertyAssertion();
+            org.xowl.infra.lang.runtime.DataPropertyAssertion assertion = RuntimeFactory.newDataPropertyAssertion();
             assertion.setProperty(property);
             assertion.setIsNegative(false);
             assertion.setValueLiteral(value);
@@ -918,7 +918,7 @@ public class RepositoryDirectSemantics extends Repository {
         org.xowl.infra.lang.runtime.Literal value = evalLiteral(axiom.getValueLiteral());
 
         if (!negative) {
-            org.xowl.infra.lang.runtime.DataPropertyAssertion assertion = new org.xowl.infra.lang.runtime.DataPropertyAssertion();
+            org.xowl.infra.lang.runtime.DataPropertyAssertion assertion = RuntimeFactory.newDataPropertyAssertion();
             assertion.setProperty(property);
             assertion.setIsNegative(true);
             assertion.setValueLiteral(value);
@@ -1085,7 +1085,7 @@ public class RepositoryDirectSemantics extends Repository {
                 return previous;
         }
         // New union
-        org.xowl.infra.lang.runtime.Class union = new org.xowl.infra.lang.runtime.Class();
+        org.xowl.infra.lang.runtime.Class union = RuntimeFactory.newClass();
         for (org.xowl.infra.lang.runtime.Class c : unified)
             union.addClassUnionOf(c);
         classUnions.add(union);
@@ -1117,7 +1117,7 @@ public class RepositoryDirectSemantics extends Repository {
                 return previous;
         }
         // New union
-        org.xowl.infra.lang.runtime.Class intersection = new org.xowl.infra.lang.runtime.Class();
+        org.xowl.infra.lang.runtime.Class intersection = RuntimeFactory.newClass();
         for (org.xowl.infra.lang.runtime.Class c : intersected)
             intersection.addClassUnionOf(c);
         classIntersections.add(intersection);
@@ -1148,7 +1148,7 @@ public class RepositoryDirectSemantics extends Repository {
             if (equal)
                 return previous;
         }
-        org.xowl.infra.lang.runtime.Class oneOf = new org.xowl.infra.lang.runtime.Class();
+        org.xowl.infra.lang.runtime.Class oneOf = RuntimeFactory.newClass();
         for (org.xowl.infra.lang.runtime.Individual i : individuals)
             oneOf.addClassOneOf(i);
         classOneOfs.add(oneOf);
@@ -1165,7 +1165,7 @@ public class RepositoryDirectSemantics extends Repository {
         org.xowl.infra.lang.runtime.Class complement = evalClass(expression.getClasse());
         if (classComplements.contains(complement))
             return complement.getClassComplementOf();
-        org.xowl.infra.lang.runtime.Class complementOf = new org.xowl.infra.lang.runtime.Class();
+        org.xowl.infra.lang.runtime.Class complementOf = RuntimeFactory.newClass();
         complementOf.setClassComplementOf(complement);
         classComplements.add(complement);
         classComplements.add(complementOf);
@@ -1179,8 +1179,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpDataAllValuesFrom(DataAllValuesFrom expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.DataAllValuesFrom restriction = new org.xowl.infra.lang.runtime.DataAllValuesFrom();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.DataAllValuesFrom restriction = RuntimeFactory.newDataAllValuesFrom();
         for (org.xowl.infra.lang.runtime.DataProperty prop : toEvaluatedList(expression.getDataPropertySeq()))
             restriction.addDataProperties(prop);
         restriction.setDatatype(evalDatatype(expression.getDatarange()));
@@ -1195,8 +1195,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpDataExactCardinality(DataExactCardinality expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.DataExactCardinality restriction = new org.xowl.infra.lang.runtime.DataExactCardinality();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.DataExactCardinality restriction = RuntimeFactory.newDataExactCardinality();
         restriction.setDataProperty(evalDataProperty(expression.getDataProperty()));
         restriction.setCardinality(Integer.parseInt(evalLiteral(expression.getCardinality()).getLexicalValue()));
         if (expression.getDatarange() != null)
@@ -1212,8 +1212,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpDataHasValue(DataHasValue expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.DataHasValue restriction = new org.xowl.infra.lang.runtime.DataHasValue();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.DataHasValue restriction = RuntimeFactory.newDataHasValue();
         restriction.setDataProperty(evalDataProperty(expression.getDataProperty()));
         restriction.setLiteral(evalLiteral(expression.getLiteral()));
         classe.addClassRestrictions(restriction);
@@ -1227,8 +1227,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpDataMaxCardinality(DataMaxCardinality expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.DataMaxCardinality restriction = new org.xowl.infra.lang.runtime.DataMaxCardinality();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.DataMaxCardinality restriction = RuntimeFactory.newDataMaxCardinality();
         restriction.setDataProperty(evalDataProperty(expression.getDataProperty()));
         restriction.setCardinality(Integer.parseInt(evalLiteral(expression.getCardinality()).getLexicalValue()));
         if (expression.getDatarange() != null)
@@ -1244,8 +1244,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpDataMinCardinality(DataMinCardinality expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.DataMinCardinality restriction = new org.xowl.infra.lang.runtime.DataMinCardinality();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.DataMinCardinality restriction = RuntimeFactory.newDataMinCardinality();
         restriction.setDataProperty(evalDataProperty(expression.getDataProperty()));
         restriction.setCardinality(Integer.parseInt(evalLiteral(expression.getCardinality()).getLexicalValue()));
         if (expression.getDatarange() != null)
@@ -1261,8 +1261,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpDataSomeValuesFrom(DataSomeValuesFrom expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.DataSomeValuesFrom restriction = new org.xowl.infra.lang.runtime.DataSomeValuesFrom();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.DataSomeValuesFrom restriction = RuntimeFactory.newDataSomeValuesFrom();
         for (org.xowl.infra.lang.runtime.DataProperty prop : toEvaluatedList(expression.getDataPropertySeq()))
             restriction.addDataProperties(prop);
         restriction.setDatatype(evalDatatype(expression.getDatarange()));
@@ -1277,8 +1277,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectAllValuesFrom(ObjectAllValuesFrom expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.ObjectAllValuesFrom restriction = new org.xowl.infra.lang.runtime.ObjectAllValuesFrom();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.ObjectAllValuesFrom restriction = RuntimeFactory.newObjectAllValuesFrom();
         restriction.setObjectProperty(evalObjectProperty(expression.getObjectProperty()));
         restriction.setClasse(evalClass(expression.getClasse()));
         classe.addClassRestrictions(restriction);
@@ -1292,8 +1292,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectExactCardinality(ObjectExactCardinality expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.ObjectExactCardinality restriction = new org.xowl.infra.lang.runtime.ObjectExactCardinality();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.ObjectExactCardinality restriction = RuntimeFactory.newObjectExactCardinality();
         restriction.setObjectProperty(evalObjectProperty(expression.getObjectProperty()));
         restriction.setCardinality(Integer.parseInt(evalLiteral(expression.getCardinality()).getLexicalValue()));
         if (expression.getClasse() != null)
@@ -1309,8 +1309,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectHasSelf(ObjectHasSelf expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.ObjectHasSelf restriction = new org.xowl.infra.lang.runtime.ObjectHasSelf();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.ObjectHasSelf restriction = RuntimeFactory.newObjectHasSelf();
         restriction.setObjectProperty(evalObjectProperty(expression.getObjectProperty()));
         classe.addClassRestrictions(restriction);
         return classe;
@@ -1323,8 +1323,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectHasValue(ObjectHasValue expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.ObjectHasValue restriction = new org.xowl.infra.lang.runtime.ObjectHasValue();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.ObjectHasValue restriction = RuntimeFactory.newObjectHasValue();
         restriction.setObjectProperty(evalObjectProperty(expression.getObjectProperty()));
         restriction.setIndividual(evalIndividual(expression.getIndividual()));
         classe.addClassRestrictions(restriction);
@@ -1338,8 +1338,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectMaxCardinality(ObjectMaxCardinality expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.ObjectMaxCardinality restriction = new org.xowl.infra.lang.runtime.ObjectMaxCardinality();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.ObjectMaxCardinality restriction = RuntimeFactory.newObjectMaxCardinality();
         restriction.setObjectProperty(evalObjectProperty(expression.getObjectProperty()));
         restriction.setCardinality(Integer.parseInt(evalLiteral(expression.getCardinality()).getLexicalValue()));
         if (expression.getClasse() != null)
@@ -1355,8 +1355,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectMinCardinality(ObjectMinCardinality expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.ObjectMinCardinality restriction = new org.xowl.infra.lang.runtime.ObjectMinCardinality();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.ObjectMinCardinality restriction = RuntimeFactory.newObjectMinCardinality();
         restriction.setObjectProperty(evalObjectProperty(expression.getObjectProperty()));
         restriction.setCardinality(Integer.parseInt(evalLiteral(expression.getCardinality()).getLexicalValue()));
         if (expression.getClasse() != null)
@@ -1372,8 +1372,8 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Class evalExpObjectSomeValuesFrom(ObjectSomeValuesFrom expression) {
-        org.xowl.infra.lang.runtime.Class classe = new org.xowl.infra.lang.runtime.Class();
-        org.xowl.infra.lang.runtime.ObjectSomeValuesFrom restriction = new org.xowl.infra.lang.runtime.ObjectSomeValuesFrom();
+        org.xowl.infra.lang.runtime.Class classe = RuntimeFactory.newClass();
+        org.xowl.infra.lang.runtime.ObjectSomeValuesFrom restriction = RuntimeFactory.newObjectSomeValuesFrom();
         restriction.setObjectProperty(evalObjectProperty(expression.getObjectProperty()));
         restriction.setClasse(evalClass(expression.getClasse()));
         classe.addClassRestrictions(restriction);
@@ -1416,7 +1416,7 @@ public class RepositoryDirectSemantics extends Repository {
         org.xowl.infra.lang.runtime.ObjectProperty inverse = evalObjectProperty(expression.getInverse());
         if (propInverses.contains(inverse))
             return inverse.getInverseOf();
-        org.xowl.infra.lang.runtime.ObjectProperty inverseOf = new org.xowl.infra.lang.runtime.ObjectProperty();
+        org.xowl.infra.lang.runtime.ObjectProperty inverseOf = RuntimeFactory.newObjectProperty();
         inverseOf.setInverseOf(inverse);
         propInverses.add(inverse);
         propInverses.add(inverseOf);
@@ -1491,7 +1491,7 @@ public class RepositoryDirectSemantics extends Repository {
         org.xowl.infra.lang.runtime.Datatype complement = evalDatatype(expression.getDatarange());
         if (dataComplements.contains(complement))
             return complement.getDataComplementOf();
-        org.xowl.infra.lang.runtime.Datatype complementOf = new org.xowl.infra.lang.runtime.Datatype();
+        org.xowl.infra.lang.runtime.Datatype complementOf = RuntimeFactory.newDatatype();
         complementOf.setDataComplementOf(complement);
         dataComplements.add(complement);
         dataComplements.add(complementOf);
@@ -1523,7 +1523,7 @@ public class RepositoryDirectSemantics extends Repository {
                 return previous;
         }
         // New union
-        org.xowl.infra.lang.runtime.Datatype intersection = new org.xowl.infra.lang.runtime.Datatype();
+        org.xowl.infra.lang.runtime.Datatype intersection = RuntimeFactory.newDatatype();
         for (org.xowl.infra.lang.runtime.Datatype c : intersected)
             intersection.addDataIntersectionOf(c);
         dataIntersections.add(intersection);
@@ -1552,7 +1552,7 @@ public class RepositoryDirectSemantics extends Repository {
             if (equal)
                 return previous;
         }
-        org.xowl.infra.lang.runtime.Datatype oneOf = new org.xowl.infra.lang.runtime.Datatype();
+        org.xowl.infra.lang.runtime.Datatype oneOf = RuntimeFactory.newDatatype();
         for (org.xowl.infra.lang.runtime.Literal i : literals)
             oneOf.addDataOneOf(i);
         dataOneOfs.add(oneOf);
@@ -1566,9 +1566,9 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Datatype evalExpDatatypeRestriction(DatatypeRestriction expression) {
-        org.xowl.infra.lang.runtime.Datatype datatype = new org.xowl.infra.lang.runtime.Datatype();
+        org.xowl.infra.lang.runtime.Datatype datatype = RuntimeFactory.newDatatype();
         for (FacetRestriction restriction : expression.getAllFacetRestrictions()) {
-            org.xowl.infra.lang.runtime.DatatypeRestriction restric = new org.xowl.infra.lang.runtime.DatatypeRestriction();
+            org.xowl.infra.lang.runtime.DatatypeRestriction restric = RuntimeFactory.newDatatypeRestriction();
             restric.setFacet(restriction.getConstrainingFacet());
             restric.setValueLiteral(evalLiteral(restriction.getConstrainingValue()));
             datatype.addDataRestrictions(restric);
@@ -1601,7 +1601,7 @@ public class RepositoryDirectSemantics extends Repository {
                 return previous;
         }
         // New union
-        org.xowl.infra.lang.runtime.Datatype union = new org.xowl.infra.lang.runtime.Datatype();
+        org.xowl.infra.lang.runtime.Datatype union = RuntimeFactory.newDatatype();
         for (org.xowl.infra.lang.runtime.Datatype c : unified)
             union.addDataUnionOf(c);
         dataUnions.add(union);
@@ -1666,7 +1666,7 @@ public class RepositoryDirectSemantics extends Repository {
      * @return The evaluated value
      */
     private org.xowl.infra.lang.runtime.Literal evalExpLiteral(Literal expression) {
-        org.xowl.infra.lang.runtime.Literal literal = new org.xowl.infra.lang.runtime.Literal();
+        org.xowl.infra.lang.runtime.Literal literal = RuntimeFactory.newLiteral();
         literal.setLexicalValue(expression.getLexicalValue());
         literal.setMemberOf(interpretAsDatatype(resolveEntity(expression.getMemberOf())));
         return literal;
@@ -1795,7 +1795,7 @@ public class RepositoryDirectSemantics extends Repository {
         Collections.sort(elements, new Comparator<SequenceElement>() {
             @Override
             public int compare(SequenceElement left, SequenceElement right) {
-                return left.getIndex().compareTo(right.getIndex());
+                return Integer.compare(left.getIndex(), right.getIndex());
             }
         });
     }

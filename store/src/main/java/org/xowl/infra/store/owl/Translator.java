@@ -883,7 +883,7 @@ public class Translator {
      */
     protected void translateAxiomFunctionDefinition(FunctionDefinitionAxiom axiom) throws TranslationException {
         SubjectNode function = translateFunctionExpression(axiom.getFunction());
-        OpaqueExpression value = new OpaqueExpression();
+        OpaqueExpression value = ActionsFactory.newOpaqueExpression();
         value.setValue(axiom.getDefinition());
         Quad quad = getTriple(function, Vocabulary.xowlDefinedAs, new DynamicNode(value));
         quads.add(quad);
@@ -1784,7 +1784,7 @@ public class Translator {
         Collections.sort(elements, new Comparator<SequenceElement>() {
             @Override
             public int compare(SequenceElement left, SequenceElement right) {
-                return left.getIndex().compareTo(right.getIndex());
+                return Integer.compare(left.getIndex(), right.getIndex());
             }
         });
     }
