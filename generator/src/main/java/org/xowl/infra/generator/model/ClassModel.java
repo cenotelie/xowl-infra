@@ -236,6 +236,17 @@ public class ClassModel {
     }
 
     /**
+     * Gets the implementation name in Java
+     *
+     * @return The implementation name in Java
+     */
+    public String getJavaImplName() {
+        String result = getPackage().getName();
+        result = String.valueOf(result.charAt(0)).toUpperCase() + result.substring(1);
+        return result + name + "Impl";
+    }
+
+    /**
      * Gets whether this class is abstract, i.e. it has at least one sub-class
      *
      * @return true if this is an abstract class, false otherwise
@@ -622,9 +633,7 @@ public class ClassModel {
         if (isAbstract())
             return;
 
-        String name = getPackage().getName();
-        name = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
-        name = name + getName() + "Impl";
+        String name = getJavaImplName();
 
         Writer writer = Files.getWriter(new File(folder, name + ".java").getAbsolutePath());
         String[] lines = header.split(Files.LINE_SEPARATOR);

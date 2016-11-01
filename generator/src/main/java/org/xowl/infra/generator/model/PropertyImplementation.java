@@ -57,9 +57,9 @@ public class PropertyImplementation extends PropertyData {
      */
     protected List<PropertyImplementation> implDescendants;
     /**
-     * The reverse implementations
+     * The implementation of the reverse property
      */
-    protected List<PropertyImplementation> implInverses;
+    protected PropertyImplementation implInverse;
 
     /**
      * Gets the implemented interfaces
@@ -107,15 +107,6 @@ public class PropertyImplementation extends PropertyData {
     }
 
     /**
-     * Gets the inverse implementations
-     *
-     * @return The inverse implementations
-     */
-    public List<PropertyImplementation> getInverses() {
-        return implInverses;
-    }
-
-    /**
      * Initializes this property data
      *
      * @param classe   The parent class model
@@ -130,7 +121,6 @@ public class PropertyImplementation extends PropertyData {
         masked = new ArrayList<>();
         implAncestors = new ArrayList<>();
         implDescendants = new ArrayList<>();
-        implInverses = new ArrayList<>();
     }
 
     /**
@@ -221,12 +211,7 @@ public class PropertyImplementation extends PropertyData {
                 }
             }
             if (property.hasInverse()) {
-                implInverses.add(getImplementationOf(property.getInverse()));
-            }
-            for (PropertyImplementation ancestor : implAncestors) {
-                if (ancestor.getProperty().hasInverse()) {
-                    implInverses.add(getImplementationOf(ancestor.getProperty().getInverse()));
-                }
+                implInverse = getImplementationOf(property.getInverse());
             }
             buildDescendantsOf(this);
         }
@@ -270,6 +255,24 @@ public class PropertyImplementation extends PropertyData {
         }
         if (propertyImplementation != this)
             implDescendants.add(propertyImplementation);
+    }
+
+    /**
+     * Gets the possible concrete classes for the range in the case of an object property
+     *
+     * @return The possible concrete classes
+     */
+    private List<String> getConcreteRanges() {
+        List<String> implementations = new ArrayList<>();
+        if (getRange().isAbstract()) {
+            for (ClassModel classModel : getRange().getSubClasses()) {
+                if (!classModel.isAbstract())
+                    implementations.add(classModel.getJavaImplName());
+            }
+        } else {
+            implementations.add(getRange().getJavaImplName());
+        }
+        return implementations;
     }
 
     /**
@@ -318,6 +321,7 @@ public class PropertyImplementation extends PropertyData {
                 }
             }
         } else {
+            writeStandaloneObjectMutators(writer);
             for (PropertyInterface inter : getInterfaces()) {
                 if (inter.isVector()) {
                     if (isVector()) {
@@ -364,9 +368,9 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     * The backing data for the property ").append(name).append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
         if (isVector())
-            writer.append("    protected List<").append(getJavaRangeVector()).append("> __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
+            writer.append("    private List<").append(getJavaRangeVector()).append("> __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
         else
-            writer.append("    protected ").append(getJavaRangeScalar()).append(" __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
+            writer.append("    private ").append(getJavaRangeScalar()).append(" __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
 
@@ -741,6 +745,135 @@ public class PropertyImplementation extends PropertyData {
     }
 
     /**
+     * Writes the standalone mutators of this object scalar property
+     *
+     * @param writer The write to use
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneObjectMutators(Writer writer) throws IOException {
+        String name = getJavaName();
+        List<String> implementations = getConcreteRanges();
+
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Adds a value to the property ").append(name).append(Files.LINE_SEPARATOR);
+        if (implInverse != null)
+            writer.append("     * This method will also update the inverse property ").append(implInverse.getJavaName()).append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    protected void doSimpleAdd").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        if (isVector()) {
+            writer.append("        __impl").append(name).append(".add(elem);");
+        } else {
+            writer.append("        __impl").append(name).append(" = elem;");
+        }
+        if (implInverse != null) {
+            if (implementations.size() == 1) {
+                writer.append("        ((").append(implementations.get(0)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this)").append(Files.LINE_SEPARATOR);
+            } else {
+                for (int i = 0; i != implementations.size(); i++) {
+                    if (i == 0) {
+                        writer.append("        if (elem instance of ").append(implementations.get(i)).append(")");
+                    } else {
+                        writer.append("        else if (elem instance of ").append(implementations.get(i)).append(")");
+                    }
+                    writer.append("            ((").append(implementations.get(i)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this)").append(Files.LINE_SEPARATOR);
+                }
+            }
+        }
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Removes a value from the property ").append(name).append(Files.LINE_SEPARATOR);
+        if (implInverse != null)
+            writer.append("     * This method will also update the inverse property ").append(implInverse.getJavaName()).append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    protected void doSimpleRemove").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        if (isVector()) {
+            writer.append("        __impl").append(name).append(".remove(elem);");
+        } else {
+            writer.append("        __impl").append(name).append(" = null;");
+        }
+        if (implInverse != null) {
+            if (implementations.size() == 1) {
+                writer.append("        ((").append(implementations.get(0)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this)").append(Files.LINE_SEPARATOR);
+            } else {
+                for (int i = 0; i != implementations.size(); i++) {
+                    if (i == 0) {
+                        writer.append("        if (elem instance of ").append(implementations.get(i)).append(")");
+                    } else {
+                        writer.append("        else if (elem instance of ").append(implementations.get(i)).append(")");
+                    }
+                    writer.append("            ((").append(implementations.get(i)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this)").append(Files.LINE_SEPARATOR);
+                }
+            }
+        }
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Tries to add a value to the property ").append(name).append(" and its super properties (if any)").append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    protected void doTreeAdd").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        for (PropertyImplementation ancestor : getAncestors()) {
+            writer.append("        doSimpleAdd").append(ancestor.getJavaName()).append("(elem);").append(Files.LINE_SEPARATOR);
+        }
+        writer.append("        doSimpleAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Tries to remove a value from the property ").append(name).append(" and its super properties (if any)").append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    protected void doTreeRemove").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        for (PropertyImplementation ancestor : getAncestors()) {
+            writer.append("        doSimpleRemove").append(ancestor.getJavaName()).append("(elem);").append(Files.LINE_SEPARATOR);
+        }
+        writer.append("        doSimpleRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Tries to delegate the addition of a value to the property ").append(name).append(" to a sub property, or fallback this property and its super properties, if any").append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    protected void doDispatchAdd").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        for (PropertyImplementation descendant : getDescendants()) {
+            writer.append("        if (elem instanceof ").append(descendant.getJavaRangeScalar()).append(") {").append(Files.LINE_SEPARATOR);
+            writer.append("            doTreeAdd").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
+            writer.append("            return;").append(Files.LINE_SEPARATOR);
+            writer.append("        }").append(Files.LINE_SEPARATOR);
+        }
+        writer.append("        doTreeAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Tries to delegate the removal of a value from the property ").append(name).append(" to a sub property, or fallback this property and its super properties, if any").append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    protected void doDispatchRemove").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        for (PropertyImplementation descendant : getDescendants()) {
+            writer.append("        if (elem instanceof ").append(descendant.getJavaRangeScalar()).append(") {").append(Files.LINE_SEPARATOR);
+            writer.append("            doTreeRemove").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
+            writer.append("            return;").append(Files.LINE_SEPARATOR);
+            writer.append("        }").append(Files.LINE_SEPARATOR);
+        }
+        writer.append("        doTreeRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+    }
+
+    /**
      * Writes the standalone implementation of this object scalar property implemented as a same type scalar
      *
      * @param writer The write to use
@@ -761,7 +894,16 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" == elem)").append(Files.LINE_SEPARATOR);
+        writer.append("            return;").append(Files.LINE_SEPARATOR);
+        writer.append("        if (elem == null) {").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
+        writer.append("        } else if (__impl").append(name).append(" == null) {").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        } else {").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        }").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
@@ -769,8 +911,9 @@ public class PropertyImplementation extends PropertyData {
     /**
      * Writes the standalone implementation of this object scalar property implemented as a sub-type scalar
      *
-     * @param writer The write to use
-     * @param inter  The property interface to implement
+     * @param writer                The write to use
+     * @param inter                 The property interface to implement
+     * @param isInTypeRestrictChain Whether this property is in a type restriction chain
      * @throws IOException When writing failed
      */
     private void writeStandaloneObjectScalarInterfaceOnScalarImplSubType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
@@ -787,9 +930,18 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar()).append("))").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar()).append("\");").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(" = (").append(getJavaRangeScalar()).append(") elem;").append(Files.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(" == elem)").append(Files.LINE_SEPARATOR);
+        writer.append("            return;").append(Files.LINE_SEPARATOR);
+        writer.append("        if (elem == null) {").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
+        writer.append("        } else if (__impl").append(name).append(" == null) {").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        } else {").append(Files.LINE_SEPARATOR);
+        writer.append("            if (!(elem instanceof ").append(getJavaRangeScalar()).append("))").append(Files.LINE_SEPARATOR);
+        writer.append("                throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar()).append("\");").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        }").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
@@ -797,8 +949,9 @@ public class PropertyImplementation extends PropertyData {
     /**
      * Writes the standalone implementation of this object scalar property implemented as a same type vector
      *
-     * @param writer The write to use
-     * @param inter  The property interface to implement
+     * @param writer                The write to use
+     * @param inter                 The property interface to implement
+     * @param isInTypeRestrictChain Whether this property is in a type restriction chain
      * @throws IOException When writing failed
      */
     private void writeStandaloneObjectScalarInterfaceOnVectorImplSameType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
@@ -828,8 +981,9 @@ public class PropertyImplementation extends PropertyData {
     /**
      * Writes the standalone implementation of this object scalar property implemented as a sub-type vector
      *
-     * @param writer The write to use
-     * @param inter  The property interface to implement
+     * @param writer                The write to use
+     * @param inter                 The property interface to implement
+     * @param isInTypeRestrictChain Whether this property is in a type restriction chain
      * @throws IOException When writing failed
      */
     private void writeStandaloneObjectScalarInterfaceOnVectorImplSubType(Writer writer, PropertyInterface inter, boolean isInTypeRestrictChain) throws IOException {
