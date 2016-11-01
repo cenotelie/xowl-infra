@@ -74,7 +74,7 @@ public class PackageModel {
      *
      * @return The associated ontology
      */
-    public Ontology getOWLOntology() {
+    public Ontology getOWL() {
         return ontology;
     }
 

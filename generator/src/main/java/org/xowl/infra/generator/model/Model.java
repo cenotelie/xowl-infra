@@ -21,6 +21,7 @@ import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.lang.owl2.Ontology;
 import org.xowl.infra.lang.runtime.Class;
 import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RepositoryDirectSemantics;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.logging.Logger;
@@ -39,34 +40,29 @@ import java.util.Map;
  */
 public class Model {
     /**
-     * The IRI of the OWL2 ontology
-     */
-    public static final String OWL = "http://www.w3.org/2002/07/owl";
-
-    /**
      * The repository
      */
-    private RepositoryDirectSemantics repository;
+    private final RepositoryDirectSemantics repository;
     /**
      * The name of the base package
      */
-    private String basePackage;
+    private final String basePackage;
     /**
      * The packages to generate
      */
-    private Map<Ontology, PackageModel> packages;
+    private final Map<Ontology, PackageModel> packages;
     /**
      * The known anonymous classes
      */
-    private Map<Class, ClassModel> anonymousClasses;
+    private final Map<Class, ClassModel> anonymousClasses;
     /**
      * The known datatype implementations
      */
-    private Map<Datatype, DatatypeModel> datatypes;
+    private final Map<Datatype, DatatypeModel> datatypes;
     /**
      * The known static instances
      */
-    private Map<NamedIndividual, InstanceModel> individuals;
+    private final Map<NamedIndividual, InstanceModel> individuals;
 
     /**
      * Initializes this model
@@ -102,42 +98,32 @@ public class Model {
     }
 
     /**
-     * Gets the model for the specified ontology
+     * Gets the model for the specified OWL class
      *
-     * @param ontology An ontology
-     * @return The associated model
+     * @param owlClass An OWL class
+     * @return The associated class model
      */
-    public PackageModel getModelFor(Ontology ontology) {
-        return packages.get(ontology);
-    }
-
-    /**
-     * Gets the model for the specified class
-     *
-     * @param classe A class
-     * @return The associated model
-     */
-    public ClassModel getModelFor(Class classe) {
-        if (classe == null)
+    public ClassModel getModelFor(Class owlClass) {
+        if (owlClass == null)
             return null;
-        if (classe.getInterpretationOf() == null) {
+        if (owlClass.getInterpretationOf() == null) {
             // this is an anonymous class, is it already known?
-            if (anonymousClasses.containsKey(classe))
-                return anonymousClasses.get(classe);
+            if (anonymousClasses.containsKey(owlClass))
+                return anonymousClasses.get(owlClass);
             // identify the containing ontology
-            Ontology ontology = getOntologyFor(classe);
+            Ontology ontology = getOntologyFor(owlClass);
             if (ontology == null)
                 return null;
             // create the model
-            ClassModel classModel = new ClassModel(packages.get(ontology), classe);
-            packages.get(ontology).register(classe, classModel);
-            anonymousClasses.put(classe, classModel);
+            ClassModel classModel = new ClassModel(packages.get(ontology), owlClass);
+            packages.get(ontology).register(owlClass, classModel);
+            anonymousClasses.put(owlClass, classModel);
             return classModel;
         } else {
             // look for the appropriate package
             for (PackageModel pack : packages.values()) {
-                if (pack.getOWLOntology() == classe.getInterpretationOf().getContainedBy())
-                    return pack.getModelFor(classe);
+                if (pack.getOWL() == owlClass.getInterpretationOf().getContainedBy())
+                    return pack.getModelFor(owlClass);
             }
             return null;
         }
@@ -146,25 +132,25 @@ public class Model {
     /**
      * Determines the ontology for the specified anonymous class
      *
-     * @param classe An anonymous class
+     * @param owlClass An anonymous OWL class
      * @return The ontology that will contain the class
      */
-    private Ontology getOntologyFor(Class classe) {
+    private Ontology getOntologyFor(Class owlClass) {
         List<ClassModel> results = new ArrayList<>();
-        if (!classe.getAllClassUnionOf().isEmpty()) {
-            for (Class operand : classe.getAllClassUnionOf()) {
+        if (!owlClass.getAllClassUnionOf().isEmpty()) {
+            for (Class operand : owlClass.getAllClassUnionOf()) {
                 ClassModel temp = getModelFor(operand);
                 if (temp != null)
                     results.add(temp);
             }
-        } else if (!classe.getAllClassIntersectionOf().isEmpty()) {
-            for (Class operand : classe.getAllClassIntersectionOf()) {
+        } else if (!owlClass.getAllClassIntersectionOf().isEmpty()) {
+            for (Class operand : owlClass.getAllClassIntersectionOf()) {
                 ClassModel temp = getModelFor(operand);
                 if (temp != null)
                     results.add(temp);
             }
-        } else if (!classe.getAllClassOneOf().isEmpty()) {
-            for (Individual individual : classe.getAllClassOneOf()) {
+        } else if (!owlClass.getAllClassOneOf().isEmpty()) {
+            for (Individual individual : owlClass.getAllClassOneOf()) {
                 if (individual instanceof AnonymousIndividual)
                     continue;
                 for (Class type : individual.getAllClassifiedBy()) {
@@ -176,18 +162,18 @@ public class Model {
         }
         if (results.isEmpty())
             return null;
-        return results.get(0).getPackage().getOWLOntology();
+        return results.get(0).getPackage().getOWL();
     }
 
     /**
-     * Gets the model for the specified property
+     * Gets the model for the specified OWL property
      *
-     * @param property A property
+     * @param owlProperty An OWL property
      * @return The associated model
      */
-    public PropertyModel getModelFor(Property property) {
+    public PropertyModel getModelFor(Property owlProperty) {
         for (PackageModel pack : packages.values()) {
-            PropertyModel gen = pack.getProperty(property);
+            PropertyModel gen = pack.getProperty(owlProperty);
             if (gen != null)
                 return gen;
         }
@@ -195,35 +181,35 @@ public class Model {
     }
 
     /**
-     * Gets the model implementation for the specified datatype
+     * Gets the model implementation for the specified OWL datatype
      *
-     * @param datatype A datatype
+     * @param owlDatatype An OWL datatype
      * @return The associated model implementation
      */
-    public DatatypeModel getModelFor(Datatype datatype) {
-        if (datatypes.containsKey(datatype))
-            return datatypes.get(datatype);
-        DatatypeModel datatypeModel = DatatypeModel.get(datatype);
-        datatypes.put(datatype, datatypeModel);
+    public DatatypeModel getModelFor(Datatype owlDatatype) {
+        if (datatypes.containsKey(owlDatatype))
+            return datatypes.get(owlDatatype);
+        DatatypeModel datatypeModel = DatatypeModel.get(owlDatatype);
+        datatypes.put(owlDatatype, datatypeModel);
         return datatypeModel;
     }
 
     /**
-     * Gets the model for the specified individual
+     * Gets the model for the specified OWL individual
      *
-     * @param individual An individual
+     * @param owlIndividual An OWL individual
      * @return The associated model
      */
-    public InstanceModel getModelFor(NamedIndividual individual) {
-        if (individuals.containsKey(individual))
-            return individuals.get(individual);
-        Entity entity = individual.getInterpretationOf();
+    public InstanceModel getModelFor(NamedIndividual owlIndividual) {
+        if (individuals.containsKey(owlIndividual))
+            return individuals.get(owlIndividual);
+        Entity entity = owlIndividual.getInterpretationOf();
         for (Interpretation interpretation : entity.getAllInterpretedAs()) {
             if (interpretation instanceof Class)
-                return new InstanceModel(getModelForOWLClass(), individual);
+                return new InstanceModel(getModelForOWLClass(), owlIndividual);
         }
-        if (individual.getInterpretationOf().getHasIRI().getHasValue().equals(Vocabulary.owlThing))
-            return new InstanceModel(null, individual);
+        if (owlIndividual.getInterpretationOf().getHasIRI().getHasValue().equals(Vocabulary.owlThing))
+            return new InstanceModel(null, owlIndividual);
         return null;
     }
 
@@ -244,13 +230,13 @@ public class Model {
      */
     private ClassModel getModelForOWLClass() {
         for (Ontology ontology : packages.keySet()) {
-            if (OWL.equals(ontology.getHasIRI().getHasValue())) {
+            if (IRIs.OWL2.equals(ontology.getHasIRI().getHasValue())) {
                 ReflectionPackage reflectionPackage = (ReflectionPackage) packages.get(ontology);
                 return reflectionPackage.getClassClass();
             }
         }
-        ReflectionPackage reflectionPackage = new ReflectionPackage(this, repository.resolveOntology(OWL));
-        packages.put(repository.resolveOntology(OWL), reflectionPackage);
+        ReflectionPackage reflectionPackage = new ReflectionPackage(this, repository.resolveOntology(IRIs.OWL2));
+        packages.put(repository.resolveOntology(IRIs.OWL2), reflectionPackage);
         return reflectionPackage.getClassClass();
     }
 
@@ -261,7 +247,7 @@ public class Model {
         for (Ontology ontology : repository.getOntologies()) {
             String uri = ontology.getHasIRI().getHasValue();
             PackageModel packageModel;
-            if (OWL.equals(uri))
+            if (IRIs.OWL2.equals(uri))
                 packageModel = new ReflectionPackage(this, ontology);
             else
                 packageModel = new PackageModel(this, ontology);
@@ -343,8 +329,8 @@ public class Model {
      */
     public void writeInterface(File folder, String header) throws IOException {
         File target = folder;
-        for (String sub : basePackage.split("\\."))
-            target = new File(target, sub);
+        for (String subPackage : basePackage.split("\\."))
+            target = new File(target, subPackage);
         if (!target.exists() && !target.mkdirs())
             throw new IOException("Failed to create folder " + target);
         for (PackageModel packageModel : packages.values())
@@ -360,8 +346,8 @@ public class Model {
      */
     public void writeStandalone(File folder, String header) throws IOException {
         File target = folder;
-        for (String sub : basePackage.split("\\."))
-            target = new File(target, sub);
+        for (String subPackage : basePackage.split("\\."))
+            target = new File(target, subPackage);
         if (!target.exists() && !target.mkdirs())
             throw new IOException("Failed to create folder " + target);
         for (PackageModel packageModel : packages.values())
