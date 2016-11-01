@@ -489,7 +489,7 @@ public class ClassModel {
         Collections.sort(propertyInterfaces, new Comparator<PropertyInterface>() {
             @Override
             public int compare(PropertyInterface property1, PropertyInterface property2) {
-                return property1.getProperty().getName().compareTo(property2.getProperty().getName());
+                return property1.getModel().getName().compareTo(property2.getModel().getName());
             }
         });
     }
@@ -522,15 +522,15 @@ public class ClassModel {
         for (ClassModel equivalent : getEquivalencyGroup()) {
             for (ClassModel ancestor : equivalent.getSuperClasses()) {
                 for (PropertyInterface inter : ancestor.getPropertyInterfaces()) {
-                    if (!interfaces.containsKey(inter.getProperty()))
-                        interfaces.put(inter.getProperty(), new java.util.ArrayList<PropertyInterface>());
-                    interfaces.get(inter.getProperty()).add(inter);
+                    if (!interfaces.containsKey(inter.getModel()))
+                        interfaces.put(inter.getModel(), new java.util.ArrayList<PropertyInterface>());
+                    interfaces.get(inter.getModel()).add(inter);
                 }
             }
             for (PropertyInterface inter : equivalent.getPropertyInterfaces()) {
-                if (!interfaces.containsKey(inter.getProperty()))
-                    interfaces.put(inter.getProperty(), new java.util.ArrayList<PropertyInterface>());
-                interfaces.get(inter.getProperty()).add(inter);
+                if (!interfaces.containsKey(inter.getModel()))
+                    interfaces.put(inter.getModel(), new java.util.ArrayList<PropertyInterface>());
+                interfaces.get(inter.getModel()).add(inter);
             }
         }
 
@@ -688,7 +688,7 @@ public class ClassModel {
         Collections.sort(implementations, new Comparator<PropertyImplementation>() {
             @Override
             public int compare(PropertyImplementation property1, PropertyImplementation property2) {
-                return property1.getProperty().getName().compareTo(property2.getProperty().getName());
+                return property1.getModel().getName().compareTo(property2.getModel().getName());
             }
         });
 

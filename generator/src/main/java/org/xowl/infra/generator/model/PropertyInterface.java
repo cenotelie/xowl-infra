@@ -61,7 +61,7 @@ public class PropertyInterface extends PropertyData {
      * @return true if the two property interfaces matches
      */
     public boolean sameAs(PropertyInterface propertyInterface) {
-        if (this.property != propertyInterface.property)
+        if (this.model != propertyInterface.model)
             return false;
         if (this.rangeClass != propertyInterface.rangeClass)
             return false;
@@ -91,7 +91,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocAdd(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Adds an element to the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -109,7 +109,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocRemove(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Removes an element from the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -127,7 +127,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGetAll(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets all the elements for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -144,7 +144,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGetAllTyped(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets all the elements for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -163,7 +163,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocSet(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Sets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -180,7 +180,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGet(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -197,7 +197,7 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGetTyped(Writer writer, String property) throws IOException {
-        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
@@ -225,7 +225,7 @@ public class PropertyInterface extends PropertyData {
         writer.append("    boolean remove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
-        if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain()) {
+        if (!getModel().isObjectProperty() || !isInTypeRestrictionChain()) {
             writeJavadocGetAll(writer, name);
             writer.append("    Collection<").append(getJavaRangeVector(parentClass)).append("> getAll").append(name).append("();").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
@@ -249,7 +249,7 @@ public class PropertyInterface extends PropertyData {
         writer.append("    void set").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
-        if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain()) {
+        if (!getModel().isObjectProperty() || !isInTypeRestrictionChain()) {
             writeJavadocGet(writer, name);
             writer.append("    ").append(getJavaRangeScalar(parentClass)).append(" get").append(name).append("();").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);

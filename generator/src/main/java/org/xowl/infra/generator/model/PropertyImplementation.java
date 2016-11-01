@@ -167,26 +167,26 @@ public class PropertyImplementation extends PropertyData {
                 propertyInterface.setInTypeRestrictionChain();
         }
 
-        if (property.isObjectProperty()) {
-            String header = "Property " + property.getName() + " : " + parentClass.getName() + " -> " + rangeClass.getName();
+        if (model.isObjectProperty()) {
+            String header = "Property " + model.getName() + " : " + parentClass.getName() + " -> " + rangeClass.getName();
             List<String> errors = new ArrayList<>();
-            if (property.isSymmetric()) {
-                if (!property.hasInverse())
+            if (model.isSymmetric()) {
+                if (!model.hasInverse())
                     errors.add("Property is symmetric but has no inverse");
-                else if (property.getInverse() != property)
+                else if (model.getInverse() != model)
                     errors.add("Property is symmetric but the inverse property is different");
             }
-            if (property.isReflexive()) {
+            if (model.isReflexive()) {
                 if (!parentClass.isCompatibleWith(rangeClass))
                     errors.add("Property is reflexive but the domain is not a subset of the range");
             }
-            if (property.hasInverse()) {
-                ClassModel inverseDomain = property.getInverse().getDomain();
-                ClassModel inverseRange = property.getInverse().getRangeClass();
+            if (model.hasInverse()) {
+                ClassModel inverseDomain = model.getInverse().getDomain();
+                ClassModel inverseRange = model.getInverse().getRangeClass();
                 if (propertyDomain != inverseRange)
-                    errors.add("Property domain is different from the range of the inverse property " + property.getInverse().getName());
+                    errors.add("Property domain is different from the range of the inverse property " + model.getInverse().getName());
                 if (propertyRange != inverseDomain)
-                    errors.add("Property range is different from the domain of the inverse property " + property.getInverse().getName());
+                    errors.add("Property range is different from the domain of the inverse property " + model.getInverse().getName());
             }
             if (!errors.isEmpty()) {
                 logger.error(header);
@@ -200,18 +200,18 @@ public class PropertyImplementation extends PropertyData {
      * Builds the property graph
      */
     public void buildPropertyGraph() {
-        if (property.isObjectProperty()) {
-            for (PropertyModel parent : property.getSuperProperties())
+        if (model.isObjectProperty()) {
+            for (PropertyModel parent : model.getSuperProperties())
                 implAncestors.add(parentClass.getPropertyImplementation(parent));
             for (int i = 0; i != implAncestors.size(); i++) {
-                for (PropertyModel parent : implAncestors.get(i).getProperty().getDirectSuperProperties()) {
+                for (PropertyModel parent : implAncestors.get(i).getModel().getDirectSuperProperties()) {
                     PropertyImplementation impl = parentClass.getPropertyImplementation(parent);
                     if (!implAncestors.contains(impl))
                         implAncestors.add(impl);
                 }
             }
-            if (property.hasInverse()) {
-                implInverse = getImplementationOf(property.getInverse());
+            if (model.hasInverse()) {
+                implInverse = getImplementationOf(model.getInverse());
             }
             buildDescendantsOf(this);
         }
@@ -241,12 +241,12 @@ public class PropertyImplementation extends PropertyData {
      * @param propertyImplementation A property implementation
      */
     private void buildDescendantsOf(PropertyImplementation propertyImplementation) {
-        if (propertyImplementation.property.getSubProperties().isEmpty()) {
+        if (propertyImplementation.model.getSubProperties().isEmpty()) {
             if (propertyImplementation != this)
                 implDescendants.add(propertyImplementation);
             return;
         }
-        for (PropertyModel child : propertyImplementation.property.getDirectSubProperties()) {
+        for (PropertyModel child : propertyImplementation.model.getDirectSubProperties()) {
             ClassModel childDomain = child.getDomain();
             if (parentClass.isCompatibleWith(childDomain)) {
                 PropertyImplementation childImpl = parentClass.getPropertyImplementation(child);
@@ -274,7 +274,7 @@ public class PropertyImplementation extends PropertyData {
 
         writeStandaloneFields(writer);
 
-        if (!getProperty().isObjectProperty()) {
+        if (!getModel().isObjectProperty()) {
             for (PropertyInterface inter : getInterfaces()) {
                 if (inter.isVector()) {
                     if (isVector()) {
@@ -345,7 +345,7 @@ public class PropertyImplementation extends PropertyData {
      * @throws IOException When writing failed
      */
     private void writeStandaloneFields(Writer writer) throws IOException {
-        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         String name = getJavaName();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * The backing data for the property ").append(name).append(Files.LINE_SEPARATOR);
@@ -365,7 +365,7 @@ public class PropertyImplementation extends PropertyData {
      * @throws IOException When writing failed
      */
     public void writeStandaloneConstructor(Writer writer) throws IOException {
-        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         String name = getJavaName();
         writer.append("        // initialize property ").append(iri).append(Files.LINE_SEPARATOR);
         if (isVector())
@@ -737,7 +737,7 @@ public class PropertyImplementation extends PropertyData {
      * @throws IOException When writing failed
      */
     private void writeStandaloneObjectMutators(Writer writer) throws IOException {
-        String iri = this.property.getOWL().getInterpretationOf().getHasIRI().getHasValue();
+        String iri = this.model.getOWL().getInterpretationOf().getHasIRI().getHasValue();
         String name = getJavaName();
 
         List<String> inverseDomains = new ArrayList<>();

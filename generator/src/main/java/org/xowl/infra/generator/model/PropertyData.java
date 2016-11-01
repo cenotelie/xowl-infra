@@ -37,7 +37,7 @@ public abstract class PropertyData {
     /**
      * The associated property model
      */
-    protected PropertyModel property;
+    protected PropertyModel model;
     /**
      * The property's range as a class (for object properties)
      */
@@ -89,8 +89,8 @@ public abstract class PropertyData {
      *
      * @return The associated property
      */
-    public PropertyModel getProperty() {
-        return property;
+    public PropertyModel getModel() {
+        return model;
     }
 
     /**
@@ -153,7 +153,7 @@ public abstract class PropertyData {
      * @return The name of this property when composed in Java
      */
     public String getJavaName() {
-        String name = getProperty().getName();
+        String name = getModel().getName();
         return String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
     }
 
@@ -164,7 +164,7 @@ public abstract class PropertyData {
      * @return The scalar Java representation of the property's range
      */
     public String getJavaRangeScalar(ClassModel from) {
-        if (property.isObjectProperty())
+        if (model.isObjectProperty())
             return rangeClass.getJavaName(from);
         return rangeDatatype.getScalarType();
     }
@@ -176,7 +176,7 @@ public abstract class PropertyData {
      * @return The Java representation of the property's range when in a vector
      */
     public String getJavaRangeVector(ClassModel from) {
-        if (property.isObjectProperty())
+        if (model.isObjectProperty())
             return rangeClass.getJavaName(from);
         return rangeDatatype.getVectorType();
     }
@@ -187,7 +187,7 @@ public abstract class PropertyData {
      * @return The default value (usually null)
      */
     public String getDefaultValue() {
-        return (property.isObjectProperty()) ? "null" : rangeDatatype.getDefaultValue();
+        return (model.isObjectProperty()) ? "null" : rangeDatatype.getDefaultValue();
     }
 
     /**
@@ -238,14 +238,14 @@ public abstract class PropertyData {
     /**
      * Initializes this property data
      *
-     * @param classe   The parent class model
-     * @param property The associated property
+     * @param classe        The parent class model
+     * @param propertyModel The associated property
      */
-    public PropertyData(ClassModel classe, PropertyModel property) {
+    public PropertyData(ClassModel classe, PropertyModel propertyModel) {
         this.parentClass = classe;
-        this.property = property;
-        this.rangeClass = property.getRangeClass();
-        this.rangeDatatype = property.getRangeDatatype();
+        this.model = propertyModel;
+        this.rangeClass = propertyModel.getRangeClass();
+        this.rangeDatatype = propertyModel.getRangeDatatype();
         this.cardMin = 0;
         this.cardMax = Integer.MAX_VALUE;
         this.hasSelf = false;
@@ -253,10 +253,10 @@ public abstract class PropertyData {
         this.hasDataValue = new ArrayList<>();
         this.restrictType = false;
         this.inTypeRestrictionChain = false;
-        if (this.property.isFunctional())
+        if (this.model.isFunctional())
             cardMax = 1;
         applyRestrictions();
-        if (this.property.isObjectProperty()) {
+        if (this.model.isObjectProperty()) {
             if (rangeClass == null)
                 rangeClass = parentClass.getPackage().getModel().getModelFor(this.parentClass.getPackage().getModel().getRepository().interpretAsClass(parentClass.getPackage().getModel().getRepository().resolveEntity(Vocabulary.owlThing)));
         } else {
@@ -298,7 +298,7 @@ public abstract class PropertyData {
      * @param restriction A class restriction on an object property
      */
     private void applyRestrictionOnObjectProperty(ObjectPropertyRestriction restriction) {
-        if (property.getOWL() != restriction.getObjectProperty())
+        if (model.getOWL() != restriction.getObjectProperty())
             return;
         if (restriction instanceof ObjectAllValuesFrom) {
             ObjectAllValuesFrom objectAllValuesFrom = (ObjectAllValuesFrom) restriction;
@@ -342,7 +342,7 @@ public abstract class PropertyData {
      * @param restriction A class restriction on a data property
      */
     private void applyRestrictionOnDataProperty(DataPropertyRestriction restriction) {
-        if (property.getOWL() != restriction.getDataProperty())
+        if (model.getOWL() != restriction.getDataProperty())
             return;
         if (restriction instanceof DataHasValue) {
             DataHasValue dataHasValue = (DataHasValue) restriction;
@@ -372,7 +372,7 @@ public abstract class PropertyData {
      * @param restriction A class restriction on multiple properties
      */
     private void applyRestrictionOnNAryProperties(NAryDataPropertyRestriction restriction) {
-        if (!restriction.getAllDataProperties().contains(property.getOWL()))
+        if (!restriction.getAllDataProperties().contains(model.getOWL()))
             return;
         if (restriction instanceof DataAllValuesFrom) {
             Datatype datatype = restriction.getDatatype();
