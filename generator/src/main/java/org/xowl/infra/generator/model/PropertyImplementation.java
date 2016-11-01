@@ -258,24 +258,6 @@ public class PropertyImplementation extends PropertyData {
     }
 
     /**
-     * Gets the possible concrete classes for the range in the case of an object property
-     *
-     * @return The possible concrete classes
-     */
-    private List<String> getConcreteRanges() {
-        List<String> implementations = new ArrayList<>();
-        if (getRange().isAbstract()) {
-            for (ClassModel classModel : getRange().getSubClasses()) {
-                if (!classModel.isAbstract())
-                    implementations.add(classModel.getJavaImplName());
-            }
-        } else {
-            implementations.add(getRange().getJavaImplName());
-        }
-        return implementations;
-    }
-
-    /**
      * Generates and writes the code for this property implementation as a standalone distribution
      *
      * @param writer The writer to write to
@@ -752,7 +734,18 @@ public class PropertyImplementation extends PropertyData {
      */
     private void writeStandaloneObjectMutators(Writer writer) throws IOException {
         String name = getJavaName();
-        List<String> implementations = getConcreteRanges();
+
+        List<String> inverseDomains = new ArrayList<>();
+        if (implInverse != null) {
+            if (implInverse.getDomain().isAbstract()) {
+                for (ClassModel classModel : implInverse.getDomain().getSubClasses()) {
+                    if (!classModel.isAbstract() && getParentClass().isCompatibleWith(classModel))
+                        inverseDomains.add(classModel.getJavaImplName());
+                }
+            } else {
+                inverseDomains.add(implInverse.getDomain().getJavaImplName());
+            }
+        }
 
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Adds a value to the property ").append(name).append(Files.LINE_SEPARATOR);
@@ -768,16 +761,16 @@ public class PropertyImplementation extends PropertyData {
             writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
         }
         if (implInverse != null) {
-            if (implementations.size() == 1) {
-                writer.append("        ((").append(implementations.get(0)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
+            if (inverseDomains.size() == 1) {
+                writer.append("        ((").append(inverseDomains.get(0)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
             } else {
-                for (int i = 0; i != implementations.size(); i++) {
+                for (int i = 0; i != inverseDomains.size(); i++) {
                     if (i == 0) {
-                        writer.append("        if (elem instanceof ").append(implementations.get(i)).append(")").append(Files.LINE_SEPARATOR);
+                        writer.append("        if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(Files.LINE_SEPARATOR);
                     } else {
-                        writer.append("        else if (elem instanceof ").append(implementations.get(i)).append(")").append(Files.LINE_SEPARATOR);
+                        writer.append("        else if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(Files.LINE_SEPARATOR);
                     }
-                    writer.append("            ((").append(implementations.get(i)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
+                    writer.append("            ((").append(inverseDomains.get(i)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
                 }
             }
         }
@@ -798,16 +791,16 @@ public class PropertyImplementation extends PropertyData {
             writer.append("        __impl").append(name).append(" = null;").append(Files.LINE_SEPARATOR);
         }
         if (implInverse != null) {
-            if (implementations.size() == 1) {
-                writer.append("        ((").append(implementations.get(0)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
+            if (inverseDomains.size() == 1) {
+                writer.append("        ((").append(inverseDomains.get(0)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
             } else {
-                for (int i = 0; i != implementations.size(); i++) {
+                for (int i = 0; i != inverseDomains.size(); i++) {
                     if (i == 0) {
-                        writer.append("        if (elem instanceof ").append(implementations.get(i)).append(")").append(Files.LINE_SEPARATOR);
+                        writer.append("        if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(Files.LINE_SEPARATOR);
                     } else {
-                        writer.append("        else if (elem instanceof ").append(implementations.get(i)).append(")").append(Files.LINE_SEPARATOR);
+                        writer.append("        else if (elem instanceof ").append(inverseDomains.get(i)).append(")").append(Files.LINE_SEPARATOR);
                     }
-                    writer.append("            ((").append(implementations.get(i)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
+                    writer.append("            ((").append(inverseDomains.get(i)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
                 }
             }
         }
