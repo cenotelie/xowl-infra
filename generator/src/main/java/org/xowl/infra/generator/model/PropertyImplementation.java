@@ -385,6 +385,26 @@ public class PropertyImplementation extends PropertyData {
     }
 
     /**
+     * Writes the core of the set method for a datatype property implementation
+     *
+     * @param writer         The write to use
+     * @param implementation The implementation to write for
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneDatatypeDoSet(Writer writer, PropertyImplementation implementation) throws IOException {
+        if (!implementation.isVector()) {
+            writer.append("        __impl").append(implementation.getJavaName()).append(" = elem;").append(Files.LINE_SEPARATOR);
+        } else if (implementation.getDefaultValue().equals("null")) {
+            writer.append("        __impl").append(implementation.getJavaName()).append(".clear();").append(Files.LINE_SEPARATOR);
+            writer.append("        if (elem != null)").append(Files.LINE_SEPARATOR);
+            writer.append("            __impl").append(implementation.getJavaName()).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        } else {
+            writer.append("        __impl").append(implementation.getJavaName()).append(".clear();").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(implementation.getJavaName()).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        }
+    }
+
+    /**
      * Writes the standalone implementation of this datatype scalar property implemented as a scalar
      *
      * @param writer The write to use
@@ -402,7 +422,11 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
+        for (PropertyImplementation impl : getAncestors())
+            writeStandaloneDatatypeDoSet(writer, impl);
+        writeStandaloneDatatypeDoSet(writer, this);
+        for (PropertyImplementation impl : getDescendants())
+            writeStandaloneDatatypeDoSet(writer, impl);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
@@ -427,8 +451,11 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(".clear();").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        for (PropertyImplementation impl : getAncestors())
+            writeStandaloneDatatypeDoSet(writer, impl);
+        writeStandaloneDatatypeDoSet(writer, this);
+        for (PropertyImplementation impl : getDescendants())
+            writeStandaloneDatatypeDoSet(writer, impl);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
@@ -453,11 +480,99 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(".clear();").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem != null)").append(Files.LINE_SEPARATOR);
-        writer.append("            __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        for (PropertyImplementation impl : getAncestors())
+            writeStandaloneDatatypeDoSet(writer, impl);
+        writeStandaloneDatatypeDoSet(writer, this);
+        for (PropertyImplementation impl : getDescendants())
+            writeStandaloneDatatypeDoSet(writer, impl);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
+    }
+
+    /**
+     * Writes the check part of the add method for a datatype property implementation
+     *
+     * @param writer         The write to use
+     * @param implementation The implementation to write for
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneDatatypeCheckAdd(Writer writer, PropertyImplementation implementation) throws IOException {
+        if (implementation.isVector()) {
+            if (implementation.getCardMax() != Integer.MAX_VALUE) {
+                writer.append("        if (__impl").append(implementation.getJavaName()).append(".size() >= ").append(Integer.toString(implementation.getCardMax())).append(")").append(Files.LINE_SEPARATOR);
+                writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is ").append(Integer.toString(implementation.getCardMax())).append("\");").append(Files.LINE_SEPARATOR);
+            }
+        } else if (implementation.getDefaultValue().equals("null")) {
+            writer.append("        if (__impl").append(implementation.getJavaName()).append(" != null)").append(Files.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(Files.LINE_SEPARATOR);
+        }
+    }
+
+    /**
+     * Writes the core of the add method for a datatype property implementation
+     *
+     * @param writer         The write to use
+     * @param implementation The implementation to write for
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneDatatypeDoAdd(Writer writer, PropertyImplementation implementation) throws IOException {
+        if (implementation.isVector()) {
+            writer.append("        __impl").append(implementation.getJavaName()).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        } else {
+            writer.append("        __impl").append(implementation.getJavaName()).append(" = elem;").append(Files.LINE_SEPARATOR);
+        }
+    }
+
+    /**
+     * Writes the core of the remove method for a datatype property implementation
+     *
+     * @param writer         The write to use
+     * @param implementation The implementation to write for
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneDatatypeDoRemoveCombine(Writer writer, PropertyImplementation implementation) throws IOException {
+        if (implementation.isVector()) {
+            if (implementation.getJavaRangeScalar().equals("int"))
+                // special case for int due to confusion between remove(int) and remove(Object)
+                writer.append("        success &= __impl").append(implementation.getJavaName()).append(".remove((Integer) elem);").append(Files.LINE_SEPARATOR);
+            else
+                writer.append("        success &= __impl").append(implementation.getJavaName()).append(".remove(elem);").append(Files.LINE_SEPARATOR);
+        } else if (implementation.getDefaultValue().equals("null")) {
+            writer.append("        if (Objects.equals(__impl").append(implementation.getJavaName()).append(", elem))").append(Files.LINE_SEPARATOR);
+            writer.append("            __impl").append(implementation.getJavaName()).append(" = null;").append(Files.LINE_SEPARATOR);
+            writer.append("        else").append(Files.LINE_SEPARATOR);
+            writer.append("            success = false;").append(Files.LINE_SEPARATOR);
+        } else {
+            writer.append("        if (__impl").append(implementation.getJavaName()).append(" == elem)").append(Files.LINE_SEPARATOR);
+            writer.append("            __impl").append(implementation.getJavaName()).append(" = ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
+            writer.append("        else").append(Files.LINE_SEPARATOR);
+            writer.append("            success = false;").append(Files.LINE_SEPARATOR);
+        }
+    }
+
+    /**
+     * Writes the core of the remove method for a datatype property implementation
+     *
+     * @param writer         The write to use
+     * @param implementation The implementation to write for
+     * @throws IOException When writing failed
+     */
+    private void writeStandaloneDatatypeDoRemoveSolo(Writer writer, PropertyImplementation implementation) throws IOException {
+        if (implementation.isVector()) {
+            if (implementation.getJavaRangeScalar().equals("int"))
+                // special case for int due to confusion between remove(int) and remove(Object)
+                writer.append("        return __impl").append(implementation.getJavaName()).append(".remove((Integer) elem);").append(Files.LINE_SEPARATOR);
+            else
+                writer.append("        return __impl").append(implementation.getJavaName()).append(".remove(elem);").append(Files.LINE_SEPARATOR);
+        } else if (implementation.getDefaultValue().equals("null")) {
+            writer.append("        if (!Objects.equals(__impl").append(implementation.getJavaName()).append(", elem))").append(Files.LINE_SEPARATOR);
+            writer.append("            return false;").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(implementation.getJavaName()).append(" = null;").append(Files.LINE_SEPARATOR);
+        } else {
+            writer.append("        if (__impl").append(implementation.getJavaName()).append(" != elem)").append(Files.LINE_SEPARATOR);
+            writer.append("            return false;").append(Files.LINE_SEPARATOR);
+            writer.append("        __impl").append(implementation.getJavaName()).append(" = ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
+        }
     }
 
     /**
@@ -478,17 +593,41 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
+        if (getDefaultValue().equals("null")) {
+            writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
+        }
+        for (PropertyImplementation impl : getAncestors())
+            writeStandaloneDatatypeCheckAdd(writer, impl);
+        writeStandaloneDatatypeCheckAdd(writer, this);
+        for (PropertyImplementation impl : getDescendants())
+            writeStandaloneDatatypeCheckAdd(writer, impl);
+        for (PropertyImplementation impl : getAncestors())
+            writeStandaloneDatatypeDoAdd(writer, impl);
+        writeStandaloneDatatypeDoAdd(writer, this);
+        for (PropertyImplementation impl : getDescendants())
+            writeStandaloneDatatypeDoAdd(writer, impl);
         writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(" != elem)").append(Files.LINE_SEPARATOR);
-        writer.append("            return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(" = ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
+        if (getDefaultValue().equals("null")) {
+            writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
+        }
+        if (!getAncestors().isEmpty() || !getDescendants().isEmpty()) {
+            writer.append("        boolean success = true;").append(Files.LINE_SEPARATOR);
+            for (PropertyImplementation impl : getAncestors())
+                writeStandaloneDatatypeDoRemoveCombine(writer, impl);
+            writeStandaloneDatatypeDoRemoveCombine(writer, this);
+            for (PropertyImplementation impl : getDescendants())
+                writeStandaloneDatatypeDoRemoveCombine(writer, impl);
+            writer.append("        return success;").append(Files.LINE_SEPARATOR);
+        } else {
+            writeStandaloneDatatypeDoRemoveSolo(writer, this);
+        }
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
@@ -513,19 +652,37 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (__impl").append(name).append(" != null)").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
+        for (PropertyImplementation impl : getAncestors())
+            writeStandaloneDatatypeCheckAdd(writer, impl);
+        writeStandaloneDatatypeCheckAdd(writer, this);
+        for (PropertyImplementation impl : getDescendants())
+            writeStandaloneDatatypeCheckAdd(writer, impl);
+        for (PropertyImplementation impl : getAncestors())
+            writeStandaloneDatatypeDoAdd(writer, impl);
+        writeStandaloneDatatypeDoAdd(writer, this);
+        for (PropertyImplementation impl : getDescendants())
+            writeStandaloneDatatypeDoAdd(writer, impl);
         writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (!Objects.equals(__impl").append(name).append(", elem))").append(Files.LINE_SEPARATOR);
-        writer.append("            return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(" = ").append(getDefaultValue()).append(";").append(Files.LINE_SEPARATOR);
-        writer.append("        return true;").append(Files.LINE_SEPARATOR);
+        if (getDefaultValue().equals("null")) {
+            writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
+        }
+        if (!getAncestors().isEmpty() || !getDescendants().isEmpty()) {
+            writer.append("        boolean success = true;").append(Files.LINE_SEPARATOR);
+            for (PropertyImplementation impl : getAncestors())
+                writeStandaloneDatatypeDoRemoveCombine(writer, impl);
+            writeStandaloneDatatypeDoRemoveCombine(writer, this);
+            for (PropertyImplementation impl : getDescendants())
+                writeStandaloneDatatypeDoRemoveCombine(writer, impl);
+            writer.append("        return success;").append(Files.LINE_SEPARATOR);
+        } else {
+            writeStandaloneDatatypeDoRemoveSolo(writer, this);
+        }
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
@@ -548,22 +705,37 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        // implemented as a vector
-        if (getCardMax() != Integer.MAX_VALUE) {
-            writer.append("        if (__impl").append(name).append(".size() >= ").append(Integer.toString(getCardMax())).append(")").append(Files.LINE_SEPARATOR);
-            writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is ").append(Integer.toString(getCardMax())).append("\");").append(Files.LINE_SEPARATOR);
-        }
-        writer.append("        return __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        for (PropertyImplementation impl : getAncestors())
+            writeStandaloneDatatypeCheckAdd(writer, impl);
+        writeStandaloneDatatypeCheckAdd(writer, this);
+        for (PropertyImplementation impl : getDescendants())
+            writeStandaloneDatatypeCheckAdd(writer, impl);
+        for (PropertyImplementation impl : getAncestors())
+            writeStandaloneDatatypeDoAdd(writer, impl);
+        writeStandaloneDatatypeDoAdd(writer, this);
+        for (PropertyImplementation impl : getDescendants())
+            writeStandaloneDatatypeDoAdd(writer, impl);
+        writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        if (inter.getJavaRangeScalar().equals("int"))
-            // special case for int due to confusion between remove(int) and remove(Object)
-            writer.append("        return __impl").append(name).append(".remove((Integer) elem);").append(Files.LINE_SEPARATOR);
-        else
-            writer.append("        return __impl").append(name).append(".remove(elem);").append(Files.LINE_SEPARATOR);
+        if (getDefaultValue().equals("null")) {
+            writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
+            writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
+        }
+        if (!getAncestors().isEmpty() || !getDescendants().isEmpty()) {
+            writer.append("        boolean success = true;").append(Files.LINE_SEPARATOR);
+            for (PropertyImplementation impl : getAncestors())
+                writeStandaloneDatatypeDoRemoveCombine(writer, impl);
+            writeStandaloneDatatypeDoRemoveCombine(writer, this);
+            for (PropertyImplementation impl : getDescendants())
+                writeStandaloneDatatypeDoRemoveCombine(writer, impl);
+            writer.append("        return success;").append(Files.LINE_SEPARATOR);
+        } else {
+            writeStandaloneDatatypeDoRemoveSolo(writer, this);
+        }
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
