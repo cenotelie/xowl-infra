@@ -970,10 +970,16 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(".clear();").append(Files.LINE_SEPARATOR);
-        writer.append("        if (elem != null)").append(Files.LINE_SEPARATOR);
-        writer.append("            return;").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        if (elem == null) {").append(Files.LINE_SEPARATOR);
+        writer.append("            if (__impl").append(name).append(".isEmpty())").append(Files.LINE_SEPARATOR);
+        writer.append("                return;").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(Files.LINE_SEPARATOR);
+        writer.append("        } else if (__impl").append(name).append(".isEmpty()) {").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        } else {").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        }").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
@@ -1003,13 +1009,19 @@ public class PropertyImplementation extends PropertyData {
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
         writer.append("        if (elem == null) {").append(Files.LINE_SEPARATOR);
-        writer.append("            __impl").append(name).append(".clear();").append(Files.LINE_SEPARATOR);
-        writer.append("            return;").append(Files.LINE_SEPARATOR);
+        writer.append("            if (__impl").append(name).append(".isEmpty())").append(Files.LINE_SEPARATOR);
+        writer.append("                return;").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(Files.LINE_SEPARATOR);
+        writer.append("        } else if (__impl").append(name).append(".isEmpty()) {").append(Files.LINE_SEPARATOR);
+        writer.append("            if (!(elem instanceof ").append(getJavaRangeScalar()).append("))").append(Files.LINE_SEPARATOR);
+        writer.append("                throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar()).append("\");").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        } else {").append(Files.LINE_SEPARATOR);
+        writer.append("            if (!(elem instanceof ").append(getJavaRangeScalar()).append("))").append(Files.LINE_SEPARATOR);
+        writer.append("                throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar()).append("\");").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(".get(__impl").append(name).append(".size() - 1));").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
         writer.append("        }").append(Files.LINE_SEPARATOR);
-        writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar()).append("))").append(Files.LINE_SEPARATOR);
-        writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar()).append("\");").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(".clear();").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
@@ -1038,11 +1050,10 @@ public class PropertyImplementation extends PropertyData {
         writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
         writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
         writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
-        if (getCardMax() != Integer.MAX_VALUE) {
-            writer.append("        if (__impl").append(name).append(".size() >= ").append(Integer.toString(getCardMax())).append(")").append(Files.LINE_SEPARATOR);
-            writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is ").append(Integer.toString(getCardMax())).append("\");").append(Files.LINE_SEPARATOR);
-        }
-        writer.append("        return __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(".contains(elem))").append(Files.LINE_SEPARATOR);
+        writer.append("            return false;").append(Files.LINE_SEPARATOR);
+        writer.append("        doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
@@ -1050,7 +1061,10 @@ public class PropertyImplementation extends PropertyData {
         writer.append("    public boolean remove").append(name).append("(").append(inter.getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
         writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
         writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
-        writer.append("        return __impl").append(name).append(".remove(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        if (!__impl").append(name).append(".contains(elem))").append(Files.LINE_SEPARATOR);
+        writer.append("            return false;").append(Files.LINE_SEPARATOR);
+        writer.append("        doDispatchRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
@@ -1081,11 +1095,10 @@ public class PropertyImplementation extends PropertyData {
         writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
         writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar()).append("))").append(Files.LINE_SEPARATOR);
         writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar()).append("\");").append(Files.LINE_SEPARATOR);
-        if (getCardMax() != Integer.MAX_VALUE) {
-            writer.append("        if (__impl").append(name).append(".size() >= ").append(Integer.toString(getCardMax())).append(")").append(Files.LINE_SEPARATOR);
-            writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is ").append(Integer.toString(getCardMax())).append("\");").append(Files.LINE_SEPARATOR);
-        }
-        writer.append("        return __impl").append(name).append(".add((").append(getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        if (__impl").append(name).append(".contains((").append(getJavaRangeScalar()).append(") elem))").append(Files.LINE_SEPARATOR);
+        writer.append("            return false;").append(Files.LINE_SEPARATOR);
+        writer.append("        doDispatchAdd").append(name).append("((").append(getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
@@ -1095,7 +1108,10 @@ public class PropertyImplementation extends PropertyData {
         writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
         writer.append("        if (!(elem instanceof ").append(getJavaRangeScalar()).append("))").append(Files.LINE_SEPARATOR);
         writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar()).append("\");").append(Files.LINE_SEPARATOR);
-        writer.append("        return __impl").append(name).append(".remove((").append(getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        if (!__impl").append(name).append(".contains((").append(getJavaRangeScalar()).append(") elem))").append(Files.LINE_SEPARATOR);
+        writer.append("            return false;").append(Files.LINE_SEPARATOR);
+        writer.append("        doDispatchRemove").append(name).append("((").append(getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
@@ -1128,7 +1144,7 @@ public class PropertyImplementation extends PropertyData {
         writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
         writer.append("        if (__impl").append(name).append(" != null)").append(Files.LINE_SEPARATOR);
         writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
+        writer.append("        doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
         writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
@@ -1139,7 +1155,7 @@ public class PropertyImplementation extends PropertyData {
         writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
         writer.append("        if (__impl").append(name).append(" != elem)").append(Files.LINE_SEPARATOR);
         writer.append("            return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(" = null;").append(Files.LINE_SEPARATOR);
+        writer.append("        doDispatchRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
         writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
@@ -1175,7 +1191,7 @@ public class PropertyImplementation extends PropertyData {
         writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar()).append("\");").append(Files.LINE_SEPARATOR);
         writer.append("        if (__impl").append(name).append(" != null)").append(Files.LINE_SEPARATOR);
         writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is 1\");").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(" = (").append(getJavaRangeScalar()).append(") elem;").append(Files.LINE_SEPARATOR);
+        writer.append("        doDispatchAdd").append(name).append("((").append(getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
         writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
@@ -1188,7 +1204,7 @@ public class PropertyImplementation extends PropertyData {
         writer.append("            throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar()).append("\");").append(Files.LINE_SEPARATOR);
         writer.append("        if (__impl").append(name).append(" != elem)").append(Files.LINE_SEPARATOR);
         writer.append("            return false;").append(Files.LINE_SEPARATOR);
-        writer.append("        __impl").append(name).append(" = null;").append(Files.LINE_SEPARATOR);
+        writer.append("        doDispatchRemove").append(name).append("((").append(getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
         writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
