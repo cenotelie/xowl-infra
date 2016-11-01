@@ -763,21 +763,21 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     */").append(Files.LINE_SEPARATOR);
         writer.append("    protected void doSimpleAdd").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
         if (isVector()) {
-            writer.append("        __impl").append(name).append(".add(elem);");
+            writer.append("        __impl").append(name).append(".add(elem);").append(Files.LINE_SEPARATOR);
         } else {
-            writer.append("        __impl").append(name).append(" = elem;");
+            writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
         }
         if (implInverse != null) {
             if (implementations.size() == 1) {
-                writer.append("        ((").append(implementations.get(0)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this)").append(Files.LINE_SEPARATOR);
+                writer.append("        ((").append(implementations.get(0)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
             } else {
                 for (int i = 0; i != implementations.size(); i++) {
                     if (i == 0) {
-                        writer.append("        if (elem instance of ").append(implementations.get(i)).append(")");
+                        writer.append("        if (elem instanceof ").append(implementations.get(i)).append(")").append(Files.LINE_SEPARATOR);
                     } else {
-                        writer.append("        else if (elem instance of ").append(implementations.get(i)).append(")");
+                        writer.append("        else if (elem instanceof ").append(implementations.get(i)).append(")").append(Files.LINE_SEPARATOR);
                     }
-                    writer.append("            ((").append(implementations.get(i)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this)").append(Files.LINE_SEPARATOR);
+                    writer.append("            ((").append(implementations.get(i)).append(") elem).doSimpleAdd").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
                 }
             }
         }
@@ -793,21 +793,21 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     */").append(Files.LINE_SEPARATOR);
         writer.append("    protected void doSimpleRemove").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
         if (isVector()) {
-            writer.append("        __impl").append(name).append(".remove(elem);");
+            writer.append("        __impl").append(name).append(".remove(elem);").append(Files.LINE_SEPARATOR);
         } else {
-            writer.append("        __impl").append(name).append(" = null;");
+            writer.append("        __impl").append(name).append(" = null;").append(Files.LINE_SEPARATOR);
         }
         if (implInverse != null) {
             if (implementations.size() == 1) {
-                writer.append("        ((").append(implementations.get(0)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this)").append(Files.LINE_SEPARATOR);
+                writer.append("        ((").append(implementations.get(0)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
             } else {
                 for (int i = 0; i != implementations.size(); i++) {
                     if (i == 0) {
-                        writer.append("        if (elem instance of ").append(implementations.get(i)).append(")");
+                        writer.append("        if (elem instanceof ").append(implementations.get(i)).append(")").append(Files.LINE_SEPARATOR);
                     } else {
-                        writer.append("        else if (elem instance of ").append(implementations.get(i)).append(")");
+                        writer.append("        else if (elem instanceof ").append(implementations.get(i)).append(")").append(Files.LINE_SEPARATOR);
                     }
-                    writer.append("            ((").append(implementations.get(i)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this)").append(Files.LINE_SEPARATOR);
+                    writer.append("            ((").append(implementations.get(i)).append(") elem).doSimpleRemove").append(implInverse.getJavaName()).append("(this);").append(Files.LINE_SEPARATOR);
                 }
             }
         }
@@ -841,7 +841,8 @@ public class PropertyImplementation extends PropertyData {
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Tries to delegate the addition of a value to the property ").append(name).append(" to a sub property, or fallback this property and its super properties, if any").append(Files.LINE_SEPARATOR);
+        writer.append("     * Dispatches the request for the addition of a value to the property ").append(name).append(Files.LINE_SEPARATOR);
+        writer.append("     * This method tries to delegate to a sub property, if any.").append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
@@ -857,7 +858,8 @@ public class PropertyImplementation extends PropertyData {
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Tries to delegate the removal of a value from the property ").append(name).append(" to a sub property, or fallback this property and its super properties, if any").append(Files.LINE_SEPARATOR);
+        writer.append("     * Dispatches the request for the removal of a value from the property ").append(name).append(Files.LINE_SEPARATOR);
+        writer.append("     * This method tries to delegate to a sub property, if any.").append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
@@ -935,7 +937,7 @@ public class PropertyImplementation extends PropertyData {
         writer.append("        if (elem == null) {").append(Files.LINE_SEPARATOR);
         writer.append("            doDispatchRemove").append(name).append("(__impl").append(name).append(");").append(Files.LINE_SEPARATOR);
         writer.append("        } else if (__impl").append(name).append(" == null) {").append(Files.LINE_SEPARATOR);
-        writer.append("            doDispatchAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("            doDispatchAdd").append(name).append("((").append(getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
         writer.append("        } else {").append(Files.LINE_SEPARATOR);
         writer.append("            if (!(elem instanceof ").append(getJavaRangeScalar()).append("))").append(Files.LINE_SEPARATOR);
         writer.append("                throw new IllegalArgumentException(\"Expected type ").append(getJavaRangeScalar()).append("\");").append(Files.LINE_SEPARATOR);
