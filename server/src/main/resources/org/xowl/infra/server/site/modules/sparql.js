@@ -9,7 +9,7 @@ var DEFAULT_QUERY =
 	"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
 	"PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
 	"PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
-	"PREFIX xowl: <http://xowl.org/store/rules/xowl#>\n\n" +
+	"PREFIX xowl: <http://xowl.org/infra/store/rules/xowl#>\n\n" +
 	"SELECT DISTINCT ?x ?y WHERE { GRAPH ?g { ?x a ?y } }";
 
 function init() {

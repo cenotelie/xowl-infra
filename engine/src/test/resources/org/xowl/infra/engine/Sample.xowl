@@ -1,7 +1,7 @@
 Prefix(xsd: = <http://www.w3.org/2001/XMLSchema#>)
-Prefix( : = <http://xowl.org/engine/tests/Sample#>)
+Prefix( : = <http://xowl.org/infra/engine/tests/Sample#>)
 
-Ontology( <http://xowl.org/engine/tests/Sample>
+Ontology( <http://xowl.org/infra/engine/tests/Sample>
     FunctionDefinition(:hello (fn [] "Hello World"))
 
     FunctionDefinition(:total (fn [x] (+ (sub1 x) 2)))

@@ -26,41 +26,41 @@ public interface Schema {
     /**
      * The User concept in the administration database
      */
-    String ADMIN_USER = "http://xowl.org/server/admin#User";
+    String ADMIN_USER = "http://xowl.org/infra/server/admin#User";
     /**
      * The Database concept in the administration database
      */
-    String ADMIN_DATABASE = "http://xowl.org/server/admin#Database";
+    String ADMIN_DATABASE = "http://xowl.org/infra/server/admin#Database";
     /**
      * The Name concept in the administration database
      */
-    String ADMIN_NAME = "http://xowl.org/server/admin#name";
+    String ADMIN_NAME = "http://xowl.org/infra/server/admin#name";
     /**
      * The Location concept in the administration database
      */
-    String ADMIN_LOCATION = "http://xowl.org/server/admin#location";
+    String ADMIN_LOCATION = "http://xowl.org/infra/server/admin#location";
     /**
      * The Password concept in the administration database
      */
-    String ADMIN_PASSWORD = "http://xowl.org/server/admin#password";
+    String ADMIN_PASSWORD = "http://xowl.org/infra/server/admin#password";
     /**
      * The AdminOf concept in the administration database
      */
-    String ADMIN_ADMINOF = "http://xowl.org/server/admin#adminOf";
+    String ADMIN_ADMINOF = "http://xowl.org/infra/server/admin#adminOf";
     /**
      * The CanRead concept in the administration database
      */
-    String ADMIN_CANREAD = "http://xowl.org/server/admin#canRead";
+    String ADMIN_CANREAD = "http://xowl.org/infra/server/admin#canRead";
     /**
      * The CanWrite concept in the administration database
      */
-    String ADMIN_CANWRITE = "http://xowl.org/server/admin#canWrite";
+    String ADMIN_CANWRITE = "http://xowl.org/infra/server/admin#canWrite";
     /**
      * The User graph in the administration database
      */
-    String ADMIN_GRAPH_USERS = "http://xowl.org/server/users#";
+    String ADMIN_GRAPH_USERS = "http://xowl.org/infra/server/users#";
     /**
      * The Database graph in the administration database
      */
-    String ADMIN_GRAPH_DBS = "http://xowl.org/server/db#";
+    String ADMIN_GRAPH_DBS = "http://xowl.org/infra/server/db#";
 }

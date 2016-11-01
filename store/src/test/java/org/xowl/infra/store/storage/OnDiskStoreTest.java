@@ -70,16 +70,16 @@ public class OnDiskStoreTest {
         RepositoryRDF repo = new RepositoryRDF(store);
 
         Quad quad1 = new Quad(
-                store.getIRINode("http://xowl.org/tests/g"),
-                store.getIRINode("http://xowl.org/tests/x"),
-                store.getIRINode("http://xowl.org/tests/p"),
-                store.getIRINode("http://xowl.org/tests/y1")
+                store.getIRINode("http://xowl.org/infra/tests/g"),
+                store.getIRINode("http://xowl.org/infra/tests/x"),
+                store.getIRINode("http://xowl.org/infra/tests/p"),
+                store.getIRINode("http://xowl.org/infra/tests/y1")
         );
         Quad quad2 = new Quad(
-                store.getIRINode("http://xowl.org/tests/g"),
-                store.getIRINode("http://xowl.org/tests/x"),
-                store.getIRINode("http://xowl.org/tests/p"),
-                store.getIRINode("http://xowl.org/tests/y2")
+                store.getIRINode("http://xowl.org/infra/tests/g"),
+                store.getIRINode("http://xowl.org/infra/tests/x"),
+                store.getIRINode("http://xowl.org/infra/tests/p"),
+                store.getIRINode("http://xowl.org/infra/tests/y2")
         );
 
         repo.getStore().add(quad1);

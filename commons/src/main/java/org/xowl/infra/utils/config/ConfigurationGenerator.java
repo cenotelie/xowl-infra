@@ -86,7 +86,7 @@ public class ConfigurationGenerator {
             writer.append(Files.LINE_SEPARATOR);
             writer.append("package " + pack + ";" + Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
-            writer.append("import org.xowl.utils.config.Configuration;" + Files.LINE_SEPARATOR);
+            writer.append("import org.xowl.infra.utils.config.Configuration;" + Files.LINE_SEPARATOR);
             writer.append("import java.util.ArrayList;" + Files.LINE_SEPARATOR);
             writer.append("import java.util.List;" + Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);

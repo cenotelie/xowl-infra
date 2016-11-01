@@ -42,7 +42,7 @@ public class ClojureEvaluator implements Evaluator {
     /**
      * The root namespace for the Clojure symbols
      */
-    private static final String CLJ_NAMESPACE_ROOT_NAME = "org.xowl.engine.clojure";
+    private static final String CLJ_NAMESPACE_ROOT_NAME = "org.xowl.infra.engine.clojure";
     /**
      * The root namespace for the Clojure symbols
      */

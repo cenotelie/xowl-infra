@@ -15,8 +15,8 @@ With the xOWL extension, an entity can have a new behavioral interpretation defi
 
 ```
 Prefix(xsd: = <http://www.w3.org/2001/XMLSchema#>)
-Prefix( : = <http://xowl.org/engine/tests/Sample#>)
-Ontology( <http://xowl.org/engine/tests/Sample>
+Prefix( : = <http://xowl.org/infra/engine/tests/Sample#>)
+Ontology( <http://xowl.org/infra/engine/tests/Sample>
     FunctionDefinition(:hello (fn [] "Hello World"))
     DataPropertyAssertion(:hasName :hello "A function that says hello.")
 )

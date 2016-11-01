@@ -34,10 +34,10 @@ public class BaseDatasetTest {
      */
     protected void testMultiplicityEmpty(BaseStore store) {
         Quad quad = new Quad(
-                store.getIRINode("http://xowl.org/tests/g"),
-                store.getIRINode("http://xowl.org/tests/x"),
-                store.getIRINode("http://xowl.org/tests/p"),
-                store.getIRINode("http://xowl.org/tests/y")
+                store.getIRINode("http://xowl.org/infra/tests/g"),
+                store.getIRINode("http://xowl.org/infra/tests/x"),
+                store.getIRINode("http://xowl.org/infra/tests/p"),
+                store.getIRINode("http://xowl.org/infra/tests/y")
         );
         try {
             long result = store.getMultiplicity(quad);
@@ -53,10 +53,10 @@ public class BaseDatasetTest {
      */
     protected void testMultiplicitySingle(BaseStore store) throws UnsupportedNodeType {
         Quad quad = new Quad(
-                store.getIRINode("http://xowl.org/tests/g"),
-                store.getIRINode("http://xowl.org/tests/x"),
-                store.getIRINode("http://xowl.org/tests/p"),
-                store.getIRINode("http://xowl.org/tests/y")
+                store.getIRINode("http://xowl.org/infra/tests/g"),
+                store.getIRINode("http://xowl.org/infra/tests/x"),
+                store.getIRINode("http://xowl.org/infra/tests/p"),
+                store.getIRINode("http://xowl.org/infra/tests/y")
         );
         long result = store.getMultiplicity(quad);
         store.add(quad);
@@ -69,10 +69,10 @@ public class BaseDatasetTest {
      */
     protected void testMultiplicityMore(BaseStore store) throws UnsupportedNodeType {
         Quad quad = new Quad(
-                store.getIRINode("http://xowl.org/tests/g"),
-                store.getIRINode("http://xowl.org/tests/x"),
-                store.getIRINode("http://xowl.org/tests/p"),
-                store.getIRINode("http://xowl.org/tests/y")
+                store.getIRINode("http://xowl.org/infra/tests/g"),
+                store.getIRINode("http://xowl.org/infra/tests/x"),
+                store.getIRINode("http://xowl.org/infra/tests/p"),
+                store.getIRINode("http://xowl.org/infra/tests/y")
         );
         long result = store.getMultiplicity(quad);
         store.add(quad);
@@ -87,16 +87,16 @@ public class BaseDatasetTest {
      */
     protected void testMultiplicityOther(BaseStore store) throws UnsupportedNodeType {
         Quad quad1 = new Quad(
-                store.getIRINode("http://xowl.org/tests/g"),
-                store.getIRINode("http://xowl.org/tests/x1"),
-                store.getIRINode("http://xowl.org/tests/p"),
-                store.getIRINode("http://xowl.org/tests/y1")
+                store.getIRINode("http://xowl.org/infra/tests/g"),
+                store.getIRINode("http://xowl.org/infra/tests/x1"),
+                store.getIRINode("http://xowl.org/infra/tests/p"),
+                store.getIRINode("http://xowl.org/infra/tests/y1")
         );
         Quad quad2 = new Quad(
-                store.getIRINode("http://xowl.org/tests/g"),
-                store.getIRINode("http://xowl.org/tests/x2"),
-                store.getIRINode("http://xowl.org/tests/p"),
-                store.getIRINode("http://xowl.org/tests/y2")
+                store.getIRINode("http://xowl.org/infra/tests/g"),
+                store.getIRINode("http://xowl.org/infra/tests/x2"),
+                store.getIRINode("http://xowl.org/infra/tests/p"),
+                store.getIRINode("http://xowl.org/infra/tests/y2")
         );
         store.add(quad1);
         long result = store.getMultiplicity(quad2);
@@ -118,10 +118,10 @@ public class BaseDatasetTest {
      */
     protected void testGetAllSingle(BaseStore store) throws UnsupportedNodeType {
         Quad quad1 = new Quad(
-                store.getIRINode("http://xowl.org/tests/g"),
-                store.getIRINode("http://xowl.org/tests/x1"),
-                store.getIRINode("http://xowl.org/tests/p"),
-                store.getIRINode("http://xowl.org/tests/y1")
+                store.getIRINode("http://xowl.org/infra/tests/g"),
+                store.getIRINode("http://xowl.org/infra/tests/x1"),
+                store.getIRINode("http://xowl.org/infra/tests/p"),
+                store.getIRINode("http://xowl.org/infra/tests/y1")
         );
     }
 }

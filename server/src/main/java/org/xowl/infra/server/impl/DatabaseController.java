@@ -72,7 +72,7 @@ public class DatabaseController implements Closeable {
     /**
      * The namespace IRI for rules loaded in a database
      */
-    private static final String RULES_RESOURCE = "http://xowl.org/server/rules";
+    private static final String RULES_RESOURCE = "http://xowl.org/infra/server/rules";
     /**
      * The configuration property for the maximum of concurrent threads
      */

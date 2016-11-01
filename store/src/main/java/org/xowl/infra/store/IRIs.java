@@ -47,22 +47,22 @@ public class IRIs {
     /**
      * The base IRI of the XOWL entailment rules
      */
-    public static final String XOWL_RULES = "http://xowl.org/store/rules/";
+    public static final String XOWL_RULES = "http://xowl.org/infra/store/rules/";
     /**
      * The IRI of the XOWL entailment rules
      */
-    public static final String XOWL_RULES_XOWL = "http://xowl.org/store/rules/xowl";
+    public static final String XOWL_RULES_XOWL = "http://xowl.org/infra/store/rules/xowl";
 
     /**
      * URI of the default graph
      */
-    public static final String GRAPH_DEFAULT = "http://xowl.org/store/rdfgraphs/default";
+    public static final String GRAPH_DEFAULT = "http://xowl.org/infra/store/rdfgraphs/default";
     /**
      * URI of the graph used for inferred data
      */
-    public static final String GRAPH_INFERENCE = "http://xowl.org/store/rdfgraphs/inferred";
+    public static final String GRAPH_INFERENCE = "http://xowl.org/infra/store/rdfgraphs/inferred";
     /**
      * URI of the graph used for meta-data
      */
-    public static final String GRAPH_META = "http://xowl.org/store/rdfgraphs/meta";
+    public static final String GRAPH_META = "http://xowl.org/infra/store/rdfgraphs/meta";
 }
