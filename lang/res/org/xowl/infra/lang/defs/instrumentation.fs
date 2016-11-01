@@ -1,9 +1,9 @@
 Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
-Prefix(:=<http://xowl.org/lang/instrumentation#>)
-Prefix(owl2:=<http://xowl.org/lang/owl2#>)
+Prefix(:=<http://xowl.org/infra/lang/instrumentation#>)
+Prefix(owl2:=<http://xowl.org/infra/lang/owl2#>)
 
 
-Ontology(<http://xowl.org/lang/instrumentation>
+Ontology(<http://xowl.org/infra/lang/instrumentation>
 
 Declaration(DataProperty(:file))
 FunctionalDataProperty(:file)

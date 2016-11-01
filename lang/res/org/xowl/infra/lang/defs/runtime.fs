@@ -1,8 +1,8 @@
 Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
-Prefix(:=<http://xowl.org/lang/runtime#>)
-Prefix(owl2:=<http://xowl.org/lang/owl2#>)
+Prefix(:=<http://xowl.org/infra/lang/runtime#>)
+Prefix(owl2:=<http://xowl.org/infra/lang/owl2#>)
 
-Ontology(<http://xowl.org/lang/runtime>
+Ontology(<http://xowl.org/infra/lang/runtime>
 SubClassOf(owl2:AnonymousIndividual :Individual)
 SubClassOf(owl2:AnonymousIndividual :Value)
 Declaration(Class(:AnnotationProperty))

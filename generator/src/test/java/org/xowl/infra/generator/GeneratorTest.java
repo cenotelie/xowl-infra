@@ -35,14 +35,14 @@ public class GeneratorTest {
     public void reflectiveXOWLGeneration() {
         SinkLogger logger = new SinkLogger();
         Configuration config = new Configuration();
-        config.add(null, "input", "http://xowl.org/lang/owl2");
-        config.add(null, "input", "http://xowl.org/lang/actions");
-        config.add(null, "input", "http://xowl.org/lang/rules");
-        config.add(null, "input", "http://xowl.org/lang/runtime");
-        config.add(null, "input", "http://xowl.org/lang/instrumentation");
+        config.add(null, "input", "http://xowl.org/infra/lang/owl2");
+        config.add(null, "input", "http://xowl.org/infra/lang/actions");
+        config.add(null, "input", "http://xowl.org/infra/lang/rules");
+        config.add(null, "input", "http://xowl.org/infra/lang/runtime");
+        config.add(null, "input", "http://xowl.org/infra/lang/instrumentation");
         config.add(null, "basePackage", "org.xowl.lang");
-        config.add(null, "output", "target/tests/");
-        config.add(null, "jarName", "XOWLModel");
+        config.add(null, "output", "../lang");
+        //config.add(null, "jarName", "XOWLModel");
         config.add(null, "header", "Copyright (c) 2016 Association Cénotélie (cenotelie.fr)\n" +
                 "This program is free software: you can redistribute it and/or modify\n" +
                 "it under the terms of the GNU Lesser General Public License as\n" +

@@ -1,9 +1,9 @@
 Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
-Prefix(:=<http://xowl.org/lang/actions#>)
-Prefix(owl2:=<http://xowl.org/lang/owl2#>)
+Prefix(:=<http://xowl.org/infra/lang/actions#>)
+Prefix(owl2:=<http://xowl.org/infra/lang/owl2#>)
 
 
-Ontology(<http://xowl.org/lang/actions>
+Ontology(<http://xowl.org/infra/lang/actions>
 Declaration(Class(:DynamicExpression))
 SubClassOf(:DynamicExpression owl2:EntityExpression)
 SubClassOf(:DynamicExpression owl2:LiteralExpression)

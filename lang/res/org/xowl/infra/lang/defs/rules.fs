@@ -1,8 +1,8 @@
 Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
-Prefix(:=<http://xowl.org/lang/rules#>)
-Prefix(owl2:=<http://xowl.org/lang/owl2#>)
+Prefix(:=<http://xowl.org/infra/lang/rules#>)
+Prefix(owl2:=<http://xowl.org/infra/lang/owl2#>)
 
-Ontology(<http://xowl.org/lang/rules>
+Ontology(<http://xowl.org/infra/lang/rules>
 FunctionalDataProperty(:isPositive)
 DataPropertyDomain(:isPositive :Assertion)
 DataPropertyRange(:isPositive xsd:boolean)

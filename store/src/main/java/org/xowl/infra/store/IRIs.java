@@ -43,7 +43,7 @@ public class IRIs {
     /**
      * The base IRI of the XOWL schema
      */
-    public static final String XOWL_LANG = "http://xowl.org/lang/";
+    public static final String XOWL_LANG = "http://xowl.org/infra/lang/";
     /**
      * The base IRI of the XOWL entailment rules
      */
