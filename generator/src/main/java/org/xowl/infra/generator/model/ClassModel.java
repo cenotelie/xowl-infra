@@ -219,9 +219,13 @@ public class ClassModel {
     /**
      * Gets the name of this class in Java
      *
+     * @param from The requesting entity
      * @return The name of this class in Java
      */
-    public String getJavaName() {
+    public String getJavaName(ClassModel from) {
+        if (from.parent == this.parent) {
+            return name;
+        }
         return parent.getFullName() + "." + name;
     }
 
@@ -625,7 +629,7 @@ public class ClassModel {
                 writer.append(" extends ");
             } else
                 writer.append(", ");
-            writer.append(parent.getJavaName());
+            writer.append(parent.getJavaName(this));
             first = false;
         }
         writer.append(" {").append(Files.LINE_SEPARATOR);
@@ -648,10 +652,10 @@ public class ClassModel {
         if (isAbstract())
             return;
 
-        String name = getJavaImplName();
+        String nameImpl = getJavaImplName();
         String classIRI = classe.getInterpretationOf() != null ? classe.getInterpretationOf().getHasIRI().getHasValue() : null;
 
-        Writer writer = Files.getWriter(new File(folder, name + ".java").getAbsolutePath());
+        Writer writer = Files.getWriter(new File(folder, nameImpl + ".java").getAbsolutePath());
         String[] lines = header.split(Files.LINE_SEPARATOR);
         writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
         for (String line : lines) {
@@ -663,6 +667,20 @@ public class ClassModel {
         writer.append(Files.LINE_SEPARATOR);
         writer.append("package ").append(getPackage().getModel().getBasePackage()).append(".impl;").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
+        writer.append("import ").append(getPackage().getFullName()).append(".*;").append(Files.LINE_SEPARATOR);
+        boolean hasClassClass = false;
+        boolean hasClassObject = false;
+        for (ClassModel model : parent.getClasses()) {
+            if (model.name.equals("Class"))
+                hasClassClass = true;
+            if (model.name.equals("Object"))
+                hasClassObject = true;
+        }
+        if (hasClassClass)
+            writer.append("import ").append(getPackage().getFullName()).append(".Class;").append(Files.LINE_SEPARATOR);
+        if (hasClassObject)
+            writer.append("import ").append(getPackage().getFullName()).append(".Object;").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
         writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
@@ -673,7 +691,7 @@ public class ClassModel {
         writer.append(" *").append(Files.LINE_SEPARATOR);
         writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
         writer.append(" */").append(Files.LINE_SEPARATOR);
-        writer.append("public class ").append(name).append(" implements ").append(getJavaName()).append(" {").append(Files.LINE_SEPARATOR);
+        writer.append("public class ").append(nameImpl).append(" implements ").append(getJavaName(this)).append(" {").append(Files.LINE_SEPARATOR);
 
         List<PropertyImplementation> implementations = new ArrayList<>(getPropertyImplementations());
         Collections.sort(implementations, new Comparator<PropertyImplementation>() {
@@ -696,7 +714,7 @@ public class ClassModel {
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Constructor for the implementation of ").append(getName()).append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    public ").append(name).append("() {").append(Files.LINE_SEPARATOR);
+        writer.append("    public ").append(nameImpl).append("() {").append(Files.LINE_SEPARATOR);
         for (PropertyImplementation implementation : implementations) {
             implementation.writeStandaloneConstructor(writer);
         }

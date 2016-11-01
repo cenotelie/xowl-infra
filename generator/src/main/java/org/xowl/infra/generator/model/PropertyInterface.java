@@ -218,20 +218,20 @@ public class PropertyInterface extends PropertyData {
         String name = getJavaName();
 
         writeJavadocAdd(writer, name);
-        writer.append("    boolean add").append(name).append("(").append(getJavaRangeScalar()).append(" elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    boolean add").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         writeJavadocRemove(writer, name);
-        writer.append("    boolean remove").append(name).append("(").append(getJavaRangeScalar()).append(" elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    boolean remove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain()) {
             writeJavadocGetAll(writer, name);
-            writer.append("    Collection<").append(getJavaRangeVector()).append("> getAll").append(name).append("();").append(Files.LINE_SEPARATOR);
+            writer.append("    Collection<").append(getJavaRangeVector(parentClass)).append("> getAll").append(name).append("();").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         } else {
             writeJavadocGetAllTyped(writer, name);
-            writer.append("    Collection<").append(getJavaRangeVector()).append("> getAll").append(name).append("As(").append(getJavaRangeScalar()).append(" type);").append(Files.LINE_SEPARATOR);
+            writer.append("    Collection<").append(getJavaRangeVector(parentClass)).append("> getAll").append(name).append("As(").append(getJavaRangeScalar(parentClass)).append(" type);").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         }
     }
@@ -246,16 +246,16 @@ public class PropertyInterface extends PropertyData {
         String name = getJavaName();
 
         writeJavadocSet(writer, name);
-        writer.append("    void set").append(name).append("(").append(getJavaRangeScalar()).append(" elem);").append(Files.LINE_SEPARATOR);
+        writer.append("    void set").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         if (!getProperty().isObjectProperty() || !isInTypeRestrictionChain()) {
             writeJavadocGet(writer, name);
-            writer.append("    ").append(getJavaRangeScalar()).append(" get").append(name).append("();").append(Files.LINE_SEPARATOR);
+            writer.append("    ").append(getJavaRangeScalar(parentClass)).append(" get").append(name).append("();").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         } else {
             writeJavadocGetTyped(writer, name);
-            writer.append("    ").append(getJavaRangeScalar()).append(" get").append(name).append("As(").append(getJavaRangeScalar()).append(" type);").append(Files.LINE_SEPARATOR);
+            writer.append("    ").append(getJavaRangeScalar(parentClass)).append(" get").append(name).append("As(").append(getJavaRangeScalar(parentClass)).append(" type);").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
         }
     }

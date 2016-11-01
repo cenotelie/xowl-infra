@@ -160,22 +160,24 @@ public abstract class PropertyData {
     /**
      * Gets the scalar Java representation of the property's range
      *
+     * @param from The requesting entity
      * @return The scalar Java representation of the property's range
      */
-    public String getJavaRangeScalar() {
+    public String getJavaRangeScalar(ClassModel from) {
         if (property.isObjectProperty())
-            return rangeClass.getJavaName();
+            return rangeClass.getJavaName(from);
         return rangeDatatype.getScalarType();
     }
 
     /**
      * Gets the Java representation of the property's range when in a vector
      *
+     * @param from The requesting entity
      * @return The Java representation of the property's range when in a vector
      */
-    public String getJavaRangeVector() {
+    public String getJavaRangeVector(ClassModel from) {
         if (property.isObjectProperty())
-            return rangeClass.getJavaName();
+            return rangeClass.getJavaName(from);
         return rangeDatatype.getVectorType();
     }
 

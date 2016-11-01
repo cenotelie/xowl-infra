@@ -17,8 +17,7 @@
 
 package org.xowl.infra.generator.model;
 
-import org.xowl.infra.lang.runtime.*;
-import org.xowl.infra.utils.Files;
+import org.xowl.infra.lang.runtime.NamedIndividual;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -90,41 +89,5 @@ public class InstanceModel {
      * @throws java.io.IOException When an IO error occurs
      */
     public void writeStandalone(Writer writer) throws IOException {
-        writer.append("    // <editor-fold defaultstate=\"collapsed\" desc=\"Static instance " + getName() + "\">").append(Files.LINE_SEPARATOR);
-        writer.append("    private static " + getType().getJavaName() + " " + getName() + ";").append(Files.LINE_SEPARATOR);
-        writer.append("    public static " + getType().getJavaName() + " get_" + getName() + "() {").append(Files.LINE_SEPARATOR);
-        writer.append("        if (" + getName() + " != null) return " + getName() + ";").append(Files.LINE_SEPARATOR);
-        writer.append("        " + getName() + " = new " + getType().getJavaName() + "();").append(Files.LINE_SEPARATOR);
-
-        for (PropertyAssertion assertion : getOWLIndividual().getAllAsserts()) {
-            if (assertion instanceof ObjectPropertyAssertion) {
-                ObjectPropertyAssertion objectPropertyAssertion = (ObjectPropertyAssertion) assertion;
-                PropertyImplementation propertyImplementation = getType().getPropertyImplementation(objectPropertyAssertion.getPropertyAs(null));
-                String property = propertyImplementation.getProperty().getName();
-                property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-                InstanceModel value = getType().getPackage().getModel().getModelFor((NamedIndividual) objectPropertyAssertion.getValueIndividual());
-                if (value.getType().getJavaName().equals("java.lang.Class")) {
-                    String className = getType().getPackage().getModel().getBasePackage() + ".";
-                    className += getType().getPackage().getModel().getModelFor(value.getOWLIndividual().getInterpretationOf().getContainedBy()).getName() + ".";
-                    className += value.getName();
-                    writer.append("        " + getName() + ".data" + property + ".user_add(" + className + ".class);").append(Files.LINE_SEPARATOR);
-                } else
-                    writer.append("        " + getName() + ".data" + property + ".user_add(" + value.getType().getJavaName() + ".get_" + value.getName() + "());").append(Files.LINE_SEPARATOR);
-
-            } else {
-                DataPropertyAssertion dataPropertyAssertion = (DataPropertyAssertion) assertion;
-                PropertyImplementation propertyImplementation = getType().getPropertyImplementation(dataPropertyAssertion.getPropertyAs(null));
-                String property = propertyImplementation.getProperty().getName();
-                property = String.valueOf(property.charAt(0)).toUpperCase() + property.substring(1);
-                Literal value = dataPropertyAssertion.getValueLiteral();
-                DatatypeModel datatype = propertyImplementation.getProperty().getModelFor(value.getMemberOf());
-                String data = datatype.getToValue("\"" + value.getLexicalValue() + "\"");
-                writer.append("        " + getName() + ".data" + property + ".user_add(" + data + ");").append(Files.LINE_SEPARATOR);
-            }
-        }
-
-        writer.append("        return " + getName() + ";").append(Files.LINE_SEPARATOR);
-        writer.append("    }").append(Files.LINE_SEPARATOR);
-        writer.append("    // </editor-fold>").append(Files.LINE_SEPARATOR);
     }
 }
