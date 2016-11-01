@@ -38,27 +38,27 @@ public class PackageModel {
     /**
      * The parent model
      */
-    protected Model parent;
+    protected final Model parent;
     /**
      * The ontology associated to this model
      */
-    protected Ontology ontology;
+    protected final Ontology ontology;
     /**
      * The name of this package
      */
-    protected String name;
+    protected final String name;
     /**
      * The named classes in this package
      */
-    protected java.util.Map<Class, ClassModel> classes;
+    protected final Map<Class, ClassModel> classes;
     /**
      * The anonymous classes in this package
      */
-    protected java.util.Map<Class, ClassModel> anonymousClasses;
+    protected final Map<Class, ClassModel> anonymousClasses;
     /**
      * The properties in this package
      */
-    protected java.util.Map<Property, PropertyModel> properties;
+    protected final Map<Property, PropertyModel> properties;
 
     /**
      * Gets the parent model
@@ -241,10 +241,9 @@ public class PackageModel {
      * @throws IOException When an IO error occurs
      */
     private void writeStandaloneFactory(File folder, String header) throws IOException {
-        String name = getName();
-        name = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
+        String factoryName = String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1) + "Factory";
 
-        Writer writer = Files.getWriter(new File(folder, name + "Factory.java").getAbsolutePath());
+        Writer writer = Files.getWriter(new File(folder, factoryName + ".java").getAbsolutePath());
         String[] lines = header.split(Files.LINE_SEPARATOR);
         writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
         for (String line : lines) {
@@ -266,7 +265,7 @@ public class PackageModel {
         writer.append(" *").append(Files.LINE_SEPARATOR);
         writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
         writer.append(" */").append(Files.LINE_SEPARATOR);
-        writer.append("public class ").append(name).append("Factory {").append(Files.LINE_SEPARATOR);
+        writer.append("public class ").append(factoryName).append(" {").append(Files.LINE_SEPARATOR);
 
         List<ClassModel> classes = new ArrayList<>(this.classes.values());
         Collections.sort(classes, new Comparator<ClassModel>() {
