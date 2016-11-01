@@ -20,23 +20,26 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Interpretation
+ * Represents the base interface for Interpretation
+ * Original OWL class is http://xowl.org/infra/lang/runtime#Interpretation
  *
  * @author xOWL code generator
  */
 public interface Interpretation {
     /**
      * Sets the value for the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The value to set
      */
-    void setInterpretationOf(org.xowl.infra.lang.runtime.Entity elem);
+    void setInterpretationOf(Entity elem);
 
     /**
      * Gets the value for the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @return The value for the property InterpretationOf
      */
-    org.xowl.infra.lang.runtime.Entity getInterpretationOf();
+    Entity getInterpretationOf();
 
 }

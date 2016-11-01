@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class ObjectInverseOf
+ * The default implementation for ObjectInverseOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectInverseOf
  *
  * @author xOWL code generator
  */
-public class Owl2ObjectInverseOfImpl implements org.xowl.infra.lang.owl2.ObjectInverseOf {
+public class Owl2ObjectInverseOfImpl implements ObjectInverseOf {
     /**
      * The backing data for the property Inverse
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#inverse
      */
-    private org.xowl.infra.lang.owl2.ObjectPropertyExpression __implInverse;
+    private ObjectPropertyExpression __implInverse;
 
     /**
      * Adds a value to the property Inverse
+     * Original OWL property is http://xowl.org/infra/lang/owl2#inverse
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+    protected void doSimpleAddInverse(ObjectPropertyExpression elem) {
         __implInverse = elem;
     }
 
     /**
      * Removes a value from the property Inverse
+     * Original OWL property is http://xowl.org/infra/lang/owl2#inverse
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+    protected void doSimpleRemoveInverse(ObjectPropertyExpression elem) {
         __implInverse = null;
     }
 
     /**
      * Adds a value to the property Inverse
+     * Original OWL property is http://xowl.org/infra/lang/owl2#inverse
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+    private void doPropertyAddInverse(ObjectPropertyExpression elem) {
         doSimpleAddInverse(elem);
     }
 
     /**
      * Removes a value from the property Inverse
+     * Original OWL property is http://xowl.org/infra/lang/owl2#inverse
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+    private void doPropertyRemoveInverse(ObjectPropertyExpression elem) {
         doSimpleRemoveInverse(elem);
     }
 
     /**
      * Tries to add a value to the property Inverse and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#inverse
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+    private void doGraphAddInverse(ObjectPropertyExpression elem) {
         doPropertyAddInverse(elem);
     }
 
     /**
      * Tries to remove a value from the property Inverse and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#inverse
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+    private void doGraphRemoveInverse(ObjectPropertyExpression elem) {
         doPropertyRemoveInverse(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Inverse
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#inverse
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+    private void doDispatchAddInverse(ObjectPropertyExpression elem) {
         doGraphAddInverse(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Inverse
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#inverse
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+    private void doDispatchRemoveInverse(ObjectPropertyExpression elem) {
         doGraphRemoveInverse(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.ObjectPropertyExpression getInverse() {
+    public ObjectPropertyExpression getInverse() {
         return __implInverse;
     }
 
     @Override
-    public void setInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+    public void setInverse(ObjectPropertyExpression elem) {
         if (__implInverse == elem)
             return;
         if (elem == null) {
@@ -127,6 +139,7 @@ public class Owl2ObjectInverseOfImpl implements org.xowl.infra.lang.owl2.ObjectI
      * Constructor for the implementation of ObjectInverseOf
      */
     public Owl2ObjectInverseOfImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#inverse
         this.__implInverse = null;
     }
 }

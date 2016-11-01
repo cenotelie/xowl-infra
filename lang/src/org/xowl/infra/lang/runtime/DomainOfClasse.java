@@ -15,28 +15,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lang.owl2;
+package org.xowl.infra.lang.runtime;
 
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class InverseObjectProperties_OR_ObjectInverseOf
+ * Represents the base interface for DomainOfClasse
  *
  * @author xOWL code generator
  */
-public interface InverseObjectProperties_OR_ObjectInverseOf {
+public interface DomainOfClasse {
     /**
-     * Sets the value for the property Inverse
+     * Sets the value for the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classe
      *
      * @param elem The value to set
      */
-    void setInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem);
+    void setClasse(Class elem);
 
     /**
-     * Gets the value for the property Inverse
+     * Gets the value for the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classe
      *
-     * @return The value for the property Inverse
+     * @return The value for the property Classe
      */
-    org.xowl.infra.lang.owl2.ObjectPropertyExpression getInverse();
+    Class getClasse();
 
 }

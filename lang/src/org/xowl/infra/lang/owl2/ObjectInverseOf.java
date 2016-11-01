@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectInverseOf
+ * Represents the base interface for ObjectInverseOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectInverseOf
  *
  * @author xOWL code generator
  */
-public interface ObjectInverseOf extends org.xowl.infra.lang.owl2.ObjectPropertyExpression, org.xowl.infra.lang.owl2.InverseObjectProperties_OR_ObjectInverseOf {
+public interface ObjectInverseOf extends ObjectPropertyExpression, DomainOfInverse {
 }

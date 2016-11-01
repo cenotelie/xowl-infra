@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class LiteralElement
+ * Represents the base interface for LiteralElement
+ * Original OWL class is http://xowl.org/infra/lang/owl2#LiteralElement
  *
  * @author xOWL code generator
  */
-public interface LiteralElement extends org.xowl.infra.lang.owl2.SequenceElement, org.xowl.infra.lang.owl2.DataHasValue_OR_LiteralElement {
+public interface LiteralElement extends SequenceElement, DomainOfLiteral {
 }

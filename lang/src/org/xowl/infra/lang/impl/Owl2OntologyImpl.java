@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class Ontology
+ * The default implementation for Ontology
+ * Original OWL class is http://xowl.org/infra/lang/owl2#Ontology
  *
  * @author xOWL code generator
  */
-public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
+public class Owl2OntologyImpl implements Ontology {
     /**
      * The backing data for the property Annotations
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#annotations
      */
-    private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
+    private List<Annotation> __implAnnotations;
 
     /**
      * Adds a value to the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    protected void doSimpleAddAnnotations(Annotation elem) {
         __implAnnotations.add(elem);
     }
 
     /**
      * Removes a value from the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    protected void doSimpleRemoveAnnotations(Annotation elem) {
         __implAnnotations.remove(elem);
     }
 
     /**
      * Adds a value to the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doPropertyAddAnnotations(Annotation elem) {
         doSimpleAddAnnotations(elem);
     }
 
     /**
      * Removes a value from the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doPropertyRemoveAnnotations(Annotation elem) {
         doSimpleRemoveAnnotations(elem);
     }
 
     /**
      * Tries to add a value to the property Annotations and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doGraphAddAnnotations(Annotation elem) {
         doPropertyAddAnnotations(elem);
     }
 
     /**
      * Tries to remove a value from the property Annotations and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doGraphRemoveAnnotations(Annotation elem) {
         doPropertyRemoveAnnotations(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Annotations
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doDispatchAddAnnotations(Annotation elem) {
         doGraphAddAnnotations(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Annotations
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doDispatchRemoveAnnotations(Annotation elem) {
         doGraphRemoveAnnotations(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.owl2.Annotation> getAllAnnotations() {
+    public Collection<Annotation> getAllAnnotations() {
         return Collections.unmodifiableCollection(__implAnnotations);
     }
 
     @Override
-    public boolean addAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    public boolean addAnnotations(Annotation elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implAnnotations.contains(elem))
@@ -120,7 +132,7 @@ public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
     }
 
     @Override
-    public boolean removeAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    public boolean removeAnnotations(Annotation elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implAnnotations.contains(elem))
@@ -131,11 +143,13 @@ public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
 
     /**
      * The backing data for the property Contains
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#contains
      */
     private List<org.xowl.infra.lang.runtime.Entity> __implContains;
 
     /**
      * Adds a value to the property Contains
+     * Original OWL property is http://xowl.org/infra/lang/runtime#contains
      *
      * @param elem The element value to add (must not be null)
      */
@@ -145,6 +159,7 @@ public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
 
     /**
      * Removes a value from the property Contains
+     * Original OWL property is http://xowl.org/infra/lang/runtime#contains
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -154,6 +169,7 @@ public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
 
     /**
      * Adds a value to the property Contains
+     * Original OWL property is http://xowl.org/infra/lang/runtime#contains
      * This method will also update the inverse property ContainedBy
      *
      * @param elem The element value to add (must not be null)
@@ -166,6 +182,7 @@ public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
 
     /**
      * Removes a value from the property Contains
+     * Original OWL property is http://xowl.org/infra/lang/runtime#contains
      * This method will also update the inverse property ContainedBy
      *
      * @param elem The element value to remove (must not be null)
@@ -178,6 +195,7 @@ public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
 
     /**
      * Tries to add a value to the property Contains and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#contains
      *
      * @param elem The element value to add (must not be null)
      */
@@ -187,6 +205,7 @@ public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
 
     /**
      * Tries to remove a value from the property Contains and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#contains
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -197,6 +216,7 @@ public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
     /**
      * Dispatches the request for the addition of a value to the property Contains
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#contains
      *
      * @param elem The element value to add (must not be null)
      */
@@ -207,6 +227,7 @@ public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
     /**
      * Dispatches the request for the removal of a value from the property Contains
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#contains
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -241,90 +262,99 @@ public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
 
     /**
      * The backing data for the property HasIRI
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#hasIRI
      */
-    private org.xowl.infra.lang.owl2.IRI __implHasIRI;
+    private IRI __implHasIRI;
 
     /**
      * Adds a value to the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasIRI
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddHasIRI(org.xowl.infra.lang.owl2.IRI elem) {
+    protected void doSimpleAddHasIRI(IRI elem) {
         __implHasIRI = elem;
     }
 
     /**
      * Removes a value from the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasIRI
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveHasIRI(org.xowl.infra.lang.owl2.IRI elem) {
+    protected void doSimpleRemoveHasIRI(IRI elem) {
         __implHasIRI = null;
     }
 
     /**
      * Adds a value to the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasIRI
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddHasIRI(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doPropertyAddHasIRI(IRI elem) {
         doSimpleAddHasIRI(elem);
     }
 
     /**
      * Removes a value from the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasIRI
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveHasIRI(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doPropertyRemoveHasIRI(IRI elem) {
         doSimpleRemoveHasIRI(elem);
     }
 
     /**
      * Tries to add a value to the property HasIRI and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasIRI
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddHasIRI(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doGraphAddHasIRI(IRI elem) {
         doPropertyAddHasIRI(elem);
     }
 
     /**
      * Tries to remove a value from the property HasIRI and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasIRI
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveHasIRI(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doGraphRemoveHasIRI(IRI elem) {
         doPropertyRemoveHasIRI(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property HasIRI
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasIRI
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddHasIRI(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doDispatchAddHasIRI(IRI elem) {
         doGraphAddHasIRI(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property HasIRI
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasIRI
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveHasIRI(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doDispatchRemoveHasIRI(IRI elem) {
         doGraphRemoveHasIRI(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.IRI getHasIRI() {
+    public IRI getHasIRI() {
         return __implHasIRI;
     }
 
     @Override
-    public void setHasIRI(org.xowl.infra.lang.owl2.IRI elem) {
+    public void setHasIRI(IRI elem) {
         if (__implHasIRI == elem)
             return;
         if (elem == null) {
@@ -341,8 +371,11 @@ public class Owl2OntologyImpl implements org.xowl.infra.lang.owl2.Ontology {
      * Constructor for the implementation of Ontology
      */
     public Owl2OntologyImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#annotations
         this.__implAnnotations = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/runtime#contains
         this.__implContains = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/owl2#hasIRI
         this.__implHasIRI = null;
     }
 }

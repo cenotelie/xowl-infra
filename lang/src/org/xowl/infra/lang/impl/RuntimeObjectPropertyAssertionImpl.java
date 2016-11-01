@@ -17,16 +17,21 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.lang.runtime.Class;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class ObjectPropertyAssertion
+ * The default implementation for ObjectPropertyAssertion
+ * Original OWL class is http://xowl.org/infra/lang/runtime#ObjectPropertyAssertion
  *
  * @author xOWL code generator
  */
-public class RuntimeObjectPropertyAssertionImpl implements org.xowl.infra.lang.runtime.ObjectPropertyAssertion {
+public class RuntimeObjectPropertyAssertionImpl implements ObjectPropertyAssertion {
     /**
      * The backing data for the property IsNegative
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#isNegative
      */
     private boolean __implIsNegative;
 
@@ -42,111 +47,120 @@ public class RuntimeObjectPropertyAssertionImpl implements org.xowl.infra.lang.r
 
     /**
      * The backing data for the property Property
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#property
      */
-    private org.xowl.infra.lang.runtime.ObjectProperty __implProperty;
+    private ObjectProperty __implProperty;
 
     /**
      * Adds a value to the property Property
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddProperty(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleAddProperty(ObjectProperty elem) {
         __implProperty = elem;
     }
 
     /**
      * Removes a value from the property Property
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveProperty(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleRemoveProperty(ObjectProperty elem) {
         __implProperty = null;
     }
 
     /**
      * Adds a value to the property Property
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddProperty(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyAddProperty(ObjectProperty elem) {
         doSimpleAddProperty(elem);
     }
 
     /**
      * Removes a value from the property Property
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveProperty(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyRemoveProperty(ObjectProperty elem) {
         doSimpleRemoveProperty(elem);
     }
 
     /**
      * Tries to add a value to the property Property and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddProperty(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphAddProperty(ObjectProperty elem) {
         doPropertyAddProperty(elem);
     }
 
     /**
      * Tries to remove a value from the property Property and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveProperty(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphRemoveProperty(ObjectProperty elem) {
         doPropertyRemoveProperty(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Property
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddProperty(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchAddProperty(ObjectProperty elem) {
         doGraphAddProperty(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Property
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveProperty(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchRemoveProperty(ObjectProperty elem) {
         doGraphRemoveProperty(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Property getPropertyAs(org.xowl.infra.lang.runtime.Property type) {
+    public Property getPropertyAs(Property type) {
         return __implProperty;
     }
 
     @Override
-    public void setProperty(org.xowl.infra.lang.runtime.Property elem) {
+    public void setProperty(Property elem) {
         if (__implProperty == elem)
             return;
         if (elem == null) {
             doDispatchRemoveProperty(__implProperty);
         } else if (__implProperty == null) {
-            doDispatchAddProperty((org.xowl.infra.lang.runtime.ObjectProperty) elem);
+            doDispatchAddProperty((ObjectProperty) elem);
         } else {
-            if (!(elem instanceof org.xowl.infra.lang.runtime.ObjectProperty))
-                throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.ObjectProperty");
+            if (!(elem instanceof ObjectProperty))
+                throw new IllegalArgumentException("Expected type ObjectProperty");
             doDispatchRemoveProperty(__implProperty);
-            doDispatchAddProperty((org.xowl.infra.lang.runtime.ObjectProperty) elem);
+            doDispatchAddProperty((ObjectProperty) elem);
         }
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.ObjectProperty getPropertyAs(org.xowl.infra.lang.runtime.ObjectProperty type) {
+    public ObjectProperty getPropertyAs(ObjectProperty type) {
         return __implProperty;
     }
 
     @Override
-    public void setProperty(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public void setProperty(ObjectProperty elem) {
         if (__implProperty == elem)
             return;
         if (elem == null) {
@@ -161,90 +175,99 @@ public class RuntimeObjectPropertyAssertionImpl implements org.xowl.infra.lang.r
 
     /**
      * The backing data for the property ValueIndividual
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#valueIndividual
      */
-    private org.xowl.infra.lang.runtime.Individual __implValueIndividual;
+    private Individual __implValueIndividual;
 
     /**
      * Adds a value to the property ValueIndividual
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueIndividual
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddValueIndividual(org.xowl.infra.lang.runtime.Individual elem) {
+    protected void doSimpleAddValueIndividual(Individual elem) {
         __implValueIndividual = elem;
     }
 
     /**
      * Removes a value from the property ValueIndividual
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueIndividual
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveValueIndividual(org.xowl.infra.lang.runtime.Individual elem) {
+    protected void doSimpleRemoveValueIndividual(Individual elem) {
         __implValueIndividual = null;
     }
 
     /**
      * Adds a value to the property ValueIndividual
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueIndividual
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddValueIndividual(org.xowl.infra.lang.runtime.Individual elem) {
+    private void doPropertyAddValueIndividual(Individual elem) {
         doSimpleAddValueIndividual(elem);
     }
 
     /**
      * Removes a value from the property ValueIndividual
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueIndividual
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveValueIndividual(org.xowl.infra.lang.runtime.Individual elem) {
+    private void doPropertyRemoveValueIndividual(Individual elem) {
         doSimpleRemoveValueIndividual(elem);
     }
 
     /**
      * Tries to add a value to the property ValueIndividual and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueIndividual
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddValueIndividual(org.xowl.infra.lang.runtime.Individual elem) {
+    private void doGraphAddValueIndividual(Individual elem) {
         doPropertyAddValueIndividual(elem);
     }
 
     /**
      * Tries to remove a value from the property ValueIndividual and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueIndividual
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveValueIndividual(org.xowl.infra.lang.runtime.Individual elem) {
+    private void doGraphRemoveValueIndividual(Individual elem) {
         doPropertyRemoveValueIndividual(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property ValueIndividual
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueIndividual
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddValueIndividual(org.xowl.infra.lang.runtime.Individual elem) {
+    private void doDispatchAddValueIndividual(Individual elem) {
         doGraphAddValueIndividual(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property ValueIndividual
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueIndividual
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveValueIndividual(org.xowl.infra.lang.runtime.Individual elem) {
+    private void doDispatchRemoveValueIndividual(Individual elem) {
         doGraphRemoveValueIndividual(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Individual getValueIndividual() {
+    public Individual getValueIndividual() {
         return __implValueIndividual;
     }
 
     @Override
-    public void setValueIndividual(org.xowl.infra.lang.runtime.Individual elem) {
+    public void setValueIndividual(Individual elem) {
         if (__implValueIndividual == elem)
             return;
         if (elem == null) {
@@ -261,8 +284,11 @@ public class RuntimeObjectPropertyAssertionImpl implements org.xowl.infra.lang.r
      * Constructor for the implementation of ObjectPropertyAssertion
      */
     public RuntimeObjectPropertyAssertionImpl() {
+        // initialize property http://xowl.org/infra/lang/runtime#isNegative
         this.__implIsNegative = false;
+        // initialize property http://xowl.org/infra/lang/runtime#property
         this.__implProperty = null;
+        // initialize property http://xowl.org/infra/lang/runtime#valueIndividual
         this.__implValueIndividual = null;
     }
 }

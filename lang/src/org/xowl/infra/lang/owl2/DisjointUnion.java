@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DisjointUnion
+ * Represents the base interface for DisjointUnion
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DisjointUnion
  *
  * @author xOWL code generator
  */
-public interface DisjointUnion extends org.xowl.infra.lang.owl2.ClassAxiom, org.xowl.infra.lang.owl2.DisjointClasses_OR_DisjointUnion_OR_EquivalentClasses_OR_ObjectIntersectionOf_OR_ObjectUnionOf, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
+public interface DisjointUnion extends ClassAxiom, DomainOfClassSeq, DomainOfClasse {
 }

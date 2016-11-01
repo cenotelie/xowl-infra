@@ -20,23 +20,9 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectAllValuesFrom_OR_ObjectCardinalityRestriction_OR_ObjectSomeValuesFrom
+ * Represents the base interface for RangeOfRange
  *
  * @author xOWL code generator
  */
-public interface ObjectAllValuesFrom_OR_ObjectCardinalityRestriction_OR_ObjectSomeValuesFrom {
-    /**
-     * Sets the value for the property Classe
-     *
-     * @param elem The value to set
-     */
-    void setClasse(org.xowl.infra.lang.runtime.Class elem);
-
-    /**
-     * Gets the value for the property Classe
-     *
-     * @return The value for the property Classe
-     */
-    org.xowl.infra.lang.runtime.Class getClasse();
-
+public interface RangeOfRange {
 }

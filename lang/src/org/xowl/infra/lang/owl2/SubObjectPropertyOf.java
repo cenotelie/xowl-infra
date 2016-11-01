@@ -20,37 +20,42 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class SubObjectPropertyOf
+ * Represents the base interface for SubObjectPropertyOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#SubObjectPropertyOf
  *
  * @author xOWL code generator
  */
-public interface SubObjectPropertyOf extends org.xowl.infra.lang.owl2.ObjectPropertyAxiom, org.xowl.infra.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO4 {
+public interface SubObjectPropertyOf extends ObjectPropertyAxiom, DomainOfObjectProperty {
     /**
      * Sets the value for the property ObjectPropertyChain
+     * Original OWL property is http://xowl.org/infra/lang/owl2#objectPropertyChain
      *
      * @param elem The value to set
      */
-    void setObjectPropertyChain(org.xowl.infra.lang.owl2.ObjectPropertySequenceExpression elem);
+    void setObjectPropertyChain(ObjectPropertySequenceExpression elem);
 
     /**
      * Gets the value for the property ObjectPropertyChain
+     * Original OWL property is http://xowl.org/infra/lang/owl2#objectPropertyChain
      *
      * @return The value for the property ObjectPropertyChain
      */
-    org.xowl.infra.lang.owl2.ObjectPropertySequenceExpression getObjectPropertyChain();
+    ObjectPropertySequenceExpression getObjectPropertyChain();
 
     /**
      * Sets the value for the property SuperObjectProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#superObjectProperty
      *
      * @param elem The value to set
      */
-    void setSuperObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem);
+    void setSuperObjectProperty(ObjectPropertyExpression elem);
 
     /**
      * Gets the value for the property SuperObjectProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#superObjectProperty
      *
      * @return The value for the property SuperObjectProperty
      */
-    org.xowl.infra.lang.owl2.ObjectPropertyExpression getSuperObjectProperty();
+    ObjectPropertyExpression getSuperObjectProperty();
 
 }

@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataCardinalityRestriction
+ * Represents the base interface for DataCardinalityRestriction
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataCardinalityRestriction
  *
  * @author xOWL code generator
  */
-public interface DataCardinalityRestriction extends org.xowl.infra.lang.owl2.CardinalityRestriction, org.xowl.infra.lang.owl2.DataPropertyRestriction, org.xowl.infra.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype2 {
+public interface DataCardinalityRestriction extends CardinalityRestriction, DataPropertyRestriction, DomainOfDatarange {
 }

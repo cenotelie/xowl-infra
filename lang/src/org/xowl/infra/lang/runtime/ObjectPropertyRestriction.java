@@ -20,23 +20,26 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectPropertyRestriction
+ * Represents the base interface for ObjectPropertyRestriction
+ * Original OWL class is http://xowl.org/infra/lang/runtime#ObjectPropertyRestriction
  *
  * @author xOWL code generator
  */
-public interface ObjectPropertyRestriction extends org.xowl.infra.lang.runtime.ClassRestriction {
+public interface ObjectPropertyRestriction extends ClassRestriction {
     /**
      * Sets the value for the property ObjectProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#objectProperty
      *
      * @param elem The value to set
      */
-    void setObjectProperty(org.xowl.infra.lang.runtime.ObjectProperty elem);
+    void setObjectProperty(ObjectProperty elem);
 
     /**
      * Gets the value for the property ObjectProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#objectProperty
      *
      * @return The value for the property ObjectProperty
      */
-    org.xowl.infra.lang.runtime.ObjectProperty getObjectProperty();
+    ObjectProperty getObjectProperty();
 
 }

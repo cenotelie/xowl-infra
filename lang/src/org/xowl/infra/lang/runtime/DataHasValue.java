@@ -20,23 +20,26 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataHasValue
+ * Represents the base interface for DataHasValue
+ * Original OWL class is http://xowl.org/infra/lang/runtime#DataHasValue
  *
  * @author xOWL code generator
  */
-public interface DataHasValue extends org.xowl.infra.lang.runtime.DataPropertyRestriction {
+public interface DataHasValue extends DataPropertyRestriction {
     /**
      * Sets the value for the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/runtime#literal
      *
      * @param elem The value to set
      */
-    void setLiteral(org.xowl.infra.lang.runtime.Literal elem);
+    void setLiteral(Literal elem);
 
     /**
      * Gets the value for the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/runtime#literal
      *
      * @return The value for the property Literal
      */
-    org.xowl.infra.lang.runtime.Literal getLiteral();
+    Literal getLiteral();
 
 }

@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectHasValue
+ * Represents the base interface for ObjectHasValue
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectHasValue
  *
  * @author xOWL code generator
  */
-public interface ObjectHasValue extends org.xowl.infra.lang.owl2.ObjectPropertyRestriction, org.xowl.infra.lang.owl2.ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne1 {
+public interface ObjectHasValue extends ObjectPropertyRestriction, DomainOfIndividual {
 }

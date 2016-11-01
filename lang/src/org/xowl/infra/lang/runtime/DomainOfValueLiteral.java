@@ -20,23 +20,25 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataCardinalityRestriction_OR_NAryDataPropertyRestriction
+ * Represents the base interface for DomainOfValueLiteral
  *
  * @author xOWL code generator
  */
-public interface DataCardinalityRestriction_OR_NAryDataPropertyRestriction {
+public interface DomainOfValueLiteral {
     /**
-     * Sets the value for the property Datatype
+     * Sets the value for the property ValueLiteral
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueLiteral
      *
      * @param elem The value to set
      */
-    void setDatatype(org.xowl.infra.lang.runtime.Datatype elem);
+    void setValueLiteral(Literal elem);
 
     /**
-     * Gets the value for the property Datatype
+     * Gets the value for the property ValueLiteral
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueLiteral
      *
-     * @return The value for the property Datatype
+     * @return The value for the property ValueLiteral
      */
-    org.xowl.infra.lang.runtime.Datatype getDatatype();
+    Literal getValueLiteral();
 
 }

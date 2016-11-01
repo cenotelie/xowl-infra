@@ -20,9 +20,10 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class NamedIndividual
+ * Represents the base interface for NamedIndividual
+ * Original OWL class is http://xowl.org/infra/lang/runtime#NamedIndividual
  *
  * @author xOWL code generator
  */
-public interface NamedIndividual extends org.xowl.infra.lang.runtime.Individual, org.xowl.infra.lang.runtime.Interpretation {
+public interface NamedIndividual extends Individual, Interpretation {
 }

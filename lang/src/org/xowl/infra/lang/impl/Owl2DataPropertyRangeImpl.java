@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class DataPropertyRange
+ * The default implementation for DataPropertyRange
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataPropertyRange
  *
  * @author xOWL code generator
  */
-public class Owl2DataPropertyRangeImpl implements org.xowl.infra.lang.owl2.DataPropertyRange {
+public class Owl2DataPropertyRangeImpl implements DataPropertyRange {
     /**
      * The backing data for the property Annotations
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#annotations
      */
-    private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
+    private List<Annotation> __implAnnotations;
 
     /**
      * Adds a value to the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    protected void doSimpleAddAnnotations(Annotation elem) {
         __implAnnotations.add(elem);
     }
 
     /**
      * Removes a value from the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    protected void doSimpleRemoveAnnotations(Annotation elem) {
         __implAnnotations.remove(elem);
     }
 
     /**
      * Adds a value to the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doPropertyAddAnnotations(Annotation elem) {
         doSimpleAddAnnotations(elem);
     }
 
     /**
      * Removes a value from the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doPropertyRemoveAnnotations(Annotation elem) {
         doSimpleRemoveAnnotations(elem);
     }
 
     /**
      * Tries to add a value to the property Annotations and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doGraphAddAnnotations(Annotation elem) {
         doPropertyAddAnnotations(elem);
     }
 
     /**
      * Tries to remove a value from the property Annotations and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doGraphRemoveAnnotations(Annotation elem) {
         doPropertyRemoveAnnotations(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Annotations
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doDispatchAddAnnotations(Annotation elem) {
         doGraphAddAnnotations(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Annotations
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doDispatchRemoveAnnotations(Annotation elem) {
         doGraphRemoveAnnotations(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.owl2.Annotation> getAllAnnotations() {
+    public Collection<Annotation> getAllAnnotations() {
         return Collections.unmodifiableCollection(__implAnnotations);
     }
 
     @Override
-    public boolean addAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    public boolean addAnnotations(Annotation elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implAnnotations.contains(elem))
@@ -120,7 +132,7 @@ public class Owl2DataPropertyRangeImpl implements org.xowl.infra.lang.owl2.DataP
     }
 
     @Override
-    public boolean removeAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    public boolean removeAnnotations(Annotation elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implAnnotations.contains(elem))
@@ -131,90 +143,99 @@ public class Owl2DataPropertyRangeImpl implements org.xowl.infra.lang.owl2.DataP
 
     /**
      * The backing data for the property DataProperty
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#dataProperty
      */
-    private org.xowl.infra.lang.owl2.DataPropertyExpression __implDataProperty;
+    private DataPropertyExpression __implDataProperty;
 
     /**
      * Adds a value to the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    protected void doSimpleAddDataProperty(DataPropertyExpression elem) {
         __implDataProperty = elem;
     }
 
     /**
      * Removes a value from the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    protected void doSimpleRemoveDataProperty(DataPropertyExpression elem) {
         __implDataProperty = null;
     }
 
     /**
      * Adds a value to the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doPropertyAddDataProperty(DataPropertyExpression elem) {
         doSimpleAddDataProperty(elem);
     }
 
     /**
      * Removes a value from the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doPropertyRemoveDataProperty(DataPropertyExpression elem) {
         doSimpleRemoveDataProperty(elem);
     }
 
     /**
      * Tries to add a value to the property DataProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doGraphAddDataProperty(DataPropertyExpression elem) {
         doPropertyAddDataProperty(elem);
     }
 
     /**
      * Tries to remove a value from the property DataProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doGraphRemoveDataProperty(DataPropertyExpression elem) {
         doPropertyRemoveDataProperty(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property DataProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doDispatchAddDataProperty(DataPropertyExpression elem) {
         doGraphAddDataProperty(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property DataProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doDispatchRemoveDataProperty(DataPropertyExpression elem) {
         doGraphRemoveDataProperty(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.DataPropertyExpression getDataProperty() {
+    public DataPropertyExpression getDataProperty() {
         return __implDataProperty;
     }
 
     @Override
-    public void setDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    public void setDataProperty(DataPropertyExpression elem) {
         if (__implDataProperty == elem)
             return;
         if (elem == null) {
@@ -229,90 +250,99 @@ public class Owl2DataPropertyRangeImpl implements org.xowl.infra.lang.owl2.DataP
 
     /**
      * The backing data for the property Datarange
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#datarange
      */
-    private org.xowl.infra.lang.owl2.Datarange __implDatarange;
+    private Datarange __implDatarange;
 
     /**
      * Adds a value to the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    protected void doSimpleAddDatarange(Datarange elem) {
         __implDatarange = elem;
     }
 
     /**
      * Removes a value from the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    protected void doSimpleRemoveDatarange(Datarange elem) {
         __implDatarange = null;
     }
 
     /**
      * Adds a value to the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doPropertyAddDatarange(Datarange elem) {
         doSimpleAddDatarange(elem);
     }
 
     /**
      * Removes a value from the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doPropertyRemoveDatarange(Datarange elem) {
         doSimpleRemoveDatarange(elem);
     }
 
     /**
      * Tries to add a value to the property Datarange and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doGraphAddDatarange(Datarange elem) {
         doPropertyAddDatarange(elem);
     }
 
     /**
      * Tries to remove a value from the property Datarange and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doGraphRemoveDatarange(Datarange elem) {
         doPropertyRemoveDatarange(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Datarange
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doDispatchAddDatarange(Datarange elem) {
         doGraphAddDatarange(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Datarange
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doDispatchRemoveDatarange(Datarange elem) {
         doGraphRemoveDatarange(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.Datarange getDatarange() {
+    public Datarange getDatarange() {
         return __implDatarange;
     }
 
     @Override
-    public void setDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    public void setDatarange(Datarange elem) {
         if (__implDatarange == elem)
             return;
         if (elem == null) {
@@ -327,6 +357,7 @@ public class Owl2DataPropertyRangeImpl implements org.xowl.infra.lang.owl2.DataP
 
     /**
      * The backing data for the property File
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/instrumentation#file
      */
     private String __implFile;
 
@@ -342,6 +373,7 @@ public class Owl2DataPropertyRangeImpl implements org.xowl.infra.lang.owl2.DataP
 
     /**
      * The backing data for the property Line
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/instrumentation#line
      */
     private int __implLine;
 
@@ -359,10 +391,15 @@ public class Owl2DataPropertyRangeImpl implements org.xowl.infra.lang.owl2.DataP
      * Constructor for the implementation of DataPropertyRange
      */
     public Owl2DataPropertyRangeImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#annotations
         this.__implAnnotations = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/owl2#dataProperty
         this.__implDataProperty = null;
+        // initialize property http://xowl.org/infra/lang/owl2#datarange
         this.__implDatarange = null;
+        // initialize property http://xowl.org/infra/lang/instrumentation#file
         this.__implFile = null;
+        // initialize property http://xowl.org/infra/lang/instrumentation#line
         this.__implLine = 0;
     }
 }

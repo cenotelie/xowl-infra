@@ -20,13 +20,15 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DatatypeRestriction
+ * Represents the base interface for DatatypeRestriction
+ * Original OWL class is http://xowl.org/infra/lang/runtime#DatatypeRestriction
  *
  * @author xOWL code generator
  */
-public interface DatatypeRestriction extends org.xowl.infra.lang.runtime.DataPropertyAssertion_OR_DatatypeRestriction {
+public interface DatatypeRestriction extends DomainOfValueLiteral {
     /**
      * Sets the value for the property Facet
+     * Original OWL property is http://xowl.org/infra/lang/runtime#facet
      *
      * @param elem The value to set
      */
@@ -34,6 +36,7 @@ public interface DatatypeRestriction extends org.xowl.infra.lang.runtime.DataPro
 
     /**
      * Gets the value for the property Facet
+     * Original OWL property is http://xowl.org/infra/lang/runtime#facet
      *
      * @return The value for the property Facet
      */

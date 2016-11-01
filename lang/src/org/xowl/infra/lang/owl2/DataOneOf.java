@@ -20,23 +20,26 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataOneOf
+ * Represents the base interface for DataOneOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataOneOf
  *
  * @author xOWL code generator
  */
-public interface DataOneOf extends org.xowl.infra.lang.owl2.Datarange {
+public interface DataOneOf extends Datarange {
     /**
      * Sets the value for the property LiteralSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalSeq
      *
      * @param elem The value to set
      */
-    void setLiteralSeq(org.xowl.infra.lang.owl2.LiteralSequenceExpression elem);
+    void setLiteralSeq(LiteralSequenceExpression elem);
 
     /**
      * Gets the value for the property LiteralSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalSeq
      *
      * @return The value for the property LiteralSeq
      */
-    org.xowl.infra.lang.owl2.LiteralSequenceExpression getLiteralSeq();
+    LiteralSequenceExpression getLiteralSeq();
 
 }

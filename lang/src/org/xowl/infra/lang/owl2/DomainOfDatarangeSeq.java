@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DisjointObjectProperties_OR_EquivalentObjectProperties_OR_HasKey
+ * Represents the base interface for DomainOfDatarangeSeq
  *
  * @author xOWL code generator
  */
-public interface DisjointObjectProperties_OR_EquivalentObjectProperties_OR_HasKey {
+public interface DomainOfDatarangeSeq {
     /**
-     * Sets the value for the property ObjectPropertySeq
+     * Sets the value for the property DatarangeSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeSeq
      *
      * @param elem The value to set
      */
-    void setObjectPropertySeq(org.xowl.infra.lang.owl2.ObjectPropertySequenceExpression elem);
+    void setDatarangeSeq(DatarangeSequenceExpression elem);
 
     /**
-     * Gets the value for the property ObjectPropertySeq
+     * Gets the value for the property DatarangeSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeSeq
      *
-     * @return The value for the property ObjectPropertySeq
+     * @return The value for the property DatarangeSeq
      */
-    org.xowl.infra.lang.owl2.ObjectPropertySequenceExpression getObjectPropertySeq();
+    DatarangeSequenceExpression getDatarangeSeq();
 
 }

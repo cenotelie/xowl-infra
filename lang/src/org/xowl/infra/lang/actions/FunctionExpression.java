@@ -20,7 +20,8 @@ package org.xowl.infra.lang.actions;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class FunctionExpression
+ * Represents the base interface for FunctionExpression
+ * Original OWL class is http://xowl.org/infra/lang/actions#FunctionExpression
  *
  * @author xOWL code generator
  */

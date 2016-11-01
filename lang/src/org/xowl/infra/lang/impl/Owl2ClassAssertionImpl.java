@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class ClassAssertion
+ * The default implementation for ClassAssertion
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ClassAssertion
  *
  * @author xOWL code generator
  */
-public class Owl2ClassAssertionImpl implements org.xowl.infra.lang.owl2.ClassAssertion {
+public class Owl2ClassAssertionImpl implements ClassAssertion {
     /**
      * The backing data for the property Annotations
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#annotations
      */
-    private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
+    private List<Annotation> __implAnnotations;
 
     /**
      * Adds a value to the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    protected void doSimpleAddAnnotations(Annotation elem) {
         __implAnnotations.add(elem);
     }
 
     /**
      * Removes a value from the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    protected void doSimpleRemoveAnnotations(Annotation elem) {
         __implAnnotations.remove(elem);
     }
 
     /**
      * Adds a value to the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doPropertyAddAnnotations(Annotation elem) {
         doSimpleAddAnnotations(elem);
     }
 
     /**
      * Removes a value from the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doPropertyRemoveAnnotations(Annotation elem) {
         doSimpleRemoveAnnotations(elem);
     }
 
     /**
      * Tries to add a value to the property Annotations and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doGraphAddAnnotations(Annotation elem) {
         doPropertyAddAnnotations(elem);
     }
 
     /**
      * Tries to remove a value from the property Annotations and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doGraphRemoveAnnotations(Annotation elem) {
         doPropertyRemoveAnnotations(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Annotations
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doDispatchAddAnnotations(Annotation elem) {
         doGraphAddAnnotations(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Annotations
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    private void doDispatchRemoveAnnotations(Annotation elem) {
         doGraphRemoveAnnotations(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.owl2.Annotation> getAllAnnotations() {
+    public Collection<Annotation> getAllAnnotations() {
         return Collections.unmodifiableCollection(__implAnnotations);
     }
 
     @Override
-    public boolean addAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    public boolean addAnnotations(Annotation elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implAnnotations.contains(elem))
@@ -120,7 +132,7 @@ public class Owl2ClassAssertionImpl implements org.xowl.infra.lang.owl2.ClassAss
     }
 
     @Override
-    public boolean removeAnnotations(org.xowl.infra.lang.owl2.Annotation elem) {
+    public boolean removeAnnotations(Annotation elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implAnnotations.contains(elem))
@@ -131,90 +143,99 @@ public class Owl2ClassAssertionImpl implements org.xowl.infra.lang.owl2.ClassAss
 
     /**
      * The backing data for the property Classe
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#classe
      */
-    private org.xowl.infra.lang.owl2.ClassExpression __implClasse;
+    private ClassExpression __implClasse;
 
     /**
      * Adds a value to the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    protected void doSimpleAddClasse(ClassExpression elem) {
         __implClasse = elem;
     }
 
     /**
      * Removes a value from the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    protected void doSimpleRemoveClasse(ClassExpression elem) {
         __implClasse = null;
     }
 
     /**
      * Adds a value to the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doPropertyAddClasse(ClassExpression elem) {
         doSimpleAddClasse(elem);
     }
 
     /**
      * Removes a value from the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doPropertyRemoveClasse(ClassExpression elem) {
         doSimpleRemoveClasse(elem);
     }
 
     /**
      * Tries to add a value to the property Classe and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doGraphAddClasse(ClassExpression elem) {
         doPropertyAddClasse(elem);
     }
 
     /**
      * Tries to remove a value from the property Classe and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doGraphRemoveClasse(ClassExpression elem) {
         doPropertyRemoveClasse(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Classe
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doDispatchAddClasse(ClassExpression elem) {
         doGraphAddClasse(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Classe
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doDispatchRemoveClasse(ClassExpression elem) {
         doGraphRemoveClasse(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.ClassExpression getClasse() {
+    public ClassExpression getClasse() {
         return __implClasse;
     }
 
     @Override
-    public void setClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    public void setClasse(ClassExpression elem) {
         if (__implClasse == elem)
             return;
         if (elem == null) {
@@ -229,6 +250,7 @@ public class Owl2ClassAssertionImpl implements org.xowl.infra.lang.owl2.ClassAss
 
     /**
      * The backing data for the property File
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/instrumentation#file
      */
     private String __implFile;
 
@@ -244,90 +266,99 @@ public class Owl2ClassAssertionImpl implements org.xowl.infra.lang.owl2.ClassAss
 
     /**
      * The backing data for the property Individual
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#individual
      */
-    private org.xowl.infra.lang.owl2.IndividualExpression __implIndividual;
+    private IndividualExpression __implIndividual;
 
     /**
      * Adds a value to the property Individual
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individual
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+    protected void doSimpleAddIndividual(IndividualExpression elem) {
         __implIndividual = elem;
     }
 
     /**
      * Removes a value from the property Individual
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individual
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+    protected void doSimpleRemoveIndividual(IndividualExpression elem) {
         __implIndividual = null;
     }
 
     /**
      * Adds a value to the property Individual
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individual
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+    private void doPropertyAddIndividual(IndividualExpression elem) {
         doSimpleAddIndividual(elem);
     }
 
     /**
      * Removes a value from the property Individual
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individual
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+    private void doPropertyRemoveIndividual(IndividualExpression elem) {
         doSimpleRemoveIndividual(elem);
     }
 
     /**
      * Tries to add a value to the property Individual and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individual
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+    private void doGraphAddIndividual(IndividualExpression elem) {
         doPropertyAddIndividual(elem);
     }
 
     /**
      * Tries to remove a value from the property Individual and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individual
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+    private void doGraphRemoveIndividual(IndividualExpression elem) {
         doPropertyRemoveIndividual(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Individual
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individual
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+    private void doDispatchAddIndividual(IndividualExpression elem) {
         doGraphAddIndividual(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Individual
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individual
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+    private void doDispatchRemoveIndividual(IndividualExpression elem) {
         doGraphRemoveIndividual(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.IndividualExpression getIndividual() {
+    public IndividualExpression getIndividual() {
         return __implIndividual;
     }
 
     @Override
-    public void setIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+    public void setIndividual(IndividualExpression elem) {
         if (__implIndividual == elem)
             return;
         if (elem == null) {
@@ -342,6 +373,7 @@ public class Owl2ClassAssertionImpl implements org.xowl.infra.lang.owl2.ClassAss
 
     /**
      * The backing data for the property Line
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/instrumentation#line
      */
     private int __implLine;
 
@@ -359,10 +391,15 @@ public class Owl2ClassAssertionImpl implements org.xowl.infra.lang.owl2.ClassAss
      * Constructor for the implementation of ClassAssertion
      */
     public Owl2ClassAssertionImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#annotations
         this.__implAnnotations = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/owl2#classe
         this.__implClasse = null;
+        // initialize property http://xowl.org/infra/lang/instrumentation#file
         this.__implFile = null;
+        // initialize property http://xowl.org/infra/lang/owl2#individual
         this.__implIndividual = null;
+        // initialize property http://xowl.org/infra/lang/instrumentation#line
         this.__implLine = 0;
     }
 }

@@ -20,23 +20,26 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class SubClassOf
+ * Represents the base interface for SubClassOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#SubClassOf
  *
  * @author xOWL code generator
  */
-public interface SubClassOf extends org.xowl.infra.lang.owl2.ClassAxiom, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
+public interface SubClassOf extends ClassAxiom, DomainOfClasse {
     /**
      * Sets the value for the property SuperClass
+     * Original OWL property is http://xowl.org/infra/lang/owl2#superClass
      *
      * @param elem The value to set
      */
-    void setSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem);
+    void setSuperClass(ClassExpression elem);
 
     /**
      * Gets the value for the property SuperClass
+     * Original OWL property is http://xowl.org/infra/lang/owl2#superClass
      *
      * @return The value for the property SuperClass
      */
-    org.xowl.infra.lang.owl2.ClassExpression getSuperClass();
+    ClassExpression getSuperClass();
 
 }

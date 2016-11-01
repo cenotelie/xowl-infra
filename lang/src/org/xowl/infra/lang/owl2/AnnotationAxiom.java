@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class AnnotationAxiom
+ * Represents the base interface for AnnotationAxiom
+ * Original OWL class is http://xowl.org/infra/lang/owl2#AnnotationAxiom
  *
  * @author xOWL code generator
  */
-public interface AnnotationAxiom extends org.xowl.infra.lang.owl2.Axiom {
+public interface AnnotationAxiom extends Axiom {
 }

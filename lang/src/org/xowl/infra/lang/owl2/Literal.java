@@ -20,13 +20,15 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Literal
+ * Represents the base interface for Literal
+ * Original OWL class is http://xowl.org/infra/lang/owl2#Literal
  *
  * @author xOWL code generator
  */
-public interface Literal extends org.xowl.infra.lang.owl2.AnnotationValue, org.xowl.infra.lang.owl2.LiteralExpression {
+public interface Literal extends AnnotationValue, LiteralExpression {
     /**
      * Sets the value for the property LangTag
+     * Original OWL property is http://xowl.org/infra/lang/owl2#langTag
      *
      * @param elem The value to set
      */
@@ -34,6 +36,7 @@ public interface Literal extends org.xowl.infra.lang.owl2.AnnotationValue, org.x
 
     /**
      * Gets the value for the property LangTag
+     * Original OWL property is http://xowl.org/infra/lang/owl2#langTag
      *
      * @return The value for the property LangTag
      */
@@ -41,6 +44,7 @@ public interface Literal extends org.xowl.infra.lang.owl2.AnnotationValue, org.x
 
     /**
      * Sets the value for the property LexicalValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#lexicalValue
      *
      * @param elem The value to set
      */
@@ -48,6 +52,7 @@ public interface Literal extends org.xowl.infra.lang.owl2.AnnotationValue, org.x
 
     /**
      * Gets the value for the property LexicalValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#lexicalValue
      *
      * @return The value for the property LexicalValue
      */
@@ -55,16 +60,18 @@ public interface Literal extends org.xowl.infra.lang.owl2.AnnotationValue, org.x
 
     /**
      * Sets the value for the property MemberOf
+     * Original OWL property is http://xowl.org/infra/lang/owl2#memberOf
      *
      * @param elem The value to set
      */
-    void setMemberOf(org.xowl.infra.lang.owl2.IRI elem);
+    void setMemberOf(IRI elem);
 
     /**
      * Gets the value for the property MemberOf
+     * Original OWL property is http://xowl.org/infra/lang/owl2#memberOf
      *
      * @return The value for the property MemberOf
      */
-    org.xowl.infra.lang.owl2.IRI getMemberOf();
+    IRI getMemberOf();
 
 }

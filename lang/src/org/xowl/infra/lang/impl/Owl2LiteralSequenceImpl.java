@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class LiteralSequence
+ * The default implementation for LiteralSequence
+ * Original OWL class is http://xowl.org/infra/lang/owl2#LiteralSequence
  *
  * @author xOWL code generator
  */
-public class Owl2LiteralSequenceImpl implements org.xowl.infra.lang.owl2.LiteralSequence {
+public class Owl2LiteralSequenceImpl implements LiteralSequence {
     /**
      * The backing data for the property LiteralElements
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#literalElements
      */
-    private List<org.xowl.infra.lang.owl2.LiteralElement> __implLiteralElements;
+    private List<LiteralElement> __implLiteralElements;
 
     /**
      * Adds a value to the property LiteralElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalElements
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem) {
+    protected void doSimpleAddLiteralElements(LiteralElement elem) {
         __implLiteralElements.add(elem);
     }
 
     /**
      * Removes a value from the property LiteralElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem) {
+    protected void doSimpleRemoveLiteralElements(LiteralElement elem) {
         __implLiteralElements.remove(elem);
     }
 
     /**
      * Adds a value to the property LiteralElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem) {
+    private void doPropertyAddLiteralElements(LiteralElement elem) {
         doSimpleAddLiteralElements(elem);
     }
 
     /**
      * Removes a value from the property LiteralElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem) {
+    private void doPropertyRemoveLiteralElements(LiteralElement elem) {
         doSimpleRemoveLiteralElements(elem);
     }
 
     /**
      * Tries to add a value to the property LiteralElements and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem) {
+    private void doGraphAddLiteralElements(LiteralElement elem) {
         doPropertyAddLiteralElements(elem);
     }
 
     /**
      * Tries to remove a value from the property LiteralElements and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem) {
+    private void doGraphRemoveLiteralElements(LiteralElement elem) {
         doPropertyRemoveLiteralElements(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property LiteralElements
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem) {
+    private void doDispatchAddLiteralElements(LiteralElement elem) {
         doGraphAddLiteralElements(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property LiteralElements
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem) {
+    private void doDispatchRemoveLiteralElements(LiteralElement elem) {
         doGraphRemoveLiteralElements(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.owl2.LiteralElement> getAllLiteralElements() {
+    public Collection<LiteralElement> getAllLiteralElements() {
         return Collections.unmodifiableCollection(__implLiteralElements);
     }
 
     @Override
-    public boolean addLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem) {
+    public boolean addLiteralElements(LiteralElement elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implLiteralElements.contains(elem))
@@ -120,7 +132,7 @@ public class Owl2LiteralSequenceImpl implements org.xowl.infra.lang.owl2.Literal
     }
 
     @Override
-    public boolean removeLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem) {
+    public boolean removeLiteralElements(LiteralElement elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implLiteralElements.contains(elem))
@@ -133,6 +145,7 @@ public class Owl2LiteralSequenceImpl implements org.xowl.infra.lang.owl2.Literal
      * Constructor for the implementation of LiteralSequence
      */
     public Owl2LiteralSequenceImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#literalElements
         this.__implLiteralElements = new ArrayList<>();
     }
 }

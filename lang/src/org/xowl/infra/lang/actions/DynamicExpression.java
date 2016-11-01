@@ -20,7 +20,8 @@ package org.xowl.infra.lang.actions;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DynamicExpression
+ * Represents the base interface for DynamicExpression
+ * Original OWL class is http://xowl.org/infra/lang/actions#DynamicExpression
  *
  * @author xOWL code generator
  */

@@ -17,21 +17,26 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.actions.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class FunctionDefinitionAxiom
+ * The default implementation for FunctionDefinitionAxiom
+ * Original OWL class is http://xowl.org/infra/lang/actions#FunctionDefinitionAxiom
  *
  * @author xOWL code generator
  */
-public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.actions.FunctionDefinitionAxiom {
+public class ActionsFunctionDefinitionAxiomImpl implements FunctionDefinitionAxiom {
     /**
      * The backing data for the property Annotations
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#annotations
      */
     private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
 
     /**
      * Adds a value to the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
@@ -41,6 +46,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
 
     /**
      * Removes a value from the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -50,6 +56,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
 
     /**
      * Adds a value to the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
@@ -59,6 +66,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
 
     /**
      * Removes a value from the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -68,6 +76,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
 
     /**
      * Tries to add a value to the property Annotations and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
@@ -77,6 +86,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
 
     /**
      * Tries to remove a value from the property Annotations and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -87,6 +97,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
     /**
      * Dispatches the request for the addition of a value to the property Annotations
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to add (must not be null)
      */
@@ -97,6 +108,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
     /**
      * Dispatches the request for the removal of a value from the property Annotations
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -131,90 +143,99 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
 
     /**
      * The backing data for the property Definition
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/actions#definition
      */
-    private Object __implDefinition;
+    private java.lang.Object __implDefinition;
 
     /**
      * Adds a value to the property Definition
+     * Original OWL property is http://xowl.org/infra/lang/actions#definition
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDefinition(Object elem) {
+    protected void doSimpleAddDefinition(java.lang.Object elem) {
         __implDefinition = elem;
     }
 
     /**
      * Removes a value from the property Definition
+     * Original OWL property is http://xowl.org/infra/lang/actions#definition
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDefinition(Object elem) {
+    protected void doSimpleRemoveDefinition(java.lang.Object elem) {
         __implDefinition = null;
     }
 
     /**
      * Adds a value to the property Definition
+     * Original OWL property is http://xowl.org/infra/lang/actions#definition
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDefinition(Object elem) {
+    private void doPropertyAddDefinition(java.lang.Object elem) {
         doSimpleAddDefinition(elem);
     }
 
     /**
      * Removes a value from the property Definition
+     * Original OWL property is http://xowl.org/infra/lang/actions#definition
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDefinition(Object elem) {
+    private void doPropertyRemoveDefinition(java.lang.Object elem) {
         doSimpleRemoveDefinition(elem);
     }
 
     /**
      * Tries to add a value to the property Definition and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/actions#definition
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDefinition(Object elem) {
+    private void doGraphAddDefinition(java.lang.Object elem) {
         doPropertyAddDefinition(elem);
     }
 
     /**
      * Tries to remove a value from the property Definition and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/actions#definition
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDefinition(Object elem) {
+    private void doGraphRemoveDefinition(java.lang.Object elem) {
         doPropertyRemoveDefinition(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Definition
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/actions#definition
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDefinition(Object elem) {
+    private void doDispatchAddDefinition(java.lang.Object elem) {
         doGraphAddDefinition(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Definition
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/actions#definition
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDefinition(Object elem) {
+    private void doDispatchRemoveDefinition(java.lang.Object elem) {
         doGraphRemoveDefinition(elem);
     }
 
     @Override
-    public Object getDefinition() {
+    public java.lang.Object getDefinition() {
         return __implDefinition;
     }
 
     @Override
-    public void setDefinition(Object elem) {
+    public void setDefinition(java.lang.Object elem) {
         if (__implDefinition == elem)
             return;
         if (elem == null) {
@@ -229,6 +250,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
 
     /**
      * The backing data for the property File
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/instrumentation#file
      */
     private String __implFile;
 
@@ -244,90 +266,99 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
 
     /**
      * The backing data for the property Function
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/actions#function
      */
-    private org.xowl.infra.lang.actions.FunctionExpression __implFunction;
+    private FunctionExpression __implFunction;
 
     /**
      * Adds a value to the property Function
+     * Original OWL property is http://xowl.org/infra/lang/actions#function
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddFunction(org.xowl.infra.lang.actions.FunctionExpression elem) {
+    protected void doSimpleAddFunction(FunctionExpression elem) {
         __implFunction = elem;
     }
 
     /**
      * Removes a value from the property Function
+     * Original OWL property is http://xowl.org/infra/lang/actions#function
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveFunction(org.xowl.infra.lang.actions.FunctionExpression elem) {
+    protected void doSimpleRemoveFunction(FunctionExpression elem) {
         __implFunction = null;
     }
 
     /**
      * Adds a value to the property Function
+     * Original OWL property is http://xowl.org/infra/lang/actions#function
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddFunction(org.xowl.infra.lang.actions.FunctionExpression elem) {
+    private void doPropertyAddFunction(FunctionExpression elem) {
         doSimpleAddFunction(elem);
     }
 
     /**
      * Removes a value from the property Function
+     * Original OWL property is http://xowl.org/infra/lang/actions#function
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveFunction(org.xowl.infra.lang.actions.FunctionExpression elem) {
+    private void doPropertyRemoveFunction(FunctionExpression elem) {
         doSimpleRemoveFunction(elem);
     }
 
     /**
      * Tries to add a value to the property Function and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/actions#function
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddFunction(org.xowl.infra.lang.actions.FunctionExpression elem) {
+    private void doGraphAddFunction(FunctionExpression elem) {
         doPropertyAddFunction(elem);
     }
 
     /**
      * Tries to remove a value from the property Function and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/actions#function
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveFunction(org.xowl.infra.lang.actions.FunctionExpression elem) {
+    private void doGraphRemoveFunction(FunctionExpression elem) {
         doPropertyRemoveFunction(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Function
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/actions#function
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddFunction(org.xowl.infra.lang.actions.FunctionExpression elem) {
+    private void doDispatchAddFunction(FunctionExpression elem) {
         doGraphAddFunction(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Function
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/actions#function
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveFunction(org.xowl.infra.lang.actions.FunctionExpression elem) {
+    private void doDispatchRemoveFunction(FunctionExpression elem) {
         doGraphRemoveFunction(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.actions.FunctionExpression getFunction() {
+    public FunctionExpression getFunction() {
         return __implFunction;
     }
 
     @Override
-    public void setFunction(org.xowl.infra.lang.actions.FunctionExpression elem) {
+    public void setFunction(FunctionExpression elem) {
         if (__implFunction == elem)
             return;
         if (elem == null) {
@@ -342,6 +373,7 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
 
     /**
      * The backing data for the property Line
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/instrumentation#line
      */
     private int __implLine;
 
@@ -359,10 +391,15 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
      * Constructor for the implementation of FunctionDefinitionAxiom
      */
     public ActionsFunctionDefinitionAxiomImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#annotations
         this.__implAnnotations = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/actions#definition
         this.__implDefinition = null;
+        // initialize property http://xowl.org/infra/lang/instrumentation#file
         this.__implFile = null;
+        // initialize property http://xowl.org/infra/lang/actions#function
         this.__implFunction = null;
+        // initialize property http://xowl.org/infra/lang/instrumentation#line
         this.__implLine = 0;
     }
 }

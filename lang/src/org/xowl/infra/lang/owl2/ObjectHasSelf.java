@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectHasSelf
+ * Represents the base interface for ObjectHasSelf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectHasSelf
  *
  * @author xOWL code generator
  */
-public interface ObjectHasSelf extends org.xowl.infra.lang.owl2.ObjectPropertyRestriction {
+public interface ObjectHasSelf extends ObjectPropertyRestriction {
 }

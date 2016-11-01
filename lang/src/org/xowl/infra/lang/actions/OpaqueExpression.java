@@ -20,23 +20,26 @@ package org.xowl.infra.lang.actions;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class OpaqueExpression
+ * Represents the base interface for OpaqueExpression
+ * Original OWL class is http://xowl.org/infra/lang/actions#OpaqueExpression
  *
  * @author xOWL code generator
  */
-public interface OpaqueExpression extends org.xowl.infra.lang.actions.DynamicExpression {
+public interface OpaqueExpression extends DynamicExpression {
     /**
      * Sets the value for the property Value
+     * Original OWL property is http://xowl.org/infra/lang/actions#value
      *
      * @param elem The value to set
      */
-    void setValue(Object elem);
+    void setValue(java.lang.Object elem);
 
     /**
      * Gets the value for the property Value
+     * Original OWL property is http://xowl.org/infra/lang/actions#value
      *
      * @return The value for the property Value
      */
-    Object getValue();
+    java.lang.Object getValue();
 
 }

@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class NegativeObjectPropertyAssertion
+ * Represents the base interface for NegativeObjectPropertyAssertion
+ * Original OWL class is http://xowl.org/infra/lang/owl2#NegativeObjectPropertyAssertion
  *
  * @author xOWL code generator
  */
-public interface NegativeObjectPropertyAssertion extends org.xowl.infra.lang.owl2.IndividualAxiom, org.xowl.infra.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO4, org.xowl.infra.lang.owl2.ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne1, org.xowl.infra.lang.owl2.NegativeObjectPropertyAssertion_OR_ObjectPropertyAssertion {
+public interface NegativeObjectPropertyAssertion extends IndividualAxiom, DomainOfObjectProperty, DomainOfIndividual, DomainOfValueIndividual {
 }

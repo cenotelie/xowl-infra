@@ -20,13 +20,15 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class IRI
+ * Represents the base interface for IRI
+ * Original OWL class is http://xowl.org/infra/lang/owl2#IRI
  *
  * @author xOWL code generator
  */
-public interface IRI extends org.xowl.infra.lang.owl2.AnnotationSubject, org.xowl.infra.lang.owl2.AnnotationValue, org.xowl.infra.lang.owl2.EntityExpression {
+public interface IRI extends AnnotationSubject, AnnotationValue, EntityExpression {
     /**
      * Sets the value for the property HasValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasValue
      *
      * @param elem The value to set
      */
@@ -34,6 +36,7 @@ public interface IRI extends org.xowl.infra.lang.owl2.AnnotationSubject, org.xow
 
     /**
      * Gets the value for the property HasValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasValue
      *
      * @return The value for the property HasValue
      */

@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ReflexiveObjectProperty
+ * Represents the base interface for ReflexiveObjectProperty
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ReflexiveObjectProperty
  *
  * @author xOWL code generator
  */
-public interface ReflexiveObjectProperty extends org.xowl.infra.lang.owl2.ObjectPropertyAxiom, org.xowl.infra.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO4 {
+public interface ReflexiveObjectProperty extends ObjectPropertyAxiom, DomainOfObjectProperty {
 }

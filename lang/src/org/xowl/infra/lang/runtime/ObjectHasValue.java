@@ -20,23 +20,26 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectHasValue
+ * Represents the base interface for ObjectHasValue
+ * Original OWL class is http://xowl.org/infra/lang/runtime#ObjectHasValue
  *
  * @author xOWL code generator
  */
-public interface ObjectHasValue extends org.xowl.infra.lang.runtime.ObjectPropertyRestriction {
+public interface ObjectHasValue extends ObjectPropertyRestriction {
     /**
      * Sets the value for the property Individual
+     * Original OWL property is http://xowl.org/infra/lang/runtime#individual
      *
      * @param elem The value to set
      */
-    void setIndividual(org.xowl.infra.lang.runtime.Individual elem);
+    void setIndividual(Individual elem);
 
     /**
      * Gets the value for the property Individual
+     * Original OWL property is http://xowl.org/infra/lang/runtime#individual
      *
      * @return The value for the property Individual
      */
-    org.xowl.infra.lang.runtime.Individual getIndividual();
+    Individual getIndividual();
 
 }

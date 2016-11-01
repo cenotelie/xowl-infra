@@ -20,32 +20,36 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DatarangeSequence
+ * Represents the base interface for DatarangeSequence
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DatarangeSequence
  *
  * @author xOWL code generator
  */
-public interface DatarangeSequence extends org.xowl.infra.lang.owl2.DatarangeSequenceExpression {
+public interface DatarangeSequence extends DatarangeSequenceExpression {
     /**
      * Adds an element to the property DatarangeElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeElements
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem);
+    boolean addDatarangeElements(DatarangeElement elem);
 
     /**
      * Removes an element from the property DatarangeElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeElements
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem);
+    boolean removeDatarangeElements(DatarangeElement elem);
 
     /**
      * Gets all the elements for the property DatarangeElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeElements
      *
      * @return The elements for the property DatarangeElements
      */
-    Collection<org.xowl.infra.lang.owl2.DatarangeElement> getAllDatarangeElements();
+    Collection<DatarangeElement> getAllDatarangeElements();
 
 }

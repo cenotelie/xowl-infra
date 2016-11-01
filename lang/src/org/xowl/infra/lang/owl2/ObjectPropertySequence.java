@@ -20,32 +20,36 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectPropertySequence
+ * Represents the base interface for ObjectPropertySequence
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectPropertySequence
  *
  * @author xOWL code generator
  */
-public interface ObjectPropertySequence extends org.xowl.infra.lang.owl2.ObjectPropertySequenceExpression {
+public interface ObjectPropertySequence extends ObjectPropertySequenceExpression {
     /**
      * Adds an element to the property ObjectPropertyElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#objectPropertyElements
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addObjectPropertyElements(org.xowl.infra.lang.owl2.ObjectPropertyElement elem);
+    boolean addObjectPropertyElements(ObjectPropertyElement elem);
 
     /**
      * Removes an element from the property ObjectPropertyElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#objectPropertyElements
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeObjectPropertyElements(org.xowl.infra.lang.owl2.ObjectPropertyElement elem);
+    boolean removeObjectPropertyElements(ObjectPropertyElement elem);
 
     /**
      * Gets all the elements for the property ObjectPropertyElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#objectPropertyElements
      *
      * @return The elements for the property ObjectPropertyElements
      */
-    Collection<org.xowl.infra.lang.owl2.ObjectPropertyElement> getAllObjectPropertyElements();
+    Collection<ObjectPropertyElement> getAllObjectPropertyElements();
 
 }

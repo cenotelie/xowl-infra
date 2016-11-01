@@ -20,23 +20,26 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class SubAnnotationPropertyOf
+ * Represents the base interface for SubAnnotationPropertyOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#SubAnnotationPropertyOf
  *
  * @author xOWL code generator
  */
-public interface SubAnnotationPropertyOf extends org.xowl.infra.lang.owl2.AnnotationAxiom, org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno0 {
+public interface SubAnnotationPropertyOf extends AnnotationAxiom, DomainOfAnnotProperty {
     /**
      * Sets the value for the property SuperAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#superAnnotProperty
      *
      * @param elem The value to set
      */
-    void setSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem);
+    void setSuperAnnotProperty(IRI elem);
 
     /**
      * Gets the value for the property SuperAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#superAnnotProperty
      *
      * @return The value for the property SuperAnnotProperty
      */
-    org.xowl.infra.lang.owl2.IRI getSuperAnnotProperty();
+    IRI getSuperAnnotProperty();
 
 }

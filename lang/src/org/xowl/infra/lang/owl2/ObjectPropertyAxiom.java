@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectPropertyAxiom
+ * Represents the base interface for ObjectPropertyAxiom
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectPropertyAxiom
  *
  * @author xOWL code generator
  */
-public interface ObjectPropertyAxiom extends org.xowl.infra.lang.owl2.Axiom {
+public interface ObjectPropertyAxiom extends Axiom {
 }

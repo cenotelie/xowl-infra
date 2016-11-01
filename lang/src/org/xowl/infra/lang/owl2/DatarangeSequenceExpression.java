@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DatarangeSequenceExpression
+ * Represents the base interface for DatarangeSequenceExpression
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DatarangeSequenceExpression
  *
  * @author xOWL code generator
  */
-public interface DatarangeSequenceExpression extends org.xowl.infra.lang.owl2.SequenceExpression {
+public interface DatarangeSequenceExpression extends SequenceExpression {
 }

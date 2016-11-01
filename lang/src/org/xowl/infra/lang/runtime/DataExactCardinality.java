@@ -20,9 +20,10 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataExactCardinality
+ * Represents the base interface for DataExactCardinality
+ * Original OWL class is http://xowl.org/infra/lang/runtime#DataExactCardinality
  *
  * @author xOWL code generator
  */
-public interface DataExactCardinality extends org.xowl.infra.lang.runtime.DataCardinalityRestriction {
+public interface DataExactCardinality extends DataCardinalityRestriction {
 }

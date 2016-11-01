@@ -20,23 +20,35 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DisjointDataProperties_OR_EquivalentDataProperties_OR_HasKey_OR_NAryDataPropertyRestriction
+ * Represents the base interface for DomainOfAnnotations
  *
  * @author xOWL code generator
  */
-public interface DisjointDataProperties_OR_EquivalentDataProperties_OR_HasKey_OR_NAryDataPropertyRestriction {
+public interface DomainOfAnnotations {
     /**
-     * Sets the value for the property DataPropertySeq
+     * Adds an element to the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
-     * @param elem The value to set
+     * @param elem The element to add
+     * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    void setDataPropertySeq(org.xowl.infra.lang.owl2.DataPropertySequenceExpression elem);
+    boolean addAnnotations(Annotation elem);
 
     /**
-     * Gets the value for the property DataPropertySeq
+     * Removes an element from the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
      *
-     * @return The value for the property DataPropertySeq
+     * @param elem The element to remove
+     * @return Whether the operation resulted in the element being removed
      */
-    org.xowl.infra.lang.owl2.DataPropertySequenceExpression getDataPropertySeq();
+    boolean removeAnnotations(Annotation elem);
+
+    /**
+     * Gets all the elements for the property Annotations
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotations
+     *
+     * @return The elements for the property Annotations
+     */
+    Collection<Annotation> getAllAnnotations();
 
 }

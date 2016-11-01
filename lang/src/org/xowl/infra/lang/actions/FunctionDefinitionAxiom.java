@@ -20,37 +20,42 @@ package org.xowl.infra.lang.actions;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class FunctionDefinitionAxiom
+ * Represents the base interface for FunctionDefinitionAxiom
+ * Original OWL class is http://xowl.org/infra/lang/actions#FunctionDefinitionAxiom
  *
  * @author xOWL code generator
  */
 public interface FunctionDefinitionAxiom extends org.xowl.infra.lang.owl2.Axiom {
     /**
      * Sets the value for the property Definition
+     * Original OWL property is http://xowl.org/infra/lang/actions#definition
      *
      * @param elem The value to set
      */
-    void setDefinition(Object elem);
+    void setDefinition(java.lang.Object elem);
 
     /**
      * Gets the value for the property Definition
+     * Original OWL property is http://xowl.org/infra/lang/actions#definition
      *
      * @return The value for the property Definition
      */
-    Object getDefinition();
+    java.lang.Object getDefinition();
 
     /**
      * Sets the value for the property Function
+     * Original OWL property is http://xowl.org/infra/lang/actions#function
      *
      * @param elem The value to set
      */
-    void setFunction(org.xowl.infra.lang.actions.FunctionExpression elem);
+    void setFunction(FunctionExpression elem);
 
     /**
      * Gets the value for the property Function
+     * Original OWL property is http://xowl.org/infra/lang/actions#function
      *
      * @return The value for the property Function
      */
-    org.xowl.infra.lang.actions.FunctionExpression getFunction();
+    FunctionExpression getFunction();
 
 }

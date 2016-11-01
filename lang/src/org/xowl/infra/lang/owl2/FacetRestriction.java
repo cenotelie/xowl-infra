@@ -20,37 +20,42 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class FacetRestriction
+ * Represents the base interface for FacetRestriction
+ * Original OWL class is http://xowl.org/infra/lang/owl2#FacetRestriction
  *
  * @author xOWL code generator
  */
 public interface FacetRestriction {
     /**
      * Sets the value for the property ConstrainingFacet
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingFacet
      *
      * @param elem The value to set
      */
-    void setConstrainingFacet(org.xowl.infra.lang.owl2.IRI elem);
+    void setConstrainingFacet(IRI elem);
 
     /**
      * Gets the value for the property ConstrainingFacet
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingFacet
      *
      * @return The value for the property ConstrainingFacet
      */
-    org.xowl.infra.lang.owl2.IRI getConstrainingFacet();
+    IRI getConstrainingFacet();
 
     /**
      * Sets the value for the property ConstrainingValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingValue
      *
      * @param elem The value to set
      */
-    void setConstrainingValue(org.xowl.infra.lang.owl2.Literal elem);
+    void setConstrainingValue(Literal elem);
 
     /**
      * Gets the value for the property ConstrainingValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingValue
      *
      * @return The value for the property ConstrainingValue
      */
-    org.xowl.infra.lang.owl2.Literal getConstrainingValue();
+    Literal getConstrainingValue();
 
 }

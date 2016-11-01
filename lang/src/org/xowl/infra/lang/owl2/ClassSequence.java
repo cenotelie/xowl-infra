@@ -20,32 +20,36 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ClassSequence
+ * Represents the base interface for ClassSequence
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ClassSequence
  *
  * @author xOWL code generator
  */
-public interface ClassSequence extends org.xowl.infra.lang.owl2.ClassSequenceExpression {
+public interface ClassSequence extends ClassSequenceExpression {
     /**
      * Adds an element to the property ClassElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classElements
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addClassElements(org.xowl.infra.lang.owl2.ClassElement elem);
+    boolean addClassElements(ClassElement elem);
 
     /**
      * Removes an element from the property ClassElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classElements
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeClassElements(org.xowl.infra.lang.owl2.ClassElement elem);
+    boolean removeClassElements(ClassElement elem);
 
     /**
      * Gets all the elements for the property ClassElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classElements
      *
      * @return The elements for the property ClassElements
      */
-    Collection<org.xowl.infra.lang.owl2.ClassElement> getAllClassElements();
+    Collection<ClassElement> getAllClassElements();
 
 }

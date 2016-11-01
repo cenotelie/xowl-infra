@@ -20,27 +20,31 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Declaration
+ * Represents the base interface for Declaration
+ * Original OWL class is http://xowl.org/infra/lang/owl2#Declaration
  *
  * @author xOWL code generator
  */
-public interface Declaration extends org.xowl.infra.lang.owl2.OntologyAxiom {
+public interface Declaration extends OntologyAxiom {
     /**
      * Sets the value for the property Entity
+     * Original OWL property is http://xowl.org/infra/lang/owl2#entity
      *
      * @param elem The value to set
      */
-    void setEntity(org.xowl.infra.lang.owl2.IRI elem);
+    void setEntity(IRI elem);
 
     /**
      * Gets the value for the property Entity
+     * Original OWL property is http://xowl.org/infra/lang/owl2#entity
      *
      * @return The value for the property Entity
      */
-    org.xowl.infra.lang.owl2.IRI getEntity();
+    IRI getEntity();
 
     /**
      * Sets the value for the property Type
+     * Original OWL property is http://xowl.org/infra/lang/owl2#type
      *
      * @param elem The value to set
      */
@@ -48,6 +52,7 @@ public interface Declaration extends org.xowl.infra.lang.owl2.OntologyAxiom {
 
     /**
      * Gets the value for the property Type
+     * Original OWL property is http://xowl.org/infra/lang/owl2#type
      *
      * @return The value for the property Type
      */

@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataPropertyRestriction
+ * Represents the base interface for DataPropertyRestriction
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataPropertyRestriction
  *
  * @author xOWL code generator
  */
-public interface DataPropertyRestriction extends org.xowl.infra.lang.owl2.ClassRestriction, org.xowl.infra.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5 {
+public interface DataPropertyRestriction extends ClassRestriction, DomainOfDataProperty {
 }

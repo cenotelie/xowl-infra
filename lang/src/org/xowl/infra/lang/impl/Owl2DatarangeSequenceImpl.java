@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class DatarangeSequence
+ * The default implementation for DatarangeSequence
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DatarangeSequence
  *
  * @author xOWL code generator
  */
-public class Owl2DatarangeSequenceImpl implements org.xowl.infra.lang.owl2.DatarangeSequence {
+public class Owl2DatarangeSequenceImpl implements DatarangeSequence {
     /**
      * The backing data for the property DatarangeElements
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#datarangeElements
      */
-    private List<org.xowl.infra.lang.owl2.DatarangeElement> __implDatarangeElements;
+    private List<DatarangeElement> __implDatarangeElements;
 
     /**
      * Adds a value to the property DatarangeElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeElements
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem) {
+    protected void doSimpleAddDatarangeElements(DatarangeElement elem) {
         __implDatarangeElements.add(elem);
     }
 
     /**
      * Removes a value from the property DatarangeElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem) {
+    protected void doSimpleRemoveDatarangeElements(DatarangeElement elem) {
         __implDatarangeElements.remove(elem);
     }
 
     /**
      * Adds a value to the property DatarangeElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem) {
+    private void doPropertyAddDatarangeElements(DatarangeElement elem) {
         doSimpleAddDatarangeElements(elem);
     }
 
     /**
      * Removes a value from the property DatarangeElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem) {
+    private void doPropertyRemoveDatarangeElements(DatarangeElement elem) {
         doSimpleRemoveDatarangeElements(elem);
     }
 
     /**
      * Tries to add a value to the property DatarangeElements and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem) {
+    private void doGraphAddDatarangeElements(DatarangeElement elem) {
         doPropertyAddDatarangeElements(elem);
     }
 
     /**
      * Tries to remove a value from the property DatarangeElements and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem) {
+    private void doGraphRemoveDatarangeElements(DatarangeElement elem) {
         doPropertyRemoveDatarangeElements(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property DatarangeElements
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem) {
+    private void doDispatchAddDatarangeElements(DatarangeElement elem) {
         doGraphAddDatarangeElements(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property DatarangeElements
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarangeElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem) {
+    private void doDispatchRemoveDatarangeElements(DatarangeElement elem) {
         doGraphRemoveDatarangeElements(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.owl2.DatarangeElement> getAllDatarangeElements() {
+    public Collection<DatarangeElement> getAllDatarangeElements() {
         return Collections.unmodifiableCollection(__implDatarangeElements);
     }
 
     @Override
-    public boolean addDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem) {
+    public boolean addDatarangeElements(DatarangeElement elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implDatarangeElements.contains(elem))
@@ -120,7 +132,7 @@ public class Owl2DatarangeSequenceImpl implements org.xowl.infra.lang.owl2.Datar
     }
 
     @Override
-    public boolean removeDatarangeElements(org.xowl.infra.lang.owl2.DatarangeElement elem) {
+    public boolean removeDatarangeElements(DatarangeElement elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implDatarangeElements.contains(elem))
@@ -133,6 +145,7 @@ public class Owl2DatarangeSequenceImpl implements org.xowl.infra.lang.owl2.Datar
      * Constructor for the implementation of DatarangeSequence
      */
     public Owl2DatarangeSequenceImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#datarangeElements
         this.__implDatarangeElements = new ArrayList<>();
     }
 }

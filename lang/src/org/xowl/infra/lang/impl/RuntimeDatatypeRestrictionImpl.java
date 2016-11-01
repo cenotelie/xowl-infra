@@ -17,21 +17,27 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.lang.runtime.Class;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class DatatypeRestriction
+ * The default implementation for DatatypeRestriction
+ * Original OWL class is http://xowl.org/infra/lang/runtime#DatatypeRestriction
  *
  * @author xOWL code generator
  */
-public class RuntimeDatatypeRestrictionImpl implements org.xowl.infra.lang.runtime.DatatypeRestriction {
+public class RuntimeDatatypeRestrictionImpl implements DatatypeRestriction {
     /**
      * The backing data for the property Facet
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#facet
      */
     private org.xowl.infra.lang.owl2.IRI __implFacet;
 
     /**
      * Adds a value to the property Facet
+     * Original OWL property is http://xowl.org/infra/lang/runtime#facet
      *
      * @param elem The element value to add (must not be null)
      */
@@ -41,6 +47,7 @@ public class RuntimeDatatypeRestrictionImpl implements org.xowl.infra.lang.runti
 
     /**
      * Removes a value from the property Facet
+     * Original OWL property is http://xowl.org/infra/lang/runtime#facet
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -50,6 +57,7 @@ public class RuntimeDatatypeRestrictionImpl implements org.xowl.infra.lang.runti
 
     /**
      * Adds a value to the property Facet
+     * Original OWL property is http://xowl.org/infra/lang/runtime#facet
      *
      * @param elem The element value to add (must not be null)
      */
@@ -59,6 +67,7 @@ public class RuntimeDatatypeRestrictionImpl implements org.xowl.infra.lang.runti
 
     /**
      * Removes a value from the property Facet
+     * Original OWL property is http://xowl.org/infra/lang/runtime#facet
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -68,6 +77,7 @@ public class RuntimeDatatypeRestrictionImpl implements org.xowl.infra.lang.runti
 
     /**
      * Tries to add a value to the property Facet and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#facet
      *
      * @param elem The element value to add (must not be null)
      */
@@ -77,6 +87,7 @@ public class RuntimeDatatypeRestrictionImpl implements org.xowl.infra.lang.runti
 
     /**
      * Tries to remove a value from the property Facet and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#facet
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -87,6 +98,7 @@ public class RuntimeDatatypeRestrictionImpl implements org.xowl.infra.lang.runti
     /**
      * Dispatches the request for the addition of a value to the property Facet
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#facet
      *
      * @param elem The element value to add (must not be null)
      */
@@ -97,6 +109,7 @@ public class RuntimeDatatypeRestrictionImpl implements org.xowl.infra.lang.runti
     /**
      * Dispatches the request for the removal of a value from the property Facet
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#facet
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -125,90 +138,99 @@ public class RuntimeDatatypeRestrictionImpl implements org.xowl.infra.lang.runti
 
     /**
      * The backing data for the property ValueLiteral
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#valueLiteral
      */
-    private org.xowl.infra.lang.runtime.Literal __implValueLiteral;
+    private Literal __implValueLiteral;
 
     /**
      * Adds a value to the property ValueLiteral
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueLiteral
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddValueLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    protected void doSimpleAddValueLiteral(Literal elem) {
         __implValueLiteral = elem;
     }
 
     /**
      * Removes a value from the property ValueLiteral
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueLiteral
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveValueLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    protected void doSimpleRemoveValueLiteral(Literal elem) {
         __implValueLiteral = null;
     }
 
     /**
      * Adds a value to the property ValueLiteral
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueLiteral
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddValueLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doPropertyAddValueLiteral(Literal elem) {
         doSimpleAddValueLiteral(elem);
     }
 
     /**
      * Removes a value from the property ValueLiteral
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueLiteral
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveValueLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doPropertyRemoveValueLiteral(Literal elem) {
         doSimpleRemoveValueLiteral(elem);
     }
 
     /**
      * Tries to add a value to the property ValueLiteral and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueLiteral
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddValueLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doGraphAddValueLiteral(Literal elem) {
         doPropertyAddValueLiteral(elem);
     }
 
     /**
      * Tries to remove a value from the property ValueLiteral and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueLiteral
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveValueLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doGraphRemoveValueLiteral(Literal elem) {
         doPropertyRemoveValueLiteral(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property ValueLiteral
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueLiteral
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddValueLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doDispatchAddValueLiteral(Literal elem) {
         doGraphAddValueLiteral(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property ValueLiteral
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueLiteral
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveValueLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doDispatchRemoveValueLiteral(Literal elem) {
         doGraphRemoveValueLiteral(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Literal getValueLiteral() {
+    public Literal getValueLiteral() {
         return __implValueLiteral;
     }
 
     @Override
-    public void setValueLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    public void setValueLiteral(Literal elem) {
         if (__implValueLiteral == elem)
             return;
         if (elem == null) {
@@ -225,7 +247,9 @@ public class RuntimeDatatypeRestrictionImpl implements org.xowl.infra.lang.runti
      * Constructor for the implementation of DatatypeRestriction
      */
     public RuntimeDatatypeRestrictionImpl() {
+        // initialize property http://xowl.org/infra/lang/runtime#facet
         this.__implFacet = null;
+        // initialize property http://xowl.org/infra/lang/runtime#valueLiteral
         this.__implValueLiteral = null;
     }
 }

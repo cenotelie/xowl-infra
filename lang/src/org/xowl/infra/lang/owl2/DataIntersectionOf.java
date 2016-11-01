@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataIntersectionOf
+ * Represents the base interface for DataIntersectionOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataIntersectionOf
  *
  * @author xOWL code generator
  */
-public interface DataIntersectionOf extends org.xowl.infra.lang.owl2.Datarange, org.xowl.infra.lang.owl2.DataIntersectionOf_OR_DataUnionOf {
+public interface DataIntersectionOf extends Datarange, DomainOfDatarangeSeq {
 }

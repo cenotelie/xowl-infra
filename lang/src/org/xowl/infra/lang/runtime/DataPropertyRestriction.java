@@ -20,23 +20,26 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataPropertyRestriction
+ * Represents the base interface for DataPropertyRestriction
+ * Original OWL class is http://xowl.org/infra/lang/runtime#DataPropertyRestriction
  *
  * @author xOWL code generator
  */
-public interface DataPropertyRestriction extends org.xowl.infra.lang.runtime.ClassRestriction {
+public interface DataPropertyRestriction extends ClassRestriction {
     /**
      * Sets the value for the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The value to set
      */
-    void setDataProperty(org.xowl.infra.lang.runtime.DataProperty elem);
+    void setDataProperty(DataProperty elem);
 
     /**
      * Gets the value for the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @return The value for the property DataProperty
      */
-    org.xowl.infra.lang.runtime.DataProperty getDataProperty();
+    DataProperty getDataProperty();
 
 }

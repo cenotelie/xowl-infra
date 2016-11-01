@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataHasValue
+ * Represents the base interface for DataHasValue
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataHasValue
  *
  * @author xOWL code generator
  */
-public interface DataHasValue extends org.xowl.infra.lang.owl2.DataPropertyRestriction, org.xowl.infra.lang.owl2.DataHasValue_OR_LiteralElement {
+public interface DataHasValue extends DataPropertyRestriction, DomainOfLiteral {
 }

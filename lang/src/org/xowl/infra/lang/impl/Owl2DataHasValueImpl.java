@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class DataHasValue
+ * The default implementation for DataHasValue
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataHasValue
  *
  * @author xOWL code generator
  */
-public class Owl2DataHasValueImpl implements org.xowl.infra.lang.owl2.DataHasValue {
+public class Owl2DataHasValueImpl implements DataHasValue {
     /**
      * The backing data for the property DataProperty
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#dataProperty
      */
-    private org.xowl.infra.lang.owl2.DataPropertyExpression __implDataProperty;
+    private DataPropertyExpression __implDataProperty;
 
     /**
      * Adds a value to the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    protected void doSimpleAddDataProperty(DataPropertyExpression elem) {
         __implDataProperty = elem;
     }
 
     /**
      * Removes a value from the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    protected void doSimpleRemoveDataProperty(DataPropertyExpression elem) {
         __implDataProperty = null;
     }
 
     /**
      * Adds a value to the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doPropertyAddDataProperty(DataPropertyExpression elem) {
         doSimpleAddDataProperty(elem);
     }
 
     /**
      * Removes a value from the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doPropertyRemoveDataProperty(DataPropertyExpression elem) {
         doSimpleRemoveDataProperty(elem);
     }
 
     /**
      * Tries to add a value to the property DataProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doGraphAddDataProperty(DataPropertyExpression elem) {
         doPropertyAddDataProperty(elem);
     }
 
     /**
      * Tries to remove a value from the property DataProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doGraphRemoveDataProperty(DataPropertyExpression elem) {
         doPropertyRemoveDataProperty(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property DataProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doDispatchAddDataProperty(DataPropertyExpression elem) {
         doGraphAddDataProperty(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property DataProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doDispatchRemoveDataProperty(DataPropertyExpression elem) {
         doGraphRemoveDataProperty(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.DataPropertyExpression getDataProperty() {
+    public DataPropertyExpression getDataProperty() {
         return __implDataProperty;
     }
 
     @Override
-    public void setDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    public void setDataProperty(DataPropertyExpression elem) {
         if (__implDataProperty == elem)
             return;
         if (elem == null) {
@@ -125,90 +137,99 @@ public class Owl2DataHasValueImpl implements org.xowl.infra.lang.owl2.DataHasVal
 
     /**
      * The backing data for the property Literal
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#literal
      */
-    private org.xowl.infra.lang.owl2.LiteralExpression __implLiteral;
+    private LiteralExpression __implLiteral;
 
     /**
      * Adds a value to the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literal
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddLiteral(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    protected void doSimpleAddLiteral(LiteralExpression elem) {
         __implLiteral = elem;
     }
 
     /**
      * Removes a value from the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literal
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveLiteral(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    protected void doSimpleRemoveLiteral(LiteralExpression elem) {
         __implLiteral = null;
     }
 
     /**
      * Adds a value to the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literal
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddLiteral(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doPropertyAddLiteral(LiteralExpression elem) {
         doSimpleAddLiteral(elem);
     }
 
     /**
      * Removes a value from the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literal
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveLiteral(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doPropertyRemoveLiteral(LiteralExpression elem) {
         doSimpleRemoveLiteral(elem);
     }
 
     /**
      * Tries to add a value to the property Literal and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literal
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddLiteral(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doGraphAddLiteral(LiteralExpression elem) {
         doPropertyAddLiteral(elem);
     }
 
     /**
      * Tries to remove a value from the property Literal and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literal
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveLiteral(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doGraphRemoveLiteral(LiteralExpression elem) {
         doPropertyRemoveLiteral(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Literal
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literal
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddLiteral(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doDispatchAddLiteral(LiteralExpression elem) {
         doGraphAddLiteral(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Literal
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literal
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveLiteral(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doDispatchRemoveLiteral(LiteralExpression elem) {
         doGraphRemoveLiteral(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.LiteralExpression getLiteral() {
+    public LiteralExpression getLiteral() {
         return __implLiteral;
     }
 
     @Override
-    public void setLiteral(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    public void setLiteral(LiteralExpression elem) {
         if (__implLiteral == elem)
             return;
         if (elem == null) {
@@ -225,7 +246,9 @@ public class Owl2DataHasValueImpl implements org.xowl.infra.lang.owl2.DataHasVal
      * Constructor for the implementation of DataHasValue
      */
     public Owl2DataHasValueImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#dataProperty
         this.__implDataProperty = null;
+        // initialize property http://xowl.org/infra/lang/owl2#literal
         this.__implLiteral = null;
     }
 }

@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class DataExactCardinality
+ * The default implementation for DataExactCardinality
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataExactCardinality
  *
  * @author xOWL code generator
  */
-public class Owl2DataExactCardinalityImpl implements org.xowl.infra.lang.owl2.DataExactCardinality {
+public class Owl2DataExactCardinalityImpl implements DataExactCardinality {
     /**
      * The backing data for the property Cardinality
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#cardinality
      */
-    private org.xowl.infra.lang.owl2.LiteralExpression __implCardinality;
+    private LiteralExpression __implCardinality;
 
     /**
      * Adds a value to the property Cardinality
+     * Original OWL property is http://xowl.org/infra/lang/owl2#cardinality
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    protected void doSimpleAddCardinality(LiteralExpression elem) {
         __implCardinality = elem;
     }
 
     /**
      * Removes a value from the property Cardinality
+     * Original OWL property is http://xowl.org/infra/lang/owl2#cardinality
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    protected void doSimpleRemoveCardinality(LiteralExpression elem) {
         __implCardinality = null;
     }
 
     /**
      * Adds a value to the property Cardinality
+     * Original OWL property is http://xowl.org/infra/lang/owl2#cardinality
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doPropertyAddCardinality(LiteralExpression elem) {
         doSimpleAddCardinality(elem);
     }
 
     /**
      * Removes a value from the property Cardinality
+     * Original OWL property is http://xowl.org/infra/lang/owl2#cardinality
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doPropertyRemoveCardinality(LiteralExpression elem) {
         doSimpleRemoveCardinality(elem);
     }
 
     /**
      * Tries to add a value to the property Cardinality and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#cardinality
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doGraphAddCardinality(LiteralExpression elem) {
         doPropertyAddCardinality(elem);
     }
 
     /**
      * Tries to remove a value from the property Cardinality and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#cardinality
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doGraphRemoveCardinality(LiteralExpression elem) {
         doPropertyRemoveCardinality(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Cardinality
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#cardinality
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doDispatchAddCardinality(LiteralExpression elem) {
         doGraphAddCardinality(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Cardinality
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#cardinality
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    private void doDispatchRemoveCardinality(LiteralExpression elem) {
         doGraphRemoveCardinality(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.LiteralExpression getCardinality() {
+    public LiteralExpression getCardinality() {
         return __implCardinality;
     }
 
     @Override
-    public void setCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+    public void setCardinality(LiteralExpression elem) {
         if (__implCardinality == elem)
             return;
         if (elem == null) {
@@ -125,90 +137,99 @@ public class Owl2DataExactCardinalityImpl implements org.xowl.infra.lang.owl2.Da
 
     /**
      * The backing data for the property DataProperty
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#dataProperty
      */
-    private org.xowl.infra.lang.owl2.DataPropertyExpression __implDataProperty;
+    private DataPropertyExpression __implDataProperty;
 
     /**
      * Adds a value to the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    protected void doSimpleAddDataProperty(DataPropertyExpression elem) {
         __implDataProperty = elem;
     }
 
     /**
      * Removes a value from the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    protected void doSimpleRemoveDataProperty(DataPropertyExpression elem) {
         __implDataProperty = null;
     }
 
     /**
      * Adds a value to the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doPropertyAddDataProperty(DataPropertyExpression elem) {
         doSimpleAddDataProperty(elem);
     }
 
     /**
      * Removes a value from the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doPropertyRemoveDataProperty(DataPropertyExpression elem) {
         doSimpleRemoveDataProperty(elem);
     }
 
     /**
      * Tries to add a value to the property DataProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doGraphAddDataProperty(DataPropertyExpression elem) {
         doPropertyAddDataProperty(elem);
     }
 
     /**
      * Tries to remove a value from the property DataProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doGraphRemoveDataProperty(DataPropertyExpression elem) {
         doPropertyRemoveDataProperty(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property DataProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doDispatchAddDataProperty(DataPropertyExpression elem) {
         doGraphAddDataProperty(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property DataProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    private void doDispatchRemoveDataProperty(DataPropertyExpression elem) {
         doGraphRemoveDataProperty(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.DataPropertyExpression getDataProperty() {
+    public DataPropertyExpression getDataProperty() {
         return __implDataProperty;
     }
 
     @Override
-    public void setDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem) {
+    public void setDataProperty(DataPropertyExpression elem) {
         if (__implDataProperty == elem)
             return;
         if (elem == null) {
@@ -223,90 +244,99 @@ public class Owl2DataExactCardinalityImpl implements org.xowl.infra.lang.owl2.Da
 
     /**
      * The backing data for the property Datarange
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#datarange
      */
-    private org.xowl.infra.lang.owl2.Datarange __implDatarange;
+    private Datarange __implDatarange;
 
     /**
      * Adds a value to the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    protected void doSimpleAddDatarange(Datarange elem) {
         __implDatarange = elem;
     }
 
     /**
      * Removes a value from the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    protected void doSimpleRemoveDatarange(Datarange elem) {
         __implDatarange = null;
     }
 
     /**
      * Adds a value to the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doPropertyAddDatarange(Datarange elem) {
         doSimpleAddDatarange(elem);
     }
 
     /**
      * Removes a value from the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doPropertyRemoveDatarange(Datarange elem) {
         doSimpleRemoveDatarange(elem);
     }
 
     /**
      * Tries to add a value to the property Datarange and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doGraphAddDatarange(Datarange elem) {
         doPropertyAddDatarange(elem);
     }
 
     /**
      * Tries to remove a value from the property Datarange and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doGraphRemoveDatarange(Datarange elem) {
         doPropertyRemoveDatarange(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Datarange
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doDispatchAddDatarange(Datarange elem) {
         doGraphAddDatarange(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Datarange
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doDispatchRemoveDatarange(Datarange elem) {
         doGraphRemoveDatarange(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.Datarange getDatarange() {
+    public Datarange getDatarange() {
         return __implDatarange;
     }
 
     @Override
-    public void setDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    public void setDatarange(Datarange elem) {
         if (__implDatarange == elem)
             return;
         if (elem == null) {
@@ -323,8 +353,11 @@ public class Owl2DataExactCardinalityImpl implements org.xowl.infra.lang.owl2.Da
      * Constructor for the implementation of DataExactCardinality
      */
     public Owl2DataExactCardinalityImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#cardinality
         this.__implCardinality = null;
+        // initialize property http://xowl.org/infra/lang/owl2#dataProperty
         this.__implDataProperty = null;
+        // initialize property http://xowl.org/infra/lang/owl2#datarange
         this.__implDatarange = null;
     }
 }

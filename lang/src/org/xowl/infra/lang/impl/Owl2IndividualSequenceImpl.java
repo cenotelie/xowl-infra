@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class IndividualSequence
+ * The default implementation for IndividualSequence
+ * Original OWL class is http://xowl.org/infra/lang/owl2#IndividualSequence
  *
  * @author xOWL code generator
  */
-public class Owl2IndividualSequenceImpl implements org.xowl.infra.lang.owl2.IndividualSequence {
+public class Owl2IndividualSequenceImpl implements IndividualSequence {
     /**
      * The backing data for the property IndividualElements
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#individualElements
      */
-    private List<org.xowl.infra.lang.owl2.IndividualElement> __implIndividualElements;
+    private List<IndividualElement> __implIndividualElements;
 
     /**
      * Adds a value to the property IndividualElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualElements
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem) {
+    protected void doSimpleAddIndividualElements(IndividualElement elem) {
         __implIndividualElements.add(elem);
     }
 
     /**
      * Removes a value from the property IndividualElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem) {
+    protected void doSimpleRemoveIndividualElements(IndividualElement elem) {
         __implIndividualElements.remove(elem);
     }
 
     /**
      * Adds a value to the property IndividualElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem) {
+    private void doPropertyAddIndividualElements(IndividualElement elem) {
         doSimpleAddIndividualElements(elem);
     }
 
     /**
      * Removes a value from the property IndividualElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem) {
+    private void doPropertyRemoveIndividualElements(IndividualElement elem) {
         doSimpleRemoveIndividualElements(elem);
     }
 
     /**
      * Tries to add a value to the property IndividualElements and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem) {
+    private void doGraphAddIndividualElements(IndividualElement elem) {
         doPropertyAddIndividualElements(elem);
     }
 
     /**
      * Tries to remove a value from the property IndividualElements and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem) {
+    private void doGraphRemoveIndividualElements(IndividualElement elem) {
         doPropertyRemoveIndividualElements(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property IndividualElements
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem) {
+    private void doDispatchAddIndividualElements(IndividualElement elem) {
         doGraphAddIndividualElements(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property IndividualElements
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem) {
+    private void doDispatchRemoveIndividualElements(IndividualElement elem) {
         doGraphRemoveIndividualElements(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.owl2.IndividualElement> getAllIndividualElements() {
+    public Collection<IndividualElement> getAllIndividualElements() {
         return Collections.unmodifiableCollection(__implIndividualElements);
     }
 
     @Override
-    public boolean addIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem) {
+    public boolean addIndividualElements(IndividualElement elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implIndividualElements.contains(elem))
@@ -120,7 +132,7 @@ public class Owl2IndividualSequenceImpl implements org.xowl.infra.lang.owl2.Indi
     }
 
     @Override
-    public boolean removeIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem) {
+    public boolean removeIndividualElements(IndividualElement elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implIndividualElements.contains(elem))
@@ -133,6 +145,7 @@ public class Owl2IndividualSequenceImpl implements org.xowl.infra.lang.owl2.Indi
      * Constructor for the implementation of IndividualSequence
      */
     public Owl2IndividualSequenceImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#individualElements
         this.__implIndividualElements = new ArrayList<>();
     }
 }

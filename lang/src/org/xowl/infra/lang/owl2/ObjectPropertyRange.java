@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectPropertyRange
+ * Represents the base interface for ObjectPropertyRange
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectPropertyRange
  *
  * @author xOWL code generator
  */
-public interface ObjectPropertyRange extends org.xowl.infra.lang.owl2.ObjectPropertyAxiom, org.xowl.infra.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO4, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
+public interface ObjectPropertyRange extends ObjectPropertyAxiom, DomainOfObjectProperty, DomainOfClasse {
 }

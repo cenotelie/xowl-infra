@@ -20,9 +20,10 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectAllValuesFrom
+ * Represents the base interface for ObjectAllValuesFrom
+ * Original OWL class is http://xowl.org/infra/lang/runtime#ObjectAllValuesFrom
  *
  * @author xOWL code generator
  */
-public interface ObjectAllValuesFrom extends org.xowl.infra.lang.runtime.ObjectPropertyRestriction, org.xowl.infra.lang.runtime.ObjectAllValuesFrom_OR_ObjectCardinalityRestriction_OR_ObjectSomeValuesFrom {
+public interface ObjectAllValuesFrom extends ObjectPropertyRestriction, DomainOfClasse {
 }

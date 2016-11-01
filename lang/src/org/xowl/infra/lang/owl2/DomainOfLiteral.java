@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DisjointClasses_OR_DisjointUnion_OR_EquivalentClasses_OR_ObjectIntersectionOf_OR_ObjectUnionOf
+ * Represents the base interface for DomainOfLiteral
  *
  * @author xOWL code generator
  */
-public interface DisjointClasses_OR_DisjointUnion_OR_EquivalentClasses_OR_ObjectIntersectionOf_OR_ObjectUnionOf {
+public interface DomainOfLiteral {
     /**
-     * Sets the value for the property ClassSeq
+     * Sets the value for the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literal
      *
      * @param elem The value to set
      */
-    void setClassSeq(org.xowl.infra.lang.owl2.ClassSequenceExpression elem);
+    void setLiteral(LiteralExpression elem);
 
     /**
-     * Gets the value for the property ClassSeq
+     * Gets the value for the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literal
      *
-     * @return The value for the property ClassSeq
+     * @return The value for the property Literal
      */
-    org.xowl.infra.lang.owl2.ClassSequenceExpression getClassSeq();
+    LiteralExpression getLiteral();
 
 }

@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DifferentIndividuals_OR_ObjectOneOf_OR_SameIndividual
+ * Represents the base interface for DomainOfIndividual
  *
  * @author xOWL code generator
  */
-public interface DifferentIndividuals_OR_ObjectOneOf_OR_SameIndividual {
+public interface DomainOfIndividual {
     /**
-     * Sets the value for the property IndividualSeq
+     * Sets the value for the property Individual
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individual
      *
      * @param elem The value to set
      */
-    void setIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem);
+    void setIndividual(IndividualExpression elem);
 
     /**
-     * Gets the value for the property IndividualSeq
+     * Gets the value for the property Individual
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individual
      *
-     * @return The value for the property IndividualSeq
+     * @return The value for the property Individual
      */
-    org.xowl.infra.lang.owl2.IndividualSequenceExpression getIndividualSeq();
+    IndividualExpression getIndividual();
 
 }

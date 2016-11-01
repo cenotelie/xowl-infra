@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class ClassSequence
+ * The default implementation for ClassSequence
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ClassSequence
  *
  * @author xOWL code generator
  */
-public class Owl2ClassSequenceImpl implements org.xowl.infra.lang.owl2.ClassSequence {
+public class Owl2ClassSequenceImpl implements ClassSequence {
     /**
      * The backing data for the property ClassElements
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#classElements
      */
-    private List<org.xowl.infra.lang.owl2.ClassElement> __implClassElements;
+    private List<ClassElement> __implClassElements;
 
     /**
      * Adds a value to the property ClassElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classElements
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddClassElements(org.xowl.infra.lang.owl2.ClassElement elem) {
+    protected void doSimpleAddClassElements(ClassElement elem) {
         __implClassElements.add(elem);
     }
 
     /**
      * Removes a value from the property ClassElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveClassElements(org.xowl.infra.lang.owl2.ClassElement elem) {
+    protected void doSimpleRemoveClassElements(ClassElement elem) {
         __implClassElements.remove(elem);
     }
 
     /**
      * Adds a value to the property ClassElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddClassElements(org.xowl.infra.lang.owl2.ClassElement elem) {
+    private void doPropertyAddClassElements(ClassElement elem) {
         doSimpleAddClassElements(elem);
     }
 
     /**
      * Removes a value from the property ClassElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveClassElements(org.xowl.infra.lang.owl2.ClassElement elem) {
+    private void doPropertyRemoveClassElements(ClassElement elem) {
         doSimpleRemoveClassElements(elem);
     }
 
     /**
      * Tries to add a value to the property ClassElements and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddClassElements(org.xowl.infra.lang.owl2.ClassElement elem) {
+    private void doGraphAddClassElements(ClassElement elem) {
         doPropertyAddClassElements(elem);
     }
 
     /**
      * Tries to remove a value from the property ClassElements and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveClassElements(org.xowl.infra.lang.owl2.ClassElement elem) {
+    private void doGraphRemoveClassElements(ClassElement elem) {
         doPropertyRemoveClassElements(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property ClassElements
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddClassElements(org.xowl.infra.lang.owl2.ClassElement elem) {
+    private void doDispatchAddClassElements(ClassElement elem) {
         doGraphAddClassElements(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property ClassElements
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveClassElements(org.xowl.infra.lang.owl2.ClassElement elem) {
+    private void doDispatchRemoveClassElements(ClassElement elem) {
         doGraphRemoveClassElements(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.owl2.ClassElement> getAllClassElements() {
+    public Collection<ClassElement> getAllClassElements() {
         return Collections.unmodifiableCollection(__implClassElements);
     }
 
     @Override
-    public boolean addClassElements(org.xowl.infra.lang.owl2.ClassElement elem) {
+    public boolean addClassElements(ClassElement elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implClassElements.contains(elem))
@@ -120,7 +132,7 @@ public class Owl2ClassSequenceImpl implements org.xowl.infra.lang.owl2.ClassSequ
     }
 
     @Override
-    public boolean removeClassElements(org.xowl.infra.lang.owl2.ClassElement elem) {
+    public boolean removeClassElements(ClassElement elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implClassElements.contains(elem))
@@ -133,6 +145,7 @@ public class Owl2ClassSequenceImpl implements org.xowl.infra.lang.owl2.ClassSequ
      * Constructor for the implementation of ClassSequence
      */
     public Owl2ClassSequenceImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#classElements
         this.__implClassElements = new ArrayList<>();
     }
 }

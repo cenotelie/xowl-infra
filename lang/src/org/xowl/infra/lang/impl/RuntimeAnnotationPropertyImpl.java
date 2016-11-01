@@ -17,44 +17,52 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.lang.runtime.Class;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class AnnotationProperty
+ * The default implementation for AnnotationProperty
+ * Original OWL class is http://xowl.org/infra/lang/runtime#AnnotationProperty
  *
  * @author xOWL code generator
  */
-public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtime.AnnotationProperty {
+public class RuntimeAnnotationPropertyImpl implements AnnotationProperty {
     /**
      * The backing data for the property InterpretationOf
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#interpretationOf
      */
-    private org.xowl.infra.lang.runtime.Entity __implInterpretationOf;
+    private Entity __implInterpretationOf;
 
     /**
      * Adds a value to the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    protected void doSimpleAddInterpretationOf(Entity elem) {
         __implInterpretationOf = elem;
     }
 
     /**
      * Removes a value from the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    protected void doSimpleRemoveInterpretationOf(Entity elem) {
         __implInterpretationOf = null;
     }
 
     /**
      * Adds a value to the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      * This method will also update the inverse property InterpretedAs
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doPropertyAddInterpretationOf(Entity elem) {
         doSimpleAddInterpretationOf(elem);
         if (elem instanceof RuntimeEntityImpl)
             ((RuntimeEntityImpl) elem).doSimpleAddInterpretedAs(this);
@@ -62,11 +70,12 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
 
     /**
      * Removes a value from the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      * This method will also update the inverse property InterpretedAs
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doPropertyRemoveInterpretationOf(Entity elem) {
         doSimpleRemoveInterpretationOf(elem);
         if (elem instanceof RuntimeEntityImpl)
             ((RuntimeEntityImpl) elem).doSimpleRemoveInterpretedAs(this);
@@ -74,49 +83,53 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
 
     /**
      * Tries to add a value to the property InterpretationOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doGraphAddInterpretationOf(Entity elem) {
         doPropertyAddInterpretationOf(elem);
     }
 
     /**
      * Tries to remove a value from the property InterpretationOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doGraphRemoveInterpretationOf(Entity elem) {
         doPropertyRemoveInterpretationOf(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property InterpretationOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doDispatchAddInterpretationOf(Entity elem) {
         doGraphAddInterpretationOf(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property InterpretationOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doDispatchRemoveInterpretationOf(Entity elem) {
         doGraphRemoveInterpretationOf(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Entity getInterpretationOf() {
+    public Entity getInterpretationOf() {
         return __implInterpretationOf;
     }
 
     @Override
-    public void setInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    public void setInterpretationOf(Entity elem) {
         if (__implInterpretationOf == elem)
             return;
         if (elem == null) {
@@ -131,34 +144,38 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
 
     /**
      * The backing data for the property SubAnnotProperty
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#subAnnotProperty
      */
-    private List<org.xowl.infra.lang.runtime.AnnotationProperty> __implSubAnnotProperty;
+    private List<AnnotationProperty> __implSubAnnotProperty;
 
     /**
      * Adds a value to the property SubAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subAnnotProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    protected void doSimpleAddSubAnnotProperty(AnnotationProperty elem) {
         __implSubAnnotProperty.add(elem);
     }
 
     /**
      * Removes a value from the property SubAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subAnnotProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    protected void doSimpleRemoveSubAnnotProperty(AnnotationProperty elem) {
         __implSubAnnotProperty.remove(elem);
     }
 
     /**
      * Adds a value to the property SubAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subAnnotProperty
      * This method will also update the inverse property SuperAnnotProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doPropertyAddSubAnnotProperty(AnnotationProperty elem) {
         doSimpleAddSubAnnotProperty(elem);
         if (elem instanceof RuntimeAnnotationPropertyImpl)
             ((RuntimeAnnotationPropertyImpl) elem).doSimpleAddSuperAnnotProperty(this);
@@ -166,11 +183,12 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
 
     /**
      * Removes a value from the property SubAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subAnnotProperty
      * This method will also update the inverse property SuperAnnotProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doPropertyRemoveSubAnnotProperty(AnnotationProperty elem) {
         doSimpleRemoveSubAnnotProperty(elem);
         if (elem instanceof RuntimeAnnotationPropertyImpl)
             ((RuntimeAnnotationPropertyImpl) elem).doSimpleRemoveSuperAnnotProperty(this);
@@ -178,49 +196,53 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
 
     /**
      * Tries to add a value to the property SubAnnotProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subAnnotProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doGraphAddSubAnnotProperty(AnnotationProperty elem) {
         doPropertyAddSubAnnotProperty(elem);
     }
 
     /**
      * Tries to remove a value from the property SubAnnotProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subAnnotProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doGraphRemoveSubAnnotProperty(AnnotationProperty elem) {
         doPropertyRemoveSubAnnotProperty(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property SubAnnotProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subAnnotProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doDispatchAddSubAnnotProperty(AnnotationProperty elem) {
         doGraphAddSubAnnotProperty(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property SubAnnotProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subAnnotProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doDispatchRemoveSubAnnotProperty(AnnotationProperty elem) {
         doGraphRemoveSubAnnotProperty(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.AnnotationProperty> getAllSubAnnotProperty() {
+    public Collection<AnnotationProperty> getAllSubAnnotProperty() {
         return Collections.unmodifiableCollection(__implSubAnnotProperty);
     }
 
     @Override
-    public boolean addSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    public boolean addSubAnnotProperty(AnnotationProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implSubAnnotProperty.contains(elem))
@@ -230,7 +252,7 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
     }
 
     @Override
-    public boolean removeSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    public boolean removeSubAnnotProperty(AnnotationProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implSubAnnotProperty.contains(elem))
@@ -241,34 +263,38 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
 
     /**
      * The backing data for the property SuperAnnotProperty
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#superAnnotProperty
      */
-    private List<org.xowl.infra.lang.runtime.AnnotationProperty> __implSuperAnnotProperty;
+    private List<AnnotationProperty> __implSuperAnnotProperty;
 
     /**
      * Adds a value to the property SuperAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superAnnotProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    protected void doSimpleAddSuperAnnotProperty(AnnotationProperty elem) {
         __implSuperAnnotProperty.add(elem);
     }
 
     /**
      * Removes a value from the property SuperAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superAnnotProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    protected void doSimpleRemoveSuperAnnotProperty(AnnotationProperty elem) {
         __implSuperAnnotProperty.remove(elem);
     }
 
     /**
      * Adds a value to the property SuperAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superAnnotProperty
      * This method will also update the inverse property SubAnnotProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doPropertyAddSuperAnnotProperty(AnnotationProperty elem) {
         doSimpleAddSuperAnnotProperty(elem);
         if (elem instanceof RuntimeAnnotationPropertyImpl)
             ((RuntimeAnnotationPropertyImpl) elem).doSimpleAddSubAnnotProperty(this);
@@ -276,11 +302,12 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
 
     /**
      * Removes a value from the property SuperAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superAnnotProperty
      * This method will also update the inverse property SubAnnotProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doPropertyRemoveSuperAnnotProperty(AnnotationProperty elem) {
         doSimpleRemoveSuperAnnotProperty(elem);
         if (elem instanceof RuntimeAnnotationPropertyImpl)
             ((RuntimeAnnotationPropertyImpl) elem).doSimpleRemoveSubAnnotProperty(this);
@@ -288,49 +315,53 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
 
     /**
      * Tries to add a value to the property SuperAnnotProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superAnnotProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doGraphAddSuperAnnotProperty(AnnotationProperty elem) {
         doPropertyAddSuperAnnotProperty(elem);
     }
 
     /**
      * Tries to remove a value from the property SuperAnnotProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superAnnotProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doGraphRemoveSuperAnnotProperty(AnnotationProperty elem) {
         doPropertyRemoveSuperAnnotProperty(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property SuperAnnotProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superAnnotProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doDispatchAddSuperAnnotProperty(AnnotationProperty elem) {
         doGraphAddSuperAnnotProperty(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property SuperAnnotProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superAnnotProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    private void doDispatchRemoveSuperAnnotProperty(AnnotationProperty elem) {
         doGraphRemoveSuperAnnotProperty(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.AnnotationProperty> getAllSuperAnnotProperty() {
+    public Collection<AnnotationProperty> getAllSuperAnnotProperty() {
         return Collections.unmodifiableCollection(__implSuperAnnotProperty);
     }
 
     @Override
-    public boolean addSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    public boolean addSuperAnnotProperty(AnnotationProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implSuperAnnotProperty.contains(elem))
@@ -340,7 +371,7 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
     }
 
     @Override
-    public boolean removeSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+    public boolean removeSuperAnnotProperty(AnnotationProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implSuperAnnotProperty.contains(elem))
@@ -353,8 +384,11 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
      * Constructor for the implementation of AnnotationProperty
      */
     public RuntimeAnnotationPropertyImpl() {
+        // initialize property http://xowl.org/infra/lang/runtime#interpretationOf
         this.__implInterpretationOf = null;
+        // initialize property http://xowl.org/infra/lang/runtime#subAnnotProperty
         this.__implSubAnnotProperty = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/runtime#superAnnotProperty
         this.__implSuperAnnotProperty = new ArrayList<>();
     }
 }

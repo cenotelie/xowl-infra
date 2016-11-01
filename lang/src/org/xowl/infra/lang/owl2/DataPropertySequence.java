@@ -20,32 +20,36 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataPropertySequence
+ * Represents the base interface for DataPropertySequence
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataPropertySequence
  *
  * @author xOWL code generator
  */
-public interface DataPropertySequence extends org.xowl.infra.lang.owl2.DataPropertySequenceExpression {
+public interface DataPropertySequence extends DataPropertySequenceExpression {
     /**
      * Adds an element to the property DataPropertyElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertyElements
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem);
+    boolean addDataPropertyElements(DataPropertyElement elem);
 
     /**
      * Removes an element from the property DataPropertyElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertyElements
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem);
+    boolean removeDataPropertyElements(DataPropertyElement elem);
 
     /**
      * Gets all the elements for the property DataPropertyElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertyElements
      *
      * @return The elements for the property DataPropertyElements
      */
-    Collection<org.xowl.infra.lang.owl2.DataPropertyElement> getAllDataPropertyElements();
+    Collection<DataPropertyElement> getAllDataPropertyElements();
 
 }

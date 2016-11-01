@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectPropertyAssertion
+ * Represents the base interface for ObjectPropertyAssertion
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectPropertyAssertion
  *
  * @author xOWL code generator
  */
-public interface ObjectPropertyAssertion extends org.xowl.infra.lang.owl2.IndividualAxiom, org.xowl.infra.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO4, org.xowl.infra.lang.owl2.ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne1, org.xowl.infra.lang.owl2.NegativeObjectPropertyAssertion_OR_ObjectPropertyAssertion {
+public interface ObjectPropertyAssertion extends IndividualAxiom, DomainOfObjectProperty, DomainOfIndividual, DomainOfValueIndividual {
 }

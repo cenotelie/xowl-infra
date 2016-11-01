@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataPropertyRange
+ * Represents the base interface for DataPropertyRange
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataPropertyRange
  *
  * @author xOWL code generator
  */
-public interface DataPropertyRange extends org.xowl.infra.lang.owl2.DataPropertyAxiom, org.xowl.infra.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5, org.xowl.infra.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype2 {
+public interface DataPropertyRange extends DataPropertyAxiom, DomainOfDataProperty, DomainOfDatarange {
 }

@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class DataComplementOf
+ * The default implementation for DataComplementOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataComplementOf
  *
  * @author xOWL code generator
  */
-public class Owl2DataComplementOfImpl implements org.xowl.infra.lang.owl2.DataComplementOf {
+public class Owl2DataComplementOfImpl implements DataComplementOf {
     /**
      * The backing data for the property Datarange
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#datarange
      */
-    private org.xowl.infra.lang.owl2.Datarange __implDatarange;
+    private Datarange __implDatarange;
 
     /**
      * Adds a value to the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    protected void doSimpleAddDatarange(Datarange elem) {
         __implDatarange = elem;
     }
 
     /**
      * Removes a value from the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    protected void doSimpleRemoveDatarange(Datarange elem) {
         __implDatarange = null;
     }
 
     /**
      * Adds a value to the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doPropertyAddDatarange(Datarange elem) {
         doSimpleAddDatarange(elem);
     }
 
     /**
      * Removes a value from the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doPropertyRemoveDatarange(Datarange elem) {
         doSimpleRemoveDatarange(elem);
     }
 
     /**
      * Tries to add a value to the property Datarange and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doGraphAddDatarange(Datarange elem) {
         doPropertyAddDatarange(elem);
     }
 
     /**
      * Tries to remove a value from the property Datarange and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doGraphRemoveDatarange(Datarange elem) {
         doPropertyRemoveDatarange(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Datarange
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doDispatchAddDatarange(Datarange elem) {
         doGraphAddDatarange(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Datarange
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    private void doDispatchRemoveDatarange(Datarange elem) {
         doGraphRemoveDatarange(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.Datarange getDatarange() {
+    public Datarange getDatarange() {
         return __implDatarange;
     }
 
     @Override
-    public void setDatarange(org.xowl.infra.lang.owl2.Datarange elem) {
+    public void setDatarange(Datarange elem) {
         if (__implDatarange == elem)
             return;
         if (elem == null) {
@@ -127,6 +139,7 @@ public class Owl2DataComplementOfImpl implements org.xowl.infra.lang.owl2.DataCo
      * Constructor for the implementation of DataComplementOf
      */
     public Owl2DataComplementOfImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#datarange
         this.__implDatarange = null;
     }
 }

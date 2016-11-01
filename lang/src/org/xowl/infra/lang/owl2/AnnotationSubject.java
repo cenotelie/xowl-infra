@@ -20,7 +20,8 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class AnnotationSubject
+ * Represents the base interface for AnnotationSubject
+ * Original OWL class is http://xowl.org/infra/lang/owl2#AnnotationSubject
  *
  * @author xOWL code generator
  */

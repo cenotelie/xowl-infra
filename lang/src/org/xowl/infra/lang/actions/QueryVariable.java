@@ -20,13 +20,15 @@ package org.xowl.infra.lang.actions;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class QueryVariable
+ * Represents the base interface for QueryVariable
+ * Original OWL class is http://xowl.org/infra/lang/actions#QueryVariable
  *
  * @author xOWL code generator
  */
-public interface QueryVariable extends org.xowl.infra.lang.actions.DynamicExpression {
+public interface QueryVariable extends DynamicExpression {
     /**
      * Sets the value for the property Name
+     * Original OWL property is http://xowl.org/infra/lang/actions#name
      *
      * @param elem The value to set
      */
@@ -34,6 +36,7 @@ public interface QueryVariable extends org.xowl.infra.lang.actions.DynamicExpres
 
     /**
      * Gets the value for the property Name
+     * Original OWL property is http://xowl.org/infra/lang/actions#name
      *
      * @return The value for the property Name
      */

@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class FacetRestriction
+ * The default implementation for FacetRestriction
+ * Original OWL class is http://xowl.org/infra/lang/owl2#FacetRestriction
  *
  * @author xOWL code generator
  */
-public class Owl2FacetRestrictionImpl implements org.xowl.infra.lang.owl2.FacetRestriction {
+public class Owl2FacetRestrictionImpl implements FacetRestriction {
     /**
      * The backing data for the property ConstrainingFacet
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#constrainingFacet
      */
-    private org.xowl.infra.lang.owl2.IRI __implConstrainingFacet;
+    private IRI __implConstrainingFacet;
 
     /**
      * Adds a value to the property ConstrainingFacet
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingFacet
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddConstrainingFacet(org.xowl.infra.lang.owl2.IRI elem) {
+    protected void doSimpleAddConstrainingFacet(IRI elem) {
         __implConstrainingFacet = elem;
     }
 
     /**
      * Removes a value from the property ConstrainingFacet
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingFacet
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveConstrainingFacet(org.xowl.infra.lang.owl2.IRI elem) {
+    protected void doSimpleRemoveConstrainingFacet(IRI elem) {
         __implConstrainingFacet = null;
     }
 
     /**
      * Adds a value to the property ConstrainingFacet
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingFacet
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddConstrainingFacet(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doPropertyAddConstrainingFacet(IRI elem) {
         doSimpleAddConstrainingFacet(elem);
     }
 
     /**
      * Removes a value from the property ConstrainingFacet
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingFacet
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveConstrainingFacet(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doPropertyRemoveConstrainingFacet(IRI elem) {
         doSimpleRemoveConstrainingFacet(elem);
     }
 
     /**
      * Tries to add a value to the property ConstrainingFacet and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingFacet
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddConstrainingFacet(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doGraphAddConstrainingFacet(IRI elem) {
         doPropertyAddConstrainingFacet(elem);
     }
 
     /**
      * Tries to remove a value from the property ConstrainingFacet and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingFacet
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveConstrainingFacet(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doGraphRemoveConstrainingFacet(IRI elem) {
         doPropertyRemoveConstrainingFacet(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property ConstrainingFacet
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingFacet
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddConstrainingFacet(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doDispatchAddConstrainingFacet(IRI elem) {
         doGraphAddConstrainingFacet(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property ConstrainingFacet
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingFacet
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveConstrainingFacet(org.xowl.infra.lang.owl2.IRI elem) {
+    private void doDispatchRemoveConstrainingFacet(IRI elem) {
         doGraphRemoveConstrainingFacet(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.IRI getConstrainingFacet() {
+    public IRI getConstrainingFacet() {
         return __implConstrainingFacet;
     }
 
     @Override
-    public void setConstrainingFacet(org.xowl.infra.lang.owl2.IRI elem) {
+    public void setConstrainingFacet(IRI elem) {
         if (__implConstrainingFacet == elem)
             return;
         if (elem == null) {
@@ -125,90 +137,99 @@ public class Owl2FacetRestrictionImpl implements org.xowl.infra.lang.owl2.FacetR
 
     /**
      * The backing data for the property ConstrainingValue
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#constrainingValue
      */
-    private org.xowl.infra.lang.owl2.Literal __implConstrainingValue;
+    private Literal __implConstrainingValue;
 
     /**
      * Adds a value to the property ConstrainingValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingValue
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddConstrainingValue(org.xowl.infra.lang.owl2.Literal elem) {
+    protected void doSimpleAddConstrainingValue(Literal elem) {
         __implConstrainingValue = elem;
     }
 
     /**
      * Removes a value from the property ConstrainingValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingValue
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveConstrainingValue(org.xowl.infra.lang.owl2.Literal elem) {
+    protected void doSimpleRemoveConstrainingValue(Literal elem) {
         __implConstrainingValue = null;
     }
 
     /**
      * Adds a value to the property ConstrainingValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingValue
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddConstrainingValue(org.xowl.infra.lang.owl2.Literal elem) {
+    private void doPropertyAddConstrainingValue(Literal elem) {
         doSimpleAddConstrainingValue(elem);
     }
 
     /**
      * Removes a value from the property ConstrainingValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingValue
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveConstrainingValue(org.xowl.infra.lang.owl2.Literal elem) {
+    private void doPropertyRemoveConstrainingValue(Literal elem) {
         doSimpleRemoveConstrainingValue(elem);
     }
 
     /**
      * Tries to add a value to the property ConstrainingValue and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingValue
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddConstrainingValue(org.xowl.infra.lang.owl2.Literal elem) {
+    private void doGraphAddConstrainingValue(Literal elem) {
         doPropertyAddConstrainingValue(elem);
     }
 
     /**
      * Tries to remove a value from the property ConstrainingValue and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingValue
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveConstrainingValue(org.xowl.infra.lang.owl2.Literal elem) {
+    private void doGraphRemoveConstrainingValue(Literal elem) {
         doPropertyRemoveConstrainingValue(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property ConstrainingValue
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingValue
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddConstrainingValue(org.xowl.infra.lang.owl2.Literal elem) {
+    private void doDispatchAddConstrainingValue(Literal elem) {
         doGraphAddConstrainingValue(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property ConstrainingValue
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#constrainingValue
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveConstrainingValue(org.xowl.infra.lang.owl2.Literal elem) {
+    private void doDispatchRemoveConstrainingValue(Literal elem) {
         doGraphRemoveConstrainingValue(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.Literal getConstrainingValue() {
+    public Literal getConstrainingValue() {
         return __implConstrainingValue;
     }
 
     @Override
-    public void setConstrainingValue(org.xowl.infra.lang.owl2.Literal elem) {
+    public void setConstrainingValue(Literal elem) {
         if (__implConstrainingValue == elem)
             return;
         if (elem == null) {
@@ -225,7 +246,9 @@ public class Owl2FacetRestrictionImpl implements org.xowl.infra.lang.owl2.FacetR
      * Constructor for the implementation of FacetRestriction
      */
     public Owl2FacetRestrictionImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#constrainingFacet
         this.__implConstrainingFacet = null;
+        // initialize property http://xowl.org/infra/lang/owl2#constrainingValue
         this.__implConstrainingValue = null;
     }
 }

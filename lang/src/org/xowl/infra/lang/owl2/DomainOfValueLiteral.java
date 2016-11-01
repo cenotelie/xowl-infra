@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataPropertyAssertion_OR_NegativeDataPropertyAssertion
+ * Represents the base interface for DomainOfValueLiteral
  *
  * @author xOWL code generator
  */
-public interface DataPropertyAssertion_OR_NegativeDataPropertyAssertion {
+public interface DomainOfValueLiteral {
     /**
      * Sets the value for the property ValueLiteral
+     * Original OWL property is http://xowl.org/infra/lang/owl2#valueLiteral
      *
      * @param elem The value to set
      */
-    void setValueLiteral(org.xowl.infra.lang.owl2.LiteralExpression elem);
+    void setValueLiteral(LiteralExpression elem);
 
     /**
      * Gets the value for the property ValueLiteral
+     * Original OWL property is http://xowl.org/infra/lang/owl2#valueLiteral
      *
      * @return The value for the property ValueLiteral
      */
-    org.xowl.infra.lang.owl2.LiteralExpression getValueLiteral();
+    LiteralExpression getValueLiteral();
 
 }

@@ -15,28 +15,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lang.runtime;
+package org.xowl.infra.lang.owl2;
 
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataPropertyAssertion_OR_DatatypeRestriction
+ * Represents the base interface for DomainOfDataProperty
  *
  * @author xOWL code generator
  */
-public interface DataPropertyAssertion_OR_DatatypeRestriction {
+public interface DomainOfDataProperty {
     /**
-     * Sets the value for the property ValueLiteral
+     * Sets the value for the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
      * @param elem The value to set
      */
-    void setValueLiteral(org.xowl.infra.lang.runtime.Literal elem);
+    void setDataProperty(DataPropertyExpression elem);
 
     /**
-     * Gets the value for the property ValueLiteral
+     * Gets the value for the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataProperty
      *
-     * @return The value for the property ValueLiteral
+     * @return The value for the property DataProperty
      */
-    org.xowl.infra.lang.runtime.Literal getValueLiteral();
+    DataPropertyExpression getDataProperty();
 
 }

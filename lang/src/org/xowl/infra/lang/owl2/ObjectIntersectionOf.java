@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectIntersectionOf
+ * Represents the base interface for ObjectIntersectionOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectIntersectionOf
  *
  * @author xOWL code generator
  */
-public interface ObjectIntersectionOf extends org.xowl.infra.lang.owl2.ClassExpression, org.xowl.infra.lang.owl2.DisjointClasses_OR_DisjointUnion_OR_EquivalentClasses_OR_ObjectIntersectionOf_OR_ObjectUnionOf {
+public interface ObjectIntersectionOf extends ClassExpression, DomainOfClassSeq {
 }

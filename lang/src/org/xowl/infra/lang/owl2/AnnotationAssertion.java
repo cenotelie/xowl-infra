@@ -20,23 +20,26 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class AnnotationAssertion
+ * Represents the base interface for AnnotationAssertion
+ * Original OWL class is http://xowl.org/infra/lang/owl2#AnnotationAssertion
  *
  * @author xOWL code generator
  */
-public interface AnnotationAssertion extends org.xowl.infra.lang.owl2.AnnotationAxiom, org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion, org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno0 {
+public interface AnnotationAssertion extends AnnotationAxiom, DomainOfAnnotValue, DomainOfAnnotProperty {
     /**
      * Sets the value for the property AnnotSubject
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotSubject
      *
      * @param elem The value to set
      */
-    void setAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem);
+    void setAnnotSubject(AnnotationSubject elem);
 
     /**
      * Gets the value for the property AnnotSubject
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotSubject
      *
      * @return The value for the property AnnotSubject
      */
-    org.xowl.infra.lang.owl2.AnnotationSubject getAnnotSubject();
+    AnnotationSubject getAnnotSubject();
 
 }

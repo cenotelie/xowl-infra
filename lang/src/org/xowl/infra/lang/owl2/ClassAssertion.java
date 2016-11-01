@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ClassAssertion
+ * Represents the base interface for ClassAssertion
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ClassAssertion
  *
  * @author xOWL code generator
  */
-public interface ClassAssertion extends org.xowl.infra.lang.owl2.IndividualAxiom, org.xowl.infra.lang.owl2.ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne1, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
+public interface ClassAssertion extends IndividualAxiom, DomainOfClasse, DomainOfIndividual {
 }

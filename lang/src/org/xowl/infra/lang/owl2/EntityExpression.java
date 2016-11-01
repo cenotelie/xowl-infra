@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class EntityExpression
+ * Represents the base interface for EntityExpression
+ * Original OWL class is http://xowl.org/infra/lang/owl2#EntityExpression
  *
  * @author xOWL code generator
  */
-public interface EntityExpression extends org.xowl.infra.lang.owl2.ClassExpression, org.xowl.infra.lang.owl2.DataPropertyExpression, org.xowl.infra.lang.owl2.Datarange, org.xowl.infra.lang.actions.FunctionExpression, org.xowl.infra.lang.owl2.IndividualExpression, org.xowl.infra.lang.owl2.ObjectPropertyExpression {
+public interface EntityExpression extends ClassExpression, DataPropertyExpression, Datarange, org.xowl.infra.lang.actions.FunctionExpression, IndividualExpression, ObjectPropertyExpression {
 }

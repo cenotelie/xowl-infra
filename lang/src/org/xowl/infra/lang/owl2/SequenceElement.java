@@ -20,13 +20,15 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class SequenceElement
+ * Represents the base interface for SequenceElement
+ * Original OWL class is http://xowl.org/infra/lang/owl2#SequenceElement
  *
  * @author xOWL code generator
  */
 public interface SequenceElement {
     /**
      * Sets the value for the property Index
+     * Original OWL property is http://xowl.org/infra/lang/owl2#index
      *
      * @param elem The value to set
      */
@@ -34,6 +36,7 @@ public interface SequenceElement {
 
     /**
      * Gets the value for the property Index
+     * Original OWL property is http://xowl.org/infra/lang/owl2#index
      *
      * @return The value for the property Index
      */

@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataIntersectionOf_OR_DataUnionOf
+ * Represents the base interface for DomainOfDatarange
  *
  * @author xOWL code generator
  */
-public interface DataIntersectionOf_OR_DataUnionOf {
+public interface DomainOfDatarange {
     /**
-     * Sets the value for the property DatarangeSeq
+     * Sets the value for the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
      * @param elem The value to set
      */
-    void setDatarangeSeq(org.xowl.infra.lang.owl2.DatarangeSequenceExpression elem);
+    void setDatarange(Datarange elem);
 
     /**
-     * Gets the value for the property DatarangeSeq
+     * Gets the value for the property Datarange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datarange
      *
-     * @return The value for the property DatarangeSeq
+     * @return The value for the property Datarange
      */
-    org.xowl.infra.lang.owl2.DatarangeSequenceExpression getDatarangeSeq();
+    Datarange getDatarange();
 
 }

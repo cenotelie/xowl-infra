@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype2
+ * Represents the base interface for DomainOfClassSeq
  *
  * @author xOWL code generator
  */
-public interface DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype2 {
+public interface DomainOfClassSeq {
     /**
-     * Sets the value for the property Datarange
+     * Sets the value for the property ClassSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classSeq
      *
      * @param elem The value to set
      */
-    void setDatarange(org.xowl.infra.lang.owl2.Datarange elem);
+    void setClassSeq(ClassSequenceExpression elem);
 
     /**
-     * Gets the value for the property Datarange
+     * Gets the value for the property ClassSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classSeq
      *
-     * @return The value for the property Datarange
+     * @return The value for the property ClassSeq
      */
-    org.xowl.infra.lang.owl2.Datarange getDatarange();
+    ClassSequenceExpression getClassSeq();
 
 }

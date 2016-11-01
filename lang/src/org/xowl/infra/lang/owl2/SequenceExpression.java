@@ -20,7 +20,8 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class SequenceExpression
+ * Represents the base interface for SequenceExpression
+ * Original OWL class is http://xowl.org/infra/lang/owl2#SequenceExpression
  *
  * @author xOWL code generator
  */

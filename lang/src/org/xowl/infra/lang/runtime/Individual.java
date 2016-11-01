@@ -20,101 +20,114 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Individual
+ * Represents the base interface for Individual
+ * Original OWL class is http://xowl.org/infra/lang/runtime#Individual
  *
  * @author xOWL code generator
  */
 public interface Individual {
     /**
      * Adds an element to the property Asserts
+     * Original OWL property is http://xowl.org/infra/lang/runtime#asserts
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addAsserts(org.xowl.infra.lang.runtime.PropertyAssertion elem);
+    boolean addAsserts(PropertyAssertion elem);
 
     /**
      * Removes an element from the property Asserts
+     * Original OWL property is http://xowl.org/infra/lang/runtime#asserts
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeAsserts(org.xowl.infra.lang.runtime.PropertyAssertion elem);
+    boolean removeAsserts(PropertyAssertion elem);
 
     /**
      * Gets all the elements for the property Asserts
+     * Original OWL property is http://xowl.org/infra/lang/runtime#asserts
      *
      * @return The elements for the property Asserts
      */
-    Collection<org.xowl.infra.lang.runtime.PropertyAssertion> getAllAsserts();
+    Collection<PropertyAssertion> getAllAsserts();
 
     /**
      * Adds an element to the property ClassifiedBy
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classifiedBy
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addClassifiedBy(org.xowl.infra.lang.runtime.Class elem);
+    boolean addClassifiedBy(Class elem);
 
     /**
      * Removes an element from the property ClassifiedBy
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classifiedBy
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeClassifiedBy(org.xowl.infra.lang.runtime.Class elem);
+    boolean removeClassifiedBy(Class elem);
 
     /**
      * Gets all the elements for the property ClassifiedBy
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classifiedBy
      *
      * @return The elements for the property ClassifiedBy
      */
-    Collection<org.xowl.infra.lang.runtime.Class> getAllClassifiedBy();
+    Collection<Class> getAllClassifiedBy();
 
     /**
      * Adds an element to the property DifferentFrom
+     * Original OWL property is http://xowl.org/infra/lang/runtime#differentFrom
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addDifferentFrom(org.xowl.infra.lang.runtime.Individual elem);
+    boolean addDifferentFrom(Individual elem);
 
     /**
      * Removes an element from the property DifferentFrom
+     * Original OWL property is http://xowl.org/infra/lang/runtime#differentFrom
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeDifferentFrom(org.xowl.infra.lang.runtime.Individual elem);
+    boolean removeDifferentFrom(Individual elem);
 
     /**
      * Gets all the elements for the property DifferentFrom
+     * Original OWL property is http://xowl.org/infra/lang/runtime#differentFrom
      *
      * @return The elements for the property DifferentFrom
      */
-    Collection<org.xowl.infra.lang.runtime.Individual> getAllDifferentFrom();
+    Collection<Individual> getAllDifferentFrom();
 
     /**
      * Adds an element to the property SameAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#sameAs
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addSameAs(org.xowl.infra.lang.runtime.Individual elem);
+    boolean addSameAs(Individual elem);
 
     /**
      * Removes an element from the property SameAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#sameAs
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeSameAs(org.xowl.infra.lang.runtime.Individual elem);
+    boolean removeSameAs(Individual elem);
 
     /**
      * Gets all the elements for the property SameAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#sameAs
      *
      * @return The elements for the property SameAs
      */
-    Collection<org.xowl.infra.lang.runtime.Individual> getAllSameAs();
+    Collection<Individual> getAllSameAs();
 
 }

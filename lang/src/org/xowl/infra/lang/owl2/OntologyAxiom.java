@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class OntologyAxiom
+ * Represents the base interface for OntologyAxiom
+ * Original OWL class is http://xowl.org/infra/lang/owl2#OntologyAxiom
  *
  * @author xOWL code generator
  */
-public interface OntologyAxiom extends org.xowl.infra.lang.owl2.Axiom {
+public interface OntologyAxiom extends Axiom {
 }

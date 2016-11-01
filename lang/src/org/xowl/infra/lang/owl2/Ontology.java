@@ -20,13 +20,15 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Ontology
+ * Represents the base interface for Ontology
+ * Original OWL class is http://xowl.org/infra/lang/owl2#Ontology
  *
  * @author xOWL code generator
  */
-public interface Ontology extends org.xowl.infra.lang.owl2.Annotation_OR_Axiom_OR_Ontology {
+public interface Ontology extends DomainOfAnnotations {
     /**
      * Adds an element to the property Contains
+     * Original OWL property is http://xowl.org/infra/lang/runtime#contains
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
@@ -35,6 +37,7 @@ public interface Ontology extends org.xowl.infra.lang.owl2.Annotation_OR_Axiom_O
 
     /**
      * Removes an element from the property Contains
+     * Original OWL property is http://xowl.org/infra/lang/runtime#contains
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
@@ -43,6 +46,7 @@ public interface Ontology extends org.xowl.infra.lang.owl2.Annotation_OR_Axiom_O
 
     /**
      * Gets all the elements for the property Contains
+     * Original OWL property is http://xowl.org/infra/lang/runtime#contains
      *
      * @return The elements for the property Contains
      */
@@ -50,16 +54,18 @@ public interface Ontology extends org.xowl.infra.lang.owl2.Annotation_OR_Axiom_O
 
     /**
      * Sets the value for the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasIRI
      *
      * @param elem The value to set
      */
-    void setHasIRI(org.xowl.infra.lang.owl2.IRI elem);
+    void setHasIRI(IRI elem);
 
     /**
      * Gets the value for the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/owl2#hasIRI
      *
      * @return The value for the property HasIRI
      */
-    org.xowl.infra.lang.owl2.IRI getHasIRI();
+    IRI getHasIRI();
 
 }

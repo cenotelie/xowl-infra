@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class InverseFunctionalObjectProperty
+ * Represents the base interface for InverseFunctionalObjectProperty
+ * Original OWL class is http://xowl.org/infra/lang/owl2#InverseFunctionalObjectProperty
  *
  * @author xOWL code generator
  */
-public interface InverseFunctionalObjectProperty extends org.xowl.infra.lang.owl2.ObjectPropertyAxiom, org.xowl.infra.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO4 {
+public interface InverseFunctionalObjectProperty extends ObjectPropertyAxiom, DomainOfObjectProperty {
 }

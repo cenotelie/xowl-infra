@@ -20,23 +20,26 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DatatypeDefinition
+ * Represents the base interface for DatatypeDefinition
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DatatypeDefinition
  *
  * @author xOWL code generator
  */
-public interface DatatypeDefinition extends org.xowl.infra.lang.owl2.DatatypeAxiom, org.xowl.infra.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype2 {
+public interface DatatypeDefinition extends DatatypeAxiom, DomainOfDatarange {
     /**
      * Sets the value for the property Datatype
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datatype
      *
      * @param elem The value to set
      */
-    void setDatatype(org.xowl.infra.lang.owl2.Datarange elem);
+    void setDatatype(Datarange elem);
 
     /**
      * Gets the value for the property Datatype
+     * Original OWL property is http://xowl.org/infra/lang/owl2#datatype
      *
      * @return The value for the property Datatype
      */
-    org.xowl.infra.lang.owl2.Datarange getDatatype();
+    Datarange getDatatype();
 
 }

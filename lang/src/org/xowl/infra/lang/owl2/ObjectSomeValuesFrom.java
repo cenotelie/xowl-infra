@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectSomeValuesFrom
+ * Represents the base interface for ObjectSomeValuesFrom
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectSomeValuesFrom
  *
  * @author xOWL code generator
  */
-public interface ObjectSomeValuesFrom extends org.xowl.infra.lang.owl2.ObjectPropertyRestriction, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
+public interface ObjectSomeValuesFrom extends ObjectPropertyRestriction, DomainOfClasse {
 }

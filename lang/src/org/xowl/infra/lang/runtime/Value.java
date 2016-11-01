@@ -20,7 +20,8 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Value
+ * Represents the base interface for Value
+ * Original OWL class is http://xowl.org/infra/lang/runtime#Value
  *
  * @author xOWL code generator
  */

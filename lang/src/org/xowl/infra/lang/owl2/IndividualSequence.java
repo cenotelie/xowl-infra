@@ -20,32 +20,36 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class IndividualSequence
+ * Represents the base interface for IndividualSequence
+ * Original OWL class is http://xowl.org/infra/lang/owl2#IndividualSequence
  *
  * @author xOWL code generator
  */
-public interface IndividualSequence extends org.xowl.infra.lang.owl2.IndividualSequenceExpression {
+public interface IndividualSequence extends IndividualSequenceExpression {
     /**
      * Adds an element to the property IndividualElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualElements
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem);
+    boolean addIndividualElements(IndividualElement elem);
 
     /**
      * Removes an element from the property IndividualElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualElements
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeIndividualElements(org.xowl.infra.lang.owl2.IndividualElement elem);
+    boolean removeIndividualElements(IndividualElement elem);
 
     /**
      * Gets all the elements for the property IndividualElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualElements
      *
      * @return The elements for the property IndividualElements
      */
-    Collection<org.xowl.infra.lang.owl2.IndividualElement> getAllIndividualElements();
+    Collection<IndividualElement> getAllIndividualElements();
 
 }

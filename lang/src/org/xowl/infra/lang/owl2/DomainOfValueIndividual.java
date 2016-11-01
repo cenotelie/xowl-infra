@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno0
+ * Represents the base interface for DomainOfValueIndividual
  *
  * @author xOWL code generator
  */
-public interface Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno0 {
+public interface DomainOfValueIndividual {
     /**
-     * Sets the value for the property AnnotProperty
+     * Sets the value for the property ValueIndividual
+     * Original OWL property is http://xowl.org/infra/lang/owl2#valueIndividual
      *
      * @param elem The value to set
      */
-    void setAnnotProperty(org.xowl.infra.lang.owl2.IRI elem);
+    void setValueIndividual(IndividualExpression elem);
 
     /**
-     * Gets the value for the property AnnotProperty
+     * Gets the value for the property ValueIndividual
+     * Original OWL property is http://xowl.org/infra/lang/owl2#valueIndividual
      *
-     * @return The value for the property AnnotProperty
+     * @return The value for the property ValueIndividual
      */
-    org.xowl.infra.lang.owl2.IRI getAnnotProperty();
+    IndividualExpression getValueIndividual();
 
 }

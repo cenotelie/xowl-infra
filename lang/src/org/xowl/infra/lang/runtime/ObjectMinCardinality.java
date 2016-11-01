@@ -20,9 +20,10 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectMinCardinality
+ * Represents the base interface for ObjectMinCardinality
+ * Original OWL class is http://xowl.org/infra/lang/runtime#ObjectMinCardinality
  *
  * @author xOWL code generator
  */
-public interface ObjectMinCardinality extends org.xowl.infra.lang.runtime.ObjectCardinalityRestriction {
+public interface ObjectMinCardinality extends ObjectCardinalityRestriction {
 }

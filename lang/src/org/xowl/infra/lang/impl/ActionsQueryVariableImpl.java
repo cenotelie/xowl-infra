@@ -17,16 +17,20 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.actions.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class QueryVariable
+ * The default implementation for QueryVariable
+ * Original OWL class is http://xowl.org/infra/lang/actions#QueryVariable
  *
  * @author xOWL code generator
  */
-public class ActionsQueryVariableImpl implements org.xowl.infra.lang.actions.QueryVariable {
+public class ActionsQueryVariableImpl implements QueryVariable {
     /**
      * The backing data for the property Name
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/actions#name
      */
     private String __implName;
 
@@ -44,6 +48,7 @@ public class ActionsQueryVariableImpl implements org.xowl.infra.lang.actions.Que
      * Constructor for the implementation of QueryVariable
      */
     public ActionsQueryVariableImpl() {
+        // initialize property http://xowl.org/infra/lang/actions#name
         this.__implName = null;
     }
 }

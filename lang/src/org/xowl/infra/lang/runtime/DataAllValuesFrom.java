@@ -20,9 +20,10 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataAllValuesFrom
+ * Represents the base interface for DataAllValuesFrom
+ * Original OWL class is http://xowl.org/infra/lang/runtime#DataAllValuesFrom
  *
  * @author xOWL code generator
  */
-public interface DataAllValuesFrom extends org.xowl.infra.lang.runtime.NAryDataPropertyRestriction {
+public interface DataAllValuesFrom extends NAryDataPropertyRestriction {
 }

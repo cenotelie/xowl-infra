@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class ObjectComplementOf
+ * The default implementation for ObjectComplementOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectComplementOf
  *
  * @author xOWL code generator
  */
-public class Owl2ObjectComplementOfImpl implements org.xowl.infra.lang.owl2.ObjectComplementOf {
+public class Owl2ObjectComplementOfImpl implements ObjectComplementOf {
     /**
      * The backing data for the property Classe
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#classe
      */
-    private org.xowl.infra.lang.owl2.ClassExpression __implClasse;
+    private ClassExpression __implClasse;
 
     /**
      * Adds a value to the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    protected void doSimpleAddClasse(ClassExpression elem) {
         __implClasse = elem;
     }
 
     /**
      * Removes a value from the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    protected void doSimpleRemoveClasse(ClassExpression elem) {
         __implClasse = null;
     }
 
     /**
      * Adds a value to the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doPropertyAddClasse(ClassExpression elem) {
         doSimpleAddClasse(elem);
     }
 
     /**
      * Removes a value from the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doPropertyRemoveClasse(ClassExpression elem) {
         doSimpleRemoveClasse(elem);
     }
 
     /**
      * Tries to add a value to the property Classe and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doGraphAddClasse(ClassExpression elem) {
         doPropertyAddClasse(elem);
     }
 
     /**
      * Tries to remove a value from the property Classe and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doGraphRemoveClasse(ClassExpression elem) {
         doPropertyRemoveClasse(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Classe
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doDispatchAddClasse(ClassExpression elem) {
         doGraphAddClasse(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Classe
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    private void doDispatchRemoveClasse(ClassExpression elem) {
         doGraphRemoveClasse(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.ClassExpression getClasse() {
+    public ClassExpression getClasse() {
         return __implClasse;
     }
 
     @Override
-    public void setClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+    public void setClasse(ClassExpression elem) {
         if (__implClasse == elem)
             return;
         if (elem == null) {
@@ -127,6 +139,7 @@ public class Owl2ObjectComplementOfImpl implements org.xowl.infra.lang.owl2.Obje
      * Constructor for the implementation of ObjectComplementOf
      */
     public Owl2ObjectComplementOfImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#classe
         this.__implClasse = null;
     }
 }

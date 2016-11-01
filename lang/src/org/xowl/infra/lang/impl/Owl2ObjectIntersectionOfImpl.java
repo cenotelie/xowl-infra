@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class ObjectIntersectionOf
+ * The default implementation for ObjectIntersectionOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectIntersectionOf
  *
  * @author xOWL code generator
  */
-public class Owl2ObjectIntersectionOfImpl implements org.xowl.infra.lang.owl2.ObjectIntersectionOf {
+public class Owl2ObjectIntersectionOfImpl implements ObjectIntersectionOf {
     /**
      * The backing data for the property ClassSeq
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#classSeq
      */
-    private org.xowl.infra.lang.owl2.ClassSequenceExpression __implClassSeq;
+    private ClassSequenceExpression __implClassSeq;
 
     /**
      * Adds a value to the property ClassSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classSeq
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddClassSeq(org.xowl.infra.lang.owl2.ClassSequenceExpression elem) {
+    protected void doSimpleAddClassSeq(ClassSequenceExpression elem) {
         __implClassSeq = elem;
     }
 
     /**
      * Removes a value from the property ClassSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classSeq
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveClassSeq(org.xowl.infra.lang.owl2.ClassSequenceExpression elem) {
+    protected void doSimpleRemoveClassSeq(ClassSequenceExpression elem) {
         __implClassSeq = null;
     }
 
     /**
      * Adds a value to the property ClassSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classSeq
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddClassSeq(org.xowl.infra.lang.owl2.ClassSequenceExpression elem) {
+    private void doPropertyAddClassSeq(ClassSequenceExpression elem) {
         doSimpleAddClassSeq(elem);
     }
 
     /**
      * Removes a value from the property ClassSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classSeq
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveClassSeq(org.xowl.infra.lang.owl2.ClassSequenceExpression elem) {
+    private void doPropertyRemoveClassSeq(ClassSequenceExpression elem) {
         doSimpleRemoveClassSeq(elem);
     }
 
     /**
      * Tries to add a value to the property ClassSeq and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classSeq
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddClassSeq(org.xowl.infra.lang.owl2.ClassSequenceExpression elem) {
+    private void doGraphAddClassSeq(ClassSequenceExpression elem) {
         doPropertyAddClassSeq(elem);
     }
 
     /**
      * Tries to remove a value from the property ClassSeq and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classSeq
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveClassSeq(org.xowl.infra.lang.owl2.ClassSequenceExpression elem) {
+    private void doGraphRemoveClassSeq(ClassSequenceExpression elem) {
         doPropertyRemoveClassSeq(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property ClassSeq
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classSeq
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddClassSeq(org.xowl.infra.lang.owl2.ClassSequenceExpression elem) {
+    private void doDispatchAddClassSeq(ClassSequenceExpression elem) {
         doGraphAddClassSeq(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property ClassSeq
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classSeq
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveClassSeq(org.xowl.infra.lang.owl2.ClassSequenceExpression elem) {
+    private void doDispatchRemoveClassSeq(ClassSequenceExpression elem) {
         doGraphRemoveClassSeq(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.ClassSequenceExpression getClassSeq() {
+    public ClassSequenceExpression getClassSeq() {
         return __implClassSeq;
     }
 
     @Override
-    public void setClassSeq(org.xowl.infra.lang.owl2.ClassSequenceExpression elem) {
+    public void setClassSeq(ClassSequenceExpression elem) {
         if (__implClassSeq == elem)
             return;
         if (elem == null) {
@@ -127,6 +139,7 @@ public class Owl2ObjectIntersectionOfImpl implements org.xowl.infra.lang.owl2.Ob
      * Constructor for the implementation of ObjectIntersectionOf
      */
     public Owl2ObjectIntersectionOfImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#classSeq
         this.__implClassSeq = null;
     }
 }

@@ -20,59 +20,67 @@ package org.xowl.infra.lang.rules;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Rule
+ * Represents the base interface for Rule
+ * Original OWL class is http://xowl.org/infra/lang/rules#Rule
  *
  * @author xOWL code generator
  */
 public interface Rule {
     /**
      * Adds an element to the property Antecedents
+     * Original OWL property is http://xowl.org/infra/lang/rules#antecedents
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addAntecedents(org.xowl.infra.lang.rules.Assertion elem);
+    boolean addAntecedents(Assertion elem);
 
     /**
      * Removes an element from the property Antecedents
+     * Original OWL property is http://xowl.org/infra/lang/rules#antecedents
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeAntecedents(org.xowl.infra.lang.rules.Assertion elem);
+    boolean removeAntecedents(Assertion elem);
 
     /**
      * Gets all the elements for the property Antecedents
+     * Original OWL property is http://xowl.org/infra/lang/rules#antecedents
      *
      * @return The elements for the property Antecedents
      */
-    Collection<org.xowl.infra.lang.rules.Assertion> getAllAntecedents();
+    Collection<Assertion> getAllAntecedents();
 
     /**
      * Adds an element to the property Consequents
+     * Original OWL property is http://xowl.org/infra/lang/rules#consequents
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addConsequents(org.xowl.infra.lang.rules.Assertion elem);
+    boolean addConsequents(Assertion elem);
 
     /**
      * Removes an element from the property Consequents
+     * Original OWL property is http://xowl.org/infra/lang/rules#consequents
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeConsequents(org.xowl.infra.lang.rules.Assertion elem);
+    boolean removeConsequents(Assertion elem);
 
     /**
      * Gets all the elements for the property Consequents
+     * Original OWL property is http://xowl.org/infra/lang/rules#consequents
      *
      * @return The elements for the property Consequents
      */
-    Collection<org.xowl.infra.lang.rules.Assertion> getAllConsequents();
+    Collection<Assertion> getAllConsequents();
 
     /**
      * Sets the value for the property Guard
+     * Original OWL property is http://xowl.org/infra/lang/rules#guard
      *
      * @param elem The value to set
      */
@@ -80,6 +88,7 @@ public interface Rule {
 
     /**
      * Gets the value for the property Guard
+     * Original OWL property is http://xowl.org/infra/lang/rules#guard
      *
      * @return The value for the property Guard
      */
@@ -87,6 +96,7 @@ public interface Rule {
 
     /**
      * Sets the value for the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/rules#hasIRI
      *
      * @param elem The value to set
      */
@@ -94,6 +104,7 @@ public interface Rule {
 
     /**
      * Gets the value for the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/rules#hasIRI
      *
      * @return The value for the property HasIRI
      */

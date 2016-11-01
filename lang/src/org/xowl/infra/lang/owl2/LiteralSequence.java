@@ -20,32 +20,36 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class LiteralSequence
+ * Represents the base interface for LiteralSequence
+ * Original OWL class is http://xowl.org/infra/lang/owl2#LiteralSequence
  *
  * @author xOWL code generator
  */
-public interface LiteralSequence extends org.xowl.infra.lang.owl2.LiteralSequenceExpression {
+public interface LiteralSequence extends LiteralSequenceExpression {
     /**
      * Adds an element to the property LiteralElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalElements
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem);
+    boolean addLiteralElements(LiteralElement elem);
 
     /**
      * Removes an element from the property LiteralElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalElements
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeLiteralElements(org.xowl.infra.lang.owl2.LiteralElement elem);
+    boolean removeLiteralElements(LiteralElement elem);
 
     /**
      * Gets all the elements for the property LiteralElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#literalElements
      *
      * @return The elements for the property LiteralElements
      */
-    Collection<org.xowl.infra.lang.owl2.LiteralElement> getAllLiteralElements();
+    Collection<LiteralElement> getAllLiteralElements();
 
 }

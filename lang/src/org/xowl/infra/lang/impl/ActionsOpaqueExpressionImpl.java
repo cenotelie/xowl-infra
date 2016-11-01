@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.actions.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class OpaqueExpression
+ * The default implementation for OpaqueExpression
+ * Original OWL class is http://xowl.org/infra/lang/actions#OpaqueExpression
  *
  * @author xOWL code generator
  */
-public class ActionsOpaqueExpressionImpl implements org.xowl.infra.lang.actions.OpaqueExpression {
+public class ActionsOpaqueExpressionImpl implements OpaqueExpression {
     /**
      * The backing data for the property Value
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/actions#value
      */
-    private Object __implValue;
+    private java.lang.Object __implValue;
 
     /**
      * Adds a value to the property Value
+     * Original OWL property is http://xowl.org/infra/lang/actions#value
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddValue(Object elem) {
+    protected void doSimpleAddValue(java.lang.Object elem) {
         __implValue = elem;
     }
 
     /**
      * Removes a value from the property Value
+     * Original OWL property is http://xowl.org/infra/lang/actions#value
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveValue(Object elem) {
+    protected void doSimpleRemoveValue(java.lang.Object elem) {
         __implValue = null;
     }
 
     /**
      * Adds a value to the property Value
+     * Original OWL property is http://xowl.org/infra/lang/actions#value
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddValue(Object elem) {
+    private void doPropertyAddValue(java.lang.Object elem) {
         doSimpleAddValue(elem);
     }
 
     /**
      * Removes a value from the property Value
+     * Original OWL property is http://xowl.org/infra/lang/actions#value
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveValue(Object elem) {
+    private void doPropertyRemoveValue(java.lang.Object elem) {
         doSimpleRemoveValue(elem);
     }
 
     /**
      * Tries to add a value to the property Value and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/actions#value
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddValue(Object elem) {
+    private void doGraphAddValue(java.lang.Object elem) {
         doPropertyAddValue(elem);
     }
 
     /**
      * Tries to remove a value from the property Value and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/actions#value
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveValue(Object elem) {
+    private void doGraphRemoveValue(java.lang.Object elem) {
         doPropertyRemoveValue(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Value
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/actions#value
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddValue(Object elem) {
+    private void doDispatchAddValue(java.lang.Object elem) {
         doGraphAddValue(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Value
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/actions#value
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveValue(Object elem) {
+    private void doDispatchRemoveValue(java.lang.Object elem) {
         doGraphRemoveValue(elem);
     }
 
     @Override
-    public Object getValue() {
+    public java.lang.Object getValue() {
         return __implValue;
     }
 
     @Override
-    public void setValue(Object elem) {
+    public void setValue(java.lang.Object elem) {
         if (__implValue == elem)
             return;
         if (elem == null) {
@@ -127,6 +139,7 @@ public class ActionsOpaqueExpressionImpl implements org.xowl.infra.lang.actions.
      * Constructor for the implementation of OpaqueExpression
      */
     public ActionsOpaqueExpressionImpl() {
+        // initialize property http://xowl.org/infra/lang/actions#value
         this.__implValue = null;
     }
 }

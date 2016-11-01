@@ -20,13 +20,15 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class AnonymousIndividual
+ * Represents the base interface for AnonymousIndividual
+ * Original OWL class is http://xowl.org/infra/lang/owl2#AnonymousIndividual
  *
  * @author xOWL code generator
  */
-public interface AnonymousIndividual extends org.xowl.infra.lang.owl2.AnnotationSubject, org.xowl.infra.lang.owl2.AnnotationValue, org.xowl.infra.lang.runtime.Individual, org.xowl.infra.lang.owl2.IndividualExpression, org.xowl.infra.lang.runtime.Value {
+public interface AnonymousIndividual extends AnnotationSubject, AnnotationValue, org.xowl.infra.lang.runtime.Individual, IndividualExpression, org.xowl.infra.lang.runtime.Value {
     /**
      * Sets the value for the property NodeID
+     * Original OWL property is http://xowl.org/infra/lang/owl2#nodeID
      *
      * @param elem The value to set
      */
@@ -34,6 +36,7 @@ public interface AnonymousIndividual extends org.xowl.infra.lang.owl2.Annotation
 
     /**
      * Gets the value for the property NodeID
+     * Original OWL property is http://xowl.org/infra/lang/owl2#nodeID
      *
      * @return The value for the property NodeID
      */

@@ -20,13 +20,15 @@ package org.xowl.infra.lang.rules;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Assertion
+ * Represents the base interface for Assertion
+ * Original OWL class is http://xowl.org/infra/lang/rules#Assertion
  *
  * @author xOWL code generator
  */
 public interface Assertion {
     /**
      * Adds an element to the property Axioms
+     * Original OWL property is http://xowl.org/infra/lang/rules#axioms
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
@@ -35,6 +37,7 @@ public interface Assertion {
 
     /**
      * Removes an element from the property Axioms
+     * Original OWL property is http://xowl.org/infra/lang/rules#axioms
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
@@ -43,6 +46,7 @@ public interface Assertion {
 
     /**
      * Gets all the elements for the property Axioms
+     * Original OWL property is http://xowl.org/infra/lang/rules#axioms
      *
      * @return The elements for the property Axioms
      */
@@ -50,6 +54,7 @@ public interface Assertion {
 
     /**
      * Sets the value for the property IsMeta
+     * Original OWL property is http://xowl.org/infra/lang/rules#isMeta
      *
      * @param elem The value to set
      */
@@ -57,6 +62,7 @@ public interface Assertion {
 
     /**
      * Gets the value for the property IsMeta
+     * Original OWL property is http://xowl.org/infra/lang/rules#isMeta
      *
      * @return The value for the property IsMeta
      */
@@ -64,6 +70,7 @@ public interface Assertion {
 
     /**
      * Sets the value for the property IsPositive
+     * Original OWL property is http://xowl.org/infra/lang/rules#isPositive
      *
      * @param elem The value to set
      */
@@ -71,6 +78,7 @@ public interface Assertion {
 
     /**
      * Gets the value for the property IsPositive
+     * Original OWL property is http://xowl.org/infra/lang/rules#isPositive
      *
      * @return The value for the property IsPositive
      */

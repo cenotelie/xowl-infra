@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class IndividualExpression
+ * Represents the base interface for IndividualExpression
+ * Original OWL class is http://xowl.org/infra/lang/owl2#IndividualExpression
  *
  * @author xOWL code generator
  */
-public interface IndividualExpression extends org.xowl.infra.lang.owl2.Expression {
+public interface IndividualExpression extends Expression {
 }

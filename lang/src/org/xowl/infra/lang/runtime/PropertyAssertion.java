@@ -20,13 +20,15 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class PropertyAssertion
+ * Represents the base interface for PropertyAssertion
+ * Original OWL class is http://xowl.org/infra/lang/runtime#PropertyAssertion
  *
  * @author xOWL code generator
  */
 public interface PropertyAssertion {
     /**
      * Sets the value for the property IsNegative
+     * Original OWL property is http://xowl.org/infra/lang/runtime#isNegative
      *
      * @param elem The value to set
      */
@@ -34,6 +36,7 @@ public interface PropertyAssertion {
 
     /**
      * Gets the value for the property IsNegative
+     * Original OWL property is http://xowl.org/infra/lang/runtime#isNegative
      *
      * @return The value for the property IsNegative
      */
@@ -41,18 +44,20 @@ public interface PropertyAssertion {
 
     /**
      * Sets the value for the property Property
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param elem The value to set
      */
-    void setProperty(org.xowl.infra.lang.runtime.Property elem);
+    void setProperty(Property elem);
 
     /**
      * Gets the value for the property Property
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param type An element of the type expected in result (may be null)
      *             This parameter is used to disambiguate among overloads.
      * @return The value for the property Property
      */
-    org.xowl.infra.lang.runtime.Property getPropertyAs(org.xowl.infra.lang.runtime.Property type);
+    Property getPropertyAs(Property type);
 
 }

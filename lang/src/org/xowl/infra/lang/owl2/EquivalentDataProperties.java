@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class EquivalentDataProperties
+ * Represents the base interface for EquivalentDataProperties
+ * Original OWL class is http://xowl.org/infra/lang/owl2#EquivalentDataProperties
  *
  * @author xOWL code generator
  */
-public interface EquivalentDataProperties extends org.xowl.infra.lang.owl2.DataPropertyAxiom, org.xowl.infra.lang.owl2.DisjointDataProperties_OR_EquivalentDataProperties_OR_HasKey_OR_NAryDataPropertyRestriction {
+public interface EquivalentDataProperties extends DataPropertyAxiom, DomainOfDataPropertySeq {
 }

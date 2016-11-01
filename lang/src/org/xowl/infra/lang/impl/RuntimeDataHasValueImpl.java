@@ -17,100 +17,113 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.lang.runtime.Class;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class DataHasValue
+ * The default implementation for DataHasValue
+ * Original OWL class is http://xowl.org/infra/lang/runtime#DataHasValue
  *
  * @author xOWL code generator
  */
-public class RuntimeDataHasValueImpl implements org.xowl.infra.lang.runtime.DataHasValue {
+public class RuntimeDataHasValueImpl implements DataHasValue {
     /**
      * The backing data for the property DataProperty
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#dataProperty
      */
-    private org.xowl.infra.lang.runtime.DataProperty __implDataProperty;
+    private DataProperty __implDataProperty;
 
     /**
      * Adds a value to the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    protected void doSimpleAddDataProperty(DataProperty elem) {
         __implDataProperty = elem;
     }
 
     /**
      * Removes a value from the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    protected void doSimpleRemoveDataProperty(DataProperty elem) {
         __implDataProperty = null;
     }
 
     /**
      * Adds a value to the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doPropertyAddDataProperty(DataProperty elem) {
         doSimpleAddDataProperty(elem);
     }
 
     /**
      * Removes a value from the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doPropertyRemoveDataProperty(DataProperty elem) {
         doSimpleRemoveDataProperty(elem);
     }
 
     /**
      * Tries to add a value to the property DataProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doGraphAddDataProperty(DataProperty elem) {
         doPropertyAddDataProperty(elem);
     }
 
     /**
      * Tries to remove a value from the property DataProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doGraphRemoveDataProperty(DataProperty elem) {
         doPropertyRemoveDataProperty(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property DataProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doDispatchAddDataProperty(DataProperty elem) {
         doGraphAddDataProperty(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property DataProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doDispatchRemoveDataProperty(DataProperty elem) {
         doGraphRemoveDataProperty(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.DataProperty getDataProperty() {
+    public DataProperty getDataProperty() {
         return __implDataProperty;
     }
 
     @Override
-    public void setDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    public void setDataProperty(DataProperty elem) {
         if (__implDataProperty == elem)
             return;
         if (elem == null) {
@@ -125,90 +138,99 @@ public class RuntimeDataHasValueImpl implements org.xowl.infra.lang.runtime.Data
 
     /**
      * The backing data for the property Literal
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#literal
      */
-    private org.xowl.infra.lang.runtime.Literal __implLiteral;
+    private Literal __implLiteral;
 
     /**
      * Adds a value to the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/runtime#literal
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    protected void doSimpleAddLiteral(Literal elem) {
         __implLiteral = elem;
     }
 
     /**
      * Removes a value from the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/runtime#literal
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    protected void doSimpleRemoveLiteral(Literal elem) {
         __implLiteral = null;
     }
 
     /**
      * Adds a value to the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/runtime#literal
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doPropertyAddLiteral(Literal elem) {
         doSimpleAddLiteral(elem);
     }
 
     /**
      * Removes a value from the property Literal
+     * Original OWL property is http://xowl.org/infra/lang/runtime#literal
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doPropertyRemoveLiteral(Literal elem) {
         doSimpleRemoveLiteral(elem);
     }
 
     /**
      * Tries to add a value to the property Literal and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#literal
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doGraphAddLiteral(Literal elem) {
         doPropertyAddLiteral(elem);
     }
 
     /**
      * Tries to remove a value from the property Literal and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#literal
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doGraphRemoveLiteral(Literal elem) {
         doPropertyRemoveLiteral(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Literal
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#literal
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doDispatchAddLiteral(Literal elem) {
         doGraphAddLiteral(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Literal
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#literal
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    private void doDispatchRemoveLiteral(Literal elem) {
         doGraphRemoveLiteral(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Literal getLiteral() {
+    public Literal getLiteral() {
         return __implLiteral;
     }
 
     @Override
-    public void setLiteral(org.xowl.infra.lang.runtime.Literal elem) {
+    public void setLiteral(Literal elem) {
         if (__implLiteral == elem)
             return;
         if (elem == null) {
@@ -225,7 +247,9 @@ public class RuntimeDataHasValueImpl implements org.xowl.infra.lang.runtime.Data
      * Constructor for the implementation of DataHasValue
      */
     public RuntimeDataHasValueImpl() {
+        // initialize property http://xowl.org/infra/lang/runtime#dataProperty
         this.__implDataProperty = null;
+        // initialize property http://xowl.org/infra/lang/runtime#literal
         this.__implLiteral = null;
     }
 }

@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DatarangeElement
+ * Represents the base interface for DatarangeElement
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DatarangeElement
  *
  * @author xOWL code generator
  */
-public interface DatarangeElement extends org.xowl.infra.lang.owl2.SequenceElement, org.xowl.infra.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype2 {
+public interface DatarangeElement extends SequenceElement, DomainOfDatarange {
 }

@@ -20,9 +20,10 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectCardinalityRestriction
+ * Represents the base interface for ObjectCardinalityRestriction
+ * Original OWL class is http://xowl.org/infra/lang/runtime#ObjectCardinalityRestriction
  *
  * @author xOWL code generator
  */
-public interface ObjectCardinalityRestriction extends org.xowl.infra.lang.runtime.CardinalityRestriction, org.xowl.infra.lang.runtime.ObjectPropertyRestriction, org.xowl.infra.lang.runtime.ObjectAllValuesFrom_OR_ObjectCardinalityRestriction_OR_ObjectSomeValuesFrom {
+public interface ObjectCardinalityRestriction extends CardinalityRestriction, ObjectPropertyRestriction, DomainOfClasse {
 }

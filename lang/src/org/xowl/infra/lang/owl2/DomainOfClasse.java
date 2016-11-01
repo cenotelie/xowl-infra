@@ -15,14 +15,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lang.runtime;
+package org.xowl.infra.lang.owl2;
 
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Class_OR_Datatype
+ * Represents the base interface for DomainOfClasse
  *
  * @author xOWL code generator
  */
-public interface Class_OR_Datatype {
+public interface DomainOfClasse {
+    /**
+     * Sets the value for the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
+     *
+     * @param elem The value to set
+     */
+    void setClasse(ClassExpression elem);
+
+    /**
+     * Gets the value for the property Classe
+     * Original OWL property is http://xowl.org/infra/lang/owl2#classe
+     *
+     * @return The value for the property Classe
+     */
+    ClassExpression getClasse();
+
 }

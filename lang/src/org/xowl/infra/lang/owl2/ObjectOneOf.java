@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectOneOf
+ * Represents the base interface for ObjectOneOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectOneOf
  *
  * @author xOWL code generator
  */
-public interface ObjectOneOf extends org.xowl.infra.lang.owl2.ClassExpression, org.xowl.infra.lang.owl2.DifferentIndividuals_OR_ObjectOneOf_OR_SameIndividual {
+public interface ObjectOneOf extends ClassExpression, DomainOfIndividualSeq {
 }

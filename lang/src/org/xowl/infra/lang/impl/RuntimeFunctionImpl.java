@@ -17,100 +17,113 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.lang.runtime.Class;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class Function
+ * The default implementation for Function
+ * Original OWL class is http://xowl.org/infra/lang/runtime#Function
  *
  * @author xOWL code generator
  */
-public class RuntimeFunctionImpl implements org.xowl.infra.lang.runtime.Function {
+public class RuntimeFunctionImpl implements Function {
     /**
      * The backing data for the property DefinedAs
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#definedAs
      */
-    private Object __implDefinedAs;
+    private java.lang.Object __implDefinedAs;
 
     /**
      * Adds a value to the property DefinedAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#definedAs
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDefinedAs(Object elem) {
+    protected void doSimpleAddDefinedAs(java.lang.Object elem) {
         __implDefinedAs = elem;
     }
 
     /**
      * Removes a value from the property DefinedAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#definedAs
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDefinedAs(Object elem) {
+    protected void doSimpleRemoveDefinedAs(java.lang.Object elem) {
         __implDefinedAs = null;
     }
 
     /**
      * Adds a value to the property DefinedAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#definedAs
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDefinedAs(Object elem) {
+    private void doPropertyAddDefinedAs(java.lang.Object elem) {
         doSimpleAddDefinedAs(elem);
     }
 
     /**
      * Removes a value from the property DefinedAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#definedAs
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDefinedAs(Object elem) {
+    private void doPropertyRemoveDefinedAs(java.lang.Object elem) {
         doSimpleRemoveDefinedAs(elem);
     }
 
     /**
      * Tries to add a value to the property DefinedAs and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#definedAs
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDefinedAs(Object elem) {
+    private void doGraphAddDefinedAs(java.lang.Object elem) {
         doPropertyAddDefinedAs(elem);
     }
 
     /**
      * Tries to remove a value from the property DefinedAs and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#definedAs
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDefinedAs(Object elem) {
+    private void doGraphRemoveDefinedAs(java.lang.Object elem) {
         doPropertyRemoveDefinedAs(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property DefinedAs
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#definedAs
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDefinedAs(Object elem) {
+    private void doDispatchAddDefinedAs(java.lang.Object elem) {
         doGraphAddDefinedAs(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property DefinedAs
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#definedAs
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDefinedAs(Object elem) {
+    private void doDispatchRemoveDefinedAs(java.lang.Object elem) {
         doGraphRemoveDefinedAs(elem);
     }
 
     @Override
-    public Object getDefinedAs() {
+    public java.lang.Object getDefinedAs() {
         return __implDefinedAs;
     }
 
     @Override
-    public void setDefinedAs(Object elem) {
+    public void setDefinedAs(java.lang.Object elem) {
         if (__implDefinedAs == elem)
             return;
         if (elem == null) {
@@ -125,34 +138,38 @@ public class RuntimeFunctionImpl implements org.xowl.infra.lang.runtime.Function
 
     /**
      * The backing data for the property InterpretationOf
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#interpretationOf
      */
-    private org.xowl.infra.lang.runtime.Entity __implInterpretationOf;
+    private Entity __implInterpretationOf;
 
     /**
      * Adds a value to the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    protected void doSimpleAddInterpretationOf(Entity elem) {
         __implInterpretationOf = elem;
     }
 
     /**
      * Removes a value from the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    protected void doSimpleRemoveInterpretationOf(Entity elem) {
         __implInterpretationOf = null;
     }
 
     /**
      * Adds a value to the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      * This method will also update the inverse property InterpretedAs
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doPropertyAddInterpretationOf(Entity elem) {
         doSimpleAddInterpretationOf(elem);
         if (elem instanceof RuntimeEntityImpl)
             ((RuntimeEntityImpl) elem).doSimpleAddInterpretedAs(this);
@@ -160,11 +177,12 @@ public class RuntimeFunctionImpl implements org.xowl.infra.lang.runtime.Function
 
     /**
      * Removes a value from the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      * This method will also update the inverse property InterpretedAs
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doPropertyRemoveInterpretationOf(Entity elem) {
         doSimpleRemoveInterpretationOf(elem);
         if (elem instanceof RuntimeEntityImpl)
             ((RuntimeEntityImpl) elem).doSimpleRemoveInterpretedAs(this);
@@ -172,49 +190,53 @@ public class RuntimeFunctionImpl implements org.xowl.infra.lang.runtime.Function
 
     /**
      * Tries to add a value to the property InterpretationOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doGraphAddInterpretationOf(Entity elem) {
         doPropertyAddInterpretationOf(elem);
     }
 
     /**
      * Tries to remove a value from the property InterpretationOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doGraphRemoveInterpretationOf(Entity elem) {
         doPropertyRemoveInterpretationOf(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property InterpretationOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doDispatchAddInterpretationOf(Entity elem) {
         doGraphAddInterpretationOf(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property InterpretationOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doDispatchRemoveInterpretationOf(Entity elem) {
         doGraphRemoveInterpretationOf(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Entity getInterpretationOf() {
+    public Entity getInterpretationOf() {
         return __implInterpretationOf;
     }
 
     @Override
-    public void setInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    public void setInterpretationOf(Entity elem) {
         if (__implInterpretationOf == elem)
             return;
         if (elem == null) {
@@ -231,7 +253,9 @@ public class RuntimeFunctionImpl implements org.xowl.infra.lang.runtime.Function
      * Constructor for the implementation of Function
      */
     public RuntimeFunctionImpl() {
+        // initialize property http://xowl.org/infra/lang/runtime#definedAs
         this.__implDefinedAs = null;
+        // initialize property http://xowl.org/infra/lang/runtime#interpretationOf
         this.__implInterpretationOf = null;
     }
 }

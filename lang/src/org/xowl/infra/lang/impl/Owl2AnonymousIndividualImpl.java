@@ -17,21 +17,26 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class AnonymousIndividual
+ * The default implementation for AnonymousIndividual
+ * Original OWL class is http://xowl.org/infra/lang/owl2#AnonymousIndividual
  *
  * @author xOWL code generator
  */
-public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.AnonymousIndividual {
+public class Owl2AnonymousIndividualImpl implements AnonymousIndividual {
     /**
      * The backing data for the property Asserts
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#asserts
      */
     private List<org.xowl.infra.lang.runtime.PropertyAssertion> __implAsserts;
 
     /**
      * Adds a value to the property Asserts
+     * Original OWL property is http://xowl.org/infra/lang/runtime#asserts
      *
      * @param elem The element value to add (must not be null)
      */
@@ -41,6 +46,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Removes a value from the property Asserts
+     * Original OWL property is http://xowl.org/infra/lang/runtime#asserts
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -50,6 +56,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Adds a value to the property Asserts
+     * Original OWL property is http://xowl.org/infra/lang/runtime#asserts
      *
      * @param elem The element value to add (must not be null)
      */
@@ -59,6 +66,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Removes a value from the property Asserts
+     * Original OWL property is http://xowl.org/infra/lang/runtime#asserts
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -68,6 +76,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Tries to add a value to the property Asserts and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#asserts
      *
      * @param elem The element value to add (must not be null)
      */
@@ -77,6 +86,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Tries to remove a value from the property Asserts and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#asserts
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -87,6 +97,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
     /**
      * Dispatches the request for the addition of a value to the property Asserts
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#asserts
      *
      * @param elem The element value to add (must not be null)
      */
@@ -97,6 +108,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
     /**
      * Dispatches the request for the removal of a value from the property Asserts
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#asserts
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -131,11 +143,13 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * The backing data for the property ClassifiedBy
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#classifiedBy
      */
     private List<org.xowl.infra.lang.runtime.Class> __implClassifiedBy;
 
     /**
      * Adds a value to the property ClassifiedBy
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classifiedBy
      *
      * @param elem The element value to add (must not be null)
      */
@@ -145,6 +159,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Removes a value from the property ClassifiedBy
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classifiedBy
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -154,6 +169,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Adds a value to the property ClassifiedBy
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classifiedBy
      * This method will also update the inverse property Classifies
      *
      * @param elem The element value to add (must not be null)
@@ -166,6 +182,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Removes a value from the property ClassifiedBy
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classifiedBy
      * This method will also update the inverse property Classifies
      *
      * @param elem The element value to remove (must not be null)
@@ -178,6 +195,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Tries to add a value to the property ClassifiedBy and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classifiedBy
      *
      * @param elem The element value to add (must not be null)
      */
@@ -187,6 +205,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Tries to remove a value from the property ClassifiedBy and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classifiedBy
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -197,6 +216,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
     /**
      * Dispatches the request for the addition of a value to the property ClassifiedBy
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classifiedBy
      *
      * @param elem The element value to add (must not be null)
      */
@@ -207,6 +227,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
     /**
      * Dispatches the request for the removal of a value from the property ClassifiedBy
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#classifiedBy
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -241,11 +262,13 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * The backing data for the property DifferentFrom
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#differentFrom
      */
     private List<org.xowl.infra.lang.runtime.Individual> __implDifferentFrom;
 
     /**
      * Adds a value to the property DifferentFrom
+     * Original OWL property is http://xowl.org/infra/lang/runtime#differentFrom
      *
      * @param elem The element value to add (must not be null)
      */
@@ -255,6 +278,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Removes a value from the property DifferentFrom
+     * Original OWL property is http://xowl.org/infra/lang/runtime#differentFrom
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -264,34 +288,37 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Adds a value to the property DifferentFrom
+     * Original OWL property is http://xowl.org/infra/lang/runtime#differentFrom
      * This method will also update the inverse property DifferentFrom
      *
      * @param elem The element value to add (must not be null)
      */
     private void doPropertyAddDifferentFrom(org.xowl.infra.lang.runtime.Individual elem) {
         doSimpleAddDifferentFrom(elem);
-        if (elem instanceof RuntimeNamedIndividualImpl)
-            ((RuntimeNamedIndividualImpl) elem).doSimpleAddDifferentFrom(this);
-        else if (elem instanceof Owl2AnonymousIndividualImpl)
+        if (elem instanceof Owl2AnonymousIndividualImpl)
             ((Owl2AnonymousIndividualImpl) elem).doSimpleAddDifferentFrom(this);
+        else if (elem instanceof RuntimeNamedIndividualImpl)
+            ((RuntimeNamedIndividualImpl) elem).doSimpleAddDifferentFrom(this);
     }
 
     /**
      * Removes a value from the property DifferentFrom
+     * Original OWL property is http://xowl.org/infra/lang/runtime#differentFrom
      * This method will also update the inverse property DifferentFrom
      *
      * @param elem The element value to remove (must not be null)
      */
     private void doPropertyRemoveDifferentFrom(org.xowl.infra.lang.runtime.Individual elem) {
         doSimpleRemoveDifferentFrom(elem);
-        if (elem instanceof RuntimeNamedIndividualImpl)
-            ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveDifferentFrom(this);
-        else if (elem instanceof Owl2AnonymousIndividualImpl)
+        if (elem instanceof Owl2AnonymousIndividualImpl)
             ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveDifferentFrom(this);
+        else if (elem instanceof RuntimeNamedIndividualImpl)
+            ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveDifferentFrom(this);
     }
 
     /**
      * Tries to add a value to the property DifferentFrom and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#differentFrom
      *
      * @param elem The element value to add (must not be null)
      */
@@ -301,6 +328,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Tries to remove a value from the property DifferentFrom and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#differentFrom
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -311,6 +339,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
     /**
      * Dispatches the request for the addition of a value to the property DifferentFrom
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#differentFrom
      *
      * @param elem The element value to add (must not be null)
      */
@@ -321,6 +350,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
     /**
      * Dispatches the request for the removal of a value from the property DifferentFrom
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#differentFrom
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -355,6 +385,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * The backing data for the property NodeID
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#nodeID
      */
     private String __implNodeID;
 
@@ -370,11 +401,13 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * The backing data for the property SameAs
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#sameAs
      */
     private List<org.xowl.infra.lang.runtime.Individual> __implSameAs;
 
     /**
      * Adds a value to the property SameAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#sameAs
      *
      * @param elem The element value to add (must not be null)
      */
@@ -384,6 +417,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Removes a value from the property SameAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#sameAs
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -393,34 +427,37 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Adds a value to the property SameAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#sameAs
      * This method will also update the inverse property SameAs
      *
      * @param elem The element value to add (must not be null)
      */
     private void doPropertyAddSameAs(org.xowl.infra.lang.runtime.Individual elem) {
         doSimpleAddSameAs(elem);
-        if (elem instanceof RuntimeNamedIndividualImpl)
-            ((RuntimeNamedIndividualImpl) elem).doSimpleAddSameAs(this);
-        else if (elem instanceof Owl2AnonymousIndividualImpl)
+        if (elem instanceof Owl2AnonymousIndividualImpl)
             ((Owl2AnonymousIndividualImpl) elem).doSimpleAddSameAs(this);
+        else if (elem instanceof RuntimeNamedIndividualImpl)
+            ((RuntimeNamedIndividualImpl) elem).doSimpleAddSameAs(this);
     }
 
     /**
      * Removes a value from the property SameAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#sameAs
      * This method will also update the inverse property SameAs
      *
      * @param elem The element value to remove (must not be null)
      */
     private void doPropertyRemoveSameAs(org.xowl.infra.lang.runtime.Individual elem) {
         doSimpleRemoveSameAs(elem);
-        if (elem instanceof RuntimeNamedIndividualImpl)
-            ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveSameAs(this);
-        else if (elem instanceof Owl2AnonymousIndividualImpl)
+        if (elem instanceof Owl2AnonymousIndividualImpl)
             ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveSameAs(this);
+        else if (elem instanceof RuntimeNamedIndividualImpl)
+            ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveSameAs(this);
     }
 
     /**
      * Tries to add a value to the property SameAs and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#sameAs
      *
      * @param elem The element value to add (must not be null)
      */
@@ -430,6 +467,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
 
     /**
      * Tries to remove a value from the property SameAs and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#sameAs
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -440,6 +478,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
     /**
      * Dispatches the request for the addition of a value to the property SameAs
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#sameAs
      *
      * @param elem The element value to add (must not be null)
      */
@@ -450,6 +489,7 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
     /**
      * Dispatches the request for the removal of a value from the property SameAs
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#sameAs
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -486,10 +526,15 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
      * Constructor for the implementation of AnonymousIndividual
      */
     public Owl2AnonymousIndividualImpl() {
+        // initialize property http://xowl.org/infra/lang/runtime#asserts
         this.__implAsserts = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/runtime#classifiedBy
         this.__implClassifiedBy = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/runtime#differentFrom
         this.__implDifferentFrom = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/owl2#nodeID
         this.__implNodeID = null;
+        // initialize property http://xowl.org/infra/lang/runtime#sameAs
         this.__implSameAs = new ArrayList<>();
     }
 }

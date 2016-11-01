@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectMaxCardinality
+ * Represents the base interface for ObjectMaxCardinality
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectMaxCardinality
  *
  * @author xOWL code generator
  */
-public interface ObjectMaxCardinality extends org.xowl.infra.lang.owl2.ObjectCardinalityRestriction {
+public interface ObjectMaxCardinality extends ObjectCardinalityRestriction {
 }

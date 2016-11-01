@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class DataPropertySequence
+ * The default implementation for DataPropertySequence
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataPropertySequence
  *
  * @author xOWL code generator
  */
-public class Owl2DataPropertySequenceImpl implements org.xowl.infra.lang.owl2.DataPropertySequence {
+public class Owl2DataPropertySequenceImpl implements DataPropertySequence {
     /**
      * The backing data for the property DataPropertyElements
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#dataPropertyElements
      */
-    private List<org.xowl.infra.lang.owl2.DataPropertyElement> __implDataPropertyElements;
+    private List<DataPropertyElement> __implDataPropertyElements;
 
     /**
      * Adds a value to the property DataPropertyElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertyElements
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem) {
+    protected void doSimpleAddDataPropertyElements(DataPropertyElement elem) {
         __implDataPropertyElements.add(elem);
     }
 
     /**
      * Removes a value from the property DataPropertyElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertyElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem) {
+    protected void doSimpleRemoveDataPropertyElements(DataPropertyElement elem) {
         __implDataPropertyElements.remove(elem);
     }
 
     /**
      * Adds a value to the property DataPropertyElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertyElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem) {
+    private void doPropertyAddDataPropertyElements(DataPropertyElement elem) {
         doSimpleAddDataPropertyElements(elem);
     }
 
     /**
      * Removes a value from the property DataPropertyElements
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertyElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem) {
+    private void doPropertyRemoveDataPropertyElements(DataPropertyElement elem) {
         doSimpleRemoveDataPropertyElements(elem);
     }
 
     /**
      * Tries to add a value to the property DataPropertyElements and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertyElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem) {
+    private void doGraphAddDataPropertyElements(DataPropertyElement elem) {
         doPropertyAddDataPropertyElements(elem);
     }
 
     /**
      * Tries to remove a value from the property DataPropertyElements and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertyElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem) {
+    private void doGraphRemoveDataPropertyElements(DataPropertyElement elem) {
         doPropertyRemoveDataPropertyElements(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property DataPropertyElements
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertyElements
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem) {
+    private void doDispatchAddDataPropertyElements(DataPropertyElement elem) {
         doGraphAddDataPropertyElements(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property DataPropertyElements
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertyElements
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem) {
+    private void doDispatchRemoveDataPropertyElements(DataPropertyElement elem) {
         doGraphRemoveDataPropertyElements(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.owl2.DataPropertyElement> getAllDataPropertyElements() {
+    public Collection<DataPropertyElement> getAllDataPropertyElements() {
         return Collections.unmodifiableCollection(__implDataPropertyElements);
     }
 
     @Override
-    public boolean addDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem) {
+    public boolean addDataPropertyElements(DataPropertyElement elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implDataPropertyElements.contains(elem))
@@ -120,7 +132,7 @@ public class Owl2DataPropertySequenceImpl implements org.xowl.infra.lang.owl2.Da
     }
 
     @Override
-    public boolean removeDataPropertyElements(org.xowl.infra.lang.owl2.DataPropertyElement elem) {
+    public boolean removeDataPropertyElements(DataPropertyElement elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implDataPropertyElements.contains(elem))
@@ -133,6 +145,7 @@ public class Owl2DataPropertySequenceImpl implements org.xowl.infra.lang.owl2.Da
      * Constructor for the implementation of DataPropertySequence
      */
     public Owl2DataPropertySequenceImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#dataPropertyElements
         this.__implDataPropertyElements = new ArrayList<>();
     }
 }

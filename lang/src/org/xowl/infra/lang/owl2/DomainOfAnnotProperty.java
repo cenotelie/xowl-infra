@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class NegativeObjectPropertyAssertion_OR_ObjectPropertyAssertion
+ * Represents the base interface for DomainOfAnnotProperty
  *
  * @author xOWL code generator
  */
-public interface NegativeObjectPropertyAssertion_OR_ObjectPropertyAssertion {
+public interface DomainOfAnnotProperty {
     /**
-     * Sets the value for the property ValueIndividual
+     * Sets the value for the property AnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotProperty
      *
      * @param elem The value to set
      */
-    void setValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem);
+    void setAnnotProperty(IRI elem);
 
     /**
-     * Gets the value for the property ValueIndividual
+     * Gets the value for the property AnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotProperty
      *
-     * @return The value for the property ValueIndividual
+     * @return The value for the property AnnotProperty
      */
-    org.xowl.infra.lang.owl2.IndividualExpression getValueIndividual();
+    IRI getAnnotProperty();
 
 }

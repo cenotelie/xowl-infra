@@ -20,23 +20,26 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class AnnotationPropertyRange
+ * Represents the base interface for AnnotationPropertyRange
+ * Original OWL class is http://xowl.org/infra/lang/owl2#AnnotationPropertyRange
  *
  * @author xOWL code generator
  */
-public interface AnnotationPropertyRange extends org.xowl.infra.lang.owl2.AnnotationAxiom, org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno0 {
+public interface AnnotationPropertyRange extends AnnotationAxiom, DomainOfAnnotProperty {
     /**
      * Sets the value for the property AnnotRange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotRange
      *
      * @param elem The value to set
      */
-    void setAnnotRange(org.xowl.infra.lang.owl2.IRI elem);
+    void setAnnotRange(IRI elem);
 
     /**
      * Gets the value for the property AnnotRange
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotRange
      *
      * @return The value for the property AnnotRange
      */
-    org.xowl.infra.lang.owl2.IRI getAnnotRange();
+    IRI getAnnotRange();
 
 }

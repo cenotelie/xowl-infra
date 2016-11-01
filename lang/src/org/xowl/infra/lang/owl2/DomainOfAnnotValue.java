@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataHasValue_OR_LiteralElement
+ * Represents the base interface for DomainOfAnnotValue
  *
  * @author xOWL code generator
  */
-public interface DataHasValue_OR_LiteralElement {
+public interface DomainOfAnnotValue {
     /**
-     * Sets the value for the property Literal
+     * Sets the value for the property AnnotValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotValue
      *
      * @param elem The value to set
      */
-    void setLiteral(org.xowl.infra.lang.owl2.LiteralExpression elem);
+    void setAnnotValue(AnnotationValue elem);
 
     /**
-     * Gets the value for the property Literal
+     * Gets the value for the property AnnotValue
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotValue
      *
-     * @return The value for the property Literal
+     * @return The value for the property AnnotValue
      */
-    org.xowl.infra.lang.owl2.LiteralExpression getLiteral();
+    AnnotationValue getAnnotValue();
 
 }

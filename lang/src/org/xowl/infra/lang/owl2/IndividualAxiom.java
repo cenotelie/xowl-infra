@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class IndividualAxiom
+ * Represents the base interface for IndividualAxiom
+ * Original OWL class is http://xowl.org/infra/lang/owl2#IndividualAxiom
  *
  * @author xOWL code generator
  */
-public interface IndividualAxiom extends org.xowl.infra.lang.owl2.Axiom {
+public interface IndividualAxiom extends Axiom {
 }

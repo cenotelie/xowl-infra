@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5
+ * Represents the base interface for DomainOfObjectPropertySeq
  *
  * @author xOWL code generator
  */
-public interface DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5 {
+public interface DomainOfObjectPropertySeq {
     /**
-     * Sets the value for the property DataProperty
+     * Sets the value for the property ObjectPropertySeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#objectPropertySeq
      *
      * @param elem The value to set
      */
-    void setDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem);
+    void setObjectPropertySeq(ObjectPropertySequenceExpression elem);
 
     /**
-     * Gets the value for the property DataProperty
+     * Gets the value for the property ObjectPropertySeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#objectPropertySeq
      *
-     * @return The value for the property DataProperty
+     * @return The value for the property ObjectPropertySeq
      */
-    org.xowl.infra.lang.owl2.DataPropertyExpression getDataProperty();
+    ObjectPropertySequenceExpression getObjectPropertySeq();
 
 }

@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataPropertyExpression
+ * Represents the base interface for DataPropertyExpression
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataPropertyExpression
  *
  * @author xOWL code generator
  */
-public interface DataPropertyExpression extends org.xowl.infra.lang.owl2.Expression {
+public interface DataPropertyExpression extends Expression {
 }

@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO4
+ * Represents the base interface for DomainOfIndividualSeq
  *
  * @author xOWL code generator
  */
-public interface AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO4 {
+public interface DomainOfIndividualSeq {
     /**
-     * Sets the value for the property ObjectProperty
+     * Sets the value for the property IndividualSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualSeq
      *
      * @param elem The value to set
      */
-    void setObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem);
+    void setIndividualSeq(IndividualSequenceExpression elem);
 
     /**
-     * Gets the value for the property ObjectProperty
+     * Gets the value for the property IndividualSeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#individualSeq
      *
-     * @return The value for the property ObjectProperty
+     * @return The value for the property IndividualSeq
      */
-    org.xowl.infra.lang.owl2.ObjectPropertyExpression getObjectProperty();
+    IndividualSequenceExpression getIndividualSeq();
 
 }

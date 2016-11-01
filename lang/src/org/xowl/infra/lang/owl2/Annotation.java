@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Annotation
+ * Represents the base interface for Annotation
+ * Original OWL class is http://xowl.org/infra/lang/owl2#Annotation
  *
  * @author xOWL code generator
  */
-public interface Annotation extends org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion, org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno0, org.xowl.infra.lang.owl2.Annotation_OR_Axiom_OR_Ontology {
+public interface Annotation extends DomainOfAnnotValue, DomainOfAnnotations, DomainOfAnnotProperty {
 }

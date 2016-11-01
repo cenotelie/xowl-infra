@@ -20,7 +20,8 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ClassRestriction
+ * Represents the base interface for ClassRestriction
+ * Original OWL class is http://xowl.org/infra/lang/runtime#ClassRestriction
  *
  * @author xOWL code generator
  */

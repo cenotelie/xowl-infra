@@ -20,32 +20,36 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DatatypeRestriction
+ * Represents the base interface for DatatypeRestriction
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DatatypeRestriction
  *
  * @author xOWL code generator
  */
-public interface DatatypeRestriction extends org.xowl.infra.lang.owl2.Datarange, org.xowl.infra.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype2 {
+public interface DatatypeRestriction extends Datarange, DomainOfDatarange {
     /**
      * Adds an element to the property FacetRestrictions
+     * Original OWL property is http://xowl.org/infra/lang/owl2#facetRestrictions
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addFacetRestrictions(org.xowl.infra.lang.owl2.FacetRestriction elem);
+    boolean addFacetRestrictions(FacetRestriction elem);
 
     /**
      * Removes an element from the property FacetRestrictions
+     * Original OWL property is http://xowl.org/infra/lang/owl2#facetRestrictions
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeFacetRestrictions(org.xowl.infra.lang.owl2.FacetRestriction elem);
+    boolean removeFacetRestrictions(FacetRestriction elem);
 
     /**
      * Gets all the elements for the property FacetRestrictions
+     * Original OWL property is http://xowl.org/infra/lang/owl2#facetRestrictions
      *
      * @return The elements for the property FacetRestrictions
      */
-    Collection<org.xowl.infra.lang.owl2.FacetRestriction> getAllFacetRestrictions();
+    Collection<FacetRestriction> getAllFacetRestrictions();
 
 }

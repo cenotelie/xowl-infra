@@ -20,13 +20,15 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Axiom
+ * Represents the base interface for Axiom
+ * Original OWL class is http://xowl.org/infra/lang/owl2#Axiom
  *
  * @author xOWL code generator
  */
-public interface Axiom extends org.xowl.infra.lang.owl2.Annotation_OR_Axiom_OR_Ontology {
+public interface Axiom extends DomainOfAnnotations {
     /**
      * Sets the value for the property File
+     * Original OWL property is http://xowl.org/infra/lang/instrumentation#file
      *
      * @param elem The value to set
      */
@@ -34,6 +36,7 @@ public interface Axiom extends org.xowl.infra.lang.owl2.Annotation_OR_Axiom_OR_O
 
     /**
      * Gets the value for the property File
+     * Original OWL property is http://xowl.org/infra/lang/instrumentation#file
      *
      * @return The value for the property File
      */
@@ -41,6 +44,7 @@ public interface Axiom extends org.xowl.infra.lang.owl2.Annotation_OR_Axiom_OR_O
 
     /**
      * Sets the value for the property Line
+     * Original OWL property is http://xowl.org/infra/lang/instrumentation#line
      *
      * @param elem The value to set
      */
@@ -48,6 +52,7 @@ public interface Axiom extends org.xowl.infra.lang.owl2.Annotation_OR_Axiom_OR_O
 
     /**
      * Gets the value for the property Line
+     * Original OWL property is http://xowl.org/infra/lang/instrumentation#line
      *
      * @return The value for the property Line
      */

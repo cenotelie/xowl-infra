@@ -17,21 +17,26 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.rules.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class Assertion
+ * The default implementation for Assertion
+ * Original OWL class is http://xowl.org/infra/lang/rules#Assertion
  *
  * @author xOWL code generator
  */
-public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
+public class RulesAssertionImpl implements Assertion {
     /**
      * The backing data for the property Axioms
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/rules#axioms
      */
     private List<org.xowl.infra.lang.owl2.Axiom> __implAxioms;
 
     /**
      * Adds a value to the property Axioms
+     * Original OWL property is http://xowl.org/infra/lang/rules#axioms
      *
      * @param elem The element value to add (must not be null)
      */
@@ -41,6 +46,7 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
 
     /**
      * Removes a value from the property Axioms
+     * Original OWL property is http://xowl.org/infra/lang/rules#axioms
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -50,6 +56,7 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
 
     /**
      * Adds a value to the property Axioms
+     * Original OWL property is http://xowl.org/infra/lang/rules#axioms
      *
      * @param elem The element value to add (must not be null)
      */
@@ -59,6 +66,7 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
 
     /**
      * Removes a value from the property Axioms
+     * Original OWL property is http://xowl.org/infra/lang/rules#axioms
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -68,6 +76,7 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
 
     /**
      * Tries to add a value to the property Axioms and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/rules#axioms
      *
      * @param elem The element value to add (must not be null)
      */
@@ -77,6 +86,7 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
 
     /**
      * Tries to remove a value from the property Axioms and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/rules#axioms
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -87,6 +97,7 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
     /**
      * Dispatches the request for the addition of a value to the property Axioms
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/rules#axioms
      *
      * @param elem The element value to add (must not be null)
      */
@@ -97,6 +108,7 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
     /**
      * Dispatches the request for the removal of a value from the property Axioms
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/rules#axioms
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -131,6 +143,7 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
 
     /**
      * The backing data for the property IsMeta
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/rules#isMeta
      */
     private boolean __implIsMeta;
 
@@ -146,6 +159,7 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
 
     /**
      * The backing data for the property IsPositive
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/rules#isPositive
      */
     private boolean __implIsPositive;
 
@@ -163,8 +177,11 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
      * Constructor for the implementation of Assertion
      */
     public RulesAssertionImpl() {
+        // initialize property http://xowl.org/infra/lang/rules#axioms
         this.__implAxioms = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/rules#isMeta
         this.__implIsMeta = false;
+        // initialize property http://xowl.org/infra/lang/rules#isPositive
         this.__implIsPositive = false;
     }
 }

@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3
+ * Represents the base interface for DomainOfObjectProperty
  *
  * @author xOWL code generator
  */
-public interface ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
+public interface DomainOfObjectProperty {
     /**
-     * Sets the value for the property Classe
+     * Sets the value for the property ObjectProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#objectProperty
      *
      * @param elem The value to set
      */
-    void setClasse(org.xowl.infra.lang.owl2.ClassExpression elem);
+    void setObjectProperty(ObjectPropertyExpression elem);
 
     /**
-     * Gets the value for the property Classe
+     * Gets the value for the property ObjectProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#objectProperty
      *
-     * @return The value for the property Classe
+     * @return The value for the property ObjectProperty
      */
-    org.xowl.infra.lang.owl2.ClassExpression getClasse();
+    ObjectPropertyExpression getObjectProperty();
 
 }

@@ -20,39 +20,44 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectPropertyAssertion
+ * Represents the base interface for ObjectPropertyAssertion
+ * Original OWL class is http://xowl.org/infra/lang/runtime#ObjectPropertyAssertion
  *
  * @author xOWL code generator
  */
-public interface ObjectPropertyAssertion extends org.xowl.infra.lang.runtime.PropertyAssertion {
+public interface ObjectPropertyAssertion extends PropertyAssertion {
     /**
      * Sets the value for the property Property
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param elem The value to set
      */
-    void setProperty(org.xowl.infra.lang.runtime.ObjectProperty elem);
+    void setProperty(ObjectProperty elem);
 
     /**
      * Gets the value for the property Property
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param type An element of the type expected in result (may be null)
      *             This parameter is used to disambiguate among overloads.
      * @return The value for the property Property
      */
-    org.xowl.infra.lang.runtime.ObjectProperty getPropertyAs(org.xowl.infra.lang.runtime.ObjectProperty type);
+    ObjectProperty getPropertyAs(ObjectProperty type);
 
     /**
      * Sets the value for the property ValueIndividual
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueIndividual
      *
      * @param elem The value to set
      */
-    void setValueIndividual(org.xowl.infra.lang.runtime.Individual elem);
+    void setValueIndividual(Individual elem);
 
     /**
      * Gets the value for the property ValueIndividual
+     * Original OWL property is http://xowl.org/infra/lang/runtime#valueIndividual
      *
      * @return The value for the property ValueIndividual
      */
-    org.xowl.infra.lang.runtime.Individual getValueIndividual();
+    Individual getValueIndividual();
 
 }

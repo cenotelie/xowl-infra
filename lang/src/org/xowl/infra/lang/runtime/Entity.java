@@ -20,13 +20,15 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Entity
+ * Represents the base interface for Entity
+ * Original OWL class is http://xowl.org/infra/lang/runtime#Entity
  *
  * @author xOWL code generator
  */
-public interface Entity extends org.xowl.infra.lang.runtime.Value {
+public interface Entity extends Value {
     /**
      * Sets the value for the property ContainedBy
+     * Original OWL property is http://xowl.org/infra/lang/runtime#containedBy
      *
      * @param elem The value to set
      */
@@ -34,6 +36,7 @@ public interface Entity extends org.xowl.infra.lang.runtime.Value {
 
     /**
      * Gets the value for the property ContainedBy
+     * Original OWL property is http://xowl.org/infra/lang/runtime#containedBy
      *
      * @return The value for the property ContainedBy
      */
@@ -41,6 +44,7 @@ public interface Entity extends org.xowl.infra.lang.runtime.Value {
 
     /**
      * Sets the value for the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/runtime#hasIRI
      *
      * @param elem The value to set
      */
@@ -48,6 +52,7 @@ public interface Entity extends org.xowl.infra.lang.runtime.Value {
 
     /**
      * Gets the value for the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/runtime#hasIRI
      *
      * @return The value for the property HasIRI
      */
@@ -55,25 +60,28 @@ public interface Entity extends org.xowl.infra.lang.runtime.Value {
 
     /**
      * Adds an element to the property InterpretedAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretedAs
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem);
+    boolean addInterpretedAs(Interpretation elem);
 
     /**
      * Removes an element from the property InterpretedAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretedAs
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem);
+    boolean removeInterpretedAs(Interpretation elem);
 
     /**
      * Gets all the elements for the property InterpretedAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretedAs
      *
      * @return The elements for the property InterpretedAs
      */
-    Collection<org.xowl.infra.lang.runtime.Interpretation> getAllInterpretedAs();
+    Collection<Interpretation> getAllInterpretedAs();
 
 }

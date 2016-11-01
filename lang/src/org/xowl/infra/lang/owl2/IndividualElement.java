@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class IndividualElement
+ * Represents the base interface for IndividualElement
+ * Original OWL class is http://xowl.org/infra/lang/owl2#IndividualElement
  *
  * @author xOWL code generator
  */
-public interface IndividualElement extends org.xowl.infra.lang.owl2.SequenceElement, org.xowl.infra.lang.owl2.ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne1 {
+public interface IndividualElement extends SequenceElement, DomainOfIndividual {
 }

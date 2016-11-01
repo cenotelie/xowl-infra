@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class SymmetricObjectProperty
+ * Represents the base interface for SymmetricObjectProperty
+ * Original OWL class is http://xowl.org/infra/lang/owl2#SymmetricObjectProperty
  *
  * @author xOWL code generator
  */
-public interface SymmetricObjectProperty extends org.xowl.infra.lang.owl2.ObjectPropertyAxiom, org.xowl.infra.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO4 {
+public interface SymmetricObjectProperty extends ObjectPropertyAxiom, DomainOfObjectProperty {
 }

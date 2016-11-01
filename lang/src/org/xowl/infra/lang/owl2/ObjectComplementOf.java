@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ObjectComplementOf
+ * Represents the base interface for ObjectComplementOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#ObjectComplementOf
  *
  * @author xOWL code generator
  */
-public interface ObjectComplementOf extends org.xowl.infra.lang.owl2.ClassExpression, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
+public interface ObjectComplementOf extends ClassExpression, DomainOfClasse {
 }

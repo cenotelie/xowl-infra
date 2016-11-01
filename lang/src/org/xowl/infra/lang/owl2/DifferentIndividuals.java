@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DifferentIndividuals
+ * Represents the base interface for DifferentIndividuals
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DifferentIndividuals
  *
  * @author xOWL code generator
  */
-public interface DifferentIndividuals extends org.xowl.infra.lang.owl2.IndividualAxiom, org.xowl.infra.lang.owl2.DifferentIndividuals_OR_ObjectOneOf_OR_SameIndividual {
+public interface DifferentIndividuals extends IndividualAxiom, DomainOfIndividualSeq {
 }

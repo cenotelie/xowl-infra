@@ -17,16 +17,20 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.owl2.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class IRI
+ * The default implementation for IRI
+ * Original OWL class is http://xowl.org/infra/lang/owl2#IRI
  *
  * @author xOWL code generator
  */
-public class Owl2IRIImpl implements org.xowl.infra.lang.owl2.IRI {
+public class Owl2IRIImpl implements IRI {
     /**
      * The backing data for the property HasValue
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/owl2#hasValue
      */
     private String __implHasValue;
 
@@ -44,6 +48,7 @@ public class Owl2IRIImpl implements org.xowl.infra.lang.owl2.IRI {
      * Constructor for the implementation of IRI
      */
     public Owl2IRIImpl() {
+        // initialize property http://xowl.org/infra/lang/owl2#hasValue
         this.__implHasValue = null;
     }
 }

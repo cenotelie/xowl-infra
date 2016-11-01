@@ -20,23 +20,26 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class SubDataPropertyOf
+ * Represents the base interface for SubDataPropertyOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#SubDataPropertyOf
  *
  * @author xOWL code generator
  */
-public interface SubDataPropertyOf extends org.xowl.infra.lang.owl2.DataPropertyAxiom, org.xowl.infra.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5 {
+public interface SubDataPropertyOf extends DataPropertyAxiom, DomainOfDataProperty {
     /**
      * Sets the value for the property SuperDataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#superDataProperty
      *
      * @param elem The value to set
      */
-    void setSuperDataProperty(org.xowl.infra.lang.owl2.DataPropertyExpression elem);
+    void setSuperDataProperty(DataPropertyExpression elem);
 
     /**
      * Gets the value for the property SuperDataProperty
+     * Original OWL property is http://xowl.org/infra/lang/owl2#superDataProperty
      *
      * @return The value for the property SuperDataProperty
      */
-    org.xowl.infra.lang.owl2.DataPropertyExpression getSuperDataProperty();
+    DataPropertyExpression getSuperDataProperty();
 
 }

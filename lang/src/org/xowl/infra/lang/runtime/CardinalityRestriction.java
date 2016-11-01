@@ -20,13 +20,15 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class CardinalityRestriction
+ * Represents the base interface for CardinalityRestriction
+ * Original OWL class is http://xowl.org/infra/lang/runtime#CardinalityRestriction
  *
  * @author xOWL code generator
  */
-public interface CardinalityRestriction extends org.xowl.infra.lang.runtime.ClassRestriction {
+public interface CardinalityRestriction extends ClassRestriction {
     /**
      * Sets the value for the property Cardinality
+     * Original OWL property is http://xowl.org/infra/lang/runtime#cardinality
      *
      * @param elem The value to set
      */
@@ -34,6 +36,7 @@ public interface CardinalityRestriction extends org.xowl.infra.lang.runtime.Clas
 
     /**
      * Gets the value for the property Cardinality
+     * Original OWL property is http://xowl.org/infra/lang/runtime#cardinality
      *
      * @return The value for the property Cardinality
      */

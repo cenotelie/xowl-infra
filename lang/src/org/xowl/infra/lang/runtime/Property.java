@@ -20,27 +20,31 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Property
+ * Represents the base interface for Property
+ * Original OWL class is http://xowl.org/infra/lang/runtime#Property
  *
  * @author xOWL code generator
  */
-public interface Property extends org.xowl.infra.lang.runtime.Interpretation {
+public interface Property extends Interpretation {
     /**
      * Sets the value for the property Domain
+     * Original OWL property is http://xowl.org/infra/lang/runtime#domain
      *
      * @param elem The value to set
      */
-    void setDomain(org.xowl.infra.lang.runtime.Class elem);
+    void setDomain(Class elem);
 
     /**
      * Gets the value for the property Domain
+     * Original OWL property is http://xowl.org/infra/lang/runtime#domain
      *
      * @return The value for the property Domain
      */
-    org.xowl.infra.lang.runtime.Class getDomain();
+    Class getDomain();
 
     /**
      * Sets the value for the property IsFunctional
+     * Original OWL property is http://xowl.org/infra/lang/runtime#isFunctional
      *
      * @param elem The value to set
      */
@@ -48,6 +52,7 @@ public interface Property extends org.xowl.infra.lang.runtime.Interpretation {
 
     /**
      * Gets the value for the property IsFunctional
+     * Original OWL property is http://xowl.org/infra/lang/runtime#isFunctional
      *
      * @return The value for the property IsFunctional
      */
@@ -55,118 +60,132 @@ public interface Property extends org.xowl.infra.lang.runtime.Interpretation {
 
     /**
      * Adds an element to the property PropertyDisjointWith
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyDisjointWith
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addPropertyDisjointWith(org.xowl.infra.lang.runtime.Property elem);
+    boolean addPropertyDisjointWith(Property elem);
 
     /**
      * Removes an element from the property PropertyDisjointWith
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyDisjointWith
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removePropertyDisjointWith(org.xowl.infra.lang.runtime.Property elem);
+    boolean removePropertyDisjointWith(Property elem);
 
     /**
      * Gets all the elements for the property PropertyDisjointWith
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyDisjointWith
      *
      * @param type An element of the type expected in result (may be null)
      *             This parameter is used to disambiguate among overloads.
      * @return The elements for the property PropertyDisjointWith
      */
-    Collection<org.xowl.infra.lang.runtime.Property> getAllPropertyDisjointWithAs(org.xowl.infra.lang.runtime.Property type);
+    Collection<Property> getAllPropertyDisjointWithAs(Property type);
 
     /**
      * Adds an element to the property PropertyEquivalentTo
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addPropertyEquivalentTo(org.xowl.infra.lang.runtime.Property elem);
+    boolean addPropertyEquivalentTo(Property elem);
 
     /**
      * Removes an element from the property PropertyEquivalentTo
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removePropertyEquivalentTo(org.xowl.infra.lang.runtime.Property elem);
+    boolean removePropertyEquivalentTo(Property elem);
 
     /**
      * Gets all the elements for the property PropertyEquivalentTo
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      *
      * @param type An element of the type expected in result (may be null)
      *             This parameter is used to disambiguate among overloads.
      * @return The elements for the property PropertyEquivalentTo
      */
-    Collection<org.xowl.infra.lang.runtime.Property> getAllPropertyEquivalentToAs(org.xowl.infra.lang.runtime.Property type);
+    Collection<Property> getAllPropertyEquivalentToAs(Property type);
 
     /**
      * Sets the value for the property Range
+     * Original OWL property is http://xowl.org/infra/lang/runtime#range
      *
      * @param elem The value to set
      */
-    void setRange(org.xowl.infra.lang.runtime.Class_OR_Datatype elem);
+    void setRange(RangeOfRange elem);
 
     /**
      * Gets the value for the property Range
+     * Original OWL property is http://xowl.org/infra/lang/runtime#range
      *
      * @param type An element of the type expected in result (may be null)
      *             This parameter is used to disambiguate among overloads.
      * @return The value for the property Range
      */
-    org.xowl.infra.lang.runtime.Class_OR_Datatype getRangeAs(org.xowl.infra.lang.runtime.Class_OR_Datatype type);
+    RangeOfRange getRangeAs(RangeOfRange type);
 
     /**
      * Adds an element to the property SubPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subPropertyOf
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addSubPropertyOf(org.xowl.infra.lang.runtime.Property elem);
+    boolean addSubPropertyOf(Property elem);
 
     /**
      * Removes an element from the property SubPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subPropertyOf
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeSubPropertyOf(org.xowl.infra.lang.runtime.Property elem);
+    boolean removeSubPropertyOf(Property elem);
 
     /**
      * Gets all the elements for the property SubPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subPropertyOf
      *
      * @param type An element of the type expected in result (may be null)
      *             This parameter is used to disambiguate among overloads.
      * @return The elements for the property SubPropertyOf
      */
-    Collection<org.xowl.infra.lang.runtime.Property> getAllSubPropertyOfAs(org.xowl.infra.lang.runtime.Property type);
+    Collection<Property> getAllSubPropertyOfAs(Property type);
 
     /**
      * Adds an element to the property SuperPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superPropertyOf
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addSuperPropertyOf(org.xowl.infra.lang.runtime.Property elem);
+    boolean addSuperPropertyOf(Property elem);
 
     /**
      * Removes an element from the property SuperPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superPropertyOf
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeSuperPropertyOf(org.xowl.infra.lang.runtime.Property elem);
+    boolean removeSuperPropertyOf(Property elem);
 
     /**
      * Gets all the elements for the property SuperPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superPropertyOf
      *
      * @param type An element of the type expected in result (may be null)
      *             This parameter is used to disambiguate among overloads.
      * @return The elements for the property SuperPropertyOf
      */
-    Collection<org.xowl.infra.lang.runtime.Property> getAllSuperPropertyOfAs(org.xowl.infra.lang.runtime.Property type);
+    Collection<Property> getAllSuperPropertyOfAs(Property type);
 
 }

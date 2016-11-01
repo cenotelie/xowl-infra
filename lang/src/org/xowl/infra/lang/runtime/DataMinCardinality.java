@@ -20,9 +20,10 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataMinCardinality
+ * Represents the base interface for DataMinCardinality
+ * Original OWL class is http://xowl.org/infra/lang/runtime#DataMinCardinality
  *
  * @author xOWL code generator
  */
-public interface DataMinCardinality extends org.xowl.infra.lang.runtime.DataCardinalityRestriction {
+public interface DataMinCardinality extends DataCardinalityRestriction {
 }

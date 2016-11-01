@@ -20,23 +20,26 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Function
+ * Represents the base interface for Function
+ * Original OWL class is http://xowl.org/infra/lang/runtime#Function
  *
  * @author xOWL code generator
  */
-public interface Function extends org.xowl.infra.lang.runtime.Interpretation {
+public interface Function extends Interpretation {
     /**
      * Sets the value for the property DefinedAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#definedAs
      *
      * @param elem The value to set
      */
-    void setDefinedAs(Object elem);
+    void setDefinedAs(java.lang.Object elem);
 
     /**
      * Gets the value for the property DefinedAs
+     * Original OWL property is http://xowl.org/infra/lang/runtime#definedAs
      *
      * @return The value for the property DefinedAs
      */
-    Object getDefinedAs();
+    java.lang.Object getDefinedAs();
 
 }

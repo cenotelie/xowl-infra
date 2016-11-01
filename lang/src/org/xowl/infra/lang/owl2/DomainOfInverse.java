@@ -20,32 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Annotation_OR_Axiom_OR_Ontology
+ * Represents the base interface for DomainOfInverse
  *
  * @author xOWL code generator
  */
-public interface Annotation_OR_Axiom_OR_Ontology {
+public interface DomainOfInverse {
     /**
-     * Adds an element to the property Annotations
+     * Sets the value for the property Inverse
+     * Original OWL property is http://xowl.org/infra/lang/owl2#inverse
      *
-     * @param elem The element to add
-     * @return Whether the operation resulted in a new element (false if the element was already there)
+     * @param elem The value to set
      */
-    boolean addAnnotations(org.xowl.infra.lang.owl2.Annotation elem);
+    void setInverse(ObjectPropertyExpression elem);
 
     /**
-     * Removes an element from the property Annotations
+     * Gets the value for the property Inverse
+     * Original OWL property is http://xowl.org/infra/lang/owl2#inverse
      *
-     * @param elem The element to remove
-     * @return Whether the operation resulted in the element being removed
+     * @return The value for the property Inverse
      */
-    boolean removeAnnotations(org.xowl.infra.lang.owl2.Annotation elem);
-
-    /**
-     * Gets all the elements for the property Annotations
-     *
-     * @return The elements for the property Annotations
-     */
-    Collection<org.xowl.infra.lang.owl2.Annotation> getAllAnnotations();
+    ObjectPropertyExpression getInverse();
 
 }

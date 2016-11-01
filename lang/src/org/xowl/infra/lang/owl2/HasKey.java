@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class HasKey
+ * Represents the base interface for HasKey
+ * Original OWL class is http://xowl.org/infra/lang/owl2#HasKey
  *
  * @author xOWL code generator
  */
-public interface HasKey extends org.xowl.infra.lang.owl2.Axiom, org.xowl.infra.lang.owl2.DisjointObjectProperties_OR_EquivalentObjectProperties_OR_HasKey, org.xowl.infra.lang.owl2.DisjointDataProperties_OR_EquivalentDataProperties_OR_HasKey_OR_NAryDataPropertyRestriction, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
+public interface HasKey extends Axiom, DomainOfObjectPropertySeq, DomainOfDataPropertySeq, DomainOfClasse {
 }

@@ -20,55 +20,62 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class AnnotationProperty
+ * Represents the base interface for AnnotationProperty
+ * Original OWL class is http://xowl.org/infra/lang/runtime#AnnotationProperty
  *
  * @author xOWL code generator
  */
-public interface AnnotationProperty extends org.xowl.infra.lang.runtime.Interpretation {
+public interface AnnotationProperty extends Interpretation {
     /**
      * Adds an element to the property SubAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subAnnotProperty
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem);
+    boolean addSubAnnotProperty(AnnotationProperty elem);
 
     /**
      * Removes an element from the property SubAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subAnnotProperty
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeSubAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem);
+    boolean removeSubAnnotProperty(AnnotationProperty elem);
 
     /**
      * Gets all the elements for the property SubAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subAnnotProperty
      *
      * @return The elements for the property SubAnnotProperty
      */
-    Collection<org.xowl.infra.lang.runtime.AnnotationProperty> getAllSubAnnotProperty();
+    Collection<AnnotationProperty> getAllSubAnnotProperty();
 
     /**
      * Adds an element to the property SuperAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superAnnotProperty
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem);
+    boolean addSuperAnnotProperty(AnnotationProperty elem);
 
     /**
      * Removes an element from the property SuperAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superAnnotProperty
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem);
+    boolean removeSuperAnnotProperty(AnnotationProperty elem);
 
     /**
      * Gets all the elements for the property SuperAnnotProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superAnnotProperty
      *
      * @return The elements for the property SuperAnnotProperty
      */
-    Collection<org.xowl.infra.lang.runtime.AnnotationProperty> getAllSuperAnnotProperty();
+    Collection<AnnotationProperty> getAllSuperAnnotProperty();
 
 }

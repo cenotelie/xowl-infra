@@ -20,23 +20,25 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Annotation_OR_AnnotationAssertion
+ * Represents the base interface for DomainOfDataPropertySeq
  *
  * @author xOWL code generator
  */
-public interface Annotation_OR_AnnotationAssertion {
+public interface DomainOfDataPropertySeq {
     /**
-     * Sets the value for the property AnnotValue
+     * Sets the value for the property DataPropertySeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertySeq
      *
      * @param elem The value to set
      */
-    void setAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem);
+    void setDataPropertySeq(DataPropertySequenceExpression elem);
 
     /**
-     * Gets the value for the property AnnotValue
+     * Gets the value for the property DataPropertySeq
+     * Original OWL property is http://xowl.org/infra/lang/owl2#dataPropertySeq
      *
-     * @return The value for the property AnnotValue
+     * @return The value for the property DataPropertySeq
      */
-    org.xowl.infra.lang.owl2.AnnotationValue getAnnotValue();
+    DataPropertySequenceExpression getDataPropertySeq();
 
 }

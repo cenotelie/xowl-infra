@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DisjointObjectProperties
+ * Represents the base interface for DisjointObjectProperties
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DisjointObjectProperties
  *
  * @author xOWL code generator
  */
-public interface DisjointObjectProperties extends org.xowl.infra.lang.owl2.ObjectPropertyAxiom, org.xowl.infra.lang.owl2.DisjointObjectProperties_OR_EquivalentObjectProperties_OR_HasKey {
+public interface DisjointObjectProperties extends ObjectPropertyAxiom, DomainOfObjectPropertySeq {
 }

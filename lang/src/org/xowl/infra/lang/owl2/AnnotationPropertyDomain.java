@@ -20,23 +20,26 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class AnnotationPropertyDomain
+ * Represents the base interface for AnnotationPropertyDomain
+ * Original OWL class is http://xowl.org/infra/lang/owl2#AnnotationPropertyDomain
  *
  * @author xOWL code generator
  */
-public interface AnnotationPropertyDomain extends org.xowl.infra.lang.owl2.AnnotationAxiom, org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno0 {
+public interface AnnotationPropertyDomain extends AnnotationAxiom, DomainOfAnnotProperty {
     /**
      * Sets the value for the property AnnotDomain
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotDomain
      *
      * @param elem The value to set
      */
-    void setAnnotDomain(org.xowl.infra.lang.owl2.IRI elem);
+    void setAnnotDomain(IRI elem);
 
     /**
      * Gets the value for the property AnnotDomain
+     * Original OWL property is http://xowl.org/infra/lang/owl2#annotDomain
      *
      * @return The value for the property AnnotDomain
      */
-    org.xowl.infra.lang.owl2.IRI getAnnotDomain();
+    IRI getAnnotDomain();
 
 }

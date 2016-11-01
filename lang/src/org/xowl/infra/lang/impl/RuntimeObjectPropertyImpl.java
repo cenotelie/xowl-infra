@@ -17,100 +17,113 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.lang.runtime.Class;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class ObjectProperty
+ * The default implementation for ObjectProperty
+ * Original OWL class is http://xowl.org/infra/lang/runtime#ObjectProperty
  *
  * @author xOWL code generator
  */
-public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.ObjectProperty {
+public class RuntimeObjectPropertyImpl implements ObjectProperty {
     /**
      * The backing data for the property Chains
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#chains
      */
-    private List<org.xowl.infra.lang.runtime.ObjectProperty> __implChains;
+    private List<ObjectProperty> __implChains;
 
     /**
      * Adds a value to the property Chains
+     * Original OWL property is http://xowl.org/infra/lang/runtime#chains
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddChains(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleAddChains(ObjectProperty elem) {
         __implChains.add(elem);
     }
 
     /**
      * Removes a value from the property Chains
+     * Original OWL property is http://xowl.org/infra/lang/runtime#chains
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveChains(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleRemoveChains(ObjectProperty elem) {
         __implChains.remove(elem);
     }
 
     /**
      * Adds a value to the property Chains
+     * Original OWL property is http://xowl.org/infra/lang/runtime#chains
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddChains(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyAddChains(ObjectProperty elem) {
         doSimpleAddChains(elem);
     }
 
     /**
      * Removes a value from the property Chains
+     * Original OWL property is http://xowl.org/infra/lang/runtime#chains
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveChains(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyRemoveChains(ObjectProperty elem) {
         doSimpleRemoveChains(elem);
     }
 
     /**
      * Tries to add a value to the property Chains and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#chains
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddChains(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphAddChains(ObjectProperty elem) {
         doPropertyAddChains(elem);
     }
 
     /**
      * Tries to remove a value from the property Chains and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#chains
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveChains(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphRemoveChains(ObjectProperty elem) {
         doPropertyRemoveChains(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Chains
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#chains
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddChains(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchAddChains(ObjectProperty elem) {
         doGraphAddChains(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Chains
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#chains
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveChains(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchRemoveChains(ObjectProperty elem) {
         doGraphRemoveChains(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.ObjectProperty> getAllChains() {
+    public Collection<ObjectProperty> getAllChains() {
         return Collections.unmodifiableCollection(__implChains);
     }
 
     @Override
-    public boolean addChains(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public boolean addChains(ObjectProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implChains.contains(elem))
@@ -120,7 +133,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
     }
 
     @Override
-    public boolean removeChains(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public boolean removeChains(ObjectProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implChains.contains(elem))
@@ -131,34 +144,38 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property Domain
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#domain
      */
-    private org.xowl.infra.lang.runtime.Class __implDomain;
+    private Class __implDomain;
 
     /**
      * Adds a value to the property Domain
+     * Original OWL property is http://xowl.org/infra/lang/runtime#domain
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDomain(org.xowl.infra.lang.runtime.Class elem) {
+    protected void doSimpleAddDomain(Class elem) {
         __implDomain = elem;
     }
 
     /**
      * Removes a value from the property Domain
+     * Original OWL property is http://xowl.org/infra/lang/runtime#domain
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
+    protected void doSimpleRemoveDomain(Class elem) {
         __implDomain = null;
     }
 
     /**
      * Adds a value to the property Domain
+     * Original OWL property is http://xowl.org/infra/lang/runtime#domain
      * This method will also update the inverse property DomainOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDomain(org.xowl.infra.lang.runtime.Class elem) {
+    private void doPropertyAddDomain(Class elem) {
         doSimpleAddDomain(elem);
         if (elem instanceof RuntimeClassImpl)
             ((RuntimeClassImpl) elem).doSimpleAddDomainOf(this);
@@ -166,11 +183,12 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Removes a value from the property Domain
+     * Original OWL property is http://xowl.org/infra/lang/runtime#domain
      * This method will also update the inverse property DomainOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
+    private void doPropertyRemoveDomain(Class elem) {
         doSimpleRemoveDomain(elem);
         if (elem instanceof RuntimeClassImpl)
             ((RuntimeClassImpl) elem).doSimpleRemoveDomainOf(this);
@@ -178,49 +196,53 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Tries to add a value to the property Domain and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#domain
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDomain(org.xowl.infra.lang.runtime.Class elem) {
+    private void doGraphAddDomain(Class elem) {
         doPropertyAddDomain(elem);
     }
 
     /**
      * Tries to remove a value from the property Domain and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#domain
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
+    private void doGraphRemoveDomain(Class elem) {
         doPropertyRemoveDomain(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Domain
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#domain
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDomain(org.xowl.infra.lang.runtime.Class elem) {
+    private void doDispatchAddDomain(Class elem) {
         doGraphAddDomain(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Domain
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#domain
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
+    private void doDispatchRemoveDomain(Class elem) {
         doGraphRemoveDomain(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Class getDomain() {
+    public Class getDomain() {
         return __implDomain;
     }
 
     @Override
-    public void setDomain(org.xowl.infra.lang.runtime.Class elem) {
+    public void setDomain(Class elem) {
         if (__implDomain == elem)
             return;
         if (elem == null) {
@@ -235,34 +257,38 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property InterpretationOf
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#interpretationOf
      */
-    private org.xowl.infra.lang.runtime.Entity __implInterpretationOf;
+    private Entity __implInterpretationOf;
 
     /**
      * Adds a value to the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    protected void doSimpleAddInterpretationOf(Entity elem) {
         __implInterpretationOf = elem;
     }
 
     /**
      * Removes a value from the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    protected void doSimpleRemoveInterpretationOf(Entity elem) {
         __implInterpretationOf = null;
     }
 
     /**
      * Adds a value to the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      * This method will also update the inverse property InterpretedAs
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doPropertyAddInterpretationOf(Entity elem) {
         doSimpleAddInterpretationOf(elem);
         if (elem instanceof RuntimeEntityImpl)
             ((RuntimeEntityImpl) elem).doSimpleAddInterpretedAs(this);
@@ -270,11 +296,12 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Removes a value from the property InterpretationOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      * This method will also update the inverse property InterpretedAs
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doPropertyRemoveInterpretationOf(Entity elem) {
         doSimpleRemoveInterpretationOf(elem);
         if (elem instanceof RuntimeEntityImpl)
             ((RuntimeEntityImpl) elem).doSimpleRemoveInterpretedAs(this);
@@ -282,49 +309,53 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Tries to add a value to the property InterpretationOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doGraphAddInterpretationOf(Entity elem) {
         doPropertyAddInterpretationOf(elem);
     }
 
     /**
      * Tries to remove a value from the property InterpretationOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doGraphRemoveInterpretationOf(Entity elem) {
         doPropertyRemoveInterpretationOf(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property InterpretationOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doDispatchAddInterpretationOf(Entity elem) {
         doGraphAddInterpretationOf(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property InterpretationOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#interpretationOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    private void doDispatchRemoveInterpretationOf(Entity elem) {
         doGraphRemoveInterpretationOf(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Entity getInterpretationOf() {
+    public Entity getInterpretationOf() {
         return __implInterpretationOf;
     }
 
     @Override
-    public void setInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+    public void setInterpretationOf(Entity elem) {
         if (__implInterpretationOf == elem)
             return;
         if (elem == null) {
@@ -339,34 +370,38 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property InverseOf
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#inverseOf
      */
-    private org.xowl.infra.lang.runtime.ObjectProperty __implInverseOf;
+    private ObjectProperty __implInverseOf;
 
     /**
      * Adds a value to the property InverseOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#inverseOf
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddInverseOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleAddInverseOf(ObjectProperty elem) {
         __implInverseOf = elem;
     }
 
     /**
      * Removes a value from the property InverseOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#inverseOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveInverseOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleRemoveInverseOf(ObjectProperty elem) {
         __implInverseOf = null;
     }
 
     /**
      * Adds a value to the property InverseOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#inverseOf
      * This method will also update the inverse property InverseOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddInverseOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyAddInverseOf(ObjectProperty elem) {
         doSimpleAddInverseOf(elem);
         if (elem instanceof RuntimeObjectPropertyImpl)
             ((RuntimeObjectPropertyImpl) elem).doSimpleAddInverseOf(this);
@@ -374,11 +409,12 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Removes a value from the property InverseOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#inverseOf
      * This method will also update the inverse property InverseOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveInverseOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyRemoveInverseOf(ObjectProperty elem) {
         doSimpleRemoveInverseOf(elem);
         if (elem instanceof RuntimeObjectPropertyImpl)
             ((RuntimeObjectPropertyImpl) elem).doSimpleRemoveInverseOf(this);
@@ -386,49 +422,53 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Tries to add a value to the property InverseOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#inverseOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddInverseOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphAddInverseOf(ObjectProperty elem) {
         doPropertyAddInverseOf(elem);
     }
 
     /**
      * Tries to remove a value from the property InverseOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#inverseOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveInverseOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphRemoveInverseOf(ObjectProperty elem) {
         doPropertyRemoveInverseOf(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property InverseOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#inverseOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddInverseOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchAddInverseOf(ObjectProperty elem) {
         doGraphAddInverseOf(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property InverseOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#inverseOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveInverseOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchRemoveInverseOf(ObjectProperty elem) {
         doGraphRemoveInverseOf(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.ObjectProperty getInverseOf() {
+    public ObjectProperty getInverseOf() {
         return __implInverseOf;
     }
 
     @Override
-    public void setInverseOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public void setInverseOf(ObjectProperty elem) {
         if (__implInverseOf == elem)
             return;
         if (elem == null) {
@@ -443,6 +483,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property IsAsymmetric
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#isAsymmetric
      */
     private boolean __implIsAsymmetric;
 
@@ -458,6 +499,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property IsFunctional
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#isFunctional
      */
     private boolean __implIsFunctional;
 
@@ -473,6 +515,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property IsInverseFunctional
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#isInverseFunctional
      */
     private boolean __implIsInverseFunctional;
 
@@ -488,6 +531,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property IsIrreflexive
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#isIrreflexive
      */
     private boolean __implIsIrreflexive;
 
@@ -503,6 +547,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property IsReflexive
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#isReflexive
      */
     private boolean __implIsReflexive;
 
@@ -518,6 +563,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property IsSymmetric
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#isSymmetric
      */
     private boolean __implIsSymmetric;
 
@@ -533,6 +579,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property IsTransitive
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#isTransitive
      */
     private boolean __implIsTransitive;
 
@@ -548,34 +595,38 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property PropertyDisjointWith
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#propertyDisjointWith
      */
-    private List<org.xowl.infra.lang.runtime.ObjectProperty> __implPropertyDisjointWith;
+    private List<ObjectProperty> __implPropertyDisjointWith;
 
     /**
      * Adds a value to the property PropertyDisjointWith
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyDisjointWith
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddPropertyDisjointWith(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleAddPropertyDisjointWith(ObjectProperty elem) {
         __implPropertyDisjointWith.add(elem);
     }
 
     /**
      * Removes a value from the property PropertyDisjointWith
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyDisjointWith
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleRemovePropertyDisjointWith(ObjectProperty elem) {
         __implPropertyDisjointWith.remove(elem);
     }
 
     /**
      * Adds a value to the property PropertyDisjointWith
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyDisjointWith
      * This method will also update the inverse property PropertyDisjointWith
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddPropertyDisjointWith(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyAddPropertyDisjointWith(ObjectProperty elem) {
         doSimpleAddPropertyDisjointWith(elem);
         if (elem instanceof RuntimeObjectPropertyImpl)
             ((RuntimeObjectPropertyImpl) elem).doSimpleAddPropertyDisjointWith(this);
@@ -583,11 +634,12 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Removes a value from the property PropertyDisjointWith
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyDisjointWith
      * This method will also update the inverse property PropertyDisjointWith
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyRemovePropertyDisjointWith(ObjectProperty elem) {
         doSimpleRemovePropertyDisjointWith(elem);
         if (elem instanceof RuntimeObjectPropertyImpl)
             ((RuntimeObjectPropertyImpl) elem).doSimpleRemovePropertyDisjointWith(this);
@@ -595,78 +647,82 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Tries to add a value to the property PropertyDisjointWith and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyDisjointWith
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddPropertyDisjointWith(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphAddPropertyDisjointWith(ObjectProperty elem) {
         doPropertyAddPropertyDisjointWith(elem);
     }
 
     /**
      * Tries to remove a value from the property PropertyDisjointWith and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyDisjointWith
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphRemovePropertyDisjointWith(ObjectProperty elem) {
         doPropertyRemovePropertyDisjointWith(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property PropertyDisjointWith
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyDisjointWith
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddPropertyDisjointWith(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchAddPropertyDisjointWith(ObjectProperty elem) {
         doGraphAddPropertyDisjointWith(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property PropertyDisjointWith
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyDisjointWith
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchRemovePropertyDisjointWith(ObjectProperty elem) {
         doGraphRemovePropertyDisjointWith(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.Property> getAllPropertyDisjointWithAs(org.xowl.infra.lang.runtime.Property type) {
+    public Collection<Property> getAllPropertyDisjointWithAs(Property type) {
         return (Collection) Collections.unmodifiableCollection(__implPropertyDisjointWith);
     }
 
     @Override
-    public boolean addPropertyDisjointWith(org.xowl.infra.lang.runtime.Property elem) {
+    public boolean addPropertyDisjointWith(Property elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.ObjectProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.ObjectProperty");
-        if (__implPropertyDisjointWith.contains((org.xowl.infra.lang.runtime.ObjectProperty) elem))
+        if (!(elem instanceof ObjectProperty))
+            throw new IllegalArgumentException("Expected type ObjectProperty");
+        if (__implPropertyDisjointWith.contains((ObjectProperty) elem))
             return false;
-        doDispatchAddPropertyDisjointWith((org.xowl.infra.lang.runtime.ObjectProperty) elem);
+        doDispatchAddPropertyDisjointWith((ObjectProperty) elem);
         return true;
     }
 
     @Override
-    public boolean removePropertyDisjointWith(org.xowl.infra.lang.runtime.Property elem) {
+    public boolean removePropertyDisjointWith(Property elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.ObjectProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.ObjectProperty");
-        if (!__implPropertyDisjointWith.contains((org.xowl.infra.lang.runtime.ObjectProperty) elem))
+        if (!(elem instanceof ObjectProperty))
+            throw new IllegalArgumentException("Expected type ObjectProperty");
+        if (!__implPropertyDisjointWith.contains((ObjectProperty) elem))
             return false;
-        doDispatchRemovePropertyDisjointWith((org.xowl.infra.lang.runtime.ObjectProperty) elem);
+        doDispatchRemovePropertyDisjointWith((ObjectProperty) elem);
         return true;
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.ObjectProperty> getAllPropertyDisjointWithAs(org.xowl.infra.lang.runtime.ObjectProperty type) {
+    public Collection<ObjectProperty> getAllPropertyDisjointWithAs(ObjectProperty type) {
         return Collections.unmodifiableCollection(__implPropertyDisjointWith);
     }
 
     @Override
-    public boolean addPropertyDisjointWith(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public boolean addPropertyDisjointWith(ObjectProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implPropertyDisjointWith.contains(elem))
@@ -676,7 +732,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
     }
 
     @Override
-    public boolean removePropertyDisjointWith(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public boolean removePropertyDisjointWith(ObjectProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implPropertyDisjointWith.contains(elem))
@@ -687,34 +743,38 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property PropertyEquivalentTo
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      */
-    private List<org.xowl.infra.lang.runtime.ObjectProperty> __implPropertyEquivalentTo;
+    private List<ObjectProperty> __implPropertyEquivalentTo;
 
     /**
      * Adds a value to the property PropertyEquivalentTo
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleAddPropertyEquivalentTo(ObjectProperty elem) {
         __implPropertyEquivalentTo.add(elem);
     }
 
     /**
      * Removes a value from the property PropertyEquivalentTo
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleRemovePropertyEquivalentTo(ObjectProperty elem) {
         __implPropertyEquivalentTo.remove(elem);
     }
 
     /**
      * Adds a value to the property PropertyEquivalentTo
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      * This method will also update the inverse property PropertyEquivalentTo
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyAddPropertyEquivalentTo(ObjectProperty elem) {
         doSimpleAddPropertyEquivalentTo(elem);
         if (elem instanceof RuntimeObjectPropertyImpl)
             ((RuntimeObjectPropertyImpl) elem).doSimpleAddPropertyEquivalentTo(this);
@@ -722,11 +782,12 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Removes a value from the property PropertyEquivalentTo
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      * This method will also update the inverse property PropertyEquivalentTo
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyRemovePropertyEquivalentTo(ObjectProperty elem) {
         doSimpleRemovePropertyEquivalentTo(elem);
         if (elem instanceof RuntimeObjectPropertyImpl)
             ((RuntimeObjectPropertyImpl) elem).doSimpleRemovePropertyEquivalentTo(this);
@@ -734,78 +795,82 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Tries to add a value to the property PropertyEquivalentTo and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphAddPropertyEquivalentTo(ObjectProperty elem) {
         doPropertyAddPropertyEquivalentTo(elem);
     }
 
     /**
      * Tries to remove a value from the property PropertyEquivalentTo and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphRemovePropertyEquivalentTo(ObjectProperty elem) {
         doPropertyRemovePropertyEquivalentTo(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property PropertyEquivalentTo
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchAddPropertyEquivalentTo(ObjectProperty elem) {
         doGraphAddPropertyEquivalentTo(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property PropertyEquivalentTo
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#propertyEquivalentTo
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchRemovePropertyEquivalentTo(ObjectProperty elem) {
         doGraphRemovePropertyEquivalentTo(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.Property> getAllPropertyEquivalentToAs(org.xowl.infra.lang.runtime.Property type) {
+    public Collection<Property> getAllPropertyEquivalentToAs(Property type) {
         return (Collection) Collections.unmodifiableCollection(__implPropertyEquivalentTo);
     }
 
     @Override
-    public boolean addPropertyEquivalentTo(org.xowl.infra.lang.runtime.Property elem) {
+    public boolean addPropertyEquivalentTo(Property elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.ObjectProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.ObjectProperty");
-        if (__implPropertyEquivalentTo.contains((org.xowl.infra.lang.runtime.ObjectProperty) elem))
+        if (!(elem instanceof ObjectProperty))
+            throw new IllegalArgumentException("Expected type ObjectProperty");
+        if (__implPropertyEquivalentTo.contains((ObjectProperty) elem))
             return false;
-        doDispatchAddPropertyEquivalentTo((org.xowl.infra.lang.runtime.ObjectProperty) elem);
+        doDispatchAddPropertyEquivalentTo((ObjectProperty) elem);
         return true;
     }
 
     @Override
-    public boolean removePropertyEquivalentTo(org.xowl.infra.lang.runtime.Property elem) {
+    public boolean removePropertyEquivalentTo(Property elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.ObjectProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.ObjectProperty");
-        if (!__implPropertyEquivalentTo.contains((org.xowl.infra.lang.runtime.ObjectProperty) elem))
+        if (!(elem instanceof ObjectProperty))
+            throw new IllegalArgumentException("Expected type ObjectProperty");
+        if (!__implPropertyEquivalentTo.contains((ObjectProperty) elem))
             return false;
-        doDispatchRemovePropertyEquivalentTo((org.xowl.infra.lang.runtime.ObjectProperty) elem);
+        doDispatchRemovePropertyEquivalentTo((ObjectProperty) elem);
         return true;
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.ObjectProperty> getAllPropertyEquivalentToAs(org.xowl.infra.lang.runtime.ObjectProperty type) {
+    public Collection<ObjectProperty> getAllPropertyEquivalentToAs(ObjectProperty type) {
         return Collections.unmodifiableCollection(__implPropertyEquivalentTo);
     }
 
     @Override
-    public boolean addPropertyEquivalentTo(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public boolean addPropertyEquivalentTo(ObjectProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implPropertyEquivalentTo.contains(elem))
@@ -815,7 +880,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
     }
 
     @Override
-    public boolean removePropertyEquivalentTo(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public boolean removePropertyEquivalentTo(ObjectProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implPropertyEquivalentTo.contains(elem))
@@ -826,111 +891,120 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property Range
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#range
      */
-    private org.xowl.infra.lang.runtime.Class __implRange;
+    private Class __implRange;
 
     /**
      * Adds a value to the property Range
+     * Original OWL property is http://xowl.org/infra/lang/runtime#range
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddRange(org.xowl.infra.lang.runtime.Class elem) {
+    protected void doSimpleAddRange(Class elem) {
         __implRange = elem;
     }
 
     /**
      * Removes a value from the property Range
+     * Original OWL property is http://xowl.org/infra/lang/runtime#range
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveRange(org.xowl.infra.lang.runtime.Class elem) {
+    protected void doSimpleRemoveRange(Class elem) {
         __implRange = null;
     }
 
     /**
      * Adds a value to the property Range
+     * Original OWL property is http://xowl.org/infra/lang/runtime#range
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddRange(org.xowl.infra.lang.runtime.Class elem) {
+    private void doPropertyAddRange(Class elem) {
         doSimpleAddRange(elem);
     }
 
     /**
      * Removes a value from the property Range
+     * Original OWL property is http://xowl.org/infra/lang/runtime#range
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveRange(org.xowl.infra.lang.runtime.Class elem) {
+    private void doPropertyRemoveRange(Class elem) {
         doSimpleRemoveRange(elem);
     }
 
     /**
      * Tries to add a value to the property Range and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#range
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddRange(org.xowl.infra.lang.runtime.Class elem) {
+    private void doGraphAddRange(Class elem) {
         doPropertyAddRange(elem);
     }
 
     /**
      * Tries to remove a value from the property Range and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#range
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveRange(org.xowl.infra.lang.runtime.Class elem) {
+    private void doGraphRemoveRange(Class elem) {
         doPropertyRemoveRange(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Range
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#range
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddRange(org.xowl.infra.lang.runtime.Class elem) {
+    private void doDispatchAddRange(Class elem) {
         doGraphAddRange(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Range
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#range
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveRange(org.xowl.infra.lang.runtime.Class elem) {
+    private void doDispatchRemoveRange(Class elem) {
         doGraphRemoveRange(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Class_OR_Datatype getRangeAs(org.xowl.infra.lang.runtime.Class_OR_Datatype type) {
+    public RangeOfRange getRangeAs(RangeOfRange type) {
         return __implRange;
     }
 
     @Override
-    public void setRange(org.xowl.infra.lang.runtime.Class_OR_Datatype elem) {
+    public void setRange(RangeOfRange elem) {
         if (__implRange == elem)
             return;
         if (elem == null) {
             doDispatchRemoveRange(__implRange);
         } else if (__implRange == null) {
-            doDispatchAddRange((org.xowl.infra.lang.runtime.Class) elem);
+            doDispatchAddRange((Class) elem);
         } else {
-            if (!(elem instanceof org.xowl.infra.lang.runtime.Class))
-                throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.Class");
+            if (!(elem instanceof Class))
+                throw new IllegalArgumentException("Expected type Class");
             doDispatchRemoveRange(__implRange);
-            doDispatchAddRange((org.xowl.infra.lang.runtime.Class) elem);
+            doDispatchAddRange((Class) elem);
         }
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Class getRangeAs(org.xowl.infra.lang.runtime.Class type) {
+    public Class getRangeAs(Class type) {
         return __implRange;
     }
 
     @Override
-    public void setRange(org.xowl.infra.lang.runtime.Class elem) {
+    public void setRange(Class elem) {
         if (__implRange == elem)
             return;
         if (elem == null) {
@@ -945,34 +1019,38 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property SubPropertyOf
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#subPropertyOf
      */
-    private List<org.xowl.infra.lang.runtime.ObjectProperty> __implSubPropertyOf;
+    private List<ObjectProperty> __implSubPropertyOf;
 
     /**
      * Adds a value to the property SubPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subPropertyOf
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddSubPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleAddSubPropertyOf(ObjectProperty elem) {
         __implSubPropertyOf.add(elem);
     }
 
     /**
      * Removes a value from the property SubPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subPropertyOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveSubPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleRemoveSubPropertyOf(ObjectProperty elem) {
         __implSubPropertyOf.remove(elem);
     }
 
     /**
      * Adds a value to the property SubPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subPropertyOf
      * This method will also update the inverse property SuperPropertyOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddSubPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyAddSubPropertyOf(ObjectProperty elem) {
         doSimpleAddSubPropertyOf(elem);
         if (elem instanceof RuntimeObjectPropertyImpl)
             ((RuntimeObjectPropertyImpl) elem).doSimpleAddSuperPropertyOf(this);
@@ -980,11 +1058,12 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Removes a value from the property SubPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subPropertyOf
      * This method will also update the inverse property SuperPropertyOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveSubPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyRemoveSubPropertyOf(ObjectProperty elem) {
         doSimpleRemoveSubPropertyOf(elem);
         if (elem instanceof RuntimeObjectPropertyImpl)
             ((RuntimeObjectPropertyImpl) elem).doSimpleRemoveSuperPropertyOf(this);
@@ -992,78 +1071,82 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Tries to add a value to the property SubPropertyOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subPropertyOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddSubPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphAddSubPropertyOf(ObjectProperty elem) {
         doPropertyAddSubPropertyOf(elem);
     }
 
     /**
      * Tries to remove a value from the property SubPropertyOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subPropertyOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveSubPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphRemoveSubPropertyOf(ObjectProperty elem) {
         doPropertyRemoveSubPropertyOf(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property SubPropertyOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subPropertyOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddSubPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchAddSubPropertyOf(ObjectProperty elem) {
         doGraphAddSubPropertyOf(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property SubPropertyOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#subPropertyOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveSubPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchRemoveSubPropertyOf(ObjectProperty elem) {
         doGraphRemoveSubPropertyOf(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.Property> getAllSubPropertyOfAs(org.xowl.infra.lang.runtime.Property type) {
+    public Collection<Property> getAllSubPropertyOfAs(Property type) {
         return (Collection) Collections.unmodifiableCollection(__implSubPropertyOf);
     }
 
     @Override
-    public boolean addSubPropertyOf(org.xowl.infra.lang.runtime.Property elem) {
+    public boolean addSubPropertyOf(Property elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.ObjectProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.ObjectProperty");
-        if (__implSubPropertyOf.contains((org.xowl.infra.lang.runtime.ObjectProperty) elem))
+        if (!(elem instanceof ObjectProperty))
+            throw new IllegalArgumentException("Expected type ObjectProperty");
+        if (__implSubPropertyOf.contains((ObjectProperty) elem))
             return false;
-        doDispatchAddSubPropertyOf((org.xowl.infra.lang.runtime.ObjectProperty) elem);
+        doDispatchAddSubPropertyOf((ObjectProperty) elem);
         return true;
     }
 
     @Override
-    public boolean removeSubPropertyOf(org.xowl.infra.lang.runtime.Property elem) {
+    public boolean removeSubPropertyOf(Property elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.ObjectProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.ObjectProperty");
-        if (!__implSubPropertyOf.contains((org.xowl.infra.lang.runtime.ObjectProperty) elem))
+        if (!(elem instanceof ObjectProperty))
+            throw new IllegalArgumentException("Expected type ObjectProperty");
+        if (!__implSubPropertyOf.contains((ObjectProperty) elem))
             return false;
-        doDispatchRemoveSubPropertyOf((org.xowl.infra.lang.runtime.ObjectProperty) elem);
+        doDispatchRemoveSubPropertyOf((ObjectProperty) elem);
         return true;
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.ObjectProperty> getAllSubPropertyOfAs(org.xowl.infra.lang.runtime.ObjectProperty type) {
+    public Collection<ObjectProperty> getAllSubPropertyOfAs(ObjectProperty type) {
         return Collections.unmodifiableCollection(__implSubPropertyOf);
     }
 
     @Override
-    public boolean addSubPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public boolean addSubPropertyOf(ObjectProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implSubPropertyOf.contains(elem))
@@ -1073,7 +1156,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
     }
 
     @Override
-    public boolean removeSubPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public boolean removeSubPropertyOf(ObjectProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implSubPropertyOf.contains(elem))
@@ -1084,34 +1167,38 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * The backing data for the property SuperPropertyOf
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#superPropertyOf
      */
-    private List<org.xowl.infra.lang.runtime.ObjectProperty> __implSuperPropertyOf;
+    private List<ObjectProperty> __implSuperPropertyOf;
 
     /**
      * Adds a value to the property SuperPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superPropertyOf
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddSuperPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleAddSuperPropertyOf(ObjectProperty elem) {
         __implSuperPropertyOf.add(elem);
     }
 
     /**
      * Removes a value from the property SuperPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superPropertyOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveSuperPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    protected void doSimpleRemoveSuperPropertyOf(ObjectProperty elem) {
         __implSuperPropertyOf.remove(elem);
     }
 
     /**
      * Adds a value to the property SuperPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superPropertyOf
      * This method will also update the inverse property SubPropertyOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddSuperPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyAddSuperPropertyOf(ObjectProperty elem) {
         doSimpleAddSuperPropertyOf(elem);
         if (elem instanceof RuntimeObjectPropertyImpl)
             ((RuntimeObjectPropertyImpl) elem).doSimpleAddSubPropertyOf(this);
@@ -1119,11 +1206,12 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Removes a value from the property SuperPropertyOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superPropertyOf
      * This method will also update the inverse property SubPropertyOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveSuperPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doPropertyRemoveSuperPropertyOf(ObjectProperty elem) {
         doSimpleRemoveSuperPropertyOf(elem);
         if (elem instanceof RuntimeObjectPropertyImpl)
             ((RuntimeObjectPropertyImpl) elem).doSimpleRemoveSubPropertyOf(this);
@@ -1131,78 +1219,82 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
 
     /**
      * Tries to add a value to the property SuperPropertyOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superPropertyOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddSuperPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphAddSuperPropertyOf(ObjectProperty elem) {
         doPropertyAddSuperPropertyOf(elem);
     }
 
     /**
      * Tries to remove a value from the property SuperPropertyOf and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superPropertyOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveSuperPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doGraphRemoveSuperPropertyOf(ObjectProperty elem) {
         doPropertyRemoveSuperPropertyOf(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property SuperPropertyOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superPropertyOf
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddSuperPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchAddSuperPropertyOf(ObjectProperty elem) {
         doGraphAddSuperPropertyOf(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property SuperPropertyOf
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#superPropertyOf
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveSuperPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    private void doDispatchRemoveSuperPropertyOf(ObjectProperty elem) {
         doGraphRemoveSuperPropertyOf(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.Property> getAllSuperPropertyOfAs(org.xowl.infra.lang.runtime.Property type) {
+    public Collection<Property> getAllSuperPropertyOfAs(Property type) {
         return (Collection) Collections.unmodifiableCollection(__implSuperPropertyOf);
     }
 
     @Override
-    public boolean addSuperPropertyOf(org.xowl.infra.lang.runtime.Property elem) {
+    public boolean addSuperPropertyOf(Property elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.ObjectProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.ObjectProperty");
-        if (__implSuperPropertyOf.contains((org.xowl.infra.lang.runtime.ObjectProperty) elem))
+        if (!(elem instanceof ObjectProperty))
+            throw new IllegalArgumentException("Expected type ObjectProperty");
+        if (__implSuperPropertyOf.contains((ObjectProperty) elem))
             return false;
-        doDispatchAddSuperPropertyOf((org.xowl.infra.lang.runtime.ObjectProperty) elem);
+        doDispatchAddSuperPropertyOf((ObjectProperty) elem);
         return true;
     }
 
     @Override
-    public boolean removeSuperPropertyOf(org.xowl.infra.lang.runtime.Property elem) {
+    public boolean removeSuperPropertyOf(Property elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.ObjectProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.ObjectProperty");
-        if (!__implSuperPropertyOf.contains((org.xowl.infra.lang.runtime.ObjectProperty) elem))
+        if (!(elem instanceof ObjectProperty))
+            throw new IllegalArgumentException("Expected type ObjectProperty");
+        if (!__implSuperPropertyOf.contains((ObjectProperty) elem))
             return false;
-        doDispatchRemoveSuperPropertyOf((org.xowl.infra.lang.runtime.ObjectProperty) elem);
+        doDispatchRemoveSuperPropertyOf((ObjectProperty) elem);
         return true;
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.ObjectProperty> getAllSuperPropertyOfAs(org.xowl.infra.lang.runtime.ObjectProperty type) {
+    public Collection<ObjectProperty> getAllSuperPropertyOfAs(ObjectProperty type) {
         return Collections.unmodifiableCollection(__implSuperPropertyOf);
     }
 
     @Override
-    public boolean addSuperPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public boolean addSuperPropertyOf(ObjectProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implSuperPropertyOf.contains(elem))
@@ -1212,7 +1304,7 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
     }
 
     @Override
-    public boolean removeSuperPropertyOf(org.xowl.infra.lang.runtime.ObjectProperty elem) {
+    public boolean removeSuperPropertyOf(ObjectProperty elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implSuperPropertyOf.contains(elem))
@@ -1225,21 +1317,37 @@ public class RuntimeObjectPropertyImpl implements org.xowl.infra.lang.runtime.Ob
      * Constructor for the implementation of ObjectProperty
      */
     public RuntimeObjectPropertyImpl() {
+        // initialize property http://xowl.org/infra/lang/runtime#chains
         this.__implChains = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/runtime#domain
         this.__implDomain = null;
+        // initialize property http://xowl.org/infra/lang/runtime#interpretationOf
         this.__implInterpretationOf = null;
+        // initialize property http://xowl.org/infra/lang/runtime#inverseOf
         this.__implInverseOf = null;
+        // initialize property http://xowl.org/infra/lang/runtime#isAsymmetric
         this.__implIsAsymmetric = false;
+        // initialize property http://xowl.org/infra/lang/runtime#isFunctional
         this.__implIsFunctional = false;
+        // initialize property http://xowl.org/infra/lang/runtime#isInverseFunctional
         this.__implIsInverseFunctional = false;
+        // initialize property http://xowl.org/infra/lang/runtime#isIrreflexive
         this.__implIsIrreflexive = false;
+        // initialize property http://xowl.org/infra/lang/runtime#isReflexive
         this.__implIsReflexive = false;
+        // initialize property http://xowl.org/infra/lang/runtime#isSymmetric
         this.__implIsSymmetric = false;
+        // initialize property http://xowl.org/infra/lang/runtime#isTransitive
         this.__implIsTransitive = false;
+        // initialize property http://xowl.org/infra/lang/runtime#propertyDisjointWith
         this.__implPropertyDisjointWith = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/runtime#propertyEquivalentTo
         this.__implPropertyEquivalentTo = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/runtime#range
         this.__implRange = null;
+        // initialize property http://xowl.org/infra/lang/runtime#subPropertyOf
         this.__implSubPropertyOf = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/runtime#superPropertyOf
         this.__implSuperPropertyOf = new ArrayList<>();
     }
 }

@@ -20,13 +20,15 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Literal
+ * Represents the base interface for Literal
+ * Original OWL class is http://xowl.org/infra/lang/runtime#Literal
  *
  * @author xOWL code generator
  */
-public interface Literal extends org.xowl.infra.lang.runtime.Value {
+public interface Literal extends Value {
     /**
      * Sets the value for the property LangTag
+     * Original OWL property is http://xowl.org/infra/lang/runtime#langTag
      *
      * @param elem The value to set
      */
@@ -34,6 +36,7 @@ public interface Literal extends org.xowl.infra.lang.runtime.Value {
 
     /**
      * Gets the value for the property LangTag
+     * Original OWL property is http://xowl.org/infra/lang/runtime#langTag
      *
      * @return The value for the property LangTag
      */
@@ -41,6 +44,7 @@ public interface Literal extends org.xowl.infra.lang.runtime.Value {
 
     /**
      * Sets the value for the property LexicalValue
+     * Original OWL property is http://xowl.org/infra/lang/runtime#lexicalValue
      *
      * @param elem The value to set
      */
@@ -48,6 +52,7 @@ public interface Literal extends org.xowl.infra.lang.runtime.Value {
 
     /**
      * Gets the value for the property LexicalValue
+     * Original OWL property is http://xowl.org/infra/lang/runtime#lexicalValue
      *
      * @return The value for the property LexicalValue
      */
@@ -55,16 +60,18 @@ public interface Literal extends org.xowl.infra.lang.runtime.Value {
 
     /**
      * Sets the value for the property MemberOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#memberOf
      *
      * @param elem The value to set
      */
-    void setMemberOf(org.xowl.infra.lang.runtime.Datatype elem);
+    void setMemberOf(Datatype elem);
 
     /**
      * Gets the value for the property MemberOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#memberOf
      *
      * @return The value for the property MemberOf
      */
-    org.xowl.infra.lang.runtime.Datatype getMemberOf();
+    Datatype getMemberOf();
 
 }

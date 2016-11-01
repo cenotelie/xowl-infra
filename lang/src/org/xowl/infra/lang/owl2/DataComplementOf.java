@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataComplementOf
+ * Represents the base interface for DataComplementOf
+ * Original OWL class is http://xowl.org/infra/lang/owl2#DataComplementOf
  *
  * @author xOWL code generator
  */
-public interface DataComplementOf extends org.xowl.infra.lang.owl2.Datarange, org.xowl.infra.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype2 {
+public interface DataComplementOf extends Datarange, DomainOfDatarange {
 }

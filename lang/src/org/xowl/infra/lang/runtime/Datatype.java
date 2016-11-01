@@ -20,129 +20,146 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class Datatype
+ * Represents the base interface for Datatype
+ * Original OWL class is http://xowl.org/infra/lang/runtime#Datatype
  *
  * @author xOWL code generator
  */
-public interface Datatype extends org.xowl.infra.lang.runtime.Interpretation, org.xowl.infra.lang.runtime.Class_OR_Datatype {
+public interface Datatype extends Interpretation, RangeOfRange {
     /**
      * Sets the value for the property DataBase
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataBase
      *
      * @param elem The value to set
      */
-    void setDataBase(org.xowl.infra.lang.runtime.Datatype elem);
+    void setDataBase(Datatype elem);
 
     /**
      * Gets the value for the property DataBase
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataBase
      *
      * @return The value for the property DataBase
      */
-    org.xowl.infra.lang.runtime.Datatype getDataBase();
+    Datatype getDataBase();
 
     /**
      * Sets the value for the property DataComplementOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataComplementOf
      *
      * @param elem The value to set
      */
-    void setDataComplementOf(org.xowl.infra.lang.runtime.Datatype elem);
+    void setDataComplementOf(Datatype elem);
 
     /**
      * Gets the value for the property DataComplementOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataComplementOf
      *
      * @return The value for the property DataComplementOf
      */
-    org.xowl.infra.lang.runtime.Datatype getDataComplementOf();
+    Datatype getDataComplementOf();
 
     /**
      * Adds an element to the property DataIntersectionOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataIntersectionOf
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addDataIntersectionOf(org.xowl.infra.lang.runtime.Datatype elem);
+    boolean addDataIntersectionOf(Datatype elem);
 
     /**
      * Removes an element from the property DataIntersectionOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataIntersectionOf
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeDataIntersectionOf(org.xowl.infra.lang.runtime.Datatype elem);
+    boolean removeDataIntersectionOf(Datatype elem);
 
     /**
      * Gets all the elements for the property DataIntersectionOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataIntersectionOf
      *
      * @return The elements for the property DataIntersectionOf
      */
-    Collection<org.xowl.infra.lang.runtime.Datatype> getAllDataIntersectionOf();
+    Collection<Datatype> getAllDataIntersectionOf();
 
     /**
      * Adds an element to the property DataOneOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataOneOf
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addDataOneOf(org.xowl.infra.lang.runtime.Literal elem);
+    boolean addDataOneOf(Literal elem);
 
     /**
      * Removes an element from the property DataOneOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataOneOf
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeDataOneOf(org.xowl.infra.lang.runtime.Literal elem);
+    boolean removeDataOneOf(Literal elem);
 
     /**
      * Gets all the elements for the property DataOneOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataOneOf
      *
      * @return The elements for the property DataOneOf
      */
-    Collection<org.xowl.infra.lang.runtime.Literal> getAllDataOneOf();
+    Collection<Literal> getAllDataOneOf();
 
     /**
      * Adds an element to the property DataRestrictions
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataRestrictions
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem);
+    boolean addDataRestrictions(DatatypeRestriction elem);
 
     /**
      * Removes an element from the property DataRestrictions
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataRestrictions
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem);
+    boolean removeDataRestrictions(DatatypeRestriction elem);
 
     /**
      * Gets all the elements for the property DataRestrictions
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataRestrictions
      *
      * @return The elements for the property DataRestrictions
      */
-    Collection<org.xowl.infra.lang.runtime.DatatypeRestriction> getAllDataRestrictions();
+    Collection<DatatypeRestriction> getAllDataRestrictions();
 
     /**
      * Adds an element to the property DataUnionOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataUnionOf
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem);
+    boolean addDataUnionOf(Datatype elem);
 
     /**
      * Removes an element from the property DataUnionOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataUnionOf
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem);
+    boolean removeDataUnionOf(Datatype elem);
 
     /**
      * Gets all the elements for the property DataUnionOf
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataUnionOf
      *
      * @return The elements for the property DataUnionOf
      */
-    Collection<org.xowl.infra.lang.runtime.Datatype> getAllDataUnionOf();
+    Collection<Datatype> getAllDataUnionOf();
 
 }

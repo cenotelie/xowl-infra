@@ -20,9 +20,10 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class NAryDataPropertyRestriction
+ * Represents the base interface for NAryDataPropertyRestriction
+ * Original OWL class is http://xowl.org/infra/lang/owl2#NAryDataPropertyRestriction
  *
  * @author xOWL code generator
  */
-public interface NAryDataPropertyRestriction extends org.xowl.infra.lang.owl2.ClassRestriction, org.xowl.infra.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype2, org.xowl.infra.lang.owl2.DisjointDataProperties_OR_EquivalentDataProperties_OR_HasKey_OR_NAryDataPropertyRestriction {
+public interface NAryDataPropertyRestriction extends ClassRestriction, DomainOfDataPropertySeq, DomainOfDatarange {
 }

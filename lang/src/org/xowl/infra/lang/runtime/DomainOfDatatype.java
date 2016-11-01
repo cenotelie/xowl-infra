@@ -15,28 +15,30 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.lang.owl2;
+package org.xowl.infra.lang.runtime;
 
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne1
+ * Represents the base interface for DomainOfDatatype
  *
  * @author xOWL code generator
  */
-public interface ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne1 {
+public interface DomainOfDatatype {
     /**
-     * Sets the value for the property Individual
+     * Sets the value for the property Datatype
+     * Original OWL property is http://xowl.org/infra/lang/runtime#datatype
      *
      * @param elem The value to set
      */
-    void setIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem);
+    void setDatatype(Datatype elem);
 
     /**
-     * Gets the value for the property Individual
+     * Gets the value for the property Datatype
+     * Original OWL property is http://xowl.org/infra/lang/runtime#datatype
      *
-     * @return The value for the property Individual
+     * @return The value for the property Datatype
      */
-    org.xowl.infra.lang.owl2.IndividualExpression getIndividual();
+    Datatype getDatatype();
 
 }

@@ -20,9 +20,10 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataMaxCardinality
+ * Represents the base interface for DataMaxCardinality
+ * Original OWL class is http://xowl.org/infra/lang/runtime#DataMaxCardinality
  *
  * @author xOWL code generator
  */
-public interface DataMaxCardinality extends org.xowl.infra.lang.runtime.DataCardinalityRestriction {
+public interface DataMaxCardinality extends DataCardinalityRestriction {
 }

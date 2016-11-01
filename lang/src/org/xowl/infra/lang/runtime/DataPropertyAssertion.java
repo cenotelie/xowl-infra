@@ -20,25 +20,28 @@ package org.xowl.infra.lang.runtime;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataPropertyAssertion
+ * Represents the base interface for DataPropertyAssertion
+ * Original OWL class is http://xowl.org/infra/lang/runtime#DataPropertyAssertion
  *
  * @author xOWL code generator
  */
-public interface DataPropertyAssertion extends org.xowl.infra.lang.runtime.PropertyAssertion, org.xowl.infra.lang.runtime.DataPropertyAssertion_OR_DatatypeRestriction {
+public interface DataPropertyAssertion extends PropertyAssertion, DomainOfValueLiteral {
     /**
      * Sets the value for the property Property
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param elem The value to set
      */
-    void setProperty(org.xowl.infra.lang.runtime.DataProperty elem);
+    void setProperty(DataProperty elem);
 
     /**
      * Gets the value for the property Property
+     * Original OWL property is http://xowl.org/infra/lang/runtime#property
      *
      * @param type An element of the type expected in result (may be null)
      *             This parameter is used to disambiguate among overloads.
      * @return The value for the property Property
      */
-    org.xowl.infra.lang.runtime.DataProperty getPropertyAs(org.xowl.infra.lang.runtime.DataProperty type);
+    DataProperty getPropertyAs(DataProperty type);
 
 }

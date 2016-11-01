@@ -17,100 +17,112 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.rules.*;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class Rule
+ * The default implementation for Rule
+ * Original OWL class is http://xowl.org/infra/lang/rules#Rule
  *
  * @author xOWL code generator
  */
-public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
+public class RulesRuleImpl implements Rule {
     /**
      * The backing data for the property Antecedents
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/rules#antecedents
      */
-    private List<org.xowl.infra.lang.rules.Assertion> __implAntecedents;
+    private List<Assertion> __implAntecedents;
 
     /**
      * Adds a value to the property Antecedents
+     * Original OWL property is http://xowl.org/infra/lang/rules#antecedents
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddAntecedents(org.xowl.infra.lang.rules.Assertion elem) {
+    protected void doSimpleAddAntecedents(Assertion elem) {
         __implAntecedents.add(elem);
     }
 
     /**
      * Removes a value from the property Antecedents
+     * Original OWL property is http://xowl.org/infra/lang/rules#antecedents
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveAntecedents(org.xowl.infra.lang.rules.Assertion elem) {
+    protected void doSimpleRemoveAntecedents(Assertion elem) {
         __implAntecedents.remove(elem);
     }
 
     /**
      * Adds a value to the property Antecedents
+     * Original OWL property is http://xowl.org/infra/lang/rules#antecedents
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddAntecedents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doPropertyAddAntecedents(Assertion elem) {
         doSimpleAddAntecedents(elem);
     }
 
     /**
      * Removes a value from the property Antecedents
+     * Original OWL property is http://xowl.org/infra/lang/rules#antecedents
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveAntecedents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doPropertyRemoveAntecedents(Assertion elem) {
         doSimpleRemoveAntecedents(elem);
     }
 
     /**
      * Tries to add a value to the property Antecedents and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/rules#antecedents
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddAntecedents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doGraphAddAntecedents(Assertion elem) {
         doPropertyAddAntecedents(elem);
     }
 
     /**
      * Tries to remove a value from the property Antecedents and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/rules#antecedents
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveAntecedents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doGraphRemoveAntecedents(Assertion elem) {
         doPropertyRemoveAntecedents(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Antecedents
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/rules#antecedents
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddAntecedents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doDispatchAddAntecedents(Assertion elem) {
         doGraphAddAntecedents(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Antecedents
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/rules#antecedents
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveAntecedents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doDispatchRemoveAntecedents(Assertion elem) {
         doGraphRemoveAntecedents(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.rules.Assertion> getAllAntecedents() {
+    public Collection<Assertion> getAllAntecedents() {
         return Collections.unmodifiableCollection(__implAntecedents);
     }
 
     @Override
-    public boolean addAntecedents(org.xowl.infra.lang.rules.Assertion elem) {
+    public boolean addAntecedents(Assertion elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implAntecedents.contains(elem))
@@ -120,7 +132,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
     }
 
     @Override
-    public boolean removeAntecedents(org.xowl.infra.lang.rules.Assertion elem) {
+    public boolean removeAntecedents(Assertion elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implAntecedents.contains(elem))
@@ -131,90 +143,99 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * The backing data for the property Consequents
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/rules#consequents
      */
-    private List<org.xowl.infra.lang.rules.Assertion> __implConsequents;
+    private List<Assertion> __implConsequents;
 
     /**
      * Adds a value to the property Consequents
+     * Original OWL property is http://xowl.org/infra/lang/rules#consequents
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddConsequents(org.xowl.infra.lang.rules.Assertion elem) {
+    protected void doSimpleAddConsequents(Assertion elem) {
         __implConsequents.add(elem);
     }
 
     /**
      * Removes a value from the property Consequents
+     * Original OWL property is http://xowl.org/infra/lang/rules#consequents
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveConsequents(org.xowl.infra.lang.rules.Assertion elem) {
+    protected void doSimpleRemoveConsequents(Assertion elem) {
         __implConsequents.remove(elem);
     }
 
     /**
      * Adds a value to the property Consequents
+     * Original OWL property is http://xowl.org/infra/lang/rules#consequents
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddConsequents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doPropertyAddConsequents(Assertion elem) {
         doSimpleAddConsequents(elem);
     }
 
     /**
      * Removes a value from the property Consequents
+     * Original OWL property is http://xowl.org/infra/lang/rules#consequents
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveConsequents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doPropertyRemoveConsequents(Assertion elem) {
         doSimpleRemoveConsequents(elem);
     }
 
     /**
      * Tries to add a value to the property Consequents and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/rules#consequents
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddConsequents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doGraphAddConsequents(Assertion elem) {
         doPropertyAddConsequents(elem);
     }
 
     /**
      * Tries to remove a value from the property Consequents and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/rules#consequents
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveConsequents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doGraphRemoveConsequents(Assertion elem) {
         doPropertyRemoveConsequents(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Consequents
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/rules#consequents
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddConsequents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doDispatchAddConsequents(Assertion elem) {
         doGraphAddConsequents(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Consequents
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/rules#consequents
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveConsequents(org.xowl.infra.lang.rules.Assertion elem) {
+    private void doDispatchRemoveConsequents(Assertion elem) {
         doGraphRemoveConsequents(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.rules.Assertion> getAllConsequents() {
+    public Collection<Assertion> getAllConsequents() {
         return Collections.unmodifiableCollection(__implConsequents);
     }
 
     @Override
-    public boolean addConsequents(org.xowl.infra.lang.rules.Assertion elem) {
+    public boolean addConsequents(Assertion elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (__implConsequents.contains(elem))
@@ -224,7 +245,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
     }
 
     @Override
-    public boolean removeConsequents(org.xowl.infra.lang.rules.Assertion elem) {
+    public boolean removeConsequents(Assertion elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
         if (!__implConsequents.contains(elem))
@@ -235,11 +256,13 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * The backing data for the property Guard
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/rules#guard
      */
     private org.xowl.infra.lang.owl2.LiteralExpression __implGuard;
 
     /**
      * Adds a value to the property Guard
+     * Original OWL property is http://xowl.org/infra/lang/rules#guard
      *
      * @param elem The element value to add (must not be null)
      */
@@ -249,6 +272,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * Removes a value from the property Guard
+     * Original OWL property is http://xowl.org/infra/lang/rules#guard
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -258,6 +282,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * Adds a value to the property Guard
+     * Original OWL property is http://xowl.org/infra/lang/rules#guard
      *
      * @param elem The element value to add (must not be null)
      */
@@ -267,6 +292,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * Removes a value from the property Guard
+     * Original OWL property is http://xowl.org/infra/lang/rules#guard
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -276,6 +302,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * Tries to add a value to the property Guard and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/rules#guard
      *
      * @param elem The element value to add (must not be null)
      */
@@ -285,6 +312,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * Tries to remove a value from the property Guard and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/rules#guard
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -295,6 +323,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
     /**
      * Dispatches the request for the addition of a value to the property Guard
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/rules#guard
      *
      * @param elem The element value to add (must not be null)
      */
@@ -305,6 +334,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
     /**
      * Dispatches the request for the removal of a value from the property Guard
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/rules#guard
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -333,11 +363,13 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * The backing data for the property HasIRI
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/rules#hasIRI
      */
     private org.xowl.infra.lang.owl2.IRI __implHasIRI;
 
     /**
      * Adds a value to the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/rules#hasIRI
      *
      * @param elem The element value to add (must not be null)
      */
@@ -347,6 +379,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * Removes a value from the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/rules#hasIRI
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -356,6 +389,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * Adds a value to the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/rules#hasIRI
      *
      * @param elem The element value to add (must not be null)
      */
@@ -365,6 +399,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * Removes a value from the property HasIRI
+     * Original OWL property is http://xowl.org/infra/lang/rules#hasIRI
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -374,6 +409,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * Tries to add a value to the property HasIRI and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/rules#hasIRI
      *
      * @param elem The element value to add (must not be null)
      */
@@ -383,6 +419,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
 
     /**
      * Tries to remove a value from the property HasIRI and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/rules#hasIRI
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -393,6 +430,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
     /**
      * Dispatches the request for the addition of a value to the property HasIRI
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/rules#hasIRI
      *
      * @param elem The element value to add (must not be null)
      */
@@ -403,6 +441,7 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
     /**
      * Dispatches the request for the removal of a value from the property HasIRI
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/rules#hasIRI
      *
      * @param elem The element value to remove (must not be null)
      */
@@ -433,9 +472,13 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
      * Constructor for the implementation of Rule
      */
     public RulesRuleImpl() {
+        // initialize property http://xowl.org/infra/lang/rules#antecedents
         this.__implAntecedents = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/rules#consequents
         this.__implConsequents = new ArrayList<>();
+        // initialize property http://xowl.org/infra/lang/rules#guard
         this.__implGuard = null;
+        // initialize property http://xowl.org/infra/lang/rules#hasIRI
         this.__implHasIRI = null;
     }
 }

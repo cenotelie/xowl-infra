@@ -17,16 +17,21 @@
 
 package org.xowl.infra.lang.impl;
 
+import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.lang.runtime.Class;
+
 import java.util.*;
 
 /**
- * The default implementation for the concrete OWL class DataExactCardinality
+ * The default implementation for DataExactCardinality
+ * Original OWL class is http://xowl.org/infra/lang/runtime#DataExactCardinality
  *
  * @author xOWL code generator
  */
-public class RuntimeDataExactCardinalityImpl implements org.xowl.infra.lang.runtime.DataExactCardinality {
+public class RuntimeDataExactCardinalityImpl implements DataExactCardinality {
     /**
      * The backing data for the property Cardinality
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#cardinality
      */
     private int __implCardinality;
 
@@ -42,90 +47,99 @@ public class RuntimeDataExactCardinalityImpl implements org.xowl.infra.lang.runt
 
     /**
      * The backing data for the property DataProperty
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#dataProperty
      */
-    private org.xowl.infra.lang.runtime.DataProperty __implDataProperty;
+    private DataProperty __implDataProperty;
 
     /**
      * Adds a value to the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    protected void doSimpleAddDataProperty(DataProperty elem) {
         __implDataProperty = elem;
     }
 
     /**
      * Removes a value from the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    protected void doSimpleRemoveDataProperty(DataProperty elem) {
         __implDataProperty = null;
     }
 
     /**
      * Adds a value to the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doPropertyAddDataProperty(DataProperty elem) {
         doSimpleAddDataProperty(elem);
     }
 
     /**
      * Removes a value from the property DataProperty
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doPropertyRemoveDataProperty(DataProperty elem) {
         doSimpleRemoveDataProperty(elem);
     }
 
     /**
      * Tries to add a value to the property DataProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doGraphAddDataProperty(DataProperty elem) {
         doPropertyAddDataProperty(elem);
     }
 
     /**
      * Tries to remove a value from the property DataProperty and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doGraphRemoveDataProperty(DataProperty elem) {
         doPropertyRemoveDataProperty(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property DataProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doDispatchAddDataProperty(DataProperty elem) {
         doGraphAddDataProperty(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property DataProperty
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#dataProperty
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    private void doDispatchRemoveDataProperty(DataProperty elem) {
         doGraphRemoveDataProperty(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.DataProperty getDataProperty() {
+    public DataProperty getDataProperty() {
         return __implDataProperty;
     }
 
     @Override
-    public void setDataProperty(org.xowl.infra.lang.runtime.DataProperty elem) {
+    public void setDataProperty(DataProperty elem) {
         if (__implDataProperty == elem)
             return;
         if (elem == null) {
@@ -140,90 +154,99 @@ public class RuntimeDataExactCardinalityImpl implements org.xowl.infra.lang.runt
 
     /**
      * The backing data for the property Datatype
+     * This implements the storage for original OWL property http://xowl.org/infra/lang/runtime#datatype
      */
-    private org.xowl.infra.lang.runtime.Datatype __implDatatype;
+    private Datatype __implDatatype;
 
     /**
      * Adds a value to the property Datatype
+     * Original OWL property is http://xowl.org/infra/lang/runtime#datatype
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDatatype(org.xowl.infra.lang.runtime.Datatype elem) {
+    protected void doSimpleAddDatatype(Datatype elem) {
         __implDatatype = elem;
     }
 
     /**
      * Removes a value from the property Datatype
+     * Original OWL property is http://xowl.org/infra/lang/runtime#datatype
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDatatype(org.xowl.infra.lang.runtime.Datatype elem) {
+    protected void doSimpleRemoveDatatype(Datatype elem) {
         __implDatatype = null;
     }
 
     /**
      * Adds a value to the property Datatype
+     * Original OWL property is http://xowl.org/infra/lang/runtime#datatype
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDatatype(org.xowl.infra.lang.runtime.Datatype elem) {
+    private void doPropertyAddDatatype(Datatype elem) {
         doSimpleAddDatatype(elem);
     }
 
     /**
      * Removes a value from the property Datatype
+     * Original OWL property is http://xowl.org/infra/lang/runtime#datatype
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDatatype(org.xowl.infra.lang.runtime.Datatype elem) {
+    private void doPropertyRemoveDatatype(Datatype elem) {
         doSimpleRemoveDatatype(elem);
     }
 
     /**
      * Tries to add a value to the property Datatype and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#datatype
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDatatype(org.xowl.infra.lang.runtime.Datatype elem) {
+    private void doGraphAddDatatype(Datatype elem) {
         doPropertyAddDatatype(elem);
     }
 
     /**
      * Tries to remove a value from the property Datatype and its super properties (if any)
+     * Original OWL property is http://xowl.org/infra/lang/runtime#datatype
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDatatype(org.xowl.infra.lang.runtime.Datatype elem) {
+    private void doGraphRemoveDatatype(Datatype elem) {
         doPropertyRemoveDatatype(elem);
     }
 
     /**
      * Dispatches the request for the addition of a value to the property Datatype
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#datatype
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDatatype(org.xowl.infra.lang.runtime.Datatype elem) {
+    private void doDispatchAddDatatype(Datatype elem) {
         doGraphAddDatatype(elem);
     }
 
     /**
      * Dispatches the request for the removal of a value from the property Datatype
      * This method tries to delegate to a sub property, if any.
+     * Original OWL property is http://xowl.org/infra/lang/runtime#datatype
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDatatype(org.xowl.infra.lang.runtime.Datatype elem) {
+    private void doDispatchRemoveDatatype(Datatype elem) {
         doGraphRemoveDatatype(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Datatype getDatatype() {
+    public Datatype getDatatype() {
         return __implDatatype;
     }
 
     @Override
-    public void setDatatype(org.xowl.infra.lang.runtime.Datatype elem) {
+    public void setDatatype(Datatype elem) {
         if (__implDatatype == elem)
             return;
         if (elem == null) {
@@ -240,8 +263,11 @@ public class RuntimeDataExactCardinalityImpl implements org.xowl.infra.lang.runt
      * Constructor for the implementation of DataExactCardinality
      */
     public RuntimeDataExactCardinalityImpl() {
+        // initialize property http://xowl.org/infra/lang/runtime#cardinality
         this.__implCardinality = 0;
+        // initialize property http://xowl.org/infra/lang/runtime#dataProperty
         this.__implDataProperty = null;
+        // initialize property http://xowl.org/infra/lang/runtime#datatype
         this.__implDatatype = null;
     }
 }
