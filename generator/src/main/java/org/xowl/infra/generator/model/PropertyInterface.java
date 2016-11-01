@@ -91,8 +91,10 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocAdd(Writer writer, String property) throws IOException {
+        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Adds an element to the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element to add").append(Files.LINE_SEPARATOR);
         writer.append("     * @return Whether the operation resulted in a new element (false if the element was already there)").append(Files.LINE_SEPARATOR);
@@ -107,8 +109,10 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocRemove(Writer writer, String property) throws IOException {
+        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Removes an element from the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element to remove").append(Files.LINE_SEPARATOR);
         writer.append("     * @return Whether the operation resulted in the element being removed").append(Files.LINE_SEPARATOR);
@@ -123,8 +127,10 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGetAll(Writer writer, String property) throws IOException {
+        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets all the elements for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @return The elements for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
@@ -138,8 +144,10 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGetAllTyped(Writer writer, String property) throws IOException {
+        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets all the elements for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param type An element of the type expected in result (may be null)").append(Files.LINE_SEPARATOR);
         writer.append("     *             This parameter is used to disambiguate among overloads.").append(Files.LINE_SEPARATOR);
@@ -155,8 +163,10 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocSet(Writer writer, String property) throws IOException {
+        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Sets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The value to set").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
@@ -170,8 +180,10 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGet(Writer writer, String property) throws IOException {
+        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @return The value for the property ").append(property).append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
@@ -185,8 +197,10 @@ public class PropertyInterface extends PropertyData {
      * @throws IOException When an IO error occurs
      */
     public void writeJavadocGetTyped(Writer writer, String property) throws IOException {
+        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Gets the value for the property ").append(property).append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param type An element of the type expected in result (may be null)").append(Files.LINE_SEPARATOR);
         writer.append("     *             This parameter is used to disambiguate among overloads.").append(Files.LINE_SEPARATOR);

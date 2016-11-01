@@ -593,6 +593,8 @@ public class ClassModel {
      * @throws IOException When an IO error occurs
      */
     public void writeInterface(File folder, String header) throws IOException {
+        String classIRI = classe.getInterpretationOf() != null ? classe.getInterpretationOf().getHasIRI().getHasValue() : null;
+
         Writer writer = Files.getWriter(new File(folder, getName() + ".java").getAbsolutePath());
         String[] lines = header.split(Files.LINE_SEPARATOR);
         writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
@@ -609,7 +611,9 @@ public class ClassModel {
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("/**").append(Files.LINE_SEPARATOR);
-        writer.append(" * Represents the base interface for the OWL class ").append(getName()).append(Files.LINE_SEPARATOR);
+        writer.append(" * Represents the base interface for ").append(getName()).append(Files.LINE_SEPARATOR);
+        if (classIRI != null)
+            writer.append(" * Original OWL class is ").append(classIRI).append(Files.LINE_SEPARATOR);
         writer.append(" *").append(Files.LINE_SEPARATOR);
         writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
         writer.append(" */").append(Files.LINE_SEPARATOR);
@@ -645,6 +649,7 @@ public class ClassModel {
             return;
 
         String name = getJavaImplName();
+        String classIRI = classe.getInterpretationOf() != null ? classe.getInterpretationOf().getHasIRI().getHasValue() : null;
 
         Writer writer = Files.getWriter(new File(folder, name + ".java").getAbsolutePath());
         String[] lines = header.split(Files.LINE_SEPARATOR);
@@ -662,7 +667,9 @@ public class ClassModel {
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("/**").append(Files.LINE_SEPARATOR);
-        writer.append(" * The default implementation for the concrete OWL class ").append(getName()).append(Files.LINE_SEPARATOR);
+        writer.append(" * The default implementation for ").append(getName()).append(Files.LINE_SEPARATOR);
+        if (classIRI != null)
+            writer.append(" * Original OWL class is ").append(classIRI).append(Files.LINE_SEPARATOR);
         writer.append(" *").append(Files.LINE_SEPARATOR);
         writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
         writer.append(" */").append(Files.LINE_SEPARATOR);

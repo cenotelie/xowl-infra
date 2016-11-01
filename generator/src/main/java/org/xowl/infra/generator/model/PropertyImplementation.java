@@ -345,9 +345,11 @@ public class PropertyImplementation extends PropertyData {
      * @throws IOException When writing failed
      */
     private void writeStandaloneFields(Writer writer) throws IOException {
+        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
         String name = getJavaName();
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * The backing data for the property ").append(name).append(Files.LINE_SEPARATOR);
+        writer.append("     * This implements the storage for original OWL property ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
         if (isVector())
             writer.append("    private List<").append(getJavaRangeVector()).append("> __impl").append(name).append(";").append(Files.LINE_SEPARATOR);
@@ -363,7 +365,9 @@ public class PropertyImplementation extends PropertyData {
      * @throws IOException When writing failed
      */
     public void writeStandaloneConstructor(Writer writer) throws IOException {
+        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
         String name = getJavaName();
+        writer.append("        // initialize property ").append(iri).append(Files.LINE_SEPARATOR);
         if (isVector())
             writer.append("        this.__impl").append(name).append(" = new ArrayList<>();").append(Files.LINE_SEPARATOR);
         else
@@ -733,6 +737,7 @@ public class PropertyImplementation extends PropertyData {
      * @throws IOException When writing failed
      */
     private void writeStandaloneObjectMutators(Writer writer) throws IOException {
+        String iri = this.property.getOWLProperty().getInterpretationOf().getHasIRI().getHasValue();
         String name = getJavaName();
 
         List<String> inverseDomains = new ArrayList<>();
@@ -749,6 +754,7 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Adds a value to the property ").append(name).append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
@@ -763,6 +769,7 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Removes a value from the property ").append(name).append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
@@ -777,6 +784,7 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Adds a value to the property ").append(name).append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         if (implInverse != null)
             writer.append("     * This method will also update the inverse property ").append(implInverse.getJavaName()).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
@@ -799,6 +807,7 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Removes a value from the property ").append(name).append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         if (implInverse != null)
             writer.append("     * This method will also update the inverse property ").append(implInverse.getJavaName()).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
@@ -821,6 +830,7 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Tries to add a value to the property ").append(name).append(" and its super properties (if any)").append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
@@ -834,6 +844,7 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Tries to remove a value from the property ").append(name).append(" and its super properties (if any)").append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
@@ -848,6 +859,7 @@ public class PropertyImplementation extends PropertyData {
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Dispatches the request for the addition of a value to the property ").append(name).append(Files.LINE_SEPARATOR);
         writer.append("     * This method tries to delegate to a sub property, if any.").append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
@@ -865,6 +877,7 @@ public class PropertyImplementation extends PropertyData {
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Dispatches the request for the removal of a value from the property ").append(name).append(Files.LINE_SEPARATOR);
         writer.append("     * This method tries to delegate to a sub property, if any.").append(Files.LINE_SEPARATOR);
+        writer.append("     * Original OWL property is ").append(iri).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
