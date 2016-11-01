@@ -24,7 +24,7 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface SubAnnotationPropertyOf extends org.xowl.infra.lang.owl2.AnnotationAxiom, org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno1 {
+public interface SubAnnotationPropertyOf extends org.xowl.infra.lang.owl2.AnnotationAxiom, org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno0 {
     /**
      * Sets the value for the property SuperAnnotProperty
      *

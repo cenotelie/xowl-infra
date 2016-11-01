@@ -26,217 +26,6 @@ import java.util.*;
  */
 public class Owl2SubClassOfImpl implements org.xowl.infra.lang.owl2.SubClassOf {
     /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
-     * The backing data for the property Classe
-     */
-    private org.xowl.infra.lang.owl2.ClassExpression __implClasse;
-
-    /**
-     * Adds a value to the property Classe
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        __implClasse = elem;
-    }
-
-    /**
-     * Removes a value from the property Classe
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        __implClasse = null;
-    }
-
-    /**
-     * Adds a value to the property Classe
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doSimpleAddClasse(elem);
-    }
-
-    /**
-     * Removes a value from the property Classe
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doSimpleRemoveClasse(elem);
-    }
-
-    /**
-     * Tries to add a value to the property Classe and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doPropertyAddClasse(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property Classe and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doPropertyRemoveClasse(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property Classe
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doGraphAddClasse(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property Classe
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doGraphRemoveClasse(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.ClassExpression getClasse() {
-        return __implClasse;
-    }
-
-    @Override
-    public void setClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        if (__implClasse == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveClasse(__implClasse);
-        } else if (__implClasse == null) {
-            doDispatchAddClasse(elem);
-        } else {
-            doDispatchRemoveClasse(__implClasse);
-            doDispatchAddClasse(elem);
-        }
-    }
-
-    /**
-     * The backing data for the property SuperClass
-     */
-    private org.xowl.infra.lang.owl2.ClassExpression __implSuperClass;
-
-    /**
-     * Adds a value to the property SuperClass
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        __implSuperClass = elem;
-    }
-
-    /**
-     * Removes a value from the property SuperClass
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        __implSuperClass = null;
-    }
-
-    /**
-     * Adds a value to the property SuperClass
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doSimpleAddSuperClass(elem);
-    }
-
-    /**
-     * Removes a value from the property SuperClass
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doSimpleRemoveSuperClass(elem);
-    }
-
-    /**
-     * Tries to add a value to the property SuperClass and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doPropertyAddSuperClass(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property SuperClass and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doPropertyRemoveSuperClass(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property SuperClass
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doGraphAddSuperClass(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property SuperClass
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doGraphRemoveSuperClass(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.ClassExpression getSuperClass() {
-        return __implSuperClass;
-    }
-
-    @Override
-    public void setSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        if (__implSuperClass == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveSuperClass(__implSuperClass);
-        } else if (__implSuperClass == null) {
-            doDispatchAddSuperClass(elem);
-        } else {
-            doDispatchRemoveSuperClass(__implSuperClass);
-            doDispatchAddSuperClass(elem);
-        }
-    }
-
-    /**
      * The backing data for the property Annotations
      */
     private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
@@ -341,6 +130,104 @@ public class Owl2SubClassOfImpl implements org.xowl.infra.lang.owl2.SubClassOf {
     }
 
     /**
+     * The backing data for the property Classe
+     */
+    private org.xowl.infra.lang.owl2.ClassExpression __implClasse;
+
+    /**
+     * Adds a value to the property Classe
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        __implClasse = elem;
+    }
+
+    /**
+     * Removes a value from the property Classe
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        __implClasse = null;
+    }
+
+    /**
+     * Adds a value to the property Classe
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doSimpleAddClasse(elem);
+    }
+
+    /**
+     * Removes a value from the property Classe
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doSimpleRemoveClasse(elem);
+    }
+
+    /**
+     * Tries to add a value to the property Classe and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doPropertyAddClasse(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property Classe and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doPropertyRemoveClasse(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property Classe
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doGraphAddClasse(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property Classe
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doGraphRemoveClasse(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.ClassExpression getClasse() {
+        return __implClasse;
+    }
+
+    @Override
+    public void setClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        if (__implClasse == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveClasse(__implClasse);
+        } else if (__implClasse == null) {
+            doDispatchAddClasse(elem);
+        } else {
+            doDispatchRemoveClasse(__implClasse);
+            doDispatchAddClasse(elem);
+        }
+    }
+
+    /**
      * The backing data for the property File
      */
     private String __implFile;
@@ -356,13 +243,126 @@ public class Owl2SubClassOfImpl implements org.xowl.infra.lang.owl2.SubClassOf {
     }
 
     /**
+     * The backing data for the property Line
+     */
+    private int __implLine;
+
+    @Override
+    public int getLine() {
+        return __implLine;
+    }
+
+    @Override
+    public void setLine(int elem) {
+        __implLine = elem;
+    }
+
+    /**
+     * The backing data for the property SuperClass
+     */
+    private org.xowl.infra.lang.owl2.ClassExpression __implSuperClass;
+
+    /**
+     * Adds a value to the property SuperClass
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        __implSuperClass = elem;
+    }
+
+    /**
+     * Removes a value from the property SuperClass
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        __implSuperClass = null;
+    }
+
+    /**
+     * Adds a value to the property SuperClass
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doSimpleAddSuperClass(elem);
+    }
+
+    /**
+     * Removes a value from the property SuperClass
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doSimpleRemoveSuperClass(elem);
+    }
+
+    /**
+     * Tries to add a value to the property SuperClass and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doPropertyAddSuperClass(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property SuperClass and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doPropertyRemoveSuperClass(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property SuperClass
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doGraphAddSuperClass(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property SuperClass
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doGraphRemoveSuperClass(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.ClassExpression getSuperClass() {
+        return __implSuperClass;
+    }
+
+    @Override
+    public void setSuperClass(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        if (__implSuperClass == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveSuperClass(__implSuperClass);
+        } else if (__implSuperClass == null) {
+            doDispatchAddSuperClass(elem);
+        } else {
+            doDispatchRemoveSuperClass(__implSuperClass);
+            doDispatchAddSuperClass(elem);
+        }
+    }
+
+    /**
      * Constructor for the implementation of SubClassOf
      */
     public Owl2SubClassOfImpl() {
-        this.__implLine = 0;
-        this.__implClasse = null;
-        this.__implSuperClass = null;
         this.__implAnnotations = new ArrayList<>();
+        this.__implClasse = null;
         this.__implFile = null;
+        this.__implLine = 0;
+        this.__implSuperClass = null;
     }
 }

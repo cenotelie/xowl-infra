@@ -24,7 +24,7 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface AnonymousIndividual extends org.xowl.infra.lang.owl2.AnnotationSubject, org.xowl.infra.lang.owl2.AnnotationValue, org.xowl.infra.lang.owl2.IndividualExpression, org.xowl.infra.lang.runtime.Individual, org.xowl.infra.lang.runtime.Value {
+public interface AnonymousIndividual extends org.xowl.infra.lang.owl2.AnnotationSubject, org.xowl.infra.lang.owl2.AnnotationValue, org.xowl.infra.lang.runtime.Individual, org.xowl.infra.lang.owl2.IndividualExpression, org.xowl.infra.lang.runtime.Value {
     /**
      * Sets the value for the property NodeID
      *

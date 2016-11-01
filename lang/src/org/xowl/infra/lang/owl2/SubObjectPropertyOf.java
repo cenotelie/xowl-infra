@@ -26,20 +26,6 @@ import java.util.*;
  */
 public interface SubObjectPropertyOf extends org.xowl.infra.lang.owl2.ObjectPropertyAxiom, org.xowl.infra.lang.owl2.AsymmetricObjectProperty_OR_FunctionalObjectProperty_OR_InverseFunctionalObjectProperty_OR_InverseO4 {
     /**
-     * Sets the value for the property SuperObjectProperty
-     *
-     * @param elem The value to set
-     */
-    void setSuperObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem);
-
-    /**
-     * Gets the value for the property SuperObjectProperty
-     *
-     * @return The value for the property SuperObjectProperty
-     */
-    org.xowl.infra.lang.owl2.ObjectPropertyExpression getSuperObjectProperty();
-
-    /**
      * Sets the value for the property ObjectPropertyChain
      *
      * @param elem The value to set
@@ -52,5 +38,19 @@ public interface SubObjectPropertyOf extends org.xowl.infra.lang.owl2.ObjectProp
      * @return The value for the property ObjectPropertyChain
      */
     org.xowl.infra.lang.owl2.ObjectPropertySequenceExpression getObjectPropertyChain();
+
+    /**
+     * Sets the value for the property SuperObjectProperty
+     *
+     * @param elem The value to set
+     */
+    void setSuperObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem);
+
+    /**
+     * Gets the value for the property SuperObjectProperty
+     *
+     * @return The value for the property SuperObjectProperty
+     */
+    org.xowl.infra.lang.owl2.ObjectPropertyExpression getSuperObjectProperty();
 
 }

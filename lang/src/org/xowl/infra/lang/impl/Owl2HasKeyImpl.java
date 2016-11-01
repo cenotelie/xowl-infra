@@ -26,119 +26,6 @@ import java.util.*;
  */
 public class Owl2HasKeyImpl implements org.xowl.infra.lang.owl2.HasKey {
     /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
-     * The backing data for the property Classe
-     */
-    private org.xowl.infra.lang.owl2.ClassExpression __implClasse;
-
-    /**
-     * Adds a value to the property Classe
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        __implClasse = elem;
-    }
-
-    /**
-     * Removes a value from the property Classe
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        __implClasse = null;
-    }
-
-    /**
-     * Adds a value to the property Classe
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doSimpleAddClasse(elem);
-    }
-
-    /**
-     * Removes a value from the property Classe
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doSimpleRemoveClasse(elem);
-    }
-
-    /**
-     * Tries to add a value to the property Classe and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doPropertyAddClasse(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property Classe and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doPropertyRemoveClasse(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property Classe
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doGraphAddClasse(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property Classe
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        doGraphRemoveClasse(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.ClassExpression getClasse() {
-        return __implClasse;
-    }
-
-    @Override
-    public void setClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
-        if (__implClasse == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveClasse(__implClasse);
-        } else if (__implClasse == null) {
-            doDispatchAddClasse(elem);
-        } else {
-            doDispatchRemoveClasse(__implClasse);
-            doDispatchAddClasse(elem);
-        }
-    }
-
-    /**
      * The backing data for the property Annotations
      */
     private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
@@ -243,18 +130,101 @@ public class Owl2HasKeyImpl implements org.xowl.infra.lang.owl2.HasKey {
     }
 
     /**
-     * The backing data for the property File
+     * The backing data for the property Classe
      */
-    private String __implFile;
+    private org.xowl.infra.lang.owl2.ClassExpression __implClasse;
 
-    @Override
-    public String getFile() {
-        return __implFile;
+    /**
+     * Adds a value to the property Classe
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        __implClasse = elem;
+    }
+
+    /**
+     * Removes a value from the property Classe
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        __implClasse = null;
+    }
+
+    /**
+     * Adds a value to the property Classe
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doSimpleAddClasse(elem);
+    }
+
+    /**
+     * Removes a value from the property Classe
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doSimpleRemoveClasse(elem);
+    }
+
+    /**
+     * Tries to add a value to the property Classe and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doPropertyAddClasse(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property Classe and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doPropertyRemoveClasse(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property Classe
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doGraphAddClasse(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property Classe
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        doGraphRemoveClasse(elem);
     }
 
     @Override
-    public void setFile(String elem) {
-        __implFile = elem;
+    public org.xowl.infra.lang.owl2.ClassExpression getClasse() {
+        return __implClasse;
+    }
+
+    @Override
+    public void setClasse(org.xowl.infra.lang.owl2.ClassExpression elem) {
+        if (__implClasse == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveClasse(__implClasse);
+        } else if (__implClasse == null) {
+            doDispatchAddClasse(elem);
+        } else {
+            doDispatchRemoveClasse(__implClasse);
+            doDispatchAddClasse(elem);
+        }
     }
 
     /**
@@ -353,6 +323,36 @@ public class Owl2HasKeyImpl implements org.xowl.infra.lang.owl2.HasKey {
             doDispatchRemoveDataPropertySeq(__implDataPropertySeq);
             doDispatchAddDataPropertySeq(elem);
         }
+    }
+
+    /**
+     * The backing data for the property File
+     */
+    private String __implFile;
+
+    @Override
+    public String getFile() {
+        return __implFile;
+    }
+
+    @Override
+    public void setFile(String elem) {
+        __implFile = elem;
+    }
+
+    /**
+     * The backing data for the property Line
+     */
+    private int __implLine;
+
+    @Override
+    public int getLine() {
+        return __implLine;
+    }
+
+    @Override
+    public void setLine(int elem) {
+        __implLine = elem;
     }
 
     /**
@@ -457,11 +457,11 @@ public class Owl2HasKeyImpl implements org.xowl.infra.lang.owl2.HasKey {
      * Constructor for the implementation of HasKey
      */
     public Owl2HasKeyImpl() {
-        this.__implLine = 0;
-        this.__implClasse = null;
         this.__implAnnotations = new ArrayList<>();
-        this.__implFile = null;
+        this.__implClasse = null;
         this.__implDataPropertySeq = null;
+        this.__implFile = null;
+        this.__implLine = 0;
         this.__implObjectPropertySeq = null;
     }
 }

@@ -26,6 +26,34 @@ import java.util.*;
  */
 public interface Entity extends org.xowl.infra.lang.runtime.Value {
     /**
+     * Sets the value for the property ContainedBy
+     *
+     * @param elem The value to set
+     */
+    void setContainedBy(org.xowl.infra.lang.owl2.Ontology elem);
+
+    /**
+     * Gets the value for the property ContainedBy
+     *
+     * @return The value for the property ContainedBy
+     */
+    org.xowl.infra.lang.owl2.Ontology getContainedBy();
+
+    /**
+     * Sets the value for the property HasIRI
+     *
+     * @param elem The value to set
+     */
+    void setHasIRI(org.xowl.infra.lang.owl2.IRI elem);
+
+    /**
+     * Gets the value for the property HasIRI
+     *
+     * @return The value for the property HasIRI
+     */
+    org.xowl.infra.lang.owl2.IRI getHasIRI();
+
+    /**
      * Adds an element to the property InterpretedAs
      *
      * @param elem The element to add
@@ -47,33 +75,5 @@ public interface Entity extends org.xowl.infra.lang.runtime.Value {
      * @return The elements for the property InterpretedAs
      */
     Collection<org.xowl.infra.lang.runtime.Interpretation> getAllInterpretedAs();
-
-    /**
-     * Sets the value for the property HasIRI
-     *
-     * @param elem The value to set
-     */
-    void setHasIRI(org.xowl.infra.lang.owl2.IRI elem);
-
-    /**
-     * Gets the value for the property HasIRI
-     *
-     * @return The value for the property HasIRI
-     */
-    org.xowl.infra.lang.owl2.IRI getHasIRI();
-
-    /**
-     * Sets the value for the property ContainedBy
-     *
-     * @param elem The value to set
-     */
-    void setContainedBy(org.xowl.infra.lang.owl2.Ontology elem);
-
-    /**
-     * Gets the value for the property ContainedBy
-     *
-     * @return The value for the property ContainedBy
-     */
-    org.xowl.infra.lang.owl2.Ontology getContainedBy();
 
 }

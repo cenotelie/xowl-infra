@@ -26,52 +26,6 @@ import java.util.*;
  */
 public interface Datatype extends org.xowl.infra.lang.runtime.Interpretation, org.xowl.infra.lang.runtime.Class_OR_Datatype {
     /**
-     * Adds an element to the property DataIntersectionOf
-     *
-     * @param elem The element to add
-     * @return Whether the operation resulted in a new element (false if the element was already there)
-     */
-    boolean addDataIntersectionOf(org.xowl.infra.lang.runtime.Datatype elem);
-
-    /**
-     * Removes an element from the property DataIntersectionOf
-     *
-     * @param elem The element to remove
-     * @return Whether the operation resulted in the element being removed
-     */
-    boolean removeDataIntersectionOf(org.xowl.infra.lang.runtime.Datatype elem);
-
-    /**
-     * Gets all the elements for the property DataIntersectionOf
-     *
-     * @return The elements for the property DataIntersectionOf
-     */
-    Collection<org.xowl.infra.lang.runtime.Datatype> getAllDataIntersectionOf();
-
-    /**
-     * Adds an element to the property DataUnionOf
-     *
-     * @param elem The element to add
-     * @return Whether the operation resulted in a new element (false if the element was already there)
-     */
-    boolean addDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem);
-
-    /**
-     * Removes an element from the property DataUnionOf
-     *
-     * @param elem The element to remove
-     * @return Whether the operation resulted in the element being removed
-     */
-    boolean removeDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem);
-
-    /**
-     * Gets all the elements for the property DataUnionOf
-     *
-     * @return The elements for the property DataUnionOf
-     */
-    Collection<org.xowl.infra.lang.runtime.Datatype> getAllDataUnionOf();
-
-    /**
      * Sets the value for the property DataBase
      *
      * @param elem The value to set
@@ -98,6 +52,29 @@ public interface Datatype extends org.xowl.infra.lang.runtime.Interpretation, or
      * @return The value for the property DataComplementOf
      */
     org.xowl.infra.lang.runtime.Datatype getDataComplementOf();
+
+    /**
+     * Adds an element to the property DataIntersectionOf
+     *
+     * @param elem The element to add
+     * @return Whether the operation resulted in a new element (false if the element was already there)
+     */
+    boolean addDataIntersectionOf(org.xowl.infra.lang.runtime.Datatype elem);
+
+    /**
+     * Removes an element from the property DataIntersectionOf
+     *
+     * @param elem The element to remove
+     * @return Whether the operation resulted in the element being removed
+     */
+    boolean removeDataIntersectionOf(org.xowl.infra.lang.runtime.Datatype elem);
+
+    /**
+     * Gets all the elements for the property DataIntersectionOf
+     *
+     * @return The elements for the property DataIntersectionOf
+     */
+    Collection<org.xowl.infra.lang.runtime.Datatype> getAllDataIntersectionOf();
 
     /**
      * Adds an element to the property DataOneOf
@@ -144,5 +121,28 @@ public interface Datatype extends org.xowl.infra.lang.runtime.Interpretation, or
      * @return The elements for the property DataRestrictions
      */
     Collection<org.xowl.infra.lang.runtime.DatatypeRestriction> getAllDataRestrictions();
+
+    /**
+     * Adds an element to the property DataUnionOf
+     *
+     * @param elem The element to add
+     * @return Whether the operation resulted in a new element (false if the element was already there)
+     */
+    boolean addDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem);
+
+    /**
+     * Removes an element from the property DataUnionOf
+     *
+     * @param elem The element to remove
+     * @return Whether the operation resulted in the element being removed
+     */
+    boolean removeDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem);
+
+    /**
+     * Gets all the elements for the property DataUnionOf
+     *
+     * @return The elements for the property DataUnionOf
+     */
+    Collection<org.xowl.infra.lang.runtime.Datatype> getAllDataUnionOf();
 
 }

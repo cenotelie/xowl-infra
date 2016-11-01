@@ -24,5 +24,5 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface ObjectSomeValuesFrom extends org.xowl.infra.lang.owl2.ObjectPropertyRestriction, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF2 {
+public interface ObjectSomeValuesFrom extends org.xowl.infra.lang.owl2.ObjectPropertyRestriction, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
 }

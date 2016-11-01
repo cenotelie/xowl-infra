@@ -24,5 +24,5 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface ClassElement extends org.xowl.infra.lang.owl2.SequenceElement, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF2 {
+public interface ClassElement extends org.xowl.infra.lang.owl2.SequenceElement, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
 }

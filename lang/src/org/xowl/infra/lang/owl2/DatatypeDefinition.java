@@ -24,7 +24,7 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface DatatypeDefinition extends org.xowl.infra.lang.owl2.DatatypeAxiom, org.xowl.infra.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3 {
+public interface DatatypeDefinition extends org.xowl.infra.lang.owl2.DatatypeAxiom, org.xowl.infra.lang.owl2.DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype2 {
     /**
      * Sets the value for the property Datatype
      *

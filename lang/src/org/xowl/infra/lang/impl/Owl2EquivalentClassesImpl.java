@@ -26,21 +26,6 @@ import java.util.*;
  */
 public class Owl2EquivalentClassesImpl implements org.xowl.infra.lang.owl2.EquivalentClasses {
     /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
      * The backing data for the property Annotations
      */
     private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
@@ -145,21 +130,6 @@ public class Owl2EquivalentClassesImpl implements org.xowl.infra.lang.owl2.Equiv
     }
 
     /**
-     * The backing data for the property File
-     */
-    private String __implFile;
-
-    @Override
-    public String getFile() {
-        return __implFile;
-    }
-
-    @Override
-    public void setFile(String elem) {
-        __implFile = elem;
-    }
-
-    /**
      * The backing data for the property ClassSeq
      */
     private org.xowl.infra.lang.owl2.ClassSequenceExpression __implClassSeq;
@@ -258,12 +228,42 @@ public class Owl2EquivalentClassesImpl implements org.xowl.infra.lang.owl2.Equiv
     }
 
     /**
+     * The backing data for the property File
+     */
+    private String __implFile;
+
+    @Override
+    public String getFile() {
+        return __implFile;
+    }
+
+    @Override
+    public void setFile(String elem) {
+        __implFile = elem;
+    }
+
+    /**
+     * The backing data for the property Line
+     */
+    private int __implLine;
+
+    @Override
+    public int getLine() {
+        return __implLine;
+    }
+
+    @Override
+    public void setLine(int elem) {
+        __implLine = elem;
+    }
+
+    /**
      * Constructor for the implementation of EquivalentClasses
      */
     public Owl2EquivalentClassesImpl() {
-        this.__implLine = 0;
         this.__implAnnotations = new ArrayList<>();
-        this.__implFile = null;
         this.__implClassSeq = null;
+        this.__implFile = null;
+        this.__implLine = 0;
     }
 }

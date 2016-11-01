@@ -26,21 +26,6 @@ import java.util.*;
  */
 public class Owl2DisjointObjectPropertiesImpl implements org.xowl.infra.lang.owl2.DisjointObjectProperties {
     /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
      * The backing data for the property Annotations
      */
     private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
@@ -160,6 +145,21 @@ public class Owl2DisjointObjectPropertiesImpl implements org.xowl.infra.lang.owl
     }
 
     /**
+     * The backing data for the property Line
+     */
+    private int __implLine;
+
+    @Override
+    public int getLine() {
+        return __implLine;
+    }
+
+    @Override
+    public void setLine(int elem) {
+        __implLine = elem;
+    }
+
+    /**
      * The backing data for the property ObjectPropertySeq
      */
     private org.xowl.infra.lang.owl2.ObjectPropertySequenceExpression __implObjectPropertySeq;
@@ -261,9 +261,9 @@ public class Owl2DisjointObjectPropertiesImpl implements org.xowl.infra.lang.owl
      * Constructor for the implementation of DisjointObjectProperties
      */
     public Owl2DisjointObjectPropertiesImpl() {
-        this.__implLine = 0;
         this.__implAnnotations = new ArrayList<>();
         this.__implFile = null;
+        this.__implLine = 0;
         this.__implObjectPropertySeq = null;
     }
 }

@@ -28,15 +28,6 @@ import java.util.*;
  */
 public class ActionsFactory {
     /**
-     * Creates a new instance of QueryVariable
-     *
-     * @return A new instance of QueryVariable
-     */
-    public static QueryVariable newQueryVariable() {
-        return new ActionsQueryVariableImpl();
-    }
-
-    /**
      * Creates a new instance of FunctionDefinitionAxiom
      *
      * @return A new instance of FunctionDefinitionAxiom
@@ -52,6 +43,15 @@ public class ActionsFactory {
      */
     public static OpaqueExpression newOpaqueExpression() {
         return new ActionsOpaqueExpressionImpl();
+    }
+
+    /**
+     * Creates a new instance of QueryVariable
+     *
+     * @return A new instance of QueryVariable
+     */
+    public static QueryVariable newQueryVariable() {
+        return new ActionsQueryVariableImpl();
     }
 
 }

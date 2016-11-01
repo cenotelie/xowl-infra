@@ -26,119 +26,6 @@ import java.util.*;
  */
 public class Owl2SubAnnotationPropertyOfImpl implements org.xowl.infra.lang.owl2.SubAnnotationPropertyOf {
     /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
-     * The backing data for the property SuperAnnotProperty
-     */
-    private org.xowl.infra.lang.owl2.IRI __implSuperAnnotProperty;
-
-    /**
-     * Adds a value to the property SuperAnnotProperty
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
-        __implSuperAnnotProperty = elem;
-    }
-
-    /**
-     * Removes a value from the property SuperAnnotProperty
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
-        __implSuperAnnotProperty = null;
-    }
-
-    /**
-     * Adds a value to the property SuperAnnotProperty
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
-        doSimpleAddSuperAnnotProperty(elem);
-    }
-
-    /**
-     * Removes a value from the property SuperAnnotProperty
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
-        doSimpleRemoveSuperAnnotProperty(elem);
-    }
-
-    /**
-     * Tries to add a value to the property SuperAnnotProperty and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
-        doPropertyAddSuperAnnotProperty(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property SuperAnnotProperty and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
-        doPropertyRemoveSuperAnnotProperty(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property SuperAnnotProperty
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
-        doGraphAddSuperAnnotProperty(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property SuperAnnotProperty
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
-        doGraphRemoveSuperAnnotProperty(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.IRI getSuperAnnotProperty() {
-        return __implSuperAnnotProperty;
-    }
-
-    @Override
-    public void setSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
-        if (__implSuperAnnotProperty == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveSuperAnnotProperty(__implSuperAnnotProperty);
-        } else if (__implSuperAnnotProperty == null) {
-            doDispatchAddSuperAnnotProperty(elem);
-        } else {
-            doDispatchRemoveSuperAnnotProperty(__implSuperAnnotProperty);
-            doDispatchAddSuperAnnotProperty(elem);
-        }
-    }
-
-    /**
      * The backing data for the property AnnotProperty
      */
     private org.xowl.infra.lang.owl2.IRI __implAnnotProperty;
@@ -356,13 +243,126 @@ public class Owl2SubAnnotationPropertyOfImpl implements org.xowl.infra.lang.owl2
     }
 
     /**
+     * The backing data for the property Line
+     */
+    private int __implLine;
+
+    @Override
+    public int getLine() {
+        return __implLine;
+    }
+
+    @Override
+    public void setLine(int elem) {
+        __implLine = elem;
+    }
+
+    /**
+     * The backing data for the property SuperAnnotProperty
+     */
+    private org.xowl.infra.lang.owl2.IRI __implSuperAnnotProperty;
+
+    /**
+     * Adds a value to the property SuperAnnotProperty
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
+        __implSuperAnnotProperty = elem;
+    }
+
+    /**
+     * Removes a value from the property SuperAnnotProperty
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
+        __implSuperAnnotProperty = null;
+    }
+
+    /**
+     * Adds a value to the property SuperAnnotProperty
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
+        doSimpleAddSuperAnnotProperty(elem);
+    }
+
+    /**
+     * Removes a value from the property SuperAnnotProperty
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
+        doSimpleRemoveSuperAnnotProperty(elem);
+    }
+
+    /**
+     * Tries to add a value to the property SuperAnnotProperty and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
+        doPropertyAddSuperAnnotProperty(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property SuperAnnotProperty and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
+        doPropertyRemoveSuperAnnotProperty(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property SuperAnnotProperty
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
+        doGraphAddSuperAnnotProperty(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property SuperAnnotProperty
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
+        doGraphRemoveSuperAnnotProperty(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.IRI getSuperAnnotProperty() {
+        return __implSuperAnnotProperty;
+    }
+
+    @Override
+    public void setSuperAnnotProperty(org.xowl.infra.lang.owl2.IRI elem) {
+        if (__implSuperAnnotProperty == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveSuperAnnotProperty(__implSuperAnnotProperty);
+        } else if (__implSuperAnnotProperty == null) {
+            doDispatchAddSuperAnnotProperty(elem);
+        } else {
+            doDispatchRemoveSuperAnnotProperty(__implSuperAnnotProperty);
+            doDispatchAddSuperAnnotProperty(elem);
+        }
+    }
+
+    /**
      * Constructor for the implementation of SubAnnotationPropertyOf
      */
     public Owl2SubAnnotationPropertyOfImpl() {
-        this.__implLine = 0;
-        this.__implSuperAnnotProperty = null;
         this.__implAnnotProperty = null;
         this.__implAnnotations = new ArrayList<>();
         this.__implFile = null;
+        this.__implLine = 0;
+        this.__implSuperAnnotProperty = null;
     }
 }

@@ -26,62 +26,6 @@ import java.util.*;
  */
 public interface ObjectProperty extends org.xowl.infra.lang.runtime.Property {
     /**
-     * Sets the value for the property IsInverseFunctional
-     *
-     * @param elem The value to set
-     */
-    void setIsInverseFunctional(boolean elem);
-
-    /**
-     * Gets the value for the property IsInverseFunctional
-     *
-     * @return The value for the property IsInverseFunctional
-     */
-    boolean getIsInverseFunctional();
-
-    /**
-     * Sets the value for the property InverseOf
-     *
-     * @param elem The value to set
-     */
-    void setInverseOf(org.xowl.infra.lang.runtime.ObjectProperty elem);
-
-    /**
-     * Gets the value for the property InverseOf
-     *
-     * @return The value for the property InverseOf
-     */
-    org.xowl.infra.lang.runtime.ObjectProperty getInverseOf();
-
-    /**
-     * Sets the value for the property IsReflexive
-     *
-     * @param elem The value to set
-     */
-    void setIsReflexive(boolean elem);
-
-    /**
-     * Gets the value for the property IsReflexive
-     *
-     * @return The value for the property IsReflexive
-     */
-    boolean getIsReflexive();
-
-    /**
-     * Sets the value for the property IsIrreflexive
-     *
-     * @param elem The value to set
-     */
-    void setIsIrreflexive(boolean elem);
-
-    /**
-     * Gets the value for the property IsIrreflexive
-     *
-     * @return The value for the property IsIrreflexive
-     */
-    boolean getIsIrreflexive();
-
-    /**
      * Adds an element to the property Chains
      *
      * @param elem The element to add
@@ -105,6 +49,20 @@ public interface ObjectProperty extends org.xowl.infra.lang.runtime.Property {
     Collection<org.xowl.infra.lang.runtime.ObjectProperty> getAllChains();
 
     /**
+     * Sets the value for the property InverseOf
+     *
+     * @param elem The value to set
+     */
+    void setInverseOf(org.xowl.infra.lang.runtime.ObjectProperty elem);
+
+    /**
+     * Gets the value for the property InverseOf
+     *
+     * @return The value for the property InverseOf
+     */
+    org.xowl.infra.lang.runtime.ObjectProperty getInverseOf();
+
+    /**
      * Sets the value for the property IsAsymmetric
      *
      * @param elem The value to set
@@ -117,6 +75,48 @@ public interface ObjectProperty extends org.xowl.infra.lang.runtime.Property {
      * @return The value for the property IsAsymmetric
      */
     boolean getIsAsymmetric();
+
+    /**
+     * Sets the value for the property IsInverseFunctional
+     *
+     * @param elem The value to set
+     */
+    void setIsInverseFunctional(boolean elem);
+
+    /**
+     * Gets the value for the property IsInverseFunctional
+     *
+     * @return The value for the property IsInverseFunctional
+     */
+    boolean getIsInverseFunctional();
+
+    /**
+     * Sets the value for the property IsIrreflexive
+     *
+     * @param elem The value to set
+     */
+    void setIsIrreflexive(boolean elem);
+
+    /**
+     * Gets the value for the property IsIrreflexive
+     *
+     * @return The value for the property IsIrreflexive
+     */
+    boolean getIsIrreflexive();
+
+    /**
+     * Sets the value for the property IsReflexive
+     *
+     * @param elem The value to set
+     */
+    void setIsReflexive(boolean elem);
+
+    /**
+     * Gets the value for the property IsReflexive
+     *
+     * @return The value for the property IsReflexive
+     */
+    boolean getIsReflexive();
 
     /**
      * Sets the value for the property IsSymmetric

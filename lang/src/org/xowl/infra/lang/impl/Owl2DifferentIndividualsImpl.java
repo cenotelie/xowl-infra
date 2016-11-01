@@ -26,119 +26,6 @@ import java.util.*;
  */
 public class Owl2DifferentIndividualsImpl implements org.xowl.infra.lang.owl2.DifferentIndividuals {
     /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
-     * The backing data for the property IndividualSeq
-     */
-    private org.xowl.infra.lang.owl2.IndividualSequenceExpression __implIndividualSeq;
-
-    /**
-     * Adds a value to the property IndividualSeq
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
-        __implIndividualSeq = elem;
-    }
-
-    /**
-     * Removes a value from the property IndividualSeq
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
-        __implIndividualSeq = null;
-    }
-
-    /**
-     * Adds a value to the property IndividualSeq
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
-        doSimpleAddIndividualSeq(elem);
-    }
-
-    /**
-     * Removes a value from the property IndividualSeq
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
-        doSimpleRemoveIndividualSeq(elem);
-    }
-
-    /**
-     * Tries to add a value to the property IndividualSeq and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
-        doPropertyAddIndividualSeq(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property IndividualSeq and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
-        doPropertyRemoveIndividualSeq(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property IndividualSeq
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
-        doGraphAddIndividualSeq(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property IndividualSeq
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
-        doGraphRemoveIndividualSeq(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.IndividualSequenceExpression getIndividualSeq() {
-        return __implIndividualSeq;
-    }
-
-    @Override
-    public void setIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
-        if (__implIndividualSeq == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveIndividualSeq(__implIndividualSeq);
-        } else if (__implIndividualSeq == null) {
-            doDispatchAddIndividualSeq(elem);
-        } else {
-            doDispatchRemoveIndividualSeq(__implIndividualSeq);
-            doDispatchAddIndividualSeq(elem);
-        }
-    }
-
-    /**
      * The backing data for the property Annotations
      */
     private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
@@ -258,12 +145,125 @@ public class Owl2DifferentIndividualsImpl implements org.xowl.infra.lang.owl2.Di
     }
 
     /**
+     * The backing data for the property IndividualSeq
+     */
+    private org.xowl.infra.lang.owl2.IndividualSequenceExpression __implIndividualSeq;
+
+    /**
+     * Adds a value to the property IndividualSeq
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
+        __implIndividualSeq = elem;
+    }
+
+    /**
+     * Removes a value from the property IndividualSeq
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
+        __implIndividualSeq = null;
+    }
+
+    /**
+     * Adds a value to the property IndividualSeq
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
+        doSimpleAddIndividualSeq(elem);
+    }
+
+    /**
+     * Removes a value from the property IndividualSeq
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
+        doSimpleRemoveIndividualSeq(elem);
+    }
+
+    /**
+     * Tries to add a value to the property IndividualSeq and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
+        doPropertyAddIndividualSeq(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property IndividualSeq and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
+        doPropertyRemoveIndividualSeq(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property IndividualSeq
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
+        doGraphAddIndividualSeq(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property IndividualSeq
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
+        doGraphRemoveIndividualSeq(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.IndividualSequenceExpression getIndividualSeq() {
+        return __implIndividualSeq;
+    }
+
+    @Override
+    public void setIndividualSeq(org.xowl.infra.lang.owl2.IndividualSequenceExpression elem) {
+        if (__implIndividualSeq == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveIndividualSeq(__implIndividualSeq);
+        } else if (__implIndividualSeq == null) {
+            doDispatchAddIndividualSeq(elem);
+        } else {
+            doDispatchRemoveIndividualSeq(__implIndividualSeq);
+            doDispatchAddIndividualSeq(elem);
+        }
+    }
+
+    /**
+     * The backing data for the property Line
+     */
+    private int __implLine;
+
+    @Override
+    public int getLine() {
+        return __implLine;
+    }
+
+    @Override
+    public void setLine(int elem) {
+        __implLine = elem;
+    }
+
+    /**
      * Constructor for the implementation of DifferentIndividuals
      */
     public Owl2DifferentIndividualsImpl() {
-        this.__implLine = 0;
-        this.__implIndividualSeq = null;
         this.__implAnnotations = new ArrayList<>();
         this.__implFile = null;
+        this.__implIndividualSeq = null;
+        this.__implLine = 0;
     }
 }

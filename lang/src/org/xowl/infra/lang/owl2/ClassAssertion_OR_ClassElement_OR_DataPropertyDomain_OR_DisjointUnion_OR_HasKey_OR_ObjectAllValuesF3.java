@@ -20,23 +20,23 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne5
+ * Represents the base interface for the OWL class ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3
  *
  * @author xOWL code generator
  */
-public interface ClassAssertion_OR_DataPropertyAssertion_OR_IndividualElement_OR_NegativeDataPropertyAssertion_OR_Ne5 {
+public interface ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
     /**
-     * Sets the value for the property Individual
+     * Sets the value for the property Classe
      *
      * @param elem The value to set
      */
-    void setIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem);
+    void setClasse(org.xowl.infra.lang.owl2.ClassExpression elem);
 
     /**
-     * Gets the value for the property Individual
+     * Gets the value for the property Classe
      *
-     * @return The value for the property Individual
+     * @return The value for the property Classe
      */
-    org.xowl.infra.lang.owl2.IndividualExpression getIndividual();
+    org.xowl.infra.lang.owl2.ClassExpression getClasse();
 
 }

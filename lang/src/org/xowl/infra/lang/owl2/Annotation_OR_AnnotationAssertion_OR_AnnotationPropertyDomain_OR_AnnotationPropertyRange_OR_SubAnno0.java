@@ -20,23 +20,23 @@ package org.xowl.infra.lang.owl2;
 import java.util.*;
 
 /**
- * Represents the base interface for the OWL class DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3
+ * Represents the base interface for the OWL class Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno0
  *
  * @author xOWL code generator
  */
-public interface DataCardinalityRestriction_OR_DataComplementOf_OR_DataPropertyRange_OR_DatarangeElement_OR_Datatype3 {
+public interface Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno0 {
     /**
-     * Sets the value for the property Datarange
+     * Sets the value for the property AnnotProperty
      *
      * @param elem The value to set
      */
-    void setDatarange(org.xowl.infra.lang.owl2.Datarange elem);
+    void setAnnotProperty(org.xowl.infra.lang.owl2.IRI elem);
 
     /**
-     * Gets the value for the property Datarange
+     * Gets the value for the property AnnotProperty
      *
-     * @return The value for the property Datarange
+     * @return The value for the property AnnotProperty
      */
-    org.xowl.infra.lang.owl2.Datarange getDatarange();
+    org.xowl.infra.lang.owl2.IRI getAnnotProperty();
 
 }

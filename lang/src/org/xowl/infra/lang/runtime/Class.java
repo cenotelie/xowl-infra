@@ -26,121 +26,6 @@ import java.util.*;
  */
 public interface Class extends org.xowl.infra.lang.runtime.Interpretation, org.xowl.infra.lang.runtime.Class_OR_Datatype {
     /**
-     * Adds an element to the property ClassEquivalentTo
-     *
-     * @param elem The element to add
-     * @return Whether the operation resulted in a new element (false if the element was already there)
-     */
-    boolean addClassEquivalentTo(org.xowl.infra.lang.runtime.Class elem);
-
-    /**
-     * Removes an element from the property ClassEquivalentTo
-     *
-     * @param elem The element to remove
-     * @return Whether the operation resulted in the element being removed
-     */
-    boolean removeClassEquivalentTo(org.xowl.infra.lang.runtime.Class elem);
-
-    /**
-     * Gets all the elements for the property ClassEquivalentTo
-     *
-     * @return The elements for the property ClassEquivalentTo
-     */
-    Collection<org.xowl.infra.lang.runtime.Class> getAllClassEquivalentTo();
-
-    /**
-     * Adds an element to the property ClassRestrictions
-     *
-     * @param elem The element to add
-     * @return Whether the operation resulted in a new element (false if the element was already there)
-     */
-    boolean addClassRestrictions(org.xowl.infra.lang.runtime.ClassRestriction elem);
-
-    /**
-     * Removes an element from the property ClassRestrictions
-     *
-     * @param elem The element to remove
-     * @return Whether the operation resulted in the element being removed
-     */
-    boolean removeClassRestrictions(org.xowl.infra.lang.runtime.ClassRestriction elem);
-
-    /**
-     * Gets all the elements for the property ClassRestrictions
-     *
-     * @return The elements for the property ClassRestrictions
-     */
-    Collection<org.xowl.infra.lang.runtime.ClassRestriction> getAllClassRestrictions();
-
-    /**
-     * Adds an element to the property DomainOf
-     *
-     * @param elem The element to add
-     * @return Whether the operation resulted in a new element (false if the element was already there)
-     */
-    boolean addDomainOf(org.xowl.infra.lang.runtime.Property elem);
-
-    /**
-     * Removes an element from the property DomainOf
-     *
-     * @param elem The element to remove
-     * @return Whether the operation resulted in the element being removed
-     */
-    boolean removeDomainOf(org.xowl.infra.lang.runtime.Property elem);
-
-    /**
-     * Gets all the elements for the property DomainOf
-     *
-     * @return The elements for the property DomainOf
-     */
-    Collection<org.xowl.infra.lang.runtime.Property> getAllDomainOf();
-
-    /**
-     * Adds an element to the property ClassOneOf
-     *
-     * @param elem The element to add
-     * @return Whether the operation resulted in a new element (false if the element was already there)
-     */
-    boolean addClassOneOf(org.xowl.infra.lang.runtime.Individual elem);
-
-    /**
-     * Removes an element from the property ClassOneOf
-     *
-     * @param elem The element to remove
-     * @return Whether the operation resulted in the element being removed
-     */
-    boolean removeClassOneOf(org.xowl.infra.lang.runtime.Individual elem);
-
-    /**
-     * Gets all the elements for the property ClassOneOf
-     *
-     * @return The elements for the property ClassOneOf
-     */
-    Collection<org.xowl.infra.lang.runtime.Individual> getAllClassOneOf();
-
-    /**
-     * Adds an element to the property ClassIntersectionOf
-     *
-     * @param elem The element to add
-     * @return Whether the operation resulted in a new element (false if the element was already there)
-     */
-    boolean addClassIntersectionOf(org.xowl.infra.lang.runtime.Class elem);
-
-    /**
-     * Removes an element from the property ClassIntersectionOf
-     *
-     * @param elem The element to remove
-     * @return Whether the operation resulted in the element being removed
-     */
-    boolean removeClassIntersectionOf(org.xowl.infra.lang.runtime.Class elem);
-
-    /**
-     * Gets all the elements for the property ClassIntersectionOf
-     *
-     * @return The elements for the property ClassIntersectionOf
-     */
-    Collection<org.xowl.infra.lang.runtime.Class> getAllClassIntersectionOf();
-
-    /**
      * Sets the value for the property ClassComplementOf
      *
      * @param elem The value to set
@@ -178,6 +63,121 @@ public interface Class extends org.xowl.infra.lang.runtime.Interpretation, org.x
     Collection<org.xowl.infra.lang.runtime.Class> getAllClassDisjointWith();
 
     /**
+     * Adds an element to the property ClassEquivalentTo
+     *
+     * @param elem The element to add
+     * @return Whether the operation resulted in a new element (false if the element was already there)
+     */
+    boolean addClassEquivalentTo(org.xowl.infra.lang.runtime.Class elem);
+
+    /**
+     * Removes an element from the property ClassEquivalentTo
+     *
+     * @param elem The element to remove
+     * @return Whether the operation resulted in the element being removed
+     */
+    boolean removeClassEquivalentTo(org.xowl.infra.lang.runtime.Class elem);
+
+    /**
+     * Gets all the elements for the property ClassEquivalentTo
+     *
+     * @return The elements for the property ClassEquivalentTo
+     */
+    Collection<org.xowl.infra.lang.runtime.Class> getAllClassEquivalentTo();
+
+    /**
+     * Adds an element to the property ClassIntersectionOf
+     *
+     * @param elem The element to add
+     * @return Whether the operation resulted in a new element (false if the element was already there)
+     */
+    boolean addClassIntersectionOf(org.xowl.infra.lang.runtime.Class elem);
+
+    /**
+     * Removes an element from the property ClassIntersectionOf
+     *
+     * @param elem The element to remove
+     * @return Whether the operation resulted in the element being removed
+     */
+    boolean removeClassIntersectionOf(org.xowl.infra.lang.runtime.Class elem);
+
+    /**
+     * Gets all the elements for the property ClassIntersectionOf
+     *
+     * @return The elements for the property ClassIntersectionOf
+     */
+    Collection<org.xowl.infra.lang.runtime.Class> getAllClassIntersectionOf();
+
+    /**
+     * Adds an element to the property ClassOneOf
+     *
+     * @param elem The element to add
+     * @return Whether the operation resulted in a new element (false if the element was already there)
+     */
+    boolean addClassOneOf(org.xowl.infra.lang.runtime.Individual elem);
+
+    /**
+     * Removes an element from the property ClassOneOf
+     *
+     * @param elem The element to remove
+     * @return Whether the operation resulted in the element being removed
+     */
+    boolean removeClassOneOf(org.xowl.infra.lang.runtime.Individual elem);
+
+    /**
+     * Gets all the elements for the property ClassOneOf
+     *
+     * @return The elements for the property ClassOneOf
+     */
+    Collection<org.xowl.infra.lang.runtime.Individual> getAllClassOneOf();
+
+    /**
+     * Adds an element to the property ClassRestrictions
+     *
+     * @param elem The element to add
+     * @return Whether the operation resulted in a new element (false if the element was already there)
+     */
+    boolean addClassRestrictions(org.xowl.infra.lang.runtime.ClassRestriction elem);
+
+    /**
+     * Removes an element from the property ClassRestrictions
+     *
+     * @param elem The element to remove
+     * @return Whether the operation resulted in the element being removed
+     */
+    boolean removeClassRestrictions(org.xowl.infra.lang.runtime.ClassRestriction elem);
+
+    /**
+     * Gets all the elements for the property ClassRestrictions
+     *
+     * @return The elements for the property ClassRestrictions
+     */
+    Collection<org.xowl.infra.lang.runtime.ClassRestriction> getAllClassRestrictions();
+
+    /**
+     * Adds an element to the property ClassUnionOf
+     *
+     * @param elem The element to add
+     * @return Whether the operation resulted in a new element (false if the element was already there)
+     */
+    boolean addClassUnionOf(org.xowl.infra.lang.runtime.Class elem);
+
+    /**
+     * Removes an element from the property ClassUnionOf
+     *
+     * @param elem The element to remove
+     * @return Whether the operation resulted in the element being removed
+     */
+    boolean removeClassUnionOf(org.xowl.infra.lang.runtime.Class elem);
+
+    /**
+     * Gets all the elements for the property ClassUnionOf
+     *
+     * @return The elements for the property ClassUnionOf
+     */
+    Collection<org.xowl.infra.lang.runtime.Class> getAllClassUnionOf();
+
+    /**
      * Adds an element to the property Classifies
      *
      * @param elem The element to add
@@ -201,27 +201,27 @@ public interface Class extends org.xowl.infra.lang.runtime.Interpretation, org.x
     Collection<org.xowl.infra.lang.runtime.Individual> getAllClassifies();
 
     /**
-     * Adds an element to the property SuperClassOf
+     * Adds an element to the property DomainOf
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addSuperClassOf(org.xowl.infra.lang.runtime.Class elem);
+    boolean addDomainOf(org.xowl.infra.lang.runtime.Property elem);
 
     /**
-     * Removes an element from the property SuperClassOf
+     * Removes an element from the property DomainOf
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeSuperClassOf(org.xowl.infra.lang.runtime.Class elem);
+    boolean removeDomainOf(org.xowl.infra.lang.runtime.Property elem);
 
     /**
-     * Gets all the elements for the property SuperClassOf
+     * Gets all the elements for the property DomainOf
      *
-     * @return The elements for the property SuperClassOf
+     * @return The elements for the property DomainOf
      */
-    Collection<org.xowl.infra.lang.runtime.Class> getAllSuperClassOf();
+    Collection<org.xowl.infra.lang.runtime.Property> getAllDomainOf();
 
     /**
      * Adds an element to the property SubClassOf
@@ -247,26 +247,26 @@ public interface Class extends org.xowl.infra.lang.runtime.Interpretation, org.x
     Collection<org.xowl.infra.lang.runtime.Class> getAllSubClassOf();
 
     /**
-     * Adds an element to the property ClassUnionOf
+     * Adds an element to the property SuperClassOf
      *
      * @param elem The element to add
      * @return Whether the operation resulted in a new element (false if the element was already there)
      */
-    boolean addClassUnionOf(org.xowl.infra.lang.runtime.Class elem);
+    boolean addSuperClassOf(org.xowl.infra.lang.runtime.Class elem);
 
     /**
-     * Removes an element from the property ClassUnionOf
+     * Removes an element from the property SuperClassOf
      *
      * @param elem The element to remove
      * @return Whether the operation resulted in the element being removed
      */
-    boolean removeClassUnionOf(org.xowl.infra.lang.runtime.Class elem);
+    boolean removeSuperClassOf(org.xowl.infra.lang.runtime.Class elem);
 
     /**
-     * Gets all the elements for the property ClassUnionOf
+     * Gets all the elements for the property SuperClassOf
      *
-     * @return The elements for the property ClassUnionOf
+     * @return The elements for the property SuperClassOf
      */
-    Collection<org.xowl.infra.lang.runtime.Class> getAllClassUnionOf();
+    Collection<org.xowl.infra.lang.runtime.Class> getAllSuperClassOf();
 
 }

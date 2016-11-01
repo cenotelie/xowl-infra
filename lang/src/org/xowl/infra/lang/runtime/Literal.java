@@ -26,18 +26,18 @@ import java.util.*;
  */
 public interface Literal extends org.xowl.infra.lang.runtime.Value {
     /**
-     * Sets the value for the property MemberOf
+     * Sets the value for the property LangTag
      *
      * @param elem The value to set
      */
-    void setMemberOf(org.xowl.infra.lang.runtime.Datatype elem);
+    void setLangTag(String elem);
 
     /**
-     * Gets the value for the property MemberOf
+     * Gets the value for the property LangTag
      *
-     * @return The value for the property MemberOf
+     * @return The value for the property LangTag
      */
-    org.xowl.infra.lang.runtime.Datatype getMemberOf();
+    String getLangTag();
 
     /**
      * Sets the value for the property LexicalValue
@@ -54,17 +54,17 @@ public interface Literal extends org.xowl.infra.lang.runtime.Value {
     String getLexicalValue();
 
     /**
-     * Sets the value for the property LangTag
+     * Sets the value for the property MemberOf
      *
      * @param elem The value to set
      */
-    void setLangTag(String elem);
+    void setMemberOf(org.xowl.infra.lang.runtime.Datatype elem);
 
     /**
-     * Gets the value for the property LangTag
+     * Gets the value for the property MemberOf
      *
-     * @return The value for the property LangTag
+     * @return The value for the property MemberOf
      */
-    String getLangTag();
+    org.xowl.infra.lang.runtime.Datatype getMemberOf();
 
 }

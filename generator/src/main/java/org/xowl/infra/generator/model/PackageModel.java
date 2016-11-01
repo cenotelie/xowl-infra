@@ -27,8 +27,7 @@ import org.xowl.infra.utils.Files;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Represents the model of Java package for an OWL2 ontology
@@ -255,7 +254,14 @@ public class PackageModel {
         writer.append(" */").append(Files.LINE_SEPARATOR);
         writer.append("public class ").append(name).append("Factory {").append(Files.LINE_SEPARATOR);
 
-        for (ClassModel classModel : classes.values()) {
+        List<ClassModel> classes = new ArrayList<>(this.classes.values());
+        Collections.sort(classes, new Comparator<ClassModel>() {
+            @Override
+            public int compare(ClassModel c1, ClassModel c2) {
+                return c1.getName().compareTo(c2.getName());
+            }
+        });
+        for (ClassModel classModel : classes) {
             if (classModel.isAbstract())
                 continue;
             writer.append("    /**").append(Files.LINE_SEPARATOR);

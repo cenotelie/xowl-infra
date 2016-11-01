@@ -26,104 +26,6 @@ import java.util.*;
  */
 public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
     /**
-     * The backing data for the property Guard
-     */
-    private org.xowl.infra.lang.owl2.LiteralExpression __implGuard;
-
-    /**
-     * Adds a value to the property Guard
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        __implGuard = elem;
-    }
-
-    /**
-     * Removes a value from the property Guard
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        __implGuard = null;
-    }
-
-    /**
-     * Adds a value to the property Guard
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doSimpleAddGuard(elem);
-    }
-
-    /**
-     * Removes a value from the property Guard
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doSimpleRemoveGuard(elem);
-    }
-
-    /**
-     * Tries to add a value to the property Guard and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doPropertyAddGuard(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property Guard and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doPropertyRemoveGuard(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property Guard
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doGraphAddGuard(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property Guard
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doGraphRemoveGuard(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.LiteralExpression getGuard() {
-        return __implGuard;
-    }
-
-    @Override
-    public void setGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        if (__implGuard == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveGuard(__implGuard);
-        } else if (__implGuard == null) {
-            doDispatchAddGuard(elem);
-        } else {
-            doDispatchRemoveGuard(__implGuard);
-            doDispatchAddGuard(elem);
-        }
-    }
-
-    /**
      * The backing data for the property Antecedents
      */
     private List<org.xowl.infra.lang.rules.Assertion> __implAntecedents;
@@ -332,6 +234,104 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
     }
 
     /**
+     * The backing data for the property Guard
+     */
+    private org.xowl.infra.lang.owl2.LiteralExpression __implGuard;
+
+    /**
+     * Adds a value to the property Guard
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        __implGuard = elem;
+    }
+
+    /**
+     * Removes a value from the property Guard
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        __implGuard = null;
+    }
+
+    /**
+     * Adds a value to the property Guard
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doSimpleAddGuard(elem);
+    }
+
+    /**
+     * Removes a value from the property Guard
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doSimpleRemoveGuard(elem);
+    }
+
+    /**
+     * Tries to add a value to the property Guard and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doPropertyAddGuard(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property Guard and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doPropertyRemoveGuard(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property Guard
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doGraphAddGuard(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property Guard
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doGraphRemoveGuard(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.LiteralExpression getGuard() {
+        return __implGuard;
+    }
+
+    @Override
+    public void setGuard(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        if (__implGuard == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveGuard(__implGuard);
+        } else if (__implGuard == null) {
+            doDispatchAddGuard(elem);
+        } else {
+            doDispatchRemoveGuard(__implGuard);
+            doDispatchAddGuard(elem);
+        }
+    }
+
+    /**
      * The backing data for the property HasIRI
      */
     private org.xowl.infra.lang.owl2.IRI __implHasIRI;
@@ -433,9 +433,9 @@ public class RulesRuleImpl implements org.xowl.infra.lang.rules.Rule {
      * Constructor for the implementation of Rule
      */
     public RulesRuleImpl() {
-        this.__implGuard = null;
         this.__implAntecedents = new ArrayList<>();
         this.__implConsequents = new ArrayList<>();
+        this.__implGuard = null;
         this.__implHasIRI = null;
     }
 }

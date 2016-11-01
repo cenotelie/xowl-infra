@@ -24,5 +24,5 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface DisjointUnion extends org.xowl.infra.lang.owl2.ClassAxiom, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF2, org.xowl.infra.lang.owl2.DisjointClasses_OR_DisjointUnion_OR_EquivalentClasses_OR_ObjectIntersectionOf_OR_ObjectUnionOf {
+public interface DisjointUnion extends org.xowl.infra.lang.owl2.ClassAxiom, org.xowl.infra.lang.owl2.DisjointClasses_OR_DisjointUnion_OR_EquivalentClasses_OR_ObjectIntersectionOf_OR_ObjectUnionOf, org.xowl.infra.lang.owl2.ClassAssertion_OR_ClassElement_OR_DataPropertyDomain_OR_DisjointUnion_OR_HasKey_OR_ObjectAllValuesF3 {
 }

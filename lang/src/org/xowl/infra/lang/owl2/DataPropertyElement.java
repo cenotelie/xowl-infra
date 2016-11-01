@@ -24,5 +24,5 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface DataPropertyElement extends org.xowl.infra.lang.owl2.SequenceElement, org.xowl.infra.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp0 {
+public interface DataPropertyElement extends org.xowl.infra.lang.owl2.SequenceElement, org.xowl.infra.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5 {
 }

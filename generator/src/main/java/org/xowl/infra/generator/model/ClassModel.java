@@ -433,6 +433,12 @@ public class ClassModel {
                 classModel.subClasses.add(this);
             }
         }
+        Collections.sort(superClasses, new Comparator<ClassModel>() {
+            @Override
+            public int compare(ClassModel c1, ClassModel c2) {
+                return c1.name.compareTo(c2.name);
+            }
+        });
     }
 
     /**
@@ -456,6 +462,12 @@ public class ClassModel {
                 ancestor.subClasses.add(this);
             }
         }
+        Collections.sort(superClasses, new Comparator<ClassModel>() {
+            @Override
+            public int compare(ClassModel c1, ClassModel c2) {
+                return c1.name.compareTo(c2.name);
+            }
+        });
     }
 
     /**
@@ -523,6 +535,13 @@ public class ClassModel {
                 }
             }
         }
+
+        Collections.sort(propertyInterfaces, new Comparator<PropertyInterface>() {
+            @Override
+            public int compare(PropertyInterface property1, PropertyInterface property2) {
+                return property1.getProperty().getName().compareTo(property2.getProperty().getName());
+            }
+        });
     }
 
     /**
@@ -657,8 +676,16 @@ public class ClassModel {
         writer.append(" */").append(Files.LINE_SEPARATOR);
         writer.append("public class ").append(name).append(" implements ").append(getJavaName()).append(" {").append(Files.LINE_SEPARATOR);
 
+        List<PropertyImplementation> implementations = new ArrayList<>(getPropertyImplementations());
+        Collections.sort(implementations, new Comparator<PropertyImplementation>() {
+            @Override
+            public int compare(PropertyImplementation property1, PropertyImplementation property2) {
+                return property1.getProperty().getName().compareTo(property2.getProperty().getName());
+            }
+        });
+
         // writes all Implementations
-        for (PropertyImplementation implementation : getPropertyImplementations()) {
+        for (PropertyImplementation implementation : implementations) {
             implementation.writeStandalone(writer);
         }
         // writes all static instances
@@ -671,7 +698,7 @@ public class ClassModel {
         writer.append("     * Constructor for the implementation of ").append(getName()).append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
         writer.append("    public ").append(name).append("() {").append(Files.LINE_SEPARATOR);
-        for (PropertyImplementation implementation : getPropertyImplementations()) {
+        for (PropertyImplementation implementation : implementations) {
             implementation.writeStandaloneConstructor(writer);
         }
         writer.append("    }").append(Files.LINE_SEPARATOR);

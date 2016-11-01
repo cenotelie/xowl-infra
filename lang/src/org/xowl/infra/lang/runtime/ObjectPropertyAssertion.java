@@ -26,20 +26,6 @@ import java.util.*;
  */
 public interface ObjectPropertyAssertion extends org.xowl.infra.lang.runtime.PropertyAssertion {
     /**
-     * Sets the value for the property ValueIndividual
-     *
-     * @param elem The value to set
-     */
-    void setValueIndividual(org.xowl.infra.lang.runtime.Individual elem);
-
-    /**
-     * Gets the value for the property ValueIndividual
-     *
-     * @return The value for the property ValueIndividual
-     */
-    org.xowl.infra.lang.runtime.Individual getValueIndividual();
-
-    /**
      * Sets the value for the property Property
      *
      * @param elem The value to set
@@ -54,5 +40,19 @@ public interface ObjectPropertyAssertion extends org.xowl.infra.lang.runtime.Pro
      * @return The value for the property Property
      */
     org.xowl.infra.lang.runtime.ObjectProperty getPropertyAs(org.xowl.infra.lang.runtime.ObjectProperty type);
+
+    /**
+     * Sets the value for the property ValueIndividual
+     *
+     * @param elem The value to set
+     */
+    void setValueIndividual(org.xowl.infra.lang.runtime.Individual elem);
+
+    /**
+     * Gets the value for the property ValueIndividual
+     *
+     * @return The value for the property ValueIndividual
+     */
+    org.xowl.infra.lang.runtime.Individual getValueIndividual();
 
 }

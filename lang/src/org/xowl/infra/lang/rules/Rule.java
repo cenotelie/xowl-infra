@@ -49,6 +49,29 @@ public interface Rule {
     Collection<org.xowl.infra.lang.rules.Assertion> getAllAntecedents();
 
     /**
+     * Adds an element to the property Consequents
+     *
+     * @param elem The element to add
+     * @return Whether the operation resulted in a new element (false if the element was already there)
+     */
+    boolean addConsequents(org.xowl.infra.lang.rules.Assertion elem);
+
+    /**
+     * Removes an element from the property Consequents
+     *
+     * @param elem The element to remove
+     * @return Whether the operation resulted in the element being removed
+     */
+    boolean removeConsequents(org.xowl.infra.lang.rules.Assertion elem);
+
+    /**
+     * Gets all the elements for the property Consequents
+     *
+     * @return The elements for the property Consequents
+     */
+    Collection<org.xowl.infra.lang.rules.Assertion> getAllConsequents();
+
+    /**
      * Sets the value for the property Guard
      *
      * @param elem The value to set
@@ -75,28 +98,5 @@ public interface Rule {
      * @return The value for the property HasIRI
      */
     org.xowl.infra.lang.owl2.IRI getHasIRI();
-
-    /**
-     * Adds an element to the property Consequents
-     *
-     * @param elem The element to add
-     * @return Whether the operation resulted in a new element (false if the element was already there)
-     */
-    boolean addConsequents(org.xowl.infra.lang.rules.Assertion elem);
-
-    /**
-     * Removes an element from the property Consequents
-     *
-     * @param elem The element to remove
-     * @return Whether the operation resulted in the element being removed
-     */
-    boolean removeConsequents(org.xowl.infra.lang.rules.Assertion elem);
-
-    /**
-     * Gets all the elements for the property Consequents
-     *
-     * @return The elements for the property Consequents
-     */
-    Collection<org.xowl.infra.lang.rules.Assertion> getAllConsequents();
 
 }

@@ -26,6 +26,21 @@ import java.util.*;
  */
 public class RuntimeDataPropertyAssertionImpl implements org.xowl.infra.lang.runtime.DataPropertyAssertion {
     /**
+     * The backing data for the property IsNegative
+     */
+    private boolean __implIsNegative;
+
+    @Override
+    public boolean getIsNegative() {
+        return __implIsNegative;
+    }
+
+    @Override
+    public void setIsNegative(boolean elem) {
+        __implIsNegative = elem;
+    }
+
+    /**
      * The backing data for the property Property
      */
     private org.xowl.infra.lang.runtime.DataProperty __implProperty;
@@ -145,21 +160,6 @@ public class RuntimeDataPropertyAssertionImpl implements org.xowl.infra.lang.run
     }
 
     /**
-     * The backing data for the property IsNegative
-     */
-    private boolean __implIsNegative;
-
-    @Override
-    public boolean getIsNegative() {
-        return __implIsNegative;
-    }
-
-    @Override
-    public void setIsNegative(boolean elem) {
-        __implIsNegative = elem;
-    }
-
-    /**
      * The backing data for the property ValueLiteral
      */
     private org.xowl.infra.lang.runtime.Literal __implValueLiteral;
@@ -261,8 +261,8 @@ public class RuntimeDataPropertyAssertionImpl implements org.xowl.infra.lang.run
      * Constructor for the implementation of DataPropertyAssertion
      */
     public RuntimeDataPropertyAssertionImpl() {
-        this.__implProperty = null;
         this.__implIsNegative = false;
+        this.__implProperty = null;
         this.__implValueLiteral = null;
     }
 }

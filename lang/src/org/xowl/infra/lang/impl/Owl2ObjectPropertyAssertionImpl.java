@@ -26,217 +26,6 @@ import java.util.*;
  */
 public class Owl2ObjectPropertyAssertionImpl implements org.xowl.infra.lang.owl2.ObjectPropertyAssertion {
     /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
-     * The backing data for the property ObjectProperty
-     */
-    private org.xowl.infra.lang.owl2.ObjectPropertyExpression __implObjectProperty;
-
-    /**
-     * Adds a value to the property ObjectProperty
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        __implObjectProperty = elem;
-    }
-
-    /**
-     * Removes a value from the property ObjectProperty
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        __implObjectProperty = null;
-    }
-
-    /**
-     * Adds a value to the property ObjectProperty
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doSimpleAddObjectProperty(elem);
-    }
-
-    /**
-     * Removes a value from the property ObjectProperty
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doSimpleRemoveObjectProperty(elem);
-    }
-
-    /**
-     * Tries to add a value to the property ObjectProperty and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doPropertyAddObjectProperty(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property ObjectProperty and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doPropertyRemoveObjectProperty(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property ObjectProperty
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doGraphAddObjectProperty(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property ObjectProperty
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doGraphRemoveObjectProperty(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.ObjectPropertyExpression getObjectProperty() {
-        return __implObjectProperty;
-    }
-
-    @Override
-    public void setObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        if (__implObjectProperty == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveObjectProperty(__implObjectProperty);
-        } else if (__implObjectProperty == null) {
-            doDispatchAddObjectProperty(elem);
-        } else {
-            doDispatchRemoveObjectProperty(__implObjectProperty);
-            doDispatchAddObjectProperty(elem);
-        }
-    }
-
-    /**
-     * The backing data for the property ValueIndividual
-     */
-    private org.xowl.infra.lang.owl2.IndividualExpression __implValueIndividual;
-
-    /**
-     * Adds a value to the property ValueIndividual
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
-        __implValueIndividual = elem;
-    }
-
-    /**
-     * Removes a value from the property ValueIndividual
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
-        __implValueIndividual = null;
-    }
-
-    /**
-     * Adds a value to the property ValueIndividual
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
-        doSimpleAddValueIndividual(elem);
-    }
-
-    /**
-     * Removes a value from the property ValueIndividual
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
-        doSimpleRemoveValueIndividual(elem);
-    }
-
-    /**
-     * Tries to add a value to the property ValueIndividual and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
-        doPropertyAddValueIndividual(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property ValueIndividual and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
-        doPropertyRemoveValueIndividual(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property ValueIndividual
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
-        doGraphAddValueIndividual(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property ValueIndividual
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
-        doGraphRemoveValueIndividual(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.IndividualExpression getValueIndividual() {
-        return __implValueIndividual;
-    }
-
-    @Override
-    public void setValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
-        if (__implValueIndividual == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveValueIndividual(__implValueIndividual);
-        } else if (__implValueIndividual == null) {
-            doDispatchAddValueIndividual(elem);
-        } else {
-            doDispatchRemoveValueIndividual(__implValueIndividual);
-            doDispatchAddValueIndividual(elem);
-        }
-    }
-
-    /**
      * The backing data for the property Annotations
      */
     private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
@@ -454,14 +243,225 @@ public class Owl2ObjectPropertyAssertionImpl implements org.xowl.infra.lang.owl2
     }
 
     /**
+     * The backing data for the property Line
+     */
+    private int __implLine;
+
+    @Override
+    public int getLine() {
+        return __implLine;
+    }
+
+    @Override
+    public void setLine(int elem) {
+        __implLine = elem;
+    }
+
+    /**
+     * The backing data for the property ObjectProperty
+     */
+    private org.xowl.infra.lang.owl2.ObjectPropertyExpression __implObjectProperty;
+
+    /**
+     * Adds a value to the property ObjectProperty
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        __implObjectProperty = elem;
+    }
+
+    /**
+     * Removes a value from the property ObjectProperty
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        __implObjectProperty = null;
+    }
+
+    /**
+     * Adds a value to the property ObjectProperty
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doSimpleAddObjectProperty(elem);
+    }
+
+    /**
+     * Removes a value from the property ObjectProperty
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doSimpleRemoveObjectProperty(elem);
+    }
+
+    /**
+     * Tries to add a value to the property ObjectProperty and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doPropertyAddObjectProperty(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property ObjectProperty and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doPropertyRemoveObjectProperty(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property ObjectProperty
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doGraphAddObjectProperty(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property ObjectProperty
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doGraphRemoveObjectProperty(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.ObjectPropertyExpression getObjectProperty() {
+        return __implObjectProperty;
+    }
+
+    @Override
+    public void setObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        if (__implObjectProperty == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveObjectProperty(__implObjectProperty);
+        } else if (__implObjectProperty == null) {
+            doDispatchAddObjectProperty(elem);
+        } else {
+            doDispatchRemoveObjectProperty(__implObjectProperty);
+            doDispatchAddObjectProperty(elem);
+        }
+    }
+
+    /**
+     * The backing data for the property ValueIndividual
+     */
+    private org.xowl.infra.lang.owl2.IndividualExpression __implValueIndividual;
+
+    /**
+     * Adds a value to the property ValueIndividual
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+        __implValueIndividual = elem;
+    }
+
+    /**
+     * Removes a value from the property ValueIndividual
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+        __implValueIndividual = null;
+    }
+
+    /**
+     * Adds a value to the property ValueIndividual
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+        doSimpleAddValueIndividual(elem);
+    }
+
+    /**
+     * Removes a value from the property ValueIndividual
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+        doSimpleRemoveValueIndividual(elem);
+    }
+
+    /**
+     * Tries to add a value to the property ValueIndividual and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+        doPropertyAddValueIndividual(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property ValueIndividual and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+        doPropertyRemoveValueIndividual(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property ValueIndividual
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+        doGraphAddValueIndividual(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property ValueIndividual
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+        doGraphRemoveValueIndividual(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.IndividualExpression getValueIndividual() {
+        return __implValueIndividual;
+    }
+
+    @Override
+    public void setValueIndividual(org.xowl.infra.lang.owl2.IndividualExpression elem) {
+        if (__implValueIndividual == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveValueIndividual(__implValueIndividual);
+        } else if (__implValueIndividual == null) {
+            doDispatchAddValueIndividual(elem);
+        } else {
+            doDispatchRemoveValueIndividual(__implValueIndividual);
+            doDispatchAddValueIndividual(elem);
+        }
+    }
+
+    /**
      * Constructor for the implementation of ObjectPropertyAssertion
      */
     public Owl2ObjectPropertyAssertionImpl() {
-        this.__implLine = 0;
-        this.__implObjectProperty = null;
-        this.__implValueIndividual = null;
         this.__implAnnotations = new ArrayList<>();
         this.__implFile = null;
         this.__implIndividual = null;
+        this.__implLine = 0;
+        this.__implObjectProperty = null;
+        this.__implValueIndividual = null;
     }
 }

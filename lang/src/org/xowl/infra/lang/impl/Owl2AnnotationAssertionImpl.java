@@ -26,119 +26,6 @@ import java.util.*;
  */
 public class Owl2AnnotationAssertionImpl implements org.xowl.infra.lang.owl2.AnnotationAssertion {
     /**
-     * The backing data for the property AnnotValue
-     */
-    private org.xowl.infra.lang.owl2.AnnotationValue __implAnnotValue;
-
-    /**
-     * Adds a value to the property AnnotValue
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
-        __implAnnotValue = elem;
-    }
-
-    /**
-     * Removes a value from the property AnnotValue
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
-        __implAnnotValue = null;
-    }
-
-    /**
-     * Adds a value to the property AnnotValue
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
-        doSimpleAddAnnotValue(elem);
-    }
-
-    /**
-     * Removes a value from the property AnnotValue
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
-        doSimpleRemoveAnnotValue(elem);
-    }
-
-    /**
-     * Tries to add a value to the property AnnotValue and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
-        doPropertyAddAnnotValue(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property AnnotValue and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
-        doPropertyRemoveAnnotValue(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property AnnotValue
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
-        doGraphAddAnnotValue(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property AnnotValue
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
-        doGraphRemoveAnnotValue(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.AnnotationValue getAnnotValue() {
-        return __implAnnotValue;
-    }
-
-    @Override
-    public void setAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
-        if (__implAnnotValue == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveAnnotValue(__implAnnotValue);
-        } else if (__implAnnotValue == null) {
-            doDispatchAddAnnotValue(elem);
-        } else {
-            doDispatchRemoveAnnotValue(__implAnnotValue);
-            doDispatchAddAnnotValue(elem);
-        }
-    }
-
-    /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
      * The backing data for the property AnnotProperty
      */
     private org.xowl.infra.lang.owl2.IRI __implAnnotProperty;
@@ -233,6 +120,202 @@ public class Owl2AnnotationAssertionImpl implements org.xowl.infra.lang.owl2.Ann
         } else {
             doDispatchRemoveAnnotProperty(__implAnnotProperty);
             doDispatchAddAnnotProperty(elem);
+        }
+    }
+
+    /**
+     * The backing data for the property AnnotSubject
+     */
+    private org.xowl.infra.lang.owl2.AnnotationSubject __implAnnotSubject;
+
+    /**
+     * Adds a value to the property AnnotSubject
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
+        __implAnnotSubject = elem;
+    }
+
+    /**
+     * Removes a value from the property AnnotSubject
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
+        __implAnnotSubject = null;
+    }
+
+    /**
+     * Adds a value to the property AnnotSubject
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
+        doSimpleAddAnnotSubject(elem);
+    }
+
+    /**
+     * Removes a value from the property AnnotSubject
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
+        doSimpleRemoveAnnotSubject(elem);
+    }
+
+    /**
+     * Tries to add a value to the property AnnotSubject and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
+        doPropertyAddAnnotSubject(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property AnnotSubject and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
+        doPropertyRemoveAnnotSubject(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property AnnotSubject
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
+        doGraphAddAnnotSubject(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property AnnotSubject
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
+        doGraphRemoveAnnotSubject(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.AnnotationSubject getAnnotSubject() {
+        return __implAnnotSubject;
+    }
+
+    @Override
+    public void setAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
+        if (__implAnnotSubject == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveAnnotSubject(__implAnnotSubject);
+        } else if (__implAnnotSubject == null) {
+            doDispatchAddAnnotSubject(elem);
+        } else {
+            doDispatchRemoveAnnotSubject(__implAnnotSubject);
+            doDispatchAddAnnotSubject(elem);
+        }
+    }
+
+    /**
+     * The backing data for the property AnnotValue
+     */
+    private org.xowl.infra.lang.owl2.AnnotationValue __implAnnotValue;
+
+    /**
+     * Adds a value to the property AnnotValue
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
+        __implAnnotValue = elem;
+    }
+
+    /**
+     * Removes a value from the property AnnotValue
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
+        __implAnnotValue = null;
+    }
+
+    /**
+     * Adds a value to the property AnnotValue
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
+        doSimpleAddAnnotValue(elem);
+    }
+
+    /**
+     * Removes a value from the property AnnotValue
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
+        doSimpleRemoveAnnotValue(elem);
+    }
+
+    /**
+     * Tries to add a value to the property AnnotValue and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
+        doPropertyAddAnnotValue(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property AnnotValue and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
+        doPropertyRemoveAnnotValue(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property AnnotValue
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
+        doGraphAddAnnotValue(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property AnnotValue
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
+        doGraphRemoveAnnotValue(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.AnnotationValue getAnnotValue() {
+        return __implAnnotValue;
+    }
+
+    @Override
+    public void setAnnotValue(org.xowl.infra.lang.owl2.AnnotationValue elem) {
+        if (__implAnnotValue == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveAnnotValue(__implAnnotValue);
+        } else if (__implAnnotValue == null) {
+            doDispatchAddAnnotValue(elem);
+        } else {
+            doDispatchRemoveAnnotValue(__implAnnotValue);
+            doDispatchAddAnnotValue(elem);
         }
     }
 
@@ -356,112 +439,29 @@ public class Owl2AnnotationAssertionImpl implements org.xowl.infra.lang.owl2.Ann
     }
 
     /**
-     * The backing data for the property AnnotSubject
+     * The backing data for the property Line
      */
-    private org.xowl.infra.lang.owl2.AnnotationSubject __implAnnotSubject;
+    private int __implLine;
 
-    /**
-     * Adds a value to the property AnnotSubject
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
-        __implAnnotSubject = elem;
-    }
-
-    /**
-     * Removes a value from the property AnnotSubject
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
-        __implAnnotSubject = null;
-    }
-
-    /**
-     * Adds a value to the property AnnotSubject
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
-        doSimpleAddAnnotSubject(elem);
-    }
-
-    /**
-     * Removes a value from the property AnnotSubject
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
-        doSimpleRemoveAnnotSubject(elem);
-    }
-
-    /**
-     * Tries to add a value to the property AnnotSubject and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
-        doPropertyAddAnnotSubject(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property AnnotSubject and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
-        doPropertyRemoveAnnotSubject(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property AnnotSubject
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
-        doGraphAddAnnotSubject(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property AnnotSubject
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
-        doGraphRemoveAnnotSubject(elem);
+    @Override
+    public int getLine() {
+        return __implLine;
     }
 
     @Override
-    public org.xowl.infra.lang.owl2.AnnotationSubject getAnnotSubject() {
-        return __implAnnotSubject;
-    }
-
-    @Override
-    public void setAnnotSubject(org.xowl.infra.lang.owl2.AnnotationSubject elem) {
-        if (__implAnnotSubject == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveAnnotSubject(__implAnnotSubject);
-        } else if (__implAnnotSubject == null) {
-            doDispatchAddAnnotSubject(elem);
-        } else {
-            doDispatchRemoveAnnotSubject(__implAnnotSubject);
-            doDispatchAddAnnotSubject(elem);
-        }
+    public void setLine(int elem) {
+        __implLine = elem;
     }
 
     /**
      * Constructor for the implementation of AnnotationAssertion
      */
     public Owl2AnnotationAssertionImpl() {
-        this.__implAnnotValue = null;
-        this.__implLine = 0;
         this.__implAnnotProperty = null;
+        this.__implAnnotSubject = null;
+        this.__implAnnotValue = null;
         this.__implAnnotations = new ArrayList<>();
         this.__implFile = null;
-        this.__implAnnotSubject = null;
+        this.__implLine = 0;
     }
 }

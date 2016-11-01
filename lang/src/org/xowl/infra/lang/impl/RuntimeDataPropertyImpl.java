@@ -26,6 +26,110 @@ import java.util.*;
  */
 public class RuntimeDataPropertyImpl implements org.xowl.infra.lang.runtime.DataProperty {
     /**
+     * The backing data for the property Domain
+     */
+    private org.xowl.infra.lang.runtime.Class __implDomain;
+
+    /**
+     * Adds a value to the property Domain
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddDomain(org.xowl.infra.lang.runtime.Class elem) {
+        __implDomain = elem;
+    }
+
+    /**
+     * Removes a value from the property Domain
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
+        __implDomain = null;
+    }
+
+    /**
+     * Adds a value to the property Domain
+     * This method will also update the inverse property DomainOf
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddDomain(org.xowl.infra.lang.runtime.Class elem) {
+        doSimpleAddDomain(elem);
+        if (elem instanceof RuntimeClassImpl)
+            ((RuntimeClassImpl) elem).doSimpleAddDomainOf(this);
+    }
+
+    /**
+     * Removes a value from the property Domain
+     * This method will also update the inverse property DomainOf
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
+        doSimpleRemoveDomain(elem);
+        if (elem instanceof RuntimeClassImpl)
+            ((RuntimeClassImpl) elem).doSimpleRemoveDomainOf(this);
+    }
+
+    /**
+     * Tries to add a value to the property Domain and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddDomain(org.xowl.infra.lang.runtime.Class elem) {
+        doPropertyAddDomain(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property Domain and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
+        doPropertyRemoveDomain(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property Domain
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddDomain(org.xowl.infra.lang.runtime.Class elem) {
+        doGraphAddDomain(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property Domain
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
+        doGraphRemoveDomain(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.runtime.Class getDomain() {
+        return __implDomain;
+    }
+
+    @Override
+    public void setDomain(org.xowl.infra.lang.runtime.Class elem) {
+        if (__implDomain == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveDomain(__implDomain);
+        } else if (__implDomain == null) {
+            doDispatchAddDomain(elem);
+        } else {
+            doDispatchRemoveDomain(__implDomain);
+            doDispatchAddDomain(elem);
+        }
+    }
+
+    /**
      * The backing data for the property InterpretationOf
      */
     private org.xowl.infra.lang.runtime.Entity __implInterpretationOf;
@@ -130,106 +234,414 @@ public class RuntimeDataPropertyImpl implements org.xowl.infra.lang.runtime.Data
     }
 
     /**
-     * The backing data for the property Domain
+     * The backing data for the property IsFunctional
      */
-    private org.xowl.infra.lang.runtime.Class __implDomain;
+    private boolean __implIsFunctional;
+
+    @Override
+    public boolean getIsFunctional() {
+        return __implIsFunctional;
+    }
+
+    @Override
+    public void setIsFunctional(boolean elem) {
+        __implIsFunctional = elem;
+    }
 
     /**
-     * Adds a value to the property Domain
+     * The backing data for the property PropertyDisjointWith
+     */
+    private List<org.xowl.infra.lang.runtime.DataProperty> __implPropertyDisjointWith;
+
+    /**
+     * Adds a value to the property PropertyDisjointWith
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddDomain(org.xowl.infra.lang.runtime.Class elem) {
-        __implDomain = elem;
+    protected void doSimpleAddPropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
+        __implPropertyDisjointWith.add(elem);
     }
 
     /**
-     * Removes a value from the property Domain
+     * Removes a value from the property PropertyDisjointWith
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
-        __implDomain = null;
+    protected void doSimpleRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
+        __implPropertyDisjointWith.remove(elem);
     }
 
     /**
-     * Adds a value to the property Domain
-     * This method will also update the inverse property DomainOf
+     * Adds a value to the property PropertyDisjointWith
+     * This method will also update the inverse property PropertyDisjointWith
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddDomain(org.xowl.infra.lang.runtime.Class elem) {
-        doSimpleAddDomain(elem);
-        if (elem instanceof RuntimeClassImpl)
-            ((RuntimeClassImpl) elem).doSimpleAddDomainOf(this);
+    private void doPropertyAddPropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doSimpleAddPropertyDisjointWith(elem);
+        if (elem instanceof RuntimeDataPropertyImpl)
+            ((RuntimeDataPropertyImpl) elem).doSimpleAddPropertyDisjointWith(this);
     }
 
     /**
-     * Removes a value from the property Domain
-     * This method will also update the inverse property DomainOf
+     * Removes a value from the property PropertyDisjointWith
+     * This method will also update the inverse property PropertyDisjointWith
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
-        doSimpleRemoveDomain(elem);
-        if (elem instanceof RuntimeClassImpl)
-            ((RuntimeClassImpl) elem).doSimpleRemoveDomainOf(this);
+    private void doPropertyRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doSimpleRemovePropertyDisjointWith(elem);
+        if (elem instanceof RuntimeDataPropertyImpl)
+            ((RuntimeDataPropertyImpl) elem).doSimpleRemovePropertyDisjointWith(this);
     }
 
     /**
-     * Tries to add a value to the property Domain and its super properties (if any)
+     * Tries to add a value to the property PropertyDisjointWith and its super properties (if any)
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddDomain(org.xowl.infra.lang.runtime.Class elem) {
-        doPropertyAddDomain(elem);
+    private void doGraphAddPropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doPropertyAddPropertyDisjointWith(elem);
     }
 
     /**
-     * Tries to remove a value from the property Domain and its super properties (if any)
+     * Tries to remove a value from the property PropertyDisjointWith and its super properties (if any)
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
-        doPropertyRemoveDomain(elem);
+    private void doGraphRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doPropertyRemovePropertyDisjointWith(elem);
     }
 
     /**
-     * Dispatches the request for the addition of a value to the property Domain
+     * Dispatches the request for the addition of a value to the property PropertyDisjointWith
      * This method tries to delegate to a sub property, if any.
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddDomain(org.xowl.infra.lang.runtime.Class elem) {
-        doGraphAddDomain(elem);
+    private void doDispatchAddPropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doGraphAddPropertyDisjointWith(elem);
     }
 
     /**
-     * Dispatches the request for the removal of a value from the property Domain
+     * Dispatches the request for the removal of a value from the property PropertyDisjointWith
      * This method tries to delegate to a sub property, if any.
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveDomain(org.xowl.infra.lang.runtime.Class elem) {
-        doGraphRemoveDomain(elem);
+    private void doDispatchRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doGraphRemovePropertyDisjointWith(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Class getDomain() {
-        return __implDomain;
+    public Collection<org.xowl.infra.lang.runtime.Property> getAllPropertyDisjointWithAs(org.xowl.infra.lang.runtime.Property type) {
+        return (Collection) Collections.unmodifiableCollection(__implPropertyDisjointWith);
     }
 
     @Override
-    public void setDomain(org.xowl.infra.lang.runtime.Class elem) {
-        if (__implDomain == elem)
+    public boolean addPropertyDisjointWith(org.xowl.infra.lang.runtime.Property elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (!(elem instanceof org.xowl.infra.lang.runtime.DataProperty))
+            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.DataProperty");
+        if (__implPropertyDisjointWith.contains((org.xowl.infra.lang.runtime.DataProperty) elem))
+            return false;
+        doDispatchAddPropertyDisjointWith((org.xowl.infra.lang.runtime.DataProperty) elem);
+        return true;
+    }
+
+    @Override
+    public boolean removePropertyDisjointWith(org.xowl.infra.lang.runtime.Property elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (!(elem instanceof org.xowl.infra.lang.runtime.DataProperty))
+            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.DataProperty");
+        if (!__implPropertyDisjointWith.contains((org.xowl.infra.lang.runtime.DataProperty) elem))
+            return false;
+        doDispatchRemovePropertyDisjointWith((org.xowl.infra.lang.runtime.DataProperty) elem);
+        return true;
+    }
+
+    @Override
+    public Collection<org.xowl.infra.lang.runtime.DataProperty> getAllPropertyDisjointWithAs(org.xowl.infra.lang.runtime.DataProperty type) {
+        return Collections.unmodifiableCollection(__implPropertyDisjointWith);
+    }
+
+    @Override
+    public boolean addPropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (__implPropertyDisjointWith.contains(elem))
+            return false;
+        doDispatchAddPropertyDisjointWith(elem);
+        return true;
+    }
+
+    @Override
+    public boolean removePropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (!__implPropertyDisjointWith.contains(elem))
+            return false;
+        doDispatchRemovePropertyDisjointWith(elem);
+        return true;
+    }
+
+    /**
+     * The backing data for the property PropertyEquivalentTo
+     */
+    private List<org.xowl.infra.lang.runtime.DataProperty> __implPropertyEquivalentTo;
+
+    /**
+     * Adds a value to the property PropertyEquivalentTo
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
+        __implPropertyEquivalentTo.add(elem);
+    }
+
+    /**
+     * Removes a value from the property PropertyEquivalentTo
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
+        __implPropertyEquivalentTo.remove(elem);
+    }
+
+    /**
+     * Adds a value to the property PropertyEquivalentTo
+     * This method will also update the inverse property PropertyEquivalentTo
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doSimpleAddPropertyEquivalentTo(elem);
+        if (elem instanceof RuntimeDataPropertyImpl)
+            ((RuntimeDataPropertyImpl) elem).doSimpleAddPropertyEquivalentTo(this);
+    }
+
+    /**
+     * Removes a value from the property PropertyEquivalentTo
+     * This method will also update the inverse property PropertyEquivalentTo
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doSimpleRemovePropertyEquivalentTo(elem);
+        if (elem instanceof RuntimeDataPropertyImpl)
+            ((RuntimeDataPropertyImpl) elem).doSimpleRemovePropertyEquivalentTo(this);
+    }
+
+    /**
+     * Tries to add a value to the property PropertyEquivalentTo and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doPropertyAddPropertyEquivalentTo(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property PropertyEquivalentTo and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doPropertyRemovePropertyEquivalentTo(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property PropertyEquivalentTo
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doGraphAddPropertyEquivalentTo(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property PropertyEquivalentTo
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
+        doGraphRemovePropertyEquivalentTo(elem);
+    }
+
+    @Override
+    public Collection<org.xowl.infra.lang.runtime.Property> getAllPropertyEquivalentToAs(org.xowl.infra.lang.runtime.Property type) {
+        return (Collection) Collections.unmodifiableCollection(__implPropertyEquivalentTo);
+    }
+
+    @Override
+    public boolean addPropertyEquivalentTo(org.xowl.infra.lang.runtime.Property elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (!(elem instanceof org.xowl.infra.lang.runtime.DataProperty))
+            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.DataProperty");
+        if (__implPropertyEquivalentTo.contains((org.xowl.infra.lang.runtime.DataProperty) elem))
+            return false;
+        doDispatchAddPropertyEquivalentTo((org.xowl.infra.lang.runtime.DataProperty) elem);
+        return true;
+    }
+
+    @Override
+    public boolean removePropertyEquivalentTo(org.xowl.infra.lang.runtime.Property elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (!(elem instanceof org.xowl.infra.lang.runtime.DataProperty))
+            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.DataProperty");
+        if (!__implPropertyEquivalentTo.contains((org.xowl.infra.lang.runtime.DataProperty) elem))
+            return false;
+        doDispatchRemovePropertyEquivalentTo((org.xowl.infra.lang.runtime.DataProperty) elem);
+        return true;
+    }
+
+    @Override
+    public Collection<org.xowl.infra.lang.runtime.DataProperty> getAllPropertyEquivalentToAs(org.xowl.infra.lang.runtime.DataProperty type) {
+        return Collections.unmodifiableCollection(__implPropertyEquivalentTo);
+    }
+
+    @Override
+    public boolean addPropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (__implPropertyEquivalentTo.contains(elem))
+            return false;
+        doDispatchAddPropertyEquivalentTo(elem);
+        return true;
+    }
+
+    @Override
+    public boolean removePropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (!__implPropertyEquivalentTo.contains(elem))
+            return false;
+        doDispatchRemovePropertyEquivalentTo(elem);
+        return true;
+    }
+
+    /**
+     * The backing data for the property Range
+     */
+    private org.xowl.infra.lang.runtime.Datatype __implRange;
+
+    /**
+     * Adds a value to the property Range
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddRange(org.xowl.infra.lang.runtime.Datatype elem) {
+        __implRange = elem;
+    }
+
+    /**
+     * Removes a value from the property Range
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveRange(org.xowl.infra.lang.runtime.Datatype elem) {
+        __implRange = null;
+    }
+
+    /**
+     * Adds a value to the property Range
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddRange(org.xowl.infra.lang.runtime.Datatype elem) {
+        doSimpleAddRange(elem);
+    }
+
+    /**
+     * Removes a value from the property Range
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveRange(org.xowl.infra.lang.runtime.Datatype elem) {
+        doSimpleRemoveRange(elem);
+    }
+
+    /**
+     * Tries to add a value to the property Range and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddRange(org.xowl.infra.lang.runtime.Datatype elem) {
+        doPropertyAddRange(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property Range and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveRange(org.xowl.infra.lang.runtime.Datatype elem) {
+        doPropertyRemoveRange(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property Range
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddRange(org.xowl.infra.lang.runtime.Datatype elem) {
+        doGraphAddRange(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property Range
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveRange(org.xowl.infra.lang.runtime.Datatype elem) {
+        doGraphRemoveRange(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.runtime.Class_OR_Datatype getRangeAs(org.xowl.infra.lang.runtime.Class_OR_Datatype type) {
+        return __implRange;
+    }
+
+    @Override
+    public void setRange(org.xowl.infra.lang.runtime.Class_OR_Datatype elem) {
+        if (__implRange == elem)
             return;
         if (elem == null) {
-            doDispatchRemoveDomain(__implDomain);
-        } else if (__implDomain == null) {
-            doDispatchAddDomain(elem);
+            doDispatchRemoveRange(__implRange);
+        } else if (__implRange == null) {
+            doDispatchAddRange((org.xowl.infra.lang.runtime.Datatype) elem);
         } else {
-            doDispatchRemoveDomain(__implDomain);
-            doDispatchAddDomain(elem);
+            if (!(elem instanceof org.xowl.infra.lang.runtime.Datatype))
+                throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.Datatype");
+            doDispatchRemoveRange(__implRange);
+            doDispatchAddRange((org.xowl.infra.lang.runtime.Datatype) elem);
+        }
+    }
+
+    @Override
+    public org.xowl.infra.lang.runtime.Datatype getRangeAs(org.xowl.infra.lang.runtime.Datatype type) {
+        return __implRange;
+    }
+
+    @Override
+    public void setRange(org.xowl.infra.lang.runtime.Datatype elem) {
+        if (__implRange == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveRange(__implRange);
+        } else if (__implRange == null) {
+            doDispatchAddRange(elem);
+        } else {
+            doDispatchRemoveRange(__implRange);
+            doDispatchAddRange(elem);
         }
     }
 
@@ -373,264 +785,6 @@ public class RuntimeDataPropertyImpl implements org.xowl.infra.lang.runtime.Data
     }
 
     /**
-     * The backing data for the property PropertyDisjointWith
-     */
-    private List<org.xowl.infra.lang.runtime.DataProperty> __implPropertyDisjointWith;
-
-    /**
-     * Adds a value to the property PropertyDisjointWith
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddPropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
-        __implPropertyDisjointWith.add(elem);
-    }
-
-    /**
-     * Removes a value from the property PropertyDisjointWith
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
-        __implPropertyDisjointWith.remove(elem);
-    }
-
-    /**
-     * Adds a value to the property PropertyDisjointWith
-     * This method will also update the inverse property PropertyDisjointWith
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddPropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doSimpleAddPropertyDisjointWith(elem);
-        if (elem instanceof RuntimeDataPropertyImpl)
-            ((RuntimeDataPropertyImpl) elem).doSimpleAddPropertyDisjointWith(this);
-    }
-
-    /**
-     * Removes a value from the property PropertyDisjointWith
-     * This method will also update the inverse property PropertyDisjointWith
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doSimpleRemovePropertyDisjointWith(elem);
-        if (elem instanceof RuntimeDataPropertyImpl)
-            ((RuntimeDataPropertyImpl) elem).doSimpleRemovePropertyDisjointWith(this);
-    }
-
-    /**
-     * Tries to add a value to the property PropertyDisjointWith and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddPropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doPropertyAddPropertyDisjointWith(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property PropertyDisjointWith and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doPropertyRemovePropertyDisjointWith(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property PropertyDisjointWith
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddPropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doGraphAddPropertyDisjointWith(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property PropertyDisjointWith
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemovePropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doGraphRemovePropertyDisjointWith(elem);
-    }
-
-    @Override
-    public Collection<org.xowl.infra.lang.runtime.Property> getAllPropertyDisjointWithAs(org.xowl.infra.lang.runtime.Property type) {
-        return (Collection) Collections.unmodifiableCollection(__implPropertyDisjointWith);
-    }
-
-    @Override
-    public boolean addPropertyDisjointWith(org.xowl.infra.lang.runtime.Property elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.DataProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.DataProperty");
-        if (__implPropertyDisjointWith.contains((org.xowl.infra.lang.runtime.DataProperty) elem))
-            return false;
-        doDispatchAddPropertyDisjointWith((org.xowl.infra.lang.runtime.DataProperty) elem);
-        return true;
-    }
-
-    @Override
-    public boolean removePropertyDisjointWith(org.xowl.infra.lang.runtime.Property elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.DataProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.DataProperty");
-        if (!__implPropertyDisjointWith.contains((org.xowl.infra.lang.runtime.DataProperty) elem))
-            return false;
-        doDispatchRemovePropertyDisjointWith((org.xowl.infra.lang.runtime.DataProperty) elem);
-        return true;
-    }
-
-    @Override
-    public Collection<org.xowl.infra.lang.runtime.DataProperty> getAllPropertyDisjointWithAs(org.xowl.infra.lang.runtime.DataProperty type) {
-        return Collections.unmodifiableCollection(__implPropertyDisjointWith);
-    }
-
-    @Override
-    public boolean addPropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (__implPropertyDisjointWith.contains(elem))
-            return false;
-        doDispatchAddPropertyDisjointWith(elem);
-        return true;
-    }
-
-    @Override
-    public boolean removePropertyDisjointWith(org.xowl.infra.lang.runtime.DataProperty elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (!__implPropertyDisjointWith.contains(elem))
-            return false;
-        doDispatchRemovePropertyDisjointWith(elem);
-        return true;
-    }
-
-    /**
-     * The backing data for the property Range
-     */
-    private org.xowl.infra.lang.runtime.Datatype __implRange;
-
-    /**
-     * Adds a value to the property Range
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddRange(org.xowl.infra.lang.runtime.Datatype elem) {
-        __implRange = elem;
-    }
-
-    /**
-     * Removes a value from the property Range
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveRange(org.xowl.infra.lang.runtime.Datatype elem) {
-        __implRange = null;
-    }
-
-    /**
-     * Adds a value to the property Range
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddRange(org.xowl.infra.lang.runtime.Datatype elem) {
-        doSimpleAddRange(elem);
-    }
-
-    /**
-     * Removes a value from the property Range
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveRange(org.xowl.infra.lang.runtime.Datatype elem) {
-        doSimpleRemoveRange(elem);
-    }
-
-    /**
-     * Tries to add a value to the property Range and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddRange(org.xowl.infra.lang.runtime.Datatype elem) {
-        doPropertyAddRange(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property Range and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveRange(org.xowl.infra.lang.runtime.Datatype elem) {
-        doPropertyRemoveRange(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property Range
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddRange(org.xowl.infra.lang.runtime.Datatype elem) {
-        doGraphAddRange(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property Range
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveRange(org.xowl.infra.lang.runtime.Datatype elem) {
-        doGraphRemoveRange(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.runtime.Class_OR_Datatype getRangeAs(org.xowl.infra.lang.runtime.Class_OR_Datatype type) {
-        return __implRange;
-    }
-
-    @Override
-    public void setRange(org.xowl.infra.lang.runtime.Class_OR_Datatype elem) {
-        if (__implRange == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveRange(__implRange);
-        } else if (__implRange == null) {
-            doDispatchAddRange((org.xowl.infra.lang.runtime.Datatype) elem);
-        } else {
-            if (!(elem instanceof org.xowl.infra.lang.runtime.Datatype))
-                throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.Datatype");
-            doDispatchRemoveRange(__implRange);
-            doDispatchAddRange((org.xowl.infra.lang.runtime.Datatype) elem);
-        }
-    }
-
-    @Override
-    public org.xowl.infra.lang.runtime.Datatype getRangeAs(org.xowl.infra.lang.runtime.Datatype type) {
-        return __implRange;
-    }
-
-    @Override
-    public void setRange(org.xowl.infra.lang.runtime.Datatype elem) {
-        if (__implRange == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveRange(__implRange);
-        } else if (__implRange == null) {
-            doDispatchAddRange(elem);
-        } else {
-            doDispatchRemoveRange(__implRange);
-            doDispatchAddRange(elem);
-        }
-    }
-
-    /**
      * The backing data for the property SuperPropertyOf
      */
     private List<org.xowl.infra.lang.runtime.DataProperty> __implSuperPropertyOf;
@@ -770,170 +924,16 @@ public class RuntimeDataPropertyImpl implements org.xowl.infra.lang.runtime.Data
     }
 
     /**
-     * The backing data for the property IsFunctional
-     */
-    private boolean __implIsFunctional;
-
-    @Override
-    public boolean getIsFunctional() {
-        return __implIsFunctional;
-    }
-
-    @Override
-    public void setIsFunctional(boolean elem) {
-        __implIsFunctional = elem;
-    }
-
-    /**
-     * The backing data for the property PropertyEquivalentTo
-     */
-    private List<org.xowl.infra.lang.runtime.DataProperty> __implPropertyEquivalentTo;
-
-    /**
-     * Adds a value to the property PropertyEquivalentTo
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
-        __implPropertyEquivalentTo.add(elem);
-    }
-
-    /**
-     * Removes a value from the property PropertyEquivalentTo
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
-        __implPropertyEquivalentTo.remove(elem);
-    }
-
-    /**
-     * Adds a value to the property PropertyEquivalentTo
-     * This method will also update the inverse property PropertyEquivalentTo
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doSimpleAddPropertyEquivalentTo(elem);
-        if (elem instanceof RuntimeDataPropertyImpl)
-            ((RuntimeDataPropertyImpl) elem).doSimpleAddPropertyEquivalentTo(this);
-    }
-
-    /**
-     * Removes a value from the property PropertyEquivalentTo
-     * This method will also update the inverse property PropertyEquivalentTo
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doSimpleRemovePropertyEquivalentTo(elem);
-        if (elem instanceof RuntimeDataPropertyImpl)
-            ((RuntimeDataPropertyImpl) elem).doSimpleRemovePropertyEquivalentTo(this);
-    }
-
-    /**
-     * Tries to add a value to the property PropertyEquivalentTo and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doPropertyAddPropertyEquivalentTo(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property PropertyEquivalentTo and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doPropertyRemovePropertyEquivalentTo(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property PropertyEquivalentTo
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddPropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doGraphAddPropertyEquivalentTo(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property PropertyEquivalentTo
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemovePropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
-        doGraphRemovePropertyEquivalentTo(elem);
-    }
-
-    @Override
-    public Collection<org.xowl.infra.lang.runtime.Property> getAllPropertyEquivalentToAs(org.xowl.infra.lang.runtime.Property type) {
-        return (Collection) Collections.unmodifiableCollection(__implPropertyEquivalentTo);
-    }
-
-    @Override
-    public boolean addPropertyEquivalentTo(org.xowl.infra.lang.runtime.Property elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.DataProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.DataProperty");
-        if (__implPropertyEquivalentTo.contains((org.xowl.infra.lang.runtime.DataProperty) elem))
-            return false;
-        doDispatchAddPropertyEquivalentTo((org.xowl.infra.lang.runtime.DataProperty) elem);
-        return true;
-    }
-
-    @Override
-    public boolean removePropertyEquivalentTo(org.xowl.infra.lang.runtime.Property elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (!(elem instanceof org.xowl.infra.lang.runtime.DataProperty))
-            throw new IllegalArgumentException("Expected type org.xowl.infra.lang.runtime.DataProperty");
-        if (!__implPropertyEquivalentTo.contains((org.xowl.infra.lang.runtime.DataProperty) elem))
-            return false;
-        doDispatchRemovePropertyEquivalentTo((org.xowl.infra.lang.runtime.DataProperty) elem);
-        return true;
-    }
-
-    @Override
-    public Collection<org.xowl.infra.lang.runtime.DataProperty> getAllPropertyEquivalentToAs(org.xowl.infra.lang.runtime.DataProperty type) {
-        return Collections.unmodifiableCollection(__implPropertyEquivalentTo);
-    }
-
-    @Override
-    public boolean addPropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (__implPropertyEquivalentTo.contains(elem))
-            return false;
-        doDispatchAddPropertyEquivalentTo(elem);
-        return true;
-    }
-
-    @Override
-    public boolean removePropertyEquivalentTo(org.xowl.infra.lang.runtime.DataProperty elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (!__implPropertyEquivalentTo.contains(elem))
-            return false;
-        doDispatchRemovePropertyEquivalentTo(elem);
-        return true;
-    }
-
-    /**
      * Constructor for the implementation of DataProperty
      */
     public RuntimeDataPropertyImpl() {
-        this.__implInterpretationOf = null;
         this.__implDomain = null;
-        this.__implSubPropertyOf = new ArrayList<>();
-        this.__implPropertyDisjointWith = new ArrayList<>();
-        this.__implRange = null;
-        this.__implSuperPropertyOf = new ArrayList<>();
+        this.__implInterpretationOf = null;
         this.__implIsFunctional = false;
+        this.__implPropertyDisjointWith = new ArrayList<>();
         this.__implPropertyEquivalentTo = new ArrayList<>();
+        this.__implRange = null;
+        this.__implSubPropertyOf = new ArrayList<>();
+        this.__implSuperPropertyOf = new ArrayList<>();
     }
 }

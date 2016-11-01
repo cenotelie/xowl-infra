@@ -26,6 +26,21 @@ import java.util.*;
  */
 public class RuntimeDataExactCardinalityImpl implements org.xowl.infra.lang.runtime.DataExactCardinality {
     /**
+     * The backing data for the property Cardinality
+     */
+    private int __implCardinality;
+
+    @Override
+    public int getCardinality() {
+        return __implCardinality;
+    }
+
+    @Override
+    public void setCardinality(int elem) {
+        __implCardinality = elem;
+    }
+
+    /**
      * The backing data for the property DataProperty
      */
     private org.xowl.infra.lang.runtime.DataProperty __implDataProperty;
@@ -121,21 +136,6 @@ public class RuntimeDataExactCardinalityImpl implements org.xowl.infra.lang.runt
             doDispatchRemoveDataProperty(__implDataProperty);
             doDispatchAddDataProperty(elem);
         }
-    }
-
-    /**
-     * The backing data for the property Cardinality
-     */
-    private int __implCardinality;
-
-    @Override
-    public int getCardinality() {
-        return __implCardinality;
-    }
-
-    @Override
-    public void setCardinality(int elem) {
-        __implCardinality = elem;
     }
 
     /**
@@ -240,8 +240,8 @@ public class RuntimeDataExactCardinalityImpl implements org.xowl.infra.lang.runt
      * Constructor for the implementation of DataExactCardinality
      */
     public RuntimeDataExactCardinalityImpl() {
-        this.__implDataProperty = null;
         this.__implCardinality = 0;
+        this.__implDataProperty = null;
         this.__implDatatype = null;
     }
 }

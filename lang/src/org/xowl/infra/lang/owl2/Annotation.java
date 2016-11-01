@@ -24,5 +24,5 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface Annotation extends org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno1, org.xowl.infra.lang.owl2.Annotation_OR_Axiom_OR_Ontology, org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion {
+public interface Annotation extends org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion, org.xowl.infra.lang.owl2.Annotation_OR_AnnotationAssertion_OR_AnnotationPropertyDomain_OR_AnnotationPropertyRange_OR_SubAnno0, org.xowl.infra.lang.owl2.Annotation_OR_Axiom_OR_Ontology {
 }

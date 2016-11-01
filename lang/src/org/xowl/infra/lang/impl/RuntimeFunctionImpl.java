@@ -26,6 +26,104 @@ import java.util.*;
  */
 public class RuntimeFunctionImpl implements org.xowl.infra.lang.runtime.Function {
     /**
+     * The backing data for the property DefinedAs
+     */
+    private Object __implDefinedAs;
+
+    /**
+     * Adds a value to the property DefinedAs
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddDefinedAs(Object elem) {
+        __implDefinedAs = elem;
+    }
+
+    /**
+     * Removes a value from the property DefinedAs
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveDefinedAs(Object elem) {
+        __implDefinedAs = null;
+    }
+
+    /**
+     * Adds a value to the property DefinedAs
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddDefinedAs(Object elem) {
+        doSimpleAddDefinedAs(elem);
+    }
+
+    /**
+     * Removes a value from the property DefinedAs
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveDefinedAs(Object elem) {
+        doSimpleRemoveDefinedAs(elem);
+    }
+
+    /**
+     * Tries to add a value to the property DefinedAs and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddDefinedAs(Object elem) {
+        doPropertyAddDefinedAs(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property DefinedAs and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveDefinedAs(Object elem) {
+        doPropertyRemoveDefinedAs(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property DefinedAs
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddDefinedAs(Object elem) {
+        doGraphAddDefinedAs(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property DefinedAs
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveDefinedAs(Object elem) {
+        doGraphRemoveDefinedAs(elem);
+    }
+
+    @Override
+    public Object getDefinedAs() {
+        return __implDefinedAs;
+    }
+
+    @Override
+    public void setDefinedAs(Object elem) {
+        if (__implDefinedAs == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveDefinedAs(__implDefinedAs);
+        } else if (__implDefinedAs == null) {
+            doDispatchAddDefinedAs(elem);
+        } else {
+            doDispatchRemoveDefinedAs(__implDefinedAs);
+            doDispatchAddDefinedAs(elem);
+        }
+    }
+
+    /**
      * The backing data for the property InterpretationOf
      */
     private org.xowl.infra.lang.runtime.Entity __implInterpretationOf;
@@ -130,108 +228,10 @@ public class RuntimeFunctionImpl implements org.xowl.infra.lang.runtime.Function
     }
 
     /**
-     * The backing data for the property DefinedAs
-     */
-    private Object __implDefinedAs;
-
-    /**
-     * Adds a value to the property DefinedAs
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddDefinedAs(Object elem) {
-        __implDefinedAs = elem;
-    }
-
-    /**
-     * Removes a value from the property DefinedAs
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveDefinedAs(Object elem) {
-        __implDefinedAs = null;
-    }
-
-    /**
-     * Adds a value to the property DefinedAs
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddDefinedAs(Object elem) {
-        doSimpleAddDefinedAs(elem);
-    }
-
-    /**
-     * Removes a value from the property DefinedAs
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveDefinedAs(Object elem) {
-        doSimpleRemoveDefinedAs(elem);
-    }
-
-    /**
-     * Tries to add a value to the property DefinedAs and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddDefinedAs(Object elem) {
-        doPropertyAddDefinedAs(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property DefinedAs and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveDefinedAs(Object elem) {
-        doPropertyRemoveDefinedAs(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property DefinedAs
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddDefinedAs(Object elem) {
-        doGraphAddDefinedAs(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property DefinedAs
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveDefinedAs(Object elem) {
-        doGraphRemoveDefinedAs(elem);
-    }
-
-    @Override
-    public Object getDefinedAs() {
-        return __implDefinedAs;
-    }
-
-    @Override
-    public void setDefinedAs(Object elem) {
-        if (__implDefinedAs == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveDefinedAs(__implDefinedAs);
-        } else if (__implDefinedAs == null) {
-            doDispatchAddDefinedAs(elem);
-        } else {
-            doDispatchRemoveDefinedAs(__implDefinedAs);
-            doDispatchAddDefinedAs(elem);
-        }
-    }
-
-    /**
      * Constructor for the implementation of Function
      */
     public RuntimeFunctionImpl() {
-        this.__implInterpretationOf = null;
         this.__implDefinedAs = null;
+        this.__implInterpretationOf = null;
     }
 }

@@ -26,6 +26,21 @@ import java.util.*;
  */
 public class RuntimeLiteralImpl implements org.xowl.infra.lang.runtime.Literal {
     /**
+     * The backing data for the property LangTag
+     */
+    private String __implLangTag;
+
+    @Override
+    public String getLangTag() {
+        return __implLangTag;
+    }
+
+    @Override
+    public void setLangTag(String elem) {
+        __implLangTag = elem;
+    }
+
+    /**
      * The backing data for the property LexicalValue
      */
     private String __implLexicalValue;
@@ -139,26 +154,11 @@ public class RuntimeLiteralImpl implements org.xowl.infra.lang.runtime.Literal {
     }
 
     /**
-     * The backing data for the property LangTag
-     */
-    private String __implLangTag;
-
-    @Override
-    public String getLangTag() {
-        return __implLangTag;
-    }
-
-    @Override
-    public void setLangTag(String elem) {
-        __implLangTag = elem;
-    }
-
-    /**
      * Constructor for the implementation of Literal
      */
     public RuntimeLiteralImpl() {
+        this.__implLangTag = null;
         this.__implLexicalValue = null;
         this.__implMemberOf = null;
-        this.__implLangTag = null;
     }
 }

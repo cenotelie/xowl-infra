@@ -26,6 +26,21 @@ import java.util.*;
  */
 public class RuntimeObjectMinCardinalityImpl implements org.xowl.infra.lang.runtime.ObjectMinCardinality {
     /**
+     * The backing data for the property Cardinality
+     */
+    private int __implCardinality;
+
+    @Override
+    public int getCardinality() {
+        return __implCardinality;
+    }
+
+    @Override
+    public void setCardinality(int elem) {
+        __implCardinality = elem;
+    }
+
+    /**
      * The backing data for the property Classe
      */
     private org.xowl.infra.lang.runtime.Class __implClasse;
@@ -222,26 +237,11 @@ public class RuntimeObjectMinCardinalityImpl implements org.xowl.infra.lang.runt
     }
 
     /**
-     * The backing data for the property Cardinality
-     */
-    private int __implCardinality;
-
-    @Override
-    public int getCardinality() {
-        return __implCardinality;
-    }
-
-    @Override
-    public void setCardinality(int elem) {
-        __implCardinality = elem;
-    }
-
-    /**
      * Constructor for the implementation of ObjectMinCardinality
      */
     public RuntimeObjectMinCardinalityImpl() {
+        this.__implCardinality = 0;
         this.__implClasse = null;
         this.__implObjectProperty = null;
-        this.__implCardinality = 0;
     }
 }

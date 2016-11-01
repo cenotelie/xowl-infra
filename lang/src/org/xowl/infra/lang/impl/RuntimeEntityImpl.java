@@ -130,140 +130,6 @@ public class RuntimeEntityImpl implements org.xowl.infra.lang.runtime.Entity {
     }
 
     /**
-     * The backing data for the property InterpretedAs
-     */
-    private List<org.xowl.infra.lang.runtime.Interpretation> __implInterpretedAs;
-
-    /**
-     * Adds a value to the property InterpretedAs
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
-        __implInterpretedAs.add(elem);
-    }
-
-    /**
-     * Removes a value from the property InterpretedAs
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
-        __implInterpretedAs.remove(elem);
-    }
-
-    /**
-     * Adds a value to the property InterpretedAs
-     * This method will also update the inverse property InterpretationOf
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
-        doSimpleAddInterpretedAs(elem);
-        if (elem instanceof RuntimeAnnotationPropertyImpl)
-            ((RuntimeAnnotationPropertyImpl) elem).doSimpleAddInterpretationOf(this);
-        else if (elem instanceof RuntimeFunctionImpl)
-            ((RuntimeFunctionImpl) elem).doSimpleAddInterpretationOf(this);
-        else if (elem instanceof RuntimeClassImpl)
-            ((RuntimeClassImpl) elem).doSimpleAddInterpretationOf(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
-            ((RuntimeNamedIndividualImpl) elem).doSimpleAddInterpretationOf(this);
-        else if (elem instanceof RuntimeDatatypeImpl)
-            ((RuntimeDatatypeImpl) elem).doSimpleAddInterpretationOf(this);
-        else if (elem instanceof RuntimeDataPropertyImpl)
-            ((RuntimeDataPropertyImpl) elem).doSimpleAddInterpretationOf(this);
-        else if (elem instanceof RuntimeObjectPropertyImpl)
-            ((RuntimeObjectPropertyImpl) elem).doSimpleAddInterpretationOf(this);
-    }
-
-    /**
-     * Removes a value from the property InterpretedAs
-     * This method will also update the inverse property InterpretationOf
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
-        doSimpleRemoveInterpretedAs(elem);
-        if (elem instanceof RuntimeAnnotationPropertyImpl)
-            ((RuntimeAnnotationPropertyImpl) elem).doSimpleRemoveInterpretationOf(this);
-        else if (elem instanceof RuntimeFunctionImpl)
-            ((RuntimeFunctionImpl) elem).doSimpleRemoveInterpretationOf(this);
-        else if (elem instanceof RuntimeClassImpl)
-            ((RuntimeClassImpl) elem).doSimpleRemoveInterpretationOf(this);
-        else if (elem instanceof RuntimeNamedIndividualImpl)
-            ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveInterpretationOf(this);
-        else if (elem instanceof RuntimeDatatypeImpl)
-            ((RuntimeDatatypeImpl) elem).doSimpleRemoveInterpretationOf(this);
-        else if (elem instanceof RuntimeDataPropertyImpl)
-            ((RuntimeDataPropertyImpl) elem).doSimpleRemoveInterpretationOf(this);
-        else if (elem instanceof RuntimeObjectPropertyImpl)
-            ((RuntimeObjectPropertyImpl) elem).doSimpleRemoveInterpretationOf(this);
-    }
-
-    /**
-     * Tries to add a value to the property InterpretedAs and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
-        doPropertyAddInterpretedAs(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property InterpretedAs and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
-        doPropertyRemoveInterpretedAs(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property InterpretedAs
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
-        doGraphAddInterpretedAs(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property InterpretedAs
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
-        doGraphRemoveInterpretedAs(elem);
-    }
-
-    @Override
-    public Collection<org.xowl.infra.lang.runtime.Interpretation> getAllInterpretedAs() {
-        return Collections.unmodifiableCollection(__implInterpretedAs);
-    }
-
-    @Override
-    public boolean addInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (__implInterpretedAs.contains(elem))
-            return false;
-        doDispatchAddInterpretedAs(elem);
-        return true;
-    }
-
-    @Override
-    public boolean removeInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (!__implInterpretedAs.contains(elem))
-            return false;
-        doDispatchRemoveInterpretedAs(elem);
-        return true;
-    }
-
-    /**
      * The backing data for the property HasIRI
      */
     private org.xowl.infra.lang.owl2.IRI __implHasIRI;
@@ -362,11 +228,145 @@ public class RuntimeEntityImpl implements org.xowl.infra.lang.runtime.Entity {
     }
 
     /**
+     * The backing data for the property InterpretedAs
+     */
+    private List<org.xowl.infra.lang.runtime.Interpretation> __implInterpretedAs;
+
+    /**
+     * Adds a value to the property InterpretedAs
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
+        __implInterpretedAs.add(elem);
+    }
+
+    /**
+     * Removes a value from the property InterpretedAs
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
+        __implInterpretedAs.remove(elem);
+    }
+
+    /**
+     * Adds a value to the property InterpretedAs
+     * This method will also update the inverse property InterpretationOf
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
+        doSimpleAddInterpretedAs(elem);
+        if (elem instanceof RuntimeAnnotationPropertyImpl)
+            ((RuntimeAnnotationPropertyImpl) elem).doSimpleAddInterpretationOf(this);
+        else if (elem instanceof RuntimeFunctionImpl)
+            ((RuntimeFunctionImpl) elem).doSimpleAddInterpretationOf(this);
+        else if (elem instanceof RuntimeClassImpl)
+            ((RuntimeClassImpl) elem).doSimpleAddInterpretationOf(this);
+        else if (elem instanceof RuntimeDatatypeImpl)
+            ((RuntimeDatatypeImpl) elem).doSimpleAddInterpretationOf(this);
+        else if (elem instanceof RuntimeNamedIndividualImpl)
+            ((RuntimeNamedIndividualImpl) elem).doSimpleAddInterpretationOf(this);
+        else if (elem instanceof RuntimeDataPropertyImpl)
+            ((RuntimeDataPropertyImpl) elem).doSimpleAddInterpretationOf(this);
+        else if (elem instanceof RuntimeObjectPropertyImpl)
+            ((RuntimeObjectPropertyImpl) elem).doSimpleAddInterpretationOf(this);
+    }
+
+    /**
+     * Removes a value from the property InterpretedAs
+     * This method will also update the inverse property InterpretationOf
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
+        doSimpleRemoveInterpretedAs(elem);
+        if (elem instanceof RuntimeAnnotationPropertyImpl)
+            ((RuntimeAnnotationPropertyImpl) elem).doSimpleRemoveInterpretationOf(this);
+        else if (elem instanceof RuntimeFunctionImpl)
+            ((RuntimeFunctionImpl) elem).doSimpleRemoveInterpretationOf(this);
+        else if (elem instanceof RuntimeClassImpl)
+            ((RuntimeClassImpl) elem).doSimpleRemoveInterpretationOf(this);
+        else if (elem instanceof RuntimeDatatypeImpl)
+            ((RuntimeDatatypeImpl) elem).doSimpleRemoveInterpretationOf(this);
+        else if (elem instanceof RuntimeNamedIndividualImpl)
+            ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveInterpretationOf(this);
+        else if (elem instanceof RuntimeDataPropertyImpl)
+            ((RuntimeDataPropertyImpl) elem).doSimpleRemoveInterpretationOf(this);
+        else if (elem instanceof RuntimeObjectPropertyImpl)
+            ((RuntimeObjectPropertyImpl) elem).doSimpleRemoveInterpretationOf(this);
+    }
+
+    /**
+     * Tries to add a value to the property InterpretedAs and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
+        doPropertyAddInterpretedAs(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property InterpretedAs and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
+        doPropertyRemoveInterpretedAs(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property InterpretedAs
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
+        doGraphAddInterpretedAs(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property InterpretedAs
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
+        doGraphRemoveInterpretedAs(elem);
+    }
+
+    @Override
+    public Collection<org.xowl.infra.lang.runtime.Interpretation> getAllInterpretedAs() {
+        return Collections.unmodifiableCollection(__implInterpretedAs);
+    }
+
+    @Override
+    public boolean addInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (__implInterpretedAs.contains(elem))
+            return false;
+        doDispatchAddInterpretedAs(elem);
+        return true;
+    }
+
+    @Override
+    public boolean removeInterpretedAs(org.xowl.infra.lang.runtime.Interpretation elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (!__implInterpretedAs.contains(elem))
+            return false;
+        doDispatchRemoveInterpretedAs(elem);
+        return true;
+    }
+
+    /**
      * Constructor for the implementation of Entity
      */
     public RuntimeEntityImpl() {
         this.__implContainedBy = null;
-        this.__implInterpretedAs = new ArrayList<>();
         this.__implHasIRI = null;
+        this.__implInterpretedAs = new ArrayList<>();
     }
 }

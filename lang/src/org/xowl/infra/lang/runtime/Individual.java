@@ -26,52 +26,6 @@ import java.util.*;
  */
 public interface Individual {
     /**
-     * Adds an element to the property SameAs
-     *
-     * @param elem The element to add
-     * @return Whether the operation resulted in a new element (false if the element was already there)
-     */
-    boolean addSameAs(org.xowl.infra.lang.runtime.Individual elem);
-
-    /**
-     * Removes an element from the property SameAs
-     *
-     * @param elem The element to remove
-     * @return Whether the operation resulted in the element being removed
-     */
-    boolean removeSameAs(org.xowl.infra.lang.runtime.Individual elem);
-
-    /**
-     * Gets all the elements for the property SameAs
-     *
-     * @return The elements for the property SameAs
-     */
-    Collection<org.xowl.infra.lang.runtime.Individual> getAllSameAs();
-
-    /**
-     * Adds an element to the property DifferentFrom
-     *
-     * @param elem The element to add
-     * @return Whether the operation resulted in a new element (false if the element was already there)
-     */
-    boolean addDifferentFrom(org.xowl.infra.lang.runtime.Individual elem);
-
-    /**
-     * Removes an element from the property DifferentFrom
-     *
-     * @param elem The element to remove
-     * @return Whether the operation resulted in the element being removed
-     */
-    boolean removeDifferentFrom(org.xowl.infra.lang.runtime.Individual elem);
-
-    /**
-     * Gets all the elements for the property DifferentFrom
-     *
-     * @return The elements for the property DifferentFrom
-     */
-    Collection<org.xowl.infra.lang.runtime.Individual> getAllDifferentFrom();
-
-    /**
      * Adds an element to the property Asserts
      *
      * @param elem The element to add
@@ -116,5 +70,51 @@ public interface Individual {
      * @return The elements for the property ClassifiedBy
      */
     Collection<org.xowl.infra.lang.runtime.Class> getAllClassifiedBy();
+
+    /**
+     * Adds an element to the property DifferentFrom
+     *
+     * @param elem The element to add
+     * @return Whether the operation resulted in a new element (false if the element was already there)
+     */
+    boolean addDifferentFrom(org.xowl.infra.lang.runtime.Individual elem);
+
+    /**
+     * Removes an element from the property DifferentFrom
+     *
+     * @param elem The element to remove
+     * @return Whether the operation resulted in the element being removed
+     */
+    boolean removeDifferentFrom(org.xowl.infra.lang.runtime.Individual elem);
+
+    /**
+     * Gets all the elements for the property DifferentFrom
+     *
+     * @return The elements for the property DifferentFrom
+     */
+    Collection<org.xowl.infra.lang.runtime.Individual> getAllDifferentFrom();
+
+    /**
+     * Adds an element to the property SameAs
+     *
+     * @param elem The element to add
+     * @return Whether the operation resulted in a new element (false if the element was already there)
+     */
+    boolean addSameAs(org.xowl.infra.lang.runtime.Individual elem);
+
+    /**
+     * Removes an element from the property SameAs
+     *
+     * @param elem The element to remove
+     * @return Whether the operation resulted in the element being removed
+     */
+    boolean removeSameAs(org.xowl.infra.lang.runtime.Individual elem);
+
+    /**
+     * Gets all the elements for the property SameAs
+     *
+     * @return The elements for the property SameAs
+     */
+    Collection<org.xowl.infra.lang.runtime.Individual> getAllSameAs();
 
 }

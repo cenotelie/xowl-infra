@@ -28,102 +28,12 @@ import java.util.*;
  */
 public class RuntimeFactory {
     /**
-     * Creates a new instance of ObjectPropertyAssertion
-     *
-     * @return A new instance of ObjectPropertyAssertion
-     */
-    public static ObjectPropertyAssertion newObjectPropertyAssertion() {
-        return new RuntimeObjectPropertyAssertionImpl();
-    }
-
-    /**
-     * Creates a new instance of DataAllValuesFrom
-     *
-     * @return A new instance of DataAllValuesFrom
-     */
-    public static DataAllValuesFrom newDataAllValuesFrom() {
-        return new RuntimeDataAllValuesFromImpl();
-    }
-
-    /**
-     * Creates a new instance of ObjectSomeValuesFrom
-     *
-     * @return A new instance of ObjectSomeValuesFrom
-     */
-    public static ObjectSomeValuesFrom newObjectSomeValuesFrom() {
-        return new RuntimeObjectSomeValuesFromImpl();
-    }
-
-    /**
-     * Creates a new instance of ObjectExactCardinality
-     *
-     * @return A new instance of ObjectExactCardinality
-     */
-    public static ObjectExactCardinality newObjectExactCardinality() {
-        return new RuntimeObjectExactCardinalityImpl();
-    }
-
-    /**
-     * Creates a new instance of DataMaxCardinality
-     *
-     * @return A new instance of DataMaxCardinality
-     */
-    public static DataMaxCardinality newDataMaxCardinality() {
-        return new RuntimeDataMaxCardinalityImpl();
-    }
-
-    /**
-     * Creates a new instance of ObjectHasSelf
-     *
-     * @return A new instance of ObjectHasSelf
-     */
-    public static ObjectHasSelf newObjectHasSelf() {
-        return new RuntimeObjectHasSelfImpl();
-    }
-
-    /**
-     * Creates a new instance of DataExactCardinality
-     *
-     * @return A new instance of DataExactCardinality
-     */
-    public static DataExactCardinality newDataExactCardinality() {
-        return new RuntimeDataExactCardinalityImpl();
-    }
-
-    /**
      * Creates a new instance of AnnotationProperty
      *
      * @return A new instance of AnnotationProperty
      */
     public static AnnotationProperty newAnnotationProperty() {
         return new RuntimeAnnotationPropertyImpl();
-    }
-
-    /**
-     * Creates a new instance of ObjectAllValuesFrom
-     *
-     * @return A new instance of ObjectAllValuesFrom
-     */
-    public static ObjectAllValuesFrom newObjectAllValuesFrom() {
-        return new RuntimeObjectAllValuesFromImpl();
-    }
-
-    /**
-     * Creates a new instance of Function
-     *
-     * @return A new instance of Function
-     */
-    public static Function newFunction() {
-        return new RuntimeFunctionImpl();
-    }
-
-    /**
-     * Creates a new instance of DatatypeRestriction
-     *
-     * @return A new instance of DatatypeRestriction
-     */
-    public static DatatypeRestriction newDatatypeRestriction() {
-        return new RuntimeDatatypeRestrictionImpl();
     }
 
     /**
@@ -136,39 +46,39 @@ public class RuntimeFactory {
     }
 
     /**
-     * Creates a new instance of Literal
+     * Creates a new instance of DataAllValuesFrom
      *
-     * @return A new instance of Literal
+     * @return A new instance of DataAllValuesFrom
      */
-    public static Literal newLiteral() {
-        return new RuntimeLiteralImpl();
+    public static DataAllValuesFrom newDataAllValuesFrom() {
+        return new RuntimeDataAllValuesFromImpl();
     }
 
     /**
-     * Creates a new instance of Entity
+     * Creates a new instance of DataExactCardinality
      *
-     * @return A new instance of Entity
+     * @return A new instance of DataExactCardinality
      */
-    public static Entity newEntity() {
-        return new RuntimeEntityImpl();
+    public static DataExactCardinality newDataExactCardinality() {
+        return new RuntimeDataExactCardinalityImpl();
     }
 
     /**
-     * Creates a new instance of NamedIndividual
+     * Creates a new instance of DataHasValue
      *
-     * @return A new instance of NamedIndividual
+     * @return A new instance of DataHasValue
      */
-    public static NamedIndividual newNamedIndividual() {
-        return new RuntimeNamedIndividualImpl();
+    public static DataHasValue newDataHasValue() {
+        return new RuntimeDataHasValueImpl();
     }
 
     /**
-     * Creates a new instance of ObjectMaxCardinality
+     * Creates a new instance of DataMaxCardinality
      *
-     * @return A new instance of ObjectMaxCardinality
+     * @return A new instance of DataMaxCardinality
      */
-    public static ObjectMaxCardinality newObjectMaxCardinality() {
-        return new RuntimeObjectMaxCardinalityImpl();
+    public static DataMaxCardinality newDataMaxCardinality() {
+        return new RuntimeDataMaxCardinalityImpl();
     }
 
     /**
@@ -178,33 +88,6 @@ public class RuntimeFactory {
      */
     public static DataMinCardinality newDataMinCardinality() {
         return new RuntimeDataMinCardinalityImpl();
-    }
-
-    /**
-     * Creates a new instance of Datatype
-     *
-     * @return A new instance of Datatype
-     */
-    public static Datatype newDatatype() {
-        return new RuntimeDatatypeImpl();
-    }
-
-    /**
-     * Creates a new instance of DataSomeValuesFrom
-     *
-     * @return A new instance of DataSomeValuesFrom
-     */
-    public static DataSomeValuesFrom newDataSomeValuesFrom() {
-        return new RuntimeDataSomeValuesFromImpl();
-    }
-
-    /**
-     * Creates a new instance of ObjectMinCardinality
-     *
-     * @return A new instance of ObjectMinCardinality
-     */
-    public static ObjectMinCardinality newObjectMinCardinality() {
-        return new RuntimeObjectMinCardinalityImpl();
     }
 
     /**
@@ -226,12 +109,120 @@ public class RuntimeFactory {
     }
 
     /**
+     * Creates a new instance of DataSomeValuesFrom
+     *
+     * @return A new instance of DataSomeValuesFrom
+     */
+    public static DataSomeValuesFrom newDataSomeValuesFrom() {
+        return new RuntimeDataSomeValuesFromImpl();
+    }
+
+    /**
+     * Creates a new instance of Datatype
+     *
+     * @return A new instance of Datatype
+     */
+    public static Datatype newDatatype() {
+        return new RuntimeDatatypeImpl();
+    }
+
+    /**
+     * Creates a new instance of DatatypeRestriction
+     *
+     * @return A new instance of DatatypeRestriction
+     */
+    public static DatatypeRestriction newDatatypeRestriction() {
+        return new RuntimeDatatypeRestrictionImpl();
+    }
+
+    /**
+     * Creates a new instance of Entity
+     *
+     * @return A new instance of Entity
+     */
+    public static Entity newEntity() {
+        return new RuntimeEntityImpl();
+    }
+
+    /**
+     * Creates a new instance of Function
+     *
+     * @return A new instance of Function
+     */
+    public static Function newFunction() {
+        return new RuntimeFunctionImpl();
+    }
+
+    /**
+     * Creates a new instance of Literal
+     *
+     * @return A new instance of Literal
+     */
+    public static Literal newLiteral() {
+        return new RuntimeLiteralImpl();
+    }
+
+    /**
+     * Creates a new instance of NamedIndividual
+     *
+     * @return A new instance of NamedIndividual
+     */
+    public static NamedIndividual newNamedIndividual() {
+        return new RuntimeNamedIndividualImpl();
+    }
+
+    /**
+     * Creates a new instance of ObjectAllValuesFrom
+     *
+     * @return A new instance of ObjectAllValuesFrom
+     */
+    public static ObjectAllValuesFrom newObjectAllValuesFrom() {
+        return new RuntimeObjectAllValuesFromImpl();
+    }
+
+    /**
+     * Creates a new instance of ObjectExactCardinality
+     *
+     * @return A new instance of ObjectExactCardinality
+     */
+    public static ObjectExactCardinality newObjectExactCardinality() {
+        return new RuntimeObjectExactCardinalityImpl();
+    }
+
+    /**
+     * Creates a new instance of ObjectHasSelf
+     *
+     * @return A new instance of ObjectHasSelf
+     */
+    public static ObjectHasSelf newObjectHasSelf() {
+        return new RuntimeObjectHasSelfImpl();
+    }
+
+    /**
      * Creates a new instance of ObjectHasValue
      *
      * @return A new instance of ObjectHasValue
      */
     public static ObjectHasValue newObjectHasValue() {
         return new RuntimeObjectHasValueImpl();
+    }
+
+    /**
+     * Creates a new instance of ObjectMaxCardinality
+     *
+     * @return A new instance of ObjectMaxCardinality
+     */
+    public static ObjectMaxCardinality newObjectMaxCardinality() {
+        return new RuntimeObjectMaxCardinalityImpl();
+    }
+
+    /**
+     * Creates a new instance of ObjectMinCardinality
+     *
+     * @return A new instance of ObjectMinCardinality
+     */
+    public static ObjectMinCardinality newObjectMinCardinality() {
+        return new RuntimeObjectMinCardinalityImpl();
     }
 
     /**
@@ -244,12 +235,21 @@ public class RuntimeFactory {
     }
 
     /**
-     * Creates a new instance of DataHasValue
+     * Creates a new instance of ObjectPropertyAssertion
      *
-     * @return A new instance of DataHasValue
+     * @return A new instance of ObjectPropertyAssertion
      */
-    public static DataHasValue newDataHasValue() {
-        return new RuntimeDataHasValueImpl();
+    public static ObjectPropertyAssertion newObjectPropertyAssertion() {
+        return new RuntimeObjectPropertyAssertionImpl();
+    }
+
+    /**
+     * Creates a new instance of ObjectSomeValuesFrom
+     *
+     * @return A new instance of ObjectSomeValuesFrom
+     */
+    public static ObjectSomeValuesFrom newObjectSomeValuesFrom() {
+        return new RuntimeObjectSomeValuesFromImpl();
     }
 
 }

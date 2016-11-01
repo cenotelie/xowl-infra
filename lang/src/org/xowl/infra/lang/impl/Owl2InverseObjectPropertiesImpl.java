@@ -26,217 +26,6 @@ import java.util.*;
  */
 public class Owl2InverseObjectPropertiesImpl implements org.xowl.infra.lang.owl2.InverseObjectProperties {
     /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
-     * The backing data for the property ObjectProperty
-     */
-    private org.xowl.infra.lang.owl2.ObjectPropertyExpression __implObjectProperty;
-
-    /**
-     * Adds a value to the property ObjectProperty
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        __implObjectProperty = elem;
-    }
-
-    /**
-     * Removes a value from the property ObjectProperty
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        __implObjectProperty = null;
-    }
-
-    /**
-     * Adds a value to the property ObjectProperty
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doSimpleAddObjectProperty(elem);
-    }
-
-    /**
-     * Removes a value from the property ObjectProperty
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doSimpleRemoveObjectProperty(elem);
-    }
-
-    /**
-     * Tries to add a value to the property ObjectProperty and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doPropertyAddObjectProperty(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property ObjectProperty and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doPropertyRemoveObjectProperty(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property ObjectProperty
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doGraphAddObjectProperty(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property ObjectProperty
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doGraphRemoveObjectProperty(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.ObjectPropertyExpression getObjectProperty() {
-        return __implObjectProperty;
-    }
-
-    @Override
-    public void setObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        if (__implObjectProperty == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveObjectProperty(__implObjectProperty);
-        } else if (__implObjectProperty == null) {
-            doDispatchAddObjectProperty(elem);
-        } else {
-            doDispatchRemoveObjectProperty(__implObjectProperty);
-            doDispatchAddObjectProperty(elem);
-        }
-    }
-
-    /**
-     * The backing data for the property Inverse
-     */
-    private org.xowl.infra.lang.owl2.ObjectPropertyExpression __implInverse;
-
-    /**
-     * Adds a value to the property Inverse
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        __implInverse = elem;
-    }
-
-    /**
-     * Removes a value from the property Inverse
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        __implInverse = null;
-    }
-
-    /**
-     * Adds a value to the property Inverse
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doSimpleAddInverse(elem);
-    }
-
-    /**
-     * Removes a value from the property Inverse
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doSimpleRemoveInverse(elem);
-    }
-
-    /**
-     * Tries to add a value to the property Inverse and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doPropertyAddInverse(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property Inverse and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doPropertyRemoveInverse(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property Inverse
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doGraphAddInverse(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property Inverse
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        doGraphRemoveInverse(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.ObjectPropertyExpression getInverse() {
-        return __implInverse;
-    }
-
-    @Override
-    public void setInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
-        if (__implInverse == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveInverse(__implInverse);
-        } else if (__implInverse == null) {
-            doDispatchAddInverse(elem);
-        } else {
-            doDispatchRemoveInverse(__implInverse);
-            doDispatchAddInverse(elem);
-        }
-    }
-
-    /**
      * The backing data for the property Annotations
      */
     private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
@@ -356,13 +145,224 @@ public class Owl2InverseObjectPropertiesImpl implements org.xowl.infra.lang.owl2
     }
 
     /**
+     * The backing data for the property Inverse
+     */
+    private org.xowl.infra.lang.owl2.ObjectPropertyExpression __implInverse;
+
+    /**
+     * Adds a value to the property Inverse
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        __implInverse = elem;
+    }
+
+    /**
+     * Removes a value from the property Inverse
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        __implInverse = null;
+    }
+
+    /**
+     * Adds a value to the property Inverse
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doSimpleAddInverse(elem);
+    }
+
+    /**
+     * Removes a value from the property Inverse
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doSimpleRemoveInverse(elem);
+    }
+
+    /**
+     * Tries to add a value to the property Inverse and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doPropertyAddInverse(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property Inverse and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doPropertyRemoveInverse(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property Inverse
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doGraphAddInverse(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property Inverse
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doGraphRemoveInverse(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.ObjectPropertyExpression getInverse() {
+        return __implInverse;
+    }
+
+    @Override
+    public void setInverse(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        if (__implInverse == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveInverse(__implInverse);
+        } else if (__implInverse == null) {
+            doDispatchAddInverse(elem);
+        } else {
+            doDispatchRemoveInverse(__implInverse);
+            doDispatchAddInverse(elem);
+        }
+    }
+
+    /**
+     * The backing data for the property Line
+     */
+    private int __implLine;
+
+    @Override
+    public int getLine() {
+        return __implLine;
+    }
+
+    @Override
+    public void setLine(int elem) {
+        __implLine = elem;
+    }
+
+    /**
+     * The backing data for the property ObjectProperty
+     */
+    private org.xowl.infra.lang.owl2.ObjectPropertyExpression __implObjectProperty;
+
+    /**
+     * Adds a value to the property ObjectProperty
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        __implObjectProperty = elem;
+    }
+
+    /**
+     * Removes a value from the property ObjectProperty
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        __implObjectProperty = null;
+    }
+
+    /**
+     * Adds a value to the property ObjectProperty
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doSimpleAddObjectProperty(elem);
+    }
+
+    /**
+     * Removes a value from the property ObjectProperty
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doSimpleRemoveObjectProperty(elem);
+    }
+
+    /**
+     * Tries to add a value to the property ObjectProperty and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doPropertyAddObjectProperty(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property ObjectProperty and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doPropertyRemoveObjectProperty(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property ObjectProperty
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doGraphAddObjectProperty(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property ObjectProperty
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        doGraphRemoveObjectProperty(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.ObjectPropertyExpression getObjectProperty() {
+        return __implObjectProperty;
+    }
+
+    @Override
+    public void setObjectProperty(org.xowl.infra.lang.owl2.ObjectPropertyExpression elem) {
+        if (__implObjectProperty == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveObjectProperty(__implObjectProperty);
+        } else if (__implObjectProperty == null) {
+            doDispatchAddObjectProperty(elem);
+        } else {
+            doDispatchRemoveObjectProperty(__implObjectProperty);
+            doDispatchAddObjectProperty(elem);
+        }
+    }
+
+    /**
      * Constructor for the implementation of InverseObjectProperties
      */
     public Owl2InverseObjectPropertiesImpl() {
-        this.__implLine = 0;
-        this.__implObjectProperty = null;
-        this.__implInverse = null;
         this.__implAnnotations = new ArrayList<>();
         this.__implFile = null;
+        this.__implInverse = null;
+        this.__implLine = 0;
+        this.__implObjectProperty = null;
     }
 }

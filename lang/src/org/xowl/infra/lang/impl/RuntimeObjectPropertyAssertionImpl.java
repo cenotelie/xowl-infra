@@ -26,6 +26,21 @@ import java.util.*;
  */
 public class RuntimeObjectPropertyAssertionImpl implements org.xowl.infra.lang.runtime.ObjectPropertyAssertion {
     /**
+     * The backing data for the property IsNegative
+     */
+    private boolean __implIsNegative;
+
+    @Override
+    public boolean getIsNegative() {
+        return __implIsNegative;
+    }
+
+    @Override
+    public void setIsNegative(boolean elem) {
+        __implIsNegative = elem;
+    }
+
+    /**
      * The backing data for the property Property
      */
     private org.xowl.infra.lang.runtime.ObjectProperty __implProperty;
@@ -243,26 +258,11 @@ public class RuntimeObjectPropertyAssertionImpl implements org.xowl.infra.lang.r
     }
 
     /**
-     * The backing data for the property IsNegative
-     */
-    private boolean __implIsNegative;
-
-    @Override
-    public boolean getIsNegative() {
-        return __implIsNegative;
-    }
-
-    @Override
-    public void setIsNegative(boolean elem) {
-        __implIsNegative = elem;
-    }
-
-    /**
      * Constructor for the implementation of ObjectPropertyAssertion
      */
     public RuntimeObjectPropertyAssertionImpl() {
+        this.__implIsNegative = false;
         this.__implProperty = null;
         this.__implValueIndividual = null;
-        this.__implIsNegative = false;
     }
 }

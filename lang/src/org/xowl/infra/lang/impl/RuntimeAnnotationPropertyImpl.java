@@ -130,116 +130,6 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
     }
 
     /**
-     * The backing data for the property SuperAnnotProperty
-     */
-    private List<org.xowl.infra.lang.runtime.AnnotationProperty> __implSuperAnnotProperty;
-
-    /**
-     * Adds a value to the property SuperAnnotProperty
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
-        __implSuperAnnotProperty.add(elem);
-    }
-
-    /**
-     * Removes a value from the property SuperAnnotProperty
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
-        __implSuperAnnotProperty.remove(elem);
-    }
-
-    /**
-     * Adds a value to the property SuperAnnotProperty
-     * This method will also update the inverse property SubAnnotProperty
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
-        doSimpleAddSuperAnnotProperty(elem);
-        if (elem instanceof RuntimeAnnotationPropertyImpl)
-            ((RuntimeAnnotationPropertyImpl) elem).doSimpleAddSubAnnotProperty(this);
-    }
-
-    /**
-     * Removes a value from the property SuperAnnotProperty
-     * This method will also update the inverse property SubAnnotProperty
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
-        doSimpleRemoveSuperAnnotProperty(elem);
-        if (elem instanceof RuntimeAnnotationPropertyImpl)
-            ((RuntimeAnnotationPropertyImpl) elem).doSimpleRemoveSubAnnotProperty(this);
-    }
-
-    /**
-     * Tries to add a value to the property SuperAnnotProperty and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
-        doPropertyAddSuperAnnotProperty(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property SuperAnnotProperty and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
-        doPropertyRemoveSuperAnnotProperty(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property SuperAnnotProperty
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
-        doGraphAddSuperAnnotProperty(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property SuperAnnotProperty
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
-        doGraphRemoveSuperAnnotProperty(elem);
-    }
-
-    @Override
-    public Collection<org.xowl.infra.lang.runtime.AnnotationProperty> getAllSuperAnnotProperty() {
-        return Collections.unmodifiableCollection(__implSuperAnnotProperty);
-    }
-
-    @Override
-    public boolean addSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (__implSuperAnnotProperty.contains(elem))
-            return false;
-        doDispatchAddSuperAnnotProperty(elem);
-        return true;
-    }
-
-    @Override
-    public boolean removeSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (!__implSuperAnnotProperty.contains(elem))
-            return false;
-        doDispatchRemoveSuperAnnotProperty(elem);
-        return true;
-    }
-
-    /**
      * The backing data for the property SubAnnotProperty
      */
     private List<org.xowl.infra.lang.runtime.AnnotationProperty> __implSubAnnotProperty;
@@ -350,11 +240,121 @@ public class RuntimeAnnotationPropertyImpl implements org.xowl.infra.lang.runtim
     }
 
     /**
+     * The backing data for the property SuperAnnotProperty
+     */
+    private List<org.xowl.infra.lang.runtime.AnnotationProperty> __implSuperAnnotProperty;
+
+    /**
+     * Adds a value to the property SuperAnnotProperty
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+        __implSuperAnnotProperty.add(elem);
+    }
+
+    /**
+     * Removes a value from the property SuperAnnotProperty
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+        __implSuperAnnotProperty.remove(elem);
+    }
+
+    /**
+     * Adds a value to the property SuperAnnotProperty
+     * This method will also update the inverse property SubAnnotProperty
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+        doSimpleAddSuperAnnotProperty(elem);
+        if (elem instanceof RuntimeAnnotationPropertyImpl)
+            ((RuntimeAnnotationPropertyImpl) elem).doSimpleAddSubAnnotProperty(this);
+    }
+
+    /**
+     * Removes a value from the property SuperAnnotProperty
+     * This method will also update the inverse property SubAnnotProperty
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+        doSimpleRemoveSuperAnnotProperty(elem);
+        if (elem instanceof RuntimeAnnotationPropertyImpl)
+            ((RuntimeAnnotationPropertyImpl) elem).doSimpleRemoveSubAnnotProperty(this);
+    }
+
+    /**
+     * Tries to add a value to the property SuperAnnotProperty and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+        doPropertyAddSuperAnnotProperty(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property SuperAnnotProperty and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+        doPropertyRemoveSuperAnnotProperty(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property SuperAnnotProperty
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+        doGraphAddSuperAnnotProperty(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property SuperAnnotProperty
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+        doGraphRemoveSuperAnnotProperty(elem);
+    }
+
+    @Override
+    public Collection<org.xowl.infra.lang.runtime.AnnotationProperty> getAllSuperAnnotProperty() {
+        return Collections.unmodifiableCollection(__implSuperAnnotProperty);
+    }
+
+    @Override
+    public boolean addSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (__implSuperAnnotProperty.contains(elem))
+            return false;
+        doDispatchAddSuperAnnotProperty(elem);
+        return true;
+    }
+
+    @Override
+    public boolean removeSuperAnnotProperty(org.xowl.infra.lang.runtime.AnnotationProperty elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (!__implSuperAnnotProperty.contains(elem))
+            return false;
+        doDispatchRemoveSuperAnnotProperty(elem);
+        return true;
+    }
+
+    /**
      * Constructor for the implementation of AnnotationProperty
      */
     public RuntimeAnnotationPropertyImpl() {
         this.__implInterpretationOf = null;
-        this.__implSuperAnnotProperty = new ArrayList<>();
         this.__implSubAnnotProperty = new ArrayList<>();
+        this.__implSuperAnnotProperty = new ArrayList<>();
     }
 }

@@ -26,119 +26,6 @@ import java.util.*;
  */
 public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.actions.FunctionDefinitionAxiom {
     /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
-     * The backing data for the property Definition
-     */
-    private Object __implDefinition;
-
-    /**
-     * Adds a value to the property Definition
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddDefinition(Object elem) {
-        __implDefinition = elem;
-    }
-
-    /**
-     * Removes a value from the property Definition
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveDefinition(Object elem) {
-        __implDefinition = null;
-    }
-
-    /**
-     * Adds a value to the property Definition
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddDefinition(Object elem) {
-        doSimpleAddDefinition(elem);
-    }
-
-    /**
-     * Removes a value from the property Definition
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveDefinition(Object elem) {
-        doSimpleRemoveDefinition(elem);
-    }
-
-    /**
-     * Tries to add a value to the property Definition and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddDefinition(Object elem) {
-        doPropertyAddDefinition(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property Definition and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveDefinition(Object elem) {
-        doPropertyRemoveDefinition(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property Definition
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddDefinition(Object elem) {
-        doGraphAddDefinition(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property Definition
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveDefinition(Object elem) {
-        doGraphRemoveDefinition(elem);
-    }
-
-    @Override
-    public Object getDefinition() {
-        return __implDefinition;
-    }
-
-    @Override
-    public void setDefinition(Object elem) {
-        if (__implDefinition == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveDefinition(__implDefinition);
-        } else if (__implDefinition == null) {
-            doDispatchAddDefinition(elem);
-        } else {
-            doDispatchRemoveDefinition(__implDefinition);
-            doDispatchAddDefinition(elem);
-        }
-    }
-
-    /**
      * The backing data for the property Annotations
      */
     private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
@@ -240,6 +127,104 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
             return false;
         doDispatchRemoveAnnotations(elem);
         return true;
+    }
+
+    /**
+     * The backing data for the property Definition
+     */
+    private Object __implDefinition;
+
+    /**
+     * Adds a value to the property Definition
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddDefinition(Object elem) {
+        __implDefinition = elem;
+    }
+
+    /**
+     * Removes a value from the property Definition
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveDefinition(Object elem) {
+        __implDefinition = null;
+    }
+
+    /**
+     * Adds a value to the property Definition
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddDefinition(Object elem) {
+        doSimpleAddDefinition(elem);
+    }
+
+    /**
+     * Removes a value from the property Definition
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveDefinition(Object elem) {
+        doSimpleRemoveDefinition(elem);
+    }
+
+    /**
+     * Tries to add a value to the property Definition and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddDefinition(Object elem) {
+        doPropertyAddDefinition(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property Definition and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveDefinition(Object elem) {
+        doPropertyRemoveDefinition(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property Definition
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddDefinition(Object elem) {
+        doGraphAddDefinition(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property Definition
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveDefinition(Object elem) {
+        doGraphRemoveDefinition(elem);
+    }
+
+    @Override
+    public Object getDefinition() {
+        return __implDefinition;
+    }
+
+    @Override
+    public void setDefinition(Object elem) {
+        if (__implDefinition == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveDefinition(__implDefinition);
+        } else if (__implDefinition == null) {
+            doDispatchAddDefinition(elem);
+        } else {
+            doDispatchRemoveDefinition(__implDefinition);
+            doDispatchAddDefinition(elem);
+        }
     }
 
     /**
@@ -356,13 +341,28 @@ public class ActionsFunctionDefinitionAxiomImpl implements org.xowl.infra.lang.a
     }
 
     /**
+     * The backing data for the property Line
+     */
+    private int __implLine;
+
+    @Override
+    public int getLine() {
+        return __implLine;
+    }
+
+    @Override
+    public void setLine(int elem) {
+        __implLine = elem;
+    }
+
+    /**
      * Constructor for the implementation of FunctionDefinitionAxiom
      */
     public ActionsFunctionDefinitionAxiomImpl() {
-        this.__implLine = 0;
-        this.__implDefinition = null;
         this.__implAnnotations = new ArrayList<>();
+        this.__implDefinition = null;
         this.__implFile = null;
         this.__implFunction = null;
+        this.__implLine = 0;
     }
 }

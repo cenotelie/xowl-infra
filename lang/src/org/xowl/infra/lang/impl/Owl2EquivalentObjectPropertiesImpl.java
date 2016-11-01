@@ -26,21 +26,6 @@ import java.util.*;
  */
 public class Owl2EquivalentObjectPropertiesImpl implements org.xowl.infra.lang.owl2.EquivalentObjectProperties {
     /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
      * The backing data for the property Annotations
      */
     private List<org.xowl.infra.lang.owl2.Annotation> __implAnnotations;
@@ -160,6 +145,21 @@ public class Owl2EquivalentObjectPropertiesImpl implements org.xowl.infra.lang.o
     }
 
     /**
+     * The backing data for the property Line
+     */
+    private int __implLine;
+
+    @Override
+    public int getLine() {
+        return __implLine;
+    }
+
+    @Override
+    public void setLine(int elem) {
+        __implLine = elem;
+    }
+
+    /**
      * The backing data for the property ObjectPropertySeq
      */
     private org.xowl.infra.lang.owl2.ObjectPropertySequenceExpression __implObjectPropertySeq;
@@ -261,9 +261,9 @@ public class Owl2EquivalentObjectPropertiesImpl implements org.xowl.infra.lang.o
      * Constructor for the implementation of EquivalentObjectProperties
      */
     public Owl2EquivalentObjectPropertiesImpl() {
-        this.__implLine = 0;
         this.__implAnnotations = new ArrayList<>();
         this.__implFile = null;
+        this.__implLine = 0;
         this.__implObjectPropertySeq = null;
     }
 }

@@ -26,20 +26,6 @@ import java.util.*;
  */
 public interface Declaration extends org.xowl.infra.lang.owl2.OntologyAxiom {
     /**
-     * Sets the value for the property Type
-     *
-     * @param elem The value to set
-     */
-    void setType(String elem);
-
-    /**
-     * Gets the value for the property Type
-     *
-     * @return The value for the property Type
-     */
-    String getType();
-
-    /**
      * Sets the value for the property Entity
      *
      * @param elem The value to set
@@ -52,5 +38,19 @@ public interface Declaration extends org.xowl.infra.lang.owl2.OntologyAxiom {
      * @return The value for the property Entity
      */
     org.xowl.infra.lang.owl2.IRI getEntity();
+
+    /**
+     * Sets the value for the property Type
+     *
+     * @param elem The value to set
+     */
+    void setType(String elem);
+
+    /**
+     * Gets the value for the property Type
+     *
+     * @return The value for the property Type
+     */
+    String getType();
 
 }

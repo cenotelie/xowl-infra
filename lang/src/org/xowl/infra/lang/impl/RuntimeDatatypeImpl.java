@@ -26,106 +26,100 @@ import java.util.*;
  */
 public class RuntimeDatatypeImpl implements org.xowl.infra.lang.runtime.Datatype {
     /**
-     * The backing data for the property InterpretationOf
+     * The backing data for the property DataBase
      */
-    private org.xowl.infra.lang.runtime.Entity __implInterpretationOf;
+    private org.xowl.infra.lang.runtime.Datatype __implDataBase;
 
     /**
-     * Adds a value to the property InterpretationOf
+     * Adds a value to the property DataBase
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
-        __implInterpretationOf = elem;
+    protected void doSimpleAddDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
+        __implDataBase = elem;
     }
 
     /**
-     * Removes a value from the property InterpretationOf
+     * Removes a value from the property DataBase
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
-        __implInterpretationOf = null;
+    protected void doSimpleRemoveDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
+        __implDataBase = null;
     }
 
     /**
-     * Adds a value to the property InterpretationOf
-     * This method will also update the inverse property InterpretedAs
+     * Adds a value to the property DataBase
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
-        doSimpleAddInterpretationOf(elem);
-        if (elem instanceof RuntimeEntityImpl)
-            ((RuntimeEntityImpl) elem).doSimpleAddInterpretedAs(this);
+    private void doPropertyAddDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
+        doSimpleAddDataBase(elem);
     }
 
     /**
-     * Removes a value from the property InterpretationOf
-     * This method will also update the inverse property InterpretedAs
+     * Removes a value from the property DataBase
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
-        doSimpleRemoveInterpretationOf(elem);
-        if (elem instanceof RuntimeEntityImpl)
-            ((RuntimeEntityImpl) elem).doSimpleRemoveInterpretedAs(this);
+    private void doPropertyRemoveDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
+        doSimpleRemoveDataBase(elem);
     }
 
     /**
-     * Tries to add a value to the property InterpretationOf and its super properties (if any)
+     * Tries to add a value to the property DataBase and its super properties (if any)
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
-        doPropertyAddInterpretationOf(elem);
+    private void doGraphAddDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
+        doPropertyAddDataBase(elem);
     }
 
     /**
-     * Tries to remove a value from the property InterpretationOf and its super properties (if any)
+     * Tries to remove a value from the property DataBase and its super properties (if any)
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
-        doPropertyRemoveInterpretationOf(elem);
+    private void doGraphRemoveDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
+        doPropertyRemoveDataBase(elem);
     }
 
     /**
-     * Dispatches the request for the addition of a value to the property InterpretationOf
+     * Dispatches the request for the addition of a value to the property DataBase
      * This method tries to delegate to a sub property, if any.
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
-        doGraphAddInterpretationOf(elem);
+    private void doDispatchAddDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
+        doGraphAddDataBase(elem);
     }
 
     /**
-     * Dispatches the request for the removal of a value from the property InterpretationOf
+     * Dispatches the request for the removal of a value from the property DataBase
      * This method tries to delegate to a sub property, if any.
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
-        doGraphRemoveInterpretationOf(elem);
+    private void doDispatchRemoveDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
+        doGraphRemoveDataBase(elem);
     }
 
     @Override
-    public org.xowl.infra.lang.runtime.Entity getInterpretationOf() {
-        return __implInterpretationOf;
+    public org.xowl.infra.lang.runtime.Datatype getDataBase() {
+        return __implDataBase;
     }
 
     @Override
-    public void setInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
-        if (__implInterpretationOf == elem)
+    public void setDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
+        if (__implDataBase == elem)
             return;
         if (elem == null) {
-            doDispatchRemoveInterpretationOf(__implInterpretationOf);
-        } else if (__implInterpretationOf == null) {
-            doDispatchAddInterpretationOf(elem);
+            doDispatchRemoveDataBase(__implDataBase);
+        } else if (__implDataBase == null) {
+            doDispatchAddDataBase(elem);
         } else {
-            doDispatchRemoveInterpretationOf(__implInterpretationOf);
-            doDispatchAddInterpretationOf(elem);
+            doDispatchRemoveDataBase(__implDataBase);
+            doDispatchAddDataBase(elem);
         }
     }
 
@@ -231,312 +225,6 @@ public class RuntimeDatatypeImpl implements org.xowl.infra.lang.runtime.Datatype
             doDispatchRemoveDataComplementOf(__implDataComplementOf);
             doDispatchAddDataComplementOf(elem);
         }
-    }
-
-    /**
-     * The backing data for the property DataBase
-     */
-    private org.xowl.infra.lang.runtime.Datatype __implDataBase;
-
-    /**
-     * Adds a value to the property DataBase
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
-        __implDataBase = elem;
-    }
-
-    /**
-     * Removes a value from the property DataBase
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
-        __implDataBase = null;
-    }
-
-    /**
-     * Adds a value to the property DataBase
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
-        doSimpleAddDataBase(elem);
-    }
-
-    /**
-     * Removes a value from the property DataBase
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
-        doSimpleRemoveDataBase(elem);
-    }
-
-    /**
-     * Tries to add a value to the property DataBase and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
-        doPropertyAddDataBase(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property DataBase and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
-        doPropertyRemoveDataBase(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property DataBase
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
-        doGraphAddDataBase(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property DataBase
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
-        doGraphRemoveDataBase(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.runtime.Datatype getDataBase() {
-        return __implDataBase;
-    }
-
-    @Override
-    public void setDataBase(org.xowl.infra.lang.runtime.Datatype elem) {
-        if (__implDataBase == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveDataBase(__implDataBase);
-        } else if (__implDataBase == null) {
-            doDispatchAddDataBase(elem);
-        } else {
-            doDispatchRemoveDataBase(__implDataBase);
-            doDispatchAddDataBase(elem);
-        }
-    }
-
-    /**
-     * The backing data for the property DataUnionOf
-     */
-    private List<org.xowl.infra.lang.runtime.Datatype> __implDataUnionOf;
-
-    /**
-     * Adds a value to the property DataUnionOf
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
-        __implDataUnionOf.add(elem);
-    }
-
-    /**
-     * Removes a value from the property DataUnionOf
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
-        __implDataUnionOf.remove(elem);
-    }
-
-    /**
-     * Adds a value to the property DataUnionOf
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
-        doSimpleAddDataUnionOf(elem);
-    }
-
-    /**
-     * Removes a value from the property DataUnionOf
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
-        doSimpleRemoveDataUnionOf(elem);
-    }
-
-    /**
-     * Tries to add a value to the property DataUnionOf and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
-        doPropertyAddDataUnionOf(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property DataUnionOf and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
-        doPropertyRemoveDataUnionOf(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property DataUnionOf
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
-        doGraphAddDataUnionOf(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property DataUnionOf
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
-        doGraphRemoveDataUnionOf(elem);
-    }
-
-    @Override
-    public Collection<org.xowl.infra.lang.runtime.Datatype> getAllDataUnionOf() {
-        return Collections.unmodifiableCollection(__implDataUnionOf);
-    }
-
-    @Override
-    public boolean addDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (__implDataUnionOf.contains(elem))
-            return false;
-        doDispatchAddDataUnionOf(elem);
-        return true;
-    }
-
-    @Override
-    public boolean removeDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (!__implDataUnionOf.contains(elem))
-            return false;
-        doDispatchRemoveDataUnionOf(elem);
-        return true;
-    }
-
-    /**
-     * The backing data for the property DataRestrictions
-     */
-    private List<org.xowl.infra.lang.runtime.DatatypeRestriction> __implDataRestrictions;
-
-    /**
-     * Adds a value to the property DataRestrictions
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
-        __implDataRestrictions.add(elem);
-    }
-
-    /**
-     * Removes a value from the property DataRestrictions
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
-        __implDataRestrictions.remove(elem);
-    }
-
-    /**
-     * Adds a value to the property DataRestrictions
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
-        doSimpleAddDataRestrictions(elem);
-    }
-
-    /**
-     * Removes a value from the property DataRestrictions
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
-        doSimpleRemoveDataRestrictions(elem);
-    }
-
-    /**
-     * Tries to add a value to the property DataRestrictions and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
-        doPropertyAddDataRestrictions(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property DataRestrictions and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
-        doPropertyRemoveDataRestrictions(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property DataRestrictions
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
-        doGraphAddDataRestrictions(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property DataRestrictions
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
-        doGraphRemoveDataRestrictions(elem);
-    }
-
-    @Override
-    public Collection<org.xowl.infra.lang.runtime.DatatypeRestriction> getAllDataRestrictions() {
-        return Collections.unmodifiableCollection(__implDataRestrictions);
-    }
-
-    @Override
-    public boolean addDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (__implDataRestrictions.contains(elem))
-            return false;
-        doDispatchAddDataRestrictions(elem);
-        return true;
-    }
-
-    @Override
-    public boolean removeDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (!__implDataRestrictions.contains(elem))
-            return false;
-        doDispatchRemoveDataRestrictions(elem);
-        return true;
     }
 
     /**
@@ -748,15 +436,327 @@ public class RuntimeDatatypeImpl implements org.xowl.infra.lang.runtime.Datatype
     }
 
     /**
+     * The backing data for the property DataRestrictions
+     */
+    private List<org.xowl.infra.lang.runtime.DatatypeRestriction> __implDataRestrictions;
+
+    /**
+     * Adds a value to the property DataRestrictions
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
+        __implDataRestrictions.add(elem);
+    }
+
+    /**
+     * Removes a value from the property DataRestrictions
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
+        __implDataRestrictions.remove(elem);
+    }
+
+    /**
+     * Adds a value to the property DataRestrictions
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
+        doSimpleAddDataRestrictions(elem);
+    }
+
+    /**
+     * Removes a value from the property DataRestrictions
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
+        doSimpleRemoveDataRestrictions(elem);
+    }
+
+    /**
+     * Tries to add a value to the property DataRestrictions and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
+        doPropertyAddDataRestrictions(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property DataRestrictions and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
+        doPropertyRemoveDataRestrictions(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property DataRestrictions
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
+        doGraphAddDataRestrictions(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property DataRestrictions
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
+        doGraphRemoveDataRestrictions(elem);
+    }
+
+    @Override
+    public Collection<org.xowl.infra.lang.runtime.DatatypeRestriction> getAllDataRestrictions() {
+        return Collections.unmodifiableCollection(__implDataRestrictions);
+    }
+
+    @Override
+    public boolean addDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (__implDataRestrictions.contains(elem))
+            return false;
+        doDispatchAddDataRestrictions(elem);
+        return true;
+    }
+
+    @Override
+    public boolean removeDataRestrictions(org.xowl.infra.lang.runtime.DatatypeRestriction elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (!__implDataRestrictions.contains(elem))
+            return false;
+        doDispatchRemoveDataRestrictions(elem);
+        return true;
+    }
+
+    /**
+     * The backing data for the property DataUnionOf
+     */
+    private List<org.xowl.infra.lang.runtime.Datatype> __implDataUnionOf;
+
+    /**
+     * Adds a value to the property DataUnionOf
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
+        __implDataUnionOf.add(elem);
+    }
+
+    /**
+     * Removes a value from the property DataUnionOf
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
+        __implDataUnionOf.remove(elem);
+    }
+
+    /**
+     * Adds a value to the property DataUnionOf
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
+        doSimpleAddDataUnionOf(elem);
+    }
+
+    /**
+     * Removes a value from the property DataUnionOf
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
+        doSimpleRemoveDataUnionOf(elem);
+    }
+
+    /**
+     * Tries to add a value to the property DataUnionOf and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
+        doPropertyAddDataUnionOf(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property DataUnionOf and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
+        doPropertyRemoveDataUnionOf(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property DataUnionOf
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
+        doGraphAddDataUnionOf(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property DataUnionOf
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
+        doGraphRemoveDataUnionOf(elem);
+    }
+
+    @Override
+    public Collection<org.xowl.infra.lang.runtime.Datatype> getAllDataUnionOf() {
+        return Collections.unmodifiableCollection(__implDataUnionOf);
+    }
+
+    @Override
+    public boolean addDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (__implDataUnionOf.contains(elem))
+            return false;
+        doDispatchAddDataUnionOf(elem);
+        return true;
+    }
+
+    @Override
+    public boolean removeDataUnionOf(org.xowl.infra.lang.runtime.Datatype elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (!__implDataUnionOf.contains(elem))
+            return false;
+        doDispatchRemoveDataUnionOf(elem);
+        return true;
+    }
+
+    /**
+     * The backing data for the property InterpretationOf
+     */
+    private org.xowl.infra.lang.runtime.Entity __implInterpretationOf;
+
+    /**
+     * Adds a value to the property InterpretationOf
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+        __implInterpretationOf = elem;
+    }
+
+    /**
+     * Removes a value from the property InterpretationOf
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+        __implInterpretationOf = null;
+    }
+
+    /**
+     * Adds a value to the property InterpretationOf
+     * This method will also update the inverse property InterpretedAs
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+        doSimpleAddInterpretationOf(elem);
+        if (elem instanceof RuntimeEntityImpl)
+            ((RuntimeEntityImpl) elem).doSimpleAddInterpretedAs(this);
+    }
+
+    /**
+     * Removes a value from the property InterpretationOf
+     * This method will also update the inverse property InterpretedAs
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+        doSimpleRemoveInterpretationOf(elem);
+        if (elem instanceof RuntimeEntityImpl)
+            ((RuntimeEntityImpl) elem).doSimpleRemoveInterpretedAs(this);
+    }
+
+    /**
+     * Tries to add a value to the property InterpretationOf and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+        doPropertyAddInterpretationOf(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property InterpretationOf and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+        doPropertyRemoveInterpretationOf(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property InterpretationOf
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+        doGraphAddInterpretationOf(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property InterpretationOf
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+        doGraphRemoveInterpretationOf(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.runtime.Entity getInterpretationOf() {
+        return __implInterpretationOf;
+    }
+
+    @Override
+    public void setInterpretationOf(org.xowl.infra.lang.runtime.Entity elem) {
+        if (__implInterpretationOf == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveInterpretationOf(__implInterpretationOf);
+        } else if (__implInterpretationOf == null) {
+            doDispatchAddInterpretationOf(elem);
+        } else {
+            doDispatchRemoveInterpretationOf(__implInterpretationOf);
+            doDispatchAddInterpretationOf(elem);
+        }
+    }
+
+    /**
      * Constructor for the implementation of Datatype
      */
     public RuntimeDatatypeImpl() {
-        this.__implInterpretationOf = null;
-        this.__implDataComplementOf = null;
         this.__implDataBase = null;
-        this.__implDataUnionOf = new ArrayList<>();
-        this.__implDataRestrictions = new ArrayList<>();
+        this.__implDataComplementOf = null;
         this.__implDataIntersectionOf = new ArrayList<>();
         this.__implDataOneOf = new ArrayList<>();
+        this.__implDataRestrictions = new ArrayList<>();
+        this.__implDataUnionOf = new ArrayList<>();
+        this.__implInterpretationOf = null;
     }
 }

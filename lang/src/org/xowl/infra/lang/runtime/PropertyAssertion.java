@@ -26,6 +26,20 @@ import java.util.*;
  */
 public interface PropertyAssertion {
     /**
+     * Sets the value for the property IsNegative
+     *
+     * @param elem The value to set
+     */
+    void setIsNegative(boolean elem);
+
+    /**
+     * Gets the value for the property IsNegative
+     *
+     * @return The value for the property IsNegative
+     */
+    boolean getIsNegative();
+
+    /**
      * Sets the value for the property Property
      *
      * @param elem The value to set
@@ -40,19 +54,5 @@ public interface PropertyAssertion {
      * @return The value for the property Property
      */
     org.xowl.infra.lang.runtime.Property getPropertyAs(org.xowl.infra.lang.runtime.Property type);
-
-    /**
-     * Sets the value for the property IsNegative
-     *
-     * @param elem The value to set
-     */
-    void setIsNegative(boolean elem);
-
-    /**
-     * Gets the value for the property IsNegative
-     *
-     * @return The value for the property IsNegative
-     */
-    boolean getIsNegative();
 
 }

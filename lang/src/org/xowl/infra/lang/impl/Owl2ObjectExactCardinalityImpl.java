@@ -26,6 +26,104 @@ import java.util.*;
  */
 public class Owl2ObjectExactCardinalityImpl implements org.xowl.infra.lang.owl2.ObjectExactCardinality {
     /**
+     * The backing data for the property Cardinality
+     */
+    private org.xowl.infra.lang.owl2.LiteralExpression __implCardinality;
+
+    /**
+     * Adds a value to the property Cardinality
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        __implCardinality = elem;
+    }
+
+    /**
+     * Removes a value from the property Cardinality
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        __implCardinality = null;
+    }
+
+    /**
+     * Adds a value to the property Cardinality
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doSimpleAddCardinality(elem);
+    }
+
+    /**
+     * Removes a value from the property Cardinality
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doSimpleRemoveCardinality(elem);
+    }
+
+    /**
+     * Tries to add a value to the property Cardinality and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doPropertyAddCardinality(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property Cardinality and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doPropertyRemoveCardinality(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property Cardinality
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doGraphAddCardinality(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property Cardinality
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        doGraphRemoveCardinality(elem);
+    }
+
+    @Override
+    public org.xowl.infra.lang.owl2.LiteralExpression getCardinality() {
+        return __implCardinality;
+    }
+
+    @Override
+    public void setCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
+        if (__implCardinality == elem)
+            return;
+        if (elem == null) {
+            doDispatchRemoveCardinality(__implCardinality);
+        } else if (__implCardinality == null) {
+            doDispatchAddCardinality(elem);
+        } else {
+            doDispatchRemoveCardinality(__implCardinality);
+            doDispatchAddCardinality(elem);
+        }
+    }
+
+    /**
      * The backing data for the property Classe
      */
     private org.xowl.infra.lang.owl2.ClassExpression __implClasse;
@@ -222,109 +320,11 @@ public class Owl2ObjectExactCardinalityImpl implements org.xowl.infra.lang.owl2.
     }
 
     /**
-     * The backing data for the property Cardinality
-     */
-    private org.xowl.infra.lang.owl2.LiteralExpression __implCardinality;
-
-    /**
-     * Adds a value to the property Cardinality
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        __implCardinality = elem;
-    }
-
-    /**
-     * Removes a value from the property Cardinality
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        __implCardinality = null;
-    }
-
-    /**
-     * Adds a value to the property Cardinality
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doSimpleAddCardinality(elem);
-    }
-
-    /**
-     * Removes a value from the property Cardinality
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doSimpleRemoveCardinality(elem);
-    }
-
-    /**
-     * Tries to add a value to the property Cardinality and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doPropertyAddCardinality(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property Cardinality and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doPropertyRemoveCardinality(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property Cardinality
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doGraphAddCardinality(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property Cardinality
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        doGraphRemoveCardinality(elem);
-    }
-
-    @Override
-    public org.xowl.infra.lang.owl2.LiteralExpression getCardinality() {
-        return __implCardinality;
-    }
-
-    @Override
-    public void setCardinality(org.xowl.infra.lang.owl2.LiteralExpression elem) {
-        if (__implCardinality == elem)
-            return;
-        if (elem == null) {
-            doDispatchRemoveCardinality(__implCardinality);
-        } else if (__implCardinality == null) {
-            doDispatchAddCardinality(elem);
-        } else {
-            doDispatchRemoveCardinality(__implCardinality);
-            doDispatchAddCardinality(elem);
-        }
-    }
-
-    /**
      * Constructor for the implementation of ObjectExactCardinality
      */
     public Owl2ObjectExactCardinalityImpl() {
+        this.__implCardinality = null;
         this.__implClasse = null;
         this.__implObjectProperty = null;
-        this.__implCardinality = null;
     }
 }

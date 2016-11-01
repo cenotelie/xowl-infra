@@ -26,21 +26,6 @@ import java.util.*;
  */
 public class Owl2DatarangeElementImpl implements org.xowl.infra.lang.owl2.DatarangeElement {
     /**
-     * The backing data for the property Index
-     */
-    private int __implIndex;
-
-    @Override
-    public int getIndex() {
-        return __implIndex;
-    }
-
-    @Override
-    public void setIndex(int elem) {
-        __implIndex = elem;
-    }
-
-    /**
      * The backing data for the property Datarange
      */
     private org.xowl.infra.lang.owl2.Datarange __implDatarange;
@@ -139,10 +124,25 @@ public class Owl2DatarangeElementImpl implements org.xowl.infra.lang.owl2.Datara
     }
 
     /**
+     * The backing data for the property Index
+     */
+    private int __implIndex;
+
+    @Override
+    public int getIndex() {
+        return __implIndex;
+    }
+
+    @Override
+    public void setIndex(int elem) {
+        __implIndex = elem;
+    }
+
+    /**
      * Constructor for the implementation of DatarangeElement
      */
     public Owl2DatarangeElementImpl() {
-        this.__implIndex = 0;
         this.__implDatarange = null;
+        this.__implIndex = 0;
     }
 }

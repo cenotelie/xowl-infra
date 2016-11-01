@@ -26,20 +26,6 @@ import java.util.*;
  */
 public interface Literal extends org.xowl.infra.lang.owl2.AnnotationValue, org.xowl.infra.lang.owl2.LiteralExpression {
     /**
-     * Sets the value for the property LexicalValue
-     *
-     * @param elem The value to set
-     */
-    void setLexicalValue(String elem);
-
-    /**
-     * Gets the value for the property LexicalValue
-     *
-     * @return The value for the property LexicalValue
-     */
-    String getLexicalValue();
-
-    /**
      * Sets the value for the property LangTag
      *
      * @param elem The value to set
@@ -52,6 +38,20 @@ public interface Literal extends org.xowl.infra.lang.owl2.AnnotationValue, org.x
      * @return The value for the property LangTag
      */
     String getLangTag();
+
+    /**
+     * Sets the value for the property LexicalValue
+     *
+     * @param elem The value to set
+     */
+    void setLexicalValue(String elem);
+
+    /**
+     * Gets the value for the property LexicalValue
+     *
+     * @return The value for the property LexicalValue
+     */
+    String getLexicalValue();
 
     /**
      * Sets the value for the property MemberOf

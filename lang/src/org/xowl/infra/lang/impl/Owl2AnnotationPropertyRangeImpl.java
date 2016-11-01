@@ -26,21 +26,6 @@ import java.util.*;
  */
 public class Owl2AnnotationPropertyRangeImpl implements org.xowl.infra.lang.owl2.AnnotationPropertyRange {
     /**
-     * The backing data for the property Line
-     */
-    private int __implLine;
-
-    @Override
-    public int getLine() {
-        return __implLine;
-    }
-
-    @Override
-    public void setLine(int elem) {
-        __implLine = elem;
-    }
-
-    /**
      * The backing data for the property AnnotProperty
      */
     private org.xowl.infra.lang.owl2.IRI __implAnnotProperty;
@@ -356,13 +341,28 @@ public class Owl2AnnotationPropertyRangeImpl implements org.xowl.infra.lang.owl2
     }
 
     /**
+     * The backing data for the property Line
+     */
+    private int __implLine;
+
+    @Override
+    public int getLine() {
+        return __implLine;
+    }
+
+    @Override
+    public void setLine(int elem) {
+        __implLine = elem;
+    }
+
+    /**
      * Constructor for the implementation of AnnotationPropertyRange
      */
     public Owl2AnnotationPropertyRangeImpl() {
-        this.__implLine = 0;
         this.__implAnnotProperty = null;
         this.__implAnnotRange = null;
         this.__implAnnotations = new ArrayList<>();
         this.__implFile = null;
+        this.__implLine = 0;
     }
 }

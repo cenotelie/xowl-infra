@@ -26,21 +26,6 @@ import java.util.*;
  */
 public class Owl2DataPropertyElementImpl implements org.xowl.infra.lang.owl2.DataPropertyElement {
     /**
-     * The backing data for the property Index
-     */
-    private int __implIndex;
-
-    @Override
-    public int getIndex() {
-        return __implIndex;
-    }
-
-    @Override
-    public void setIndex(int elem) {
-        __implIndex = elem;
-    }
-
-    /**
      * The backing data for the property DataProperty
      */
     private org.xowl.infra.lang.owl2.DataPropertyExpression __implDataProperty;
@@ -139,10 +124,25 @@ public class Owl2DataPropertyElementImpl implements org.xowl.infra.lang.owl2.Dat
     }
 
     /**
+     * The backing data for the property Index
+     */
+    private int __implIndex;
+
+    @Override
+    public int getIndex() {
+        return __implIndex;
+    }
+
+    @Override
+    public void setIndex(int elem) {
+        __implIndex = elem;
+    }
+
+    /**
      * Constructor for the implementation of DataPropertyElement
      */
     public Owl2DataPropertyElementImpl() {
-        this.__implIndex = 0;
         this.__implDataProperty = null;
+        this.__implIndex = 0;
     }
 }

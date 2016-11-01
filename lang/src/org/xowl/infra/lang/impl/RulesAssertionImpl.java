@@ -26,21 +26,6 @@ import java.util.*;
  */
 public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
     /**
-     * The backing data for the property IsMeta
-     */
-    private boolean __implIsMeta;
-
-    @Override
-    public boolean getIsMeta() {
-        return __implIsMeta;
-    }
-
-    @Override
-    public void setIsMeta(boolean elem) {
-        __implIsMeta = elem;
-    }
-
-    /**
      * The backing data for the property Axioms
      */
     private List<org.xowl.infra.lang.owl2.Axiom> __implAxioms;
@@ -145,6 +130,21 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
     }
 
     /**
+     * The backing data for the property IsMeta
+     */
+    private boolean __implIsMeta;
+
+    @Override
+    public boolean getIsMeta() {
+        return __implIsMeta;
+    }
+
+    @Override
+    public void setIsMeta(boolean elem) {
+        __implIsMeta = elem;
+    }
+
+    /**
      * The backing data for the property IsPositive
      */
     private boolean __implIsPositive;
@@ -163,8 +163,8 @@ public class RulesAssertionImpl implements org.xowl.infra.lang.rules.Assertion {
      * Constructor for the implementation of Assertion
      */
     public RulesAssertionImpl() {
-        this.__implIsMeta = false;
         this.__implAxioms = new ArrayList<>();
+        this.__implIsMeta = false;
         this.__implIsPositive = false;
     }
 }

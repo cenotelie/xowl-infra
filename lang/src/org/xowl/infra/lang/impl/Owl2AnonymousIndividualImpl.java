@@ -26,135 +26,6 @@ import java.util.*;
  */
 public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.AnonymousIndividual {
     /**
-     * The backing data for the property SameAs
-     */
-    private List<org.xowl.infra.lang.runtime.Individual> __implSameAs;
-
-    /**
-     * Adds a value to the property SameAs
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    protected void doSimpleAddSameAs(org.xowl.infra.lang.runtime.Individual elem) {
-        __implSameAs.add(elem);
-    }
-
-    /**
-     * Removes a value from the property SameAs
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    protected void doSimpleRemoveSameAs(org.xowl.infra.lang.runtime.Individual elem) {
-        __implSameAs.remove(elem);
-    }
-
-    /**
-     * Adds a value to the property SameAs
-     * This method will also update the inverse property SameAs
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doPropertyAddSameAs(org.xowl.infra.lang.runtime.Individual elem) {
-        doSimpleAddSameAs(elem);
-        if (elem instanceof RuntimeNamedIndividualImpl)
-            ((RuntimeNamedIndividualImpl) elem).doSimpleAddSameAs(this);
-        else if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddSameAs(this);
-    }
-
-    /**
-     * Removes a value from the property SameAs
-     * This method will also update the inverse property SameAs
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doPropertyRemoveSameAs(org.xowl.infra.lang.runtime.Individual elem) {
-        doSimpleRemoveSameAs(elem);
-        if (elem instanceof RuntimeNamedIndividualImpl)
-            ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveSameAs(this);
-        else if (elem instanceof Owl2AnonymousIndividualImpl)
-            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveSameAs(this);
-    }
-
-    /**
-     * Tries to add a value to the property SameAs and its super properties (if any)
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doGraphAddSameAs(org.xowl.infra.lang.runtime.Individual elem) {
-        doPropertyAddSameAs(elem);
-    }
-
-    /**
-     * Tries to remove a value from the property SameAs and its super properties (if any)
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doGraphRemoveSameAs(org.xowl.infra.lang.runtime.Individual elem) {
-        doPropertyRemoveSameAs(elem);
-    }
-
-    /**
-     * Dispatches the request for the addition of a value to the property SameAs
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to add (must not be null)
-     */
-    private void doDispatchAddSameAs(org.xowl.infra.lang.runtime.Individual elem) {
-        doGraphAddSameAs(elem);
-    }
-
-    /**
-     * Dispatches the request for the removal of a value from the property SameAs
-     * This method tries to delegate to a sub property, if any.
-     *
-     * @param elem The element value to remove (must not be null)
-     */
-    private void doDispatchRemoveSameAs(org.xowl.infra.lang.runtime.Individual elem) {
-        doGraphRemoveSameAs(elem);
-    }
-
-    @Override
-    public Collection<org.xowl.infra.lang.runtime.Individual> getAllSameAs() {
-        return Collections.unmodifiableCollection(__implSameAs);
-    }
-
-    @Override
-    public boolean addSameAs(org.xowl.infra.lang.runtime.Individual elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (__implSameAs.contains(elem))
-            return false;
-        doDispatchAddSameAs(elem);
-        return true;
-    }
-
-    @Override
-    public boolean removeSameAs(org.xowl.infra.lang.runtime.Individual elem) {
-        if (elem == null)
-            throw new IllegalArgumentException("Expected a value");
-        if (!__implSameAs.contains(elem))
-            return false;
-        doDispatchRemoveSameAs(elem);
-        return true;
-    }
-
-    /**
-     * The backing data for the property NodeID
-     */
-    private String __implNodeID;
-
-    @Override
-    public String getNodeID() {
-        return __implNodeID;
-    }
-
-    @Override
-    public void setNodeID(String elem) {
-        __implNodeID = elem;
-    }
-
-    /**
      * The backing data for the property Asserts
      */
     private List<org.xowl.infra.lang.runtime.PropertyAssertion> __implAsserts;
@@ -255,6 +126,116 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
         if (!__implAsserts.contains(elem))
             return false;
         doDispatchRemoveAsserts(elem);
+        return true;
+    }
+
+    /**
+     * The backing data for the property ClassifiedBy
+     */
+    private List<org.xowl.infra.lang.runtime.Class> __implClassifiedBy;
+
+    /**
+     * Adds a value to the property ClassifiedBy
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    protected void doSimpleAddClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+        __implClassifiedBy.add(elem);
+    }
+
+    /**
+     * Removes a value from the property ClassifiedBy
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    protected void doSimpleRemoveClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+        __implClassifiedBy.remove(elem);
+    }
+
+    /**
+     * Adds a value to the property ClassifiedBy
+     * This method will also update the inverse property Classifies
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doPropertyAddClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+        doSimpleAddClassifiedBy(elem);
+        if (elem instanceof RuntimeClassImpl)
+            ((RuntimeClassImpl) elem).doSimpleAddClassifies(this);
+    }
+
+    /**
+     * Removes a value from the property ClassifiedBy
+     * This method will also update the inverse property Classifies
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doPropertyRemoveClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+        doSimpleRemoveClassifiedBy(elem);
+        if (elem instanceof RuntimeClassImpl)
+            ((RuntimeClassImpl) elem).doSimpleRemoveClassifies(this);
+    }
+
+    /**
+     * Tries to add a value to the property ClassifiedBy and its super properties (if any)
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doGraphAddClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+        doPropertyAddClassifiedBy(elem);
+    }
+
+    /**
+     * Tries to remove a value from the property ClassifiedBy and its super properties (if any)
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doGraphRemoveClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+        doPropertyRemoveClassifiedBy(elem);
+    }
+
+    /**
+     * Dispatches the request for the addition of a value to the property ClassifiedBy
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to add (must not be null)
+     */
+    private void doDispatchAddClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+        doGraphAddClassifiedBy(elem);
+    }
+
+    /**
+     * Dispatches the request for the removal of a value from the property ClassifiedBy
+     * This method tries to delegate to a sub property, if any.
+     *
+     * @param elem The element value to remove (must not be null)
+     */
+    private void doDispatchRemoveClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+        doGraphRemoveClassifiedBy(elem);
+    }
+
+    @Override
+    public Collection<org.xowl.infra.lang.runtime.Class> getAllClassifiedBy() {
+        return Collections.unmodifiableCollection(__implClassifiedBy);
+    }
+
+    @Override
+    public boolean addClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (__implClassifiedBy.contains(elem))
+            return false;
+        doDispatchAddClassifiedBy(elem);
+        return true;
+    }
+
+    @Override
+    public boolean removeClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+        if (elem == null)
+            throw new IllegalArgumentException("Expected a value");
+        if (!__implClassifiedBy.contains(elem))
+            return false;
+        doDispatchRemoveClassifiedBy(elem);
         return true;
     }
 
@@ -373,112 +354,131 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
     }
 
     /**
-     * The backing data for the property ClassifiedBy
+     * The backing data for the property NodeID
      */
-    private List<org.xowl.infra.lang.runtime.Class> __implClassifiedBy;
+    private String __implNodeID;
+
+    @Override
+    public String getNodeID() {
+        return __implNodeID;
+    }
+
+    @Override
+    public void setNodeID(String elem) {
+        __implNodeID = elem;
+    }
 
     /**
-     * Adds a value to the property ClassifiedBy
+     * The backing data for the property SameAs
+     */
+    private List<org.xowl.infra.lang.runtime.Individual> __implSameAs;
+
+    /**
+     * Adds a value to the property SameAs
      *
      * @param elem The element value to add (must not be null)
      */
-    protected void doSimpleAddClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
-        __implClassifiedBy.add(elem);
+    protected void doSimpleAddSameAs(org.xowl.infra.lang.runtime.Individual elem) {
+        __implSameAs.add(elem);
     }
 
     /**
-     * Removes a value from the property ClassifiedBy
+     * Removes a value from the property SameAs
      *
      * @param elem The element value to remove (must not be null)
      */
-    protected void doSimpleRemoveClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
-        __implClassifiedBy.remove(elem);
+    protected void doSimpleRemoveSameAs(org.xowl.infra.lang.runtime.Individual elem) {
+        __implSameAs.remove(elem);
     }
 
     /**
-     * Adds a value to the property ClassifiedBy
-     * This method will also update the inverse property Classifies
+     * Adds a value to the property SameAs
+     * This method will also update the inverse property SameAs
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doPropertyAddClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
-        doSimpleAddClassifiedBy(elem);
-        if (elem instanceof RuntimeClassImpl)
-            ((RuntimeClassImpl) elem).doSimpleAddClassifies(this);
+    private void doPropertyAddSameAs(org.xowl.infra.lang.runtime.Individual elem) {
+        doSimpleAddSameAs(elem);
+        if (elem instanceof RuntimeNamedIndividualImpl)
+            ((RuntimeNamedIndividualImpl) elem).doSimpleAddSameAs(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleAddSameAs(this);
     }
 
     /**
-     * Removes a value from the property ClassifiedBy
-     * This method will also update the inverse property Classifies
+     * Removes a value from the property SameAs
+     * This method will also update the inverse property SameAs
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doPropertyRemoveClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
-        doSimpleRemoveClassifiedBy(elem);
-        if (elem instanceof RuntimeClassImpl)
-            ((RuntimeClassImpl) elem).doSimpleRemoveClassifies(this);
+    private void doPropertyRemoveSameAs(org.xowl.infra.lang.runtime.Individual elem) {
+        doSimpleRemoveSameAs(elem);
+        if (elem instanceof RuntimeNamedIndividualImpl)
+            ((RuntimeNamedIndividualImpl) elem).doSimpleRemoveSameAs(this);
+        else if (elem instanceof Owl2AnonymousIndividualImpl)
+            ((Owl2AnonymousIndividualImpl) elem).doSimpleRemoveSameAs(this);
     }
 
     /**
-     * Tries to add a value to the property ClassifiedBy and its super properties (if any)
+     * Tries to add a value to the property SameAs and its super properties (if any)
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doGraphAddClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
-        doPropertyAddClassifiedBy(elem);
+    private void doGraphAddSameAs(org.xowl.infra.lang.runtime.Individual elem) {
+        doPropertyAddSameAs(elem);
     }
 
     /**
-     * Tries to remove a value from the property ClassifiedBy and its super properties (if any)
+     * Tries to remove a value from the property SameAs and its super properties (if any)
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doGraphRemoveClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
-        doPropertyRemoveClassifiedBy(elem);
+    private void doGraphRemoveSameAs(org.xowl.infra.lang.runtime.Individual elem) {
+        doPropertyRemoveSameAs(elem);
     }
 
     /**
-     * Dispatches the request for the addition of a value to the property ClassifiedBy
+     * Dispatches the request for the addition of a value to the property SameAs
      * This method tries to delegate to a sub property, if any.
      *
      * @param elem The element value to add (must not be null)
      */
-    private void doDispatchAddClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
-        doGraphAddClassifiedBy(elem);
+    private void doDispatchAddSameAs(org.xowl.infra.lang.runtime.Individual elem) {
+        doGraphAddSameAs(elem);
     }
 
     /**
-     * Dispatches the request for the removal of a value from the property ClassifiedBy
+     * Dispatches the request for the removal of a value from the property SameAs
      * This method tries to delegate to a sub property, if any.
      *
      * @param elem The element value to remove (must not be null)
      */
-    private void doDispatchRemoveClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
-        doGraphRemoveClassifiedBy(elem);
+    private void doDispatchRemoveSameAs(org.xowl.infra.lang.runtime.Individual elem) {
+        doGraphRemoveSameAs(elem);
     }
 
     @Override
-    public Collection<org.xowl.infra.lang.runtime.Class> getAllClassifiedBy() {
-        return Collections.unmodifiableCollection(__implClassifiedBy);
+    public Collection<org.xowl.infra.lang.runtime.Individual> getAllSameAs() {
+        return Collections.unmodifiableCollection(__implSameAs);
     }
 
     @Override
-    public boolean addClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+    public boolean addSameAs(org.xowl.infra.lang.runtime.Individual elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
-        if (__implClassifiedBy.contains(elem))
+        if (__implSameAs.contains(elem))
             return false;
-        doDispatchAddClassifiedBy(elem);
+        doDispatchAddSameAs(elem);
         return true;
     }
 
     @Override
-    public boolean removeClassifiedBy(org.xowl.infra.lang.runtime.Class elem) {
+    public boolean removeSameAs(org.xowl.infra.lang.runtime.Individual elem) {
         if (elem == null)
             throw new IllegalArgumentException("Expected a value");
-        if (!__implClassifiedBy.contains(elem))
+        if (!__implSameAs.contains(elem))
             return false;
-        doDispatchRemoveClassifiedBy(elem);
+        doDispatchRemoveSameAs(elem);
         return true;
     }
 
@@ -486,10 +486,10 @@ public class Owl2AnonymousIndividualImpl implements org.xowl.infra.lang.owl2.Ano
      * Constructor for the implementation of AnonymousIndividual
      */
     public Owl2AnonymousIndividualImpl() {
-        this.__implSameAs = new ArrayList<>();
-        this.__implNodeID = null;
         this.__implAsserts = new ArrayList<>();
-        this.__implDifferentFrom = new ArrayList<>();
         this.__implClassifiedBy = new ArrayList<>();
+        this.__implDifferentFrom = new ArrayList<>();
+        this.__implNodeID = null;
+        this.__implSameAs = new ArrayList<>();
     }
 }

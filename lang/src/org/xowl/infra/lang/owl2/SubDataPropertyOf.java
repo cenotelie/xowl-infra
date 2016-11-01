@@ -24,7 +24,7 @@ import java.util.*;
  *
  * @author xOWL code generator
  */
-public interface SubDataPropertyOf extends org.xowl.infra.lang.owl2.DataPropertyAxiom, org.xowl.infra.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp0 {
+public interface SubDataPropertyOf extends org.xowl.infra.lang.owl2.DataPropertyAxiom, org.xowl.infra.lang.owl2.DataPropertyAssertion_OR_DataPropertyDomain_OR_DataPropertyElement_OR_DataPropertyRange_OR_DataProp5 {
     /**
      * Sets the value for the property SuperDataProperty
      *

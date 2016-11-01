@@ -26,20 +26,6 @@ import java.util.*;
  */
 public interface FunctionDefinitionAxiom extends org.xowl.infra.lang.owl2.Axiom {
     /**
-     * Sets the value for the property Function
-     *
-     * @param elem The value to set
-     */
-    void setFunction(org.xowl.infra.lang.actions.FunctionExpression elem);
-
-    /**
-     * Gets the value for the property Function
-     *
-     * @return The value for the property Function
-     */
-    org.xowl.infra.lang.actions.FunctionExpression getFunction();
-
-    /**
      * Sets the value for the property Definition
      *
      * @param elem The value to set
@@ -52,5 +38,19 @@ public interface FunctionDefinitionAxiom extends org.xowl.infra.lang.owl2.Axiom 
      * @return The value for the property Definition
      */
     Object getDefinition();
+
+    /**
+     * Sets the value for the property Function
+     *
+     * @param elem The value to set
+     */
+    void setFunction(org.xowl.infra.lang.actions.FunctionExpression elem);
+
+    /**
+     * Gets the value for the property Function
+     *
+     * @return The value for the property Function
+     */
+    org.xowl.infra.lang.actions.FunctionExpression getFunction();
 
 }
