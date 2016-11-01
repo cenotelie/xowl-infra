@@ -17,8 +17,9 @@
 
 package org.xowl.infra.generator.model;
 
-import org.xowl.infra.lang.runtime.Class;
-import org.xowl.infra.lang.runtime.*;
+import org.xowl.infra.lang.runtime.DataProperty;
+import org.xowl.infra.lang.runtime.ObjectProperty;
+import org.xowl.infra.lang.runtime.Property;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -306,13 +307,13 @@ public class PropertyModel {
      * Builds the domain and range
      */
     public void buildDomainRange() {
-        domain = getModelFor(property.getDomain());
+        domain = parent.getModel().getModelFor(property.getDomain());
         if (domain != null)
             domain.addProperty(this);
         if (isObjectProperty()) {
-            rangeClass = getModelFor(((ObjectProperty) property).getRangeAs(null));
+            rangeClass = parent.getModel().getModelFor(((ObjectProperty) property).getRangeAs(null));
         } else {
-            rangeDatatype = getModelFor(((DataProperty) property).getRangeAs(null));
+            rangeDatatype = parent.getModel().getModelFor(((DataProperty) property).getRangeAs(null));
         }
     }
 
@@ -323,7 +324,7 @@ public class PropertyModel {
         if (property instanceof ObjectProperty) {
             ObjectProperty inverseOf = ((ObjectProperty) property).getInverseOf();
             if (inverseOf != null) {
-                this.inverse = getModelFor(inverseOf);
+                this.inverse = parent.getModel().getModelFor(inverseOf);
                 if (this.inverse != null)
                     this.inverse.inverse = this;
             }
@@ -334,8 +335,8 @@ public class PropertyModel {
      * Builds the equivalents
      */
     public void buildEquivalents() {
-        for (Property property : this.property.getAllPropertyEquivalentToAs(null)) {
-            PropertyModel propertyModel = getModelFor(property);
+        for (Property owlProperty : this.property.getAllPropertyEquivalentToAs(null)) {
+            PropertyModel propertyModel = parent.getModel().getModelFor(owlProperty);
             if (propertyModel != null && !equivalents.contains(propertyModel)) {
                 equivalents.add(propertyModel);
                 propertyModel.equivalents.add(this);
@@ -347,42 +348,12 @@ public class PropertyModel {
      * Builds the hierarchy
      */
     public void buildHierarchy() {
-        for (Property parent : property.getAllSubPropertyOfAs(null)) {
-            PropertyModel propertyModel = getModelFor(parent);
+        for (Property owlProperty : property.getAllSubPropertyOfAs(null)) {
+            PropertyModel propertyModel = parent.getModel().getModelFor(owlProperty);
             if (propertyModel != null && !superProperties.contains(propertyModel)) {
                 superProperties.add(propertyModel);
                 propertyModel.subProperties.add(this);
             }
         }
-    }
-
-    /**
-     * Gets the model for the specified OWL class
-     *
-     * @param classe An OWL class
-     * @return The associated model
-     */
-    private ClassModel getModelFor(Class classe) {
-        return parent.getModel().getModelFor(classe);
-    }
-
-    /**
-     * Gets the model for the specified OWL property
-     *
-     * @param property An OWL property
-     * @return The associated model
-     */
-    private PropertyModel getModelFor(Property property) {
-        return parent.getModel().getModelFor(property);
-    }
-
-    /**
-     * Gets the model for the specified OWL datatype
-     *
-     * @param datatype An OWL datatype
-     * @return The associated model
-     */
-    private DatatypeModel getModelFor(Datatype datatype) {
-        return parent.getModel().getModelFor(datatype);
     }
 }

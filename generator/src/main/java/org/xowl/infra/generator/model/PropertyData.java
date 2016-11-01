@@ -258,7 +258,7 @@ public abstract class PropertyData {
         applyRestrictions();
         if (this.property.isObjectProperty()) {
             if (rangeClass == null)
-                rangeClass = parentClass.getModelFor(this.parentClass.getPackage().getModel().getRepository().interpretAsClass(parentClass.getPackage().getModel().getRepository().resolveEntity(Vocabulary.owlThing)));
+                rangeClass = parentClass.getPackage().getModel().getModelFor(this.parentClass.getPackage().getModel().getRepository().interpretAsClass(parentClass.getPackage().getModel().getRepository().resolveEntity(Vocabulary.owlThing)));
         } else {
             if (rangeDatatype == null)
                 rangeDatatype = parentClass.getPackage().getModel().getModelFor(parentClass.getPackage().getModel().getRepository().interpretAsDatatype(parentClass.getPackage().getModel().getRepository().resolveEntity(Vocabulary.xsdString)));
@@ -270,10 +270,10 @@ public abstract class PropertyData {
      */
     private void applyRestrictions() {
         for (ClassModel classModel : parentClass.getEquivalencyGroup()) {
-            for (ClassRestriction restriction : classModel.getOWLClass().getAllClassRestrictions())
+            for (ClassRestriction restriction : classModel.getOWL().getAllClassRestrictions())
                 applyRestriction(restriction);
             for (ClassModel superClass : classModel.getSuperClasses())
-                for (ClassRestriction restriction : superClass.getOWLClass().getAllClassRestrictions())
+                for (ClassRestriction restriction : superClass.getOWL().getAllClassRestrictions())
                     applyRestriction(restriction);
         }
     }
@@ -302,7 +302,7 @@ public abstract class PropertyData {
             return;
         if (restriction instanceof ObjectAllValuesFrom) {
             ObjectAllValuesFrom objectAllValuesFrom = (ObjectAllValuesFrom) restriction;
-            ClassModel classe = parentClass.getModelFor(objectAllValuesFrom.getClasse());
+            ClassModel classe = parentClass.getPackage().getModel().getModelFor(objectAllValuesFrom.getClasse());
             if ((rangeClass == null) || rangeClass.getSubClasses().contains(classe)) {
                 rangeClass = classe;
                 restrictType = true;
@@ -314,7 +314,7 @@ public abstract class PropertyData {
             Individual individual = objectHasValue.getIndividual();
             if (individual instanceof NamedIndividual) {
                 Class classe = individual.getAllClassifiedBy().iterator().next();
-                ClassModel classModel = parentClass.getModelFor(classe);
+                ClassModel classModel = parentClass.getPackage().getModel().getModelFor(classe);
                 InstanceModel inst = classModel.getStaticInstance((NamedIndividual) individual);
                 hasObjectValue.add(inst);
             }

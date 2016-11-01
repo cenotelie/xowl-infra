@@ -40,7 +40,7 @@ public class ClassModel {
     /**
      * The associated OWL class
      */
-    private final Class classe;
+    private final Class owlClass;
     /**
      * The name of this class
      */
@@ -92,8 +92,8 @@ public class ClassModel {
      *
      * @return The associated OWL class
      */
-    public Class getOWLClass() {
-        return classe;
+    public Class getOWL() {
+        return owlClass;
     }
 
     /**
@@ -167,19 +167,6 @@ public class ClassModel {
     }
 
     /**
-     * Gets the property implementation owned by this class associated to the specified OWL property
-     *
-     * @param property An OWL property
-     * @return The associated implementation owned by this class
-     */
-    public PropertyImplementation getPropertyImplementation(Property property) {
-        for (PropertyModel gen : propertyImplementations.keySet())
-            if (gen.getOWL() == property)
-                return propertyImplementations.get(gen);
-        return null;
-    }
-
-    /**
      * Gets the property implementation owned by this class for the specified property
      *
      * @param propertyModel A property model
@@ -239,7 +226,7 @@ public class ClassModel {
      * @return The implementation name in Java
      */
     public String getJavaImplName() {
-        String result = getPackage().getName();
+        String result = parent.getName();
         result = String.valueOf(result.charAt(0)).toUpperCase() + result.substring(1);
         return result + name + "Impl";
     }
@@ -273,46 +260,25 @@ public class ClassModel {
     }
 
     /**
-     * Gets the class model for the specified OWL class
-     *
-     * @param classe An OWL class
-     * @return The associated class model
-     */
-    public ClassModel getModelFor(Class classe) {
-        return parent.getModel().getModelFor(classe);
-    }
-
-    /**
-     * Gets the property model associated to the specified OWL property
-     *
-     * @param property An OWL property
-     * @return The associated property model
-     */
-    public PropertyModel getModelFor(Property property) {
-        return parent.getModel().getModelFor(property);
-    }
-
-
-    /**
      * Initializes this class
      *
      * @param packageModel The parent package
-     * @param classe       The associated OWL class
+     * @param owlClass     The associated OWL class
      */
-    public ClassModel(PackageModel packageModel, Class classe) {
-        this(packageModel, classe, getNameFromEntity(classe));
+    public ClassModel(PackageModel packageModel, Class owlClass) {
+        this(packageModel, owlClass, getNameFromEntity(owlClass));
     }
 
     /**
      * Initializes this class
      *
      * @param packageModel The parent package
-     * @param classe       The associated OWL class
+     * @param owlClass     The associated OWL class
      * @param name         The name for this class
      */
-    public ClassModel(PackageModel packageModel, Class classe, String name) {
+    public ClassModel(PackageModel packageModel, Class owlClass, String name) {
         this.parent = packageModel;
-        this.classe = classe;
+        this.owlClass = owlClass;
         this.name = name;
         this.mustExplicitlyImport = existsInJavaLang(name);
         this.equivalents = new ArrayList<>();
@@ -322,7 +288,7 @@ public class ClassModel {
         this.propertyInterfaces = new ArrayList<>();
         this.propertyImplementations = new HashMap<>();
         this.staticInstances = new ArrayList<>();
-        for (Individual individual : classe.getAllClassifies()) {
+        for (Individual individual : owlClass.getAllClassifies()) {
             if (individual instanceof NamedIndividual) {
                 InstanceModel instanceModel = new InstanceModel(this, (NamedIndividual) individual);
                 packageModel.getModel().register((NamedIndividual) individual, instanceModel);
@@ -368,8 +334,8 @@ public class ClassModel {
      * Builds the equivalency group
      */
     public void buildEquivalents() {
-        for (Class equivalent : classe.getAllClassEquivalentTo()) {
-            ClassModel classModel = getModelFor(equivalent);
+        for (Class equivalent : owlClass.getAllClassEquivalentTo()) {
+            ClassModel classModel = parent.getModel().getModelFor(equivalent);
             if (classModel != null && !equivalents.contains(classModel)) {
                 equivalents.add(classModel);
                 classModel.equivalents.add(this);
@@ -381,13 +347,13 @@ public class ClassModel {
      * Builds the class restrictions
      */
     public void buildRestrictions() {
-        for (ClassRestriction restriction : classe.getAllClassRestrictions()) {
+        for (ClassRestriction restriction : owlClass.getAllClassRestrictions()) {
             if (restriction instanceof ObjectAllValuesFrom) {
                 ObjectAllValuesFrom objectAllValuesFrom = (ObjectAllValuesFrom) restriction;
-                getModelFor(objectAllValuesFrom.getClasse());
+                parent.getModel().getModelFor(objectAllValuesFrom.getClasse());
             } else if (restriction instanceof ObjectSomeValuesFrom) {
                 ObjectSomeValuesFrom objectSomeValuesFrom = (ObjectSomeValuesFrom) restriction;
-                getModelFor(objectSomeValuesFrom.getClasse());
+                parent.getModel().getModelFor(objectSomeValuesFrom.getClasse());
             }
         }
     }
@@ -396,22 +362,22 @@ public class ClassModel {
      * Builds the class hierarchy
      */
     public void buildHierarchy() {
-        for (Class parent : classe.getAllSubClassOf()) {
-            ClassModel classModel = getModelFor(parent);
+        for (Class owlSubClass : owlClass.getAllSubClassOf()) {
+            ClassModel classModel = parent.getModel().getModelFor(owlSubClass);
             if (classModel != null && !classModel.name.equals("Thing") && !superClasses.contains(classModel)) {
                 superClasses.add(classModel);
                 classModel.subClasses.add(this);
             }
         }
-        for (Class operand : classe.getAllClassUnionOf()) {
-            ClassModel classModel = getModelFor(operand);
+        for (Class operand : owlClass.getAllClassUnionOf()) {
+            ClassModel classModel = parent.getModel().getModelFor(operand);
             if (classModel != null && !subClasses.contains(classModel)) {
                 subClasses.add(classModel);
                 classModel.superClasses.add(this);
             }
         }
-        for (Class operand : classe.getAllClassIntersectionOf()) {
-            ClassModel classModel = getModelFor(operand);
+        for (Class operand : owlClass.getAllClassIntersectionOf()) {
+            ClassModel classModel = parent.getModel().getModelFor(operand);
             if (classModel != null && !superClasses.contains(classModel)) {
                 superClasses.add(classModel);
                 classModel.subClasses.add(this);
@@ -429,13 +395,13 @@ public class ClassModel {
      * Builds the class hierarchy for union classes
      */
     public void buildUnionHierarchy() {
-        if (classe.getAllClassUnionOf().isEmpty())
+        if (owlClass.getAllClassUnionOf().isEmpty())
             return;
         List<Collection<ClassModel>> ancestors = new ArrayList<>();
-        for (Class operand : classe.getAllClassUnionOf()) {
-            ClassModel classModel = getModelFor(operand);
+        for (Class operand : owlClass.getAllClassUnionOf()) {
+            ClassModel classModel = parent.getModel().getModelFor(operand);
             if (classModel != null)
-                ancestors.add(getModelFor(operand).getSubClasses());
+                ancestors.add(parent.getModel().getModelFor(operand).getSubClasses());
         }
         Collection<ClassModel> intersection = ancestors.get(0);
         for (int i = 1; i != ancestors.size(); i++)
@@ -502,8 +468,8 @@ public class ClassModel {
         }
 
         for (ClassModel equivalent : getEquivalencyGroup()) {
-            for (ClassRestriction restriction : equivalent.classe.getAllClassRestrictions()) {
-                PropertyModel property = getModelFor(PropertyData.getRestrictedProperty(restriction));
+            for (ClassRestriction restriction : equivalent.owlClass.getAllClassRestrictions()) {
+                PropertyModel property = parent.getModel().getModelFor(PropertyData.getRestrictedProperty(restriction));
                 if (myProperties.contains(property))
                     continue;
                 // Restriction does not apply on a property for which this class is the domain
@@ -621,9 +587,9 @@ public class ClassModel {
      * @throws IOException When an IO error occurs
      */
     public void writeInterface(File folder, String header) throws IOException {
-        String classIRI = classe.getInterpretationOf() != null ? classe.getInterpretationOf().getHasIRI().getHasValue() : null;
+        String classIRI = owlClass.getInterpretationOf() != null ? owlClass.getInterpretationOf().getHasIRI().getHasValue() : null;
 
-        Writer writer = Files.getWriter(new File(folder, getName() + ".java").getAbsolutePath());
+        Writer writer = Files.getWriter(new File(folder, name + ".java").getAbsolutePath());
         String[] lines = header.split(Files.LINE_SEPARATOR);
         writer.append("/*******************************************************************************").append(Files.LINE_SEPARATOR);
         for (String line : lines) {
@@ -633,19 +599,19 @@ public class ClassModel {
         }
         writer.append(" ******************************************************************************/").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
-        writer.append("package ").append(getPackage().getFullName()).append(";").append(Files.LINE_SEPARATOR);
+        writer.append("package ").append(parent.getFullName()).append(";").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
         writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("/**").append(Files.LINE_SEPARATOR);
-        writer.append(" * Represents the base interface for ").append(getName()).append(Files.LINE_SEPARATOR);
+        writer.append(" * Represents the base interface for ").append(name).append(Files.LINE_SEPARATOR);
         if (classIRI != null)
             writer.append(" * Original OWL class is ").append(classIRI).append(Files.LINE_SEPARATOR);
         writer.append(" *").append(Files.LINE_SEPARATOR);
         writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
         writer.append(" */").append(Files.LINE_SEPARATOR);
-        writer.append("public interface ").append(getName());
+        writer.append("public interface ").append(name);
 
         boolean first = true;
         for (ClassModel parent : superClasses) {
@@ -677,7 +643,7 @@ public class ClassModel {
             return;
 
         String nameImpl = getJavaImplName();
-        String classIRI = classe.getInterpretationOf() != null ? classe.getInterpretationOf().getHasIRI().getHasValue() : null;
+        String classIRI = owlClass.getInterpretationOf() != null ? owlClass.getInterpretationOf().getHasIRI().getHasValue() : null;
         List<ClassModel> explicitImports = new ArrayList<>();
         for (ClassModel model : parent.getClasses()) {
             if (model.mustExplicitlyImport)
@@ -700,23 +666,23 @@ public class ClassModel {
         }
         writer.append(" ******************************************************************************/").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
-        writer.append("package ").append(getPackage().getModel().getBasePackage()).append(".impl;").append(Files.LINE_SEPARATOR);
+        writer.append("package ").append(parent.getModel().getBasePackage()).append(".impl;").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
-        writer.append("import ").append(getPackage().getFullName()).append(".*;").append(Files.LINE_SEPARATOR);
+        writer.append("import ").append(parent.getFullName()).append(".*;").append(Files.LINE_SEPARATOR);
         for (ClassModel importedClass : explicitImports)
-            writer.append("import ").append(getPackage().getFullName()).append(".").append(importedClass.name).append(";").append(Files.LINE_SEPARATOR);
+            writer.append("import ").append(parent.getFullName()).append(".").append(importedClass.name).append(";").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
         writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
         writer.append("/**").append(Files.LINE_SEPARATOR);
-        writer.append(" * The default implementation for ").append(getName()).append(Files.LINE_SEPARATOR);
+        writer.append(" * The default implementation for ").append(name).append(Files.LINE_SEPARATOR);
         if (classIRI != null)
             writer.append(" * Original OWL class is ").append(classIRI).append(Files.LINE_SEPARATOR);
         writer.append(" *").append(Files.LINE_SEPARATOR);
         writer.append(" * @author xOWL code generator").append(Files.LINE_SEPARATOR);
         writer.append(" */").append(Files.LINE_SEPARATOR);
-        writer.append("public class ").append(nameImpl).append(" implements ").append(getJavaName(this)).append(" {").append(Files.LINE_SEPARATOR);
+        writer.append("public class ").append(nameImpl).append(" implements ").append(name).append(" {").append(Files.LINE_SEPARATOR);
 
         List<PropertyImplementation> implementations = new ArrayList<>(getPropertyImplementations());
         Collections.sort(implementations, new Comparator<PropertyImplementation>() {
@@ -737,7 +703,7 @@ public class ClassModel {
 
         // writes constructor
         writer.append("    /**").append(Files.LINE_SEPARATOR);
-        writer.append("     * Constructor for the implementation of ").append(getName()).append(Files.LINE_SEPARATOR);
+        writer.append("     * Constructor for the implementation of ").append(name).append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
         writer.append("    public ").append(nameImpl).append("() {").append(Files.LINE_SEPARATOR);
         for (PropertyImplementation implementation : implementations) {
