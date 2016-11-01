@@ -737,13 +737,13 @@ public class PropertyImplementation extends PropertyData {
 
         List<String> inverseDomains = new ArrayList<>();
         if (implInverse != null) {
-            if (implInverse.getDomain().isAbstract()) {
-                for (ClassModel classModel : implInverse.getDomain().getSubClasses()) {
-                    if (!classModel.isAbstract() && getParentClass().isCompatibleWith(classModel))
+            if (getRangeClass().isAbstract()) {
+                for (ClassModel classModel : getRangeClass().getSubClasses()) {
+                    if (!classModel.isAbstract() && getParentClass().isCompatibleWith(implInverse.getRangeClass()))
                         inverseDomains.add(classModel.getJavaImplName());
                 }
             } else {
-                inverseDomains.add(implInverse.getDomain().getJavaImplName());
+                inverseDomains.add(getRangeClass().getJavaImplName());
             }
         }
 
