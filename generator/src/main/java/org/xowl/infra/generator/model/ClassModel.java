@@ -46,6 +46,10 @@ public class ClassModel {
      */
     private String name;
     /**
+     * Whether this class must be explicitly imported
+     */
+    private final boolean mustExplicitlyImport;
+    /**
      * The equivalent classes
      */
     private final List<ClassModel> equivalents;
@@ -310,6 +314,7 @@ public class ClassModel {
         this.parent = packageModel;
         this.classe = classe;
         this.name = name;
+        this.mustExplicitlyImport = existsInJavaLang(name);
         this.equivalents = new ArrayList<>();
         this.superClasses = new ArrayList<>();
         this.subClasses = new ArrayList<>();
@@ -338,6 +343,25 @@ public class ClassModel {
         String iri = classe.getInterpretationOf().getHasIRI().getHasValue();
         String[] parts = iri.split("#");
         return parts[parts.length - 1];
+    }
+
+    /**
+     * Gets whether the specified name is the name of a class in the java.lang package
+     *
+     * @param name The name to check
+     * @return true if this is the name of a class in the java.lang package
+     */
+    private static boolean existsInJavaLang(String name) {
+        if (name == null)
+            return false;
+        try {
+            java.lang.Class result = java.lang.Class.forName("java.lang." + name);
+            if (result != null)
+                return true;
+        } catch (ClassNotFoundException exception) {
+            // do nothing
+        }
+        return false;
     }
 
     /**
@@ -654,6 +678,17 @@ public class ClassModel {
 
         String nameImpl = getJavaImplName();
         String classIRI = classe.getInterpretationOf() != null ? classe.getInterpretationOf().getHasIRI().getHasValue() : null;
+        List<ClassModel> explicitImports = new ArrayList<>();
+        for (ClassModel model : parent.getClasses()) {
+            if (model.mustExplicitlyImport)
+                explicitImports.add(model);
+        }
+        Collections.sort(explicitImports, new Comparator<ClassModel>() {
+            @Override
+            public int compare(ClassModel c1, ClassModel c2) {
+                return c1.name.compareTo(c2.name);
+            }
+        });
 
         Writer writer = Files.getWriter(new File(folder, nameImpl + ".java").getAbsolutePath());
         String[] lines = header.split(Files.LINE_SEPARATOR);
@@ -668,18 +703,8 @@ public class ClassModel {
         writer.append("package ").append(getPackage().getModel().getBasePackage()).append(".impl;").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
         writer.append("import ").append(getPackage().getFullName()).append(".*;").append(Files.LINE_SEPARATOR);
-        boolean hasClassClass = false;
-        boolean hasClassObject = false;
-        for (ClassModel model : parent.getClasses()) {
-            if (model.name.equals("Class"))
-                hasClassClass = true;
-            if (model.name.equals("Object"))
-                hasClassObject = true;
-        }
-        if (hasClassClass)
-            writer.append("import ").append(getPackage().getFullName()).append(".Class;").append(Files.LINE_SEPARATOR);
-        if (hasClassObject)
-            writer.append("import ").append(getPackage().getFullName()).append(".Object;").append(Files.LINE_SEPARATOR);
+        for (ClassModel importedClass : explicitImports)
+            writer.append("import ").append(getPackage().getFullName()).append(".").append(importedClass.name).append(";").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
         writer.append("import java.util.*;").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
