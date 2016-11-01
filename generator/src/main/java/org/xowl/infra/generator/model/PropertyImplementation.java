@@ -749,8 +749,6 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    /**").append(Files.LINE_SEPARATOR);
         writer.append("     * Adds a value to the property ").append(name).append(Files.LINE_SEPARATOR);
-        if (implInverse != null)
-            writer.append("     * This method will also update the inverse property ").append(implInverse.getJavaName()).append(Files.LINE_SEPARATOR);
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
@@ -760,6 +758,32 @@ public class PropertyImplementation extends PropertyData {
         } else {
             writer.append("        __impl").append(name).append(" = elem;").append(Files.LINE_SEPARATOR);
         }
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Removes a value from the property ").append(name).append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    protected void doSimpleRemove").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        if (isVector()) {
+            writer.append("        __impl").append(name).append(".remove(elem);").append(Files.LINE_SEPARATOR);
+        } else {
+            writer.append("        __impl").append(name).append(" = null;").append(Files.LINE_SEPARATOR);
+        }
+        writer.append("    }").append(Files.LINE_SEPARATOR);
+        writer.append(Files.LINE_SEPARATOR);
+
+        writer.append("    /**").append(Files.LINE_SEPARATOR);
+        writer.append("     * Adds a value to the property ").append(name).append(Files.LINE_SEPARATOR);
+        if (implInverse != null)
+            writer.append("     * This method will also update the inverse property ").append(implInverse.getJavaName()).append(Files.LINE_SEPARATOR);
+        writer.append("     *").append(Files.LINE_SEPARATOR);
+        writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
+        writer.append("     */").append(Files.LINE_SEPARATOR);
+        writer.append("    private void doPropertyAdd").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("        doSimpleAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
         if (implInverse != null) {
             for (int i = 0; i != inverseDomains.size(); i++) {
                 if (i == 0) {
@@ -780,12 +804,8 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    protected void doSimpleRemove").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
-        if (isVector()) {
-            writer.append("        __impl").append(name).append(".remove(elem);").append(Files.LINE_SEPARATOR);
-        } else {
-            writer.append("        __impl").append(name).append(" = null;").append(Files.LINE_SEPARATOR);
-        }
+        writer.append("    private void doPropertyRemove").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("        doSimpleRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
         if (implInverse != null) {
             for (int i = 0; i != inverseDomains.size(); i++) {
                 if (i == 0) {
@@ -804,11 +824,11 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    protected void doTreeAdd").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    private void doGraphAdd").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
         for (PropertyImplementation ancestor : getAncestors()) {
-            writer.append("        doSimpleAdd").append(ancestor.getJavaName()).append("(elem);").append(Files.LINE_SEPARATOR);
+            writer.append("        doPropertyAdd").append(ancestor.getJavaName()).append("(elem);").append(Files.LINE_SEPARATOR);
         }
-        writer.append("        doSimpleAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        doPropertyAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
@@ -817,11 +837,11 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    protected void doTreeRemove").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    private void doGraphRemove").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
         for (PropertyImplementation ancestor : getAncestors()) {
-            writer.append("        doSimpleRemove").append(ancestor.getJavaName()).append("(elem);").append(Files.LINE_SEPARATOR);
+            writer.append("        doPropertyRemove").append(ancestor.getJavaName()).append("(elem);").append(Files.LINE_SEPARATOR);
         }
-        writer.append("        doSimpleRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        doPropertyRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
@@ -831,14 +851,14 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    protected void doDispatchAdd").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    private void doDispatchAdd").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
         for (PropertyImplementation descendant : getDescendants()) {
             writer.append("        if (elem instanceof ").append(descendant.getJavaRangeScalar()).append(") {").append(Files.LINE_SEPARATOR);
-            writer.append("            doTreeAdd").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
+            writer.append("            doGraphAdd").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
             writer.append("            return;").append(Files.LINE_SEPARATOR);
             writer.append("        }").append(Files.LINE_SEPARATOR);
         }
-        writer.append("        doTreeAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        doGraphAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
@@ -848,14 +868,14 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     *").append(Files.LINE_SEPARATOR);
         writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
-        writer.append("    protected void doDispatchRemove").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
+        writer.append("    private void doDispatchRemove").append(name).append("(").append(getJavaRangeScalar()).append(" elem) {").append(Files.LINE_SEPARATOR);
         for (PropertyImplementation descendant : getDescendants()) {
             writer.append("        if (elem instanceof ").append(descendant.getJavaRangeScalar()).append(") {").append(Files.LINE_SEPARATOR);
-            writer.append("            doTreeRemove").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
+            writer.append("            doGraphRemove").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar()).append(") elem);").append(Files.LINE_SEPARATOR);
             writer.append("            return;").append(Files.LINE_SEPARATOR);
             writer.append("        }").append(Files.LINE_SEPARATOR);
         }
-        writer.append("        doTreeRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
+        writer.append("        doGraphRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
     }
