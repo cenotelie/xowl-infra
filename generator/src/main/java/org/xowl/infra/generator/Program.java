@@ -215,7 +215,7 @@ public class Program {
         if (outputJarName != null) {
             try {
                 Builder builder = new Builder(output, debug);
-                builder.build(outputJarName);
+                builder.build(logger, outputJarName);
             } catch (Exception ex) {
                 logger.error(ex);
             }

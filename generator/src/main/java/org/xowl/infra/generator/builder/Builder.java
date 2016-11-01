@@ -18,6 +18,7 @@
 package org.xowl.infra.generator.builder;
 
 import org.xowl.infra.utils.Files;
+import org.xowl.infra.utils.logging.Logger;
 
 import javax.tools.*;
 import java.io.File;
@@ -93,11 +94,12 @@ public class Builder {
     /**
      * Builds the project to the specified jar name
      *
+     * @param logger  The logger to use
      * @param jarName The name of the jar to generate
      * @throws IOException          When an IO error occurs
      * @throws InterruptedException When the process is interrupted
      */
-    public void build(String jarName) throws IOException, InterruptedException {
+    public void build(Logger logger, String jarName) throws IOException, InterruptedException {
         // compiling
         if (folderBuild.exists())
             deleteDirectory(folderBuild);
@@ -111,7 +113,11 @@ public class Builder {
                 buildJavacParameters(),
                 null,
                 fileManager.getJavaFileObjectsFromFiles(buildSourcesList()));
-        task.call();
+        boolean success = task.call();
+        if (!success) {
+            logger.error("Failed to build");
+            return;
+        }
 
         // creating the jar
         if (folderBin.exists())
