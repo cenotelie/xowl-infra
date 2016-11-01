@@ -192,82 +192,81 @@ public class Translator {
      * @throws TranslationException When a runtime entity is not named
      */
     protected void translateAxiom(Axiom axiom) throws TranslationException {
-        java.lang.Class c = axiom.getClass();
-        if (c == Declaration.class)
+        if (axiom instanceof Declaration)
             translateAxiomDeclaration((Declaration) axiom);
-        else if (c == DatatypeDefinition.class)
+        else if (axiom instanceof DatatypeDefinition)
             translateAxiomDatatypeDefinition((DatatypeDefinition) axiom);
-        else if (c == SubClassOf.class)
+        else if (axiom instanceof SubClassOf)
             translateAxiomSubClassOf((SubClassOf) axiom);
-        else if (c == EquivalentClasses.class)
+        else if (axiom instanceof EquivalentClasses)
             translateAxiomEquivalentClasses((EquivalentClasses) axiom);
-        else if (c == DisjointClasses.class)
+        else if (axiom instanceof DisjointClasses)
             translateAxiomDisjointClasses((DisjointClasses) axiom);
-        else if (c == DisjointUnion.class)
+        else if (axiom instanceof DisjointUnion)
             translateAxiomDisjointUnion((DisjointUnion) axiom);
-        else if (c == SubObjectPropertyOf.class)
+        else if (axiom instanceof SubObjectPropertyOf)
             translateAxiomSubObjectPropertyOf((SubObjectPropertyOf) axiom);
-        else if (c == EquivalentObjectProperties.class)
+        else if (axiom instanceof EquivalentObjectProperties)
             translateAxiomEquivalentObjectProperties((EquivalentObjectProperties) axiom);
-        else if (c == DisjointObjectProperties.class)
+        else if (axiom instanceof DisjointObjectProperties)
             translateAxiomDisjointObjectProperties((DisjointObjectProperties) axiom);
-        else if (c == InverseObjectProperties.class)
+        else if (axiom instanceof InverseObjectProperties)
             translateAxiomInverseObjectProperties((InverseObjectProperties) axiom);
-        else if (c == ObjectPropertyDomain.class)
+        else if (axiom instanceof ObjectPropertyDomain)
             translateAxiomObjectPropertyDomain((ObjectPropertyDomain) axiom);
-        else if (c == ObjectPropertyRange.class)
+        else if (axiom instanceof ObjectPropertyRange)
             translateAxiomObjectPropertyRange((ObjectPropertyRange) axiom);
-        else if (c == FunctionalObjectProperty.class)
+        else if (axiom instanceof FunctionalObjectProperty)
             translateAxiomFunctionalObjectProperty((FunctionalObjectProperty) axiom);
-        else if (c == InverseFunctionalObjectProperty.class)
+        else if (axiom instanceof InverseFunctionalObjectProperty)
             translateAxiomInverseFunctionalObjectProperty((InverseFunctionalObjectProperty) axiom);
-        else if (c == ReflexiveObjectProperty.class)
+        else if (axiom instanceof ReflexiveObjectProperty)
             translateAxiomReflexiveObjectProperty((ReflexiveObjectProperty) axiom);
-        else if (c == IrreflexiveObjectProperty.class)
+        else if (axiom instanceof IrreflexiveObjectProperty)
             translateAxiomIrreflexiveObjectProperty((IrreflexiveObjectProperty) axiom);
-        else if (c == SymmetricObjectProperty.class)
+        else if (axiom instanceof SymmetricObjectProperty)
             translateAxiomSymmetricObjectProperty((SymmetricObjectProperty) axiom);
-        else if (c == AsymmetricObjectProperty.class)
+        else if (axiom instanceof AsymmetricObjectProperty)
             translateAxiomAsymmetricObjectProperty((AsymmetricObjectProperty) axiom);
-        else if (c == TransitiveObjectProperty.class)
+        else if (axiom instanceof TransitiveObjectProperty)
             translateAxiomTransitiveObjectProperty((TransitiveObjectProperty) axiom);
-        else if (c == SubDataPropertyOf.class)
+        else if (axiom instanceof SubDataPropertyOf)
             translateAxiomSubDataPropertyOf((SubDataPropertyOf) axiom);
-        else if (c == EquivalentDataProperties.class)
+        else if (axiom instanceof EquivalentDataProperties)
             translateAxiomEquivalentDataProperties((EquivalentDataProperties) axiom);
-        else if (c == DisjointDataProperties.class)
+        else if (axiom instanceof DisjointDataProperties)
             translateAxiomDisjointDataProperties((DisjointDataProperties) axiom);
-        else if (c == DataPropertyDomain.class)
+        else if (axiom instanceof DataPropertyDomain)
             translateAxiomDataPropertyDomain((DataPropertyDomain) axiom);
-        else if (c == DataPropertyRange.class)
+        else if (axiom instanceof DataPropertyRange)
             translateAxiomDataPropertyRange((DataPropertyRange) axiom);
-        else if (c == FunctionalDataProperty.class)
+        else if (axiom instanceof FunctionalDataProperty)
             translateAxiomFunctionalDataProperty((FunctionalDataProperty) axiom);
-        else if (c == SameIndividual.class)
+        else if (axiom instanceof SameIndividual)
             translateAxiomSameIndividual((SameIndividual) axiom);
-        else if (c == DifferentIndividuals.class)
+        else if (axiom instanceof DifferentIndividuals)
             translateAxiomDifferentIndividuals((DifferentIndividuals) axiom);
-        else if (c == ClassAssertion.class)
+        else if (axiom instanceof ClassAssertion)
             translateAxiomClassAssertion((ClassAssertion) axiom);
-        else if (c == ObjectPropertyAssertion.class)
+        else if (axiom instanceof ObjectPropertyAssertion)
             translateAxiomObjectPropertyAssertion((ObjectPropertyAssertion) axiom);
-        else if (c == NegativeObjectPropertyAssertion.class)
+        else if (axiom instanceof NegativeObjectPropertyAssertion)
             translateAxiomNegativeObjectPropertyAssertion((NegativeObjectPropertyAssertion) axiom);
-        else if (c == DataPropertyAssertion.class)
+        else if (axiom instanceof DataPropertyAssertion)
             translateAxiomDataPropertyAssertion((DataPropertyAssertion) axiom);
-        else if (c == NegativeDataPropertyAssertion.class)
+        else if (axiom instanceof NegativeDataPropertyAssertion)
             translateAxiomNegativeDataPropertyAssertion((NegativeDataPropertyAssertion) axiom);
-        else if (c == HasKey.class)
+        else if (axiom instanceof HasKey)
             translateAxiomHasKey((HasKey) axiom);
-        else if (c == SubAnnotationPropertyOf.class)
+        else if (axiom instanceof SubAnnotationPropertyOf)
             translateAxiomSubAnnotationPropertyOf((SubAnnotationPropertyOf) axiom);
-        else if (c == AnnotationPropertyDomain.class)
+        else if (axiom instanceof AnnotationPropertyDomain)
             translateAxiomAnnotationPropertyDomain((AnnotationPropertyDomain) axiom);
-        else if (c == AnnotationPropertyRange.class)
+        else if (axiom instanceof AnnotationPropertyRange)
             translateAxiomAnnotationPropertyRange((AnnotationPropertyRange) axiom);
-        else if (c == AnnotationAssertion.class)
+        else if (axiom instanceof AnnotationAssertion)
             translateAxiomAnnotationAssertion((AnnotationAssertion) axiom);
-        else if (c == FunctionDefinitionAxiom.class)
+        else if (axiom instanceof FunctionDefinitionAxiom)
             translateAxiomFunctionDefinition((FunctionDefinitionAxiom) axiom);
     }
 

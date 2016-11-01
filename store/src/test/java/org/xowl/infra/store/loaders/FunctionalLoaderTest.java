@@ -46,6 +46,6 @@ public class FunctionalLoaderTest {
 
     @Test
     public void testLoadingOfDefinitionOWL2() {
-        testLoading("http://xowl.org/lang/owl2");
+        testLoading("http://xowl.org/infra/lang/owl2");
     }
 }

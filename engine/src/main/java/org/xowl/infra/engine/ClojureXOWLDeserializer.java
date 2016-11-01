@@ -19,6 +19,7 @@ package org.xowl.infra.engine;
 
 import clojure.java.api.Clojure;
 import org.xowl.hime.redist.ASTNode;
+import org.xowl.infra.lang.actions.ActionsFactory;
 import org.xowl.infra.lang.actions.FunctionDefinitionAxiom;
 import org.xowl.infra.lang.actions.FunctionExpression;
 import org.xowl.infra.lang.owl2.Axiom;
@@ -76,7 +77,7 @@ public class ClojureXOWLDeserializer extends XOWLDeserializer {
         serializeClojure(builder, node.getChildren().get(2));
         ClojureFunction definition = ClojureEvaluator.register(name, builder.toString());
 
-        FunctionDefinitionAxiom axiom = new FunctionDefinitionAxiom();
+        FunctionDefinitionAxiom axiom = ActionsFactory.newFunctionDefinitionAxiom();
         loadAxiomBase(node, axiom);
         axiom.setFunction(functionExpression);
         axiom.setDefinition(definition);
