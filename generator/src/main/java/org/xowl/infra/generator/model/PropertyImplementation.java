@@ -58,7 +58,7 @@ public class PropertyImplementation extends PropertyData {
     /**
      * The implementation of the reverse property
      */
-    protected PropertyImplementation implInverse;
+    private PropertyImplementation implInverse;
 
     /**
      * Gets the range class
