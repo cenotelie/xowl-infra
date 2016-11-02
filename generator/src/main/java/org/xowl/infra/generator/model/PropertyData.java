@@ -76,66 +76,12 @@ public abstract class PropertyData {
     protected boolean inTypeRestrictionChain;
 
     /**
-     * Gets the parent class model
-     *
-     * @return The parent class model
-     */
-    public ClassModel getParentClass() {
-        return parentClass;
-    }
-
-    /**
      * Gets the associated property
      *
      * @return The associated property
      */
     public PropertyModel getModel() {
         return model;
-    }
-
-    /**
-     * Gets the range as a class
-     *
-     * @return The range as a class
-     */
-    public ClassModel getRangeClass() {
-        return rangeClass;
-    }
-
-    /**
-     * Gets the range as a datatype
-     *
-     * @return The range as a datatype
-     */
-    public DatatypeModel getRangeDatatype() {
-        return rangeDatatype;
-    }
-
-    /**
-     * Gets the minimum cardinality of this property
-     *
-     * @return The minimum cardinality of this property
-     */
-    public int getCardMin() {
-        return cardMin;
-    }
-
-    /**
-     * Gets the maximum cardinality of this property
-     *
-     * @return The maximum cardinality of this property
-     */
-    public int getCardMax() {
-        return cardMax;
-    }
-
-    /**
-     * Gets whether this property is reflexive
-     *
-     * @return Whether this property is reflexive
-     */
-    public boolean hasSelf() {
-        return hasSelf;
     }
 
     /**
@@ -153,7 +99,7 @@ public abstract class PropertyData {
      * @return The name of this property when composed in Java
      */
     public String getJavaName() {
-        String name = getModel().getName();
+        String name = model.getName();
         return String.valueOf(name.charAt(0)).toUpperCase() + name.substring(1);
     }
 
@@ -188,42 +134,6 @@ public abstract class PropertyData {
      */
     public String getDefaultValue() {
         return (model.isObjectProperty()) ? "null" : rangeDatatype.getDefaultValue();
-    }
-
-    /**
-     * Gets whether this property has static values
-     *
-     * @return Whether this property has static values
-     */
-    public boolean hasValues() {
-        return !(hasObjectValue.isEmpty() && hasDataValue.isEmpty());
-    }
-
-    /**
-     * Gets the number of static values
-     *
-     * @return the number of static values
-     */
-    public int getValuesCount() {
-        return hasObjectValue.size() + hasDataValue.size();
-    }
-
-    /**
-     * Gets the static values in the case of an object property
-     *
-     * @return The static values
-     */
-    public List<InstanceModel> hasObjectValues() {
-        return hasObjectValue;
-    }
-
-    /**
-     * Gets the static values in the case of a data property
-     *
-     * @return The static values
-     */
-    public List<Literal> hasDataValues() {
-        return hasDataValue;
     }
 
     /**

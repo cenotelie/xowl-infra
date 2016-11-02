@@ -23,7 +23,6 @@ import org.xowl.infra.utils.logging.Logger;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -35,49 +34,31 @@ public class PropertyImplementation extends PropertyData {
     /**
      * The implemented interfaces
      */
-    protected List<PropertyInterface> interfaces;
+    private final List<PropertyInterface> interfaces;
     /**
-     * The superseded interfaces
+     * The interfaces superseded by this one
      */
-    protected List<PropertyInterface> masked;
+    private final List<PropertyInterface> superseded;
     /**
      * The property domain class
      */
-    protected ClassModel propertyDomain;
+    private final ClassModel propertyDomain;
     /**
      * The property range class
      */
-    protected ClassModel propertyRange;
+    private final ClassModel propertyRange;
     /**
      * The ancestor implementations
      */
-    protected List<PropertyImplementation> implAncestors;
+    private final List<PropertyImplementation> implAncestors;
     /**
      * The descendant implementations
      */
-    protected List<PropertyImplementation> implDescendants;
+    private final List<PropertyImplementation> implDescendants;
     /**
      * The implementation of the reverse property
      */
     protected PropertyImplementation implInverse;
-
-    /**
-     * Gets the implemented interfaces
-     *
-     * @return The implemented interfaces
-     */
-    public Collection<PropertyInterface> getInterfaces() {
-        return interfaces;
-    }
-
-    /**
-     * Gets the domain class
-     *
-     * @return The domain class
-     */
-    public ClassModel getDomain() {
-        return propertyDomain;
-    }
 
     /**
      * Gets the range class
@@ -89,24 +70,6 @@ public class PropertyImplementation extends PropertyData {
     }
 
     /**
-     * Gets the ancestor implementations
-     *
-     * @return The ancestor implementations
-     */
-    public List<PropertyImplementation> getAncestors() {
-        return implAncestors;
-    }
-
-    /**
-     * Gets the descendant implementations
-     *
-     * @return The descendant implementations
-     */
-    public List<PropertyImplementation> getDescendants() {
-        return implDescendants;
-    }
-
-    /**
      * Initializes this property data
      *
      * @param classe   The parent class model
@@ -115,10 +78,9 @@ public class PropertyImplementation extends PropertyData {
     public PropertyImplementation(ClassModel classe, PropertyModel property) {
         super(classe, property);
         propertyDomain = property.getDomain();
-        if (property.isObjectProperty())
-            propertyRange = property.getRangeClass();
+        propertyRange = property.isObjectProperty() ? property.getRangeClass() : null;
         interfaces = new ArrayList<>();
-        masked = new ArrayList<>();
+        superseded = new ArrayList<>();
         implAncestors = new ArrayList<>();
         implDescendants = new ArrayList<>();
     }
@@ -131,7 +93,7 @@ public class PropertyImplementation extends PropertyData {
     public void addInterface(PropertyInterface propertyInterface) {
         for (PropertyInterface current : interfaces) {
             if (current.sameAs(propertyInterface)) {
-                masked.add(propertyInterface);
+                superseded.add(propertyInterface);
                 return;
             }
         }
@@ -152,7 +114,7 @@ public class PropertyImplementation extends PropertyData {
             }
         }
         if (!inTypeRestrictionChain) {
-            for (PropertyInterface propertyInterface : masked) {
+            for (PropertyInterface propertyInterface : superseded) {
                 if (propertyInterface.restrictType()) {
                     inTypeRestrictionChain = true;
                     break;
@@ -163,7 +125,7 @@ public class PropertyImplementation extends PropertyData {
         if (inTypeRestrictionChain) {
             for (PropertyInterface propertyInterface : interfaces)
                 propertyInterface.setInTypeRestrictionChain();
-            for (PropertyInterface propertyInterface : masked)
+            for (PropertyInterface propertyInterface : superseded)
                 propertyInterface.setInTypeRestrictionChain();
         }
 
@@ -204,7 +166,7 @@ public class PropertyImplementation extends PropertyData {
             for (PropertyModel parent : model.getSuperProperties())
                 implAncestors.add(parentClass.getPropertyImplementation(parent));
             for (int i = 0; i != implAncestors.size(); i++) {
-                for (PropertyModel parent : implAncestors.get(i).getModel().getDirectSuperProperties()) {
+                for (PropertyModel parent : implAncestors.get(i).model.getDirectSuperProperties()) {
                     PropertyImplementation impl = parentClass.getPropertyImplementation(parent);
                     if (!implAncestors.contains(impl))
                         implAncestors.add(impl);
@@ -265,7 +227,7 @@ public class PropertyImplementation extends PropertyData {
      */
     public void writeStandalone(Writer writer) throws IOException {
         boolean isInTypeRestrictionChain = false;
-        for (PropertyInterface inter : getInterfaces()) {
+        for (PropertyInterface inter : interfaces) {
             if (inter.isInTypeRestrictionChain()) {
                 isInTypeRestrictionChain = true;
                 break;
@@ -274,8 +236,8 @@ public class PropertyImplementation extends PropertyData {
 
         writeStandaloneFields(writer);
 
-        if (!getModel().isObjectProperty()) {
-            for (PropertyInterface inter : getInterfaces()) {
+        if (!model.isObjectProperty()) {
+            for (PropertyInterface inter : interfaces) {
                 if (inter.isVector()) {
                     if (isVector()) {
                         // implemented as a vector
@@ -304,16 +266,16 @@ public class PropertyImplementation extends PropertyData {
             }
         } else {
             writeStandaloneObjectMutators(writer);
-            for (PropertyInterface inter : getInterfaces()) {
+            for (PropertyInterface inter : interfaces) {
                 if (inter.isVector()) {
                     if (isVector()) {
-                        if (inter.getRangeClass() == getRangeClass()) {
+                        if (inter.rangeClass == rangeClass) {
                             writeStandaloneObjectVectorInterfaceOnVectorImplSameType(writer, inter, isInTypeRestrictionChain);
                         } else {
                             writeStandaloneObjectVectorInterfaceOnVectorImplSubType(writer, inter, isInTypeRestrictionChain);
                         }
                     } else {
-                        if (inter.getRangeClass() == getRangeClass()) {
+                        if (inter.rangeClass == rangeClass) {
                             writeStandaloneObjectVectorInterfaceOnScalarImplSameType(writer, inter, isInTypeRestrictionChain);
                         } else {
                             writeStandaloneObjectVectorInterfaceOnScalarImplSubType(writer, inter, isInTypeRestrictionChain);
@@ -321,13 +283,13 @@ public class PropertyImplementation extends PropertyData {
                     }
                 } else {
                     if (isVector()) {
-                        if (inter.getRangeClass() == getRangeClass()) {
+                        if (inter.rangeClass == rangeClass) {
                             writeStandaloneObjectScalarInterfaceOnVectorImplSameType(writer, inter, isInTypeRestrictionChain);
                         } else {
                             writeStandaloneObjectScalarInterfaceOnVectorImplSubType(writer, inter, isInTypeRestrictionChain);
                         }
                     } else {
-                        if (inter.getRangeClass() == getRangeClass()) {
+                        if (inter.rangeClass == rangeClass) {
                             writeStandaloneObjectScalarInterfaceOnScalarImplSameType(writer, inter, isInTypeRestrictionChain);
                         } else {
                             writeStandaloneObjectScalarInterfaceOnScalarImplSubType(writer, inter, isInTypeRestrictionChain);
@@ -412,10 +374,10 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        for (PropertyImplementation impl : getAncestors())
+        for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeDoSet(writer, impl);
         writeStandaloneDatatypeDoSet(writer, this);
-        for (PropertyImplementation impl : getDescendants())
+        for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoSet(writer, impl);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
@@ -441,10 +403,10 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        for (PropertyImplementation impl : getAncestors())
+        for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeDoSet(writer, impl);
         writeStandaloneDatatypeDoSet(writer, this);
-        for (PropertyImplementation impl : getDescendants())
+        for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoSet(writer, impl);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
@@ -470,10 +432,10 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public void set").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        for (PropertyImplementation impl : getAncestors())
+        for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeDoSet(writer, impl);
         writeStandaloneDatatypeDoSet(writer, this);
-        for (PropertyImplementation impl : getDescendants())
+        for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoSet(writer, impl);
         writer.append("    }").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
@@ -488,9 +450,9 @@ public class PropertyImplementation extends PropertyData {
      */
     private void writeStandaloneDatatypeCheckAdd(Writer writer, PropertyImplementation implementation) throws IOException {
         if (implementation.isVector()) {
-            if (implementation.getCardMax() != Integer.MAX_VALUE) {
-                writer.append("        if (__impl").append(implementation.getJavaName()).append(".size() >= ").append(Integer.toString(implementation.getCardMax())).append(")").append(Files.LINE_SEPARATOR);
-                writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is ").append(Integer.toString(implementation.getCardMax())).append("\");").append(Files.LINE_SEPARATOR);
+            if (implementation.cardMax != Integer.MAX_VALUE) {
+                writer.append("        if (__impl").append(implementation.getJavaName()).append(".size() >= ").append(Integer.toString(implementation.cardMax)).append(")").append(Files.LINE_SEPARATOR);
+                writer.append("            throw new IllegalArgumentException(\"Maximum cardinality is ").append(Integer.toString(implementation.cardMax)).append("\");").append(Files.LINE_SEPARATOR);
             }
         } else if (implementation.getDefaultValue().equals("null")) {
             writer.append("        if (__impl").append(implementation.getJavaName()).append(" != null)").append(Files.LINE_SEPARATOR);
@@ -587,15 +549,15 @@ public class PropertyImplementation extends PropertyData {
             writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
             writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
         }
-        for (PropertyImplementation impl : getAncestors())
+        for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeCheckAdd(writer, impl);
         writeStandaloneDatatypeCheckAdd(writer, this);
-        for (PropertyImplementation impl : getDescendants())
+        for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeCheckAdd(writer, impl);
-        for (PropertyImplementation impl : getAncestors())
+        for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeDoAdd(writer, impl);
         writeStandaloneDatatypeDoAdd(writer, this);
-        for (PropertyImplementation impl : getDescendants())
+        for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoAdd(writer, impl);
         writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
@@ -607,12 +569,12 @@ public class PropertyImplementation extends PropertyData {
             writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
             writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
         }
-        if (!getAncestors().isEmpty() || !getDescendants().isEmpty()) {
+        if (!implAncestors.isEmpty() || !implDescendants.isEmpty()) {
             writer.append("        boolean success = true;").append(Files.LINE_SEPARATOR);
-            for (PropertyImplementation impl : getAncestors())
+            for (PropertyImplementation impl : implAncestors)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
             writeStandaloneDatatypeDoRemoveCombine(writer, this);
-            for (PropertyImplementation impl : getDescendants())
+            for (PropertyImplementation impl : implDescendants)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
             writer.append("        return success;").append(Files.LINE_SEPARATOR);
         } else {
@@ -642,15 +604,15 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        for (PropertyImplementation impl : getAncestors())
+        for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeCheckAdd(writer, impl);
         writeStandaloneDatatypeCheckAdd(writer, this);
-        for (PropertyImplementation impl : getDescendants())
+        for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeCheckAdd(writer, impl);
-        for (PropertyImplementation impl : getAncestors())
+        for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeDoAdd(writer, impl);
         writeStandaloneDatatypeDoAdd(writer, this);
-        for (PropertyImplementation impl : getDescendants())
+        for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoAdd(writer, impl);
         writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
@@ -662,12 +624,12 @@ public class PropertyImplementation extends PropertyData {
             writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
             writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
         }
-        if (!getAncestors().isEmpty() || !getDescendants().isEmpty()) {
+        if (!implAncestors.isEmpty() || !implDescendants.isEmpty()) {
             writer.append("        boolean success = true;").append(Files.LINE_SEPARATOR);
-            for (PropertyImplementation impl : getAncestors())
+            for (PropertyImplementation impl : implAncestors)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
             writeStandaloneDatatypeDoRemoveCombine(writer, this);
-            for (PropertyImplementation impl : getDescendants())
+            for (PropertyImplementation impl : implDescendants)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
             writer.append("        return success;").append(Files.LINE_SEPARATOR);
         } else {
@@ -695,15 +657,15 @@ public class PropertyImplementation extends PropertyData {
 
         writer.append("    @Override").append(Files.LINE_SEPARATOR);
         writer.append("    public boolean add").append(name).append("(").append(inter.getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        for (PropertyImplementation impl : getAncestors())
+        for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeCheckAdd(writer, impl);
         writeStandaloneDatatypeCheckAdd(writer, this);
-        for (PropertyImplementation impl : getDescendants())
+        for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeCheckAdd(writer, impl);
-        for (PropertyImplementation impl : getAncestors())
+        for (PropertyImplementation impl : implAncestors)
             writeStandaloneDatatypeDoAdd(writer, impl);
         writeStandaloneDatatypeDoAdd(writer, this);
-        for (PropertyImplementation impl : getDescendants())
+        for (PropertyImplementation impl : implDescendants)
             writeStandaloneDatatypeDoAdd(writer, impl);
         writer.append("        return true;").append(Files.LINE_SEPARATOR);
         writer.append("    }").append(Files.LINE_SEPARATOR);
@@ -715,12 +677,12 @@ public class PropertyImplementation extends PropertyData {
             writer.append("        if (elem == null)").append(Files.LINE_SEPARATOR);
             writer.append("            throw new IllegalArgumentException(\"Expected a value\");").append(Files.LINE_SEPARATOR);
         }
-        if (!getAncestors().isEmpty() || !getDescendants().isEmpty()) {
+        if (!implAncestors.isEmpty() || !implDescendants.isEmpty()) {
             writer.append("        boolean success = true;").append(Files.LINE_SEPARATOR);
-            for (PropertyImplementation impl : getAncestors())
+            for (PropertyImplementation impl : implAncestors)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
             writeStandaloneDatatypeDoRemoveCombine(writer, this);
-            for (PropertyImplementation impl : getDescendants())
+            for (PropertyImplementation impl : implDescendants)
                 writeStandaloneDatatypeDoRemoveCombine(writer, impl);
             writer.append("        return success;").append(Files.LINE_SEPARATOR);
         } else {
@@ -742,13 +704,13 @@ public class PropertyImplementation extends PropertyData {
 
         List<String> inverseDomains = new ArrayList<>();
         if (implInverse != null) {
-            if (getRangeClass().isAbstract()) {
-                for (ClassModel classModel : getRangeClass().getSubClasses()) {
-                    if (!classModel.isAbstract() && getParentClass().isCompatibleWith(implInverse.getRangeClass()))
+            if (rangeClass.isAbstract()) {
+                for (ClassModel classModel : rangeClass.getSubClasses()) {
+                    if (!classModel.isAbstract() && parentClass.isCompatibleWith(implInverse.rangeClass))
                         inverseDomains.add(classModel.getJavaImplName());
                 }
             } else {
-                inverseDomains.add(getRangeClass().getJavaImplName());
+                inverseDomains.add(rangeClass.getJavaImplName());
             }
         }
 
@@ -835,7 +797,7 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
         writer.append("    private void doGraphAdd").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        for (PropertyImplementation ancestor : getAncestors()) {
+        for (PropertyImplementation ancestor : implAncestors) {
             writer.append("        doPropertyAdd").append(ancestor.getJavaName()).append("(elem);").append(Files.LINE_SEPARATOR);
         }
         writer.append("        doPropertyAdd").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
@@ -849,7 +811,7 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
         writer.append("    private void doGraphRemove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        for (PropertyImplementation ancestor : getAncestors()) {
+        for (PropertyImplementation ancestor : implAncestors) {
             writer.append("        doPropertyRemove").append(ancestor.getJavaName()).append("(elem);").append(Files.LINE_SEPARATOR);
         }
         writer.append("        doPropertyRemove").append(name).append("(elem);").append(Files.LINE_SEPARATOR);
@@ -864,7 +826,7 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     * @param elem The element value to add (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
         writer.append("    private void doDispatchAdd").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        for (PropertyImplementation descendant : getDescendants()) {
+        for (PropertyImplementation descendant : implDescendants) {
             writer.append("        if (elem instanceof ").append(descendant.getJavaRangeScalar(parentClass)).append(") {").append(Files.LINE_SEPARATOR);
             writer.append("            doGraphAdd").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
             writer.append("            return;").append(Files.LINE_SEPARATOR);
@@ -882,7 +844,7 @@ public class PropertyImplementation extends PropertyData {
         writer.append("     * @param elem The element value to remove (must not be null)").append(Files.LINE_SEPARATOR);
         writer.append("     */").append(Files.LINE_SEPARATOR);
         writer.append("    private void doDispatchRemove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem) {").append(Files.LINE_SEPARATOR);
-        for (PropertyImplementation descendant : getDescendants()) {
+        for (PropertyImplementation descendant : implDescendants) {
             writer.append("        if (elem instanceof ").append(descendant.getJavaRangeScalar(parentClass)).append(") {").append(Files.LINE_SEPARATOR);
             writer.append("            doGraphRemove").append(descendant.getJavaName()).append("((").append(descendant.getJavaRangeScalar(parentClass)).append(") elem);").append(Files.LINE_SEPARATOR);
             writer.append("            return;").append(Files.LINE_SEPARATOR);

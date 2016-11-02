@@ -225,7 +225,7 @@ public class PropertyInterface extends PropertyData {
         writer.append("    boolean remove").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
-        if (!getModel().isObjectProperty() || !isInTypeRestrictionChain()) {
+        if (!model.isObjectProperty() || !isInTypeRestrictionChain()) {
             writeJavadocGetAll(writer, name);
             writer.append("    Collection<").append(getJavaRangeVector(parentClass)).append("> getAll").append(name).append("();").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
@@ -249,7 +249,7 @@ public class PropertyInterface extends PropertyData {
         writer.append("    void set").append(name).append("(").append(getJavaRangeScalar(parentClass)).append(" elem);").append(Files.LINE_SEPARATOR);
         writer.append(Files.LINE_SEPARATOR);
 
-        if (!getModel().isObjectProperty() || !isInTypeRestrictionChain()) {
+        if (!model.isObjectProperty() || !isInTypeRestrictionChain()) {
             writeJavadocGet(writer, name);
             writer.append("    ").append(getJavaRangeScalar(parentClass)).append(" get").append(name).append("();").append(Files.LINE_SEPARATOR);
             writer.append(Files.LINE_SEPARATOR);
