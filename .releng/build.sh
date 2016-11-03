@@ -7,7 +7,7 @@ ROOT="$(dirname "$RELENG")"
 # Build
 VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -f "$ROOT/pom.xml" -Dexpression=project.version|grep -Ev '(^\[|Download\w+:)')
 echo "Building artifacts for version $VERSION"
-mvn clean install -f "$ROOT/pom.xml" -DskipTests -Dgpg.skip=true
+mvn clean install -f "$ROOT/pom.xml" -Dgpg.skip=true
 
 # Extract the core products
 cp "$ROOT/server/target/xowl-server-$VERSION-jar-with-dependencies.jar" "$RELENG/xowl-server.jar"
