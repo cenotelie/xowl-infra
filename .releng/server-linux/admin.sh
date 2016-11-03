@@ -1,10 +1,10 @@
 #!/bin/sh
 
-# custom path to java, if any
-# if left empty, the script will use 'which' to locate java
-JAVA=
-# number of seconds to wait after launching the daemon before checking it ha started correctly
+# number of seconds to wait after launching the daemon before checking it has started correctly
 STARTUP_WAIT=4
+
+SCRIPT="$(readlink -f "$0")"
+DISTRIB="$(dirname $SCRIPT)"
 
 init () {
   PID=
@@ -15,20 +15,11 @@ init () {
     # pid file exists, is the server still running?
     PID=`cat xowl-server.pid`
     PROCESS=`ps -p $PID`
-    TARGET=java
+    TARGET=sh
     if test "${PROCESS#*$TARGET}" != "$PROCESS"
     then
       ISRUNNING=true
     fi
-  fi
-  if [ -z $JAVA ]
-  then
-    JAVA=`which java`
-  fi
-  if [ -z $JAVA ]
-  then
-    echo "Cannot find java"
-    exit 1
   fi
 }
 
@@ -48,12 +39,12 @@ start () {
 
 doStart () {
   echo "==== xOWL Server Startup ====" >> log.txt
-  $JAVA -jar xowl-server.jar 1>&1 1>>log.txt  &
+  sh do-run.sh "$DISTRIB"  &
   PID="$!"
   echo $PID > xowl-server.pid
   sleep $STARTUP_WAIT
   PROCESS=`ps -p $PID`
-  TARGET=java
+  TARGET=sh
   if test "${PROCESS#*$TARGET}" != "$PROCESS"
   then
     ISRUNNING=true
@@ -70,7 +61,7 @@ stop () {
     exit 0
   else
     echo "xOWL Server is not running ..."
-    exit 1
+    exit 0
   fi
 }
 

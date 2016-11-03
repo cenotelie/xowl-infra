@@ -65,7 +65,7 @@ function onButtonRestart() {
 		return;
 	FLAG = true;
 	displayMessage("Sending command ...");
-	xowl.serverShutdown(function (code, type, content) {
+	xowl.serverRestart(function (code, type, content) {
 		FLAG = false;
 		if (code === 200) {
 			displayMessage("Server is restarting ...");

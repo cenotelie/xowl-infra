@@ -14,14 +14,15 @@ cp "$ROOT/server/target/xowl-server-$VERSION-jar-with-dependencies.jar" "$RELENG
 
 # Build the server-linux
 rm -f "$RELENG/xowl-server-$VERSION.tar.gz"
-tar -czf "$RELENG/xowl-server-$VERSION.tar.gz" LICENSE.txt -C "$RELENG" xowl-server.jar -C server-linux xowl-server.conf admin.sh install-daemon.sh uninstall-daemon.sh help.txt
+tar -czf "$RELENG/xowl-server-$VERSION.tar.gz" LICENSE.txt -C "$RELENG" xowl-server.jar -C server-linux xowl-server.conf do-run.sh admin.sh install-daemon.sh uninstall-daemon.sh help.txt
 
 # Build the server-docker
 cp "$RELENG/xowl-server.jar" "$RELENG/server-docker/xowl-server.jar"
+cp "$RELENG/server-linux/do-run.sh" "$RELENG/server-docker/do-run.sh"
 docker rmi xowl/xowl-server:$VERSION || true
 docker build -t xowl/xowl-server:$VERSION "$RELENG/server-docker"
 rm "$RELENG/server-docker/xowl-server.jar"
-
+rm "$RELENG/server-docker/do-run.sh"
 
 # Cleanup
 rm "$RELENG/xowl-server.jar"

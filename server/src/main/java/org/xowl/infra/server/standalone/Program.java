@@ -35,6 +35,15 @@ import java.util.concurrent.CountDownLatch;
  */
 public class Program {
     /**
+     * Exit code on a nominal shutdown
+     */
+    private static final int EXIT_CODE_NORMAL = 0;
+    /**
+     * Exit code on a restart request
+     */
+    private static final int EXIT_CODE_RESTART = 5;
+
+    /**
      * The main entry point
      *
      * @param args The arguments
@@ -57,6 +66,10 @@ public class Program {
      */
     private boolean shouldStop;
     /**
+     * Whether a server restart was requested
+     */
+    private boolean shouldRestart;
+    /**
      * The top controller for this application
      */
     private ServerController controller;
@@ -74,6 +87,7 @@ public class Program {
         this.configuration = new ServerConfiguration(args.length >= 1 ? args[0] : null);
         this.signal = new CountDownLatch(1);
         this.shouldStop = false;
+        this.shouldRestart = false;
     }
 
     /**
@@ -102,6 +116,11 @@ public class Program {
         }
 
         onClose();
+
+        if (shouldRestart)
+            System.exit(EXIT_CODE_RESTART);
+        else
+            System.exit(EXIT_CODE_NORMAL);
     }
 
     /**
@@ -122,12 +141,14 @@ public class Program {
                 @Override
                 public void onRequestShutdown() {
                     shouldStop = true;
+                    shouldRestart = false;
                     signal.countDown();
                 }
 
                 @Override
                 public void onRequestRestart() {
                     shouldStop = true;
+                    shouldRestart = true;
                     signal.countDown();
                 }
             };
