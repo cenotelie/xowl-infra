@@ -278,7 +278,7 @@ public class XSPReplyUtils {
      * @param contentTypes The requested content types by order of preference
      * @return The accepted content type
      */
-    private static String httpNegotiateContentType(List<String> contentTypes) {
+    public static String httpNegotiateContentType(List<String> contentTypes) {
         for (String contentType : contentTypes) {
             switch (contentType) {
                 // The SPARQL result syntaxes
