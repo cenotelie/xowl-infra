@@ -13,10 +13,12 @@ mvn install -f "$ROOT/pom.xml" -DskipTests -Dgpg.skip=true
 cp "$ROOT/server/target/xowl-server-$VERSION-jar-with-dependencies.jar" "$RELENG/xowl-server.jar"
 
 # Build the server-linux
+rm -f "$RELENG/xowl-server-$VERSION.tar.gz"
 tar -czf "$RELENG/xowl-server-$VERSION.tar.gz" LICENSE.txt -C "$RELENG" xowl-server.jar -C server-linux xowl-server.conf admin.sh install-daemon.sh uninstall-daemon.sh help.txt
 
 # Build the server-docker
 cp "$RELENG/xowl-server.jar" "$RELENG/server-docker/xowl-server.jar"
+docker rmi xowl/xowl-server:$VERSION || true
 docker build -t xowl/xowl-server:$VERSION "$RELENG/server-docker"
 rm "$RELENG/server-docker/xowl-server.jar"
 
