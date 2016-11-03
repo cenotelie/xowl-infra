@@ -17,9 +17,9 @@
 
 package org.xowl.infra.server.embedded;
 
+import org.xowl.infra.server.ServerConfiguration;
 import org.xowl.infra.server.impl.DatabaseController;
 import org.xowl.infra.server.impl.DatabaseImpl;
-import org.xowl.infra.server.impl.ServerConfiguration;
 import org.xowl.infra.server.impl.ServerController;
 import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.utils.logging.Logger;

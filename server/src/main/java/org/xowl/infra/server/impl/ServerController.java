@@ -18,6 +18,7 @@
 package org.xowl.infra.server.impl;
 
 import org.mindrot.jbcrypt.BCrypt;
+import org.xowl.infra.server.ServerConfiguration;
 import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLPrivilege;
 import org.xowl.infra.server.api.XOWLRule;
