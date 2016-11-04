@@ -48,31 +48,37 @@ function onButtonLogout() {
 function onButtonShutdown() {
 	if (FLAG)
 		return;
-	FLAG = true;
-	displayMessage("Sending command ...");
-	xowl.serverShutdown(function (code, type, content) {
-		FLAG = false;
-		if (code === 200) {
-			displayMessage("Server is shutting down ...");
-		} else {
-			displayMessage(getErrorFor(type, content));
-		}
-	});
+	var result = confirm("Shutdown the server?");
+	if (result == true) {
+		FLAG = true;
+		displayMessage("Sending command ...");
+		xowl.serverShutdown(function (code, type, content) {
+			FLAG = false;
+			if (code === 200) {
+				displayMessage("Server is shutting down ...");
+			} else {
+				displayMessage(getErrorFor(type, content));
+			}
+		});
+	}
 }
 
 function onButtonRestart() {
 	if (FLAG)
 		return;
-	FLAG = true;
-	displayMessage("Sending command ...");
-	xowl.serverRestart(function (code, type, content) {
-		FLAG = false;
-		if (code === 200) {
-			displayMessage("Server is restarting ...");
-		} else {
-			displayMessage(getErrorFor(type, content));
-		}
-	});
+	var result = confirm("Restart the server?");
+	if (result == true) {
+		FLAG = true;
+		displayMessage("Sending command ...");
+		xowl.serverRestart(function (code, type, content) {
+			FLAG = false;
+			if (code === 200) {
+				displayMessage("Server is restarting ...");
+			} else {
+				displayMessage(getErrorFor(type, content));
+			}
+		});
+	}
 }
 
 function renderDatabases(databases) {
