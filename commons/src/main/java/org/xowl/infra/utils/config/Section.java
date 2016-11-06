@@ -112,9 +112,7 @@ public class Section {
      */
     public boolean hasValue(String property, String value) {
         List<String> values = properties.get(property);
-        if (values.isEmpty())
-            return false;
-        return values.contains(value);
+        return !(values == null || values.isEmpty()) && values.contains(value);
     }
 
     /**
