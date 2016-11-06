@@ -487,6 +487,7 @@ public class DatabaseController implements Closeable {
                     configuration.remove(CONFIG_SECTION_RULES, CONFIG_ACTIVE_RULES, iri);
                     removeFromEngine = true;
                 }
+                configuration.remove(CONFIG_SECTION_RULES, CONFIG_ALL_RULES, iri);
                 configuration.save((new File(location, REPO_CONF_NAME)).getAbsolutePath(), Files.CHARSET);
             }
             File folder = new File(location, REPO_RULES);
