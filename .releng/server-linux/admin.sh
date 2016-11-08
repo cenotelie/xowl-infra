@@ -13,7 +13,7 @@ init () {
   if [ -f "xowl-server.pid" ];
   then
     # pid file exists, is the server still running?
-    PID=`cat xowl-server.pid`
+    PID=`cat "$DISTRIB/xowl-server.pid"`
     PROCESS=`ps -p $PID`
     TARGET=sh
     if test "${PROCESS#*$TARGET}" != "$PROCESS"
@@ -39,9 +39,9 @@ start () {
 
 doStart () {
   echo "==== xOWL Server Startup ====" >> log.txt
-  sh do-run.sh "$DISTRIB"  &
+  sh "$DISTRIB/do-run.sh" "$DISTRIB" &
   PID="$!"
-  echo $PID > xowl-server.pid
+  echo $PID > "$DISTRIB/xowl-server.pid"
   sleep $STARTUP_WAIT
   PROCESS=`ps -p $PID`
   TARGET=sh
@@ -67,8 +67,9 @@ stop () {
 
 doStop () {
   echo "xOWL Server stopping ..."
-  sudo kill $PID
-  rm -f xowl-server.pid
+  PGID=`ps -o pgid= -p $PID | tr -d ' '`
+  kill -TERM -$PGID
+  rm "$DISTRIB/xowl-server.pid"
   echo "xOWL Server stopped ..."
 }
 
