@@ -19,15 +19,20 @@ echo "changeset = $HASH" >> "$RELENG/xowl-server.version"
 
 # Build the server-linux
 rm -f "$RELENG/xowl-server-$VERSION.tar.gz"
-tar -czf "$RELENG/xowl-server-$VERSION.tar.gz" -C "$ROOT" LICENSE.txt -C "$RELENG" xowl-server.jar xowl-server.version -C -C "$RELENG/server-linux" xowl-server.conf do-run.sh admin.sh install-daemon.sh uninstall-daemon.sh help.txt
+tar -czf "$RELENG/xowl-server-$VERSION.tar.gz" -C "$ROOT" LICENSE.txt -C "$RELENG" xowl-server.jar xowl-server.version -C "$RELENG/server-linux" xowl-server.ini do-run.sh admin.sh install-daemon.sh uninstall-daemon.sh help.txt
 
 # Build the server-docker
 cp "$RELENG/xowl-server.jar" "$RELENG/server-docker/xowl-server.jar"
+cp "$RELENG/xowl-server.version" "$RELENG/server-docker/xowl-server.version"
+cp "$RELENG/server-linux/xowl-server.ini" "$RELENG/server-docker/xowl-server.ini"
 cp "$RELENG/server-linux/do-run.sh" "$RELENG/server-docker/do-run.sh"
 docker rmi "xowl/xowl-server:$VERSION" || true
 docker build -t "xowl/xowl-server:$VERSION" "$RELENG/server-docker"
 rm "$RELENG/server-docker/xowl-server.jar"
+rm "$RELENG/server-docker/xowl-server.version"
+rm "$RELENG/server-docker/xowl-server.ini"
 rm "$RELENG/server-docker/do-run.sh"
 
 # Cleanup
 rm "$RELENG/xowl-server.jar"
+rm "$RELENG/xowl-server.version"
