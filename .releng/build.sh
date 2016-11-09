@@ -19,8 +19,8 @@ tar -czf "$RELENG/xowl-server-$VERSION.tar.gz" LICENSE.txt -C "$RELENG" xowl-ser
 # Build the server-docker
 cp "$RELENG/xowl-server.jar" "$RELENG/server-docker/xowl-server.jar"
 cp "$RELENG/server-linux/do-run.sh" "$RELENG/server-docker/do-run.sh"
-docker rmi xowl/xowl-server:$VERSION || true
-docker build -t xowl/xowl-server:$VERSION "$RELENG/server-docker"
+docker rmi "xowl/xowl-server:$VERSION" || true
+docker build -t "xowl/xowl-server:$VERSION" "$RELENG/server-docker"
 rm "$RELENG/server-docker/xowl-server.jar"
 rm "$RELENG/server-docker/do-run.sh"
 
