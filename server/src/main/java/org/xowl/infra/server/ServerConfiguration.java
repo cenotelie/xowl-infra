@@ -39,7 +39,7 @@ public class ServerConfiguration {
     /**
      * Name of the configuration file in a startup folder
      */
-    private static final String FILE_NAME = "xowl-server.conf";
+    private static final String FILE_NAME = "xowl-server.ini";
 
     /**
      * The default configuration
