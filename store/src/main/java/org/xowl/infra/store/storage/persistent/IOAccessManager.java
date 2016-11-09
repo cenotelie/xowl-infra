@@ -20,7 +20,6 @@ package org.xowl.infra.store.storage.persistent;
 import org.xowl.infra.utils.logging.Logging;
 import org.xowl.infra.utils.metrics.MetricSnapshot;
 
-import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLongArray;
 
@@ -90,7 +89,7 @@ class IOAccessManager {
      * - int: key (access location)
      * - byte: access state (0=free, 1=active, 2=logically removed, 3=returning)
      * - byte: when returning: bit-field for remaining touching threads
-     * - byte: when returning: bit-field for remaining touching threads, when free: the index of the next free access, or 00
+     * - byte: when returning: bit-field for remaining touching threads
      * - byte: the index of the next active access
      */
     private final AtomicLongArray accessesState;
@@ -98,10 +97,6 @@ class IOAccessManager {
      * The bit-field of current threads touching the list
      */
     private final AtomicInteger accessesThreads;
-    /**
-     * The index of the next free access
-     */
-    private final AtomicInteger accessesFree;
     /**
      * The pool of free threads identifiers
      */
@@ -148,7 +143,6 @@ class IOAccessManager {
         this.accessesState.set(ACTIVE_HEAD_ID, 0x0000000001000001L);
         this.accessesState.set(ACTIVE_TAIL_ID, 0x7FFFFFFF01000001L);
         this.accessesThreads = new AtomicInteger(0);
-        this.accessesFree = new AtomicInteger(ACTIVE_HEAD_ID);
         this.threads = new AtomicInteger(0x00FFFF);
         this.totalAccesses = 0;
         this.totalTries = 0;
@@ -174,6 +168,16 @@ class IOAccessManager {
      */
     private static int stateKey(long state) {
         return (int) (state >>> 32);
+    }
+
+    /**
+     * Gets whether the state of an access indicates that the access is free
+     *
+     * @param state The state of an access
+     * @return Whether the access is free
+     */
+    private static boolean stateIsFree(long state) {
+        return (state & 0x00000000FF000000L) == 0x0000000000000000L;
     }
 
     /**
@@ -207,16 +211,6 @@ class IOAccessManager {
     }
 
     /**
-     * Gets the index of the next free access
-     *
-     * @param state The state of an access
-     * @return The index of the next free access
-     */
-    private static int stateFreeNext(long state) {
-        return (int) ((state & 0x000000000000FF00L) >>> 8);
-    }
-
-    /**
      * Gets the index of the next active access
      *
      * @param state The state of an access
@@ -227,14 +221,13 @@ class IOAccessManager {
     }
 
     /**
-     * Setups the state of a new active access
+     * Gets an active state for an access with the specified key
      *
-     * @param key        The new key for the access
-     * @param nextActive The index of the next active access
+     * @param key The new key for the access
      * @return The new state
      */
-    private static long stateSetupActive(int key, int nextActive) {
-        return ul(key) << 32 | 0x0000000001000000L | nextActive;
+    private static long stateSetActive(int key) {
+        return ul(key) << 32 | 0x0000000001000000L;
     }
 
     /**
@@ -252,10 +245,20 @@ class IOAccessManager {
      *
      * @param state          The initial state of an access
      * @param currentThreads The current threads accessing the active list
-     * @return The equivalent marked state
+     * @return The equivalent returning state
      */
     private static long stateSetReturning(long state, int currentThreads) {
         return (state & 0xFFFFFFFF000000FFL) | 0x0000000003000000L | ul(currentThreads) << 8;
+    }
+
+    /**
+     * Gets the version of the state representing a free access
+     *
+     * @param state The initial state of an access
+     * @return The equivalent free state
+     */
+    private static long stateSetFree(long state) {
+        return (state & 0xFFFFFFFF00FFFFFFL);
     }
 
     /**
@@ -267,17 +270,6 @@ class IOAccessManager {
      */
     private static long stateRemoveThread(long state, int threadIdentifier) {
         return state & ~(ul(threadIdentifier) << 8);
-    }
-
-    /**
-     * Gets the new state with a new value for the next free access
-     *
-     * @param state The initial state of an access
-     * @param next  The index of the next free access
-     * @return The new state
-     */
-    private static long stateSetNextFree(long state, int next) {
-        return (state & 0xFFFFFFFF000000FFL) | ul(next << 8);
     }
 
     /**
@@ -431,7 +423,8 @@ class IOAccessManager {
         }
 
         // setup the access to insert
-        accessesState.set(toInsert, stateSetupActive(key, rightNode));
+        long toInsertState = accessesState.get(toInsert);
+        accessesState.set(toInsert, stateSetNextActive(toInsertState, rightNode));
         // try to insert
         return (accessesState.compareAndSet(leftNode, leftNodeState, stateSetNextActive(leftNodeState, toInsert)));
     }
@@ -535,7 +528,7 @@ class IOAccessManager {
      * @throws StorageException When an IO error occurs
      */
     public IOAccess get(int location, int length, boolean writable) throws StorageException {
-        Access access = newAccess();
+        Access access = newAccess(location);
         access.setupIOData(location, length, writable);
         onAccess(listInsert(access.identifier, location));
         try {
@@ -557,7 +550,7 @@ class IOAccessManager {
      * @return The new access, or null if it cannot be obtained
      */
     public IOAccess get(int location, int length, boolean writable, IOElement element) {
-        Access access = newAccess();
+        Access access = newAccess(location);
         access.setupIOData(location, length, writable);
         access.setupIOData(element);
         onAccess(listInsert(access.identifier, location));
@@ -581,35 +574,31 @@ class IOAccessManager {
     /**
      * Resolves a free access object
      *
+     * @param key The key for the access
      * @return A free access object
      */
-    private Access newAccess() {
-        while (true) {
-            // try to reuse an existing free access
-            int nextFree = accessesFree.get();
-            if (nextFree != ACTIVE_HEAD_ID) {
-                long freeStateOld = accessesState.get(nextFree);
-                int follower = stateFreeNext(freeStateOld);
-                if (!accessesFree.compareAndSet(nextFree, follower))
-                    // not fast enough!
-                    continue;
-                return accesses[nextFree];
+    private Access newAccess(int key) {
+        int count = accessesCount.get();
+        while (count < ACCESSES_POOL_SIZE) {
+            // the pool is not full, try to grow it
+            if (accessesCount.compareAndSet(count, count + 1)) {
+                accesses[count] = new Access(count);
+                accessesState.set(count, stateSetActive(key));
+                return accesses[count];
             }
+            count = accessesCount.get();
+        }
 
-            // no free access
-            // is the pool full
-            int count = accessesCount.get();
-            if (count == ACCESSES_POOL_SIZE)
-                // the pool is full, retry to reuse a free access
-                continue;
-
-            if (!accessesCount.compareAndSet(count, count + 1))
-                // failed to grow the pool, retry
-                continue;
-
-            accesses[count] = new Access(count);
-            accessesState.set(count, 0);
-            return accesses[count];
+        // the pool is full
+        while (true) {
+            for (int i = 2; i != ACCESSES_POOL_SIZE; i++) {
+                long state = accessesState.get(i);
+                if (stateIsFree(state)) {
+                    long newState = stateSetActive(key);
+                    if (accessesState.compareAndSet(i, state, newState))
+                        return accesses[i];
+                }
+            }
         }
     }
 
@@ -645,20 +634,11 @@ class IOAccessManager {
             }
             currentState = accessesState.get(accessIdentifier);
         }
-
         if (stateThreads(currentState) != 0)
             // more threads can still touch this access
             return;
-
-        // no more thread can touch this node, return the access
-        while (true) {
-            int previousFree = accessesFree.get();
-            long newState = stateSetNextFree(currentState, previousFree);
-            accessesState.compareAndSet(accessIdentifier, currentState, newState);
-            if (accessesFree.compareAndSet(previousFree, accessIdentifier))
-                return;
-            currentState = newState;
-        }
+        // no more thread can touch this node, return the access as free again
+        accessesState.set(accessIdentifier, stateSetFree(currentState));
     }
 
     /**
