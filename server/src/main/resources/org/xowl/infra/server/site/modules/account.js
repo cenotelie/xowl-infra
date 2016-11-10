@@ -2,47 +2,39 @@
 // Provided under LGPL v3
 
 var xowl = new XOWL();
-var FLAG = false;
 
 function init() {
-	if (!xowl.isLoggedIn()) {
-		document.location.href = "../index.html";
+	doSetupPage(xowl, true, [{name: "My Account"}], function() {
+		doGetData();
+	});
+}
+
+function doGetData() {
+	if (!onOperationRequest("Loading ..."))
 		return;
-	}
-	document.getElementById("btn-logout").innerHTML = "Logout (" + xowl.getUser() + ")";
-	xowl.getUserPrivileges(function (code, type, content) {
-		if (code === 200) {
+	xowl.getUserPrivileges(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
 			renderAccesses(content.accesses);
-		} else {
-			displayMessage(getErrorFor(type, content));
 		}
 	}, xowl.getUser());
 }
 
-function onButtonLogout() {
-	xowl.logout();
-	document.location.href = "../index.html";
-}
-
 function onChangePassword() {
-	if (FLAG)
-		return;
 	var password1 = document.getElementById("field-password1").value;
 	var password2 = document.getElementById("field-password2").value;
 	if (password1 === null || password1 === "" || password2 === null || password2 === "")
 		return;
 	if (password1 !== password2) {
-		displayMessage("Passwords do not match!");
+		displayMessage("error", "Passwords do not match!");
 		return;
 	}
-	FLAG = true;
-	displayMessage("Changing password ...");
-	xowl.changePassword(function (code, type, content) {
-		FLAG = false;
-		if (code === 200) {
-			displayMessage(null);
-		} else {
-			displayMessage(getErrorFor(type, content));
+	if (!onOperationRequest("Changing password ..."))
+		return;
+	xowl.changePassword(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Your password has been updated.");
+			// update the token
+			xowl.login(function (status, type, content) {}, xowl.getUser(), password1);
 		}
 	}, password1);
 }
@@ -73,7 +65,6 @@ function renderAccesses(accesses) {
 		row.appendChild(cells[3]);
 		table.appendChild(row);
 	}
-	displayMessage(null);
 }
 
 function renderDatabase(dbName) {
