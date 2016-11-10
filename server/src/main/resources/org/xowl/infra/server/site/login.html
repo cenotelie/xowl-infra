@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Login</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="/web/assets/favicon.png">
+    <link rel="stylesheet" type="text/css" href="/web/vendors/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/web/vendors/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="/web/app.css">
+</head>
+
+<body>
+<div id="placeholder-header"></div>
+<div class="body" style="width: 50%; margin-left: 25%;">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <form onsubmit="return onLoginButton()">
+                    <div class="form-group">
+                        <label for="field-login">Login</label>
+                        <input type="text" class="form-control" id="field-login" placeholder="Login"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="field-password">Password</label>
+                        <input type="password" class="form-control" id="field-password" placeholder="Password"/>
+                    </div>
+                    <button type="submit" class="btn btn-primary" onclick="return onLoginButton()">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="placeholder-footer"></div>
+
+<script src="/web/xowl-api-server.js"></script>
+<script src="/web/xowl-api-ui.js"></script>
+<script src="login.js"></script>
+<script>init();</script>
+</body>
+
+</html>
