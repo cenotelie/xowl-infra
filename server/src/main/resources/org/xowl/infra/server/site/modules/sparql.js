@@ -13,37 +13,24 @@ var DEFAULT_QUERY =
 	"SELECT DISTINCT ?x ?y WHERE { GRAPH ?g { ?x a ?y } }";
 
 function init() {
-	if (!xowl.isLoggedIn()) {
-		document.location.href = "../index.html";
-		return;
-	}
-	if (!dbName || dbName === null || dbName === "") {
-		document.location.href = "main.html";
-		return;
-	}
-	document.getElementById("btn-logout").innerHTML = "Logout (" + xowl.getUser() + ")";
-	document.getElementById("placeholder-db").appendChild(document.createTextNode(dbName));
-	document.getElementById("placeholder-db").href = "db.html?id=" + encodeURIComponent(dbName);
-	document.getElementById("sparql").value = DEFAULT_QUERY;
-	displayMessage(null);
-}
-
-function onButtonLogout() {
-	xowl.logout();
-	document.location.href = "../index.html";
+	doSetupPage(xowl, true, [
+		{name: "Database " + dbName, uri: "db.html?id=" + encodeURIComponent(dbName)},
+		{name: "SPARQL"}], function() {
+		if (!dbName || dbName === null || dbName === "")
+			return;
+		document.getElementById("sparql").value = DEFAULT_QUERY;
+	});
 }
 
 function onExecute() {
 	var query = document.getElementById("sparql").value;
 	HISTORY.push(query);
 	renderHistory(HISTORY.length - 1);
-	displayMessage("Working ...");
+	if (!onOperationRequest("Working ..."))
+		return;
 	xowl.sparql(function (status, ct, content) {
-		if (status == 200) {
+		if (onOperationEnded(status, content)) {
 			renderSparqlResults(ct, content);
-			document.getElementById("loader").style.display = "none";
-		} else {
-			displayMessage(getErrorFor(status, content));
 		}
 	}, dbName, query);
 }
@@ -69,8 +56,8 @@ function renderHistory(index) {
 
 function renderSparqlResults(ct, content) {
 	var index = ct.indexOf(";");
-    if (index !== -1)
-        ct = ct.substring(0, index);
+	if (index !== -1)
+		ct = ct.substring(0, index);
 	if (ct === "application/sparql-results+json") {
 		var data = JSON.parse(content);
 		if (data.hasOwnProperty("boolean")) {

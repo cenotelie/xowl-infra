@@ -3,58 +3,35 @@
 
 <head>
     <meta charset="utf-8">
-    <title>xOWL Server: New Procedure</title>
+    <title>New Procedure</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/png" href="../favicon.png" />
-    <link rel="stylesheet" type="text/css" href="../vendors/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="../vendors/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="../app.css">
+    <link rel="icon" type="image/png" href="/web/assets/favicon.png">
+    <link rel="stylesheet" type="text/css" href="/web/vendors/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/web/vendors/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="/web/app.css">
 </head>
 
 <body>
-<div class="header">
-    <span style="margin-left: 5px; display: inline-block;">
-      <img class="img-responsive" src="../assets/xowl.svg" width="25px" style="display: inline-block;"/>
-      xOWL Server
-    </span>
-    <div style="display: inline-block; margin-left: 50px;">
-      <span style="display: inline-block;">
-        <ol class="breadcrumb">
-          <li><a href="main.html">Home</a></li>
-		      <li><a href="main.html" id="placeholder-db"></a></li>
-          <li class="active">New Procedure</li>
-        </ol>
-      </span>
-    </div>
-    <div style="float: right; margin-right: 20px;">
-        <div><a onclick="onButtonLogout()" style="cursor: pointer;" id="btn-logout">Logout</a></div>
-    </div>
-    <hr style="margin-top: 5px; margin-bottom: 5px;" />
-</div>
+<div id="placeholder-header"></div>
 <div class="body">
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12">
-                <div class="panel panel-default" id="loader">
-                    <div class="panel-body">
-                        <img src="../assets/xowl.gif" width="32" height="32" />
-                        <span id="loader-text">Loading ...</span>
-                    </div>
-                </div>
                 <div class="panel panel-default">
                     <div class="panel-body">
                         <div style="margin-bottom: 10px;">
                             <form>
                                 <div class="form-group">
                                     <label for="field-name">Name (IRI):</label>
-                                    <input type="text" class="form-control" id="field-name" placeholder="http://xowl.org/myDatabase/procedures/myLittleProcedure" />
+                                    <input type="text" class="form-control" id="field-name"
+                                           placeholder="http://xowl.org/myDatabase/procedures/myLittleProcedure"/>
                                 </div>
                                 <div class="form-group">
                                     <label for="field-params">Parameters:</label>
                                     <input id="field-params" class="form-control" type="text" placeholder="x, y, z"/>
                                 </div>
-                                <a class="btn btn-primary" onclick="onCreateUser()">Create</a>
+                                <a class="btn btn-primary" onclick="onCreateProcedure()">Create</a>
                             </form>
                         </div>
                         <textarea class="form-control" rows="20" id="field-definition"></textarea>
@@ -64,12 +41,12 @@
         </div>
     </div>
 </div>
-<script src="../xowl-api-server.js"></script>
-<script src="../xowl-api-ui.js"></script>
+<div id="placeholder-footer"></div>
+
+<script src="/web/xowl-api-server.js"></script>
+<script src="/web/xowl-api-ui.js"></script>
 <script src="procedure-new.js"></script>
-<script>
-    init();
-  </script>
+<script>init();</script>
 </body>
 
 </html>

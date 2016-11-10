@@ -3,7 +3,6 @@
 
 var xowl = new XOWL();
 var dbName = getParameterByName("id");
-var FLAG = false;
 var DEFAULT_RULE =
 	"PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
 	"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
@@ -18,54 +17,44 @@ var DEFAULT_RULE =
 	"}";
 
 function init() {
-	if (!xowl.isLoggedIn()) {
-		document.location.href = "../index.html";
+	doSetupPage(xowl, true, [{name: "Database " + dbName}], function() {
+		if (!dbName || dbName === null || dbName === "")
+			return;
+		document.getElementById("field-rule-definition").value = DEFAULT_RULE;
+		document.getElementById('import-file').addEventListener('change', onFileSelected, false);
+		document.getElementById("new-procedure-link").href = "procedure-new.html?db=" + encodeURIComponent(dbName);
+		var typesField = document.getElementById("import-file-type");
+		for (var i = 0; i != MIME_TYPES.length; i++) {
+			var option = document.createElement("option");
+			option.value = MIME_TYPES[i].value;
+			option.appendChild(document.createTextNode(MIME_TYPES[i].name));
+			typesField.appendChild(option);
+		}
+		doGetData();
+	});
+}
+
+function doGetData() {
+	if (!onOperationRequest("Loading ...", 4))
 		return;
-	}
-	if (!dbName || dbName === null || dbName === "") {
-		document.location.href = "main.html";
-		return;
-	}
-	document.getElementById("btn-logout").innerHTML = "Logout (" + xowl.getUser() + ")";
-	document.getElementById("placeholder-db").appendChild(document.createTextNode(dbName));
-	document.getElementById("placeholder-db").href = "db.html?id=" + encodeURIComponent(dbName);
-	document.getElementById("placeholder-db2").appendChild(document.createTextNode(dbName));
-	document.getElementById("field-rule-definition").value = DEFAULT_RULE;
-	document.getElementById('import-file').addEventListener('change', onFileSelected, false);
-	document.getElementById("new-procedure-link").href = "procedure-new.html?db=" + encodeURIComponent(dbName);
-	var typesField = document.getElementById("import-file-type");
-	for (var i = 0; i != MIME_TYPES.length; i++) {
-		var option = document.createElement("option");
-		option.value = MIME_TYPES[i].value;
-		option.appendChild(document.createTextNode(MIME_TYPES[i].name));
-		typesField.appendChild(option);
-	}
-	xowl.getEntailmentFor(function (code, type, content) {
-		if (code === 200) {
+	xowl.getEntailmentFor(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
 			document.getElementById('field-entailment').value = content;
-			xowl.getDatabasePrivileges(function (code, type, content) {
-				if (code === 200) {
-					renderAccesses(content.accesses);
-					xowl.getDBRules(function (code, type, content) {
-						if (code === 200) {
-							renderRules(content);
-							xowl.getDBProcedures(function (code, type, content) {
-                                if (code === 200) {
-                                    renderProcedures(content);
-                                } else {
-                                    displayMessage(getErrorFor(type, content));
-                                }
-                            }, dbName);
-						} else {
-							displayMessage(getErrorFor(type, content));
-						}
-					}, dbName);
-				} else {
-					displayMessage(getErrorFor(type, content));
-				}
-			}, dbName);
-		} else {
-			displayMessage(getErrorFor(type, content));
+		}
+	}, dbName);
+	xowl.getDatabasePrivileges(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			renderAccesses(content.accesses);
+		}
+	}, dbName);
+	xowl.getDBRules(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			renderRules(content);
+		}
+	}, dbName);
+	xowl.getDBProcedures(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			renderProcedures(content);
 		}
 	}, dbName);
 }
@@ -94,46 +83,33 @@ function toggleRule() {
 		panel.style.display = "none";
 }
 
-function onButtonLogout() {
-	xowl.logout();
-	document.location.href = "../index.html";
-}
-
 function onSetEntailment() {
-	if (FLAG)
-		return;
-	FLAG = true;
 	var regime = document.getElementById('field-entailment').value;
-	displayMessage("Setting entailment ...");
-	xowl.setEntailmentFor(function (code, type, content) {
-		if (code === 200) {
-			alert("OK");
-			displayMessage(null);
-		} else {
-			displayMessage(getErrorFor(type, content));
+	if (!onOperationRequest("Setting entailment ..."))
+		return;
+	xowl.setEntailmentFor(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Entailment has been set.");
 		}
 	}, dbName, regime);
 }
 
 function onDrop() {
-	if (FLAG)
+	var result = confirm("Drop database " + dbName + "?");
+	if (!result)
 		return;
-	if (!confirm("Drop database " + dbName + " (data will be erased)?"))
+	if (!onOperationRequest("Dropping database " + dbName + " ..."))
 		return;
-	FLAG = true;
-	displayMessage("Dropping database ...");
-	xowl.dropDatabase(function (code, type, content) {
-		FLAG = false;
-		if (code === 200) {
-			document.location.href = "main.html";
-		} else {
-			displayMessage(getErrorFor(type, content));
+	xowl.dropDatabase(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Dropped database " + dbName + ".");
+			waitAndGo("/web/index.html");
 		}
 	}, dbName);
 }
 
 function onFileSelected(evt) {
-    var file = evt.target.files[0];
+	var file = evt.target.files[0];
 	var mime = file.type;
 	var fileType = null;
 	for (var i = 0; i != MIME_TYPES.length; i++) {
@@ -155,8 +131,6 @@ function onFileSelected(evt) {
 }
 
 function onImport() {
-	if (FLAG)
-		return;
 	if (document.getElementById("import-file").files.length == 0)
 		return;
 	var file = document.getElementById("import-file").files[0];
@@ -172,24 +146,23 @@ function onImport() {
 		var ratio = 50 * event.loaded / event.total;
 		progressBar['aria-valuenow'] = ratio;
 		progressBar.style.width = ratio.toString() + "%";
-		displayMessage("Reading ...");
 	}
 	reader.onloadend = function (event) {
+		onOperationEnded(200, null);
 		if (reader.error !== null) {
-			displayMessage("Error: " + reader.error.toString());
 			progressBar['aria-valuenow'] = 100;
 			progressBar.style.width = "100%";
 			progressBar.classList.add("progress-bar-error");
+			displayMessage("error", "Failed to read.");
 			return;
 		}
-		displayMessage("Sending ...");
-		xowl.upload(function (code, type, content) {
-			if (code === 200) {
-				alert("OK");
-				displayMessage(null);
+		if (!onOperationRequest("Uploading ..."))
+			return;
+		xowl.upload(function (status, type, content) {
+			if (onOperationEnded(status, content)) {
+				displayMessage("success", "The file has been uploaded and imported.");
 				progressBar.classList.add("progress-bar-success");
 			} else {
-				displayMessage(getErrorFor(code, content));
 				progressBar.classList.add("progress-bar-error");
 			}
 			progressBar['aria-valuenow'] = 100;
@@ -200,109 +173,92 @@ function onImport() {
 }
 
 function onGrant() {
-	if (FLAG)
-		return;
 	var userName = document.getElementById('field-grant-user').value;
-    var privilege = document.getElementById('field-grant-right').value;
+	var privilege = document.getElementById('field-grant-right').value;
 	if (userName === null || userName === "" || privilege === null || privilege === "")
 		return;
-	FLAG = true;
-	displayMessage("Granting ...");
-	xowl.grantDB(function (code, type, content) {
-		FLAG = false;
-		if (code === 200) {
-			document.location.reload();
-		} else {
-			displayMessage(getErrorFor(type, content));
+	if (!onOperationRequest("Granting " + privilege + " access to user " + userName + " ..."))
+		return;
+	xowl.grantDB(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Granted " + privilege + " access to user " + userName + ".");
+			waitAndGo("db.html?id=" + encodeURIComponent(dbName));
 		}
 	}, dbName, privilege, userName);
 }
 
 function onRevoke(user, privilege) {
-	if (FLAG)
+	if (!onOperationRequest("Revoking " + privilege + " access to user " + user + " ..."))
 		return;
-	FLAG = true;
-	displayMessage("Revoking ...");
-	xowl.revokeDB(function (code, type, content) {
-        if (code === 200) {
-			document.location.reload();
-        } else {
-			displayMessage(getErrorFor(type, content));
-        }
+	xowl.revokeDB(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Revoked " + privilege + " access to user " + user + ".");
+			waitAndGo("db.html?id=" + encodeURIComponent(dbName));
+		}
 	}, dbName, privilege, user);
 }
 
 function onCreateRule() {
-	if (FLAG)
-		return;
 	var definition = document.getElementById('field-rule-definition').value;
 	if (definition === null || definition === "")
 		return;
-	FLAG = true;
-	displayMessage("Adding new rule ...");
-	xowl.addDBRule(function (code, type, content) {
-		FLAG = false;
-		if (code === 200) {
-			document.location.reload();
-		} else {
-			displayMessage(getErrorFor(type, content));
+	if (!onOperationRequest("Adding new rule ..."))
+		return;
+	xowl.addDBRule(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "The rule has been inserted.");
+			waitAndGo("db.html?id=" + encodeURIComponent(dbName));
 		}
 	}, dbName, definition);
 }
 
 function onDeleteRule(rule) {
-	if (FLAG)
+	var result = confirm("Remove rule " + rule.name + "?");
+	if (!result)
 		return;
-	FLAG = true;
-	displayMessage("Removing rule ...");
-	xowl.removeDBRule(function (code, type, content) {
-        if (code === 200) {
-			document.location.reload();
-        } else {
-			displayMessage(getErrorFor(type, content));
-        }
+	if (!onOperationRequest("Removing rule " + rule.name + " ..."))
+		return;
+	xowl.removeDBRule(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Removed rule " + rule.name + ".");
+			waitAndGo("db.html?id=" + encodeURIComponent(dbName));
+		}
 	}, dbName, rule.name);
 }
 
 function onActivateRule(rule) {
-	if (FLAG)
+	if (!onOperationRequest("Activating rule " + rule.name + " ..."))
 		return;
-	FLAG = true;
-	displayMessage("Activating rule ...");
-	xowl.activateDBRule(function (code, type, content) {
-        if (code === 200) {
-			document.location.reload();
-        } else {
-			displayMessage(getErrorFor(type, content));
-        }
+	xowl.activateDBRule(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Activated rule " + rule.name + ".");
+			waitAndGo("db.html?id=" + encodeURIComponent(dbName));
+		}
 	}, dbName, rule.name);
 }
 
 function onDeactivateRule(rule) {
-	if (FLAG)
+	if (!onOperationRequest("Deactivating rule " + rule.name + " ..."))
 		return;
-	FLAG = true;
-	displayMessage("Deactivating rule ...");
-	xowl.deactivateDBRule(function (code, type, content) {
-        if (code === 200) {
-			document.location.reload();
-        } else {
-			displayMessage(getErrorFor(type, content));
-        }
+	xowl.deactivateDBRule(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Deactivated rule " + rule.name + ".");
+			waitAndGo("db.html?id=" + encodeURIComponent(dbName));
+		}
 	}, dbName, rule.name);
 }
 
 function onDeleteProcedure(procedure) {
-	if (FLAG)
+	var result = confirm("Remove procedure " + procedure.name + "?");
+	if (!result)
 		return;
-	FLAG = true;
-	displayMessage("Removing procedure ...");
-	xowl.removeDBProcedure(function (code, type, content) {
-        if (code === 200) {
-			document.location.reload();
-        } else {
-			displayMessage(getErrorFor(type, content));
-        }
+	if (!onOperationRequest("Removing procedure " + procedure.name + " ..."))
+		return;
+	xowl.removeDBProcedure(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Removed procedure " + procedure.name + ".");
+			waitAndGo("db.html?id=" + encodeURIComponent(dbName));
+		}
 	}, dbName, procedure.name);
 }
 
@@ -431,7 +387,7 @@ function renderRules(rules) {
 		})(rules[i]);
 		var toggle = renderRuleToggle();
 		if (rules[i].isActive)
-		    toggle.classList.add("toggle-button-selected");
+			toggle.classList.add("toggle-button-selected");
 		(function (rule) {
 			toggle.onclick = function () {
 				if (rule.isActive)

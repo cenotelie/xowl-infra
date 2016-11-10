@@ -3,7 +3,6 @@
 
 var xowl = new XOWL();
 var dbName = getParameterByName("db");
-var FLAG = false;
 var DEFAULT_QUERY =
 	"PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
 	"PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
@@ -13,37 +12,23 @@ var DEFAULT_QUERY =
 	"SELECT DISTINCT ?x ?y WHERE { GRAPH ?g { ?x a ?y } }";
 
 function init() {
-	if (!xowl.isLoggedIn()) {
-		document.location.href = "../index.html";
-		return;
-	}
-	if (!dbName || dbName === null || dbName === "") {
-		document.location.href = "main.html";
-		return;
-	}
-	document.getElementById("btn-logout").innerHTML = "Logout (" + xowl.getUser() + ")";
-	document.getElementById("placeholder-db").appendChild(document.createTextNode(dbName));
-	document.getElementById("placeholder-db").href = "db.html?id=" + encodeURIComponent(dbName);
-	document.getElementById("field-definition").value = DEFAULT_QUERY;
-	displayMessage(null);
+	doSetupPage(xowl, true, [
+		{name: "Database " + dbName, uri: "db.html?id=" + encodeURIComponent(dbName)},
+		{name: "New Procedure"}], function() {
+		if (!dbName || dbName === null || dbName === "")
+			return;
+		document.getElementById("field-definition").value = DEFAULT_QUERY;
+	});
 }
 
-function onButtonLogout() {
-	xowl.logout();
-	document.location.href = "../index.html";
-}
-
-function onCreateUser() {
-	if (FLAG)
-		return;
+function onCreateProcedure() {
 	var name = document.getElementById("field-name").value;
 	var params = document.getElementById("field-params").value;
 	var definition = document.getElementById("field-definition").value;
 	if (name === null || name === "" || definition === null || definition === "")
 		return;
-	FLAG = true;
-	displayMessage("Creating procedure ...");
-
+	if (!onOperationRequest("Creating procedure " + name + " ..."))
+		return;
 	var parameters = [];
 	params = params === null ? [] : params.split(",");
 	for (var i = 0; i != params.length; i++) {
@@ -51,17 +36,15 @@ function onCreateUser() {
 		if (param.length > 0)
 			parameters.push(param);
 	}
-	xowl.addDBProcedure(function (code, type, content) {
-		FLAG = false;
-		if (code === 200) {
-			window.location.href = "db.html?id=" + encodeURIComponent(dbName);
-		} else {
-			displayMessage(getErrorFor(type, content));
+	xowl.addDBProcedure(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Created procedure " + name + ".");
+			waitAndGo("db.html?id=" + encodeURIComponent(dbName));
 		}
 	}, dbName, {
-	    "type": "org.xowl.infra.server.api.XOWLStoredProcedure",
-	    "name": name,
-	    "definition": definition,
-	    "parameters": parameters
+		"type": "org.xowl.infra.server.api.XOWLStoredProcedure",
+		"name": name,
+		"definition": definition,
+		"parameters": parameters
 	});
 }
