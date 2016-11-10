@@ -25,7 +25,7 @@ init () {
 
 start () {
   if [ "$IS_RUNNING" = "true" ]; then
-    echo "xOWL Server is already running!"
+    echo "xOWL Triple Store Server is already running!"
     exit 1
   else
     doStart
@@ -38,8 +38,8 @@ start () {
 }
 
 doStart () {
-  echo "==== xOWL Server Startup ====" >> log.txt
-  echo "xOWL Server starting ..."
+  echo "==== xOWL Triple Store Server Startup ====" >> log.txt
+  echo "xOWL Triple Store Server starting ..."
   sh "$DISTRIBUTION/do-run.sh" "$DISTRIBUTION" &
   PROCESS_ID="$!"
   echo "$PROCESS_ID" > "$DISTRIBUTION/xowl-server.pid"
@@ -49,10 +49,10 @@ doStart () {
   if test "${PROCESS#*$TARGET}" != "$PROCESS"
   then
     IS_RUNNING=true
-    echo "xOWL Server started."
+    echo "xOWL Triple Store Server started."
   else
     IS_RUNNING=false
-    echo "xOWL Server failed to start!"
+    echo "xOWL Triple Store Server failed to start!"
   fi
 }
 
@@ -61,13 +61,13 @@ stop () {
     doStop
     exit 0
   else
-    echo "xOWL Server is not running."
+    echo "xOWL Triple Store Server is not running."
     exit 0
   fi
 }
 
 doStop () {
-  echo "xOWL Server stopping ..."
+  echo "xOWL Triple Store Server stopping ..."
   GROUP_ID=`ps -o pgid= -p "$PROCESS_ID" | tr -d ' '`
   CHILDREN=`ps -o pid= "-$GROUP_ID" | tr -d ' '`
   kill -TERM "-$GROUP_ID"
@@ -76,7 +76,7 @@ doStop () {
     CHILDREN=`ps -o pid= "-$GROUP_ID" | tr -d ' '`
   done
   rm "$DISTRIBUTION/xowl-server.pid"
-  echo "xOWL Server stopped."
+  echo "xOWL Triple Store Server stopped."
 }
 
 restart () {
@@ -93,9 +93,9 @@ restart () {
 
 status () {
   if [ "$IS_RUNNING" = "true" ]; then
-    echo "xOWL Server is running on PID $PROCESS_ID."
+    echo "xOWL Triple Store Server is running on PID $PROCESS_ID."
   else
-    echo "xOWL Server is not running."
+    echo "xOWL Triple Store Server is not running."
   fi
   exit 0
 }

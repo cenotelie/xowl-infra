@@ -33,7 +33,7 @@ fi
 CODE=5
 while [ "$CODE" -eq 5 ]
   do
-    "$JAVA" -jar "$DISTRIBUTION/xowl-server.jar" "$TARGET" 1>&1 1>>"$DISTRIBUTION/log.txt"
+    "$JAVA" -jar "$DISTRIBUTION/xowl-server.jar" "$TARGET"
     CODE=$?
     echo "Exit code is $CODE"
 done

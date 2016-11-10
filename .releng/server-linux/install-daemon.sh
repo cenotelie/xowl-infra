@@ -3,8 +3,8 @@
 SCRIPT="$(readlink -f "$0")"
 DISTRIBUTION="$(dirname "$SCRIPT")"
 
-echo "Installing xOWL Server as daemon ..."
-echo "xOWL Server location is $DISTRIBUTION"
+echo "Installing xOWL Triple Store Server as daemon ..."
+echo "xOWL Triple Store Server location is $DISTRIBUTION"
 
 rm -f daemon.sh
 touch daemon.sh
@@ -16,8 +16,8 @@ echo "# Required-Start:    $remote_fs $syslog $time" >> daemon.sh
 echo "# Required-Stop:     $remote_fs $syslog $time" >> daemon.sh
 echo "# Default-Start:     2 3 4 5" >> daemon.sh
 echo "# Default-Stop:      0 1 6" >> daemon.sh
-echo "# Short-Description: Daemon for the xOWL Triple Store Server" >> daemon.sh
-echo "# Description:       Daemon for the xOWL Triple Store Server" >> daemon.sh
+echo "# Short-Description: Daemon for the xOWL Triple Store Triple Store Server" >> daemon.sh
+echo "# Description:       Daemon for the xOWL Triple Store Triple Store Server" >> daemon.sh
 echo "### END INIT INFO" >> daemon.sh
 echo "" >> daemon.sh
 echo "$DISTRIBUTION/admin.sh \$1" >> daemon.sh

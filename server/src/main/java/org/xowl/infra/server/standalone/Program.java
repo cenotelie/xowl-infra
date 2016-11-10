@@ -94,6 +94,7 @@ public class Program {
      * Runs this program
      */
     public void run() {
+        Logging.setDefault(new DispatchLogger(new FileLogger(new File(configuration.getStartupFolder(), "server.log")), new ConsoleLogger()));
         if (!init())
             return;
 
@@ -129,12 +130,12 @@ public class Program {
      * @return Whether the operation succeeded
      */
     private boolean init() {
+        Logging.getDefault().info("Starting the server ...");
         if (!configuration.getDatabasesFolder().exists()) {
-            System.err.println("The repository location does not exist: " + configuration.getDatabasesFolder().getAbsolutePath());
+            Logging.getDefault().error("The repository location does not exist: " + configuration.getDatabasesFolder().getAbsolutePath());
             System.exit(1);
             return false;
         }
-        Logging.setDefault(new DispatchLogger(new FileLogger(new File(configuration.getStartupFolder(), "server.log")), new ConsoleLogger()));
         try {
             controller = new ServerController(Logging.getDefault(), configuration) {
 
