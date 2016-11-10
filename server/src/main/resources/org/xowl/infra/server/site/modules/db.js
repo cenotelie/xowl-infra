@@ -315,7 +315,6 @@ function renderAccesses(accesses) {
 		row.appendChild(cells[3]);
 		table.appendChild(row);
 	}
-	displayMessage(null);
 }
 
 function renderUser(userName) {
@@ -444,7 +443,6 @@ function renderProcedures(procedures) {
 		row.appendChild(cells[1]);
 		table.appendChild(row);
 	}
-	displayMessage(null);
 }
 
 function renderProcedureName(procedure) {
