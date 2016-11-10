@@ -175,6 +175,5 @@ class Utils {
         responseHeaders.put("Access-Control-Allow-Headers", Arrays.asList("Accept", "Content-Type", "Authorization", "Cache-Control"));
         responseHeaders.put("Access-Control-Allow-Origin", Arrays.asList(origin));
         responseHeaders.put("Access-Control-Allow-Credentials", Arrays.asList("true"));
-        responseHeaders.put("Cache-Control", Arrays.asList("no-cache"));
     }
 }

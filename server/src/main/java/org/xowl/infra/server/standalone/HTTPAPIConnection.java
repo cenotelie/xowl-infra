@@ -36,6 +36,7 @@ import org.xowl.infra.utils.logging.Logging;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -82,6 +83,8 @@ class HTTPAPIConnection extends SafeRunnable {
 
     @Override
     public void doRun() {
+        // add caching headers
+        httpExchange.getResponseHeaders().put("Cache-Control", Arrays.asList("private", "no-cache", "no-store", "no-transform", "must-revalidate"));
         String method = httpExchange.getRequestMethod();
         if (Objects.equals(method, "OPTIONS")) {
             // assume a pre-flight CORS request

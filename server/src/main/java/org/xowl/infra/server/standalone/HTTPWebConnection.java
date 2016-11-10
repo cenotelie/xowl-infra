@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -53,6 +54,8 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
 
     @Override
     public void doRun() {
+        // add caching headers
+        httpExchange.getResponseHeaders().put("Cache-Control", Arrays.asList("public", "max-age=31536000", "immutable"));
         String method = httpExchange.getRequestMethod();
         if (Objects.equals(method, "OPTIONS")) {
             // assume a pre-flight CORS request
