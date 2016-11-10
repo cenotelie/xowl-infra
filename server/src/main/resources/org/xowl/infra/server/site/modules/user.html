@@ -2,133 +2,105 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <title>xOWL Server: User Edition</title>
-  <meta name="description" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/png" href="../favicon.png" />
-  <link rel="stylesheet" type="text/css" href="../vendors/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="../vendors/bootstrap-theme.min.css">
-  <link rel="stylesheet" href="../app.css">
+    <meta charset="utf-8">
+    <title>User</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="/web/assets/favicon.png">
+    <link rel="stylesheet" type="text/css" href="/web/vendors/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/web/vendors/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="/web/app.css">
 </head>
 
 <body>
-  <div class="header">
-    <span style="margin-left: 5px; display: inline-block;">
-      <img class="img-responsive" src="../assets/xowl.svg" width="25px" style="display: inline-block;"/>
-      xOWL Server
-    </span>
-    <div style="display: inline-block; margin-left: 50px;">
-      <span style="display: inline-block;">
-        <ol class="breadcrumb">
-          <li><a href="main.html">Home</a></li>
-          <li><a href="main.html" id="placeholder-user"></a></li>
-          <li class="active">Settings</li>
-        </ol>
-      </span>
-    </div>
-    <div style="float: right; margin-right: 20px;">
-      <div><a onclick="onButtonLogout()" style="cursor: pointer;" id="btn-logout">Logout</a></div>
-    </div>
-    <hr style="margin-top: 5px; margin-bottom: 5px;" />
-  </div>
-  <div class="body">
+<div id="placeholder-header"></div>
+<div class="body">
     <div class="container-fluid">
-      <div class="row">
-        <div class="col-md-8">
-          <div class="panel panel-default" id="loader">
-            <div class="panel-body">
-              <img src="../assets/xowl.gif" width="32" height="32" />
-              <span id="loader-text">Loading ...</span>
-            </div>
-          </div>
-          <div class="panel panel-default">
-            <div class="panel-body">
-              <div style="margin-bottom: 5px;">
-                Settings for user <strong id="placeholder-user2"></strong>.
-              </div>
-              <table class="table table-bordered table-hover">
-                <thead>
-                  <tr>
-                    <tr>
-                      <th style="width: 25%;">Database</th>
-                      <th style="width: 25%;">Is Admin</th>
-                      <th style="width: 25%;">Can Write</th>
-                      <th style="width: 25%;">Can Read</th>
-                    </tr>
-                  </tr>
-                </thead>
-                <tbody id="accesses">
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="panel panel-default">
-            <div class="panel-heading">
-              Grant access to database
-            </div>
-            <div class="panel-body">
-              <div class="form-group">
-                <label for="field-grant-db">Database</label>
-                <input type="text" class="form-control" id="field-grant-db" placeholder="name" />
-              </div>
-              <div class="form-group">
-                <label for="field-grant-right">Access</label>
-                <select id="field-grant-right" class="form-control">
-                  <option>READ</option>
-                  <option>WRITE</option>
-                  <option>ADMIN</option>
-                </select>
-              </div>
-              <a class="btn btn-primary" onclick="onGrant()">Grant</a>
-            </div>
-          </div>
-          <div class="panel panel-danger">
-            <div class="panel-heading">
-              Reset password
-            </div>
-            <div class="panel-body">
-              <div class="panel panel-danger">
-                <div class="panel-body">
-                  <span class="text-danger">Beware that resetting the password will make the account inaccessible to the user, unless you tell him/her the new password.</span>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                            <tr>
+                            <tr>
+                                <th style="width: 25%;">Database</th>
+                                <th style="width: 25%;">Is Admin</th>
+                                <th style="width: 25%;">Can Write</th>
+                                <th style="width: 25%;">Can Read</th>
+                            </tr>
+                            </thead>
+                            <tbody id="accesses">
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-              </div>
-              <div class="form-group">
-                <label for="field-password1">New password</label>
-                <input type="password" class="form-control" id="field-password1" placeholder="password" />
-              </div>
-              <div class="form-group">
-                <label for="field-password2">New password (the same)</label>
-                <input type="password" class="form-control" id="field-password2" placeholder="password" />
-              </div>
-              <a class="btn btn-danger" onclick="onResetPassword()">Reset password</a>
             </div>
-          </div>
-          <div class="panel panel-danger">
-            <div class="panel-heading">
-              Delete user
-            </div>
-            <div class="panel-body">
-              <div class="panel panel-danger">
-                <div class="panel-body">
-                  <span class="text-danger">This operation cannot be undone.</span>
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Grant access to database
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label for="field-grant-db">Database</label>
+                            <input type="text" class="form-control" id="field-grant-db" placeholder="name"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="field-grant-right">Access</label>
+                            <select id="field-grant-right" class="form-control">
+                                <option>READ</option>
+                                <option>WRITE</option>
+                                <option>ADMIN</option>
+                            </select>
+                        </div>
+                        <a class="btn btn-primary" onclick="onGrant()">Grant</a>
+                    </div>
                 </div>
-              </div>
-              <a class="btn btn-danger" onclick="onUserDelete()">Delete user</a>
+                <div class="panel panel-danger">
+                    <div class="panel-heading">
+                        Reset password
+                    </div>
+                    <div class="panel-body">
+                        <div class="panel panel-danger">
+                            <div class="panel-body">
+                                <span class="text-danger">Beware that resetting the password will make the account inaccessible to the user, unless you tell him/her the new password.</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="field-password1">New password</label>
+                            <input type="password" class="form-control" id="field-password1" placeholder="password"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="field-password2">New password (the same)</label>
+                            <input type="password" class="form-control" id="field-password2" placeholder="password"/>
+                        </div>
+                        <a class="btn btn-danger" onclick="onResetPassword()">Reset password</a>
+                    </div>
+                </div>
+                <div class="panel panel-danger">
+                    <div class="panel-heading">
+                        Delete user
+                    </div>
+                    <div class="panel-body">
+                        <div class="panel panel-danger">
+                            <div class="panel-body">
+                                <span class="text-danger">This operation cannot be undone.</span>
+                            </div>
+                        </div>
+                        <a class="btn btn-danger" onclick="onUserDelete()">Delete user</a>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
-  <script src="../xowl-api-server.js"></script>
-  <script src="../xowl-api-ui.js"></script>
-  <script src="user.js"></script>
-  <script>
-    init();
-  </script>
+</div>
+<div id="placeholder-footer"></div>
+
+<script src="/web/xowl-api-server.js"></script>
+<script src="/web/xowl-api-ui.js"></script>
+<script src="user.js"></script>
+<script>init();</script>
 </body>
 
 </html>

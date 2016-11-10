@@ -3,104 +3,75 @@
 
 var xowl = new XOWL();
 var userName = getParameterByName("id");
-var FLAG = false;
 
 function init() {
-	if (!xowl.isLoggedIn()) {
-		document.location.href = "../index.html";
-		return;
-	}
-	if (!userName || userName === null || userName === "") {
-		document.location.href = "main.html";
-		return;
-	}
-	document.getElementById("btn-logout").innerHTML = "Logout (" + xowl.getUser() + ")";
-	document.getElementById("placeholder-user").appendChild(document.createTextNode(userName));
-	document.getElementById("placeholder-user").href = "user.html?id=" + encodeURIComponent(userName);
-	document.getElementById("placeholder-user2").appendChild(document.createTextNode(userName));
-	xowl.getUserPrivileges(function (code, type, content) {
-		if (code === 200) {
-			renderAccesses(content.accesses);
-		} else {
-			displayMessage(getErrorFor(type, content));
-		}
-	}, userName);
-}
-
-function onButtonLogout() {
-	xowl.logout();
-	document.location.href = "../index.html";
+	doSetupPage(xowl, true, [{name: "User " + userName}], function() {
+		if (!userName || userName === null || userName === "")
+			return;
+		if (!onOperationRequest("Loading ..."))
+			return;
+		xowl.getUserPrivileges(function (status, type, content) {
+			if (onOperationEnded(status, content)) {
+				renderAccesses(content.accesses);
+			}
+		}, userName);
+	});
 }
 
 function onGrant() {
-	if (FLAG)
-		return;
 	var database = document.getElementById('field-grant-db').value;
-    var privilege = document.getElementById('field-grant-right').value;
+	var privilege = document.getElementById('field-grant-right').value;
 	if (database === null || database === "" || privilege === null || privilege === "")
 		return;
-	FLAG = true;
-	displayMessage("Granting ...");
-	xowl.grantDB(function (code, type, content) {
-		FLAG = false;
-		if (code === 200) {
-			document.location.reload();
-		} else {
-			displayMessage(getErrorFor(type, content));
+	if (!onOperationRequest("Granting " + privilege + " access to DB " + database + " ..."))
+		return;
+	xowl.grantDB(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Granted " + privilege + " access to DB " + database + ".");
+			waitAndGo("user.html?id=" + encodeURIComponent(userName));
 		}
 	}, database, privilege, userName);
 }
 
 function onRevoke(database, privilege) {
-	if (FLAG)
+	if (!onOperationRequest("Revoking " + privilege + " access to DB " + database + " ..."))
 		return;
-	FLAG = true;
-	displayMessage("Revoking ...");
-	xowl.revokeDB(function (code, type, content) {
-        if (code === 200) {
-			document.location.reload();
-        } else {
-			displayMessage(getErrorFor(type, content));
-        }
+	xowl.revokeDB(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Revoked " + privilege + " access to DB " + database + ".");
+			waitAndGo("user.html?id=" + encodeURIComponent(userName));
+		}
 	}, database, privilege, userName);
 }
 
 function onResetPassword() {
-	if (FLAG)
-		return;
 	var password1 = document.getElementById("field-password1").value;
 	var password2 = document.getElementById("field-password2").value;
 	if (password1 === null || password1 === "" || password2 === null || password2 === "")
 		return;
 	if (password1 !== password2) {
-		displayMessage("Passwords do not match!");
+		displayMessage("error", "Passwords do not match!");
 		return;
 	}
-	FLAG = true;
-	displayMessage("Resetting password ...");
-	xowl.resetPassword(function (code, type, content) {
-		FLAG = false;
-		if (code === 200) {
-			displayMessage(null);
-		} else {
-			displayMessage(getErrorFor(type, content));
+	if (!onOperationRequest("Resetting password ..."))
+		return;
+	xowl.resetPassword(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Password has been reset.");
 		}
 	}, userName, password1);
 }
 
 function onUserDelete() {
-	if (FLAG)
+	var result = confirm("Delete user " + userName + "?");
+	if (!result)
 		return;
-	if (!confirm("Delete user " + userName + " (user's privileges will be lost)?"))
+	if (!onOperationRequest("Deleting user " + userName + " ..."))
 		return;
-	FLAG = true;
-	displayMessage("Deleting user ...");
-	xowl.deleteUser(function (code, type, content) {
-		FLAG = false;
-		if (code === 200) {
-			document.location.href = "main.html";
-		} else {
-			displayMessage(getErrorFor(type, content));
+	xowl.deleteUser(function (status, type, content) {
+		if (onOperationEnded(status, content)) {
+			displayMessage("success", "Deleted user " + userName + ".");
+			waitAndGo("/web/index.html");
 		}
 	}, userName);
 }
@@ -158,7 +129,6 @@ function renderAccesses(accesses) {
 		row.appendChild(cells[3]);
 		table.appendChild(row);
 	}
-	displayMessage(null);
 }
 
 function renderDatabase(dbName) {

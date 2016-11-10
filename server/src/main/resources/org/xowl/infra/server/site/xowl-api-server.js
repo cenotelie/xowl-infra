@@ -110,11 +110,11 @@ XOWL.prototype.getDatabasePrivileges = function (callback, db) {
 }
 
 XOWL.prototype.grantDB = function (callback, db, right, login) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/privileges?action=grant&user=" + encodeURIComponent(logged) + "&access=" + encodeURIComponent(right), "POST", null, "");
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/privileges?action=grant&user=" + encodeURIComponent(login) + "&access=" + encodeURIComponent(right), "POST", null, "");
 }
 
 XOWL.prototype.revokeDB = function (callback, db, right, login) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/privileges?action=revoke&user=" + encodeURIComponent(logged) + "&access=" + encodeURIComponent(right), "POST", null, "");
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/privileges?action=revoke&user=" + encodeURIComponent(login) + "&access=" + encodeURIComponent(right), "POST", null, "");
 }
 
 XOWL.prototype.grantServerAdmin = function (callback, login) {

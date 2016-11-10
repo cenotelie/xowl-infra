@@ -411,7 +411,7 @@ public class ServerController implements Closeable {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         if (client.getName().equals(target) || checkIsServerAdmin(client))
-            return doResetPassword(client.getName(), password);
+            return doResetPassword(target, password);
         return XSPReplyUnauthorized.instance();
     }
 
