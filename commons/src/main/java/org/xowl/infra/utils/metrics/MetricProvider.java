@@ -17,26 +17,26 @@
 
 package org.xowl.infra.utils.metrics;
 
-import org.xowl.infra.utils.Serializable;
+import java.util.Collection;
 
 /**
- * Represents the snapshot value of a metric at a given time
+ * Represents an entity that can provides values for a metric
  *
- * @param <T> The type of the metric's value
- * @author Laurent wouters
+ * @author Laurent Wouters
  */
-public interface MetricSnapshot<T> extends Serializable {
+public interface MetricProvider {
     /**
-     * Gets the timestamp and the time of this snapshot
+     * Gets the metrics provided by this provider
      *
-     * @return The timestamp and the time of this snapshot
+     * @return The provided metrics
      */
-    long getTimestamp();
+    Collection<Metric> getMetrics();
 
     /**
-     * Gets the value for this snapshot
+     * Gets the last value for the specified metric
      *
-     * @return The value
+     * @param metric The requested metric
+     * @return The last value (or null if the metric is not provided)
      */
-    T getValue();
+    MetricSnapshot pollMetric(Metric metric);
 }
