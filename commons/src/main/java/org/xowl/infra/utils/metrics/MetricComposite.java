@@ -20,16 +20,17 @@ package org.xowl.infra.utils.metrics;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Base implementation of a metric
+ * Represents a composite metric (composed of other metrics)
  *
  * @author Laurent Wouters
  */
-public class MetricBase implements Metric {
+public class MetricComposite implements Metric {
     /**
      * The metric's unique identifier
      */
@@ -39,10 +40,6 @@ public class MetricBase implements Metric {
      */
     private final String name;
     /**
-     * The unit for the values of this metric
-     */
-    private final String unit;
-    /**
      * The time-to-live of a snapshot of this metric in nano-seconds
      */
     private final long snapshotTTL;
@@ -50,23 +47,41 @@ public class MetricBase implements Metric {
      * The hints for this metric
      */
     private final Collection<Couple<String, String>> hints;
+    /**
+     * The parts that compose this metric
+     */
+    private final Collection<Metric> parts;
 
     /**
      * Initializes this metric
      *
      * @param identifier  The metric's unique identifier
      * @param name        The metric's human readable name
-     * @param unit        The unit for the values of this metric
      * @param snapshotTTL The time-to-live of a snapshot of this metric in nano-seconds
-     * @param hints       The hints for this metric
+     * @param parts       The parts that compose this metric
      */
-    @SafeVarargs
-    public MetricBase(String identifier, String name, String unit, long snapshotTTL, Couple<String, String>... hints) {
+    public MetricComposite(String identifier, String name, long snapshotTTL, Metric... parts) {
         this.identifier = identifier;
         this.name = name;
-        this.unit = unit;
         this.snapshotTTL = snapshotTTL;
-        this.hints = (hints == null || hints.length == 0) ? (Collection) Collections.emptyList() : Collections.unmodifiableCollection(Arrays.asList(hints));
+        this.hints = Collections.singletonList(new Couple<>(Metric.HINT_IS_COMPOSITE, "true"));
+        this.parts = (parts == null || parts.length == 0) ? new ArrayList<Metric>() : Arrays.asList(parts);
+    }
+
+    /**
+     * Adds a part to this composite metric
+     *
+     * @param metric The part to add
+     */
+    public void addPart(Metric metric) {
+        this.parts.add(metric);
+    }
+
+    /**
+     * Removes all the parts of this metric
+     */
+    public void clearParts() {
+        parts.clear();
     }
 
     @Override
@@ -81,7 +96,7 @@ public class MetricBase implements Metric {
 
     @Override
     public String getUnit() {
-        return unit;
+        return "composite";
     }
 
     @Override
@@ -108,23 +123,19 @@ public class MetricBase implements Metric {
         builder.append(TextUtils.escapeStringJSON(identifier));
         builder.append("\", \"name\": \"");
         builder.append(TextUtils.escapeStringJSON(name));
-        builder.append("\", \"unit\": \"");
-        builder.append(TextUtils.escapeStringJSON(unit));
-        builder.append("\", \"snapshotTTL\": \"");
+        builder.append("\", \"unit\": \"composite\", \"snapshotTTL\":\"");
         builder.append(TextUtils.escapeStringJSON(Long.toString(snapshotTTL)));
-        builder.append("\", \"hints\": {");
+        builder.append("\", \"hints\": {\"");
+        builder.append(TextUtils.escapeStringJSON(Metric.HINT_IS_COMPOSITE));
+        builder.append("\": \"composite\"}, \"parts\": [");
         boolean first = true;
-        for (Couple<String, String> hint : hints) {
+        for (Metric part : parts) {
             if (!first)
                 builder.append(", ");
             first = false;
-            builder.append("\"");
-            builder.append(TextUtils.escapeStringJSON(hint.x));
-            builder.append("\": \"");
-            builder.append(TextUtils.escapeStringJSON(hint.y));
-            builder.append("\"");
+            builder.append(part.serializedJSON());
         }
-        builder.append("}}");
+        builder.append("]}");
         return builder.toString();
     }
 }

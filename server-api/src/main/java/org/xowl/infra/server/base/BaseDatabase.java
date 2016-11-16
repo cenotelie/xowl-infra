@@ -168,7 +168,12 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply getStatistics() {
+    public XSPReply getMetric() {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply getMetricSnapshot() {
         return XSPReplyFailure.instance();
     }
 

@@ -1138,20 +1138,39 @@ public class ServerController implements Closeable {
     }
 
     /**
-     * Gets the statistics for a database
+     * Gets the metric definition for a database
      *
      * @param client   The requesting client
      * @param database The target database
      * @return The protocol reply
      */
-    public XSPReply getStatistics(UserImpl client, String database) {
+    public XSPReply getDatabaseMetric(UserImpl client, String database) {
         if (client == null)
             return XSPReplyUnauthenticated.instance();
         DatabaseImpl db = doGetDatabase(database);
         if (db == null)
             return XSPReplyNotFound.instance();
         if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
-            return new XSPReplyResult<>(db.controller.getStatistics());
+            return new XSPReplyResult<>(db.controller.getMetric());
+        }
+        return XSPReplyUnauthorized.instance();
+    }
+
+    /**
+     * Gets a snapshot of the metrics for a database
+     *
+     * @param client   The requesting client
+     * @param database The target database
+     * @return The protocol reply
+     */
+    public XSPReply getDatabaseMetricSnapshot(UserImpl client, String database) {
+        if (client == null)
+            return XSPReplyUnauthenticated.instance();
+        DatabaseImpl db = doGetDatabase(database);
+        if (db == null)
+            return XSPReplyNotFound.instance();
+        if (checkIsServerAdmin(client) || checkIsDBAdmin(client, db)) {
+            return new XSPReplyResult<>(db.controller.getMetricSnapshot());
         }
         return XSPReplyUnauthorized.instance();
     }

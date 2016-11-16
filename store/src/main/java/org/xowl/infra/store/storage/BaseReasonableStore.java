@@ -69,8 +69,8 @@ class BaseReasonableStore extends BaseStore {
     }
 
     @Override
-    public void getStatistics(MetricSnapshot snapshot) {
-        groundStore.getStatistics(snapshot);
+    public MetricSnapshot getMetricSnapshot(long timestamp) {
+        return groundStore.getMetricSnapshot(timestamp);
     }
 
     @Override

@@ -45,6 +45,17 @@ public class MetricSnapshotObject<T extends Serializable> implements MetricSnaps
         this.value = value;
     }
 
+    /**
+     * Initializes this snapshot
+     *
+     * @param timestamp The timestamp for this snapshot
+     * @param value     The value of the metric
+     */
+    public MetricSnapshotObject(long timestamp, T value) {
+        this.timestamp = timestamp;
+        this.value = value;
+    }
+
     @Override
     public long getTimestamp() {
         return timestamp;

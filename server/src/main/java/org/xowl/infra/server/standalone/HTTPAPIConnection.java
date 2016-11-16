@@ -284,8 +284,10 @@ class HTTPAPIConnection extends SafeRunnable {
      * @return The response code
      */
     private int handleResourceDatabase(String method, String resource) {
+        if (resource.endsWith("/metric"))
+            return handleResourceDatabaseMetric(method, resource);
         if (resource.endsWith("/statistics"))
-            return handleResourceDatabaseStatistics(method, resource);
+            return handleResourceDatabaseMetricSnapshot(method, resource);
         if (resource.endsWith("/sparql"))
             return handleResourceDatabaseSPARQL(method, resource);
         if (resource.endsWith("/entailment"))
@@ -349,10 +351,24 @@ class HTTPAPIConnection extends SafeRunnable {
      * @param resource The accessed resource
      * @return The response code
      */
-    private int handleResourceDatabaseStatistics(String method, String resource) {
+    private int handleResourceDatabaseMetric(String method, String resource) {
+        String name = resource.substring("/db/".length(), resource.length() - "/metric".length());
+        if (method.equals("GET"))
+            return response(controller.getDatabaseMetric(client, name));
+        return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
+    }
+
+    /**
+     * Handles the request
+     *
+     * @param method   The HTTP method
+     * @param resource The accessed resource
+     * @return The response code
+     */
+    private int handleResourceDatabaseMetricSnapshot(String method, String resource) {
         String name = resource.substring("/db/".length(), resource.length() - "/statistics".length());
         if (method.equals("GET"))
-            return response(controller.getStatistics(client, name));
+            return response(controller.getDatabaseMetricSnapshot(client, name));
         return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
     }
 

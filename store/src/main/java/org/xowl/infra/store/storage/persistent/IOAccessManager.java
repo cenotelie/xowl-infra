@@ -18,7 +18,9 @@
 package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.logging.Logging;
-import org.xowl.infra.utils.metrics.MetricSnapshot;
+import org.xowl.infra.utils.metrics.Metric;
+import org.xowl.infra.utils.metrics.MetricSnapshotComposite;
+import org.xowl.infra.utils.metrics.MetricSnapshotLong;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLongArray;
@@ -109,21 +111,21 @@ class IOAccessManager {
      * The total number of tries for all accesses
      */
     private long totalTries;
-    /**
-     * The timestamp for the last update of the contention statistics
-     */
-    private long statisticsTimestamp;
 
     /**
      * Gets the current statistics for this file
      *
-     * @param file     The parent file
-     * @param snapshot The snapshot to fill
+     * @param timestamp        The timestamp to use
+     * @param snapshot         The snapshot to fill
+     * @param metricContention The metric for the thread contention
+     * @param metricAccesses   The metric for the number of accesses
      */
-    public void getStatistics(String file, MetricSnapshot snapshot) {
+    public void getStatistics(long timestamp, MetricSnapshotComposite snapshot, Metric metricContention, Metric metricAccesses) {
         long contention = totalAccesses == 0 ? 1 : totalTries / totalAccesses;
-        snapshot.add(IOAccessManager.class.getCanonicalName() + ".contention[" + file + "]", contention);
-        snapshot.add(IOAccessManager.class.getCanonicalName() + ".accesses[" + file + "]", totalAccesses);
+        snapshot.addPart(metricContention, new MetricSnapshotLong(timestamp, contention));
+        snapshot.addPart(metricAccesses, new MetricSnapshotLong(timestamp, totalAccesses));
+        totalTries = 0;
+        totalAccesses = 0;
     }
 
     /**
@@ -146,7 +148,6 @@ class IOAccessManager {
         this.threads = new AtomicInteger(0x00FFFF);
         this.totalAccesses = 0;
         this.totalTries = 0;
-        this.statisticsTimestamp = System.nanoTime();
     }
 
     /**
@@ -649,6 +650,5 @@ class IOAccessManager {
     private void onAccess(int tries) {
         totalAccesses++;
         totalTries += tries;
-        statisticsTimestamp = System.nanoTime();
     }
 }

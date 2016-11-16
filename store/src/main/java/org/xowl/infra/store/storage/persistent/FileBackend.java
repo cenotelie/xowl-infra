@@ -17,7 +17,8 @@
 
 package org.xowl.infra.store.storage.persistent;
 
-import org.xowl.infra.utils.metrics.MetricSnapshot;
+import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.metrics.*;
 
 import java.io.Closeable;
 import java.io.File;
@@ -95,6 +96,26 @@ class FileBackend implements IOBackend, Closeable {
      * The state of this file backend
      */
     private final AtomicInteger state;
+    /**
+     * The composite metric for this file
+     */
+    private final MetricComposite metricFile;
+    /**
+     * The metric for the total number of loaded blocks
+     */
+    private final Metric metricTotalBlocks;
+    /**
+     * The metric for the number of dirty blocks
+     */
+    private final Metric metricDirtyBlocks;
+    /**
+     * The metric for the thread contention over this file
+     */
+    private final Metric metricContention;
+    /**
+     * The metric for the total number of accesses to this file
+     */
+    private final Metric metricTotalAccesses;
 
     /**
      * Gets the size of this file
@@ -124,22 +145,64 @@ class FileBackend implements IOBackend, Closeable {
         this.size = new AtomicInteger(initSize());
         this.time = new AtomicLong(Long.MIN_VALUE + 1);
         this.state = new AtomicInteger(STATE_READY);
+        this.metricTotalBlocks = new MetricBase(FileBackend.class.getCanonicalName() + ".LoadedBlocks",
+                "File - Total Loaded Blocks",
+                "blocks",
+                1000000000,
+                new Couple<>(Metric.HINT_IS_NUMERIC, "true"),
+                new Couple<>(Metric.HINT_MIN_VALUE, "0"),
+                new Couple<>(Metric.HINT_MAX_VALUE, Integer.toString(FILE_MAX_LOADED_BLOCKS)));
+        this.metricDirtyBlocks = new MetricBase(FileBackend.class.getCanonicalName() + ".DirtyBlocks",
+                "File - Total Dirty Blocks",
+                "blocks",
+                1000000000,
+                new Couple<>(Metric.HINT_IS_NUMERIC, "true"),
+                new Couple<>(Metric.HINT_MIN_VALUE, "0"),
+                new Couple<>(Metric.HINT_MAX_VALUE, Integer.toString(FILE_MAX_LOADED_BLOCKS)));
+        this.metricContention = new MetricBase(FileBackend.class.getCanonicalName() + ".Contention",
+                "File - Thread Contention (Mean number of tries)",
+                "tries",
+                1000000000,
+                new Couple<>(Metric.HINT_IS_NUMERIC, "true"),
+                new Couple<>(Metric.HINT_MIN_VALUE, "0"));
+        this.metricTotalAccesses = new MetricBase(FileBackend.class.getCanonicalName() + ".TotalAccesses",
+                "File - Total Accesses",
+                "accesses",
+                1000000000,
+                new Couple<>(Metric.HINT_IS_NUMERIC, "true"),
+                new Couple<>(Metric.HINT_MIN_VALUE, "0"));
+        this.metricFile = new MetricComposite(FileBackend.class.getCanonicalName() + "[" + fileName + "]",
+                "File " + fileName,
+                1000000000,
+                metricTotalBlocks, metricDirtyBlocks, metricContention, metricTotalAccesses);
     }
 
     /**
-     * Gets the current statistics for this file
+     * Gets the composite metric for this file
      *
-     * @param snapshot The snapshot to fill
+     * @return The metric for this file
      */
-    public void getStatistics(MetricSnapshot snapshot) {
+    public Metric getMetric() {
+        return metricFile;
+    }
+
+    /**
+     * Gets a snapshot of the metrics for this file
+     *
+     * @param timestamp The timestamp to use
+     * @return The snapshot
+     */
+    public MetricSnapshot getMetricSnapshot(long timestamp) {
         int dirty = 0;
         for (int i = 0; i != blockCount.get(); i++) {
             if (blocks[i].isDirty)
                 dirty++;
         }
-        snapshot.add(FileBackend.class.getCanonicalName() + ".totalBlocks[" + fileName + "]", blockCount.get());
-        snapshot.add(FileBackend.class.getCanonicalName() + ".dirtyBlocks[" + fileName + "]", dirty);
-        accessManager.getStatistics(fileName, snapshot);
+        MetricSnapshotComposite snapshot = new MetricSnapshotComposite(timestamp);
+        snapshot.addPart(metricTotalBlocks, new MetricSnapshotInt(timestamp, blockCount.get()));
+        snapshot.addPart(metricDirtyBlocks, new MetricSnapshotInt(timestamp, dirty));
+        accessManager.getStatistics(timestamp, snapshot, metricContention, metricTotalAccesses);
+        return snapshot;
     }
 
     /**

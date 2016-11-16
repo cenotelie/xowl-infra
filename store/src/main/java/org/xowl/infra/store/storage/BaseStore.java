@@ -17,7 +17,10 @@
 
 package org.xowl.infra.store.storage;
 
+import org.xowl.infra.utils.metrics.Metric;
+import org.xowl.infra.utils.metrics.MetricComposite;
 import org.xowl.infra.utils.metrics.MetricSnapshot;
+import org.xowl.infra.utils.metrics.MetricSnapshotComposite;
 
 /**
  * Represents the public API of a data store (a dataset and a node manager)
@@ -26,11 +29,36 @@ import org.xowl.infra.utils.metrics.MetricSnapshot;
  */
 public abstract class BaseStore implements Dataset, NodeManager, AutoCloseable {
     /**
-     * Gets the current statistics for this store
-     *
-     * @param snapshot The snapshot to store
+     * The composite metric for this store
      */
-    public void getStatistics(MetricSnapshot snapshot) {
+    protected final MetricComposite metricStore;
+
+    /**
+     * Initializes this store
+     */
+    protected BaseStore() {
+        this.metricStore = new MetricComposite(BaseStore.class.getCanonicalName() + "@" + Integer.toString(hashCode()),
+                "Store",
+                1000000000);
+    }
+
+    /**
+     * Gets the composite metric for this store
+     *
+     * @return The metric for this store
+     */
+    public Metric getMetric() {
+        return metricStore;
+    }
+
+    /**
+     * Gets a snapshot of the metrics for this store
+     *
+     * @param timestamp The timestamp to use
+     * @return The snapshot
+     */
+    public MetricSnapshot getMetricSnapshot(long timestamp) {
+        return new MetricSnapshotComposite(timestamp);
     }
 
     /**

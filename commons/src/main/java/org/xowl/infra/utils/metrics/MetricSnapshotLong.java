@@ -44,6 +44,17 @@ public class MetricSnapshotLong implements MetricSnapshot<Long> {
         this.value = value;
     }
 
+    /**
+     * Initializes this snapshot
+     *
+     * @param timestamp The timestamp for this snapshot
+     * @param value     The value of the metric
+     */
+    public MetricSnapshotLong(long timestamp, long value) {
+        this.timestamp = timestamp;
+        this.value = value;
+    }
+
     @Override
     public long getTimestamp() {
         return timestamp;

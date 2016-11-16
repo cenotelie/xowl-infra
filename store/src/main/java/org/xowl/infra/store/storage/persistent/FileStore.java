@@ -18,7 +18,10 @@
 package org.xowl.infra.store.storage.persistent;
 
 import org.xowl.infra.utils.logging.Logging;
+import org.xowl.infra.utils.metrics.Metric;
+import org.xowl.infra.utils.metrics.MetricComposite;
 import org.xowl.infra.utils.metrics.MetricSnapshot;
+import org.xowl.infra.utils.metrics.MetricSnapshotComposite;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,6 +75,10 @@ class FileStore implements AutoCloseable {
      * The state of this store
      */
     private final AtomicInteger state;
+    /**
+     * The composite metric for this store
+     */
+    private final MetricComposite metricStore;
 
     /**
      * Initializes this store
@@ -100,6 +107,13 @@ class FileStore implements AutoCloseable {
             files.add(first);
         }
         this.state = new AtomicInteger(STATE_READY);
+        String fileName = (new File(directory, name + FILE_SUFFIX)).getAbsolutePath();
+        this.metricStore = new MetricComposite(FileBackend.class.getCanonicalName() + "[" + fileName + "]",
+                "File " + fileName,
+                1000000000);
+        for (FileStoreFile file : files) {
+            metricStore.addPart(file.getMetric());
+        }
     }
 
     /**
@@ -112,14 +126,26 @@ class FileStore implements AutoCloseable {
     }
 
     /**
-     * Gets the current statistics for this file
+     * Gets the composite metric for this store
      *
-     * @param snapshot The snapshot to fill
+     * @return The metric for this store
      */
-    public void getStatistics(MetricSnapshot snapshot) {
-        for (int i = 0; i != files.size(); i++) {
-            files.get(i).getStatistics(snapshot);
+    public Metric getMetric() {
+        return metricStore;
+    }
+
+    /**
+     * Gets a snapshot of the metrics for this store
+     *
+     * @param timestamp The timestamp to use
+     * @return The snapshot
+     */
+    public MetricSnapshot getMetricSnapshot(long timestamp) {
+        MetricSnapshotComposite snapshot = new MetricSnapshotComposite(timestamp);
+        for (FileStoreFile file : files) {
+            snapshot.addPart(file.getMetric(), file.getMetricSnapshot(timestamp));
         }
+        return snapshot;
     }
 
     /**
@@ -175,6 +201,7 @@ class FileStore implements AutoCloseable {
             }
         }
         files.clear();
+        metricStore.clearParts();
         try {
             FileStoreFile first = new FileStoreFile(new File(directory, getNameFor(name, 0)), false, false);
             files.add(first);
@@ -251,6 +278,7 @@ class FileStore implements AutoCloseable {
             try {
                 FileStoreFile file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false, false);
                 files.add(file);
+                metricStore.addPart(file.getMetric());
                 state.set(STATE_READY);
             } catch (StorageException exception) {
                 state.set(STATE_READY);
@@ -291,6 +319,7 @@ class FileStore implements AutoCloseable {
             try {
                 FileStoreFile file = new FileStoreFile(new File(directory, getNameFor(name, files.size())), false, false);
                 files.add(file);
+                metricStore.addPart(file.getMetric());
                 state.set(STATE_READY);
             } catch (StorageException exception) {
                 state.set(STATE_READY);

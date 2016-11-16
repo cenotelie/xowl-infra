@@ -30,6 +30,10 @@ import java.util.Collection;
  */
 public interface Metric extends Identifiable, Serializable {
     /**
+     * Hints whether this is a composite metric (composed of other metrics)
+     */
+    String HINT_IS_COMPOSITE = "isComposite";
+    /**
      * Hints whether values for this metric are numeric
      */
     String HINT_IS_NUMERIC = "isNumeric";

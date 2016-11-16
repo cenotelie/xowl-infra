@@ -188,9 +188,16 @@ public interface XOWLDatabase extends Serializable {
     XSPReply upload(Collection<Quad> quads);
 
     /**
-     * Gets the statistics for this database
+     * Gets the definition of the metrics for this database
      *
-     * @return The statistics for this database
+     * @return The definition of the metrics for this database
      */
-    XSPReply getStatistics();
+    XSPReply getMetric();
+
+    /**
+     * Gets a snapshot of the metrics for this database
+     *
+     * @return A snapshot of the metrics for this database
+     */
+    XSPReply getMetricSnapshot();
 }

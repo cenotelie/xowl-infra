@@ -25,6 +25,7 @@ import org.xowl.infra.store.storage.persistent.PersistedNodes;
 import org.xowl.infra.store.storage.persistent.StorageException;
 import org.xowl.infra.utils.logging.Logging;
 import org.xowl.infra.utils.metrics.MetricSnapshot;
+import org.xowl.infra.utils.metrics.MetricSnapshotComposite;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,12 +70,16 @@ class OnDiskStore extends BaseStore {
         persistedDataset = new PersistedDataset(persistedNodes, directory, isReadonly);
         cacheNodes = new CachedNodes();
         cacheDataset = new OnDiskStoreCache(persistedDataset);
+        metricStore.addPart(persistedNodes.getMetric());
+        metricStore.addPart(persistedDataset.getMetric());
     }
 
     @Override
-    public void getStatistics(MetricSnapshot snapshot) {
-        persistedNodes.getStatistics(snapshot);
-        persistedDataset.getStatistics(snapshot);
+    public MetricSnapshot getMetricSnapshot(long timestamp) {
+        MetricSnapshotComposite snapshot = new MetricSnapshotComposite(timestamp);
+        snapshot.addPart(persistedNodes.getMetric(), persistedNodes.getMetricSnapshot(timestamp));
+        snapshot.addPart(persistedDataset.getMetric(), persistedDataset.getMetricSnapshot(timestamp));
+        return snapshot;
     }
 
     @Override

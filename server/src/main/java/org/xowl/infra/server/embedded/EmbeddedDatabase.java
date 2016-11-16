@@ -272,7 +272,12 @@ class EmbeddedDatabase extends DatabaseImpl {
     }
 
     @Override
-    public XSPReply getStatistics() {
-        return new XSPReplyResult<>(controller.getStatistics());
+    public XSPReply getMetric() {
+        return new XSPReplyResult<>(controller.getMetric());
+    }
+
+    @Override
+    public XSPReply getMetricSnapshot() {
+        return new XSPReplyResult<>(controller.getMetricSnapshot());
     }
 }

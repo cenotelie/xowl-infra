@@ -44,6 +44,8 @@ import org.xowl.infra.utils.SHA1;
 import org.xowl.infra.utils.config.Configuration;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logger;
+import org.xowl.infra.utils.metrics.Metric;
+import org.xowl.infra.utils.metrics.MetricComposite;
 import org.xowl.infra.utils.metrics.MetricSnapshot;
 
 import java.io.*;
@@ -135,6 +137,10 @@ public class DatabaseController implements Closeable {
      * The current number of threads on this database
      */
     private final AtomicInteger currentThreads;
+    /**
+     * The composite metric for this database
+     */
+    protected final MetricComposite metricDB;
 
     /**
      * Gets the repository backing this database
@@ -162,6 +168,9 @@ public class DatabaseController implements Closeable {
         this.procedures = new HashMap<>();
         this.maxThreads = getMaxThreads(defaultMaxThread, configuration);
         this.currentThreads = new AtomicInteger(0);
+        this.metricDB = new MetricComposite(DatabaseController.class.getCanonicalName() + "@" + Integer.toString(hashCode()),
+                "Database " + location.getAbsolutePath(),
+                1000000000);
         initRepository();
     }
 
@@ -814,14 +823,21 @@ public class DatabaseController implements Closeable {
     }
 
     /**
-     * Gets the statistics for this database
+     * Gets the composite metric for this database
      *
-     * @return The statistics for this database
+     * @return The metric for this database
      */
-    public MetricSnapshot getStatistics() {
-        MetricSnapshot snapshot = new MetricSnapshot();
-        repository.getStore().getStatistics(snapshot);
-        return snapshot;
+    public Metric getMetric() {
+        return metricDB;
+    }
+
+    /**
+     * Gets a snapshot of the metrics for this database
+     *
+     * @return The snapshot
+     */
+    public MetricSnapshot getMetricSnapshot() {
+        return repository.getStore().getMetricSnapshot(System.nanoTime());
     }
 
     @Override
