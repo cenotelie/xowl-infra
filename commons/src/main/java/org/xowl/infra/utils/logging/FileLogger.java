@@ -76,8 +76,8 @@ public class FileLogger implements Logger {
         String date = DateFormat.getDateTimeInstance().format(new Date());
         try (FileOutputStream stream = new FileOutputStream(logFile, true)) {
             OutputStreamWriter writer = new OutputStreamWriter(stream, Files.CHARSET);
-            if (message instanceof Exception) {
-                Exception ex = (Exception) message;
+            if (message instanceof Throwable) {
+                Throwable ex = (Throwable) message;
                 writer.write(date + " [" + level + "] " + ex.getClass().getName() + (ex.getMessage() != null ? " " + ex.getMessage() : ""));
                 writer.write(Files.LINE_SEPARATOR);
                 for (StackTraceElement element : ex.getStackTrace()) {
