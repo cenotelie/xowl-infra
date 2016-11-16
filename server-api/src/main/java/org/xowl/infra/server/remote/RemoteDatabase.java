@@ -155,7 +155,12 @@ class RemoteDatabase extends BaseDatabase {
     }
 
     @Override
-    public XSPReply getStatistics() {
-        return server.getStatistics(name);
+    public XSPReply getMetric() {
+        return server.getMetric(name);
+    }
+
+    @Override
+    public XSPReply getMetricSnapshot() {
+        return server.getMetricSnapshot(name);
     }
 }

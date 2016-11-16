@@ -28,14 +28,12 @@ import org.xowl.infra.store.sparql.Command;
 import org.xowl.infra.store.sparql.Result;
 import org.xowl.infra.store.writers.NQuadsSerializer;
 import org.xowl.infra.utils.Files;
-import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.SingleIterator;
 import org.xowl.infra.utils.http.HttpConnection;
 import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.BufferedLogger;
 import org.xowl.infra.utils.logging.Logging;
-import org.xowl.infra.utils.metrics.MetricSnapshot;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -498,12 +496,24 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     }
 
     /**
-     * Gets the statistics for a database
+     * Gets the definition of the metrics for a database
      *
      * @param database The target database
-     * @return The statistics for the database
+     * @return The definition of the metrics for a database
      */
-    XSPReply getStatistics(String database) {
+    XSPReply getMetric(String database) {
+        if (connection == null)
+            return XSPReplyNetworkError.instance();
+        return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/metric", "GET", HttpConstants.MIME_JSON), this);
+    }
+
+    /**
+     * Gets a snapshot of the metrics for a database
+     *
+     * @param database The target database
+     * @return A snapshot of the metrics for a database
+     */
+    XSPReply getMetricSnapshot(String database) {
         if (connection == null)
             return XSPReplyNetworkError.instance();
         return XSPReplyUtils.fromHttpResponse(connection.request("/db/" + URIUtils.encodeComponent(database) + "/statistics", "GET", HttpConstants.MIME_JSON), this);
@@ -521,16 +531,6 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
             return new BaseUser(definition);
         } else if (XOWLUserPrivileges.class.getCanonicalName().equals(type)) {
             return new BaseUserPrivileges(definition);
-        } else if (MetricSnapshot.class.getCanonicalName().equals(type)) {
-            MetricSnapshot result = new MetricSnapshot();
-            for (ASTNode nodeMap : definition.getChildren()) {
-                String id = TextUtils.unescape(nodeMap.getChildren().get(0).getValue());
-                String value = TextUtils.unescape(nodeMap.getChildren().get(1).getValue());
-                id = id.substring(1, id.length() - 1);
-                value = value.substring(1, value.length() - 1);
-                result.add(id, value);
-            }
-            return result;
         }
         return null;
     }
