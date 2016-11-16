@@ -159,18 +159,13 @@ public class DatabaseController implements Closeable {
      * @throws Exception When the location cannot be accessed
      */
     public DatabaseController(File location, int defaultMaxThread) throws Exception {
-        //this.name = confServer.getAdminDBName();
-        //this.name = (String) proxy.getDataValue(Schema.ADMIN_NAME);
-        //this.proxy = repository.resolveProxy(Schema.ADMIN_GRAPH_DBS + confServer.getAdminDBName());
         this.location = location;
         this.configuration = loadConfiguration(location);
         this.repository = createRepository(configuration, location);
         this.procedures = new HashMap<>();
         this.maxThreads = getMaxThreads(defaultMaxThread, configuration);
         this.currentThreads = new AtomicInteger(0);
-        this.metricDB = new MetricComposite(DatabaseController.class.getCanonicalName() + "@" + Integer.toString(hashCode()),
-                "Database " + location.getAbsolutePath(),
-                1000000000);
+        this.metricDB = new MetricComposite((MetricComposite) repository.getStore().getMetric(), "Database " + location.getAbsolutePath());
         initRepository();
     }
 

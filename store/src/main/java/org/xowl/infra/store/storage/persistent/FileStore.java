@@ -109,7 +109,7 @@ class FileStore implements AutoCloseable {
         this.state = new AtomicInteger(STATE_READY);
         String fileName = (new File(directory, name + FILE_SUFFIX)).getAbsolutePath();
         this.metricStore = new MetricComposite(FileBackend.class.getCanonicalName() + "[" + fileName + "]",
-                "File " + fileName,
+                "File Store " + fileName,
                 1000000000);
         for (FileStoreFile file : files) {
             metricStore.addPart(file.getMetric());

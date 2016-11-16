@@ -21,6 +21,7 @@ import org.xowl.infra.lang.owl2.AnonymousIndividual;
 import org.xowl.infra.store.IRIs;
 import org.xowl.infra.store.RDFUtils;
 import org.xowl.infra.store.rdf.*;
+import org.xowl.infra.utils.metrics.Metric;
 import org.xowl.infra.utils.metrics.MetricSnapshot;
 
 import java.util.ArrayList;
@@ -66,6 +67,10 @@ class BaseReasonableStore extends BaseStore {
         this.aggregate = new AggregateDataset(groundStore, volatileStore);
         this.graphInference = volatileStore.getIRINode(IRIs.GRAPH_INFERENCE);
         this.graphMeta = volatileStore.getIRINode(IRIs.GRAPH_META);
+    }
+
+    public Metric getMetric() {
+        return groundStore.getMetric();
     }
 
     @Override

@@ -92,7 +92,7 @@ public class MetricSnapshotComposite implements MetricSnapshot<Object> {
     public String serializedJSON() {
         StringBuilder builder = new StringBuilder("{\"type\": \"");
         builder.append(TextUtils.escapeStringJSON(MetricSnapshot.class.getCanonicalName()));
-        builder.append("\"parts\": {");
+        builder.append("\", \"parts\": {");
         boolean first = true;
         for (Couple<Metric, MetricSnapshot> part : parts) {
             if (!first)

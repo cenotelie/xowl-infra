@@ -20,6 +20,7 @@ package org.xowl.infra.utils.metrics;
 import org.xowl.infra.utils.TextUtils;
 import org.xowl.infra.utils.collections.Couple;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,6 +68,20 @@ public class MetricBase implements Metric {
         this.unit = unit;
         this.snapshotTTL = snapshotTTL;
         this.hints = (hints == null || hints.length == 0) ? (Collection) Collections.emptyList() : Collections.unmodifiableCollection(Arrays.asList(hints));
+    }
+
+    /**
+     * Initializes this metric as a proxy for a other one
+     *
+     * @param original The original to proxy
+     * @param name     The metric's human readable name
+     */
+    public MetricBase(Metric original, String name) {
+        this.identifier = original.getIdentifier();
+        this.name = name;
+        this.unit = original.getUnit();
+        this.snapshotTTL = original.getSnapshotTimeToLive();
+        this.hints = new ArrayList<>(original.getHints());
     }
 
     @Override

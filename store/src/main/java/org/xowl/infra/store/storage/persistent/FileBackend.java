@@ -172,7 +172,7 @@ class FileBackend implements IOBackend, Closeable {
                 new Couple<>(Metric.HINT_IS_NUMERIC, "true"),
                 new Couple<>(Metric.HINT_MIN_VALUE, "0"));
         this.metricFile = new MetricComposite(FileBackend.class.getCanonicalName() + "[" + fileName + "]",
-                "File " + fileName,
+                "Physical File " + fileName,
                 1000000000,
                 metricTotalBlocks, metricDirtyBlocks, metricContention, metricTotalAccesses);
     }

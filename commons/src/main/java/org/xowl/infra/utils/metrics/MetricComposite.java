@@ -69,6 +69,20 @@ public class MetricComposite implements Metric {
     }
 
     /**
+     * Initializes this metric as a proxy for a other one
+     *
+     * @param original The original to proxy
+     * @param name     The metric's human readable name
+     */
+    public MetricComposite(MetricComposite original, String name) {
+        this.identifier = original.identifier;
+        this.name = name;
+        this.snapshotTTL = original.snapshotTTL;
+        this.hints = new ArrayList<>(original.hints);
+        this.parts = new ArrayList<>(original.parts);
+    }
+
+    /**
      * Adds a part to this composite metric
      *
      * @param metric The part to add
@@ -127,7 +141,7 @@ public class MetricComposite implements Metric {
         builder.append(TextUtils.escapeStringJSON(Long.toString(snapshotTTL)));
         builder.append("\", \"hints\": {\"");
         builder.append(TextUtils.escapeStringJSON(Metric.HINT_IS_COMPOSITE));
-        builder.append("\": \"composite\"}, \"parts\": [");
+        builder.append("\": \"true\"}, \"parts\": [");
         boolean first = true;
         for (Metric part : parts) {
             if (!first)
