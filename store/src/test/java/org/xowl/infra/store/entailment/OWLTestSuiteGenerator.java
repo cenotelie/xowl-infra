@@ -17,6 +17,7 @@
 package org.xowl.infra.store.entailment;
 
 import org.xowl.infra.store.ProxyObject;
+import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.logging.SinkLogger;
@@ -38,7 +39,7 @@ public class OWLTestSuiteGenerator {
     public void generate() {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://owl.semanticweb.org/exports/(.*)", "resource:///org/w3c/tests/\\1");
+        repository.getIRIMapper().addRegexpMap("http://owl.semanticweb.org/exports/(.*)", Repository.SCHEME_RESOURCE + "/org/w3c/tests/\\1");
         try {
             repository.load(logger, "http://owl.semanticweb.org/exports/testOntology.rdf");
             repository.load(logger, "http://owl.semanticweb.org/exports/all.rdf");

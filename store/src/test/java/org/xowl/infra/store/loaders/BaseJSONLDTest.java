@@ -74,7 +74,7 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
             return;
         }
         mapper.addRegexpMap(NAMESPACE + "(.*)", Repository.SCHEME_RESOURCE + PHYSICAL + "\\1");
-        mapper.addSimpleMap(generatedURI, "file://" + generated.getAbsolutePath());
+        mapper.addSimpleMap(generatedURI, Repository.SCHEME_FILE + generated.getAbsolutePath());
         testEval(mapper.get(expectedURI), expectedURI, mapper.get(generatedURI), testedURI);
     }
 
@@ -98,7 +98,7 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
         // loads the tested file
         RepositoryRDF repository = new RepositoryRDF();
         repository.getIRIMapper().addRegexpMap(NAMESPACE + "(.*)", Repository.SCHEME_RESOURCE + PHYSICAL + "\\1");
-        repository.getIRIMapper().addSimpleMap(generatedURI, "file://" + file.getAbsolutePath());
+        repository.getIRIMapper().addSimpleMap(generatedURI, Repository.SCHEME_FILE + file.getAbsolutePath());
         try {
             repository.load(logger, testedURI);
         } catch (Exception exception) {

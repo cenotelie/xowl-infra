@@ -479,7 +479,7 @@ public abstract class BaseSPARQLTest {
     private void compareQuads(ResultQuads result, String expected) {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///org/w3c/sparql/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", Repository.SCHEME_RESOURCE + "/org/w3c/sparql/\\1");
         try {
             repository.load(logger, expected, IRIs.GRAPH_DEFAULT, true);
         } catch (Exception exception) {
@@ -512,7 +512,7 @@ public abstract class BaseSPARQLTest {
      */
     private RepositoryRDF prepare(Logger logger, Couple<String, String>[] inputs) {
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///org/w3c/sparql/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", Repository.SCHEME_RESOURCE + "//org/w3c/sparql/\\1");
         for (Couple<String, String> input : inputs) {
             try {
                 repository.load(logger, input.x, input.y == null ? IRIs.GRAPH_DEFAULT : input.y, true);
@@ -532,7 +532,7 @@ public abstract class BaseSPARQLTest {
      */
     private RepositoryRDF prepare(Logger logger, String[] inputs) {
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///org/w3c/sparql/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", Repository.SCHEME_RESOURCE + "/org/w3c/sparql/\\1");
         for (String input : inputs) {
             try {
                 repository.load(logger, input, IRIs.GRAPH_DEFAULT, true);

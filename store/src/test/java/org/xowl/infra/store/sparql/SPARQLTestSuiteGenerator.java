@@ -18,6 +18,7 @@
 package org.xowl.infra.store.sparql;
 
 import org.xowl.infra.store.ProxyObject;
+import org.xowl.infra.store.Repository;
 import org.xowl.infra.store.RepositoryRDF;
 import org.xowl.infra.store.Vocabulary;
 import org.xowl.infra.utils.collections.Couple;
@@ -44,7 +45,7 @@ public class SPARQLTestSuiteGenerator {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
 
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///org/w3c/sparql/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", Repository.SCHEME_RESOURCE + "/org/w3c/sparql/\\1");
         try {
             repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-fed/manifest.ttl");
             repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-query/manifest.ttl");
