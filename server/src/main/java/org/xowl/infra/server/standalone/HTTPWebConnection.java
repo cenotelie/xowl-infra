@@ -26,10 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents an active connection to the HTTP server for the request of a resource
@@ -56,6 +53,10 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
     public void doRun() {
         // add caching headers
         httpExchange.getResponseHeaders().put("Cache-Control", Arrays.asList("public", "max-age=31536000", "immutable"));
+        httpExchange.getResponseHeaders().put("Strict-Transport-Security", Collections.singletonList("max-age=31536000"));
+        httpExchange.getResponseHeaders().put("X-Frame-Options", Collections.singletonList("deny"));
+        httpExchange.getResponseHeaders().put("X-XSS-Protection", Arrays.asList("1", "mode=block"));
+        httpExchange.getResponseHeaders().put("X-Content-Type-Options", Collections.singletonList("nosniff"));
         String method = httpExchange.getRequestMethod();
         if (Objects.equals(method, "OPTIONS")) {
             // assume a pre-flight CORS request
@@ -81,10 +82,33 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
         response(HttpURLConnection.HTTP_INTERNAL_ERROR, throwable.getMessage());
     }
 
+
+    private static class Resource {
+        /**
+         * The content of the resource
+         */
+        public final byte[] content;
+        /**
+         * The MIME type for the resource
+         */
+        public final String mime;
+
+        /**
+         * Initializes this resource
+         *
+         * @param content The content of the resource
+         * @param mime    The MIME type for the resource
+         */
+        public Resource(byte[] content, String mime) {
+            this.content = content;
+            this.mime = mime;
+        }
+    }
+
     /**
      * The cache for serving HTTP resources
      */
-    private static final Map<String, byte[]> CACHE = new HashMap<>();
+    private static final Map<String, Resource> CACHE = new HashMap<>();
 
     /**
      * Serves an embedded resource
@@ -95,9 +119,9 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
         if (resource.isEmpty())
             resource = "index.html";
 
-        byte[] buffer = CACHE.get(resource);
-        if (buffer != null) {
-            serveResource(buffer);
+        Resource data = CACHE.get(resource);
+        if (data != null) {
+            serveResource(data);
             return;
         }
 
@@ -107,29 +131,64 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
             return;
         }
         try {
-            buffer = Files.load(input);
+            byte[] buffer = Files.load(input);
             input.close();
+            data = new Resource(buffer, getMime(resource));
         } catch (IOException exception) {
             // do nothing
         }
-        CACHE.put(resource, buffer);
-        serveResource(buffer);
+
+        CACHE.put(resource, data);
+        serveResource(data);
     }
 
     /**
-     * Serves the resource in the specified buffer
+     * Determines the MIME type of a resource
      *
-     * @param buffer The buffer containing the resource
+     * @param resource The resource's name
+     * @return The MIME type
      */
-    private void serveResource(byte[] buffer) {
+    private String getMime(String resource) {
+        if (resource.endsWith(".html"))
+            return "text/html";
+        if (resource.endsWith(".css"))
+            return "text/css";
+        if (resource.endsWith(".js"))
+            return "application/javascript";
+        if (resource.endsWith(".txt"))
+            return "text/plain";
+        if (resource.endsWith(".eot"))
+            return "application/octet-stream";
+        if (resource.endsWith(".ttf"))
+            return "application/octet-stream";
+        if (resource.endsWith(".woff"))
+            return "application/font-woff";
+        if (resource.endsWith(".woff2"))
+            return "application/font-woff";
+        if (resource.endsWith(".svg"))
+            return "image/svg+xml";
+        if (resource.endsWith(".png"))
+            return "image/png";
+        if (resource.endsWith(".gif"))
+            return "image/gif";
+        return "";
+    }
+
+    /**
+     * Serves the specified resource data
+     *
+     * @param data The resource's data
+     */
+    private void serveResource(Resource data) {
         Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
+        httpExchange.getResponseHeaders().put("Content-Type", Collections.singletonList(data.mime));
         try {
-            httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, buffer.length);
+            httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, data.content.length);
         } catch (IOException exception) {
             logger.error(exception);
         }
         try (OutputStream output = httpExchange.getResponseBody()) {
-            output.write(buffer);
+            output.write(data.content);
         } catch (IOException exception) {
             logger.error(exception);
         }

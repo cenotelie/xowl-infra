@@ -130,7 +130,7 @@ public class HTTPServer implements Closeable {
                 keyManager.init(ssl.x, ssl.y.toCharArray());
                 TrustManagerFactory trustManager = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                 trustManager.init(ssl.x);
-                sslContext = SSLContext.getInstance("TLS");
+                sslContext = SSLContext.getInstance("TLSv1.2");
                 sslContext.init(keyManager.getKeyManagers(), trustManager.getTrustManagers(), null);
             } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | UnrecoverableKeyException exception) {
                 Logging.getDefault().error(exception);

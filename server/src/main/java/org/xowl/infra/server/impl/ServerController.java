@@ -257,6 +257,7 @@ public class ServerController implements Closeable {
                     users.put(login, user);
                 }
             }
+            logger.info("Login success for " + login + " from " + client.toString());
             return new XSPReplyResult<>(user);
         }
     }
