@@ -36,7 +36,7 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      * @param triplesResource A NTriple resource
      */
     protected void testXMLEval(String rdfResource, String triplesResource) {
-        testEval(Repository.SCHEME_RESOURCE + "/rdfxml/" + triplesResource, BASE_LOCATION + triplesResource, Repository.SCHEME_RESOURCE + "/rdfxml/" + rdfResource, BASE_LOCATION + rdfResource);
+        testEval(Repository.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + triplesResource, BASE_LOCATION + triplesResource, Repository.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + rdfResource, BASE_LOCATION + rdfResource);
     }
 
     /**
@@ -45,7 +45,7 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      * @param resource A RDF/XML resource
      */
     protected void testXMLPositiveSyntax(String resource) {
-        testPositiveSyntax(Repository.SCHEME_RESOURCE + "/rdfxml/" + resource, BASE_LOCATION + resource);
+        testPositiveSyntax(Repository.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + resource, BASE_LOCATION + resource);
     }
 
     /**
@@ -54,6 +54,6 @@ public abstract class BaseRDFXMLTest extends W3CTestSuite {
      * @param resource A RDF/XML resource
      */
     protected void testXMLNegativeSyntax(String resource) {
-        testNegativeSyntax(Repository.SCHEME_RESOURCE + "/rdfxml/" + resource, BASE_LOCATION + resource);
+        testNegativeSyntax(Repository.SCHEME_RESOURCE + "/org/w3c/rdfxml/" + resource, BASE_LOCATION + resource);
     }
 }

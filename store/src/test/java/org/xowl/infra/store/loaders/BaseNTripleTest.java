@@ -35,7 +35,7 @@ public abstract class BaseNTripleTest extends W3CTestSuite {
      * @param resource A NTriples resource
      */
     protected void testNTriplesPositiveSyntax(String resource) {
-        testPositiveSyntax(Repository.SCHEME_RESOURCE + "/ntriples/" + resource, BASE_LOCATION + resource);
+        testPositiveSyntax(Repository.SCHEME_RESOURCE + "/org/w3c/ntriples/" + resource, BASE_LOCATION + resource);
     }
 
     /**
@@ -44,6 +44,6 @@ public abstract class BaseNTripleTest extends W3CTestSuite {
      * @param resource A NTriples resource
      */
     protected void testNTriplesNegativeSyntax(String resource) {
-        testNegativeSyntax(Repository.SCHEME_RESOURCE + "/ntriples/" + resource, BASE_LOCATION + resource);
+        testNegativeSyntax(Repository.SCHEME_RESOURCE + "/org/w3c/ntriples/" + resource, BASE_LOCATION + resource);
     }
 }

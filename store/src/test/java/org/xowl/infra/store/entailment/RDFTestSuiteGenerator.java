@@ -37,7 +37,7 @@ public class RDFTestSuiteGenerator {
     public void generate() {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///org/w3c/rdf-mt/\\1");
         try {
             repository.load(logger, "http://www.w3.org/2013/rdf-mt-tests/manifest.ttl");
         } catch (Exception exception) {

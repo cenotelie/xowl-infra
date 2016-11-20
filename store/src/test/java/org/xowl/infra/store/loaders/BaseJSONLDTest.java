@@ -35,7 +35,7 @@ public abstract class BaseJSONLDTest extends W3CTestSuite {
     /**
      * Path to the physical resources of the tests
      */
-    public static final String PHYSICAL = "/json-ld/";
+    public static final String PHYSICAL = "/org/json-ld/";
     /**
      * Base URI of the test resources
      */

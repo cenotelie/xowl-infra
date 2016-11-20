@@ -38,7 +38,7 @@ public class OWLTestSuiteGenerator {
     public void generate() {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://owl.semanticweb.org/exports/(.*)", "resource:///tests/\\1");
+        repository.getIRIMapper().addRegexpMap("http://owl.semanticweb.org/exports/(.*)", "resource:///org/w3c/tests/\\1");
         try {
             repository.load(logger, "http://owl.semanticweb.org/exports/testOntology.rdf");
             repository.load(logger, "http://owl.semanticweb.org/exports/all.rdf");
@@ -134,7 +134,7 @@ public class OWLTestSuiteGenerator {
     }
 
     /**
-     * Gets the sanitized name for the specified origina name
+     * Gets the sanitized name for the specified original name
      *
      * @param original The original name
      * @return The sanitized name

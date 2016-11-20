@@ -46,7 +46,7 @@ public class BaseRDFTest {
     protected void testPositiveEntailment(String input, EntailmentRegime regime, String result) {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///org/w3c/rdf-mt/\\1");
         try {
             repository.setEntailmentRegime(regime);
         } catch (Exception exception) {
@@ -93,7 +93,7 @@ public class BaseRDFTest {
     protected void testNegativeEntailment(String input, EntailmentRegime regime, String result) {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///org/w3c/rdf-mt/\\1");
         try {
             repository.setEntailmentRegime(regime);
         } catch (Exception exception) {
@@ -139,7 +139,7 @@ public class BaseRDFTest {
     private List<Quad> load(String resource) {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///rdf-mt/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2013/rdf-mt-tests/(.*)", "resource:///org/w3c/rdf-mt/\\1");
         Assert.assertFalse("Failed to activate the entailment regime", logger.isOnError());
         try {
             repository.load(logger, resource);

@@ -55,15 +55,15 @@ public class W3CTestSuiteGenerator {
      */
     public void generate() {
         System.out.println("==== NTriples ====");
-        generate("/ntriples/manifest.ttl");
+        generate("/org/w3c/ntriples/manifest.ttl");
         System.out.println("==== NQuads ====");
-        generate("/nquads/manifest.ttl");
+        generate("/org/w3c/nquads/manifest.ttl");
         System.out.println("==== Turtle ====");
-        generate("/turtle/manifest.ttl");
+        generate("/org/w3c/turtle/manifest.ttl");
         System.out.println("==== RDF/XML ====");
-        generate("/rdfxml/manifest.ttl");
+        generate("/org/w3c/rdfxml/manifest.ttl");
         System.out.println("==== TriG ====");
-        generate("/trig/manifest.ttl");
+        generate("/org/w3c/trig/manifest.ttl");
     }
 
     /**

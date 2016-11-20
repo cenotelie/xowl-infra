@@ -118,7 +118,7 @@ public abstract class BaseSPARQLTest {
         SinkLogger logger = new SinkLogger();
         BaseStore store = StoreFactory.create().make();
         IRIMapper mapper = new IRIMapper();
-        mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/sparql/\\1");
+        mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/org/w3c/sparql/\\1");
         SPARQLLoader loader = new SPARQLLoader(store);
         try (InputStream stream = BaseSPARQLTest.class.getResourceAsStream(mapper.get(resource))) {
             InputStreamReader reader = new InputStreamReader(stream, Files.CHARSET);
@@ -139,7 +139,7 @@ public abstract class BaseSPARQLTest {
         SinkLogger logger = new SinkLogger();
         BaseStore store = StoreFactory.create().make();
         IRIMapper mapper = new IRIMapper();
-        mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/sparql/\\1");
+        mapper.addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "/org/w3c/sparql/\\1");
         SPARQLLoader loader = new SPARQLLoader(store);
         try (InputStream stream = BaseSPARQLTest.class.getResourceAsStream(mapper.get(resource))) {
             InputStreamReader reader = new InputStreamReader(stream, Files.CHARSET);
@@ -217,7 +217,7 @@ public abstract class BaseSPARQLTest {
      * @param expected The expected result
      */
     private void compareSolutions(ResultSolutions result, String expected) {
-        String expectedResource = "/sparql/" + expected.substring("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/".length());
+        String expectedResource = "/org/w3c/sparql/" + expected.substring("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/".length());
         String expectedContent = readResource(expectedResource);
         if (expected.endsWith(".srx")) {
             compareSolutionsXML(serialize(result, Result.SYNTAX_XML), expectedContent);
@@ -479,7 +479,7 @@ public abstract class BaseSPARQLTest {
     private void compareQuads(ResultQuads result, String expected) {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///org/w3c/sparql/\\1");
         try {
             repository.load(logger, expected, IRIs.GRAPH_DEFAULT, true);
         } catch (Exception exception) {
@@ -512,7 +512,7 @@ public abstract class BaseSPARQLTest {
      */
     private RepositoryRDF prepare(Logger logger, Couple<String, String>[] inputs) {
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///org/w3c/sparql/\\1");
         for (Couple<String, String> input : inputs) {
             try {
                 repository.load(logger, input.x, input.y == null ? IRIs.GRAPH_DEFAULT : input.y, true);
@@ -532,7 +532,7 @@ public abstract class BaseSPARQLTest {
      */
     private RepositoryRDF prepare(Logger logger, String[] inputs) {
         RepositoryRDF repository = new RepositoryRDF();
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///org/w3c/sparql/\\1");
         for (String input : inputs) {
             try {
                 repository.load(logger, input, IRIs.GRAPH_DEFAULT, true);

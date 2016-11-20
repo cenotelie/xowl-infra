@@ -44,7 +44,7 @@ public class SPARQLTestSuiteGenerator {
         SinkLogger logger = new SinkLogger();
         RepositoryRDF repository = new RepositoryRDF();
 
-        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///sparql/\\1");
+        repository.getIRIMapper().addRegexpMap("http://www.w3.org/2009/sparql/docs/tests/data-sparql11/(.*)", "resource:///org/w3c/sparql/\\1");
         try {
             repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-fed/manifest.ttl");
             repository.load(logger, "http://www.w3.org/2009/sparql/docs/tests/data-sparql11/syntax-query/manifest.ttl");
