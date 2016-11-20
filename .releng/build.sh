@@ -23,7 +23,7 @@ echo "build-user = $USER" >> "$RELENG/xowl-server.manifest"
 
 # Build the server-linux
 rm -f "$RELENG/xowl-server-$VERSION.tar.gz"
-tar -czf "$RELENG/xowl-server-$VERSION.tar.gz" -C "$ROOT" LICENSE.txt -C "$RELENG" xowl-server.jar xowl-server.manifest -C "$RELENG/server-linux" xowl-server.ini do-run.sh admin.sh install-daemon.sh uninstall-daemon.sh help.txt
+tar -czf "$RELENG/xowl-server-$VERSION.tar.gz" -C "$ROOT" LICENSE.txt -C "$RELENG" xowl-server.jar xowl-server.manifest -C "$RELENG/server-linux" xowl-server.ini do-run.sh admin.sh install-daemon.sh uninstall-daemon.sh help.md
 
 # Build the server-docker
 cp "$RELENG/xowl-server.jar" "$RELENG/server-docker/xowl-server.jar"
