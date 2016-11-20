@@ -147,7 +147,6 @@ public class HTTPServer implements Closeable {
             Logging.getDefault().error(exception);
         }
         if (temp != null && sslContext != null) {
-            org.xowl.infra.server.standalone.Authenticator authenticator = new org.xowl.infra.server.standalone.Authenticator(controller, configuration.getSecurityRealm());
             server = temp;
             server.createContext("/api", new HttpHandler() {
                 @Override
@@ -158,7 +157,7 @@ public class HTTPServer implements Closeable {
                         Logging.getDefault().error(exception);
                     }
                 }
-            }).setAuthenticator(authenticator);
+            });
             server.createContext("/web/", new HttpHandler() {
                 @Override
                 public void handle(HttpExchange httpExchange) throws IOException {

@@ -194,6 +194,15 @@ public class ServerConfiguration {
     }
 
     /**
+     * Gets the time to live in seconds of an authentication token
+     *
+     * @return The time to live in seconds of an authentication token
+     */
+    public int getSecurityTokenTTL() {
+        return Integer.parseInt(getValue("security", "tokenTTL"));
+    }
+
+    /**
      * Gets the security realm for this server
      *
      * @return The security realm for this server

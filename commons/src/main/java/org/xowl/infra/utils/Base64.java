@@ -54,12 +54,22 @@ public class Base64 {
             '+', '/', '='};
 
     /**
-     * Decodes a base64 string
+     * Decodes a base64 string as a string
      *
      * @param input The input string
      * @return The decoded string
      */
-    public static String decodeBase64(String input) {
+    public static String decodeBase64AsString(String input) {
+        return new String(decodeBase64(input), Files.CHARSET);
+    }
+
+    /**
+     * Decodes a base64 string as a byte buffer
+     *
+     * @param input The input string
+     * @return The decoded bytes
+     */
+    public static byte[] decodeBase64(String input) {
         char[] chars = input.toCharArray();
         int index = input.indexOf('=');
         int length = ((chars.length * 3) / 4) - (index > 0 ? chars.length - index : 0);
@@ -79,7 +89,7 @@ public class Base64 {
                 }
             }
         }
-        return new String(result, Files.CHARSET);
+        return result;
     }
 
     /**
@@ -89,7 +99,16 @@ public class Base64 {
      * @return The encoded string
      */
     public static String encodeBase64(String input) {
-        byte[] bytes = input.getBytes(Files.CHARSET);
+        return encodeBase64(input.getBytes(Files.CHARSET));
+    }
+
+    /**
+     * Encodes a byte buffer in base64
+     *
+     * @param bytes The input bytes
+     * @return The encoded string
+     */
+    public static String encodeBase64(byte[] bytes) {
         char[] chars = new char[bytes.length % 3 == 0 ? bytes.length / 3 * 4 : (bytes.length - bytes.length % 3 + 3) / 3 * 4];
         int target = 0;
         for (int i = 0; i < bytes.length; i += 3) {

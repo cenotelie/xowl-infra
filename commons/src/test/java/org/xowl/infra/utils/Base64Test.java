@@ -38,10 +38,10 @@ public class Base64Test {
 
     @Test
     public void testDecodeBase64() {
-        Assert.assertEquals("any carnal pleasure.", Base64.decodeBase64("YW55IGNhcm5hbCBwbGVhc3VyZS4="));
-        Assert.assertEquals("any carnal pleasure", Base64.decodeBase64("YW55IGNhcm5hbCBwbGVhc3VyZQ=="));
-        Assert.assertEquals("any carnal pleasur", Base64.decodeBase64("YW55IGNhcm5hbCBwbGVhc3Vy"));
-        Assert.assertEquals("any carnal pleasu", Base64.decodeBase64("YW55IGNhcm5hbCBwbGVhc3U="));
-        Assert.assertEquals("any carnal pleas", Base64.decodeBase64("YW55IGNhcm5hbCBwbGVhcw=="));
+        Assert.assertEquals("any carnal pleasure.", Base64.decodeBase64AsString("YW55IGNhcm5hbCBwbGVhc3VyZS4="));
+        Assert.assertEquals("any carnal pleasure", Base64.decodeBase64AsString("YW55IGNhcm5hbCBwbGVhc3VyZQ=="));
+        Assert.assertEquals("any carnal pleasur", Base64.decodeBase64AsString("YW55IGNhcm5hbCBwbGVhc3Vy"));
+        Assert.assertEquals("any carnal pleasu", Base64.decodeBase64AsString("YW55IGNhcm5hbCBwbGVhc3U="));
+        Assert.assertEquals("any carnal pleas", Base64.decodeBase64AsString("YW55IGNhcm5hbCBwbGVhcw=="));
     }
 }

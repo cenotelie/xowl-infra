@@ -25,6 +25,7 @@ import org.xowl.infra.server.base.BaseStoredProcedure;
 import org.xowl.infra.server.impl.ServerController;
 import org.xowl.infra.server.impl.UserImpl;
 import org.xowl.infra.server.xsp.XSPReply;
+import org.xowl.infra.server.xsp.XSPReplyResult;
 import org.xowl.infra.server.xsp.XSPReplyUtils;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.loaders.JSONLDLoader;
@@ -52,6 +53,10 @@ class HTTPAPIConnection extends SafeRunnable {
      * The content type for a SPARQL URL encoded message body
      */
     public static final String SPARQL_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
+    /**
+     * The name of the authentication cookie
+     */
+    private static final String COOKIE_AUTH = "__Secure-Token";
 
     /**
      * The current controller
@@ -89,13 +94,29 @@ class HTTPAPIConnection extends SafeRunnable {
             response(HttpURLConnection.HTTP_OK, null);
             return;
         }
-        client = controller.getPrincipal(httpExchange.getPrincipal().getUsername());
+
+        String resource = httpExchange.getRequestURI().getPath().substring("/api".length());
+        if (resource.equals("/me/login")) {
+            handleRequestLogin(method);
+            return;
+        }
+
+        List<String> cookies = httpExchange.getRequestHeaders().get("Cookie");
+        if (cookies != null) {
+            for (String cookie : cookies) {
+                if (cookie.startsWith(COOKIE_AUTH + "=")) {
+                    String token = cookie.substring(COOKIE_AUTH.length() + 1);
+                    XSPReply reply = controller.authenticate(httpExchange.getRemoteAddress().getAddress(), token);
+                    if (reply != null && reply.isSuccess())
+                        client = ((XSPReplyResult<UserImpl>) reply).getData();
+                    break;
+                }
+            }
+        }
         if (client == null) {
-            // should not happen ...
             response(HttpURLConnection.HTTP_UNAUTHORIZED, "Failed to login");
             return;
         }
-        String resource = httpExchange.getRequestURI().getPath().substring("/api".length());
         handleRequest(method, resource);
     }
 
@@ -108,13 +129,43 @@ class HTTPAPIConnection extends SafeRunnable {
     /**
      * Handles the request
      *
+     * @param method The HTTP method
+     * @return The response code
+     */
+    private int handleRequestLogin(String method) {
+        if (!method.equals("POST"))
+            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
+        Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+        List<String> logins = params.get("login");
+        List<String> passwords = params.get("password");
+        if (logins == null || passwords == null || logins.isEmpty() || passwords.isEmpty())
+            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected parameters login and password");
+        XSPReply reply = controller.login(httpExchange.getRemoteAddress().getAddress(), logins.get(0), passwords.get(0));
+        if (reply == null)
+            return response(HttpURLConnection.HTTP_UNAUTHORIZED, "Failed to login");
+        if (!reply.isSuccess())
+            return response(HttpURLConnection.HTTP_UNAUTHORIZED, "Failed to login");
+        String token = ((XSPReplyResult<String>) reply).getData();
+        httpExchange.getResponseHeaders().put("Set-Cookie", Arrays.asList(
+                COOKIE_AUTH + "=" + token,
+                " Max-Age=" + Long.toString(controller.getSecurityTokenTTL() / 1000),
+                " Path=/api",
+                "; Secure",
+                "; HttpOnly"
+        ));
+        return response(HttpURLConnection.HTTP_OK, null);
+    }
+
+    /**
+     * Handles the request
+     *
      * @param method   The HTTP method
      * @param resource The accessed resource
      * @return The response code
      */
     private int handleRequest(String method, String resource) {
-        if (resource.equals("/whoami")) {
-            return handleResourceWhoami(method);
+        if (resource.equals("/me")) {
+            return handleResourceMe(method);
         } else if (resource.equals("/server")) {
             return handleResourceServer(method);
         } else if (resource.equals("/databases")) {
@@ -136,7 +187,7 @@ class HTTPAPIConnection extends SafeRunnable {
      * @param method The HTTP method
      * @return The response code
      */
-    private int handleResourceWhoami(String method) {
+    private int handleResourceMe(String method) {
         if (!method.equals("GET"))
             return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
         return response(controller.getUser(client, client.getName()));

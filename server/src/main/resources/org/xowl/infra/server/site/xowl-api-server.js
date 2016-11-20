@@ -5,16 +5,14 @@ function XOWL(endpoint, useLocal) {
 	this.endpoint = (!endpoint) ? '/api' : endpoint;
 	this.useLocal = (!useLocal) ? true : useLocal;
 	if (this.useLocal) {
-		this.authToken = localStorage.getItem('xowl.authToken');
 		this.userName = localStorage.getItem('xowl.userName');
 	} else {
-		this.authToken = null;
 		this.userName = null;
 	}
 }
 
 XOWL.prototype.isLoggedIn = function () {
-	return (this.authToken !== null && this.userName !== null);
+	return (this.userName !== null);
 }
 
 XOWL.prototype.getUser = function () {
@@ -23,34 +21,26 @@ XOWL.prototype.getUser = function () {
 
 XOWL.prototype.login = function (callback, login, password) {
 	var _self = this;
-	var token = window.btoa(unescape(encodeURIComponent(login + ':' + password)));
-	this.authToken = token;
 	this.command(function (code, type, content) {
 		if (code === 200) {
-			_self.authToken = token;
 			_self.userName = login;
 			if (_self.useLocal) {
-				localStorage.setItem('xowl.authToken', token);
 				localStorage.setItem('xowl.userName', login);
 			}
 			callback(code, type, content);
 		} else {
-			_self.authToken = null;
 			_self.userName = null;
 			if (_self.useLocal) {
-				localStorage.removeItem('xowl.authToken');
 				localStorage.removeItem('xowl.userName');
 			}
 			callback(code, type, content);
 		}
-	}, "/whoami", "GET", null, "");
+	}, "/me/login?login=" + encodeURIComponent(login) + "&password=" + encodeURIComponent(password), "POST", null, "");
 }
 
 XOWL.prototype.logout = function () {
-	this.authToken = null;
 	this.userName = null;
 	if (this.useLocal) {
-		localStorage.removeItem('xowl.authToken');
 		localStorage.removeItem('xowl.userName');
 	}
 }
@@ -244,8 +234,6 @@ XOWL.prototype.command = function (callback, complement, method, contentType, co
 }
 
 XOWL.prototype.jsCommand = function (callback, complement, method, contentType, content) {
-	if (this.authToken === null || this.authToken == "")
-		callback(401, "text/plain", "");
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.onreadystatechange = function () {
 		if (xmlHttp.readyState == 4) {
@@ -257,10 +245,7 @@ XOWL.prototype.jsCommand = function (callback, complement, method, contentType, 
 	xmlHttp.setRequestHeader("Accept", "text/plain, application/json");
 	if (contentType !== null)
 	    xmlHttp.setRequestHeader("Content-Type", contentType);
-	else
-	    xmlHttp.setRequestHeader("Content-Type", "application/x-xowl-xsp");
 	xmlHttp.withCredentials = true;
-	xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
 	if (content === null)
     	xmlHttp.send();
     else if (contentType === "application/json")
@@ -274,8 +259,6 @@ XOWL.prototype.sparql = function (callback, db, sparql) {
 }
 
 XOWL.prototype.jsSPARQL = function (callback, db, sparql) {
-	if (this.authToken === null || this.authToken == "")
-		callback(401, "text/plain", "");
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.onreadystatechange = function () {
 		if (xmlHttp.readyState == 4) {
@@ -287,6 +270,5 @@ XOWL.prototype.jsSPARQL = function (callback, db, sparql) {
 	xmlHttp.setRequestHeader("Accept", "application/n-quads, application/sparql-results+json");
 	xmlHttp.setRequestHeader("Content-Type", "application/sparql-query");
 	xmlHttp.withCredentials = true;
-	xmlHttp.setRequestHeader("Authorization", "Basic " + this.authToken);
 	xmlHttp.send(sparql);
 }
