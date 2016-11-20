@@ -17,9 +17,13 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
 Additional libraries in this application are:
-- `org.xowl.hime:redist:2.0.5`, Copyright (c) 2016 Laurent Wouters, licensed under LGPL v3
-- `de.svenkubiak:jBCrypt:0.4`, Copyright (c) 2006 Damien Miller <djm@mindrot.org>, license available in xowl-server.jar$META-INF/licenses/de.svenkubiak.jBCrypt
-- `org.clojure:clojure:1.8.0`, Copyright (c) Rich Hickey, license available in xowl-server.jar$META-INF/licenses/org.clojure.clojure
+
+| Library | Copyright | License | Full text |
+|----|----|----|----|
+| [`org.xowl.hime:redist:2.0.5`](https://bitbucket.org/laurentw/hime)     | Copyright (c) 2016 Laurent Wouters    | LGPL v3  | LICENSE.txt |
+| [`de.svenkubiak:jBCrypt:0.4`](http://www.mindrot.org/projects/jBCrypt/) | Copyright (c) 2006 Damien Miller      | BSD      | xowl-server.jar$META-INF/licenses/de.svenkubiak.jBCrypt |
+| [`org.clojure:clojure:1.8.0`](http://clojure.org)                       | Copyright (c) Rich Hickey             | EPL v1.0 | xowl-server.jar$META-INF/licenses/org.clojure.clojure |
+| [`bootstrap`](http://getbootstrap.com/)                                 | Copyright (c) 2011-2016 Twitter, Inc. | MIT      | xowl-server.jar$META-INF/licenses/bootstrap |
 
 
 
