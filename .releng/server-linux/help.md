@@ -16,17 +16,17 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
-Additional libraries in this application are:
+Additional components embedded in this application are:
 
 | Library | Copyright | License | Full text |
 |----|----|----|----|
-| [`org.xowl.hime:redist:2.0.5`](https://bitbucket.org/laurentw/hime) | Copyright (c) 2016 Laurent Wouters | LGPL v3 | xowl-server.jar$META-INF/licenses/org.xowl.hime.redist |
-| [`http://www.w3.org/1999/02/22-rdf-syntax-ns`](http://www.w3.org/1999/02/22-rdf-syntax-ns) | Copyright (c) 2009 World Wide Web Consortium, (MIT, ERCIM, Keio, Beihang) | W3C Document License | xowl-server.jar$META-INF/licenses/org.w3c.www.schemas |
-| [`http://www.w3.org/2000/01/rdf-schema`](http://www.w3.org/2000/01/rdf-schema) | Copyright (c) 2000 World Wide Web Consortium, (MIT, ERCIM, Keio, Beihang) | W3C Document License | xowl-server.jar$META-INF/licenses/org.w3c.www.schemas |
-| [`http://www.w3.org/2002/07/owl`](http://www.w3.org/2002/07/owl) | Copyright (c) 2002 World Wide Web Consortium, (MIT, ERCIM, Keio, Beihang) | W3C Document License | xowl-server.jar$META-INF/licenses/org.w3c.www.schemas |
-| [`de.svenkubiak:jBCrypt:0.4`](http://www.mindrot.org/projects/jBCrypt/) | Copyright (c) 2006 Damien Miller | BSD  | xowl-server.jar$META-INF/licenses/de.svenkubiak.jBCrypt |
-| [`org.clojure:clojure:1.8.0`](http://clojure.org) | Copyright (c) Rich Hickey | EPL v1.0 | xowl-server.jar$META-INF/licenses/org.clojure.clojure |
-| [`bootstrap`](http://getbootstrap.com/) | Copyright (c) 2011-2016 Twitter, Inc. | MIT | xowl-server.jar$META-INF/licenses/bootstrap |
+| Java library [`org.xowl.hime:redist:2.0.5`](https://bitbucket.org/laurentw/hime) | Copyright (c) 2016 Laurent Wouters | LGPL v3 | xowl-server.jar$META-INF/licenses/org.xowl.hime.redist |
+| Java library [`de.svenkubiak:jBCrypt:0.4`](http://www.mindrot.org/projects/jBCrypt/) | Copyright (c) 2006 Damien Miller | BSD  | xowl-server.jar$META-INF/licenses/de.svenkubiak.jBCrypt |
+| Java library [`org.clojure:clojure:1.8.0`](http://clojure.org) | Copyright (c) Rich Hickey | EPL v1.0 | xowl-server.jar$META-INF/licenses/org.clojure.clojure |
+| Web Framework [`Bootstrap`](http://getbootstrap.com/) | Copyright (c) 2011-2016 Twitter, Inc. | MIT | xowl-server.jar$META-INF/licenses/bootstrap |
+| RDF Schema [`http://www.w3.org/1999/02/22-rdf-syntax-ns`](http://www.w3.org/1999/02/22-rdf-syntax-ns) | Copyright (c) 2009 World Wide Web Consortium, (MIT, ERCIM, Keio, Beihang) | W3C Document License | xowl-server.jar$META-INF/licenses/org.w3c.www.schemas |
+| RDF Schema [`http://www.w3.org/2000/01/rdf-schema`](http://www.w3.org/2000/01/rdf-schema) | Copyright (c) 2000 World Wide Web Consortium, (MIT, ERCIM, Keio, Beihang) | W3C Document License | xowl-server.jar$META-INF/licenses/org.w3c.www.schemas |
+| RDF Schema [`http://www.w3.org/2002/07/owl`](http://www.w3.org/2002/07/owl) | Copyright (c) 2002 World Wide Web Consortium, (MIT, ERCIM, Keio, Beihang) | W3C Document License | xowl-server.jar$META-INF/licenses/org.w3c.www.schemas |
 
 
 
