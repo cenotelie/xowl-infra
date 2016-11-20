@@ -398,9 +398,9 @@ public class IRIMapper {
     public static IRIMapper getDefault() {
         IRIMapper mapper = new IRIMapper();
         // map the owl2, rdf and rdfs ontologies to the embarked one
-        mapper.addSimpleMap(IRIs.OWL2, "resource:///org/xowl/infra/store/base/owl2.ttl");
-        mapper.addSimpleMap(IRIs.RDF, "resource:///org/xowl/infra/store/base/rdf.ttl");
-        mapper.addSimpleMap(IRIs.RDFS, "resource:///org/xowl/infra/store/base/rdfs.ttl");
+        mapper.addSimpleMap(IRIs.RDF, "resource:///org/w3c/www/1999/02/22-rdf-syntax-ns.ttl");
+        mapper.addSimpleMap(IRIs.RDFS, "resource:///org/w3c/www/2000/01/rdf-schema.ttl");
+        mapper.addSimpleMap(IRIs.OWL2, "resource:///org/w3c/www/2002/07/owl.ttl");
         // map the xOWL abstract syntax
         mapper.addRegexpMap(IRIs.XOWL_LANG + "(.*)", "resource:///org/xowl/infra/lang/defs/\\1.fs");
         // map the OWL2 RL reasoning rules
