@@ -103,6 +103,24 @@ public interface HttpConstants {
      */
     String HEADER_CACHE_CONTROL = "Cache-Control";
     /**
+     * The HTTP X-Frame-Options header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options">X-Frame-Options header on MDN</a>
+     */
+    String HEADER_X_FRAME_OPTIONS = "X-Frame-Options";
+    /**
+     * The HTTP X-XSS-Protection header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection">X-XSS-Protection header on MDN</a>
+     */
+    String HEADER_X_XSS_PROTECTION = "X-XSS-Protection";
+    /**
+     * The HTTP X-Content-Type-Options header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options">X-Content-Type-Options header on MDN</a>
+     */
+    String HEADER_X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options";
+    /**
      * The HTTP Strict-Transport-Security header.
      *
      * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security>Strict-Transport-Security header on MDN</a>

@@ -20,6 +20,7 @@ package org.xowl.infra.server.standalone;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
+import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
@@ -52,13 +53,13 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
     @Override
     public void doRun() {
         // add caching headers
-        httpExchange.getResponseHeaders().put("Cache-Control", Arrays.asList("public", "max-age=31536000", "immutable"));
-        httpExchange.getResponseHeaders().put("Strict-Transport-Security", Collections.singletonList("max-age=31536000"));
-        httpExchange.getResponseHeaders().put("X-Frame-Options", Collections.singletonList("deny"));
-        httpExchange.getResponseHeaders().put("X-XSS-Protection", Collections.singletonList("1; mode=block"));
-        httpExchange.getResponseHeaders().put("X-Content-Type-Options", Collections.singletonList("nosniff"));
+        httpExchange.getResponseHeaders().put(HttpConstants.HEADER_CACHE_CONTROL, Arrays.asList("public", "max-age=31536000", "immutable"));
+        httpExchange.getResponseHeaders().put(HttpConstants.HEADER_STRICT_TRANSPORT_SECURITY, Collections.singletonList("max-age=31536000"));
+        httpExchange.getResponseHeaders().put(HttpConstants.HEADER_X_FRAME_OPTIONS, Collections.singletonList("deny"));
+        httpExchange.getResponseHeaders().put(HttpConstants.HEADER_X_XSS_PROTECTION, Collections.singletonList("1; mode=block"));
+        httpExchange.getResponseHeaders().put(HttpConstants.HEADER_X_CONTENT_TYPE_OPTIONS, Collections.singletonList("nosniff"));
         String method = httpExchange.getRequestMethod();
-        if (Objects.equals(method, "OPTIONS")) {
+        if (Objects.equals(method, HttpConstants.METHOD_OPTIONS)) {
             // assume a pre-flight CORS request
             response(HttpURLConnection.HTTP_OK, null);
             return;
@@ -69,7 +70,7 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
             resource = resource.substring(0, resource.length() - 1);
         }
 
-        if (Objects.equals(method, "GET")) {
+        if (Objects.equals(method, HttpConstants.METHOD_GET)) {
             serveResource(resource);
         } else {
             response(HttpURLConnection.HTTP_BAD_METHOD, null);
@@ -181,7 +182,7 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
      */
     private void serveResource(Resource data) {
         Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
-        httpExchange.getResponseHeaders().put("Content-Type", Collections.singletonList(data.mime));
+        httpExchange.getResponseHeaders().put(HttpConstants.HEADER_CONTENT_TYPE, Collections.singletonList(data.mime));
         try {
             httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, data.content.length);
         } catch (IOException exception) {
