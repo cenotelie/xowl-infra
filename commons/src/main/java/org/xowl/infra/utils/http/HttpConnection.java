@@ -32,6 +32,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.*;
 
 /**
  * Represents a basic HTTP connection
@@ -68,6 +69,49 @@ public class HttpConnection implements Closeable {
     };
 
     /**
+     * Represents a cookie for a connection
+     */
+    private final class Cookie {
+        /**
+         * The name of the cookie
+         */
+        public final String name;
+        /**
+         * The associated value
+         */
+        public final String value;
+        /**
+         * The properties associated to the cookie
+         */
+        public final Collection<String> properties;
+
+        /**
+         * Initializes this cookie
+         *
+         * @param content The original content
+         */
+        public Cookie(String content) {
+            String data = content.trim();
+            int indexEqual = content.indexOf('=');
+            int indexSemicolon = content.indexOf(';');
+            this.name = content.substring(0, indexEqual).trim();
+            this.value = content.substring(indexEqual, indexSemicolon < 0 ? content.length() : indexSemicolon).trim();
+            this.properties = new ArrayList<>();
+            if (indexSemicolon > 0) {
+                data = data.substring(indexSemicolon).trim();
+                while (!data.isEmpty()) {
+                    indexSemicolon = data.indexOf(';');
+                    String value = data.substring(0, indexSemicolon < 0 ? data.length() : indexSemicolon).trim();
+                    properties.add(value);
+                    if (indexSemicolon > 0) {
+                        data = data.substring(indexSemicolon + 1).trim();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * The SSL context for HTTPS connections
      */
     private final SSLContext sslContext;
@@ -80,9 +124,22 @@ public class HttpConnection implements Closeable {
      */
     private final String endpoint;
     /**
+     * The cookies for this connection
+     */
+    private final Map<String, Cookie> cookies;
+    /**
      * Login/Password for the endpoint, if any, used for an HTTP Basic authentication
      */
     private final String authToken;
+
+    /**
+     * Initializes this connection
+     *
+     * @param endpoint URI of the endpoint (base target URI)
+     */
+    public HttpConnection(String endpoint) {
+        this(endpoint, null, null);
+    }
 
     /**
      * Initializes this connection
@@ -94,14 +151,15 @@ public class HttpConnection implements Closeable {
     public HttpConnection(String endpoint, String login, String password) {
         SSLContext sc = null;
         try {
-            sc = SSLContext.getInstance("SSL");
+            sc = SSLContext.getInstance("TLSv1.2");
             sc.init(null, new TrustManager[]{TRUST_MANAGER_ACCEPT_ALL}, new SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException exception) {
             Logging.getDefault().error(exception);
         }
-        sslContext = sc;
-        hostnameVerifier = HOSTNAME_VERIFIER_ACCEPT_ALL;
+        this.sslContext = sc;
+        this.hostnameVerifier = HOSTNAME_VERIFIER_ACCEPT_ALL;
         this.endpoint = endpoint;
+        this.cookies = new HashMap<>();
         if (login != null && password != null) {
             String buffer = (login + ":" + password);
             this.authToken = Base64.encodeBase64(buffer);
@@ -183,6 +241,19 @@ public class HttpConnection implements Closeable {
             connection.setRequestProperty("Accept", accept);
         if (authToken != null)
             connection.setRequestProperty("Authorization", "Basic " + authToken);
+        if (!cookies.isEmpty()) {
+            StringBuilder builder = new StringBuilder();
+            boolean first = true;
+            for (Cookie cookie : cookies.values()) {
+                if (!first)
+                    builder.append("; ");
+                first = false;
+                builder.append(cookie.name);
+                builder.append("=");
+                builder.append(cookie.value);
+            }
+            connection.setRequestProperty(HttpConstants.HEADER_COOKIE, builder.toString());
+        }
         connection.setUseCaches(false);
         connection.setDoOutput(true);
         if (body != null) {
@@ -206,6 +277,15 @@ public class HttpConnection implements Closeable {
             connection.disconnect();
             return null;
         }
+
+        List<String> values = connection.getHeaderFields().get(HttpConstants.HEADER_SET_COOKIE);
+        if (values != null) {
+            for (String value : values) {
+                Cookie cookie = new Cookie(value);
+                cookies.put(cookie.name, cookie);
+            }
+        }
+
         String responseContentType = connection.getContentType();
         String responseBody = null;
         if (connection.getContentLengthLong() == -1 || connection.getContentLengthLong() > 0) {

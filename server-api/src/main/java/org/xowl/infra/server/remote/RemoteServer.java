@@ -87,7 +87,7 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
 
     @Override
     public XSPReply login(String login, String password) {
-        connection = new HttpConnection(endpoint, login, password);
+        connection = new HttpConnection(endpoint);
         XSPReply reply = XSPReplyUtils.fromHttpResponse(connection.request("/whoami", "GET", HttpConstants.MIME_TEXT_PLAIN + ", " + HttpConstants.MIME_JSON), this);
         if (!reply.isSuccess()) {
             connection = null;
