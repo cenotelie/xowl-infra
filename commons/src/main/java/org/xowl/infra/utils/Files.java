@@ -33,9 +33,13 @@ public class Files {
      */
     public static final String LINE_SEPARATOR = "\n";
     /**
+     * The UTF-8 charset
+     */
+    public static final Charset UTF8 = Charset.forName("UTF-8");
+    /**
      * The charset to use for xOWL
      */
-    public static final Charset CHARSET = Charset.forName("UTF-8");
+    public static final Charset CHARSET = UTF8;
     /**
      * The size of buffers for loading content
      */

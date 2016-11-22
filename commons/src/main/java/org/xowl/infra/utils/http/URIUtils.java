@@ -426,7 +426,7 @@ public class URIUtils {
             char c = original.charAt(i);
             if (Character.isHighSurrogate(c)) {
                 String sub = original.substring(i, i + 2);
-                byte[] bytes = sub.getBytes(Files.CHARSET);
+                byte[] bytes = sub.getBytes(Files.UTF8);
                 for (int j = 0; j != bytes.length; j++) {
                     int n = (int) bytes[j] & 0xff;
                     builder.append("%");
@@ -439,7 +439,7 @@ public class URIUtils {
             } else if (c == '-' || c == '_' || c == '.' || c == '!' || c == '~' || c == '*' || c == '\'' || c == '(' || c == ')' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
                 builder.append(c);
             } else {
-                byte[] bytes = Character.toString(c).getBytes(Files.CHARSET);
+                byte[] bytes = Character.toString(c).getBytes(Files.UTF8);
                 for (int j = 0; j != bytes.length; j++) {
                     int n = (int) bytes[j] & 0xff;
                     builder.append("%");
@@ -448,6 +448,63 @@ public class URIUtils {
                     }
                     builder.append(Integer.toString(n, 16));
                 }
+            }
+        }
+        return builder.toString();
+    }
+
+    /**
+     * Decodes an URI component
+     *
+     * @param original The original value
+     * @return The decoded value
+     */
+    public static String decodeComponent(String original) {
+        if (original == null)
+            return null;
+        if (original.isEmpty())
+            return original;
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i != original.length(); i++) {
+            char c = original.charAt(i);
+            if (c == '+') {
+                builder.append(' ');
+                continue;
+            } else if (c != '%') {
+                builder.append(c);
+                continue;
+            }
+            if (original.length() < i + 3)
+                continue;
+            int b0 = Integer.parseInt(original.substring(i + 1, i + 3), 16);
+            if ((b0 & 0x80) == 0x00) {
+                // 0xxxxxxx - one byte UTF-8
+                builder.append(new String(new byte[]{(byte) b0}, Files.UTF8));
+                i += 2;
+            } else if ((b0 & 0xE0) == 0xC0) {
+                // 110xxxxx - two bytes UTF-8
+                if (original.length() < i + 6)
+                    continue;
+                int b1 = Integer.parseInt(original.substring(i + 4, i + 6), 16);
+                builder.append(new String(new byte[]{(byte) b0, (byte) b1}, Files.UTF8));
+                i += 5;
+            } else if ((b0 & 0xF0) == 0xE0) {
+                // 1110xxxx - three bytes UTF-8
+                if (original.length() < i + 9)
+                    continue;
+                int b1 = Integer.parseInt(original.substring(i + 4, i + 6), 16);
+                int b2 = Integer.parseInt(original.substring(i + 7, i + 9), 16);
+                builder.append(new String(new byte[]{(byte) b0, (byte) b1, (byte) b2}, Files.UTF8));
+                i += 8;
+            } else if ((b0 & 0xF8) == 0xF0) {
+                // 11110xxx - four bytes UTF-8
+                if (original.length() < i + 12)
+                    continue;
+                int b1 = Integer.parseInt(original.substring(i + 4, i + 6), 16);
+                int b2 = Integer.parseInt(original.substring(i + 7, i + 9), 16);
+                int b3 = Integer.parseInt(original.substring(i + 10, i + 12), 16);
+                builder.append(new String(new byte[]{(byte) b0, (byte) b1, (byte) b2, (byte) b3}, Files.UTF8));
+                i += 11;
             }
         }
         return builder.toString();
