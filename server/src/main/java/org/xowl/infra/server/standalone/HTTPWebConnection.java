@@ -55,7 +55,7 @@ class HTTPWebConnection extends SafeRunnable implements Runnable {
         httpExchange.getResponseHeaders().put("Cache-Control", Arrays.asList("public", "max-age=31536000", "immutable"));
         httpExchange.getResponseHeaders().put("Strict-Transport-Security", Collections.singletonList("max-age=31536000"));
         httpExchange.getResponseHeaders().put("X-Frame-Options", Collections.singletonList("deny"));
-        httpExchange.getResponseHeaders().put("X-XSS-Protection", Arrays.asList("1", "mode=block"));
+        httpExchange.getResponseHeaders().put("X-XSS-Protection", Collections.singletonList("1; mode=block"));
         httpExchange.getResponseHeaders().put("X-Content-Type-Options", Collections.singletonList("nosniff"));
         String method = httpExchange.getRequestMethod();
         if (Objects.equals(method, "OPTIONS")) {

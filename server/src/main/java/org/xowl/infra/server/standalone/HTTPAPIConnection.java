@@ -146,11 +146,11 @@ class HTTPAPIConnection extends SafeRunnable {
         if (!reply.isSuccess())
             return response(HttpURLConnection.HTTP_UNAUTHORIZED, "Failed to login");
         String token = ((XSPReplyResult<String>) reply).getData();
-        httpExchange.getResponseHeaders().put("Set-Cookie", Arrays.asList(
-                COOKIE_AUTH + "=" + token,
-                " Max-Age=" + Long.toString(controller.getSecurityTokenTTL() / 1000),
-                " Path=/api",
-                "; Secure",
+        httpExchange.getResponseHeaders().put("Set-Cookie", Collections.singletonList(
+                COOKIE_AUTH + "=" + token +
+                "; Max-Age=" + Long.toString(controller.getSecurityTokenTTL() / 1000) +
+                "; Path=/api" +
+                "; Secure" +
                 "; HttpOnly"
         ));
         return response(HttpURLConnection.HTTP_OK, null);
