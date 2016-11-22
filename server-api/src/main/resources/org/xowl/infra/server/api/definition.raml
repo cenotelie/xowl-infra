@@ -1,0 +1,425 @@
+#%RAML 1.0
+---
+title: xOWL Triple Store
+version: v1
+schemas:
+  XOWLUser: |
+    {
+      "type": "object",
+      "$schema": "http://json-schema.org/schema",
+      "id": "http://xowl.org/infra/server/api/XOWLUser",
+      "properties": {
+        "type": { "enum": [ "org.xowl.infra.server.api.XOWLUser" ] },
+        "name": {
+          "type": "string"
+          }
+        },
+        "required": ["type", "name"]
+    }
+  XOWLDatabase: |
+    {
+      "type": "object",
+      "$schema": "http://json-schema.org/schema",
+      "id": "http://xowl.org/infra/server/api/XOWLDatabase",
+      "properties": {
+        "type": { "enum": [ "org.xowl.infra.server.api.XOWLDatabase" ] },
+        "name": {
+          "type": "string"
+          }
+        }
+    }
+traits:
+  secured:
+    usage: Apply this to any method that needs to be secured
+    description: Trait for requests that require authentication
+    headers:
+      Cookie:
+        description: Access token provided by the server
+        example: __Secure-Token=AAAAA
+        required: true
+    responses:
+      401:
+        description: No user is logged-in, or the security token is invalid (expired).
+      403:
+        description: The logged-in user is not authorized to perform this operation.
+  resourceAccess:
+    usage: Apply this to any method that refers to a particular resource
+    description: Trait for requests that refer to particular resources
+    responses:
+      404:
+        description: The requested resource annot be found.
+  mayFail:
+    usage: Apply this to any method that may fail
+    description: Trait for requests that may fail due to reasons other that security and resource access failure
+    responses:
+      501:
+        description: The requested operation is not supported
+      520:
+        description: The operation failed on the server
+        body:
+          text/plain:
+            type: string
+            description: The error message from the server
+baseUri: https://localhost:3443/api/
+/me:
+  description: Represents the current user in its interaction with the server
+  get:
+    description: Gets the data representing the currently logged user
+    is: [secured]
+    responses:
+      200:
+        body:
+          application/json:
+            schema: XOWLUser
+            example: |
+              { "type": "org.xowl.infra.server.api.XOWLUser", "name": "user" }
+  /login:
+    description: Action for a user to log on the server
+    post:
+      description: Tries to login on the server
+      is: [mayFail]
+      queryParameters:
+        login:
+          displayName: Login
+          type: string
+          description: The login to use
+          example: admin
+          required: true
+        password:
+          displayName: Password
+          type: string
+          description: The password to use
+          example: myPassword01
+          required: true
+      responses:
+        200:
+          description: The operation succeeded
+          headers:
+            Set-Cookie:
+              description: The authentication token that can be used later to authenticate for further operations
+              example: __Secure-Token=AAAAA
+              required: true
+        401:
+          description: The login operation failed
+  /logout:
+    description: Action for a user to log out of the server
+    post:
+      description: Tries to logout from the server
+      is: [secured]
+      responses:
+        200:
+          description: The operation succeeded
+/server:
+  description: Represents the server
+  is: [secured, mayFail]
+  /shutdown:
+    description: Action to shutdown the server
+    post:
+      description: Attempts to shutdown the server
+      responses:
+        200:
+          description: The server is shutting down
+  /restart:
+    description: Action to restart the server
+    post:
+      description: Attempts to restart the server
+      responses:
+        200:
+          description: The server is restarting
+  /grantAdmin:
+    description: Action to grant server administrative privileges to a user
+    post:
+      description: Grants the server administration privilege to a user
+      is: [resourceAccess]
+      queryParameters:
+        user:
+          displayName: User
+          type: string
+          description: The identifier of the user to which administration privilege shall be granted
+          example: user01
+          required: true
+      responses:
+        200:
+          description: The privilege has been granted
+  /revokeAdmin:
+    description: Action to revoke server administrative privileges from a user
+    post:
+      description: Revokes the server administration privilege from a user
+      is: [resourceAccess]
+      queryParameters:
+        user:
+          displayName: User
+          type: string
+          description: The identifier of the user from which the administration privilege shall be revoked
+          example: user01
+          required: true
+      responses:
+        200:
+          description: The privilege has been revoked
+/databases:
+  description: The collection of databases on the server
+  is: [secured, mayFail]
+  get:
+    description: Gets the list of the databases on the server that can be accessed by the currently logged-in user
+    responses:
+      200:
+        description: Returns a list of the databases
+        body:
+          application/json:
+            schema: |
+              {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                  }
+              }
+            example: |
+              [ {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db1"}, {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db2"} ]
+  /{dbId}:
+    description: A specific database on the server
+    is: [resourceAccess]
+    get:
+      description: Gets the description of the database
+    put:
+      description: Creates the corresponding database
+    delete:
+      description: Drops (delete) this database
+    post:
+      description: Uploads raw data to the database
+    /metric:
+      description: The metric defition for the statistics of the database
+      get:
+        description: Gets the metric definition for the statistics of the database
+    /statistics:
+      description: The statistics of the database
+      get:
+        description: Gets the statistics of the database
+    /sparql:
+      description: The SPARQL endpoint for the database
+      get:
+        description: Executes a SPARQL query on the database
+        queryParameters:
+          query:
+            displayName: Query
+            type: string
+            description: The SPARQL query to be executed
+            example: SELECT ?c WHERE { GRAPH ?g { ?x a ?c } }
+            required: true
+          default-graph-uri:
+            displayName: URIs for default graph
+            type: array
+            description: The URIs for the default graph
+            example: ["http://example.com/graph1"]
+            required: false
+          named-graph-uri:
+            displayName: URIs for named graph
+            type: array
+            description: The URIs for the named graph
+            example: ["http://example.com/graph1"]
+            required: false
+      post:
+        description: Executes a SPARQL quert on the database
+        queryParameters:
+          default-graph-uri:
+            displayName: URIs for default graph
+            type: array
+            description: The URIs for the default graph
+            example: ["http://example.com/graph1"]
+            required: false
+          named-graph-uri:
+            displayName: URIs for named graph
+            type: array
+            description: The URIs for the named graph
+            example: ["http://example.com/graph1"]
+            required: false
+        body:
+          application/sparql-query:
+            displayName: The SPARQL query to be executed
+            type: string
+            description: The SPARQL query to be executed
+            example: SELECT ?c WHERE { GRAPH ?g { ?x a ?c } }
+    /entailment:
+      description: The entailment regime for the database
+      get:
+        description: Gets the current entailment regime for the database
+      put:
+        description: Sets the entailment regime for the database
+        body:
+          text/plain:
+            displayName: Entailment Regime
+            type: string
+            description: The entailment regime for the database
+            example: OWL2_RDF
+      delete:
+        description: Resets the entailment regime to 'no entailment'
+    /privileges:
+      description: The privileges assigned to users for the database
+      get:
+        description: Gets the privileges assigned to users for the database
+      /grant:
+        description: Action to grant privileges to a user for the database
+        post:
+          description: Grants privileges to a user for the database
+          queryParameters:
+            user:
+              displayName: User
+              type: string
+              description: The identifier of the user to assign privilege to
+              example: user01
+              required: true
+            access:
+              displayName: Access
+              type: string
+              description: The privilege to grant (one of ADMIN, WRITE, READ)
+              example: WRITE
+              required: true
+      /revoke:
+        description: Action to revoke privileges from a user for the database
+        post:
+          description: Revokes privileges from a user for the database
+          queryParameters:
+            user:
+              displayName: User
+              type: string
+              description: The identifier of the user to revoke privilege from
+              example: user01
+              required: true
+            access:
+              displayName: Access
+              type: string
+              description: The privilege to revoke (one of ADMIN, WRITE, READ)
+              example: WRITE
+              required: true
+    /rules:
+      description: The collection of rules for the database
+      get:
+        description: Gets the list of the rules for the database
+      put:
+        description: Inserts a new rule in the database
+        body:
+          application/x-xowl-rdft:
+            displayName: Rule definition
+            type: string
+            description: The definition of the rule to insert
+      /{ruleId}:
+        description: A specific rule for the database
+        get:
+          description: Gets the description of the rule
+        delete:
+          description: Deletes the rule from the database
+        /status:
+          description: The status of the rule
+          get:
+            description: Gets the current status of the rule
+        /activate:
+          description: Action to activate the rule
+          post:
+            description: Activates the rule for the database
+        /deactivate:
+          description: Action to de-activate the rule
+          post:
+            description: De-activates the rule for the database
+    /procedures:
+      description: The collection of stored procedures for the database
+      get:
+        description: Gets the list of the stored procedures for the database
+      /{procedureId}:
+        description: A specific stored procedure
+        get:
+          description: Gets the definition of the stored procedure
+        delete:
+          description: Deletes the stored procedure from the database
+        put:
+          description: Creates the stored procedure
+          body:
+            application/json:
+              displayName: Procedure definition
+              type: object
+              description: The definition of the procedure to insert
+        post:
+          description: Executes the stored procedure
+          body:
+            application/json:
+              displayName: Procedure context
+              type: object
+              description: The context for the procedure to execute in
+/users:
+  description: The collection of users on the server
+  is: [secured]
+  get:
+    description: Gets a list of the users on the server
+  /{userId}:
+    description: A specific user on the server
+    get:
+      description: Gets a description of the user
+    delete:
+      description: Deletes the user from the server
+    put:
+      description: Creates the associated user
+      body:
+        text/plain:
+          displayName: Password
+          type: string
+          description: The initial password for the user
+    /password:
+      description: The password for the user
+      /change:
+        description: The action to change the password for the user
+        post:
+          description: Updates the password for the current user
+          queryParameters:
+            password:
+              displayName: Password
+              type: string
+              description: The new password for the user
+              example: Password01
+              required: true
+      /reset:
+        description: The action to reset the password for the user
+        post:
+          description: Resets the password for the current user
+          queryParameters:
+            password:
+              displayName: Password
+              type: string
+              description: The new password for the user
+              example: Password01
+              required: true
+    /privileges:
+      description: The privileges assigned to the user for databases
+      get:
+        description: Gets the privileges assigned to the user for databases
+      /grant:
+        description: Action to grant privileges to the user for a database
+        post:
+          description: Grants privileges to the user for a database
+          queryParameters:
+            db:
+              displayName: Database
+              type: string
+              description: The identifier of the database to grant for
+              example: db01
+              required: true
+            access:
+              displayName: Access
+              type: string
+              description: The privilege to grant (one of ADMIN, WRITE, READ)
+              example: WRITE
+              required: true
+      /revoke:
+        description: Action to revoke privileges from the user for a database
+        post:
+          description: Revokes privileges from the user for a database
+          queryParameters:
+            db:
+              displayName: Database
+              type: string
+              description: The identifier of the database to grant for
+              example: db01
+              required: true
+            access:
+              displayName: Access
+              type: string
+              description: The privilege to grant (one of ADMIN, WRITE, READ)
+              example: WRITE
+              required: true
