@@ -168,7 +168,7 @@ XOWL.prototype.getDBRule = function (callback, db, rule) {
 }
 
 XOWL.prototype.addDBRule = function (callback, db, rule) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/rules", "PUT", null, rule);
+	this.command(callback, "/db/" + encodeURIComponent(db) + "/rules", "PUT", "application/x-xowl-rdft", rule);
 }
 
 XOWL.prototype.removeDBRule = function (callback, db, rule) {

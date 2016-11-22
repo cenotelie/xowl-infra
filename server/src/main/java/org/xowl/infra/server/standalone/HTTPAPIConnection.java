@@ -151,7 +151,7 @@ class HTTPAPIConnection extends SafeRunnable {
                         "; Secure" +
                         "; HttpOnly"
         ));
-        return response(HttpURLConnection.HTTP_OK, null);
+        return response(HttpURLConnection.HTTP_OK);
     }
 
     /**
