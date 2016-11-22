@@ -24,6 +24,116 @@ package org.xowl.infra.utils.http;
  */
 public interface HttpConstants {
     /**
+     * The HTTP method OPTIONS.
+     *
+     * @see <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html">Hypertext Transfer Protocol -- HTTP/1.1</a>
+     */
+    String METHOD_OPTIONS = "OPTIONS";
+    /**
+     * The HTTP method GET.
+     *
+     * @see <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html">Hypertext Transfer Protocol -- HTTP/1.1</a>
+     */
+    String METHOD_GET = "GET";
+    /**
+     * The HTTP method POST.
+     *
+     * @see <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html">Hypertext Transfer Protocol -- HTTP/1.1</a>
+     */
+    String METHOD_POST = "POST";
+    /**
+     * The HTTP method PUT.
+     *
+     * @see <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html">Hypertext Transfer Protocol -- HTTP/1.1</a>
+     */
+    String METHOD_PUT = "PUT";
+    /**
+     * The HTTP method DELETE.
+     *
+     * @see <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html">Hypertext Transfer Protocol -- HTTP/1.1</a>
+     */
+    String METHOD_DELETE = "DELETE";
+
+    /**
+     * The HTTP Origin header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin">Origin header on MDN</a>
+     */
+    String HEADER_ORIGIN = "Origin";
+    /**
+     * The HTTP Host header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host">Host header on MDN</a>
+     */
+    String HEADER_HOST = "Host";
+    /**
+     * The HTTP Content-Type header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type">Content-Type header on MDN</a>
+     */
+    String HEADER_CONTENT_TYPE = "Content-Type";
+    /**
+     * The HTTP Content-Encoding header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Encoding">Content-Encoding header on MDN</a>
+     */
+    String HEADER_CONTENT_ENCODING = "Content-Encoding";
+    /**
+     * The HTTP Accept header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept">Accept header on MDN</a>
+     */
+    String HEADER_ACCEPT = "Accept";
+    /**
+     * The HTTP Cookie header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cookie">Cookie header on MDN</a>
+     */
+    String HEADER_COOKIE = "Cookie";
+    /**
+     * The HTTP Set-Cookie header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie">Set-Cookie header on MDN</a>
+     */
+    String HEADER_SET_COOKIE = "Set-Cookie";
+    /**
+     * The HTTP Cache-Control header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control">Cache-Control header on MDN</a>
+     */
+    String HEADER_CACHE_CONTROL = "Cache-Control";
+    /**
+     * The HTTP Strict-Transport-Security header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security>Strict-Transport-Security header on MDN</a>
+     */
+    String HEADER_STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security";
+    /**
+     * The HTTP Access-Control-Allow-Methods header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods">Access-Control-Allow-Methods header on MDN</a>
+     */
+    String HEADER_ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods";
+    /**
+     * The HTTP Access-Control-Allow-Headers header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers">Access-Control-Allow-Headers header on MDN</a>
+     */
+    String HEADER_ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
+    /**
+     * The HTTP Access-Control-Allow-Origin header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin">Access-Control-Allow-Origin header on MDN</a>
+     */
+    String HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
+    /**
+     * The HTTP Access-Control-Allow-Credentials header.
+     *
+     * @see <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials">Access-Control-Allow-Credentials header on MDN</a>
+     */
+    String HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
+
+    /**
      * The MIME content type for plain text
      */
     String MIME_TEXT_PLAIN = "text/plain";

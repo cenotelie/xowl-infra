@@ -21,6 +21,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.collections.Couple;
+import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.ByteArrayOutputStream;
@@ -48,7 +49,7 @@ class Utils {
     public static String getRequestBody(HttpExchange exchange) throws IOException {
         try (InputStream stream = exchange.getRequestBody()) {
             InputStream input = stream;
-            if ("gzip".equals(exchange.getRequestHeaders().getFirst("Content-Encoding"))) {
+            if ("gzip".equals(exchange.getRequestHeaders().getFirst(HttpConstants.HEADER_CONTENT_ENCODING))) {
                 input = new GZIPInputStream(stream);
             }
             ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -71,7 +72,7 @@ class Utils {
      * @return The content type of a request
      */
     public static String getRequestContentType(Headers headers) {
-        String type = headers.getFirst("Content-Type");
+        String type = headers.getFirst(HttpConstants.HEADER_CONTENT_TYPE);
         if (type == null || type.isEmpty())
             return null;
         int index = type.indexOf(";");
@@ -131,7 +132,7 @@ class Utils {
      * @return The content types by order of preference
      */
     public static List<String> getAcceptTypes(Headers headers) {
-        String header = headers.getFirst("Accept");
+        String header = headers.getFirst(HttpConstants.HEADER_ACCEPT);
         if (header == null || header.isEmpty())
             return Collections.emptyList();
         List<Couple<String, Float>> contentTypes = new ArrayList<>();
@@ -166,14 +167,23 @@ class Utils {
      * @param responseHeaders The response headers
      */
     public static void enableCORS(Headers requestHeaders, Headers responseHeaders) {
-        String origin = requestHeaders.getFirst("Origin");
+        String origin = requestHeaders.getFirst(HttpConstants.HEADER_ORIGIN);
         if (origin == null) {
             // the request is from the same host
-            origin = requestHeaders.getFirst("Host");
+            origin = requestHeaders.getFirst(HttpConstants.HEADER_HOST);
         }
-        responseHeaders.put("Access-Control-Allow-Methods", Arrays.asList("GET", "POST", "OPTIONS"));
-        responseHeaders.put("Access-Control-Allow-Headers", Arrays.asList("Accept", "Content-Type", "Authorization", "Cache-Control"));
-        responseHeaders.put("Access-Control-Allow-Origin", Arrays.asList(origin));
-        responseHeaders.put("Access-Control-Allow-Credentials", Arrays.asList("true"));
+        responseHeaders.put(HttpConstants.HEADER_ACCESS_CONTROL_ALLOW_METHODS, Arrays.asList(
+                HttpConstants.METHOD_OPTIONS,
+                HttpConstants.METHOD_GET,
+                HttpConstants.METHOD_POST,
+                HttpConstants.METHOD_PUT,
+                HttpConstants.METHOD_DELETE));
+        responseHeaders.put(HttpConstants.HEADER_ACCESS_CONTROL_ALLOW_HEADERS, Arrays.asList(
+                HttpConstants.HEADER_ACCEPT,
+                HttpConstants.HEADER_CONTENT_TYPE,
+                HttpConstants.HEADER_COOKIE,
+                HttpConstants.HEADER_CACHE_CONTROL));
+        responseHeaders.put(HttpConstants.HEADER_ACCESS_CONTROL_ALLOW_ORIGIN, Collections.singletonList(origin));
+        responseHeaders.put(HttpConstants.HEADER_ACCESS_CONTROL_ALLOW_CREDENTIALS, Collections.singletonList("true"));
     }
 }

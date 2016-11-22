@@ -31,7 +31,9 @@ import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.loaders.JSONLDLoader;
 import org.xowl.infra.utils.Files;
 import org.xowl.infra.utils.concurrent.SafeRunnable;
+import org.xowl.infra.utils.http.HttpConstants;
 import org.xowl.infra.utils.http.HttpResponse;
+import org.xowl.infra.utils.http.URIUtils;
 import org.xowl.infra.utils.logging.Logging;
 
 import java.io.IOException;
@@ -46,13 +48,9 @@ import java.util.*;
  */
 class HTTPAPIConnection extends SafeRunnable {
     /**
-     * The HTTP Content-Type header
+     * The empty message
      */
-    private static final String HEADER_CONTENT_TYPE = "Content-Type";
-    /**
-     * The content type for a SPARQL URL encoded message body
-     */
-    public static final String SPARQL_TYPE_URL_ENCODED = "application/x-www-form-urlencoded";
+    private static final byte[] EMPTY_MESSAGE = new byte[0];
     /**
      * The name of the authentication cookie
      */
@@ -86,12 +84,12 @@ class HTTPAPIConnection extends SafeRunnable {
     @Override
     public void doRun() {
         // add caching headers
-        httpExchange.getResponseHeaders().put("Cache-Control", Arrays.asList("private", "no-cache", "no-store", "no-transform", "must-revalidate"));
-        httpExchange.getResponseHeaders().put("Strict-Transport-Security", Collections.singletonList("max-age=31536000"));
+        httpExchange.getResponseHeaders().put(HttpConstants.HEADER_CACHE_CONTROL, Arrays.asList("private", "no-cache", "no-store", "no-transform", "must-revalidate"));
+        httpExchange.getResponseHeaders().put(HttpConstants.HEADER_STRICT_TRANSPORT_SECURITY, Collections.singletonList("max-age=31536000"));
         String method = httpExchange.getRequestMethod();
-        if (Objects.equals(method, "OPTIONS")) {
+        if (Objects.equals(method, HttpConstants.METHOD_OPTIONS)) {
             // assume a pre-flight CORS request
-            response(HttpURLConnection.HTTP_OK, null);
+            response(HttpURLConnection.HTTP_OK);
             return;
         }
 
@@ -101,7 +99,7 @@ class HTTPAPIConnection extends SafeRunnable {
             return;
         }
 
-        List<String> cookies = httpExchange.getRequestHeaders().get("Cookie");
+        List<String> cookies = httpExchange.getRequestHeaders().get(HttpConstants.HEADER_COOKIE);
         if (cookies != null) {
             for (String cookie : cookies) {
                 if (cookie.startsWith(COOKIE_AUTH + "=")) {
@@ -114,7 +112,7 @@ class HTTPAPIConnection extends SafeRunnable {
             }
         }
         if (client == null) {
-            response(HttpURLConnection.HTTP_UNAUTHORIZED, "Failed to login");
+            response(HttpURLConnection.HTTP_UNAUTHORIZED);
             return;
         }
         handleRequest(method, resource);
@@ -133,25 +131,25 @@ class HTTPAPIConnection extends SafeRunnable {
      * @return The response code
      */
     private int handleRequestLogin(String method) {
-        if (!method.equals("POST"))
-            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
+        if (!method.equals(HttpConstants.METHOD_POST))
+            return response(HttpURLConnection.HTTP_BAD_METHOD);
         Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
         List<String> logins = params.get("login");
         List<String> passwords = params.get("password");
         if (logins == null || passwords == null || logins.isEmpty() || passwords.isEmpty())
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected parameters login and password");
+            return response(HttpURLConnection.HTTP_BAD_REQUEST);
         XSPReply reply = controller.login(httpExchange.getRemoteAddress().getAddress(), logins.get(0), passwords.get(0));
         if (reply == null)
-            return response(HttpURLConnection.HTTP_UNAUTHORIZED, "Failed to login");
+            return response(HttpURLConnection.HTTP_UNAUTHORIZED);
         if (!reply.isSuccess())
-            return response(HttpURLConnection.HTTP_UNAUTHORIZED, "Failed to login");
+            return response(HttpURLConnection.HTTP_UNAUTHORIZED);
         String token = ((XSPReplyResult<String>) reply).getData();
-        httpExchange.getResponseHeaders().put("Set-Cookie", Collections.singletonList(
+        httpExchange.getResponseHeaders().put(HttpConstants.HEADER_SET_COOKIE, Collections.singletonList(
                 COOKIE_AUTH + "=" + token +
-                "; Max-Age=" + Long.toString(controller.getSecurityTokenTTL() / 1000) +
-                "; Path=/api" +
-                "; Secure" +
-                "; HttpOnly"
+                        "; Max-Age=" + Long.toString(controller.getSecurityTokenTTL() / 1000) +
+                        "; Path=/api" +
+                        "; Secure" +
+                        "; HttpOnly"
         ));
         return response(HttpURLConnection.HTTP_OK, null);
     }
@@ -164,77 +162,37 @@ class HTTPAPIConnection extends SafeRunnable {
      * @return The response code
      */
     private int handleRequest(String method, String resource) {
-        if (resource.equals("/me")) {
-            return handleResourceMe(method);
-        } else if (resource.equals("/server")) {
-            return handleResourceServer(method);
-        } else if (resource.equals("/databases")) {
-            return handleResourceDatabases(method);
-        } else if (resource.equals("/users")) {
-            return handleResourceUsers(method);
-        } else if (resource.startsWith("/user/")) {
-            return handleResourceUser(method, resource);
-        } else if (resource.startsWith("/db/")) {
-            return handleResourceDatabase(method, resource);
+        if (resource.startsWith("/me")) {
+            return handleResourceMe(method, resource);
+        } else if (resource.startsWith("/server")) {
+            return handleResourceServer(method, resource);
+        } else if (resource.startsWith("/databases")) {
+            return handleResourceDatabases(method, resource);
+        } else if (resource.startsWith("/users")) {
+            return handleResourceUsers(method, resource);
         } else {
-            return response(HttpURLConnection.HTTP_NOT_FOUND, null);
+            return response(HttpURLConnection.HTTP_NOT_FOUND);
         }
     }
 
     /**
      * Handles the request
      *
-     * @param method The HTTP method
+     * @param method   The HTTP method
+     * @param resource The accessed resource
      * @return The response code
      */
-    private int handleResourceMe(String method) {
-        if (!method.equals("GET"))
-            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
-        return response(controller.getUser(client, client.getName()));
-    }
-
-    /**
-     * Handles the request
-     *
-     * @param method The HTTP method
-     * @return The response code
-     */
-    private int handleResourceServer(String method) {
-        if (!method.equals("POST"))
-            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected POST method");
-        Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
-        List<String> actions = params.get("action");
-        if (actions == null || actions.isEmpty())
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected 'action' parameter");
-        if (actions.get(0).equals("shutdown"))
-            return response(controller.serverShutdown(client));
-        else if (actions.get(0).equals("restart"))
-            return response(controller.serverRestart(client));
-        return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected 'action' parameter");
-    }
-
-    /**
-     * Handles the request
-     *
-     * @param method The HTTP method
-     * @return The response code
-     */
-    private int handleResourceDatabases(String method) {
-        if (!method.equals("GET"))
-            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
-        return response(controller.getDatabases(client));
-    }
-
-    /**
-     * Handles the request
-     *
-     * @param method The HTTP method
-     * @return The response code
-     */
-    private int handleResourceUsers(String method) {
-        if (!method.equals("GET"))
-            return response(HttpURLConnection.HTTP_BAD_METHOD, "Expected GET method");
-        return response(controller.getUsers(client));
+    private int handleResourceMe(String method, String resource) {
+        if (resource.equals("/me")) {
+            if (!method.equals(HttpConstants.METHOD_GET))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(controller.getUser(client, client.getName()));
+        } else if (resource.equals("/me/logout")) {
+            if (!method.equals(HttpConstants.METHOD_POST))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(controller.logout(client));
+        }
+        return response(HttpURLConnection.HTTP_NOT_FOUND, null);
     }
 
     /**
@@ -244,85 +202,36 @@ class HTTPAPIConnection extends SafeRunnable {
      * @param resource The accessed resource
      * @return The response code
      */
-    private int handleResourceUser(String method, String resource) {
-        if (resource.endsWith("/privileges"))
-            return handleResourceUserPrivileges(method, resource);
-        return handleResourceUserNaked(method, resource);
-    }
-
-    /**
-     * Handles the request
-     *
-     * @param method   The HTTP method
-     * @param resource The accessed resource
-     * @return The response code
-     */
-    private int handleResourceUserPrivileges(String method, String resource) {
-        String name = resource.substring("/user/".length(), resource.length() - "/privileges".length());
-        if (method.equals("GET"))
-            return response(controller.getPrivilegesUser(client, name));
-        if (method.equals("POST")) {
-            Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
-            List<String> actions = params.get("action");
-            List<String> databases = params.get("db");
-            List<String> servers = params.get("server");
-            List<String> accesses = params.get("access");
-            if (actions == null || actions.isEmpty() || accesses == null || accesses.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-            int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
-            if (privilege == 0)
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-            if (databases == null || databases.isEmpty()) {
-                if (servers == null || servers.isEmpty())
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-                if (privilege != XOWLPrivilege.ADMIN)
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-                if (actions.get(0).equals("grant"))
-                    return response(controller.grantServerAdmin(client, name));
-                if (actions.get(0).equals("revoke"))
-                    return response(controller.revokeServerAdmin(client, name));
-            } else {
-                if (actions.get(0).equals("grant"))
-                    return response(controller.grantDB(client, name, databases.get(0), privilege));
-                if (actions.get(0).equals("revoke"))
-                    return response(controller.revokeDB(client, name, databases.get(0), privilege));
+    private int handleResourceServer(String method, String resource) {
+        switch (resource) {
+            case "/server/shutdown":
+                if (!method.equals(HttpConstants.METHOD_POST))
+                    return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(controller.serverShutdown(client));
+            case "/server/restart":
+                if (!method.equals(HttpConstants.METHOD_POST))
+                    return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(controller.serverRestart(client));
+            case "/server/grantAdmin": {
+                if (!method.equals(HttpConstants.METHOD_POST))
+                    return response(HttpURLConnection.HTTP_BAD_METHOD);
+                Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+                List<String> users = params.get("user");
+                if (users == null || users.isEmpty())
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                return response(controller.grantServerAdmin(client, users.get(0)));
             }
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-        }
-        return response(HttpURLConnection.HTTP_BAD_METHOD, null);
-    }
-
-    /**
-     * Handles the request
-     *
-     * @param method   The HTTP method
-     * @param resource The accessed resource
-     * @return The response code
-     */
-    private int handleResourceUserNaked(String method, String resource) {
-        String name = resource.substring("/user/".length());
-        if (name.isEmpty())
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected user name");
-        if (method.equals("GET"))
-            return response(controller.getUser(client, name));
-        if (method.equals("DELETE"))
-            return response(controller.deleteUser(client, name));
-        if (method.equals("PUT")) {
-            UserImpl user = controller.getPrincipal(name);
-            try {
-                String password = Utils.getRequestBody(httpExchange);
-                if (user == null)
-                    return response(controller.createUser(client, name, password));
-                else if (user.getName().equals(client.getName()))
-                    return response(controller.changePassword(client, password));
-                else
-                    return response(controller.resetPassword(client, name, password));
-            } catch (IOException exception) {
-                logger.error(exception);
-                return response(HttpURLConnection.HTTP_INTERNAL_ERROR, exception.getMessage());
+            case "/server/revokeAdmin": {
+                if (!method.equals(HttpConstants.METHOD_POST))
+                    return response(HttpURLConnection.HTTP_BAD_METHOD);
+                Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+                List<String> users = params.get("user");
+                if (users == null || users.isEmpty())
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                return response(controller.revokeServerAdmin(client, users.get(0)));
             }
         }
-        return response(HttpURLConnection.HTTP_BAD_METHOD, null);
+        return response(HttpURLConnection.HTTP_NOT_FOUND, null);
     }
 
     /**
@@ -332,63 +241,78 @@ class HTTPAPIConnection extends SafeRunnable {
      * @param resource The accessed resource
      * @return The response code
      */
-    private int handleResourceDatabase(String method, String resource) {
-        if (resource.endsWith("/metric"))
-            return handleResourceDatabaseMetric(method, resource);
-        if (resource.endsWith("/statistics"))
-            return handleResourceDatabaseMetricSnapshot(method, resource);
-        if (resource.endsWith("/sparql"))
-            return handleResourceDatabaseSPARQL(method, resource);
-        if (resource.endsWith("/entailment"))
-            return handleResourceDatabaseEntailment(method, resource);
-        if (resource.endsWith("/privileges"))
-            return handleResourceDatabasePrivileges(method, resource);
-        if (resource.endsWith("/rules"))
-            return handleResourceDatabaseRules(method, resource);
-        if (resource.endsWith("/procedures"))
-            return handleResourceDatabaseProcedures(method, resource);
-        return handleResourceDatabaseNaked(method, resource);
+    private int handleResourceDatabases(String method, String resource) {
+        if (resource.equals("/databases")) {
+            if (!method.equals(HttpConstants.METHOD_GET))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(controller.getDatabases(client));
+        } else if (resource.startsWith("/databases/")) {
+            String rest = resource.substring("/databases/".length());
+            int index = rest.indexOf("/");
+            if (index < 0)
+                return handleResourceDatabaseNaked(URIUtils.decodeComponent(rest), method);
+            String name = URIUtils.decodeComponent(rest.substring(0, index));
+            if (name.isEmpty())
+                return response(HttpURLConnection.HTTP_NOT_FOUND);
+            rest = rest.substring(index);
+            if (rest.startsWith("/privileges"))
+                return handleResourceDatabasePrivileges(name, method, rest);
+            if (rest.startsWith("/rules"))
+                return handleResourceDatabaseRules(name, method, rest);
+            if (rest.startsWith("/procedures"))
+                return handleResourceDatabaseProcedures(name, method, rest);
+            switch (rest) {
+                case "/metric":
+                    return handleResourceDatabaseMetric(name, method);
+                case "/statistics":
+                    return handleResourceDatabaseMetricSnapshot(name, method);
+                case "/sparql":
+                    return handleResourceDatabaseSPARQL(name, method);
+                case "/entailment":
+                    return handleResourceDatabaseEntailment(name, method);
+            }
+        }
+        return response(HttpURLConnection.HTTP_NOT_FOUND);
     }
 
     /**
      * Handles the request
      *
-     * @param method   The HTTP method
-     * @param resource The accessed resource
+     * @param name   The database's name
+     * @param method The HTTP method
      * @return The response code
      */
-    private int handleResourceDatabaseNaked(String method, String resource) {
-        String name = resource.substring("/db/".length());
-        if (name.isEmpty())
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Expected database name");
-        if (method.equals("GET"))
-            return response(controller.getDatabase(client, name));
-        if (method.equals("DELETE"))
-            return response(controller.dropDatabase(client, name));
-        if (method.equals("POST"))
-            return handleResourceDatabasePostData(name);
-        if (method.equals("PUT"))
-            return response(controller.createDatabase(client, name));
-        return response(HttpURLConnection.HTTP_BAD_METHOD, null);
+    private int handleResourceDatabaseNaked(String name, String method) {
+        switch (method) {
+            case HttpConstants.METHOD_GET:
+                return response(controller.getDatabase(client, name));
+            case HttpConstants.METHOD_PUT:
+                return response(controller.createDatabase(client, name));
+            case HttpConstants.METHOD_DELETE:
+                return response(controller.dropDatabase(client, name));
+            case HttpConstants.METHOD_POST:
+                return handleResourceDatabasePostData(name);
+        }
+        return response(HttpURLConnection.HTTP_BAD_METHOD);
     }
 
     /**
      * Handles the request
      *
-     * @param name The database name
+     * @param name The database's name
      * @return The response code
      */
     private int handleResourceDatabasePostData(String name) {
         Headers rHeaders = httpExchange.getRequestHeaders();
         String contentType = Utils.getRequestContentType(rHeaders);
         if (contentType == null)
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Missing content type");
+            return response(HttpURLConnection.HTTP_BAD_REQUEST);
         String body;
         try {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+            return response(HttpURLConnection.HTTP_BAD_REQUEST);
         }
         return response(controller.upload(client, name, contentType, body));
     }
@@ -396,40 +320,37 @@ class HTTPAPIConnection extends SafeRunnable {
     /**
      * Handles the request
      *
-     * @param method   The HTTP method
-     * @param resource The accessed resource
+     * @param name   The database's name
+     * @param method The HTTP method
      * @return The response code
      */
-    private int handleResourceDatabaseMetric(String method, String resource) {
-        String name = resource.substring("/db/".length(), resource.length() - "/metric".length());
-        if (method.equals("GET"))
-            return response(controller.getDatabaseMetric(client, name));
-        return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
+    private int handleResourceDatabaseMetric(String name, String method) {
+        if (!method.equals(HttpConstants.METHOD_GET))
+            return response(HttpURLConnection.HTTP_BAD_METHOD);
+        return response(controller.getDatabaseMetric(client, name));
     }
 
     /**
      * Handles the request
      *
-     * @param method   The HTTP method
-     * @param resource The accessed resource
+     * @param name   The database's name
+     * @param method The HTTP method
      * @return The response code
      */
-    private int handleResourceDatabaseMetricSnapshot(String method, String resource) {
-        String name = resource.substring("/db/".length(), resource.length() - "/statistics".length());
-        if (method.equals("GET"))
-            return response(controller.getDatabaseMetricSnapshot(client, name));
-        return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
+    private int handleResourceDatabaseMetricSnapshot(String name, String method) {
+        if (!method.equals(HttpConstants.METHOD_GET))
+            return response(HttpURLConnection.HTTP_BAD_METHOD);
+        return response(controller.getDatabaseMetricSnapshot(client, name));
     }
 
     /**
      * Handles the request
      *
-     * @param method   The HTTP method
-     * @param resource The accessed resource
+     * @param name   The database's name
+     * @param method The HTTP method
      * @return The response code
      */
-    private int handleResourceDatabaseSPARQL(String method, String resource) {
-        String name = resource.substring("/db/".length(), resource.length() - "/sparql".length());
+    private int handleResourceDatabaseSPARQL(String name, String method) {
         Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
         List<String> vQuery = params.get("query");
         List<String> defaults = params.get("default-graph-uri");
@@ -440,10 +361,10 @@ class HTTPAPIConnection extends SafeRunnable {
             body = Utils.getRequestBody(httpExchange);
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+            return response(HttpURLConnection.HTTP_BAD_REQUEST);
         }
         switch (method) {
-            case "GET":
+            case HttpConstants.METHOD_GET:
                 if (query != null) {
                     if (body != null && !body.isEmpty()) {
                         // should be empty
@@ -457,7 +378,7 @@ class HTTPAPIConnection extends SafeRunnable {
                     response(HttpURLConnection.HTTP_BAD_REQUEST, null);
                 }
                 break;
-            case "POST":
+            case HttpConstants.METHOD_POST:
                 return response(controller.sparql(client, name, body, defaults, named));
         }
         return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
@@ -466,132 +387,155 @@ class HTTPAPIConnection extends SafeRunnable {
     /**
      * Handles the request
      *
-     * @param method   The HTTP method
-     * @param resource The accessed resource
+     * @param name   The database's name
+     * @param method The HTTP method
      * @return The response code
      */
-    private int handleResourceDatabaseEntailment(String method, String resource) {
-        String name = resource.substring("/db/".length(), resource.length() - "/entailment".length());
-        if (method.equals("GET"))
-            return response(controller.getEntailmentRegime(client, name));
-        if (method.equals("PUT")) {
-            try {
-                String body = Utils.getRequestBody(httpExchange);
-                return response(controller.setEntailmentRegime(client, name, body));
-            } catch (IOException exception) {
-                Logging.getDefault().error(exception);
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
-            }
-        } else if (method.equals("DELETE")) {
-            return response(controller.setEntailmentRegime(client, name, EntailmentRegime.none.toString()));
+    private int handleResourceDatabaseEntailment(String name, String method) {
+        switch (method) {
+            case HttpConstants.METHOD_GET:
+                return response(controller.getEntailmentRegime(client, name));
+            case HttpConstants.METHOD_PUT:
+                try {
+                    String body = Utils.getRequestBody(httpExchange);
+                    return response(controller.setEntailmentRegime(client, name, body));
+                } catch (IOException exception) {
+                    Logging.getDefault().error(exception);
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST);
+                }
+            case HttpConstants.METHOD_DELETE:
+                return response(controller.setEntailmentRegime(client, name, EntailmentRegime.none.toString()));
         }
-        return response(HttpURLConnection.HTTP_BAD_METHOD, null);
+        return response(HttpURLConnection.HTTP_BAD_METHOD);
     }
 
     /**
      * Handles the request
      *
+     * @param name     The database's name
      * @param method   The HTTP method
      * @param resource The accessed resource
      * @return The response code
      */
-    private int handleResourceDatabasePrivileges(String method, String resource) {
-        String name = resource.substring("/db/".length(), resource.length() - "/privileges".length());
-        if (method.equals("GET"))
+    private int handleResourceDatabasePrivileges(String name, String method, String resource) {
+        if (resource.equals("/privileges")) {
+            if (!method.equals(HttpConstants.METHOD_GET))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
             return response(controller.getPrivilegesDB(client, name));
-        if (method.equals("POST")) {
+        }
+        if (resource.equals("/privileges/grant")) {
+            if (!method.equals(HttpConstants.METHOD_POST))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
             Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
-            List<String> actions = params.get("action");
             List<String> users = params.get("user");
             List<String> accesses = params.get("access");
-            if (actions == null || actions.isEmpty() || users == null || users.isEmpty() || accesses == null || accesses.isEmpty())
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
+            if (users == null || users.isEmpty() || accesses == null || accesses.isEmpty())
+                return response(HttpURLConnection.HTTP_BAD_REQUEST);
             int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
             if (privilege == 0)
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-            if (actions.get(0).equals("grant"))
-                return response(controller.grantDB(client, users.get(0), name, privilege));
-            if (actions.get(0).equals("revoke"))
-                return response(controller.revokeDB(client, users.get(0), name, privilege));
-            return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
+                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            return response(controller.grantDB(client, users.get(0), name, privilege));
         }
-        return response(HttpURLConnection.HTTP_BAD_METHOD, null);
+        if (resource.equals("/privileges/revoke")) {
+            if (!method.equals(HttpConstants.METHOD_POST))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+            List<String> users = params.get("user");
+            List<String> accesses = params.get("access");
+            if (users == null || users.isEmpty() || accesses == null || accesses.isEmpty())
+                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
+            if (privilege == 0)
+                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            return response(controller.revokeDB(client, users.get(0), name, privilege));
+        }
+        return response(HttpURLConnection.HTTP_NOT_FOUND);
     }
 
     /**
      * Handles the request
      *
+     * @param name     The database's name
      * @param method   The HTTP method
      * @param resource The accessed resource
      * @return The response code
      */
-    private int handleResourceDatabaseRules(String method, String resource) {
-        String name = resource.substring("/db/".length(), resource.length() - "/rules".length());
-        Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
-        List<String> ids = params.get("id");
-        switch (method) {
-            case "GET":
-                if (ids == null || ids.isEmpty())
+    private int handleResourceDatabaseRules(String name, String method, String resource) {
+        if (resource.equals("/rules")) {
+            switch (method) {
+                case HttpConstants.METHOD_GET:
                     return response(controller.getRules(client, name));
-                List<String> statuses = params.get("status");
-                if (statuses == null || statuses.isEmpty())
-                    return response(controller.getRule(client, name, ids.get(0)));
-                return response(controller.getRuleStatus(client, name, ids.get(0)));
-            case "POST":
-                if (ids == null || ids.isEmpty())
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-                List<String> actions = params.get("action");
-                if (actions == null || actions.isEmpty())
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-                if (actions.get(0).equals("activate"))
-                    return response(controller.activateRule(client, name, ids.get(0)));
-                if (actions.get(0).equals("deactivate"))
-                    return response(controller.deactivateRule(client, name, ids.get(0)));
-                return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-            case "PUT":
-                List<String> actives = params.get("active");
-                try {
-                    String body = Utils.getRequestBody(httpExchange);
-                    return response(controller.addRule(client, name, body, actives != null && !actives.isEmpty()));
-                } catch (IOException exception) {
-                    Logging.getDefault().error(exception);
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                case HttpConstants.METHOD_PUT: {
+                    Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+                    List<String> actives = params.get("active");
+                    try {
+                        String body = Utils.getRequestBody(httpExchange);
+                        return response(controller.addRule(client, name, body, actives != null && !actives.isEmpty()));
+                    } catch (IOException exception) {
+                        Logging.getDefault().error(exception);
+                        return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                    }
                 }
-            case "DELETE":
-                if (ids == null || ids.isEmpty())
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-                return response(controller.removeRule(client, name, ids.get(0)));
+            }
+            return response(HttpURLConnection.HTTP_BAD_METHOD);
         }
-        return response(HttpURLConnection.HTTP_BAD_METHOD, null);
+
+        resource = resource.substring("/rules/".length());
+        int index = resource.indexOf("/");
+        String ruleId = resource.substring(0, index != -1 ? index : resource.length());
+        ruleId = URIUtils.decodeComponent(ruleId);
+
+        if (index != -1) {
+            resource = resource.substring(index);
+            if (resource.equals("/status")) {
+                if (!method.equals(HttpConstants.METHOD_GET))
+                    return response(HttpURLConnection.HTTP_BAD_METHOD);
+                return response(controller.getRuleStatus(client, name, ruleId));
+            }
+            if (!method.equals(HttpConstants.METHOD_POST))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            if (resource.equals("/activate"))
+                return response(controller.activateRule(client, name, ruleId));
+            if (resource.equals("/deactivate"))
+                return response(controller.deactivateRule(client, name, ruleId));
+            return response(HttpURLConnection.HTTP_NOT_FOUND);
+        } else {
+            // this is the naked rule
+            switch (method) {
+                case HttpConstants.METHOD_GET:
+                    return response(controller.getRule(client, name, ruleId));
+                case HttpConstants.METHOD_DELETE:
+                    return response(controller.removeRule(client, name, ruleId));
+            }
+            return response(HttpURLConnection.HTTP_BAD_METHOD);
+        }
     }
 
     /**
      * Handles the request
      *
+     * @param name     The database's name
      * @param method   The HTTP method
      * @param resource The accessed resource
      * @return The response code
      */
-    private int handleResourceDatabaseProcedures(String method, String resource) {
-        String name = resource.substring("/db/".length(), resource.length() - "/procedures".length());
-        Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
-        List<String> ids = params.get("id");
+    private int handleResourceDatabaseProcedures(String name, String method, String resource) {
+        if (resource.equals("/procedures")) {
+            if (!method.equals(HttpConstants.METHOD_GET))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(controller.getStoredProcedures(client, name));
+        }
+
+        resource = resource.substring("/procedures/".length());
+        String procedureId = resource.substring(0, resource.length());
+        procedureId = URIUtils.decodeComponent(procedureId);
+
         switch (method) {
-            case "GET":
-                if (ids == null || ids.isEmpty())
-                    return response(controller.getStoredProcedures(client, name));
-                return response(controller.getStoreProcedure(client, name, ids.get(0)));
-            case "POST":
-                if (ids == null || ids.isEmpty())
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-                try {
-                    String body = Utils.getRequestBody(httpExchange);
-                    return response(controller.executeStoredProcedure(client, name, ids.get(0), body));
-                } catch (IOException exception) {
-                    Logging.getDefault().error(exception);
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
-                }
-            case "PUT":
+            case HttpConstants.METHOD_GET:
+                return response(controller.getStoreProcedure(client, name, procedureId));
+            case HttpConstants.METHOD_DELETE:
+                return response(controller.removeStoredProcedure(client, name, procedureId));
+            case HttpConstants.METHOD_PUT: {
                 try {
                     String body = Utils.getRequestBody(httpExchange);
                     ASTNode root = JSONLDLoader.parseJSON(logger, body);
@@ -603,12 +547,169 @@ class HTTPAPIConnection extends SafeRunnable {
                     Logging.getDefault().error(exception);
                     return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
                 }
-            case "DELETE":
-                if (ids == null || ids.isEmpty())
-                    return response(HttpURLConnection.HTTP_BAD_REQUEST, null);
-                return response(controller.removeStoredProcedure(client, name, ids.get(0)));
+            }
+            case HttpConstants.METHOD_POST: {
+                try {
+                    String body = Utils.getRequestBody(httpExchange);
+                    return response(controller.executeStoredProcedure(client, name, procedureId, body));
+                } catch (IOException exception) {
+                    Logging.getDefault().error(exception);
+                    return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");
+                }
+            }
         }
-        return response(HttpURLConnection.HTTP_BAD_METHOD, null);
+        return response(HttpURLConnection.HTTP_BAD_METHOD);
+    }
+
+
+    /**
+     * Handles the request
+     *
+     * @param method   The HTTP method
+     * @param resource The accessed resource
+     * @return The response code
+     */
+    private int handleResourceUsers(String method, String resource) {
+        if (resource.equals("/users")) {
+            if (!method.equals(HttpConstants.METHOD_GET))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(controller.getUsers(client));
+        } else if (resource.startsWith("/users/")) {
+            String rest = resource.substring("/users/".length());
+            int index = rest.indexOf("/");
+            String name = URIUtils.decodeComponent(rest.substring(0, index < 0 ? rest.length() : index));
+            if (name.isEmpty())
+                return response(HttpURLConnection.HTTP_NOT_FOUND);
+            if (index < 0)
+                return handleResourceUserNaked(name, method);
+            rest = rest.substring(index);
+            if (rest.equals("/password"))
+                return handleResourceUserPassword(name, method, rest);
+            if (rest.equals("/privileges"))
+                return handleResourceUserPrivileges(name, method, rest);
+        }
+        return response(HttpURLConnection.HTTP_NOT_FOUND);
+    }
+
+    /**
+     * Handles the request
+     *
+     * @param name   The database's name
+     * @param method The HTTP method
+     * @return The response code
+     */
+    private int handleResourceUserNaked(String name, String method) {
+        switch (method) {
+            case HttpConstants.METHOD_GET:
+                return response(controller.getUser(client, name));
+            case HttpConstants.METHOD_DELETE:
+                return response(controller.deleteUser(client, name));
+            case HttpConstants.METHOD_PUT: {
+                try {
+                    String password = Utils.getRequestBody(httpExchange);
+                    return response(controller.createUser(client, name, password));
+                } catch (IOException exception) {
+                    logger.error(exception);
+                    return response(HttpURLConnection.HTTP_INTERNAL_ERROR, exception.getMessage());
+                }
+            }
+        }
+        return response(HttpURLConnection.HTTP_BAD_METHOD);
+    }
+
+    /**
+     * Handles the request
+     *
+     * @param name     The database's name
+     * @param method   The HTTP method
+     * @param resource The accessed resource
+     * @return The response code
+     */
+    private int handleResourceUserPassword(String name, String method, String resource) {
+        if (resource.equals("/password/change")) {
+            if (!method.equals(HttpConstants.METHOD_POST))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+            List<String> passwords = params.get("password");
+            if (passwords == null || passwords.isEmpty())
+                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            return response(controller.changePassword(client, passwords.get(0)));
+        }
+        if (resource.equals("/password/reset")) {
+            if (!method.equals(HttpConstants.METHOD_POST))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+            List<String> passwords = params.get("password");
+            if (passwords == null || passwords.isEmpty())
+                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            return response(controller.resetPassword(client, name, passwords.get(0)));
+        }
+        return response(HttpURLConnection.HTTP_NOT_FOUND);
+    }
+
+    /**
+     * Handles the request
+     *
+     * @param name     The database's name
+     * @param method   The HTTP method
+     * @param resource The accessed resource
+     * @return The response code
+     */
+    private int handleResourceUserPrivileges(String name, String method, String resource) {
+        if (resource.equals("/privileges")) {
+            if (!method.equals(HttpConstants.METHOD_GET))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            return response(controller.getPrivilegesUser(client, name));
+        }
+        if (resource.equals("/privileges/grant")) {
+            if (!method.equals(HttpConstants.METHOD_POST))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+            List<String> databases = params.get("db");
+            List<String> accesses = params.get("access");
+            if (databases == null || databases.isEmpty() || accesses == null || accesses.isEmpty())
+                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
+            if (privilege == 0)
+                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            return response(controller.grantDB(client, name, databases.get(0), privilege));
+        }
+        if (resource.equals("/privileges/revoke")) {
+            if (!method.equals(HttpConstants.METHOD_POST))
+                return response(HttpURLConnection.HTTP_BAD_METHOD);
+            Map<String, List<String>> params = Utils.getRequestParameters(httpExchange.getRequestURI());
+            List<String> databases = params.get("db");
+            List<String> accesses = params.get("access");
+            if (databases == null || databases.isEmpty() || accesses == null || accesses.isEmpty())
+                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            int privilege = accesses.get(0).equals("ADMIN") ? XOWLPrivilege.ADMIN : (accesses.get(0).equals("WRITE") ? XOWLPrivilege.WRITE : (accesses.get(0).equals("READ") ? XOWLPrivilege.READ : 0));
+            if (privilege == 0)
+                return response(HttpURLConnection.HTTP_BAD_REQUEST);
+            return response(controller.revokeDB(client, name, databases.get(0), privilege));
+        }
+        return response(HttpURLConnection.HTTP_NOT_FOUND);
+    }
+
+    /**
+     * Ends the current exchange with a response code
+     *
+     * @param code The http code
+     * @return The response code
+     */
+    private int response(int code) {
+        Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
+        try {
+            httpExchange.sendResponseHeaders(code, 0);
+        } catch (IOException exception) {
+            Logging.getDefault().error(exception);
+        }
+        try (OutputStream stream = httpExchange.getResponseBody()) {
+            stream.write(EMPTY_MESSAGE);
+        } catch (IOException exception) {
+            Logging.getDefault().error(exception);
+            return code;
+        }
+        return code;
     }
 
     /**
@@ -622,6 +723,7 @@ class HTTPAPIConnection extends SafeRunnable {
         byte[] buffer = message != null ? message.getBytes(Files.CHARSET) : new byte[0];
         Utils.enableCORS(httpExchange.getRequestHeaders(), httpExchange.getResponseHeaders());
         try {
+            httpExchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, HttpConstants.MIME_TEXT_PLAIN);
             httpExchange.sendResponseHeaders(code, buffer.length);
         } catch (IOException exception) {
             Logging.getDefault().error(exception);
@@ -645,7 +747,7 @@ class HTTPAPIConnection extends SafeRunnable {
         List<String> acceptTypes = Utils.getAcceptTypes(httpExchange.getRequestHeaders());
         HttpResponse response = XSPReplyUtils.toHttpResponse(reply, acceptTypes);
         if (response.getContentType() != null)
-            httpExchange.getResponseHeaders().add(HEADER_CONTENT_TYPE, response.getContentType());
+            httpExchange.getResponseHeaders().add(HttpConstants.HEADER_CONTENT_TYPE, response.getContentType());
         return response(response.getCode(), response.getBodyAsString());
     }
 }
