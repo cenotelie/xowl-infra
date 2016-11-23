@@ -2,78 +2,16 @@
 ---
 title: xOWL Triple Store
 version: v1
-schemas:
-  XOWLUser: |
-    {
-      "type": "object",
-      "$schema": "http://json-schema.org/schema",
-      "id": "http://xowl.org/infra/server/api/XOWLUser",
-      "properties": {
-        "type": { "enum": [ "org.xowl.infra.server.api.XOWLUser" ] },
-        "name": { "type": "string" }
-        },
-        "required": ["type", "name"]
-    }
-  XOWLUserPrivileges: |
-    {
-      "type": "object",
-      "$schema": "http://json-schema.org/schema",
-      "id": "http://xowl.org/infra/server/api/XOWLUserPrivileges",
-      "properties": {
-        "type": { "enum": [ "org.xowl.infra.server.api.XOWLUserPrivileges" ] },
-        "isServerAdmin": { "enum": [ "true", "false" ] },
-        "accesses": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "database": { "type": "string" },
-              "isAdmin": { "enum": [ "true", "false" ] },
-              "canWrite": { "enum": [ "true", "false" ] },
-              "canRead": { "enum": [ "true", "false" ] }
-              },
-              "required": ["database", "isAdmin", "canWrite", "canRead"]
-            }
-          }
-        },
-        "required": ["type", "isServerAdmin", "accesses"]
-    }
-  XOWLDatabase: |
-    {
-      "type": "object",
-      "$schema": "http://json-schema.org/schema",
-      "id": "http://xowl.org/infra/server/api/XOWLDatabase",
-      "properties": {
-        "type": { "enum": [ "org.xowl.infra.server.api.XOWLDatabase" ] },
-        "name": {
-          "type": "string"
-          }
-        }
-    }
-  XOWLDatabasePrivileges: |
-    {
-      "type": "object",
-      "$schema": "http://json-schema.org/schema",
-      "id": "http://xowl.org/infra/server/api/XOWLUserPrivileges",
-      "properties": {
-        "type": { "enum": [ "org.xowl.infra.server.api.XOWLUserPrivileges" ] },
-        "isServerAdmin": { "enum": [ "true", "false" ] },
-        "accesses": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "user": { "type": "string" },
-              "isAdmin": { "enum": [ "true", "false" ] },
-              "canWrite": { "enum": [ "true", "false" ] },
-              "canRead": { "enum": [ "true", "false" ] }
-              },
-              "required": ["user", "isAdmin", "canWrite", "canRead"]
-            }
-          }
-        },
-        "required": ["type", "isServerAdmin", "accesses"]
-    }
+types:
+  Metric: !include schemaUtils.json #definitions/Metric
+  MetricSnapshot: !include schemaUtils.json #definitions/MetricSnapshot
+  XOWLUser: !include schemaServerAPI.json #definitions/XOWLUser
+  XOWLUserPrivileges: !include schemaServerAPI.json #definitions/XOWLUserPrivileges
+  XOWLDatabase: !include schemaServerAPI.json #definitions/XOWLDatabase
+  XOWLDatabasePrivileges: !include schemaServerAPI.json #definitions/XOWLDatabasePrivileges
+  XOWLRule: !include schemaServerAPI.json #definitions/XOWLRule
+  XOWLStoredProcedure: !include schemaServerAPI.json #definitions/XOWLStoredProcedure
+  XOWLStoredProcedureContext: !include schemaServerAPI.json #definitions/XOWLStoredProcedureContext
 traits:
   secured:
     usage: Apply this to any method that needs to be secured
@@ -106,7 +44,7 @@ traits:
           text/plain:
             type: string
             description: The error message from the server
-baseUri: https://localhost:3443/api/
+baseUri: https://localhost:3443/api
 /me:
   description: Represents the current user in its interaction with the server
   get:
@@ -116,7 +54,7 @@ baseUri: https://localhost:3443/api/
       200:
         body:
           application/json:
-            schema: XOWLUser
+            type: XOWLUser
             example: |
               { "type": "org.xowl.infra.server.api.XOWLUser", "name": "user" }
   /login:
@@ -155,6 +93,11 @@ baseUri: https://localhost:3443/api/
       responses:
         200:
           description: The operation succeeded
+          headers:
+            Set-Cookie:
+              description: Resets the authentication token
+              example: __Secure-Token=; Max-Age=0
+              required: true
 /server:
   description: Represents the server
   /shutdown:
@@ -252,6 +195,27 @@ baseUri: https://localhost:3443/api/
           description: The database has been dropped
     post:
       description: Uploads raw data to the database
+      body:
+        application/n-triples:
+          description: RDF triples in N-Triple syntax
+        application/n-quads:
+          description: RDF quadsin N-Quad syntax
+        text/turtle:
+          description: RDF triples in Turtle syntax
+        application/rdf+xml:
+          description: RDF triples in RDF/XML syntax
+        application/ld+json:
+          description: RDF quads in JSON-LD syntax
+        application/trig:
+          description: RDF quads in TriG syntax
+        text/owl-functional:
+          description: OWL ontology in Functional syntax
+        application/owl+xml:
+          description: OWL ontology in OWL/XML
+        application/x-xowl-rdft:
+          description: xOWL RDF-centric rule language
+        application/x-xowl:
+          description: xOWL ontology in Functional syntax
       responses:
         200:
           description: The data has been inserted
@@ -260,6 +224,11 @@ baseUri: https://localhost:3443/api/
       is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the metric definition for the statistics of the database
+        responses:
+          200:
+            body:
+              application/json:
+
     /statistics:
       description: The statistics of the database
       is: [secured, mayFail, resourceAccess]

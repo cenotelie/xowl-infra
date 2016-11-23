@@ -1,0 +1,211 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "id": "http://xowl.org/infra/server/api",
+  "definitions": {
+    "XOWLUser": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "org.xowl.infra.server.api.XOWLUser"
+          ]
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ]
+    },
+    "XOWLUserPrivileges": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "org.xowl.infra.server.api.XOWLUserPrivileges"
+          ]
+        },
+        "isServerAdmin": {
+          "type": "boolean"
+        },
+        "accesses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "database": {
+                "type": "string"
+              },
+              "isAdmin": {
+                "type": "boolean"
+              },
+              "canWrite": {
+                "type": "boolean"
+              },
+              "canRead": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "database",
+              "isAdmin",
+              "canWrite",
+              "canRead"
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "isServerAdmin",
+        "accesses"
+      ]
+    },
+    "XOWLDatabase": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "org.xowl.infra.server.api.XOWLDatabase"
+          ]
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ]
+    },
+    "XOWLDatabasePrivileges": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "org.xowl.infra.server.api.XOWLUserPrivileges"
+          ]
+        },
+        "accesses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "string"
+              },
+              "isAdmin": {
+                "type": "boolean"
+              },
+              "canWrite": {
+                "type": "boolean"
+              },
+              "canRead": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "user",
+              "isAdmin",
+              "canWrite",
+              "canRead"
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "accesses"
+      ]
+    },
+    "XOWLRule": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "org.xowl.infra.server.api.XOWLRule"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "definition": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "definition",
+        "isActive"
+      ]
+    },
+    "XOWLStoredProcedure": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "org.xowl.infra.server.api.XOWLStoredProcedure"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "definition": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "definition",
+        "parameters"
+      ]
+    },
+    "XOWLStoredProcedureContext": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "org.xowl.infra.server.api.XOWLStoredProcedureContext"
+          ]
+        },
+        "defaultIRIs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "namedIRIs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "defaultIRIs",
+        "namedIRIs",
+        "parameters"
+      ]
+    }
+  }
+}
