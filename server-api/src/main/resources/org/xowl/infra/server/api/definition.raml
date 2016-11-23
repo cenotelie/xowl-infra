@@ -340,18 +340,20 @@ baseUri: https://localhost:3443/api
         description: Gets the current entailment regime for the database
         responses:
           200:
-            description: Returns the current entailment regime for the database
+            description: |
+              Returns the current entailment regime for the database, one of: "none", "simple", "RDF", "RDFS", "OWL2_RDF", "OWL2_DIRECT"
             body:
               text/plain:
-                type: { "enum": ["none", "simple", "RDF", "RDFS", "OWL2_RDF", "OWL2_DIRECT"] }
+                type: string
                 example: simple
       put:
         description: Sets the entailment regime for the database
         body:
           text/plain:
             displayName: Entailment Regime
-            type: { "enum": ["none", "simple", "RDF", "RDFS", "OWL2_RDF", "OWL2_DIRECT"] }
-            description: The entailment regime for the database
+            type: string
+            description: |
+              The entailment regime for the database, one of: "none", "simple", "RDF", "RDFS", "OWL2_RDF", "OWL2_DIRECT"
             example: OWL2_RDF
         responses:
           200:
