@@ -3,15 +3,19 @@
 title: xOWL Triple Store
 version: v1
 types:
-  Metric: !include schemaUtils.json #definitions/Metric
-  MetricSnapshot: !include schemaUtils.json #definitions/MetricSnapshot
-  XOWLUser: !include schemaServerAPI.json #definitions/XOWLUser
-  XOWLUserPrivileges: !include schemaServerAPI.json #definitions/XOWLUserPrivileges
-  XOWLDatabase: !include schemaServerAPI.json #definitions/XOWLDatabase
-  XOWLDatabasePrivileges: !include schemaServerAPI.json #definitions/XOWLDatabasePrivileges
-  XOWLRule: !include schemaServerAPI.json #definitions/XOWLRule
-  XOWLStoredProcedure: !include schemaServerAPI.json #definitions/XOWLStoredProcedure
-  XOWLStoredProcedureContext: !include schemaServerAPI.json #definitions/XOWLStoredProcedureContext
+  Metric: !include schemaUtils.json#/definitions/Metric
+  MetricSnapshot: !include schemaUtils.json#/definitions/MetricSnapshot
+  XOWLUser: !include schemaServerAPI.json#/definitions/XOWLUser
+  XOWLUsers: !include schemaServerAPI.json#/definitions/XOWLUsers
+  XOWLUserPrivileges: !include schemaServerAPI.json#/definitions/XOWLUserPrivileges
+  XOWLDatabase: !include schemaServerAPI.json#/definitions/XOWLDatabase
+  XOWLDatabases: !include schemaServerAPI.json#/definitions/XOWLDatabases
+  XOWLDatabasePrivileges: !include schemaServerAPI.json#/definitions/XOWLDatabasePrivileges
+  XOWLRule: !include schemaServerAPI.json#/definitions/XOWLRule
+  XOWLRules: !include schemaServerAPI.json#/definitions/XOWLRules
+  XOWLStoredProcedure: !include schemaServerAPI.json#/definitions/XOWLStoredProcedure
+  XOWLStoredProcedures: !include schemaServerAPI.json#/definitions/XOWLStoredProcedures
+  XOWLStoredProcedureContext: !include schemaServerAPI.json#/definitions/XOWLStoredProcedureContext
 traits:
   secured:
     usage: Apply this to any method that needs to be secured
@@ -52,6 +56,7 @@ baseUri: https://localhost:3443/api
     is: [secured]
     responses:
       200:
+        description: A description of the currently logged-in user
         body:
           application/json:
             type: XOWLUser
@@ -156,13 +161,7 @@ baseUri: https://localhost:3443/api
         description: Returns a list of the databases
         body:
           application/json:
-            schema: |
-              {
-                "type": "array",
-                "items": {
-                  "type": "object"
-                  }
-              }
+            schema: XOWLDatabases
             example: |
               [ {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db1"}, {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db2"} ]
   /{dbId}:
@@ -226,14 +225,21 @@ baseUri: https://localhost:3443/api
         description: Gets the metric definition for the statistics of the database
         responses:
           200:
+            description: Returns the definition of the metric for the statistics of the database
             body:
               application/json:
-
+                type: Metric
     /statistics:
       description: The statistics of the database
       is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the statistics of the database
+        responses:
+          200:
+            description: Returns a snapshot of the statistics of the database
+            body:
+              application/json:
+                type: MetricSnapshot
     /sparql:
       description: The SPARQL endpoint for the database
       is: [secured, mayFail, resourceAccess]
@@ -258,6 +264,30 @@ baseUri: https://localhost:3443/api
             description: The URIs for the named graph
             example: ["http://example.com/graph1"]
             required: false
+        responses:
+          200:
+            description: The result for the SPARQL query
+            body:
+              application/n-triples:
+                description: RDF triples in N-Triple syntax
+              application/n-quads:
+                description: RDF quadsin N-Quad syntax
+              text/turtle:
+                description: RDF triples in Turtle syntax
+              application/rdf+xml:
+                description: RDF triples in RDF/XML syntax
+              application/ld+json:
+                description: RDF quads in JSON-LD syntax
+              application/trig:
+                description: RDF quads in TriG syntax
+              application/sparql-results+xml:
+                description: SPARQL results in XML syntax
+              application/sparql-results+json:
+                description: SPARQL results in JSON syntax
+              text/csv:
+                description: SPARQL results in CSV syntax
+              text/tab-separated-values:
+                description: SPARQL results in TSV syntax
       post:
         description: Executes a SPARQL quert on the database
         queryParameters:
@@ -279,26 +309,81 @@ baseUri: https://localhost:3443/api
             type: string
             description: The SPARQL query to be executed
             example: SELECT ?c WHERE { GRAPH ?g { ?x a ?c } }
+        responses:
+          200:
+            description: The result for the SPARQL query
+            body:
+              application/n-triples:
+                description: RDF triples in N-Triple syntax
+              application/n-quads:
+                description: RDF quadsin N-Quad syntax
+              text/turtle:
+                description: RDF triples in Turtle syntax
+              application/rdf+xml:
+                description: RDF triples in RDF/XML syntax
+              application/ld+json:
+                description: RDF quads in JSON-LD syntax
+              application/trig:
+                description: RDF quads in TriG syntax
+              application/sparql-results+xml:
+                description: SPARQL results in XML syntax
+              application/sparql-results+json:
+                description: SPARQL results in JSON syntax
+              text/csv:
+                description: SPARQL results in CSV syntax
+              text/tab-separated-values:
+                description: SPARQL results in TSV syntax
     /entailment:
       description: The entailment regime for the database
       is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the current entailment regime for the database
+        responses:
+          200:
+            description: Returns the current entailment regime for the database
+            body:
+              text/plain:
+                type: { "enum": ["none", "simple", "RDF", "RDFS", "OWL2_RDF", "OWL2_DIRECT"] }
+                example: simple
       put:
         description: Sets the entailment regime for the database
         body:
           text/plain:
             displayName: Entailment Regime
-            type: string
+            type: { "enum": ["none", "simple", "RDF", "RDFS", "OWL2_RDF", "OWL2_DIRECT"] }
             description: The entailment regime for the database
             example: OWL2_RDF
+        responses:
+          200:
+            description: The operation succeeded
       delete:
-        description: Resets the entailment regime to 'no entailment'
+        description: Resets the entailment regime to 'none'
+        responses:
+          200:
+            description: The operation succeeded
     /privileges:
       description: The privileges assigned to users for the database
       is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the privileges assigned to users for the database
+        responses:
+          200:
+            description: Returns the privileges assigned to users for the database
+            body:
+              application/json:
+                type: XOWLDatabasePrivileges
+                example: |
+                  {
+                    "type": "org.xowl.infra.server.api.XOWLDatabasePrivileges",
+                    "accesses": [
+                      {
+                        "user": "user1",
+                        "isAdmin": false,
+                        "canWrite": true,
+                        "canRead": true
+                      }
+                    ]
+                  }
       /grant:
         description: Action to grant privileges to a user for the database
         is: [secured, mayFail, resourceAccess]
@@ -317,6 +402,9 @@ baseUri: https://localhost:3443/api
               description: The privilege to grant (one of ADMIN, WRITE, READ)
               example: WRITE
               required: true
+          responses:
+            200:
+              description: The operation succeeded
       /revoke:
         description: Action to revoke privileges from a user for the database
         is: [secured, mayFail, resourceAccess]
@@ -335,85 +423,272 @@ baseUri: https://localhost:3443/api
               description: The privilege to revoke (one of ADMIN, WRITE, READ)
               example: WRITE
               required: true
+          responses:
+            200:
+              description: The operation succeeded
     /rules:
       description: The collection of rules for the database
       is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the list of the rules for the database
+        responses:
+          200:
+            description: Returns the list of rules for the database
+            body:
+              application/json:
+                type: XOWLRules
+                example: |
+                  [
+                    {
+                      "type": "org.xowl.infra.server.api.XOWLRule",
+                      "name": "http://xowl.org/rules/rule1",
+                      "definition": "...",
+                      "isActive": false
+                    }
+                  ]
       put:
         description: Inserts a new rule in the database
+        queryParameters:
+          active:
+            displayName: Is Active
+            type: boolean
+            description: Whether the new rule shall be immediately active
+            example: false
+            required: true
         body:
           application/x-xowl-rdft:
             displayName: Rule definition
             type: string
             description: The definition of the rule to insert
+        responses:
+          200:
+            description: Returns the new rule for the database
+            body:
+              application/json:
+                type: XOWLRule
+                example: |
+                  {
+                    "type": "org.xowl.infra.server.api.XOWLRule",
+                    "name": "http://xowl.org/rules/rule1",
+                    "definition": "...",
+                    "isActive": false
+                  }
       /{ruleId}:
         description: A specific rule for the database
         is: [secured, mayFail, resourceAccess]
         get:
           description: Gets the description of the rule
+          responses:
+            200:
+              description: Returns the description of the rule
+              body:
+                application/json:
+                  type: XOWLRule
+                  example: |
+                    {
+                      "type": "org.xowl.infra.server.api.XOWLRule",
+                      "name": "http://xowl.org/rules/rule1",
+                      "definition": "...",
+                      "isActive": false
+                    }
         delete:
           description: Deletes the rule from the database
+          responses:
+            200:
+              description: The operation succeeded
         /status:
           description: The status of the rule
           is: [secured, mayFail, resourceAccess]
           get:
             description: Gets the current status of the rule
+            responses:
+              200:
+                description: Returns the matching status of the rule
+                body:
+                  application/json:
+                    type: object
         /activate:
           description: Action to activate the rule
           is: [secured, mayFail, resourceAccess]
           post:
             description: Activates the rule for the database
+            responses:
+              200:
+                description: The operation succeeded
         /deactivate:
           description: Action to de-activate the rule
           is: [secured, mayFail, resourceAccess]
           post:
             description: De-activates the rule for the database
+            responses:
+              200:
+                description: The operation succeeded
     /procedures:
       description: The collection of stored procedures for the database
       is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the list of the stored procedures for the database
+        responses:
+          200:
+            description: Returns the list of the stored procedures for the database
+            body:
+              application/json:
+                type: XOWLStoredProcedures
+                example: |
+                  [
+                    {
+                      "type": "org.xowl.infra.server.api.XOWLStoredProcedure",
+                      "name": "http://xowl.org/procedures/proc1",
+                      "definition": "...",
+                      "parameters": [ "x", "y" ]
+                    }
+                  ]
       /{procedureId}:
         description: A specific stored procedure
         is: [secured, mayFail, resourceAccess]
         get:
           description: Gets the definition of the stored procedure
+          responses:
+            200:
+              description: Returns the definition of the stored procedure
+              body:
+                application/json:
+                  type: XOWLStoredProcedure
+                  example: |
+                    {
+                      "type": "org.xowl.infra.server.api.XOWLStoredProcedure",
+                      "name": "http://xowl.org/procedures/proc1",
+                      "definition": "...",
+                      "parameters": [ "x", "y" ]
+                    }
         delete:
           description: Deletes the stored procedure from the database
+          responses:
+            200:
+              description: The operation succeeded
         put:
           description: Creates the stored procedure
           body:
             application/json:
               displayName: Procedure definition
-              type: object
               description: The definition of the procedure to insert
+              type: XOWLStoredProcedure
+              example: |
+                {
+                  "type": "org.xowl.infra.server.api.XOWLStoredProcedure",
+                  "name": "http://xowl.org/procedures/proc1",
+                  "definition": "...",
+                  "parameters": [ "x", "y" ]
+                }
+          responses:
+            200:
+              description: The procedure has been created
+              body:
+                application/json:
+                  type: XOWLStoredProcedure
+                  example: |
+                    {
+                      "type": "org.xowl.infra.server.api.XOWLStoredProcedure",
+                      "name": "http://xowl.org/procedures/proc1",
+                      "definition": "...",
+                      "parameters": [ "x", "y" ]
+                    }
         post:
           description: Executes the stored procedure
           body:
             application/json:
               displayName: Procedure context
-              type: object
-              description: The context for the procedure to execute in
+              type: XOWLStoredProcedureContext
+              description: The context for the procedure to execute
+              example: |
+                {
+                  "type": "org.xowl.infra.server.api.XOWLStoredProcedureContext",
+                  "defaultIRIs": [],
+                  "namedIRIs": [],
+                  "parameters": [
+                    {
+                      "x": {
+                        "type": "uri",
+                        "value": "http://xowl.org/myLittleURI"
+                      },
+                      "y": {
+                        "type": "literal",
+                        "value": "A sample value",
+                        "datatype": "http://www.w3.org/2001/XMLSchema#string",
+                        "xml:lang": "en"
+                      }
+                    }
+                  ]
+                }
+          responses:
+            200:
+              description: The result of the procedure's execution
+              body:
+                application/n-triples:
+                  description: RDF triples in N-Triple syntax
+                application/n-quads:
+                  description: RDF quadsin N-Quad syntax
+                text/turtle:
+                  description: RDF triples in Turtle syntax
+                application/rdf+xml:
+                  description: RDF triples in RDF/XML syntax
+                application/ld+json:
+                  description: RDF quads in JSON-LD syntax
+                application/trig:
+                  description: RDF quads in TriG syntax
+                application/sparql-results+xml:
+                  description: SPARQL results in XML syntax
+                application/sparql-results+json:
+                  description: SPARQL results in JSON syntax
+                text/csv:
+                  description: SPARQL results in CSV syntax
+                text/tab-separated-values:
+                  description: SPARQL results in TSV syntax
 /users:
   description: The collection of users on the server
   is: [secured]
   get:
     description: Gets a list of the users on the server
+    responses:
+      200:
+        description: Returns a list of the users
+        body:
+          application/json:
+            schema: XOWLUsers
+            example: |
+              [ {"type": "org.xowl.infra.server.api.XOWLUser", "name": "user1"}, {"type": "org.xowl.infra.server.api.XOWLUser", "name": "user2"} ]
   /{userId}:
     description: A specific user on the server
     is: [secured, mayFail, resourceAccess]
     get:
       description: Gets a description of the user
+      responses:
+        200:
+          description: Returns a description of the requested user
+          body:
+            application/json:
+              schema: XOWLUser
+              example: |
+                {"type": "org.xowl.infra.server.api.XOWLUser", "name": "user1"}
     delete:
       description: Deletes the user from the server
+      responses:
+        200:
+          description: The operation succeeded
     put:
       description: Creates the associated user
       body:
         text/plain:
           displayName: Password
           type: string
-          description: The initial password for the user
+      responses:
+        200:
+          description: Returns the created user
+          body:
+            application/json:
+              schema: XOWLUser
+              example: |
+                {"type": "org.xowl.infra.server.api.XOWLUser", "name": "{userId}"}
     /password:
       description: The password for the user
       /change:
@@ -428,6 +703,9 @@ baseUri: https://localhost:3443/api
               description: The new password for the user
               example: Password01
               required: true
+          responses:
+            200:
+              description: The operation succeeded
       /reset:
         description: The action to reset the password for the user
         is: [secured, mayFail, resourceAccess]
@@ -440,11 +718,33 @@ baseUri: https://localhost:3443/api
               description: The new password for the user
               example: Password01
               required: true
+          responses:
+            200:
+              description: The operation succeeded
     /privileges:
       description: The privileges assigned to the user for databases
       is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the privileges assigned to the user for databases
+        responses:
+          200:
+            description: Returns the privileges assigned to the user for databases
+            body:
+              application/json:
+                schema: XOWLUserPrivileges
+                example: |
+                  {
+                    "type": "org.xowl.infra.server.api.XOWLUserPrivileges",
+                    "isServerAdmin": false,
+                    "accesses": [
+                      {
+                        "database": "db01",
+                        "isAdmin": false,
+                        "canWrite": true,
+                        "canRead": true
+                      }
+                    ]
+                  }
       /grant:
         description: Action to grant privileges to the user for a database
         is: [secured, mayFail, resourceAccess]
@@ -463,6 +763,9 @@ baseUri: https://localhost:3443/api
               description: The privilege to grant (one of ADMIN, WRITE, READ)
               example: WRITE
               required: true
+          responses:
+            200:
+              description: The operation succeeded
       /revoke:
         description: Action to revoke privileges from the user for a database
         is: [secured, mayFail, resourceAccess]
@@ -481,3 +784,6 @@ baseUri: https://localhost:3443/api
               description: The privilege to grant (one of ADMIN, WRITE, READ)
               example: WRITE
               required: true
+          responses:
+            200:
+              description: The operation succeeded

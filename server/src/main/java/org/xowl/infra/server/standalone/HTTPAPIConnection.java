@@ -490,7 +490,7 @@ class HTTPAPIConnection extends SafeRunnable {
                     List<String> actives = params.get("active");
                     try {
                         String body = Utils.getRequestBody(httpExchange);
-                        return response(controller.addRule(client, name, body, actives != null && !actives.isEmpty()));
+                        return response(controller.addRule(client, name, body, actives != null && !actives.isEmpty() && actives.get(0).equals("true")));
                     } catch (IOException exception) {
                         Logging.getDefault().error(exception);
                         return response(HttpURLConnection.HTTP_BAD_REQUEST, "Failed to read the body");

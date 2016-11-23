@@ -19,6 +19,17 @@
         "name"
       ]
     },
+    "XOWLUsers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "oneOf": [
+          {
+            "$ref": "#/definitions/XOWLUser"
+          }
+        ]
+      }
+    },
     "XOWLUserPrivileges": {
       "type": "object",
       "properties": {
@@ -80,12 +91,23 @@
         "name"
       ]
     },
+    "XOWLDatabases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "oneOf": [
+          {
+            "$ref": "#/definitions/XOWLDatabase"
+          }
+        ]
+      }
+    },
     "XOWLDatabasePrivileges": {
       "type": "object",
       "properties": {
         "type": {
           "enum": [
-            "org.xowl.infra.server.api.XOWLUserPrivileges"
+            "org.xowl.infra.server.api.XOWLDatabasePrivileges"
           ]
         },
         "accesses": {
@@ -145,6 +167,17 @@
         "isActive"
       ]
     },
+    "XOWLRules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "oneOf": [
+          {
+            "$ref": "#/definitions/XOWLRule"
+          }
+        ]
+      }
+    },
     "XOWLStoredProcedure": {
       "type": "object",
       "properties": {
@@ -172,6 +205,17 @@
         "definition",
         "parameters"
       ]
+    },
+    "XOWLStoredProcedures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "oneOf": [
+          {
+            "$ref": "#/definitions/XOWLStoredProcedure"
+          }
+        ]
+      }
     },
     "XOWLStoredProcedureContext": {
       "type": "object",
