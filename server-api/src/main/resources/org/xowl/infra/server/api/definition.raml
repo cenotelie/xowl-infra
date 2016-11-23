@@ -10,11 +10,33 @@ schemas:
       "id": "http://xowl.org/infra/server/api/XOWLUser",
       "properties": {
         "type": { "enum": [ "org.xowl.infra.server.api.XOWLUser" ] },
-        "name": {
-          "type": "string"
-          }
+        "name": { "type": "string" }
         },
         "required": ["type", "name"]
+    }
+  XOWLUserPrivileges: |
+    {
+      "type": "object",
+      "$schema": "http://json-schema.org/schema",
+      "id": "http://xowl.org/infra/server/api/XOWLUserPrivileges",
+      "properties": {
+        "type": { "enum": [ "org.xowl.infra.server.api.XOWLUserPrivileges" ] },
+        "isServerAdmin": { "enum": [ "true", "false" ] },
+        "accesses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "database": { "type": "string" },
+              "isAdmin": { "enum": [ "true", "false" ] },
+              "canWrite": { "enum": [ "true", "false" ] },
+              "canRead": { "enum": [ "true", "false" ] }
+              },
+              "required": ["database", "isAdmin", "canWrite", "canRead"]
+            }
+          }
+        },
+        "required": ["type", "isServerAdmin", "accesses"]
     }
   XOWLDatabase: |
     {
@@ -27,6 +49,30 @@ schemas:
           "type": "string"
           }
         }
+    }
+  XOWLDatabasePrivileges: |
+    {
+      "type": "object",
+      "$schema": "http://json-schema.org/schema",
+      "id": "http://xowl.org/infra/server/api/XOWLUserPrivileges",
+      "properties": {
+        "type": { "enum": [ "org.xowl.infra.server.api.XOWLUserPrivileges" ] },
+        "isServerAdmin": { "enum": [ "true", "false" ] },
+        "accesses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "user": { "type": "string" },
+              "isAdmin": { "enum": [ "true", "false" ] },
+              "canWrite": { "enum": [ "true", "false" ] },
+              "canRead": { "enum": [ "true", "false" ] }
+              },
+              "required": ["user", "isAdmin", "canWrite", "canRead"]
+            }
+          }
+        },
+        "required": ["type", "isServerAdmin", "accesses"]
     }
 traits:
   secured:
@@ -47,7 +93,7 @@ traits:
     description: Trait for requests that refer to particular resources
     responses:
       404:
-        description: The requested resource annot be found.
+        description: The requested resource cannot be found.
   mayFail:
     usage: Apply this to any method that may fail
     description: Trait for requests that may fail due to reasons other that security and resource access failure
@@ -111,9 +157,9 @@ baseUri: https://localhost:3443/api/
           description: The operation succeeded
 /server:
   description: Represents the server
-  is: [secured, mayFail]
   /shutdown:
     description: Action to shutdown the server
+    is: [secured, mayFail]
     post:
       description: Attempts to shutdown the server
       responses:
@@ -121,6 +167,7 @@ baseUri: https://localhost:3443/api/
           description: The server is shutting down
   /restart:
     description: Action to restart the server
+    is: [secured, mayFail]
     post:
       description: Attempts to restart the server
       responses:
@@ -130,7 +177,7 @@ baseUri: https://localhost:3443/api/
     description: Action to grant server administrative privileges to a user
     post:
       description: Grants the server administration privilege to a user
-      is: [resourceAccess]
+      is: [secured, mayFail, resourceAccess]
       queryParameters:
         user:
           displayName: User
@@ -145,7 +192,7 @@ baseUri: https://localhost:3443/api/
     description: Action to revoke server administrative privileges from a user
     post:
       description: Revokes the server administration privilege from a user
-      is: [resourceAccess]
+      is: [secured, mayFail, resourceAccess]
       queryParameters:
         user:
           displayName: User
@@ -177,25 +224,50 @@ baseUri: https://localhost:3443/api/
               [ {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db1"}, {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db2"} ]
   /{dbId}:
     description: A specific database on the server
-    is: [resourceAccess]
+    is: [secured, mayFail, resourceAccess]
     get:
       description: Gets the description of the database
+      responses:
+        200:
+          description: Returns the description of the database
+          body:
+            application/json:
+              schema: XOWLDatabase
+              example: |
+                {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db1"}
     put:
       description: Creates the corresponding database
+      responses:
+        200:
+          description: Returns the created database
+          body:
+            application/json:
+              schema: XOWLDatabase
+              example: |
+                {"type": "org.xowl.infra.server.api.XOWLDatabase", "name": "db1"}
     delete:
       description: Drops (delete) this database
+      responses:
+        200:
+          description: The database has been dropped
     post:
       description: Uploads raw data to the database
+      responses:
+        200:
+          description: The data has been inserted
     /metric:
       description: The metric defition for the statistics of the database
+      is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the metric definition for the statistics of the database
     /statistics:
       description: The statistics of the database
+      is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the statistics of the database
     /sparql:
       description: The SPARQL endpoint for the database
+      is: [secured, mayFail, resourceAccess]
       get:
         description: Executes a SPARQL query on the database
         queryParameters:
@@ -240,6 +312,7 @@ baseUri: https://localhost:3443/api/
             example: SELECT ?c WHERE { GRAPH ?g { ?x a ?c } }
     /entailment:
       description: The entailment regime for the database
+      is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the current entailment regime for the database
       put:
@@ -254,10 +327,12 @@ baseUri: https://localhost:3443/api/
         description: Resets the entailment regime to 'no entailment'
     /privileges:
       description: The privileges assigned to users for the database
+      is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the privileges assigned to users for the database
       /grant:
         description: Action to grant privileges to a user for the database
+        is: [secured, mayFail, resourceAccess]
         post:
           description: Grants privileges to a user for the database
           queryParameters:
@@ -275,6 +350,7 @@ baseUri: https://localhost:3443/api/
               required: true
       /revoke:
         description: Action to revoke privileges from a user for the database
+        is: [secured, mayFail, resourceAccess]
         post:
           description: Revokes privileges from a user for the database
           queryParameters:
@@ -292,6 +368,7 @@ baseUri: https://localhost:3443/api/
               required: true
     /rules:
       description: The collection of rules for the database
+      is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the list of the rules for the database
       put:
@@ -303,28 +380,34 @@ baseUri: https://localhost:3443/api/
             description: The definition of the rule to insert
       /{ruleId}:
         description: A specific rule for the database
+        is: [secured, mayFail, resourceAccess]
         get:
           description: Gets the description of the rule
         delete:
           description: Deletes the rule from the database
         /status:
           description: The status of the rule
+          is: [secured, mayFail, resourceAccess]
           get:
             description: Gets the current status of the rule
         /activate:
           description: Action to activate the rule
+          is: [secured, mayFail, resourceAccess]
           post:
             description: Activates the rule for the database
         /deactivate:
           description: Action to de-activate the rule
+          is: [secured, mayFail, resourceAccess]
           post:
             description: De-activates the rule for the database
     /procedures:
       description: The collection of stored procedures for the database
+      is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the list of the stored procedures for the database
       /{procedureId}:
         description: A specific stored procedure
+        is: [secured, mayFail, resourceAccess]
         get:
           description: Gets the definition of the stored procedure
         delete:
@@ -350,6 +433,7 @@ baseUri: https://localhost:3443/api/
     description: Gets a list of the users on the server
   /{userId}:
     description: A specific user on the server
+    is: [secured, mayFail, resourceAccess]
     get:
       description: Gets a description of the user
     delete:
@@ -365,6 +449,7 @@ baseUri: https://localhost:3443/api/
       description: The password for the user
       /change:
         description: The action to change the password for the user
+        is: [secured, mayFail, resourceAccess]
         post:
           description: Updates the password for the current user
           queryParameters:
@@ -376,6 +461,7 @@ baseUri: https://localhost:3443/api/
               required: true
       /reset:
         description: The action to reset the password for the user
+        is: [secured, mayFail, resourceAccess]
         post:
           description: Resets the password for the current user
           queryParameters:
@@ -387,10 +473,12 @@ baseUri: https://localhost:3443/api/
               required: true
     /privileges:
       description: The privileges assigned to the user for databases
+      is: [secured, mayFail, resourceAccess]
       get:
         description: Gets the privileges assigned to the user for databases
       /grant:
         description: Action to grant privileges to the user for a database
+        is: [secured, mayFail, resourceAccess]
         post:
           description: Grants privileges to the user for a database
           queryParameters:
@@ -408,6 +496,7 @@ baseUri: https://localhost:3443/api/
               required: true
       /revoke:
         description: Action to revoke privileges from the user for a database
+        is: [secured, mayFail, resourceAccess]
         post:
           description: Revokes privileges from the user for a database
           queryParameters:
