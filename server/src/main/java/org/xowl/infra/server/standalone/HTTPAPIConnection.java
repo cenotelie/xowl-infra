@@ -157,6 +157,28 @@ class HTTPAPIConnection extends SafeRunnable {
     /**
      * Handles the request
      *
+     * @param method The HTTP method
+     * @return The response code
+     */
+    private int handleRequestLogout(String method) {
+        if (!method.equals(HttpConstants.METHOD_POST))
+            return response(HttpURLConnection.HTTP_BAD_METHOD);
+        XSPReply reply = controller.logout(client);
+        if (!reply.isSuccess())
+            return response(reply);
+        httpExchange.getResponseHeaders().put(HttpConstants.HEADER_SET_COOKIE, Collections.singletonList(
+                COOKIE_AUTH + "= " +
+                        "; Max-Age=0" +
+                        "; Path=/api" +
+                        "; Secure" +
+                        "; HttpOnly"
+        ));
+        return response(HttpURLConnection.HTTP_OK);
+    }
+
+    /**
+     * Handles the request
+     *
      * @param method   The HTTP method
      * @param resource The accessed resource
      * @return The response code
@@ -188,9 +210,7 @@ class HTTPAPIConnection extends SafeRunnable {
                 return response(HttpURLConnection.HTTP_BAD_METHOD);
             return response(controller.getUser(client, client.getName()));
         } else if (resource.equals("/me/logout")) {
-            if (!method.equals(HttpConstants.METHOD_POST))
-                return response(HttpURLConnection.HTTP_BAD_METHOD);
-            return response(controller.logout(client));
+            return handleRequestLogout(method);
         }
         return response(HttpURLConnection.HTTP_NOT_FOUND, null);
     }
