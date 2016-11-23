@@ -15,36 +15,52 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.api;
+package org.xowl.infra.server.remote;
 
+import org.xowl.hime.redist.ASTNode;
+import org.xowl.infra.server.base.BaseUser;
 import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.utils.Serializable;
 
 /**
- * Represents a user on this server
+ * Represents a user on a remote xOWL server
  *
  * @author Laurent Wouters
  */
-public interface XOWLUser extends Serializable {
+class RemoveUser extends BaseUser {
     /**
-     * Gets the name of this user
-     *
-     * @return The name of this user
+     * The parent server
      */
-    String getName();
+    private final RemoteServer server;
 
     /**
-     * Updates the password of the user
+     * Initializes this user
      *
-     * @param password The new password
-     * @return The protocol reply
+     * @param server The parent server
+     * @param name   The user's name
      */
-    XSPReply updatePassword(String password);
+    public RemoveUser(RemoteServer server, String name) {
+        super(name);
+        this.server = server;
+    }
 
     /**
-     * Gets the privileges assigned to a user
+     * Initializes this user
      *
-     * @return The protocol reply
+     * @param server The parent server
+     * @param root   The user's definition
      */
-    XSPReply getPrivileges();
+    public RemoveUser(RemoteServer server, ASTNode root) {
+        super(root);
+        this.server = server;
+    }
+
+    @Override
+    public XSPReply updatePassword(String password) {
+        return server.userUpdatePassword(name, password);
+    }
+
+    @Override
+    public XSPReply getPrivileges() {
+        return server.userGetPrivileges(name);
+    }
 }

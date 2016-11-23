@@ -40,6 +40,20 @@ public interface XOWLDatabase extends Serializable {
     String getName();
 
     /**
+     * Gets the definition of the metrics for this database
+     *
+     * @return The definition of the metrics for this database
+     */
+    XSPReply getMetric();
+
+    /**
+     * Gets a snapshot of the metrics for this database
+     *
+     * @return A snapshot of the metrics for this database
+     */
+    XSPReply getMetricSnapshot();
+
+    /**
      * Executes a SPARQL command
      *
      * @param sparql      The SPARQL command(s)
@@ -73,12 +87,47 @@ public interface XOWLDatabase extends Serializable {
     XSPReply setEntailmentRegime(EntailmentRegime regime);
 
     /**
-     * Gets the rule for the specified name
+     * Gets the privileges assigned to users on a database
      *
-     * @param name The name (IRI) of a rule
      * @return The protocol reply
      */
-    XSPReply getRule(String name);
+    XSPReply getPrivileges();
+
+    /**
+     * Grants a privilege to a user on a database
+     *
+     * @param user      The target user
+     * @param privilege The privilege to grant
+     * @return The protocol reply
+     */
+    XSPReply grant(XOWLUser user, int privilege);
+
+    /**
+     * Grants a privilege to a user on a database
+     *
+     * @param user      The target user
+     * @param privilege The privilege to grant
+     * @return The protocol reply
+     */
+    XSPReply grant(String user, int privilege);
+
+    /**
+     * Revokes a privilege from a user on a database
+     *
+     * @param user      The target user
+     * @param privilege The privilege to revoke
+     * @return The protocol reply
+     */
+    XSPReply revoke(XOWLUser user, int privilege);
+
+    /**
+     * Revokes a privilege from a user on a database
+     *
+     * @param user      The target user
+     * @param privilege The privilege to revoke
+     * @return The protocol reply
+     */
+    XSPReply revoke(String user, int privilege);
 
     /**
      * Gets the rules in this database
@@ -86,6 +135,14 @@ public interface XOWLDatabase extends Serializable {
      * @return The protocol reply
      */
     XSPReply getRules();
+
+    /**
+     * Gets the rule for the specified name
+     *
+     * @param name The name (IRI) of a rule
+     * @return The protocol reply
+     */
+    XSPReply getRule(String name);
 
     /**
      * Adds a new rule to this database
@@ -105,12 +162,28 @@ public interface XOWLDatabase extends Serializable {
     XSPReply removeRule(XOWLRule rule);
 
     /**
+     * Removes a rule from this database
+     *
+     * @param rule The rule to remove
+     * @return The protocol reply
+     */
+    XSPReply removeRule(String rule);
+
+    /**
      * Activates an existing rule in this database
      *
      * @param rule The rule to activate
      * @return The protocol reply
      */
     XSPReply activateRule(XOWLRule rule);
+
+    /**
+     * Activates an existing rule in this database
+     *
+     * @param rule The rule to activate
+     * @return The protocol reply
+     */
+    XSPReply activateRule(String rule);
 
     /**
      * Deactivates an existing rule in this database
@@ -121,6 +194,14 @@ public interface XOWLDatabase extends Serializable {
     XSPReply deactivateRule(XOWLRule rule);
 
     /**
+     * Deactivates an existing rule in this database
+     *
+     * @param rule The rule to deactivate
+     * @return The protocol reply
+     */
+    XSPReply deactivateRule(String rule);
+
+    /**
      * Gets the matching status of a rule in this database
      *
      * @param rule The rule to inquire
@@ -129,12 +210,12 @@ public interface XOWLDatabase extends Serializable {
     XSPReply getRuleStatus(XOWLRule rule);
 
     /**
-     * Gets the stored procedure for the specified name (iri)
+     * Gets the matching status of a rule in this database
      *
-     * @param iri The name (iri) of a stored procedure
+     * @param rule The rule to inquire
      * @return The protocol reply
      */
-    XSPReply getStoreProcedure(String iri);
+    XSPReply getRuleStatus(String rule);
 
     /**
      * Gets the stored procedures for this database
@@ -142,6 +223,14 @@ public interface XOWLDatabase extends Serializable {
      * @return The protocol reply
      */
     XSPReply getStoredProcedures();
+
+    /**
+     * Gets the stored procedure for the specified name (iri)
+     *
+     * @param iri The name (iri) of a stored procedure
+     * @return The protocol reply
+     */
+    XSPReply getStoreProcedure(String iri);
 
     /**
      * Adds a stored procedure in the form of a SPARQL command
@@ -162,6 +251,14 @@ public interface XOWLDatabase extends Serializable {
     XSPReply removeStoredProcedure(XOWLStoredProcedure procedure);
 
     /**
+     * Remove a stored procedure
+     *
+     * @param procedure The procedure to remove
+     * @return The protocol reply
+     */
+    XSPReply removeStoredProcedure(String procedure);
+
+    /**
      * Executes a stored procedure
      *
      * @param procedure The procedure to execute
@@ -169,6 +266,15 @@ public interface XOWLDatabase extends Serializable {
      * @return The protocol reply
      */
     XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context);
+
+    /**
+     * Executes a stored procedure
+     *
+     * @param procedure The procedure to execute
+     * @param context   The execution context to use
+     * @return The protocol reply
+     */
+    XSPReply executeStoredProcedure(String procedure, XOWLStoredProcedureContext context);
 
     /**
      * Uploads some content to this database
@@ -186,18 +292,4 @@ public interface XOWLDatabase extends Serializable {
      * @return The protocol reply
      */
     XSPReply upload(Collection<Quad> quads);
-
-    /**
-     * Gets the definition of the metrics for this database
-     *
-     * @return The definition of the metrics for this database
-     */
-    XSPReply getMetric();
-
-    /**
-     * Gets a snapshot of the metrics for this database
-     *
-     * @return A snapshot of the metrics for this database
-     */
-    XSPReply getMetricSnapshot();
 }

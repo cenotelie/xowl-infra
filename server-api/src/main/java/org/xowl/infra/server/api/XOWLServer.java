@@ -70,12 +70,75 @@ public interface XOWLServer {
     XSPReply serverRestart();
 
     /**
-     * Gets the user for the specified login
+     * Grants server administrative privilege to a target user
      *
-     * @param login The user's login
+     * @param target The target user
      * @return The protocol reply
      */
-    XSPReply getUser(String login);
+    XSPReply serverGrantAdmin(XOWLUser target);
+
+    /**
+     * Grants server administrative privilege to a target user
+     *
+     * @param target The target user
+     * @return The protocol reply
+     */
+    XSPReply serverGrantAdmin(String target);
+
+    /**
+     * Revokes server administrative privilege to a target user
+     *
+     * @param target The target user
+     * @return The protocol reply
+     */
+    XSPReply serverRevokeAdmin(XOWLUser target);
+
+    /**
+     * Revokes server administrative privilege to a target user
+     *
+     * @param target The target user
+     * @return The protocol reply
+     */
+    XSPReply serverRevokeAdmin(String target);
+
+    /**
+     * Gets the databases on this server
+     *
+     * @return The protocol reply
+     */
+    XSPReply getDatabases();
+
+    /**
+     * Gets the database for the specified name
+     *
+     * @param name The name of a database
+     * @return The protocol reply
+     */
+    XSPReply getDatabase(String name);
+
+    /**
+     * Creates a new database
+     *
+     * @param name The name of the database
+     * @return The protocol reply
+     */
+    XSPReply createDatabase(String name);
+
+    /**
+     * Drops a database
+     *
+     * @param database The database to drop
+     * @return The protocol reply
+     */
+    XSPReply dropDatabase(XOWLDatabase database);
+
+    /**
+     * Drops a database
+     *
+     * @param database The database to drop
+     * @return The protocol reply
+     */
+    XSPReply dropDatabase(String database);
 
     /**
      * Gets the users on this server
@@ -83,6 +146,14 @@ public interface XOWLServer {
      * @return The protocol reply
      */
     XSPReply getUsers();
+
+    /**
+     * Gets the user for the specified login
+     *
+     * @param login The user's login
+     * @return The protocol reply
+     */
+    XSPReply getUser(String login);
 
     /**
      * Creates a new user for this server
@@ -102,102 +173,10 @@ public interface XOWLServer {
     XSPReply deleteUser(XOWLUser toDelete);
 
     /**
-     * Changes the password of the requesting user
+     * Deletes a user from this server
      *
-     * @param password The new password
+     * @param toDelete The user to delete
      * @return The protocol reply
      */
-    XSPReply changePassword(String password);
-
-    /**
-     * Resets the password of a target user
-     *
-     * @param target   The user for which the password should be changed
-     * @param password The new password
-     * @return The protocol reply
-     */
-    XSPReply resetPassword(XOWLUser target, String password);
-
-    /**
-     * Gets the privileges assigned to a user
-     *
-     * @param user The target user
-     * @return The protocol reply
-     */
-    XSPReply getPrivileges(XOWLUser user);
-
-    /**
-     * Grants server administrative privilege to a target user
-     *
-     * @param target The target user
-     * @return The protocol reply
-     */
-    XSPReply grantServerAdmin(XOWLUser target);
-
-    /**
-     * Revokes server administrative privilege to a target user
-     *
-     * @param target The target user
-     * @return The protocol reply
-     */
-    XSPReply revokeServerAdmin(XOWLUser target);
-
-    /**
-     * Grants a privilege to a user on a database
-     *
-     * @param user      The target user
-     * @param database  The database
-     * @param privilege The privilege to grant
-     * @return The protocol reply
-     */
-    XSPReply grantDB(XOWLUser user, XOWLDatabase database, int privilege);
-
-    /**
-     * Revokes a privilege from a user on a database
-     *
-     * @param user      The target user
-     * @param database  The database
-     * @param privilege The privilege to revoke
-     * @return The protocol reply
-     */
-    XSPReply revokeDB(XOWLUser user, XOWLDatabase database, int privilege);
-
-    /**
-     * Gets the database for the specified name
-     *
-     * @param name The name of a database
-     * @return The protocol reply
-     */
-    XSPReply getDatabase(String name);
-
-    /**
-     * Gets the databases on this server
-     *
-     * @return The protocol reply
-     */
-    XSPReply getDatabases();
-
-    /**
-     * Creates a new database
-     *
-     * @param name The name of the database
-     * @return The protocol reply
-     */
-    XSPReply createDatabase(String name);
-
-    /**
-     * Drops a database
-     *
-     * @param database The database to drop
-     * @return The protocol reply
-     */
-    XSPReply dropDatabase(XOWLDatabase database);
-
-    /**
-     * Gets the privileges assigned to users on a database
-     *
-     * @param database The target database
-     * @return The protocol reply
-     */
-    XSPReply getPrivileges(XOWLDatabase database);
+    XSPReply deleteUser(String toDelete);
 }

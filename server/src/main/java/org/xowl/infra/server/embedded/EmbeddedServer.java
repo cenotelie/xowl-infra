@@ -108,12 +108,12 @@ public class EmbeddedServer implements XOWLServer {
     }
 
     @Override
-    public XSPReply grantServerAdmin(XOWLUser target) {
+    public XSPReply serverGrantAdmin(XOWLUser target) {
         return controller.grantServerAdmin(admin, target.getName());
     }
 
     @Override
-    public XSPReply revokeServerAdmin(XOWLUser target) {
+    public XSPReply serverRevokeAdmin(XOWLUser target) {
         return controller.revokeServerAdmin(admin, target.getName());
     }
 

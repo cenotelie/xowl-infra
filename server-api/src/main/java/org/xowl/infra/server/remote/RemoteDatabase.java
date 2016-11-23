@@ -21,12 +21,11 @@ import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
 import org.xowl.infra.server.api.XOWLStoredProcedureContext;
+import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.base.BaseDatabase;
 import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.store.EntailmentRegime;
 import org.xowl.infra.store.rdf.Quad;
-import org.xowl.infra.store.sparql.Command;
 
 import java.util.Collection;
 import java.util.List;
@@ -65,102 +64,152 @@ class RemoteDatabase extends BaseDatabase {
     }
 
     @Override
-    public XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
-        return server.sparql(name, sparql, defaultIRIs, namedIRIs);
-    }
-
-    @Override
-    public XSPReply sparql(Command sparql) {
-        return XSPReplyUnsupported.instance();
-    }
-
-    @Override
-    public XSPReply getEntailmentRegime() {
-        return server.getEntailmentRegime(name);
-    }
-
-    @Override
-    public XSPReply setEntailmentRegime(EntailmentRegime regime) {
-        return server.setEntailmentRegime(name, regime);
-    }
-
-    @Override
-    public XSPReply getRule(String name) {
-        return server.getRule(this.name, name);
-    }
-
-    @Override
-    public XSPReply getRules() {
-        return server.getRules(name);
-    }
-
-    @Override
-    public XSPReply addRule(String content, boolean activate) {
-        return server.addRule(name, content, activate);
-    }
-
-    @Override
-    public XSPReply removeRule(XOWLRule rule) {
-        return server.removeRule(name, rule);
-    }
-
-    @Override
-    public XSPReply activateRule(XOWLRule rule) {
-        return server.activateRule(name, rule);
-    }
-
-    @Override
-    public XSPReply deactivateRule(XOWLRule rule) {
-        return server.deactivateRule(name, rule);
-    }
-
-    @Override
-    public XSPReply getRuleStatus(XOWLRule rule) {
-        return server.getRuleStatus(name, rule);
-    }
-
-    @Override
-    public XSPReply getStoreProcedure(String iri) {
-        return server.getStoreProcedure(name, iri);
-    }
-
-    @Override
-    public XSPReply getStoredProcedures() {
-        return server.getStoredProcedures(name);
-    }
-
-    @Override
-    public XSPReply addStoredProcedure(String iri, String sparql, Collection<String> parameters) {
-        return server.addStoredProcedure(name, iri, sparql, parameters);
-    }
-
-    @Override
-    public XSPReply removeStoredProcedure(XOWLStoredProcedure procedure) {
-        return server.removeStoredProcedure(name, procedure);
-    }
-
-    @Override
-    public XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
-        return server.executeStoredProcedure(name, procedure, context);
-    }
-
-    @Override
-    public XSPReply upload(String syntax, String content) {
-        return server.upload(name, syntax, content);
-    }
-
-    @Override
-    public XSPReply upload(Collection<Quad> quads) {
-        return server.upload(name, quads);
-    }
-
-    @Override
     public XSPReply getMetric() {
-        return server.getMetric(name);
+        return server.dbGetMetric(name);
     }
 
     @Override
     public XSPReply getMetricSnapshot() {
-        return server.getMetricSnapshot(name);
+        return server.dbGetMetricSnapshot(name);
+    }
+
+    @Override
+    public XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
+        return server.dbSPARQL(name, sparql, defaultIRIs, namedIRIs);
+    }
+
+    @Override
+    public XSPReply getEntailmentRegime() {
+        return server.dbGetEntailmentRegime(name);
+    }
+
+    @Override
+    public XSPReply setEntailmentRegime(EntailmentRegime regime) {
+        return server.dbSetEntailmentRegime(name, regime);
+    }
+
+    @Override
+    public XSPReply getPrivileges() {
+        return server.dbGetPrivileges(name);
+    }
+
+    @Override
+    public XSPReply grant(XOWLUser user, int privilege) {
+        return server.dbGrant(name, user.getName(), privilege);
+    }
+
+    @Override
+    public XSPReply grant(String user, int privilege) {
+        return server.dbGrant(name, user, privilege);
+    }
+
+    @Override
+    public XSPReply revoke(XOWLUser user, int privilege) {
+        return server.dbRevoke(name, user.getName(), privilege);
+    }
+
+    @Override
+    public XSPReply revoke(String user, int privilege) {
+        return server.dbRevoke(name, user, privilege);
+    }
+
+    @Override
+    public XSPReply getRules() {
+        return server.dbGetRules(name);
+    }
+
+    @Override
+    public XSPReply getRule(String name) {
+        return server.dbGetRule(this.name, name);
+    }
+
+    @Override
+    public XSPReply addRule(String content, boolean activate) {
+        return server.dbAddRule(name, content, activate);
+    }
+
+    @Override
+    public XSPReply removeRule(XOWLRule rule) {
+        return server.dbRemoveRule(name, rule.getName());
+    }
+
+    @Override
+    public XSPReply removeRule(String rule) {
+        return server.dbRemoveRule(name, rule);
+    }
+
+    @Override
+    public XSPReply activateRule(XOWLRule rule) {
+        return server.dbActivateRule(name, rule.getName());
+    }
+
+    @Override
+    public XSPReply activateRule(String rule) {
+        return server.dbActivateRule(name, rule);
+    }
+
+    @Override
+    public XSPReply deactivateRule(XOWLRule rule) {
+        return server.dbDeactivateRule(name, rule.getName());
+    }
+
+    @Override
+    public XSPReply deactivateRule(String rule) {
+        return server.dbDeactivateRule(name, rule);
+    }
+
+    @Override
+    public XSPReply getRuleStatus(XOWLRule rule) {
+        return server.dbGetRuleStatus(name, rule.getName());
+    }
+
+    @Override
+    public XSPReply getRuleStatus(String rule) {
+        return server.dbGetRuleStatus(name, rule);
+    }
+
+    @Override
+    public XSPReply getStoredProcedures() {
+        return server.dbGetStoredProcedures(name);
+    }
+
+    @Override
+    public XSPReply getStoreProcedure(String iri) {
+        return server.dbGetStoreProcedure(name, iri);
+    }
+
+    @Override
+    public XSPReply addStoredProcedure(String iri, String sparql, Collection<String> parameters) {
+        return server.dbAddStoredProcedure(name, iri, sparql, parameters);
+    }
+
+    @Override
+    public XSPReply removeStoredProcedure(XOWLStoredProcedure procedure) {
+        return server.dbRemoveRule(name, procedure.getName());
+    }
+
+    @Override
+    public XSPReply removeStoredProcedure(String procedure) {
+        return server.dbRemoveStoredProcedure(name, procedure);
+    }
+
+    @Override
+    public XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
+        return server.dbExecuteStoredProcedure(name, procedure.getName(), context);
+    }
+
+    @Override
+    public XSPReply executeStoredProcedure(String procedure, XOWLStoredProcedureContext context) {
+        return server.dbExecuteStoredProcedure(name, procedure, context);
+    }
+
+    @Override
+    public XSPReply upload(String syntax, String content) {
+        return server.dbUpload(name, syntax, content);
+    }
+
+    @Override
+    public XSPReply upload(Collection<Quad> quads) {
+        return server.dbUpload(name, quads);
     }
 }

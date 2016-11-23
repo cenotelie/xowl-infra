@@ -18,10 +18,7 @@
 package org.xowl.infra.server.base;
 
 import org.xowl.hime.redist.ASTNode;
-import org.xowl.infra.server.api.XOWLDatabase;
-import org.xowl.infra.server.api.XOWLRule;
-import org.xowl.infra.server.api.XOWLStoredProcedure;
-import org.xowl.infra.server.api.XOWLStoredProcedureContext;
+import org.xowl.infra.server.api.*;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyFailure;
 import org.xowl.infra.store.EntailmentRegime;
@@ -78,6 +75,16 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
+    public XSPReply getMetric() {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply getMetricSnapshot() {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
     public XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
         return XSPReplyFailure.instance();
     }
@@ -98,12 +105,37 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
-    public XSPReply getRule(String name) {
+    public XSPReply getPrivileges() {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply grant(XOWLUser user, int privilege) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply grant(String user, int privilege) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply revoke(XOWLUser user, int privilege) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply revoke(String user, int privilege) {
         return XSPReplyFailure.instance();
     }
 
     @Override
     public XSPReply getRules() {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply getRule(String name) {
         return XSPReplyFailure.instance();
     }
 
@@ -118,7 +150,17 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
+    public XSPReply removeRule(String rule) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
     public XSPReply activateRule(XOWLRule rule) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply activateRule(String rule) {
         return XSPReplyFailure.instance();
     }
 
@@ -128,17 +170,27 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
+    public XSPReply deactivateRule(String rule) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
     public XSPReply getRuleStatus(XOWLRule rule) {
         return XSPReplyFailure.instance();
     }
 
     @Override
-    public XSPReply getStoreProcedure(String iri) {
+    public XSPReply getRuleStatus(String rule) {
         return XSPReplyFailure.instance();
     }
 
     @Override
     public XSPReply getStoredProcedures() {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply getStoreProcedure(String iri) {
         return XSPReplyFailure.instance();
     }
 
@@ -153,7 +205,17 @@ public class BaseDatabase implements XOWLDatabase {
     }
 
     @Override
+    public XSPReply removeStoredProcedure(String procedure) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
     public XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
+        return XSPReplyFailure.instance();
+    }
+
+    @Override
+    public XSPReply executeStoredProcedure(String procedure, XOWLStoredProcedureContext context) {
         return XSPReplyFailure.instance();
     }
 
@@ -164,16 +226,6 @@ public class BaseDatabase implements XOWLDatabase {
 
     @Override
     public XSPReply upload(Collection<Quad> quads) {
-        return XSPReplyFailure.instance();
-    }
-
-    @Override
-    public XSPReply getMetric() {
-        return XSPReplyFailure.instance();
-    }
-
-    @Override
-    public XSPReply getMetricSnapshot() {
         return XSPReplyFailure.instance();
     }
 
