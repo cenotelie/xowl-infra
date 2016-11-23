@@ -26,6 +26,20 @@ import org.xowl.infra.server.xsp.XSPReply;
  */
 public interface XOWLServer {
     /**
+     * Gets whether a user is logged-in
+     *
+     * @return Whether a user is logged-in
+     */
+    boolean isLoggedIn();
+
+    /**
+     * Gets the currently logged-in user, if any
+     *
+     * @return The currently logged-in user, if any
+     */
+    XOWLUser getLoggedInUser();
+
+    /**
      * Login a user
      *
      * @param login    The user to log in
@@ -33,6 +47,13 @@ public interface XOWLServer {
      * @return The protocol reply, or null if the client is banned
      */
     XSPReply login(String login, String password);
+
+    /**
+     * Logout the current user
+     *
+     * @return The protocol reply
+     */
+    XSPReply logout();
 
     /**
      * Requests the shutdown of the server
@@ -179,9 +200,4 @@ public interface XOWLServer {
      * @return The protocol reply
      */
     XSPReply getPrivileges(XOWLDatabase database);
-
-    /**
-     * Reacts to a shutdown sequence
-     */
-    void onShutdown();
 }

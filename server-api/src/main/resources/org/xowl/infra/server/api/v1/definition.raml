@@ -23,7 +23,7 @@ traits:
     headers:
       Cookie:
         description: Access token provided by the server
-        example: __Secure-Token=AAAAA
+        example: __Secure-xOWL-Token-v1=AAAAA
         required: true
     responses:
       401:
@@ -86,7 +86,7 @@ baseUri: https://localhost:3443/api/v1
           headers:
             Set-Cookie:
               description: The authentication token that can be used later to authenticate for further operations
-              example: __Secure-Token=AAAAA
+              example: __Secure-xOWL-Token-v1=AAAAA
               required: true
         401:
           description: The login operation failed
@@ -101,7 +101,7 @@ baseUri: https://localhost:3443/api/v1
           headers:
             Set-Cookie:
               description: Resets the authentication token
-              example: __Secure-Token=; Max-Age=0
+              example: __Secure-xOWL-Token-v1=; Max-Age=0
               required: true
 /server:
   description: Represents the server
@@ -693,36 +693,16 @@ baseUri: https://localhost:3443/api/v1
                 {"type": "org.xowl.infra.server.api.XOWLUser", "name": "{userId}"}
     /password:
       description: The password for the user
-      /change:
-        description: The action to change the password for the user
-        is: [secured, mayFail, resourceAccess]
-        post:
-          description: Updates the password for the current user
-          queryParameters:
-            password:
-              displayName: Password
-              type: string
-              description: The new password for the user
-              example: Password01
-              required: true
-          responses:
-            200:
-              description: The operation succeeded
-      /reset:
-        description: The action to reset the password for the user
-        is: [secured, mayFail, resourceAccess]
-        post:
-          description: Resets the password for the current user
-          queryParameters:
-            password:
-              displayName: Password
-              type: string
-              description: The new password for the user
-              example: Password01
-              required: true
-          responses:
-            200:
-              description: The operation succeeded
+      is: [secured, mayFail, resourceAccess]
+      post:
+        description: Updates the password for the user
+        body:
+          text/plain:
+            displayName: Password
+            type: string
+        responses:
+          200:
+            description: The operation succeeded
     /privileges:
       description: The privileges assigned to the user for databases
       is: [secured, mayFail, resourceAccess]

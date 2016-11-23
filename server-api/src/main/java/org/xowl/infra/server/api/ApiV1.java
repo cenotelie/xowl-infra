@@ -15,27 +15,20 @@
  * If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.xowl.infra.server.xsp;
-
-import org.xowl.infra.utils.Serializable;
+package org.xowl.infra.server.api;
 
 /**
- * Represents a reply to a request in the xOWL server protocol
+ * Constants for the xOWL Triple Store Server API, version 1
  *
  * @author Laurent Wouters
  */
-public interface XSPReply extends Serializable {
+public interface ApiV1 {
     /**
-     * Gets whether the reply is a success
-     *
-     * @return Whether the reply is a success
+     * The URI prefix for the API
      */
-    boolean isSuccess();
-
+    String URI_PREFIX = "/api/v1";
     /**
-     * Gets the message, if any
-     *
-     * @return The message, if any
+     * The name of the cookie for the authentication token
      */
-    String getMessage();
+    String AUTH_TOKEN = "__Secure-xOWL-Token-v1";
 }
