@@ -180,6 +180,7 @@ public class ServerController implements Closeable {
      *
      * @param controller The associated database controller
      * @param proxy      The proxy object that represents the database in the administration database
+     * @return The database object
      */
     protected DatabaseImpl newDB(DatabaseController controller, ProxyObject proxy) {
         return new DatabaseImpl(controller, proxy);
@@ -191,9 +192,20 @@ public class ServerController implements Closeable {
      * @param controller The associated database controller
      * @param proxy      The proxy object that represents the database in the administration database
      * @param name       The name of the database
+     * @return The database object
      */
     protected DatabaseImpl newDB(DatabaseController controller, ProxyObject proxy, String name) {
         return new DatabaseImpl(controller, proxy, name);
+    }
+
+    /**
+     * Creates a new user
+     *
+     * @param proxy The proxy object that represents the user in the administration database
+     * @return The user object
+     */
+    protected UserImpl newUser(ProxyObject proxy) {
+        return new UserImpl(proxy);
     }
 
     /**
@@ -462,7 +474,7 @@ public class ServerController implements Closeable {
                 synchronized (users) {
                     UserImpl user = users.get(name);
                     if (user == null) {
-                        user = new UserImpl(poUser);
+                        user = newUser(poUser);
                         users.put(name, user);
                     }
                     result.add(user);
@@ -1385,7 +1397,7 @@ public class ServerController implements Closeable {
             proxy.setValue(Schema.ADMIN_PASSWORD, BCrypt.hashpw(password, BCrypt.gensalt(configuration.getSecurityBCryptCycleCount())));
             adminDB.controller.getRepository().getStore().commit();
         }
-        UserImpl result = new UserImpl(proxy);
+        UserImpl result = newUser(proxy);
         synchronized (users) {
             users.put(login, result);
         }
@@ -1417,7 +1429,7 @@ public class ServerController implements Closeable {
         synchronized (users) {
             UserImpl result = users.get(name);
             if (result == null) {
-                result = new UserImpl(proxy);
+                result = newUser(proxy);
                 users.put(name, result);
             }
             return result;
@@ -1436,7 +1448,7 @@ public class ServerController implements Closeable {
                 if (user.proxy == proxy)
                     return user;
             }
-            UserImpl user = new UserImpl(proxy);
+            UserImpl user = newUser(proxy);
             users.put(user.getName(), user);
             return user;
         }

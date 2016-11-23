@@ -19,12 +19,14 @@ package org.xowl.infra.server.api;
 
 import org.xowl.infra.server.xsp.XSPReply;
 
+import java.io.Closeable;
+
 /**
  * The base API for a xOWL Server
  *
  * @author Laurent Wouters
  */
-public interface XOWLServer {
+public interface XOWLServer extends Closeable {
     /**
      * Gets whether a user is logged-in
      *

@@ -1261,4 +1261,9 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
         }
         return null;
     }
+
+    @Override
+    public void close() throws IOException {
+        // do nothing
+    }
 }

@@ -23,19 +23,21 @@ import org.xowl.infra.server.api.XOWLServer;
 import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.impl.UserImpl;
 import org.xowl.infra.server.xsp.XSPReply;
+import org.xowl.infra.server.xsp.XSPReplyFailure;
+import org.xowl.infra.server.xsp.XSPReplyResult;
 import org.xowl.infra.server.xsp.XSPReplyUnsupported;
+import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.utils.logging.Logger;
-import org.xowl.infra.utils.logging.Logging;
 
+import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetAddress;
 
 /**
  * Implements an embedded server with persisted databases
  *
  * @author Laurent Wouters
  */
-public class EmbeddedServer implements XOWLServer {
+public class EmbeddedServer implements XOWLServer, Closeable {
     /**
      * The server controller
      */
@@ -53,13 +55,33 @@ public class EmbeddedServer implements XOWLServer {
      * @throws Exception When the location cannot be accessed
      */
     public EmbeddedServer(Logger logger, ServerConfiguration configuration) throws Exception {
-        this.controller = new EmbeddedController(logger, configuration);
+        this.controller = new EmbeddedController(logger, configuration) {
+            @Override
+            protected UserImpl newUser(ProxyObject proxy) {
+                return new EmbeddedUser(proxy, EmbeddedServer.this);
+            }
+        };
         this.admin = controller.getPrincipal(configuration.getAdminDefaultUser());
     }
 
     @Override
+    public boolean isLoggedIn() {
+        return true;
+    }
+
+    @Override
+    public XOWLUser getLoggedInUser() {
+        return admin;
+    }
+
+    @Override
     public XSPReply login(String login, String password) {
-        return controller.login(InetAddress.getLoopbackAddress(), login, password);
+        return new XSPReplyResult<>(admin);
+    }
+
+    @Override
+    public XSPReply logout() {
+        return XSPReplyFailure.instance();
     }
 
     @Override
@@ -93,18 +115,8 @@ public class EmbeddedServer implements XOWLServer {
     }
 
     @Override
-    public XSPReply changePassword(String password) {
-        return controller.changePassword(admin, password);
-    }
-
-    @Override
-    public XSPReply resetPassword(XOWLUser target, String password) {
-        return controller.resetPassword(admin, target.getName(), password);
-    }
-
-    @Override
-    public XSPReply getPrivileges(XOWLUser user) {
-        return controller.getPrivilegesUser(admin, user.getName());
+    public XSPReply deleteUser(String toDelete) {
+        return controller.deleteUser(admin, toDelete);
     }
 
     @Override
@@ -113,18 +125,18 @@ public class EmbeddedServer implements XOWLServer {
     }
 
     @Override
+    public XSPReply serverGrantAdmin(String target) {
+        return controller.grantServerAdmin(admin, target);
+    }
+
+    @Override
     public XSPReply serverRevokeAdmin(XOWLUser target) {
         return controller.revokeServerAdmin(admin, target.getName());
     }
 
     @Override
-    public XSPReply grantDB(XOWLUser user, XOWLDatabase database, int privilege) {
-        return controller.grantDB(admin, user.getName(), database.getName(), privilege);
-    }
-
-    @Override
-    public XSPReply revokeDB(XOWLUser user, XOWLDatabase database, int privilege) {
-        return controller.revokeDB(admin, user.getName(), database.getName(), privilege);
+    public XSPReply serverRevokeAdmin(String target) {
+        return controller.revokeServerAdmin(admin, target);
     }
 
     @Override
@@ -148,16 +160,33 @@ public class EmbeddedServer implements XOWLServer {
     }
 
     @Override
-    public XSPReply getPrivileges(XOWLDatabase database) {
-        return controller.getPrivilegesDB(admin, database.getName());
+    public XSPReply dropDatabase(String database) {
+        return controller.dropDatabase(admin, database);
     }
 
     @Override
-    public void onShutdown() {
-        try {
-            controller.close();
-        } catch (IOException exception) {
-            Logging.getDefault().error(exception);
-        }
+    public void close() throws IOException {
+        controller.close();
+    }
+
+    /**
+     * Updates the password of the user
+     *
+     * @param user     The target user
+     * @param password The new password
+     * @return The protocol reply
+     */
+    XSPReply userUpdatePassword(UserImpl user, String password) {
+        return controller.changePassword(user, password);
+    }
+
+    /**
+     * Gets the privileges assigned to a user
+     *
+     * @param user The target user
+     * @return The protocol reply
+     */
+    XSPReply userGetPrivileges(String user) {
+        return controller.getPrivilegesUser(admin, user);
     }
 }
