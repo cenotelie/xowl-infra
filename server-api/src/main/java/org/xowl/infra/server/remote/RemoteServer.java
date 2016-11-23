@@ -97,9 +97,10 @@ public class RemoteServer implements XOWLServer, XOWLFactory {
     @Override
     public XSPReply login(String login, String password) {
         HttpResponse response = connection.request("/me/login" +
-                        "?login=" + URIUtils.encodeComponent(login) +
-                        "&password=" + URIUtils.encodeComponent(password),
+                        "?login=" + URIUtils.encodeComponent(login),
                 HttpConstants.METHOD_POST,
+                password,
+                HttpConstants.MIME_TEXT_PLAIN,
                 HttpConstants.MIME_TEXT_PLAIN
         );
         XSPReply reply = XSPReplyUtils.fromHttpResponse(response, this);
