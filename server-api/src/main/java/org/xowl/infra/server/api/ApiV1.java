@@ -108,10 +108,21 @@ public interface ApiV1 {
     /**
      * API error - The specification of named graphs is not supported.
      */
-    ApiError ERROR_NAMED_GRAPH_NOT_SUPPORTED = new ApiError(10,
+    ApiError ERROR_NAMED_GRAPH_NOT_SUPPORTED = new ApiError(0xA,
             "The specification of named graphs is not supported.",
             ERROR_HELP_PREFIX + "0x000A.html");
-
+    /**
+     * API error - The requested privilege is already granted
+     */
+    ApiError ERROR_PRIVILEGE_ALREADY_GRANTED = new ApiError(0xB,
+            "The requested privilege is already granted.",
+            ERROR_HELP_PREFIX + "0x000B.html");
+    /**
+     * API error - The privilege requested to be revoked was not previously granted
+     */
+    ApiError ERROR_PRIVILEGE_NOT_GRANTED = new ApiError(0xC,
+            "The privilege requested to be revoked was not previously granted.",
+            ERROR_HELP_PREFIX + "0x000C.html");
 
     /**
      * API error - Expected query parameters.

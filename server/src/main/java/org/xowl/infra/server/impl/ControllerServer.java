@@ -363,8 +363,7 @@ public class ControllerServer implements Closeable {
         UserImpl target = doGetUser(name);
         if (target == null)
             return XSPReplyNotFound.instance();
-        boolean success = doChangeUserPrivilege(target, adminDB, Schema.ADMIN_ADMINOF, true);
-        return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
+        return doChangeUserPrivilege(target, adminDB, Schema.ADMIN_ADMINOF, true);
     }
 
     /**
@@ -382,8 +381,7 @@ public class ControllerServer implements Closeable {
         UserImpl target = doGetUser(name);
         if (target == null)
             return XSPReplyNotFound.instance();
-        boolean success = doChangeUserPrivilege(target, adminDB, Schema.ADMIN_ADMINOF, false);
-        return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
+        return doChangeUserPrivilege(target, adminDB, Schema.ADMIN_ADMINOF, false);
     }
 
     /**
@@ -464,7 +462,7 @@ public class ControllerServer implements Closeable {
                 databases.put(name, db);
                 return new XSPReplyResult<>(db);
             } catch (Exception exception) {
-                return XSPReplyFailure.instance();
+                return new XSPReplyException(exception);
             }
         }
     }
@@ -661,8 +659,7 @@ public class ControllerServer implements Closeable {
             String priv = (privilege == XOWLPrivilege.ADMIN ? Schema.ADMIN_ADMINOF : (privilege == XOWLPrivilege.WRITE ? Schema.ADMIN_CANWRITE : (privilege == XOWLPrivilege.READ ? Schema.ADMIN_CANREAD : null)));
             if (priv == null)
                 return XSPReplyNotFound.instance();
-            boolean success = doChangeUserPrivilege(target, db, priv, true);
-            return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
+            return doChangeUserPrivilege(target, db, priv, true);
         }
         return XSPReplyUnauthorized.instance();
     }
@@ -689,8 +686,7 @@ public class ControllerServer implements Closeable {
             String priv = (privilege == XOWLPrivilege.ADMIN ? Schema.ADMIN_ADMINOF : (privilege == XOWLPrivilege.WRITE ? Schema.ADMIN_CANWRITE : (privilege == XOWLPrivilege.READ ? Schema.ADMIN_CANREAD : null)));
             if (priv == null)
                 return XSPReplyNotFound.instance();
-            boolean success = doChangeUserPrivilege(target, db, priv, false);
-            return success ? XSPReplySuccess.instance() : XSPReplyFailure.instance();
+            return doChangeUserPrivilege(target, db, priv, false);
         }
         return XSPReplyUnauthorized.instance();
     }
@@ -1526,22 +1522,22 @@ public class ControllerServer implements Closeable {
      * @param database  The database
      * @param privilege The privilege
      * @param positive  Whether to add or remove the privilege
-     * @return Whether the operation succeeded
+     * @return The protocol reply
      */
-    private boolean doChangeUserPrivilege(UserImpl user, DatabaseImpl database, String privilege, boolean positive) {
+    private XSPReply doChangeUserPrivilege(UserImpl user, DatabaseImpl database, String privilege, boolean positive) {
         synchronized (adminDB) {
             Collection<ProxyObject> dbs = user.userController.proxy.getObjectValues(privilege);
             if (positive) {
                 if (dbs.contains(database.dbController.proxy))
-                    return false;
+                    return new XSPReplyApiError(ApiV1.ERROR_PRIVILEGE_ALREADY_GRANTED);
                 user.userController.proxy.addValue(privilege, database.dbController.proxy);
             } else {
                 if (!dbs.contains(database.dbController.proxy))
-                    return false;
+                    return new XSPReplyApiError(ApiV1.ERROR_PRIVILEGE_NOT_GRANTED);
                 user.userController.proxy.removeValue(privilege, database.dbController.proxy);
             }
             adminDB.dbController.getRepository().getStore().commit();
         }
-        return true;
+        return XSPReplySuccess.instance();
     }
 }

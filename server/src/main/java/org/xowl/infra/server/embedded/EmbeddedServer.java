@@ -23,7 +23,6 @@ import org.xowl.infra.server.api.XOWLServer;
 import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.impl.*;
 import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.server.xsp.XSPReplyFailure;
 import org.xowl.infra.server.xsp.XSPReplyResult;
 import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.utils.logging.Logger;
@@ -90,7 +89,7 @@ public class EmbeddedServer implements XOWLServer, Closeable {
 
     @Override
     public XSPReply logout() {
-        return XSPReplyFailure.instance();
+        return XSPReplyUnsupported.instance();
     }
 
     @Override

@@ -20,7 +20,7 @@ package org.xowl.infra.server.base;
 import org.xowl.hime.redist.ASTNode;
 import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.server.xsp.XSPReplyFailure;
+import org.xowl.infra.server.xsp.XSPReplyUnsupported;
 import org.xowl.infra.utils.TextUtils;
 
 /**
@@ -70,12 +70,12 @@ public class BaseUser implements XOWLUser {
 
     @Override
     public XSPReply updatePassword(String password) {
-        return XSPReplyFailure.instance();
+        return XSPReplyUnsupported.instance();
     }
 
     @Override
     public XSPReply getPrivileges() {
-        return XSPReplyFailure.instance();
+        return XSPReplyUnsupported.instance();
     }
 
     @Override
