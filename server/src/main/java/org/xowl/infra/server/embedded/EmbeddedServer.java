@@ -21,12 +21,11 @@ import org.xowl.infra.server.ServerConfiguration;
 import org.xowl.infra.server.api.XOWLDatabase;
 import org.xowl.infra.server.api.XOWLServer;
 import org.xowl.infra.server.api.XOWLUser;
-import org.xowl.infra.server.impl.UserImpl;
+import org.xowl.infra.server.impl.*;
 import org.xowl.infra.server.xsp.XSPReply;
 import org.xowl.infra.server.xsp.XSPReplyFailure;
 import org.xowl.infra.server.xsp.XSPReplyResult;
 import org.xowl.infra.server.xsp.XSPReplyUnsupported;
-import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.utils.logging.Logger;
 
 import java.io.Closeable;
@@ -41,7 +40,7 @@ public class EmbeddedServer implements XOWLServer, Closeable {
     /**
      * The server controller
      */
-    private final EmbeddedController controller;
+    private final ControllerServer controller;
     /**
      * The client user to use
      */
@@ -55,10 +54,15 @@ public class EmbeddedServer implements XOWLServer, Closeable {
      * @throws Exception When the location cannot be accessed
      */
     public EmbeddedServer(Logger logger, ServerConfiguration configuration) throws Exception {
-        this.controller = new EmbeddedController(logger, configuration) {
+        this.controller = new ControllerServer(logger, configuration) {
             @Override
-            protected UserImpl newUser(ProxyObject proxy) {
-                return new EmbeddedUser(proxy, EmbeddedServer.this);
+            protected DatabaseImpl newDB(ControllerDatabase dbController) {
+                return new EmbeddedDatabase(logger, this, dbController, admin);
+            }
+
+            @Override
+            protected UserImpl newUser(ControllerUser userController) {
+                return new EmbeddedUser(this, userController);
             }
         };
         this.admin = controller.getPrincipal(configuration.getAdminDefaultUser());
@@ -167,26 +171,5 @@ public class EmbeddedServer implements XOWLServer, Closeable {
     @Override
     public void close() throws IOException {
         controller.close();
-    }
-
-    /**
-     * Updates the password of the user
-     *
-     * @param user     The target user
-     * @param password The new password
-     * @return The protocol reply
-     */
-    XSPReply userUpdatePassword(UserImpl user, String password) {
-        return controller.changePassword(user, password);
-    }
-
-    /**
-     * Gets the privileges assigned to a user
-     *
-     * @param user The target user
-     * @return The protocol reply
-     */
-    XSPReply userGetPrivileges(String user) {
-        return controller.getUserPrivileges(admin, user);
     }
 }

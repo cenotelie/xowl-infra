@@ -20,11 +20,13 @@ package org.xowl.infra.server.embedded;
 import org.xowl.infra.server.api.XOWLRule;
 import org.xowl.infra.server.api.XOWLStoredProcedure;
 import org.xowl.infra.server.api.XOWLStoredProcedureContext;
+import org.xowl.infra.server.api.XOWLUser;
 import org.xowl.infra.server.impl.ControllerDatabase;
+import org.xowl.infra.server.impl.ControllerServer;
 import org.xowl.infra.server.impl.DatabaseImpl;
+import org.xowl.infra.server.impl.UserImpl;
 import org.xowl.infra.server.xsp.*;
 import org.xowl.infra.store.EntailmentRegime;
-import org.xowl.infra.store.ProxyObject;
 import org.xowl.infra.store.rdf.Quad;
 import org.xowl.infra.store.rdf.RDFRuleStatus;
 import org.xowl.infra.store.sparql.Command;
@@ -49,50 +51,37 @@ class EmbeddedDatabase extends DatabaseImpl {
      */
     private final Logger logger;
     /**
-     * The parent server
+     * The administrator user
      */
-    private final EmbeddedServer server;
-
-
-    /**
-     * Initializes this structure
-     *
-     * @param logger     The logger for this database
-     * @param controller The associated database controller
-     * @param proxy      The proxy object that represents the database in the administration database
-     */
-    public EmbeddedDatabase(Logger logger, ControllerDatabase controller, ProxyObject proxy, EmbeddedServer server) {
-        super(controller, proxy);
-        this.logger = logger;
-        this.server = server;
-    }
+    private final UserImpl admin;
 
     /**
      * Initializes this structure
      *
-     * @param logger     The logger for this database
-     * @param controller The associated database controller
-     * @param proxy      The proxy object that represents the database in the administration database
-     * @param name       The name of the database
+     * @param logger           The logger for this database
+     * @param serverController The parent server controller
+     * @param dbController     The associated database controller
+     * @param admin            The administrator user
      */
-    public EmbeddedDatabase(Logger logger, ControllerDatabase controller, ProxyObject proxy, String name) {
-        super(controller, proxy, name);
+    public EmbeddedDatabase(Logger logger, ControllerServer serverController, ControllerDatabase dbController, UserImpl admin) {
+        super(serverController, dbController);
         this.logger = logger;
+        this.admin = admin;
     }
 
     @Override
     public XSPReply getMetric() {
-        return new XSPReplyResult<>(controller.getMetric());
+        return new XSPReplyResult<>(dbController.getMetric());
     }
 
     @Override
     public XSPReply getMetricSnapshot() {
-        return new XSPReplyResult<>(controller.getMetricSnapshot());
+        return new XSPReplyResult<>(dbController.getMetricSnapshot());
     }
 
     @Override
     public XSPReply sparql(String sparql, List<String> defaultIRIs, List<String> namedIRIs) {
-        Result result = controller.sparql(sparql, defaultIRIs, namedIRIs, false);
+        Result result = dbController.sparql(sparql, defaultIRIs, namedIRIs, false);
         if (result.isFailure())
             return new XSPReplyFailure(((ResultFailure) result).getMessage());
         return new XSPReplyResult<>(result);
@@ -100,7 +89,7 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply sparql(Command sparql) {
-        Result result = controller.sparql(sparql, false);
+        Result result = dbController.sparql(sparql, false);
         if (result.isFailure())
             return new XSPReplyFailure(((ResultFailure) result).getMessage());
         return new XSPReplyResult<>(result);
@@ -108,13 +97,13 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply getEntailmentRegime() {
-        return new XSPReplyResult<>(controller.getEntailmentRegime());
+        return new XSPReplyResult<>(dbController.getEntailmentRegime());
     }
 
     @Override
     public XSPReply setEntailmentRegime(EntailmentRegime regime) {
         try {
-            controller.setEntailmentRegime(regime);
+            dbController.setEntailmentRegime(regime);
         } catch (Exception exception) {
             logger.error(exception);
             return new XSPReplyFailure(exception.getMessage());
@@ -124,21 +113,44 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply getPrivileges() {
-        return controller.dbg
+        return serverController.getDatabasePrivileges(admin, name);
     }
 
+    @Override
+    public XSPReply grant(XOWLUser user, int privilege) {
+        return grant(user.getName(), privilege);
+    }
 
+    @Override
+    public XSPReply grant(String user, int privilege) {
+        return serverController.grantDatabase(admin, user, name, privilege);
+    }
 
+    @Override
+    public XSPReply revoke(XOWLUser user, int privilege) {
+        return revoke(user.getName(), privilege);
+    }
 
+    @Override
+    public XSPReply revoke(String user, int privilege) {
+        return serverController.revokeDatabase(admin, user, name, privilege);
+    }
 
-
-
-
+    @Override
+    public XSPReply getRules() {
+        try {
+            Collection<XOWLRule> rules = dbController.getRules();
+            return new XSPReplyResultCollection<>(rules);
+        } catch (IOException exception) {
+            logger.error(exception);
+            return new XSPReplyFailure(exception.getMessage());
+        }
+    }
 
     @Override
     public XSPReply getRule(String name) {
         try {
-            XOWLRule rule = controller.getRule(name);
+            XOWLRule rule = dbController.getRule(name);
             if (rule == null)
                 return XSPReplyNotFound.instance();
             return new XSPReplyResult<>(rule);
@@ -149,20 +161,9 @@ class EmbeddedDatabase extends DatabaseImpl {
     }
 
     @Override
-    public XSPReply getRules() {
-        try {
-            Collection<XOWLRule> rules = controller.getRules();
-            return new XSPReplyResultCollection<>(rules);
-        } catch (IOException exception) {
-            logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
-        }
-    }
-
-    @Override
     public XSPReply addRule(String content, boolean activate) {
         try {
-            XOWLRule rule = controller.addRule(content, activate);
+            XOWLRule rule = dbController.addRule(content, activate);
             return new XSPReplyResult<>(rule);
         } catch (Exception exception) {
             logger.error(exception);
@@ -172,8 +173,13 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply removeRule(XOWLRule rule) {
+        return removeRule(rule.getName());
+    }
+
+    @Override
+    public XSPReply removeRule(String rule) {
         try {
-            controller.removeRule(rule.getName());
+            dbController.removeRule(rule);
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
@@ -183,8 +189,13 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply activateRule(XOWLRule rule) {
+        return activateRule(rule.getName());
+    }
+
+    @Override
+    public XSPReply activateRule(String rule) {
         try {
-            controller.activateRule(rule.getName());
+            dbController.activateRule(rule);
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
@@ -194,8 +205,13 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply deactivateRule(XOWLRule rule) {
+        return deactivateRule(rule.getName());
+    }
+
+    @Override
+    public XSPReply deactivateRule(String rule) {
         try {
-            controller.deactivateRule(rule.getName());
+            dbController.deactivateRule(rule);
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
@@ -205,8 +221,13 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply getRuleStatus(XOWLRule rule) {
+        return getRuleStatus(rule.getName());
+    }
+
+    @Override
+    public XSPReply getRuleStatus(String rule) {
         try {
-            RDFRuleStatus status = controller.getRuleStatus(rule.getName());
+            RDFRuleStatus status = dbController.getRuleStatus(rule);
             if (status == null)
                 return new XSPReplyFailure("The rule is not active");
             return new XSPReplyResult<>(status);
@@ -217,9 +238,20 @@ class EmbeddedDatabase extends DatabaseImpl {
     }
 
     @Override
+    public XSPReply getStoredProcedures() {
+        try {
+            Collection<XOWLStoredProcedure> procedures = dbController.getStoredProcedures();
+            return new XSPReplyResultCollection<>(procedures);
+        } catch (Exception exception) {
+            logger.error(exception);
+            return new XSPReplyFailure(exception.getMessage());
+        }
+    }
+
+    @Override
     public XSPReply getStoreProcedure(String iri) {
         try {
-            XOWLStoredProcedure procedure = controller.getStoredProcedure(iri);
+            XOWLStoredProcedure procedure = dbController.getStoredProcedure(iri);
             if (procedure == null)
                 return XSPReplyNotFound.instance();
             return new XSPReplyResult<>(procedure);
@@ -230,20 +262,9 @@ class EmbeddedDatabase extends DatabaseImpl {
     }
 
     @Override
-    public XSPReply getStoredProcedures() {
-        try {
-            Collection<XOWLStoredProcedure> procedures = controller.getStoredProcedures();
-            return new XSPReplyResultCollection<>(procedures);
-        } catch (Exception exception) {
-            logger.error(exception);
-            return new XSPReplyFailure(exception.getMessage());
-        }
-    }
-
-    @Override
     public XSPReply addStoredProcedure(String iri, String sparql, Collection<String> parameters) {
         try {
-            XOWLStoredProcedure procedure = controller.addStoredProcedure(iri, sparql, parameters);
+            XOWLStoredProcedure procedure = dbController.addStoredProcedure(iri, sparql, parameters);
             return new XSPReplyResult<>(procedure);
         } catch (Exception exception) {
             logger.error(exception);
@@ -253,8 +274,13 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply removeStoredProcedure(XOWLStoredProcedure procedure) {
+        return removeStoredProcedure(procedure.getName());
+    }
+
+    @Override
+    public XSPReply removeStoredProcedure(String procedure) {
         try {
-            controller.removeStoredProcedure(procedure.getName());
+            dbController.removeStoredProcedure(procedure);
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
@@ -264,8 +290,13 @@ class EmbeddedDatabase extends DatabaseImpl {
 
     @Override
     public XSPReply executeStoredProcedure(XOWLStoredProcedure procedure, XOWLStoredProcedureContext context) {
+        return executeStoredProcedure(procedure.getName(), context);
+    }
+
+    @Override
+    public XSPReply executeStoredProcedure(String procedure, XOWLStoredProcedureContext context) {
         try {
-            Result result = controller.executeStoredProcedure(procedure.getName(), context, false);
+            Result result = dbController.executeStoredProcedure(procedure, context, false);
             if (result.isFailure())
                 return new XSPReplyFailure(((ResultFailure) result).getMessage());
             return new XSPReplyResult<>(result);
@@ -279,7 +310,7 @@ class EmbeddedDatabase extends DatabaseImpl {
     public XSPReply upload(String syntax, String content) {
         try {
             BufferedLogger logger = new BufferedLogger();
-            controller.upload(logger, syntax, content);
+            dbController.upload(logger, syntax, content);
             if (!logger.getErrorMessages().isEmpty())
                 return new XSPReplyFailure(logger.getErrorsAsString());
             return XSPReplySuccess.instance();
@@ -292,13 +323,11 @@ class EmbeddedDatabase extends DatabaseImpl {
     @Override
     public XSPReply upload(Collection<Quad> quads) {
         try {
-            controller.upload(quads);
+            dbController.upload(quads);
             return XSPReplySuccess.instance();
         } catch (Exception exception) {
             logger.error(exception);
             return new XSPReplyFailure(exception.getMessage());
         }
     }
-
-
 }

@@ -17,9 +17,10 @@
 
 package org.xowl.infra.server.embedded;
 
+import org.xowl.infra.server.impl.ControllerServer;
+import org.xowl.infra.server.impl.ControllerUser;
 import org.xowl.infra.server.impl.UserImpl;
 import org.xowl.infra.server.xsp.XSPReply;
-import org.xowl.infra.store.ProxyObject;
 
 /**
  * Represents a user when embedded within another application
@@ -29,28 +30,22 @@ import org.xowl.infra.store.ProxyObject;
  */
 class EmbeddedUser extends UserImpl {
     /**
-     * The parent server
-     */
-    private final EmbeddedServer server;
-
-    /**
      * Initializes this user
      *
-     * @param proxy  The proxy object representing this user in the administration database
-     * @param server The parent server
+     * @param serverController The parent server controller
+     * @param userController   The associated user controller
      */
-    public EmbeddedUser(ProxyObject proxy, EmbeddedServer server) {
-        super(proxy);
-        this.server = server;
+    public EmbeddedUser(ControllerServer serverController, ControllerUser userController) {
+        super(serverController, userController);
     }
 
     @Override
     public XSPReply updatePassword(String password) {
-        return server.userUpdatePassword(this, password);
+        return serverController.updatePassword(this, name, password);
     }
 
     @Override
     public XSPReply getPrivileges() {
-        return server.userGetPrivileges(name);
+        return serverController.getUserPrivileges(this, name);
     }
 }
