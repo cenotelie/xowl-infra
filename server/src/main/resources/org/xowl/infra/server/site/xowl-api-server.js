@@ -1,8 +1,12 @@
 // Copyright (c) 2016 Association Cénotélie (cenotelie.fr)
 // Provided under LGPL v3
 
+/*****************************************************
+ * xOWL Triple Store Server API - V1
+ ****************************************************/
+
 function XOWL(endpoint, useLocal) {
-	this.endpoint = (!endpoint) ? '/api' : endpoint;
+	this.endpoint = (!endpoint) ? '/api/v1' : endpoint;
 	this.useLocal = (!useLocal) ? true : useLocal;
 	if (this.useLocal) {
 		this.userName = localStorage.getItem('xowl.userName');
@@ -21,7 +25,7 @@ XOWL.prototype.getUser = function () {
 
 XOWL.prototype.login = function (callback, login, password) {
 	var _self = this;
-	this.command(function (code, type, content) {
+	this.doRequest(function (code, type, content) {
 		if (code === 200) {
 			_self.userName = login;
 			if (_self.useLocal) {
@@ -35,7 +39,7 @@ XOWL.prototype.login = function (callback, login, password) {
 			}
 			callback(code, type, content);
 		}
-	}, "/me/login?login=" + encodeURIComponent(login) + "&password=" + encodeURIComponent(password), "POST", null, "");
+	}, "/me/login?login=" + encodeURIComponent(login), "POST", "text/plain", password);
 }
 
 XOWL.prototype.logout = function () {
@@ -45,195 +49,235 @@ XOWL.prototype.logout = function () {
 	}
 }
 
+
+
+/*****************************************************
+ * Server Management
+ ****************************************************/
+
 XOWL.prototype.serverShutdown = function (callback) {
-	this.command(callback, "/server?action=shutdown", "POST", null, "");
+	this.doRequest(callback, "/server/shutdown", "POST", null, null);
 }
 
 XOWL.prototype.serverRestart = function (callback) {
-	this.command(callback, "/server?action=restart", "POST", null, "");
+	this.doRequest(callback, "/server/restart", "POST", null, null);
 }
 
-XOWL.prototype.getUsers = function (callback) {
-	this.command(function (code, type, content) {
-		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
-		} else {
-			callback(code, type, content);
-		}
-	}, "/users", "GET", null, "");
+XOWL.prototype.serverGrantAdmin = function (callback, login) {
+	this.doRequest(callback, "/server/grantAdmin?user=" + encodeURIComponent(login), "POST", null, null);
 }
 
-XOWL.prototype.createUser = function (callback, login, pw) {
-	this.command(callback, "/user/" + encodeURIComponent(login), "PUT", null, pw);
+XOWL.prototype.serverRevokeAdmin = function (callback, login) {
+	this.doRequest(callback, "/server/revokeAdmin?user=" + encodeURIComponent(login), "POST", null, null);
 }
 
-XOWL.prototype.deleteUser = function (callback, login) {
-	this.command(callback, "/user/" + encodeURIComponent(login), "DELETE", null, "");
-}
 
-XOWL.prototype.changePassword = function (callback, pw) {
-	this.command(callback, "/user/" + encodeURIComponent(this.getUser()), "PUT", null, pw);
-}
 
-XOWL.prototype.resetPassword = function (callback, login, pw) {
-	this.command(callback, "/user/" + encodeURIComponent(login), "PUT", null, pw);
-}
-
-XOWL.prototype.getUserPrivileges = function (callback, login) {
-	this.command(function (code, type, content) {
-		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
-		} else {
-			callback(code, type, content);
-		}
-	}, "/user/" + encodeURIComponent(login) + "/privileges", "GET", null, "");
-}
-
-XOWL.prototype.getDatabasePrivileges = function (callback, db) {
-	this.command(function (code, type, content) {
-		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
-		} else {
-			callback(code, type, content);
-		}
-	}, "/db/" + encodeURIComponent(db) + "/privileges", "GET", null, "");
-}
-
-XOWL.prototype.grantDB = function (callback, db, right, login) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/privileges?action=grant&user=" + encodeURIComponent(login) + "&access=" + encodeURIComponent(right), "POST", null, "");
-}
-
-XOWL.prototype.revokeDB = function (callback, db, right, login) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/privileges?action=revoke&user=" + encodeURIComponent(login) + "&access=" + encodeURIComponent(right), "POST", null, "");
-}
-
-XOWL.prototype.grantServerAdmin = function (callback, login) {
-	this.command(callback, "/user/" + encodeURIComponent(login) + "/privileges?action=grant&server=&access=" + encodeURIComponent(right), "POST", null, "");
-}
-
-XOWL.prototype.revokeServerAdmin = function (callback, login) {
-	this.command(callback, "/user/" + encodeURIComponent(login) + "/privileges?action=revoke&server=&access=" + encodeURIComponent(right), "POST", null, "");
-}
+/*****************************************************
+ * Databases Management
+ ****************************************************/
 
 XOWL.prototype.getDatabases = function (callback) {
-	this.command(function (code, type, content) {
+	this.doRequest(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
+			callback(code, "application/json", JSON.parse(content));
 		} else {
 			callback(code, type, content);
 		}
-	}, "/databases", "GET", null, "");
+	}, "/databases", "GET", null, null);
 }
 
 XOWL.prototype.createDatabase = function (callback, db) {
-	this.command(callback, "/db/" + encodeURIComponent(db), "PUT", null, "");
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db), "PUT", null, null);
 }
 
 XOWL.prototype.dropDatabase = function (callback, db) {
-	this.command(callback, "/db/" + encodeURIComponent(db), "DELETE", null, "");
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db), "DELETE", null, null);
+}
+
+XOWL.prototype.getDBMetric = function (callback, db) {
+	this.doRequest(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content));
+		} else {
+			callback(code, type, content);
+		}
+	}, "/databases/" + encodeURIComponent(db) + "/metric", "GET", null, null);
+}
+
+XOWL.prototype.getDBMetricSnapshot = function (callback, db) {
+	this.doRequest(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content));
+		} else {
+			callback(code, type, content);
+		}
+	}, "/databases/" + encodeURIComponent(db) + "/statistics", "GET", null, null);
+}
+
+XOWL.prototype.sparql = function (callback, db, sparql) {
+	this.doSPARQL(callback, db, sparql);
 }
 
 XOWL.prototype.getEntailmentFor = function (callback, db) {
-	this.command(function (code, type, content) {
+	this.doRequest(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
+			callback(code, "application/json", JSON.parse(content));
 		} else {
 			callback(code, type, content);
 		}
-	}, "/db/" + encodeURIComponent(db) + "/entailment", "GET", null, "");
+	}, "/databases/" + encodeURIComponent(db) + "/entailment", "GET", null, null);
 }
 
 XOWL.prototype.setEntailmentFor = function (callback, db, regime) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/entailment", "PUT", null, regime);
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db) + "/entailment", "PUT", "text/plain", regime);
+}
+
+XOWL.prototype.getDatabasePrivileges = function (callback, db) {
+	this.doRequest(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content));
+		} else {
+			callback(code, type, content);
+		}
+	}, "/databases/" + encodeURIComponent(db) + "/privileges", "GET", null, null);
+}
+
+XOWL.prototype.grantDB = function (callback, db, right, login) {
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db) + "/privileges/grant?user=" + encodeURIComponent(login) + "&access=" + encodeURIComponent(right), "POST", null, null);
+}
+
+XOWL.prototype.revokeDB = function (callback, db, right, login) {
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db) + "/privileges/revoke?user=" + encodeURIComponent(login) + "&access=" + encodeURIComponent(right), "POST", null, null);
 }
 
 XOWL.prototype.getDBRules = function (callback, db) {
-	this.command(function (code, type, content) {
+	this.doRequest(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
+			callback(code, "application/json", JSON.parse(content));
 		} else {
 			callback(code, type, content);
 		}
-	}, "/db/" + encodeURIComponent(db) + "/rules", "GET", null, "");
+	}, "/databases/" + encodeURIComponent(db) + "/rules", "GET", null, null);
 }
 
 XOWL.prototype.getDBRule = function (callback, db, rule) {
-	this.command(function (code, type, content) {
+	this.doRequest(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
+			callback(code, "application/json", JSON.parse(content));
 		} else {
 			callback(code, type, content);
 		}
-	}, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule), "GET", null, "");
+	}, "/databases/" + encodeURIComponent(db) + "/rules/" + encodeURIComponent(rule), "GET", null, null);
 }
 
 XOWL.prototype.addDBRule = function (callback, db, rule) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/rules", "PUT", "application/x-xowl-rdft", rule);
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db) + "/rules", "PUT", "application/x-xowl-rdft", rule);
 }
 
 XOWL.prototype.removeDBRule = function (callback, db, rule) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule), "DELETE", null, rule);
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db) + "/rules/" + encodeURIComponent(rule), "DELETE", null, null);
 }
 
 XOWL.prototype.activateDBRule = function (callback, db, rule) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule) + "&action=activate", "POST", null, rule);
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db) + "/rules/" + encodeURIComponent(rule) + "/activate", "POST", null, null);
 }
 
 XOWL.prototype.deactivateDBRule = function (callback, db, rule) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule) + "&action=deactivate", "POST", null, rule);
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db) + "/rules/" + encodeURIComponent(rule) + "/deactivate", "POST", null, null);
 }
 
 XOWL.prototype.getDBRuleStatus = function (callback, db, rule) {
-	this.command(function (code, type, content) {
+	this.doRequest(function (code, type, content) {
     		if (code === 200) {
-    			callback(code, "application/json", JSON.parse(content).payload);
+    			callback(code, "application/json", JSON.parse(content));
     		} else {
     			callback(code, type, content);
     		}
-    	}, "/db/" + encodeURIComponent(db) + "/rules?id=" + encodeURIComponent(rule) + "&status=", "GET", null, "");
+    	}, "/databases/" + encodeURIComponent(db) + "/rules/" + encodeURIComponent(rule) + "/status", "GET", null, null);
 }
 
 XOWL.prototype.getDBProcedures = function (callback, db) {
-	this.command(function (code, type, content) {
+	this.doRequest(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
+			callback(code, "application/json", JSON.parse(content));
 		} else {
 			callback(code, type, content);
 		}
-	}, "/db/" + encodeURIComponent(db) + "/procedures", "GET", null, "");
+	}, "/databases/" + encodeURIComponent(db) + "/procedures", "GET", null, null);
 }
 
 XOWL.prototype.getDBProcedure = function (callback, db, procedure) {
-	this.command(function (code, type, content) {
+	this.doRequest(function (code, type, content) {
 		if (code === 200) {
-			callback(code, "application/json", JSON.parse(content).payload);
+			callback(code, "application/json", JSON.parse(content));
 		} else {
 			callback(code, type, content);
 		}
-	}, "/db/" + encodeURIComponent(db) + "/procedures?id=" + encodeURIComponent(procedure), "GET", null, "");
+	}, "/databases/" + encodeURIComponent(db) + "/procedures/" + encodeURIComponent(procedure), "GET", null, null);
 }
 
 XOWL.prototype.addDBProcedure = function (callback, db, procedure) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/procedures", "PUT", "application/json", procedure);
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db) + "/procedures/" + encodeURIComponent(procedure.name), "PUT", "application/json", procedure);
 }
 
 XOWL.prototype.removeDBProcedure = function (callback, db, procedure) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/procedures?id=" + encodeURIComponent(procedure), "DELETE", null, null);
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db) + "/procedures/" + encodeURIComponent(procedure), "DELETE", null, null);
 }
 
 XOWL.prototype.executeDBProcedure = function (callback, db, procedure, context) {
-	this.command(callback, "/db/" + encodeURIComponent(db) + "/procedures?id=" + encodeURIComponent(procedure), "POST", "application/json", context);
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db) + "/procedures/" + encodeURIComponent(procedure), "POST", "application/json", context);
 }
 
 XOWL.prototype.upload = function (callback, db, contentType, content) {
-	this.command(callback, "/db/" + encodeURIComponent(db), "POST", contentType, content);
+	this.doRequest(callback, "/databases/" + encodeURIComponent(db), "POST", contentType, content);
 }
 
-XOWL.prototype.command = function (callback, complement, method, contentType, content) {
-	this.jsCommand(callback, complement, method, contentType, content);
+
+
+/*****************************************************
+ * Users Management
+ ****************************************************/
+
+XOWL.prototype.getUsers = function (callback) {
+	this.doRequest(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content));
+		} else {
+			callback(code, type, content);
+		}
+	}, "/users", "GET", null, null);
 }
 
-XOWL.prototype.jsCommand = function (callback, complement, method, contentType, content) {
+XOWL.prototype.createUser = function (callback, login, pw) {
+	this.doRequest(callback, "/users/" + encodeURIComponent(login), "PUT", "text/plain", pw);
+}
+
+XOWL.prototype.deleteUser = function (callback, login) {
+	this.doRequest(callback, "/users/" + encodeURIComponent(login), "DELETE", null, null);
+}
+
+XOWL.prototype.updatePassword = function (callback, pw) {
+	this.doRequest(callback, "/users/" + encodeURIComponent(this.getUser()), "POST", "text/plain", pw);
+}
+
+XOWL.prototype.getUserPrivileges = function (callback, login) {
+	this.doRequest(function (code, type, content) {
+		if (code === 200) {
+			callback(code, "application/json", JSON.parse(content));
+		} else {
+			callback(code, type, content);
+		}
+	}, "/users/" + encodeURIComponent(login) + "/privileges", "GET", null, null);
+}
+
+
+
+/*****************************************************
+ * Utility API
+ ****************************************************/
+
+XOWL.prototype.doRequest = function (callback, complement, method, contentType, content) {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.onreadystatechange = function () {
 		if (xmlHttp.readyState == 4) {
@@ -254,11 +298,7 @@ XOWL.prototype.jsCommand = function (callback, complement, method, contentType, 
     	xmlHttp.send(content);
 }
 
-XOWL.prototype.sparql = function (callback, db, sparql) {
-	this.jsSPARQL(callback, db, sparql);
-}
-
-XOWL.prototype.jsSPARQL = function (callback, db, sparql) {
+XOWL.prototype.doSPARQL = function (callback, db, sparql) {
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.onreadystatechange = function () {
 		if (xmlHttp.readyState == 4) {
@@ -266,7 +306,7 @@ XOWL.prototype.jsSPARQL = function (callback, db, sparql) {
 			callback(xmlHttp.status, ct, xmlHttp.responseText)
 		}
 	}
-	xmlHttp.open("POST", this.endpoint + "/db/" + db + "/sparql", true);
+	xmlHttp.open("POST", this.endpoint + "/databases/" + db + "/sparql", true);
 	xmlHttp.setRequestHeader("Accept", "application/n-quads, application/sparql-results+json");
 	xmlHttp.setRequestHeader("Content-Type", "application/sparql-query");
 	xmlHttp.withCredentials = true;
