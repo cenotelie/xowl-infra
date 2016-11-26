@@ -12,6 +12,12 @@
 	<description>Provides the facilities for serving datasets on a network</description>
 	<dependencies>
 		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.xowl.infra</groupId>
 			<artifactId>xowl-store</artifactId>
 			<version>2.0.0-SNAPSHOT</version>
