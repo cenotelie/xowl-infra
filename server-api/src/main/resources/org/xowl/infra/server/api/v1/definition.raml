@@ -23,12 +23,12 @@ traits:
     description: Trait for requests that require authentication
     headers:
       Cookie:
-        description: Access token provided by the server
+        description: Authentication token provided by the server
         example: __Secure-xOWL-Token-v1=AAAAA
         required: true
     responses:
       401:
-        description: No user is logged-in, or the security token is invalid (expired).
+        description: No user is logged-in, or the authentication token is invalid.
       403:
         description: The logged-in user is not authorized to perform this operation.
       440:
